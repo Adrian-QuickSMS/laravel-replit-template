@@ -640,25 +640,25 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     <!-- Campaigns Table -->
     <div class="card" style="border: 1px solid #e0e6ed;">
         <div class="card-body p-3">
-            <div class="table-responsive" id="campaignsTable" style="overflow-x: auto;">
-                <table class="table table-hover mb-0 align-middle" style="width: 100%; min-width: 900px; table-layout: fixed;">
+            <div class="table-responsive" id="campaignsTable">
+                <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: auto;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="py-3 px-3 sortable-header" data-sort="account" onclick="toggleSort('account')" style="white-space: nowrap; width: 14%;">
+                            <th class="py-3 px-2 sortable-header" data-sort="account" onclick="toggleSort('account')" style="white-space: nowrap;">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" data-sort="name" onclick="toggleSort('name')" style="white-space: nowrap; width: 25%;">
+                            <th class="py-3 px-2 sortable-header" data-sort="name" onclick="toggleSort('name')" style="white-space: nowrap;">
                                 Campaign Name <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3" style="white-space: nowrap; width: 10%;">Channel</th>
-                            <th class="py-3 px-3" style="white-space: nowrap; width: 12%;">Status</th>
-                            <th class="py-3 px-3 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="white-space: nowrap; width: 13%;">
+                            <th class="py-3 px-2" style="white-space: nowrap;">Channel</th>
+                            <th class="py-3 px-2" style="white-space: nowrap;">Status</th>
+                            <th class="py-3 px-2 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="white-space: nowrap;">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 sortable-header" data-sort="date" onclick="toggleSort('date')" style="white-space: nowrap; width: 14%;">
+                            <th class="py-3 px-2 sortable-header" data-sort="date" onclick="toggleSort('date')" style="white-space: nowrap;">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-3 text-end" style="white-space: nowrap; width: 60px;">Actions</th>
+                            <th class="py-3 px-2 text-end" style="white-space: nowrap; width: 50px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="campaignsTableBody">
@@ -680,7 +680,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                             data-tags="{{ $campaign['tags'] ?? '' }}"
                             data-template="{{ $campaign['template'] ?? '' }}"
                             onclick="openCampaignDrawer('{{ $campaign['id'] }}')">
-                            <td class="py-2 px-3">
+                            <td class="py-2 px-2">
                                 <a href="{{ route('admin.accounts.details', ['accountId' => $campaign['account_id']]) }}" 
                                    class="account-link text-decoration-none" 
                                    onclick="event.stopPropagation();"
@@ -690,7 +690,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                     {{ $campaign['account_name'] }}
                                 </a>
                             </td>
-                            <td class="py-2 px-3">
+                            <td class="py-2 px-2">
                                 <h6 class="mb-0 fs-6">{{ $campaign['name'] }}</h6>
                                 @if(!empty($campaign['tags']))
                                 <small class="text-muted">
@@ -700,7 +700,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 </small>
                                 @endif
                             </td>
-                            <td class="py-2 px-3">
+                            <td class="py-2 px-2">
                                 @if($campaign['channel'] === 'sms_only')
                                 <span class="badge badge-pastel-success">SMS</span>
                                 @elseif($campaign['channel'] === 'basic_rcs')
@@ -709,7 +709,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <span class="badge badge-pastel-info">Rich RCS</span>
                                 @endif
                             </td>
-                            <td class="py-2 px-3 status-cell">
+                            <td class="py-2 px-2 status-cell">
                                 @if($campaign['status'] === 'scheduled')
                                 <span class="badge badge-pastel-warning"><i class="fas fa-clock me-1"></i>Scheduled</span>
                                 @elseif($campaign['status'] === 'sending')
@@ -722,32 +722,34 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <span class="badge badge-pastel-warning"><i class="fas fa-pause-circle me-1"></i>Suspended</span>
                                 @endif
                             </td>
-                            <td class="py-2 px-3">
+                            <td class="py-2 px-2">
                                 <span class="fw-medium">{{ number_format($campaign['recipients_total']) }}</span>
                                 @if(isset($campaign['recipients_delivered']) && $campaign['recipients_delivered'] && $campaign['status'] !== 'scheduled')
                                 <br><small class="text-success">{{ number_format($campaign['recipients_delivered']) }} delivered</small>
                                 @endif
                             </td>
-                            <td class="py-2 px-3">
+                            <td class="py-2 px-2">
                                 {{ \Carbon\Carbon::parse($campaign['send_date'])->format('d M Y') }}
                                 <br><small class="text-muted">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('H:i') }}</small>
                             </td>
-                            <td class="py-2 px-3 text-end" onclick="event.stopPropagation()">
-                                <div class="dropdown">
+                            <td class="py-2 px-2 text-end" onclick="event.stopPropagation()">
+                                <div class="dropdown" style="position: relative;">
                                     <button class="action-dots-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
                                         <i class="fas fa-ellipsis-v"></i>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="z-index: 1050;" onclick="event.stopPropagation()">
-                                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="handleCampaignAction(event, 'view', '{{ $campaign['id'] }}')"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, 'view', '{{ $campaign['id'] }}'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                        @if($campaign['status'] === 'scheduled' || $campaign['status'] === 'sending' || $campaign['status'] === 'suspended')
                                         <li><hr class="dropdown-divider"></li>
+                                        @endif
                                         @if($campaign['status'] === 'scheduled')
-                                        <li><a class="dropdown-item text-warning" href="javascript:void(0)" onclick="handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}')"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
-                                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}')"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}'); return false;"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
                                         @elseif($campaign['status'] === 'sending')
-                                        <li><a class="dropdown-item text-warning" href="javascript:void(0)" onclick="handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}')"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
+                                        <li><a class="dropdown-item text-warning" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, 'suspend', '{{ $campaign['id'] }}'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
                                         @elseif($campaign['status'] === 'suspended')
-                                        <li><a class="dropdown-item text-success" href="javascript:void(0)" onclick="handleCampaignAction(event, 'resume', '{{ $campaign['id'] }}')"><i class="fas fa-play-circle me-2"></i>Resume Campaign</a></li>
-                                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}')"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
+                                        <li><a class="dropdown-item text-success" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, 'resume', '{{ $campaign['id'] }}'); return false;"><i class="fas fa-play-circle me-2"></i>Resume Campaign</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); event.stopPropagation(); handleCampaignAction(event, 'cancel', '{{ $campaign['id'] }}'); return false;"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
                                         @endif
                                     </ul>
                                 </div>
