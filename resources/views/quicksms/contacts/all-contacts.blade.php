@@ -349,16 +349,16 @@
                                             <div class="dropdown-menu dropdown-menu-end border py-0">
                                                 <div class="py-2">
                                                     <a class="dropdown-item" href="#!" onclick="viewContact({{ $contact['id'] }}); return false;">
-                                                        <i class="fas fa-eye me-2 text-primary"></i> View Details
+                                                        <i class="fas fa-eye me-2 text-dark"></i> View Details
                                                     </a>
                                                     <a class="dropdown-item" href="#!" onclick="editContact({{ $contact['id'] }}); return false;">
-                                                        <i class="fas fa-edit me-2 text-info"></i> Edit
+                                                        <i class="fas fa-edit me-2 text-dark"></i> Edit
                                                     </a>
                                                     <a class="dropdown-item" href="#!" onclick="sendMessage({{ $contact['id'] }}); return false;">
-                                                        <i class="fas fa-paper-plane me-2 text-success"></i> Send Message
+                                                        <i class="fas fa-paper-plane me-2 text-dark"></i> Send Message
                                                     </a>
                                                     <a class="dropdown-item" href="#!" onclick="viewTimeline({{ $contact['id'] }}); return false;">
-                                                        <i class="fas fa-history me-2 text-secondary"></i> Activity Timeline
+                                                        <i class="fas fa-history me-2 text-dark"></i> Activity Timeline
                                                     </a>
                                                     <div class="dropdown-divider"></div>
                                                     <a class="dropdown-item text-danger" href="#!" onclick="deleteContact({{ $contact['id'] }}); return false;">
@@ -901,16 +901,16 @@ function renderContactsTable(contacts) {
                     <div class="dropdown-menu dropdown-menu-end border py-0">
                         <div class="py-2">
                             <a class="dropdown-item" href="#!" onclick="viewContact(${contact.id}); return false;">
-                                <i class="fas fa-eye me-2 text-primary"></i> View Details
+                                <i class="fas fa-eye me-2 text-dark"></i> View Details
                             </a>
                             <a class="dropdown-item" href="#!" onclick="editContact(${contact.id}); return false;">
-                                <i class="fas fa-edit me-2 text-info"></i> Edit
+                                <i class="fas fa-edit me-2 text-dark"></i> Edit
                             </a>
                             <a class="dropdown-item" href="#!" onclick="sendMessage(${contact.id}); return false;">
-                                <i class="fas fa-paper-plane me-2 text-success"></i> Send Message
+                                <i class="fas fa-paper-plane me-2 text-dark"></i> Send Message
                             </a>
                             <a class="dropdown-item" href="#!" onclick="viewTimeline(${contact.id}); return false;">
-                                <i class="fas fa-history me-2 text-secondary"></i> Activity Timeline
+                                <i class="fas fa-history me-2 text-dark"></i> Activity Timeline
                             </a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="#!" onclick="deleteContact(${contact.id}); return false;">
