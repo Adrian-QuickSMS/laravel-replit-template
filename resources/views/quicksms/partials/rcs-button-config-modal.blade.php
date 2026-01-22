@@ -161,6 +161,12 @@
                                 </label>
                             </div>
                         </div>
+                        
+                        <div class="mb-0" id="rcsButtonCallbackDataSection">
+                            <label class="form-label small text-muted">Callback Data <span class="badge bg-light text-muted">auto-generated</span></label>
+                            <input type="text" class="form-control form-control-sm bg-light" id="rcsButtonCallbackData" readonly placeholder="Generated on save">
+                            <small class="text-muted">Unique identifier for webhook callbacks (read-only)</small>
+                        </div>
                     </div>
                 </div>
             </div>

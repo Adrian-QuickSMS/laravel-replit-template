@@ -2322,7 +2322,7 @@ function editRcsButton(index) {
         if (descEl) descEl.value = btn.eventDesc || '';
     }
     
-    setRcsButtonTrackingData(btn.tracking);
+    setRcsButtonTrackingData(btn.tracking, btn.callback_data);
     updateRcsButtonUtmVisibility();
     
     var modal = new bootstrap.Modal(document.getElementById('rcsButtonConfigModal'));
@@ -2368,6 +2368,7 @@ function resetRcsButtonTracking() {
     var utmCampaign = document.getElementById('rcsButtonUtmCampaign');
     var utmContent = document.getElementById('rcsButtonUtmContent');
     var trackConversion = document.getElementById('rcsButtonTrackConversion');
+    var callbackDataEl = document.getElementById('rcsButtonCallbackData');
     
     if (trackingConfig) trackingConfig.classList.add('d-none');
     if (chevron) {
@@ -2380,6 +2381,7 @@ function resetRcsButtonTracking() {
     if (utmCampaign) utmCampaign.value = '';
     if (utmContent) utmContent.value = '';
     if (trackConversion) trackConversion.checked = false;
+    if (callbackDataEl) callbackDataEl.value = '';
 }
 
 function toggleRcsButtonAdvanced() {
@@ -2599,7 +2601,7 @@ function getRcsButtonTrackingData(buttonType) {
     return trackingData;
 }
 
-function setRcsButtonTrackingData(tracking) {
+function setRcsButtonTrackingData(tracking, callbackData) {
     var trackingConfig = document.getElementById('rcsButtonTrackingConfig');
     var chevron = document.getElementById('rcsAdvancedChevron');
     var trackingId = document.getElementById('rcsButtonTrackingId');
@@ -2608,8 +2610,13 @@ function setRcsButtonTrackingData(tracking) {
     var utmCampaign = document.getElementById('rcsButtonUtmCampaign');
     var utmContent = document.getElementById('rcsButtonUtmContent');
     var trackConversion = document.getElementById('rcsButtonTrackConversion');
+    var callbackDataEl = document.getElementById('rcsButtonCallbackData');
     
     resetRcsButtonTracking();
+    
+    if (callbackDataEl) {
+        callbackDataEl.value = callbackData || '';
+    }
     
     if (!tracking) return;
     
