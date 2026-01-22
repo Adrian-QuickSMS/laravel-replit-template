@@ -63,27 +63,47 @@
                         <h4 class="mb-1">Verify it's you</h4>
                         <p class="text-muted mb-4">Choose how you want to verify.</p>
                         
-                        <div class="mfa-method-card active mb-3" id="smsMethodCard">
-                            <div class="d-flex align-items-center">
-                                <div class="mfa-method-icon">
-                                    <i class="fas fa-mobile-alt"></i>
+                        <div id="mfaMethodSelection">
+                            <div class="mfa-method-card mb-2" id="totpMethodCard" data-method="totp">
+                                <div class="d-flex align-items-center">
+                                    <div class="mfa-method-icon">
+                                        <i class="fas fa-key"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-medium">Authenticator App</div>
+                                        <small class="text-muted">Use Google Authenticator, Microsoft Authenticator, etc.</small>
+                                    </div>
+                                    <i class="fas fa-check-circle text-primary mfa-method-check"></i>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-medium">Text message (SMS)</div>
-                                    <small class="text-muted">Send code to ****<span id="maskedMobile"></span></small>
+                            </div>
+                            
+                            <div class="mfa-method-card active mb-3" id="smsMethodCard" data-method="sms">
+                                <div class="d-flex align-items-center">
+                                    <div class="mfa-method-icon">
+                                        <i class="fas fa-comment-sms"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-medium">One-time passcode via SMS or RCS</div>
+                                        <small class="text-muted">Send code to ****<span id="maskedMobile"></span></small>
+                                    </div>
+                                    <i class="fas fa-check-circle text-primary mfa-method-check"></i>
                                 </div>
-                                <i class="fas fa-check-circle text-primary mfa-method-check"></i>
                             </div>
                         </div>
                         
                         <form id="mfaForm" novalidate>
                             <div class="mb-4">
-                                <label class="form-label" for="otpCode">Verification Code <span class="text-danger">*</span></label>
+                                <label class="form-label" for="otpCode">
+                                    <span id="codeLabel">Verification Code</span> <span class="text-danger">*</span>
+                                </label>
                                 <input type="text" class="form-control otp-input" id="otpCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code">
                                 <div class="invalid-feedback" id="otpError">Please enter the verification code</div>
-                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                <div class="d-flex justify-content-between align-items-center mt-2" id="smsCodeHelpers">
                                     <small class="text-muted">Code expires in <span id="otpCountdown">5:00</span></small>
                                     <button type="button" class="btn btn-link btn-sm p-0 text-primary" id="resendOtpBtn" disabled>Resend Code</button>
+                                </div>
+                                <div class="mt-2 d-none" id="totpCodeHelpers">
+                                    <small class="text-muted">Enter the code from your authenticator app</small>
                                 </div>
                                 <div class="alert alert-info small mt-3" id="testOtpCode">
                                     <i class="fas fa-info-circle me-2"></i><strong>Test Mode:</strong> Your code is <span class="fw-bold fs-5" id="displayOtp"></span>
@@ -100,7 +120,11 @@
                             </button>
                             
                             <div class="text-center mt-3">
-                                <button type="button" class="btn btn-link text-muted" id="backToLogin">
+                                <a href="javascript:void(0)" class="text-primary small" id="tryAnotherMethod">Try another method</a>
+                            </div>
+                            
+                            <div class="text-center mt-2">
+                                <button type="button" class="btn btn-link text-muted btn-sm" id="backToLogin">
                                     <i class="fas fa-arrow-left me-1"></i> Back to login
                                 </button>
                             </div>
@@ -669,12 +693,54 @@ $(document).ready(function() {
         }, 800);
     });
     
+    var currentMfaMethod = 'sms';
+    
+    $('.mfa-method-card').on('click', function() {
+        var method = $(this).data('method');
+        selectMfaMethod(method);
+    });
+    
+    $('#tryAnotherMethod').on('click', function() {
+        var newMethod = currentMfaMethod === 'sms' ? 'totp' : 'sms';
+        selectMfaMethod(newMethod);
+    });
+    
+    function selectMfaMethod(method) {
+        currentMfaMethod = method;
+        
+        $('.mfa-method-card').removeClass('active');
+        $('.mfa-method-card[data-method="' + method + '"]').addClass('active');
+        
+        $('#otpCode').val('').removeClass('is-invalid');
+        $('#mfaStatus').addClass('d-none');
+        
+        if (method === 'sms') {
+            $('#smsCodeHelpers').removeClass('d-none');
+            $('#totpCodeHelpers').addClass('d-none');
+            $('#testOtpCode').removeClass('d-none');
+            $('#codeLabel').text('Verification Code');
+            sendMfaOtp();
+        } else {
+            $('#smsCodeHelpers').addClass('d-none');
+            $('#totpCodeHelpers').removeClass('d-none');
+            $('#testOtpCode').addClass('d-none');
+            $('#codeLabel').text('Authenticator Code');
+            currentOtp = '123456';
+            if (countdownInterval) clearInterval(countdownInterval);
+        }
+        
+        $('#otpCode').focus();
+        AuditService.log('mfa_method_changed', { method: method });
+    }
+    
     $('#backToLogin').on('click', function() {
         $('#loginStep2').addClass('d-none');
         $('#loginStep1').removeClass('d-none');
         $('#loginStatus').addClass('d-none');
         clearInterval(countdownInterval);
         currentOtp = null;
+        currentMfaMethod = 'sms';
+        selectMfaMethod('sms');
     });
     
     $('#email, #password').on('input', function() {
