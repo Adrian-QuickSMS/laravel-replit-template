@@ -249,7 +249,7 @@
                     </div>
                     
                     <div class="d-none mb-2" id="rcsTextHelper">
-                        <div class="alert alert-info py-2 mb-0">
+                        <div class="alert py-2 mb-0" style="background-color: #f0ebf8; color: #6b5b95; border: none;">
                             <i class="fas fa-info-circle me-1"></i>
                             <span id="rcsHelperText">Messages over 160 characters will be automatically sent as a single RCS message where supported.</span>
                         </div>
