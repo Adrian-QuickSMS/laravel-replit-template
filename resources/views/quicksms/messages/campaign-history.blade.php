@@ -458,12 +458,12 @@ $permissions = [
                 <div id="scheduledActions" style="display: none;">
                     <div class="d-flex gap-2 mb-2">
                         @if($permissions['can_edit'])
-                        <a href="#" id="editCampaignBtn" class="btn btn-light btn-sm flex-fill" onclick="editCampaign(event)">
+                        <a href="#" id="editCampaignBtn" class="btn btn-sm flex-fill" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.5);" onclick="editCampaign(event)">
                             <i class="fas fa-edit me-1"></i>Edit Campaign
                         </a>
                         @endif
                         @if($permissions['can_cancel'])
-                        <button type="button" class="btn btn-outline-light btn-sm flex-fill" onclick="showCancelConfirmation()">
+                        <button type="button" class="btn btn-sm flex-fill" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.5);" onclick="showCancelConfirmation()">
                             <i class="fas fa-times-circle me-1"></i>Cancel
                         </button>
                         @endif
@@ -477,7 +477,7 @@ $permissions = [
                 </div>
                 @if($permissions['can_duplicate'])
                 <div id="duplicateAction">
-                    <button type="button" class="btn btn-outline-light btn-sm w-100" onclick="duplicateCampaign()">
+                    <button type="button" class="btn btn-sm w-100" style="background: transparent; color: white; border: 1px solid rgba(255,255,255,0.5);" onclick="duplicateCampaign()">
                         <i class="fas fa-copy me-1"></i>Duplicate Campaign
                     </button>
                 </div>
