@@ -102,6 +102,18 @@ $permissions = [
     font-size: 0.7rem;
     line-height: 1.4;
 }
+.badge-status-draft {
+    background-color: #e9ecef;
+    color: #495057;
+}
+.badge-channel-sms {
+    background-color: #d4edda;
+    color: #155724;
+}
+.badge-channel-rcs {
+    background-color: #cce5ff;
+    color: #004085;
+}
 .date-preset-btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
@@ -185,6 +197,7 @@ $permissions = [
                                                 <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                                 <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                             </div>
+                                            <div class="form-check"><input class="form-check-input" type="checkbox" value="draft" id="statusDraft"><label class="form-check-label small" for="statusDraft">Draft</label></div>
                                             <div class="form-check"><input class="form-check-input" type="checkbox" value="scheduled" id="statusScheduled"><label class="form-check-label small" for="statusScheduled">Scheduled</label></div>
                                             <div class="form-check"><input class="form-check-input" type="checkbox" value="sending" id="statusSending"><label class="form-check-label small" for="statusSending">Sending</label></div>
                                             <div class="form-check"><input class="form-check-input" type="checkbox" value="complete" id="statusComplete"><label class="form-check-label small" for="statusComplete">Complete</label></div>
@@ -992,7 +1005,106 @@ document.addEventListener('DOMContentLoaded', function() {
             updateDropdownLabel(dropdown);
         });
     });
+    
+    loadDraftsFromStorage();
 });
+
+function loadDraftsFromStorage() {
+    var drafts = JSON.parse(localStorage.getItem('quicksms_drafts') || '[]');
+    if (drafts.length === 0) return;
+    
+    var tbody = document.getElementById('campaignsTableBody');
+    
+    drafts.forEach(function(draft) {
+        var existingRow = document.querySelector('tr[data-id="' + draft.id + '"]');
+        if (existingRow) return;
+        
+        var channelLabel = draft.channel === 'sms_only' ? 'SMS' : (draft.channel === 'basic_rcs' ? 'Basic RCS' : 'Rich RCS');
+        var channelBadgeClass = draft.channel === 'sms_only' ? 'badge-channel-sms' : 'badge-channel-rcs';
+        
+        var createdDate = new Date(draft.created_at);
+        var formattedDate = createdDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        var formattedTime = createdDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+        
+        var row = document.createElement('tr');
+        row.setAttribute('data-id', draft.id);
+        row.setAttribute('data-name', draft.name.toLowerCase());
+        row.setAttribute('data-channel', draft.channel);
+        row.setAttribute('data-status', 'draft');
+        row.setAttribute('data-sender-id', draft.sender_id || '');
+        row.setAttribute('data-rcs-agent', draft.rcs_agent || '');
+        row.setAttribute('data-send-date', draft.created_at);
+        row.setAttribute('data-recipients-total', draft.recipients);
+        row.setAttribute('data-has-tracking', draft.has_tracking);
+        row.setAttribute('data-has-optout', draft.has_optout);
+        row.setAttribute('data-tags', '');
+        row.setAttribute('data-template', draft.template || '');
+        row.className = 'campaign-row';
+        row.style.cursor = 'pointer';
+        row.onclick = function() { openCampaignDrawer(draft.id); };
+        
+        row.innerHTML = '<td>' +
+            '<div class="fw-medium">' + escapeHtml(draft.name) + '</div>' +
+            '<small class="text-muted"><span class="badge ' + channelBadgeClass + ' me-1">' + channelLabel + '</span>' +
+            (draft.sender_id ? '<span class="text-muted">' + escapeHtml(draft.sender_id) + '</span>' : '') + '</small>' +
+            '</td>' +
+            '<td><span class="badge badge-status-draft"><i class="fas fa-file-alt me-1"></i>Draft</span></td>' +
+            '<td>' +
+            '<div>' + draft.recipients + '</div>' +
+            '<small class="text-muted">-</small>' +
+            '</td>' +
+            '<td>' +
+            '<div>' + formattedDate + '</div>' +
+            '<small class="text-muted">' + formattedTime + '</small>' +
+            '</td>' +
+            '<td class="text-end">' +
+            '<a href="/messages/send-message?edit=' + draft.id + '" class="btn btn-sm btn-outline-primary me-1" onclick="event.stopPropagation();" title="Edit Draft">' +
+            '<i class="fas fa-edit"></i>' +
+            '</a>' +
+            '<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteDraft(\'' + draft.id + '\');" title="Delete Draft">' +
+            '<i class="fas fa-trash"></i>' +
+            '</button>' +
+            '</td>';
+        
+        tbody.insertBefore(row, tbody.firstChild);
+    });
+    
+    var visibleCountEl = document.getElementById('visibleCount');
+    var totalCountEl = document.getElementById('totalCount');
+    if (visibleCountEl && totalCountEl) {
+        var totalRows = tbody.querySelectorAll('tr[data-id]').length;
+        visibleCountEl.textContent = totalRows;
+        totalCountEl.textContent = totalRows;
+    }
+}
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function deleteDraft(draftId) {
+    if (!confirm('Are you sure you want to delete this draft?')) return;
+    
+    var drafts = JSON.parse(localStorage.getItem('quicksms_drafts') || '[]');
+    drafts = drafts.filter(function(d) { return d.id !== draftId; });
+    localStorage.setItem('quicksms_drafts', JSON.stringify(drafts));
+    
+    var row = document.querySelector('tr[data-id="' + draftId + '"]');
+    if (row) row.remove();
+    
+    showToast('Draft deleted', 'success');
+    
+    var tbody = document.getElementById('campaignsTableBody');
+    var visibleCountEl = document.getElementById('visibleCount');
+    var totalCountEl = document.getElementById('totalCount');
+    if (visibleCountEl && totalCountEl && tbody) {
+        var totalRows = tbody.querySelectorAll('tr[data-id]').length;
+        visibleCountEl.textContent = totalRows;
+        totalCountEl.textContent = totalRows;
+    }
+}
 
 function updateDropdownLabel(dropdown) {
     var label = dropdown.querySelector('.dropdown-label');

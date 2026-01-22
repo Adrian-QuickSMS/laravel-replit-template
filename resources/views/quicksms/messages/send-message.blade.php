@@ -1086,6 +1086,63 @@
     </div>
 </div>
 
+<div class="modal fade" id="saveDraftModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-3" style="background: linear-gradient(135deg, #886CC0 0%, #a88cd4 100%);">
+                <h5 class="modal-title text-white"><i class="fas fa-save me-2"></i>Save Draft</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Draft Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="draftName" placeholder="Enter a name for this draft">
+                    <small class="text-muted">Give your draft a memorable name so you can find it later</small>
+                </div>
+                <div class="p-3 rounded mb-3" style="background-color: #f0ebf8;">
+                    <h6 class="mb-2"><i class="fas fa-info-circle me-1 text-primary"></i>Draft Summary</h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Channel:</span>
+                            <span id="draftSummaryChannel">SMS</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">Recipients:</span>
+                            <span id="draftSummaryRecipients">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Message:</span>
+                            <span id="draftSummaryMessage" class="text-truncate ms-2" style="max-width: 200px;">No content</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmSaveDraft()"><i class="fas fa-save me-1"></i>Save Draft</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="draftSavedModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-check-circle text-success" style="font-size: 48px;"></i>
+                </div>
+                <h5 class="mb-2">Draft Saved!</h5>
+                <p class="text-muted mb-3">Your campaign has been saved and can be found in Campaign History.</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Continue Editing</button>
+                    <a href="/messages/campaign-history" class="btn btn-primary">View Drafts</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @include('quicksms.partials.rcs-wizard-modal')
 
 <script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106b"></script>
@@ -2380,9 +2437,85 @@ function getOptoutConfiguration() {
     return config;
 }
 
+var saveDraftModal = null;
+var draftSavedModal = null;
+
 function saveDraft() {
-    alert('Draft saved! (TODO: API integration)');
-    console.log('TODO: Save draft via POST /api/campaigns/draft');
+    if (!saveDraftModal) {
+        saveDraftModal = new bootstrap.Modal(document.getElementById('saveDraftModal'));
+    }
+    
+    var channel = document.querySelector('input[name="channel"]:checked');
+    var channelLabel = 'SMS';
+    if (channel) {
+        if (channel.value === 'basic_rcs') channelLabel = 'Basic RCS';
+        else if (channel.value === 'rich_rcs') channelLabel = 'Rich RCS';
+        else channelLabel = 'SMS';
+    }
+    
+    var recipientCount = document.getElementById('recipientCount');
+    var recipients = recipientCount ? recipientCount.textContent : '0';
+    
+    var messageContent = document.getElementById('smsContent').value.trim();
+    var messagePreview = messageContent ? (messageContent.substring(0, 30) + (messageContent.length > 30 ? '...' : '')) : 'No content';
+    
+    document.getElementById('draftSummaryChannel').textContent = channelLabel;
+    document.getElementById('draftSummaryRecipients').textContent = recipients;
+    document.getElementById('draftSummaryMessage').textContent = messagePreview;
+    
+    var existingName = document.getElementById('draftName').value;
+    if (!existingName) {
+        var today = new Date();
+        var defaultName = 'Draft - ' + today.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        document.getElementById('draftName').value = defaultName;
+    }
+    
+    saveDraftModal.show();
+}
+
+function confirmSaveDraft() {
+    var draftName = document.getElementById('draftName').value.trim();
+    if (!draftName) {
+        document.getElementById('draftName').classList.add('is-invalid');
+        document.getElementById('draftName').focus();
+        return;
+    }
+    document.getElementById('draftName').classList.remove('is-invalid');
+    
+    var config = collectCampaignConfig();
+    
+    var draftData = {
+        id: 'draft_' + Date.now(),
+        name: draftName,
+        channel: config.channel,
+        sender_id: config.sender_id || 'Not set',
+        rcs_agent: config.rcs_agent || null,
+        status: 'draft',
+        send_date: null,
+        recipients: config.recipients ? config.recipients.length : 0,
+        delivered: 0,
+        failed: 0,
+        message_content: config.message_content,
+        tags: [],
+        template: config.template || null,
+        has_tracking: config.trackable_link ? 'yes' : 'no',
+        has_optout: config.optout_enabled ? 'yes' : 'no',
+        created_at: new Date().toISOString(),
+        config: config
+    };
+    
+    var drafts = JSON.parse(localStorage.getItem('quicksms_drafts') || '[]');
+    drafts.unshift(draftData);
+    localStorage.setItem('quicksms_drafts', JSON.stringify(drafts));
+    
+    saveDraftModal.hide();
+    
+    if (!draftSavedModal) {
+        draftSavedModal = new bootstrap.Modal(document.getElementById('draftSavedModal'));
+    }
+    draftSavedModal.show();
+    
+    console.log('Draft saved:', draftData);
 }
 
 function clearValidationErrors() {
