@@ -12,7 +12,141 @@
    Admin Blue Palette (Fillow Admin Console)
    Primary: #1e3a5f | Secondary: #2d5a87 | Accent: #4a90d9
    ========================================= */
+:root {
+    --admin-primary: #1e3a5f;
+    --admin-secondary: #2d5a87;
+    --admin-accent: #4a90d9;
+}
 .admin-page { padding: 1.5rem; }
+
+/* =========================================
+   Search & Filter Toolbar (Numbers-style)
+   ========================================= */
+.search-filter-toolbar {
+    background: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.search-filter-toolbar .input-group {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    overflow: hidden;
+}
+.search-filter-toolbar .input-group .input-group-text,
+.search-filter-toolbar .input-group .form-control,
+.search-filter-toolbar .input-group .btn {
+    border: none;
+}
+.search-filter-toolbar .form-control:focus {
+    box-shadow: none;
+}
+.filter-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1.5px solid #c5d3e0;
+    color: var(--admin-primary, #1e3a5f);
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 50px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.filter-pill-btn:hover {
+    background: rgba(30, 58, 95, 0.05);
+    border-color: var(--admin-primary, #1e3a5f);
+    color: var(--admin-primary, #1e3a5f);
+}
+.filter-pill-btn.active {
+    background: rgba(30, 58, 95, 0.08);
+    border-color: var(--admin-primary, #1e3a5f);
+    color: var(--admin-primary, #1e3a5f);
+}
+.filter-pill-btn i {
+    font-size: 0.8rem;
+    color: var(--admin-primary, #1e3a5f);
+}
+.filter-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--admin-primary, #1e3a5f);
+    color: #fff;
+    font-size: 0.7rem;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    margin-left: 0.25rem;
+    padding: 0 5px;
+}
+
+/* =========================================
+   Action Dots Button (Numbers-style)
+   ========================================= */
+#campaignsTableBody .dropdown-menu {
+    z-index: 9999 !important;
+    min-width: 180px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+#campaignsTableBody .dropdown-menu.show {
+    display: block !important;
+    position: fixed !important;
+}
+#campaignsTableBody .dropdown {
+    position: static;
+}
+.action-dots-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    position: relative;
+}
+.action-dots-btn:hover {
+    color: var(--admin-primary, #1e3a5f);
+}
+.action-dots-btn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* =========================================
+   Export Button
+   ========================================= */
+.export-btn {
+    background: transparent;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.85rem;
+    border-radius: 0.375rem;
+}
+.export-btn:hover {
+    background: #f8f9fa;
+    color: #495057;
+}
+
+/* =========================================
+   Table Footer / Pagination
+   ========================================= */
+.table-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+}
+.table-footer .pagination-info {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
 
 /* Status Pill Colors - DO NOT CHANGE (semantic) */
 .badge-pastel-success { background-color: #d1e7dd; color: #0f5132; }
@@ -332,55 +466,60 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="mb-1" style="color: #1e3a5f;">Campaign History</h4>
+            <h4 class="mb-1" style="color: var(--admin-primary); font-weight: 600;">Campaign History</h4>
             <p class="text-muted mb-0">View and manage all customer campaigns across the platform</p>
+        </div>
+        <div>
+            <button class="export-btn" onclick="exportCampaigns()">
+                <i class="fas fa-download me-1"></i> Export
+            </button>
         </div>
     </div>
 
-    <!-- Search and Filter Bar -->
-    <div class="card mb-4" style="border: 1px solid #e0e6ed;">
-        <div class="card-body py-3">
-            <div class="row align-items-center">
-                <div class="col-md-4">
-                    <div class="input-group">
+    <!-- Search and Filter Toolbar (Numbers-style) -->
+    <div class="search-filter-toolbar mb-3">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="search-box" style="max-width: 350px; flex: 1;">
+                <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
                             <i class="fas fa-search text-muted"></i>
-                        </span>
-                        <input type="text" class="form-control border-start-0" id="campaignSearch" placeholder="Search campaigns, accounts, sender IDs...">
-                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()" title="Clear search">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <div class="d-flex justify-content-end gap-2 align-items-center">
-                        <span class="text-muted small">
-                            Showing <span id="visibleCount">{{ count($campaigns) }}</span> of <span id="totalCount">{{ count($campaigns) }}</span> campaigns
-                        </span>
-                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filterPanel" aria-expanded="false" aria-controls="filterPanel">
-                            <i class="fas fa-filter me-1"></i> Filters
-                            <span class="badge bg-primary ms-1 d-none" id="activeFiltersBadge">0</span>
-                        </button>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                <i class="fas fa-sort me-1"></i> Sort
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#" onclick="sortCampaigns('date', 'desc'); return false;"><i class="fas fa-clock me-2"></i>Newest First</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sortCampaigns('date', 'asc'); return false;"><i class="fas fa-clock me-2"></i>Oldest First</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" onclick="sortCampaigns('name', 'asc'); return false;"><i class="fas fa-font me-2"></i>Name A-Z</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sortCampaigns('name', 'desc'); return false;"><i class="fas fa-font me-2"></i>Name Z-A</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" onclick="sortCampaigns('recipients', 'desc'); return false;"><i class="fas fa-users me-2"></i>Most Recipients</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="#" onclick="sortCampaigns('account', 'asc'); return false;"><i class="fas fa-building me-2"></i>Account A-Z</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="sortCampaigns('account', 'desc'); return false;"><i class="fas fa-building me-2"></i>Account Z-A</a></li>
-                            </ul>
-                        </div>
-                    </div>
+                    </span>
+                    <input type="text" class="form-control" id="campaignSearch" placeholder="Search campaigns, accounts, sender IDs..." onkeyup="handleSearch(this.value)">
+                    <button class="btn btn-link text-muted" type="button" onclick="clearSearch()" id="clearSearchBtn" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small">
+                    Showing <span id="visibleCount">{{ count($campaigns) }}</span> of <span id="totalCount">{{ count($campaigns) }}</span> campaigns
+                </span>
+                <button class="filter-pill-btn" type="button" id="filterPillBtn">
+                    <i class="fas fa-filter"></i>
+                    <span>Filters</span>
+                    <span class="filter-count-badge" id="activeFilterCount" style="display: none;">0</span>
+                </button>
+                <div class="dropdown">
+                    <button class="filter-pill-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-sort"></i>
+                        <span>Sort</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('date', 'desc'); return false;"><i class="fas fa-clock me-2"></i>Newest First</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('date', 'asc'); return false;"><i class="fas fa-clock me-2"></i>Oldest First</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('name', 'asc'); return false;"><i class="fas fa-font me-2"></i>Name A-Z</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('name', 'desc'); return false;"><i class="fas fa-font me-2"></i>Name Z-A</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('recipients', 'desc'); return false;"><i class="fas fa-users me-2"></i>Most Recipients</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('account', 'asc'); return false;"><i class="fas fa-building me-2"></i>Account A-Z</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('account', 'desc'); return false;"><i class="fas fa-building me-2"></i>Account Z-A</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
             
             <!-- Collapsible Filter Panel -->
             <div class="collapse mt-3" id="filterPanel">
@@ -555,7 +694,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <span class="badge badge-pastel-info">Rich RCS</span>
                                 @endif
                             </td>
-                            <td class="py-2 px-3">
+                            <td class="py-2 px-3 status-cell">
                                 @if($campaign['status'] === 'scheduled')
                                 <span class="badge badge-pastel-warning"><i class="fas fa-clock me-1"></i>Scheduled</span>
                                 @elseif($campaign['status'] === 'sending')
@@ -564,6 +703,8 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <span class="badge badge-pastel-success"><i class="fas fa-check me-1"></i>Complete</span>
                                 @elseif($campaign['status'] === 'cancelled')
                                 <span class="badge badge-pastel-secondary"><i class="fas fa-ban me-1"></i>Cancelled</span>
+                                @elseif($campaign['status'] === 'suspended')
+                                <span class="badge badge-pastel-warning"><i class="fas fa-pause-circle me-1"></i>Suspended</span>
                                 @endif
                             </td>
                             <td class="py-2 px-3">
@@ -577,9 +718,27 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <br><small class="text-muted">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('H:i') }}</small>
                             </td>
                             <td class="py-2 px-3 text-end">
-                                <button class="btn btn-sm btn-outline-secondary" onclick="event.stopPropagation(); openCampaignDrawer('{{ $campaign['id'] }}');" title="View Details">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                                <div class="dropdown">
+                                    <button class="action-dots-btn" type="button" 
+                                            data-bs-toggle="dropdown" 
+                                            data-bs-auto-close="true"
+                                            onclick="event.stopPropagation();">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" data-action="view" data-id="{{ $campaign['id'] }}"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        @if($campaign['status'] === 'scheduled')
+                                        <li><a class="dropdown-item text-warning" href="#" data-action="suspend" data-id="{{ $campaign['id'] }}"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" data-action="cancel" data-id="{{ $campaign['id'] }}"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
+                                        @elseif($campaign['status'] === 'sending')
+                                        <li><a class="dropdown-item text-warning" href="#" data-action="suspend" data-id="{{ $campaign['id'] }}"><i class="fas fa-pause-circle me-2"></i>Suspend Campaign</a></li>
+                                        @elseif($campaign['status'] === 'suspended')
+                                        <li><a class="dropdown-item text-success" href="#" data-action="resume" data-id="{{ $campaign['id'] }}"><i class="fas fa-play-circle me-2"></i>Resume Campaign</a></li>
+                                        <li><a class="dropdown-item text-danger" href="#" data-action="cancel" data-id="{{ $campaign['id'] }}"><i class="fas fa-ban me-2"></i>Cancel Campaign</a></li>
+                                        @endif
+                                    </ul>
+                                </div>
                             </td>
                         </tr>
                         @empty
@@ -1379,5 +1538,306 @@ function showComingSoon(message) {
     document.getElementById('comingSoonMessage').textContent = message;
     comingSoonModal.show();
 }
+
+function handleSearch(value) {
+    var clearBtn = document.getElementById('clearSearchBtn');
+    clearBtn.style.display = value.length > 0 ? 'block' : 'none';
+    filterCampaigns();
+}
+
+document.getElementById('filterPillBtn').addEventListener('click', function() {
+    var panel = document.getElementById('filterPanel');
+    var bsCollapse = new bootstrap.Collapse(panel, { toggle: true });
+});
+
+document.getElementById('filterPanel').addEventListener('shown.bs.collapse', function() {
+    document.getElementById('filterPillBtn').classList.add('active');
+});
+
+document.getElementById('filterPanel').addEventListener('hidden.bs.collapse', function() {
+    document.getElementById('filterPillBtn').classList.remove('active');
+});
+
+document.getElementById('campaignActionModal').addEventListener('shown.bs.modal', function() {
+    var reasonInput = document.getElementById('actionReason');
+    if (reasonInput) {
+        reasonInput.addEventListener('input', validateActionReason);
+        validateActionReason();
+    }
+});
+
+function validateActionReason() {
+    var reasonInput = document.getElementById('actionReason');
+    var confirmBtn = document.getElementById('actionModalConfirmBtn');
+    if (!reasonInput || !confirmBtn || !pendingCampaignAction) return;
+    
+    var action = pendingCampaignAction.action;
+    var reason = reasonInput.value.trim();
+    
+    if (action === 'resume') {
+        confirmBtn.disabled = false;
+        reasonInput.classList.remove('is-invalid');
+        return;
+    }
+    
+    if (reason.length >= 10) {
+        confirmBtn.disabled = false;
+        reasonInput.classList.remove('is-invalid');
+        reasonInput.classList.add('is-valid');
+    } else {
+        confirmBtn.disabled = true;
+        reasonInput.classList.remove('is-valid');
+    }
+}
+
+document.getElementById('campaignsTableBody').addEventListener('click', function(e) {
+    const actionItem = e.target.closest('[data-action]');
+    if (!actionItem) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const action = actionItem.dataset.action;
+    const campaignId = actionItem.dataset.id;
+    
+    switch(action) {
+        case 'view':
+            openCampaignDrawer(campaignId);
+            break;
+        case 'suspend':
+            confirmSuspendCampaign(campaignId);
+            break;
+        case 'resume':
+            confirmResumeCampaign(campaignId);
+            break;
+        case 'cancel':
+            confirmCancelCampaign(campaignId);
+            break;
+    }
+});
+
+var campaignActionModal = null;
+var pendingCampaignAction = null;
+
+function getCampaignData(campaignId) {
+    var row = document.querySelector('tr[data-id="' + campaignId + '"]');
+    if (!row) return null;
+    var nameCell = row.querySelector('h6');
+    return {
+        id: campaignId,
+        name: nameCell ? nameCell.textContent.trim() : row.dataset.name || 'Unknown',
+        accountName: row.querySelector('.account-link')?.textContent?.trim() || 'Unknown',
+        status: row.dataset.status || 'unknown',
+        recipientsTotal: row.dataset.recipientsTotal || '0'
+    };
+}
+
+function confirmSuspendCampaign(campaignId) {
+    var campaign = getCampaignData(campaignId);
+    if (!campaign) return;
+    
+    pendingCampaignAction = { action: 'suspend', campaignId: campaignId, campaign: campaign };
+    
+    document.getElementById('actionModalTitle').textContent = 'Suspend Campaign';
+    document.getElementById('actionModalTitle').className = 'modal-title text-warning';
+    document.getElementById('actionModalIcon').className = 'fas fa-pause-circle text-warning';
+    document.getElementById('actionModalBody').innerHTML = `
+        <div class="alert alert-warning mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> Suspending this campaign will pause message delivery.
+        </div>
+        <p>You are about to suspend the campaign:</p>
+        <div class="border rounded p-3 bg-light mb-3">
+            <strong>${campaign.name}</strong>
+            <br><small class="text-muted">Account: ${campaign.accountName}</small>
+            <br><small class="text-muted">Recipients: ${Number(campaign.recipientsTotal).toLocaleString()}</small>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Reason for suspension <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="actionReason" rows="2" placeholder="Enter reason for suspending this campaign..." required></textarea>
+        </div>
+    `;
+    document.getElementById('actionModalConfirmBtn').textContent = 'Suspend Campaign';
+    document.getElementById('actionModalConfirmBtn').className = 'btn btn-warning';
+    document.getElementById('actionModalConfirmBtn').disabled = true;
+    
+    if (!campaignActionModal) {
+        campaignActionModal = new bootstrap.Modal(document.getElementById('campaignActionModal'));
+    }
+    campaignActionModal.show();
+}
+
+function confirmResumeCampaign(campaignId) {
+    var campaign = getCampaignData(campaignId);
+    if (!campaign) return;
+    
+    pendingCampaignAction = { action: 'resume', campaignId: campaignId, campaign: campaign };
+    
+    document.getElementById('actionModalTitle').textContent = 'Resume Campaign';
+    document.getElementById('actionModalTitle').className = 'modal-title text-success';
+    document.getElementById('actionModalIcon').className = 'fas fa-play-circle text-success';
+    document.getElementById('actionModalBody').innerHTML = `
+        <p>You are about to resume the campaign:</p>
+        <div class="border rounded p-3 bg-light mb-3">
+            <strong>${campaign.name}</strong>
+            <br><small class="text-muted">Account: ${campaign.accountName}</small>
+            <br><small class="text-muted">Recipients: ${Number(campaign.recipientsTotal).toLocaleString()}</small>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Reason for resuming</label>
+            <textarea class="form-control" id="actionReason" rows="2" placeholder="Optional: Enter reason for resuming this campaign..."></textarea>
+        </div>
+    `;
+    document.getElementById('actionModalConfirmBtn').textContent = 'Resume Campaign';
+    document.getElementById('actionModalConfirmBtn').className = 'btn btn-success';
+    
+    if (!campaignActionModal) {
+        campaignActionModal = new bootstrap.Modal(document.getElementById('campaignActionModal'));
+    }
+    campaignActionModal.show();
+}
+
+function confirmCancelCampaign(campaignId) {
+    var campaign = getCampaignData(campaignId);
+    if (!campaign) return;
+    
+    pendingCampaignAction = { action: 'cancel', campaignId: campaignId, campaign: campaign };
+    
+    document.getElementById('actionModalTitle').textContent = 'Cancel Campaign';
+    document.getElementById('actionModalTitle').className = 'modal-title text-danger';
+    document.getElementById('actionModalIcon').className = 'fas fa-ban text-danger';
+    document.getElementById('actionModalBody').innerHTML = `
+        <div class="alert alert-danger mb-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> This action cannot be undone. Any pending messages will not be sent.
+        </div>
+        <p>You are about to cancel the campaign:</p>
+        <div class="border rounded p-3 bg-light mb-3">
+            <strong>${campaign.name}</strong>
+            <br><small class="text-muted">Account: ${campaign.accountName}</small>
+            <br><small class="text-muted">Recipients: ${Number(campaign.recipientsTotal).toLocaleString()}</small>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Reason for cancellation <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="actionReason" rows="2" placeholder="Enter reason for cancelling this campaign..." required></textarea>
+        </div>
+    `;
+    document.getElementById('actionModalConfirmBtn').textContent = 'Cancel Campaign';
+    document.getElementById('actionModalConfirmBtn').className = 'btn btn-danger';
+    document.getElementById('actionModalConfirmBtn').disabled = true;
+    
+    if (!campaignActionModal) {
+        campaignActionModal = new bootstrap.Modal(document.getElementById('campaignActionModal'));
+    }
+    campaignActionModal.show();
+}
+
+function executeCampaignAction() {
+    if (!pendingCampaignAction) return;
+    
+    var reason = document.getElementById('actionReason')?.value?.trim() || '';
+    var action = pendingCampaignAction.action;
+    var campaign = pendingCampaignAction.campaign;
+    
+    if ((action === 'suspend' || action === 'cancel') && reason.length < 10) {
+        var reasonInput = document.getElementById('actionReason');
+        if (reasonInput) {
+            reasonInput.classList.add('is-invalid');
+            var feedback = reasonInput.nextElementSibling;
+            if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback';
+                reasonInput.parentNode.appendChild(feedback);
+            }
+            feedback.textContent = 'Please provide a reason (minimum 10 characters). Current: ' + reason.length + ' characters.';
+        }
+        return;
+    }
+    
+    var adminEmail = 'admin@quicksms.co.uk';
+    var timestamp = new Date().toISOString();
+    
+    var auditEntry = {
+        timestamp: timestamp,
+        eventType: 'CAMPAIGN_' + action.toUpperCase(),
+        severity: action === 'cancel' ? 'CRITICAL' : 'HIGH',
+        adminEmail: adminEmail,
+        campaignId: campaign.id,
+        campaignName: campaign.name,
+        accountName: campaign.accountName,
+        previousStatus: campaign.status,
+        newStatus: action === 'cancel' ? 'cancelled' : (action === 'suspend' ? 'suspended' : 'sending'),
+        reason: reason,
+        recipientsAffected: campaign.recipientsTotal
+    };
+    
+    console.log('[ADMIN_AUDIT][' + auditEntry.severity + ']', JSON.stringify(auditEntry));
+    
+    var row = document.querySelector('tr[data-id="' + campaign.id + '"]');
+    if (row) {
+        var statusCell = row.querySelector('.status-cell');
+        if (statusCell) {
+            if (action === 'cancel') {
+                row.dataset.status = 'cancelled';
+                statusCell.innerHTML = '<span class="badge badge-pastel-secondary"><i class="fas fa-ban me-1"></i>Cancelled</span>';
+            } else if (action === 'suspend') {
+                row.dataset.status = 'suspended';
+                statusCell.innerHTML = '<span class="badge badge-pastel-warning"><i class="fas fa-pause-circle me-1"></i>Suspended</span>';
+            } else if (action === 'resume') {
+                row.dataset.status = 'sending';
+                statusCell.innerHTML = '<span class="badge badge-pastel-primary"><i class="fas fa-paper-plane me-1"></i>Sending</span>';
+            }
+        }
+    }
+    
+    campaignActionModal.hide();
+    pendingCampaignAction = null;
+    
+    var actionNames = { suspend: 'suspended', resume: 'resumed', cancel: 'cancelled' };
+    showSuccessToast('Campaign ' + actionNames[action] + ' successfully.');
+}
+
+function showSuccessToast(message) {
+    var toast = document.createElement('div');
+    toast.className = 'position-fixed bottom-0 end-0 p-3';
+    toast.style.zIndex = '9999';
+    toast.innerHTML = `
+        <div class="toast show align-items-center text-white bg-success border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.parentElement.remove()"></button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 3000);
+}
+
+function exportCampaigns() {
+    showComingSoon('Campaign export functionality will be available when backend integration is complete.');
+}
 </script>
+
+<!-- Campaign Action Confirmation Modal -->
+<div class="modal fade" id="campaignActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="actionModalTitle">
+                    <i class="fas fa-question-circle me-2" id="actionModalIcon"></i>
+                    Confirm Action
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="actionModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="actionModalConfirmBtn" onclick="executeCampaignAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endpush
