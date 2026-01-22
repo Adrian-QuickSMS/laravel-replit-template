@@ -424,7 +424,8 @@ function filterTags() {
     var visibleCount = 0;
     
     rows.forEach(function(row) {
-        var tagName = row.querySelector('strong').textContent.toLowerCase();
+        var tagNameEl = row.querySelector('td:first-child span:last-child');
+        var tagName = tagNameEl ? tagNameEl.textContent.toLowerCase() : '';
         var source = row.getAttribute('data-source');
         var matchesSearch = tagName.includes(searchTerm);
         var matchesSource = !sourceFilter || source === sourceFilter;
