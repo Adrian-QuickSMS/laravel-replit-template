@@ -210,21 +210,21 @@
                         <p class="text-muted small mb-3">SMS fallback messages will be charged at your agreed SMS rate. RCS messages are billed based on actual delivery.</p>
                         <div class="row g-3">
                             <div class="col-4">
-                                <div class="bg-light p-3 rounded text-center">
-                                    <div class="small text-muted">SMS Rate</div>
-                                    <div class="fw-bold">&pound;{{ number_format($pricing['sms_unit_price'], 3) }}</div>
+                                <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
+                                    <div class="small" style="color: #495057;">SMS Rate</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($pricing['sms_unit_price'], 3) }}</div>
                                 </div>
                             </div>
                             <div class="col-4">
-                                <div class="bg-light p-3 rounded text-center">
-                                    <div class="small text-muted">RCS Basic</div>
-                                    <div class="fw-bold">&pound;{{ number_format($pricing['rcs_basic_price'], 3) }}</div>
+                                <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
+                                    <div class="small" style="color: #495057;">RCS Basic</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($pricing['rcs_basic_price'], 3) }}</div>
                                 </div>
                             </div>
                             <div class="col-4">
-                                <div class="bg-light p-3 rounded text-center">
-                                    <div class="small text-muted">RCS Single</div>
-                                    <div class="fw-bold">&pound;{{ number_format($pricing['rcs_single_price'], 3) }}</div>
+                                <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
+                                    <div class="small" style="color: #495057;">RCS Single</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($pricing['rcs_single_price'], 3) }}</div>
                                 </div>
                             </div>
                         </div>

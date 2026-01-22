@@ -2441,6 +2441,14 @@ function collectCampaignConfig() {
     var channel = document.querySelector('input[name="channel"]:checked');
     var channelValue = channel ? channel.value : 'sms';
     
+    // Map frontend channel values to backend expected values
+    var channelMap = {
+        'sms': 'sms_only',
+        'rcs_basic': 'basic_rcs',
+        'rcs_rich': 'rich_rcs'
+    };
+    var mappedChannel = channelMap[channelValue] || 'sms_only';
+    
     var senderSelect = document.getElementById('senderIdSelect');
     var senderId = senderSelect ? senderSelect.value : '';
     
@@ -2469,15 +2477,35 @@ function collectCampaignConfig() {
         recipientsList = recipientsList.concat(recipientState.contacts.valid);
     }
     
+    // Calculate recipient counts from all sources
+    var manualCount = recipientState.manual.valid.length;
+    var uploadCount = recipientState.upload.valid.length;
+    var contactsCount = recipientState.contactBook.contacts.reduce(function(acc, c) { return acc + (c.count || 1); }, 0);
+    var listsCount = recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
+    var dynamicListsCount = recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
+    var tagsCount = recipientState.contactBook.tags.reduce(function(acc, t) { return acc + (t.count || 0); }, 0);
+    var totalRecipientCount = manualCount + uploadCount + contactsCount + listsCount + dynamicListsCount + tagsCount;
+    
     return {
-        channel: channelValue,
+        channel: mappedChannel,
         sender_id: senderId,
         rcs_agent: rcsAgent,
         message_content: smsContent,
         template: templateName,
         trackable_link: trackableLinkEnabled,
         optout_enabled: optoutEnabled,
-        recipients: recipientsList
+        recipients: recipientsList,
+        recipient_count: totalRecipientCount,
+        valid_count: totalRecipientCount,
+        invalid_count: recipientState.manual.invalid.length + recipientState.upload.invalid.length,
+        sources: {
+            manual_input: manualCount,
+            file_upload: uploadCount,
+            contacts: contactsCount,
+            lists: listsCount,
+            dynamic_lists: dynamicListsCount,
+            tags: tagsCount
+        }
     };
 }
 
