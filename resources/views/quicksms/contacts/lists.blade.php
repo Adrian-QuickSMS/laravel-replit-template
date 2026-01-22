@@ -637,7 +637,7 @@
                 <input type="hidden" id="viewContactsListId">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <input type="text" class="form-control w-50" id="contactSearchView" placeholder="Search contacts...">
-                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeSelectedFromList()" id="removeFromListBtn" disabled>
+                    <button type="button" class="btn btn-sm" style="background-color: #ffe0e0; color: #dc3545; border: 1px solid #dc3545;" onclick="removeSelectedFromList()" id="removeFromListBtn" disabled>
                         <i class="fas fa-user-minus me-1"></i> Remove Selected
                     </button>
                 </div>
