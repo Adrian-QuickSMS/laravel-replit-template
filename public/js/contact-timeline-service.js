@@ -60,6 +60,9 @@ var ContactTimelineService = (function() {
         MESSAGE_FAILED: 'message_failed',
         MESSAGE_SEEN: 'message_seen',
         REPLY_RECEIVED: 'reply_received',
+        INBOUND_SMS: 'inbound_sms',
+        INBOUND_RCS: 'inbound_rcs',
+        RCS_BUTTON_CLICK: 'rcs_button_click',
         TAG_ADDED: 'tag_added',
         TAG_REMOVED: 'tag_removed',
         LIST_ADDED: 'list_added',
@@ -91,6 +94,9 @@ var ContactTimelineService = (function() {
         message_failed: { icon: 'fa-times-circle', color: 'danger', category: 'delivery', title: 'Delivery Failed' },
         message_seen: { icon: 'fa-eye', color: 'info', category: 'delivery', title: 'Message Seen' },
         reply_received: { icon: 'fa-reply', color: 'info', category: 'inbound', title: 'Reply Received' },
+        inbound_sms: { icon: 'fa-inbox', color: 'info', category: 'inbound', title: 'Inbound SMS received' },
+        inbound_rcs: { icon: 'fa-inbox', color: 'info', category: 'inbound', title: 'Inbound RCS received' },
+        rcs_button_click: { icon: 'fa-hand-pointer', color: 'primary', category: 'inbound', title: 'RCS button clicked' },
         tag_added: { icon: 'fa-tag', color: 'primary', category: 'tags', title: 'Tag Added' },
         tag_removed: { icon: 'fa-tag', color: 'secondary', category: 'tags', title: 'Tag Removed' },
         list_added: { icon: 'fa-list', color: 'primary', category: 'lists', title: 'Added to List' },
@@ -134,6 +140,10 @@ var ContactTimelineService = (function() {
         
         if (['tag_added', 'tag_removed', 'list_added', 'list_removed', 'contact_created', 'contact_updated', 'note_added'].includes(eventType)) {
             sourceModule = SOURCE_MODULES.SYSTEM;
+        }
+        
+        if (['inbound_sms', 'inbound_rcs', 'rcs_button_click'].includes(eventType)) {
+            sourceModule = SOURCE_MODULES.INBOX;
         }
         
         var actorType;
@@ -408,6 +418,108 @@ var ContactTimelineService = (function() {
         };
     }
 
+    function generateInboundMetadata(channel) {
+        var messageId = 'inb_' + generateUUID().substring(0, 12);
+        var conversationId = 'conv_' + generateUUID().substring(0, 8);
+        var threadId = 'thread_' + generateUUID().substring(0, 8);
+        
+        var inboundMessages = [
+            'Yes, I would like more information',
+            'Thanks for the update!',
+            'Can you call me back?',
+            'What are your opening hours?',
+            'Please remove me from this list',
+            'I have a question about my order'
+        ];
+        
+        var channelLabel = channel === 'sms' ? 'SMS' : (CHANNEL_LABELS[channel] || 'RCS');
+        
+        return {
+            channel: channel,
+            channel_label: channelLabel,
+            message_id: messageId,
+            conversation_id: conversationId,
+            thread_id: threadId,
+            message_preview: inboundMessages[Math.floor(Math.random() * inboundMessages.length)]
+        };
+    }
+
+    function generateRcsButtonClickMetadata() {
+        var buttonLabels = [
+            { label: 'View Details', action: 'openUrl', payload: 'https://example.com/product/123' },
+            { label: 'Call Us', action: 'dialPhone', payload: '+441onal234567' },
+            { label: 'Get Directions', action: 'openMap', payload: 'geo:51.5074,-0.1278' },
+            { label: 'Yes, I am interested', action: 'reply', payload: 'INTERESTED_YES' },
+            { label: 'No thanks', action: 'reply', payload: 'INTERESTED_NO' },
+            { label: 'Book Now', action: 'openUrl', payload: 'https://example.com/book' },
+            { label: 'Learn More', action: 'openUrl', payload: 'https://example.com/info' }
+        ];
+        
+        var button = buttonLabels[Math.floor(Math.random() * buttonLabels.length)];
+        var messageId = 'rcs_' + generateUUID().substring(0, 12);
+        var conversationId = 'conv_' + generateUUID().substring(0, 8);
+        var threadId = 'thread_' + generateUUID().substring(0, 8);
+        
+        return {
+            channel: 'rcs_rich',
+            channel_label: 'Rich RCS',
+            message_id: messageId,
+            conversation_id: conversationId,
+            thread_id: threadId,
+            button_label: button.label,
+            button_action: button.action,
+            button_payload: button.payload
+        };
+    }
+
+    function buildInboundSummary(metadata, eventType) {
+        if (eventType === EVENT_TYPES.RCS_BUTTON_CLICK) {
+            return "'" + metadata.button_label + "'";
+        }
+        
+        var channelLabel = metadata.channel_label || 'SMS';
+        return 'Inbound ' + channelLabel + ' received';
+    }
+
+    function buildInboundDetails(metadata, eventType) {
+        var html = '';
+        
+        html += '<div class="mb-1"><strong>Channel:</strong> ' + metadata.channel_label + '</div>';
+        html += '<div class="mb-1"><strong>Message ID:</strong> ' + metadata.message_id + '</div>';
+        html += '<div class="mb-1"><strong>Conversation ID:</strong> <a href="/messages/inbox?thread=' + metadata.thread_id + '" class="text-primary">' + metadata.conversation_id + '</a></div>';
+        
+        if (eventType === EVENT_TYPES.RCS_BUTTON_CLICK) {
+            html += '<div class="mb-1"><strong>Button Label:</strong> ' + metadata.button_label + '</div>';
+            html += '<div class="mb-1"><strong>Action:</strong> ' + formatButtonAction(metadata.button_action) + '</div>';
+            html += '<div class="mb-1"><strong>Payload:</strong> <code class="small">' + metadata.button_payload + '</code></div>';
+        } else if (metadata.message_preview) {
+            html += '<div class="mb-2"><strong>Message:</strong><div class="bg-white border rounded p-2 mt-1 small">' + metadata.message_preview + '</div></div>';
+        }
+        
+        return html;
+    }
+
+    function formatButtonAction(action) {
+        var actionLabels = {
+            'openUrl': 'Open URL',
+            'dialPhone': 'Dial Phone',
+            'openMap': 'Open Map',
+            'reply': 'Quick Reply',
+            'calendar': 'Add to Calendar'
+        };
+        return actionLabels[action] || action;
+    }
+
+    function buildInboundActions(metadata) {
+        return [{
+            type: 'link',
+            label: 'Open Conversation',
+            icon: 'fa-comments',
+            url: '/messages/inbox?thread=' + metadata.thread_id,
+            target: '_self'
+        }];
+    }
+
     function generateEventMetadata(eventType, sourceModule) {
         var campaigns = ['Winter Sale 2026', 'New Year Promo', 'Holiday Greetings', 'Boxing Day Deals', 'January Clearance'];
         var tags = ['VIP Customer', 'Newsletter', 'Promo Subscriber', 'High Value', 'New Lead'];
@@ -493,6 +605,30 @@ var ContactTimelineService = (function() {
                         url: '/messages/inbox?thread=' + replyMeta.thread_id,
                         target: '_self'
                     }]
+                });
+            
+            case EVENT_TYPES.INBOUND_SMS:
+                var inboundSmsMeta = generateInboundMetadata('sms');
+                return Object.assign({}, inboundSmsMeta, {
+                    summary: buildInboundSummary(inboundSmsMeta, eventType),
+                    details: buildInboundDetails(inboundSmsMeta, eventType),
+                    actions: buildInboundActions(inboundSmsMeta)
+                });
+            
+            case EVENT_TYPES.INBOUND_RCS:
+                var inboundRcsMeta = generateInboundMetadata(channels[Math.floor(Math.random() * 3) + 1]);
+                return Object.assign({}, inboundRcsMeta, {
+                    summary: buildInboundSummary(inboundRcsMeta, eventType),
+                    details: buildInboundDetails(inboundRcsMeta, eventType),
+                    actions: buildInboundActions(inboundRcsMeta)
+                });
+            
+            case EVENT_TYPES.RCS_BUTTON_CLICK:
+                var buttonClickMeta = generateRcsButtonClickMetadata();
+                return Object.assign({}, buttonClickMeta, {
+                    summary: buildInboundSummary(buttonClickMeta, eventType),
+                    details: buildInboundDetails(buttonClickMeta, eventType),
+                    actions: buildInboundActions(buttonClickMeta)
                 });
             
             case EVENT_TYPES.TAG_ADDED:
