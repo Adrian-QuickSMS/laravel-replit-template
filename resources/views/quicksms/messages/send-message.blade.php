@@ -1175,6 +1175,13 @@ document.addEventListener('DOMContentLoaded', function() {
 function checkForDuplicatePrefill() {
     var urlParams = new URLSearchParams(window.location.search);
     var duplicateId = urlParams.get('duplicate');
+    var editId = urlParams.get('edit');
+    
+    // Handle edit draft
+    if (editId) {
+        loadDraftForEditing(editId);
+        return;
+    }
     
     if (duplicateId) {
         var configJson = sessionStorage.getItem('campaignDuplicateConfig');
@@ -1202,6 +1209,125 @@ function checkForDuplicatePrefill() {
                 console.error('Error parsing duplicate config:', e);
             }
         }
+    }
+}
+
+function loadDraftForEditing(draftId) {
+    var drafts = JSON.parse(localStorage.getItem('quicksms_drafts') || '[]');
+    var draft = drafts.find(function(d) { return d.id === draftId; });
+    
+    if (!draft) {
+        console.error('Draft not found:', draftId);
+        return;
+    }
+    
+    console.log('Loading draft for editing:', draft);
+    
+    // Set campaign name
+    var campaignNameInput = document.getElementById('campaignName');
+    if (campaignNameInput && draft.name) {
+        campaignNameInput.value = draft.name;
+    }
+    
+    // Set channel
+    if (draft.config && draft.config.channel) {
+        var channelMap = {
+            'sms_only': 'sms',
+            'sms': 'sms',
+            'basic_rcs': 'rcs_basic',
+            'rcs_basic': 'rcs_basic',
+            'rich_rcs': 'rcs_rich',
+            'rcs_rich': 'rcs_rich'
+        };
+        var channelValue = channelMap[draft.config.channel] || 'sms';
+        var channelRadio = document.querySelector('input[name="channel"][value="' + channelValue + '"]');
+        if (channelRadio) {
+            channelRadio.checked = true;
+            selectChannel(channelValue);
+        }
+    }
+    
+    // Set sender ID
+    if (draft.config && draft.config.sender_id) {
+        var senderSelect = document.getElementById('senderIdSelect');
+        if (senderSelect) {
+            for (var i = 0; i < senderSelect.options.length; i++) {
+                if (senderSelect.options[i].value === draft.config.sender_id || 
+                    senderSelect.options[i].text === draft.config.sender_id) {
+                    senderSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Set RCS agent
+    if (draft.config && draft.config.rcs_agent) {
+        var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+        if (rcsAgentSelect) {
+            for (var i = 0; i < rcsAgentSelect.options.length; i++) {
+                if (rcsAgentSelect.options[i].value === draft.config.rcs_agent || 
+                    rcsAgentSelect.options[i].text === draft.config.rcs_agent) {
+                    rcsAgentSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    }
+    
+    // Set message content
+    if (draft.config && draft.config.message_content) {
+        var smsContent = document.getElementById('smsContent');
+        if (smsContent) {
+            smsContent.value = draft.config.message_content;
+            updateCharacterCount();
+            updatePreview();
+        }
+    }
+    
+    // Set recipients
+    if (draft.config && draft.config.recipients && draft.config.recipients.length > 0) {
+        var manualNumbers = document.getElementById('manualNumbers');
+        if (manualNumbers) {
+            manualNumbers.value = draft.config.recipients.join('\n');
+            validateManualNumbers();
+        }
+    }
+    
+    // Set trackable link
+    if (draft.config && draft.config.trackable_link) {
+        var trackableLink = document.getElementById('enableTrackableLink');
+        if (trackableLink) {
+            trackableLink.checked = true;
+        }
+    }
+    
+    // Set opt-out
+    if (draft.config && draft.config.optout_enabled) {
+        var optoutCheckbox = document.getElementById('optoutMessage');
+        if (optoutCheckbox) {
+            optoutCheckbox.checked = true;
+            toggleOptoutOptions();
+        }
+    }
+    
+    // Show notification
+    showDraftLoadedNotification(draft.name);
+    
+    // Clear URL parameter
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+function showDraftLoadedNotification(draftName) {
+    var alertHtml = '<div class="alert alert-dismissible fade show mb-3" role="alert" style="background-color: #f0ebf8; color: #6b5b95; border: none;">' +
+        '<i class="fas fa-file-alt me-2"></i>' +
+        '<strong>Draft loaded:</strong> ' + draftName +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+        '</div>';
+    
+    var cardBody = document.querySelector('.card-body');
+    if (cardBody) {
+        cardBody.insertAdjacentHTML('afterbegin', alertHtml);
     }
 }
 
