@@ -2071,7 +2071,7 @@ function duplicateCampaign() {
     
     campaignDrawer.hide();
     
-    window.location.href = '/messages/send-message?duplicate=' + currentCampaignId;
+    window.location.href = '/messages/send?duplicate=' + currentCampaignId;
 }
 </script>
 @endpush
