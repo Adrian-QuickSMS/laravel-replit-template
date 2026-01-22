@@ -167,31 +167,11 @@
                         </div>
                         
                         <input type="hidden" id="rcsButtonCallbackData">
-                        
-                        <div class="mb-3" id="rcsButtonUtmSection">
-                            <label class="form-label small">UTM Parameters <span class="badge bg-light text-dark small">URL buttons only</span></label>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <input type="text" class="form-control form-control-sm" id="rcsButtonUtmSource" placeholder="utm_source" maxlength="100">
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" class="form-control form-control-sm" id="rcsButtonUtmMedium" placeholder="utm_medium" maxlength="100">
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" class="form-control form-control-sm" id="rcsButtonUtmCampaign" placeholder="utm_campaign" maxlength="100">
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" class="form-control form-control-sm" id="rcsButtonUtmContent" placeholder="utm_content" maxlength="100">
-                                </div>
-                            </div>
-                            <small class="text-muted">Auto-appended to URL when clicked</small>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label small">Tracking ID <span class="text-muted">(optional)</span></label>
-                            <input type="text" class="form-control form-control-sm" id="rcsButtonTrackingId" maxlength="50" placeholder="e.g., promo_cta_jan26">
-                            <small class="text-muted">Custom identifier for analytics</small>
-                        </div>
+                        <input type="hidden" id="rcsButtonTrackingId">
+                        <input type="hidden" id="rcsButtonUtmSource">
+                        <input type="hidden" id="rcsButtonUtmMedium">
+                        <input type="hidden" id="rcsButtonUtmCampaign">
+                        <input type="hidden" id="rcsButtonUtmContent">
                         
                         <div class="mb-0">
                             <div class="form-check">
