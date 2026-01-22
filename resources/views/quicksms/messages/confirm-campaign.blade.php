@@ -79,7 +79,9 @@
                         <div class="col-sm-4 text-muted">RCS Agent</div>
                         <div class="col-sm-8">
                             <div class="d-flex align-items-center">
-                                <img src="{{ $channel['rcs_agent']['logo'] }}" alt="Agent" class="rounded me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                <div class="rounded me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: linear-gradient(135deg, #886CC0 0%, #a78bdb 100%);">
+                                    <i class="fas fa-robot text-white" style="font-size: 14px;"></i>
+                                </div>
                                 <span class="fw-medium">{{ $channel['rcs_agent']['name'] }}</span>
                                 <i class="fas fa-check-circle text-primary ms-2" title="Verified"></i>
                             </div>
