@@ -208,29 +208,29 @@
                         </div>
                     </div>
 
-                    <div id="bulkActionBar" class="d-none mb-3 rounded p-3" style="background-color: #6b5b95;">
+                    <div id="bulkActionBar" class="d-none mb-3 rounded p-3" style="background-color: #f0ebf8; border: 1px solid #d4c8e8;">
                         <div class="d-flex justify-content-between align-items-center flex-wrap">
-                            <span class="text-white"><strong id="selectedCount">0</strong> contact(s) selected</span>
+                            <span style="color: #6b5b95;"><strong id="selectedCount">0</strong> contact(s) selected</span>
                             <div class="d-flex gap-2 flex-wrap mt-2 mt-md-0">
-                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkAddToList()">
+                                <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #6b5b95; color: #6b5b95;" onmouseover="this.style.backgroundColor='#e8e0f0'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkAddToList()">
                                     <i class="fas fa-plus me-1"></i> Add to List
                                 </button>
-                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkRemoveFromList()">
+                                <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #6b5b95; color: #6b5b95;" onmouseover="this.style.backgroundColor='#e8e0f0'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkRemoveFromList()">
                                     <i class="fas fa-minus me-1"></i> Remove from List
                                 </button>
-                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkAddTags()">
+                                <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #6b5b95; color: #6b5b95;" onmouseover="this.style.backgroundColor='#e8e0f0'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkAddTags()">
                                     <i class="fas fa-tag me-1"></i> Add Tags
                                 </button>
-                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkRemoveTags()">
+                                <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #6b5b95; color: #6b5b95;" onmouseover="this.style.backgroundColor='#e8e0f0'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkRemoveTags()">
                                     <i class="fas fa-times me-1"></i> Remove Tags
                                 </button>
-                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkSendMessage()">
+                                <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #6b5b95; color: #6b5b95;" onmouseover="this.style.backgroundColor='#e8e0f0'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkSendMessage()">
                                     <i class="fas fa-paper-plane me-1"></i> Send Message
                                 </button>
-                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.15)'" onmouseout="this.style.backgroundColor='transparent'" onclick="openExportModal()">
+                                <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #6b5b95; color: #6b5b95;" onmouseover="this.style.backgroundColor='#e8e0f0'" onmouseout="this.style.backgroundColor='#fff'" onclick="openExportModal()">
                                     <i class="fas fa-download me-1"></i> Export
                                 </button>
-                                <button type="button" class="btn btn-sm" style="background-color: transparent; border: 1px solid rgba(255,200,200,0.7); color: #ffcccc;" onmouseover="this.style.backgroundColor='rgba(255,100,100,0.2)'" onmouseout="this.style.backgroundColor='transparent'" onclick="bulkDelete()">
+                                <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #dc3545; color: #dc3545;" onmouseover="this.style.backgroundColor='#ffe6e6'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkDelete()">
                                     <i class="fas fa-trash me-1"></i> Delete
                                 </button>
                             </div>
