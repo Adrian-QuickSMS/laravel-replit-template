@@ -2806,7 +2806,14 @@ function continueToConfirmation() {
     
     var channel = document.querySelector('input[name="channel"]:checked');
     var channelValue = channel ? channel.value : 'sms';
-    if (channelValue === 'sms') channelValue = 'sms_only';
+    
+    // Map frontend channel values to backend expected values
+    var channelMap = {
+        'sms': 'sms_only',
+        'rcs_basic': 'basic_rcs',
+        'rcs_rich': 'rich_rcs'
+    };
+    channelValue = channelMap[channelValue] || 'sms_only';
     
     var senderIdSelect = document.getElementById('senderId');
     var senderIdText = senderIdSelect && senderIdSelect.selectedIndex > 0 ? senderIdSelect.options[senderIdSelect.selectedIndex].text : senderId;
@@ -3201,12 +3208,16 @@ function downloadInvalidNumbers() {
 }
 
 function updatePreviewCost() {
-    var recipients = parseInt(document.getElementById('validRecipients').textContent) || 0;
-    var channel = document.querySelector('input[name="channel"]:checked').value;
+    var recipientEl = document.getElementById('previewRecipients');
+    var recipients = recipientEl ? (parseInt(recipientEl.textContent) || 0) : 0;
+    var channelEl = document.querySelector('input[name="channel"]:checked');
+    var channel = channelEl ? channelEl.value : 'sms';
     var costPerMsg = channel === 'sms' ? 0.035 : (channel === 'rcs_basic' ? 0.05 : 0.08);
-    var parts = parseInt(document.getElementById('smsPartCount').textContent) || 1;
+    var partsEl = document.getElementById('smsPartCount');
+    var parts = partsEl ? (parseInt(partsEl.textContent) || 1) : 1;
     var cost = recipients * parts * costPerMsg;
-    document.getElementById('previewCost').textContent = cost.toFixed(2) + ' cr';
+    var costEl = document.getElementById('previewCost');
+    if (costEl) costEl.textContent = cost.toFixed(2) + ' cr';
 }
 
 var testMessageModal = null;
