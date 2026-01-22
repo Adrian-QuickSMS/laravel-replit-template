@@ -364,6 +364,48 @@
     </div>
 </div>
 
+<!-- Merge Confirmation Modal -->
+<div class="modal fade" id="mergeConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title text-dark"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confirm Merge</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-compress-arrows-alt text-warning fa-3x mb-3"></i>
+                <p class="mb-2" id="mergeConfirmMessage">Are you sure you want to merge these tags?</p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm" style="background-color: #6b5b95; color: white;" id="confirmMergeBtn">Merge Tags</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteTagConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title text-dark"><i class="fas fa-trash me-2 text-danger"></i>Delete Tag</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-trash text-danger fa-3x mb-3"></i>
+                <p class="mb-2" id="deleteTagConfirmMessage">Are you sure you want to delete this tag?</p>
+                <p class="text-muted small mb-0" id="deleteTagContactWarning"></p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteTagBtn">Delete Tag</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="viewContactsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -571,43 +613,103 @@ function mergeTag(id, name) {
     modal.show();
 }
 
+var pendingMergeData = null;
+
 function confirmMergeTag() {
     var sourceId = document.getElementById('mergeSourceTagId').value;
     var targetId = document.getElementById('mergeTargetTag').value;
     var sourceName = document.getElementById('mergeSourceTagName').value;
     
     if (!targetId) {
-        alert('Please select a target tag.');
+        showToast('Please select a target tag.', 'warning');
         return;
     }
     
     var targetTag = localTags.find(function(t) { return t.id == targetId; });
     
-    if (confirm('Merge "' + sourceName + '" into "' + targetTag.name + '"?\n\nThis action cannot be undone.')) {
-        console.log('TODO: API call POST /api/tags/' + sourceId + '/merge/' + targetId);
+    // Store pending merge data
+    pendingMergeData = {
+        sourceId: sourceId,
+        targetId: targetId,
+        sourceName: sourceName,
+        targetName: targetTag.name
+    };
+    
+    // Hide merge modal first
+    var mergeModal = bootstrap.Modal.getInstance(document.getElementById('mergeTagModal'));
+    
+    document.getElementById('mergeTagModal').addEventListener('hidden.bs.modal', function onHidden() {
+        document.getElementById('mergeTagModal').removeEventListener('hidden.bs.modal', onHidden);
         
-        localTags = localTags.filter(function(t) { return t.id != sourceId; });
+        // Show confirmation modal
+        document.getElementById('mergeConfirmMessage').innerHTML = 
+            'Merge "<strong>' + pendingMergeData.sourceName + '</strong>" into "<strong>' + pendingMergeData.targetName + '</strong>"?';
         
-        showToast('Tags merged successfully', 'success');
-        
-        var modal = bootstrap.Modal.getInstance(document.getElementById('mergeTagModal'));
-        modal.hide();
-    }
+        var confirmModal = new bootstrap.Modal(document.getElementById('mergeConfirmModal'));
+        confirmModal.show();
+    }, { once: true });
+    
+    mergeModal.hide();
 }
 
-function deleteTag(id, name, contactCount) {
-    var message = 'Are you sure you want to delete the tag "' + name + '"?';
-    if (contactCount > 0) {
-        message += '\n\nThis tag is applied to ' + contactCount.toLocaleString() + ' contact(s). The tag will be removed from all contacts.';
+function executeMergeTag() {
+    if (!pendingMergeData) return;
+    
+    console.log('TODO: API call POST /api/tags/' + pendingMergeData.sourceId + '/merge/' + pendingMergeData.targetId);
+    
+    localTags = localTags.filter(function(t) { return t.id != pendingMergeData.sourceId; });
+    
+    var confirmModal = bootstrap.Modal.getInstance(document.getElementById('mergeConfirmModal'));
+    confirmModal.hide();
+    
+    showToast('Tags merged successfully', 'success');
+    pendingMergeData = null;
+}
+
+// Set up confirm merge button click handler
+document.addEventListener('DOMContentLoaded', function() {
+    var confirmMergeBtn = document.getElementById('confirmMergeBtn');
+    if (confirmMergeBtn) {
+        confirmMergeBtn.addEventListener('click', executeMergeTag);
     }
     
-    if (confirm(message)) {
-        console.log('TODO: API call DELETE /api/tags/' + id);
-        
-        localTags = localTags.filter(function(t) { return t.id != id; });
-        
-        showToast('Tag "' + name + '" deleted', 'success');
+    var confirmDeleteTagBtn = document.getElementById('confirmDeleteTagBtn');
+    if (confirmDeleteTagBtn) {
+        confirmDeleteTagBtn.addEventListener('click', executeDeleteTag);
     }
+});
+
+var pendingDeleteTag = null;
+
+function deleteTag(id, name, contactCount) {
+    pendingDeleteTag = { id: id, name: name, contactCount: contactCount };
+    
+    document.getElementById('deleteTagConfirmMessage').innerHTML = 
+        'Are you sure you want to delete the tag "<strong>' + name + '</strong>"?';
+    
+    if (contactCount > 0) {
+        document.getElementById('deleteTagContactWarning').innerHTML = 
+            'This tag is applied to <strong>' + contactCount.toLocaleString() + '</strong> contact(s). The tag will be removed from all contacts.';
+    } else {
+        document.getElementById('deleteTagContactWarning').textContent = '';
+    }
+    
+    var confirmModal = new bootstrap.Modal(document.getElementById('deleteTagConfirmModal'));
+    confirmModal.show();
+}
+
+function executeDeleteTag() {
+    if (!pendingDeleteTag) return;
+    
+    console.log('TODO: API call DELETE /api/tags/' + pendingDeleteTag.id);
+    
+    localTags = localTags.filter(function(t) { return t.id != pendingDeleteTag.id; });
+    
+    var confirmModal = bootstrap.Modal.getInstance(document.getElementById('deleteTagConfirmModal'));
+    confirmModal.hide();
+    
+    showToast('Tag "' + pendingDeleteTag.name + '" deleted', 'success');
+    pendingDeleteTag = null;
 }
 
 function viewTaggedContacts(id, name) {
