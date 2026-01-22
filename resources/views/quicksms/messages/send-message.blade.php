@@ -2437,6 +2437,50 @@ function getOptoutConfiguration() {
     return config;
 }
 
+function collectCampaignConfig() {
+    var channel = document.querySelector('input[name="channel"]:checked');
+    var channelValue = channel ? channel.value : 'sms';
+    
+    var senderSelect = document.getElementById('senderIdSelect');
+    var senderId = senderSelect ? senderSelect.value : '';
+    
+    var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+    var rcsAgent = (rcsAgentSelect && rcsAgentSelect.value) ? rcsAgentSelect.value : null;
+    
+    var smsContent = document.getElementById('smsContent').value.trim();
+    
+    var templateSelect = document.getElementById('templateSelect');
+    var templateName = (templateSelect && templateSelect.value) ? templateSelect.options[templateSelect.selectedIndex].text : null;
+    
+    var trackableLink = document.getElementById('enableTrackableLink');
+    var trackableLinkEnabled = trackableLink ? trackableLink.checked : false;
+    
+    var optoutCheckbox = document.getElementById('optoutMessage');
+    var optoutEnabled = optoutCheckbox ? optoutCheckbox.checked : false;
+    
+    var recipientsList = [];
+    if (recipientState && recipientState.manual && recipientState.manual.valid) {
+        recipientsList = recipientsList.concat(recipientState.manual.valid);
+    }
+    if (recipientState && recipientState.upload && recipientState.upload.valid) {
+        recipientsList = recipientsList.concat(recipientState.upload.valid);
+    }
+    if (recipientState && recipientState.contacts && recipientState.contacts.valid) {
+        recipientsList = recipientsList.concat(recipientState.contacts.valid);
+    }
+    
+    return {
+        channel: channelValue,
+        sender_id: senderId,
+        rcs_agent: rcsAgent,
+        message_content: smsContent,
+        template: templateName,
+        trackable_link: trackableLinkEnabled,
+        optout_enabled: optoutEnabled,
+        recipients: recipientsList
+    };
+}
+
 var saveDraftModal = null;
 var draftSavedModal = null;
 
