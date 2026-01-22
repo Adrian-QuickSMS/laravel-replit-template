@@ -738,7 +738,7 @@ $permissions = [
                     </div>
                     
                     <h6 class="small text-muted mb-2">De-duplication Summary</h6>
-                    <div class="border rounded p-3 bg-light">
+                    <div class="border rounded p-3" style="background-color: #f0ebf8;">
                         <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
                             <span class="small text-muted">Total Selected</span>
                             <span class="small fw-medium" id="dedupTotalSelected">-</span>
@@ -1595,13 +1595,15 @@ function updateCostSummary(channel, status, total, delivered) {
     
     if (isComplete) {
         costLabel.textContent = 'Final Cost';
-        costStatusBadge.className = 'badge bg-success';
+        costStatusBadge.className = 'badge';
+        costStatusBadge.style.cssText = 'background-color: #d4edda; color: #155724;';
         costStatusBadge.textContent = 'Final';
         costTotalLabel.textContent = 'Total';
         costDisclaimer.style.display = 'none';
     } else {
         costLabel.textContent = 'Estimated Cost';
-        costStatusBadge.className = 'badge bg-warning text-dark';
+        costStatusBadge.className = 'badge';
+        costStatusBadge.style.cssText = 'background-color: #fff3cd; color: #856404;';
         costStatusBadge.textContent = 'Estimated';
         costTotalLabel.textContent = 'Est. Total';
         costDisclaimer.style.display = '';
@@ -1839,10 +1841,18 @@ function updateRecipientBreakdown(total, delivered) {
     var shuffled = allSources.sort(function() { return 0.5 - Math.random(); });
     var usedSources = shuffled.slice(0, numSources);
     
+    var pastelColors = {
+        'primary': { bg: '#cfe2ff', text: '#084298' },
+        'info': { bg: '#cff4fc', text: '#055160' },
+        'success': { bg: '#d1e7dd', text: '#0f5132' },
+        'warning': { bg: '#fff3cd', text: '#664d03' },
+        'purple': { bg: '#f0ebf8', text: '#5a4a7a' },
+        'danger': { bg: '#f8d7da', text: '#842029' }
+    };
+    
     var sourcesHtml = usedSources.map(function(src) {
-        var bgClass = src.color === 'purple' ? 'bg-purple' : 'bg-' + src.color;
-        var style = src.color === 'purple' ? 'background-color: #7c3aed;' : '';
-        return '<span class="badge ' + bgClass + ' text-white" style="' + style + '">' +
+        var colors = pastelColors[src.color] || pastelColors['primary'];
+        return '<span class="badge" style="background-color: ' + colors.bg + '; color: ' + colors.text + ';">' +
                '<i class="fas ' + src.icon + ' me-1"></i>' + src.label + '</span>';
     }).join('');
     
