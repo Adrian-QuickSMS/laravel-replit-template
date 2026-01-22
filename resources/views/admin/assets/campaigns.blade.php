@@ -25,7 +25,15 @@
 }
 .campaign-row { cursor: pointer; }
 .campaign-row:hover { background-color: rgba(30, 58, 95, 0.03); }
-.account-link { color: #1e3a5f; font-weight: 500; }
+.account-link { 
+    color: #1e3a5f; 
+    font-weight: 500; 
+    display: block;
+    max-width: 130px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .account-link:hover { text-decoration: underline; color: #2d5a87; }
 
 /* Admin Blue Accents */
@@ -135,7 +143,9 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <li><a class="dropdown-item" href="#" onclick="sortCampaigns('name', 'desc'); return false;"><i class="fas fa-font me-2"></i>Name Z-A</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="#" onclick="sortCampaigns('recipients', 'desc'); return false;"><i class="fas fa-users me-2"></i>Most Recipients</a></li>
+                                <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="#" onclick="sortCampaigns('account', 'asc'); return false;"><i class="fas fa-building me-2"></i>Account A-Z</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="sortCampaigns('account', 'desc'); return false;"><i class="fas fa-building me-2"></i>Account Z-A</a></li>
                             </ul>
                         </div>
                     </div>
@@ -153,17 +163,20 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <button class="btn btn-outline-secondary w-100 text-start dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
                                     <span class="dropdown-label">All Accounts</span>
                                 </button>
-                                <div class="dropdown-menu w-100 p-2" style="max-height: 250px; overflow-y: auto;">
+                                <div class="dropdown-menu w-100 p-2" style="max-height: 300px; overflow-y: auto;">
+                                    <input type="text" class="form-control form-control-sm mb-2" id="accountFilterSearch" placeholder="Search accounts..." oninput="filterAccountOptions(this.value)">
                                     <div class="d-flex justify-content-between mb-2 px-1">
                                         <a href="#" class="small text-primary select-all-btn">Select All</a>
                                         <a href="#" class="small text-muted clear-all-btn">Clear</a>
                                     </div>
+                                    <div id="accountFilterOptions">
                                     @foreach($accounts as $account)
-                                    <div class="form-check">
+                                    <div class="form-check account-option" data-name="{{ strtolower($account['name']) }}">
                                         <input class="form-check-input" type="checkbox" value="{{ $account['id'] }}" id="account_{{ $account['id'] }}">
                                         <label class="form-check-label small" for="account_{{ $account['id'] }}">{{ $account['name'] }}</label>
                                     </div>
                                     @endforeach
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -286,7 +299,10 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                             <td class="py-2 px-3">
                                 <a href="{{ route('admin.accounts.details', ['accountId' => $campaign['account_id']]) }}" 
                                    class="account-link text-decoration-none" 
-                                   onclick="event.stopPropagation();">
+                                   onclick="event.stopPropagation();"
+                                   title="{{ $campaign['account_name'] }}"
+                                   data-bs-toggle="tooltip"
+                                   data-bs-placement="top">
                                     {{ $campaign['account_name'] }}
                                 </a>
                             </td>
@@ -686,7 +702,28 @@ document.addEventListener('DOMContentLoaded', function() {
             updateDropdownLabel(this.closest('.multiselect-dropdown'));
         });
     });
+    
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 });
+
+// Filter account options in dropdown search
+function filterAccountOptions(searchTerm) {
+    var term = searchTerm.toLowerCase().trim();
+    var options = document.querySelectorAll('#accountFilterOptions .account-option');
+    
+    options.forEach(function(option) {
+        var name = option.dataset.name || '';
+        if (term === '' || name.includes(term)) {
+            option.style.display = '';
+        } else {
+            option.style.display = 'none';
+        }
+    });
+}
 
 function updateDropdownLabel(dropdown) {
     var label = dropdown.querySelector('.dropdown-label');
