@@ -17,6 +17,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     
     Route::get('/messages', 'messages')->name('messages');
     Route::get('/messages/send', 'sendMessage')->name('messages.send');
+    Route::post('/messages/store-campaign-config', 'storeCampaignConfig')->name('messages.store-campaign-config');
     Route::get('/messages/confirm', 'confirmCampaign')->name('messages.confirm');
     Route::get('/messages/inbox', 'inbox')->name('messages.inbox');
     Route::get('/messages/campaign-history', 'campaignHistory')->name('messages.campaign-history');

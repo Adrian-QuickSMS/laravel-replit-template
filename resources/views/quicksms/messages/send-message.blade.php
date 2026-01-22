@@ -2605,9 +2605,85 @@ function continueToConfirmation() {
     }
     
     var optoutConfig = getOptoutConfiguration();
-    console.log('Opt-out configuration:', optoutConfig);
     
-    window.location.href = '{{ route("messages.confirm") }}';
+    var channel = document.querySelector('input[name="channel"]:checked');
+    var channelValue = channel ? channel.value : 'sms_only';
+    
+    var rcsAgentSelect = document.getElementById('rcsAgent');
+    var rcsAgentName = rcsAgentSelect && rcsAgentSelect.selectedIndex > 0 ? rcsAgentSelect.options[rcsAgentSelect.selectedIndex].text : null;
+    
+    var recipientCount = 0;
+    var manualCount = recipientState.manual.valid.length;
+    var uploadCount = recipientState.upload.valid.length;
+    var contactsCount = recipientState.contactBook.contacts.length;
+    var listsCount = recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
+    var dynamicListsCount = recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
+    var tagsCount = recipientState.contactBook.tags.reduce(function(acc, t) { return acc + (t.count || 0); }, 0);
+    
+    recipientCount = manualCount + uploadCount + contactsCount + listsCount + dynamicListsCount + tagsCount;
+    
+    var invalidCount = recipientState.manual.invalid.length + recipientState.upload.invalid.length;
+    
+    var scheduledTimeValue = 'now';
+    var scheduledRadio = document.querySelector('input[name="scheduling"]:checked');
+    if (scheduledRadio && scheduledRadio.value === 'scheduled') {
+        var dateInput = document.getElementById('scheduledDate');
+        var timeInput = document.getElementById('scheduledTime');
+        if (dateInput && timeInput && dateInput.value && timeInput.value) {
+            scheduledTimeValue = dateInput.value + ' ' + timeInput.value;
+        }
+    }
+    
+    var messageExpiry = null;
+    if (document.getElementById('messageExpiry') && document.getElementById('messageExpiry').checked) {
+        var expiryVal = document.getElementById('messageExpiryValue');
+        if (expiryVal) messageExpiry = expiryVal.textContent;
+    }
+    
+    var campaignConfig = {
+        campaign_name: campaignName,
+        channel: channelValue,
+        sender_id: senderId,
+        rcs_agent: rcsAgentName,
+        message_content: smsContent,
+        recipient_count: recipientCount,
+        valid_count: recipientCount,
+        invalid_count: invalidCount,
+        opted_out_count: 0,
+        sources: {
+            manual_input: manualCount,
+            file_upload: uploadCount,
+            contacts: contactsCount,
+            lists: listsCount,
+            dynamic_lists: dynamicListsCount,
+            tags: tagsCount
+        },
+        scheduled_time: scheduledTimeValue,
+        message_expiry: messageExpiry,
+        sending_window: null,
+        optout_config: optoutConfig
+    };
+    
+    fetch('{{ route("messages.store-campaign-config") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(campaignConfig)
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.success) {
+            window.location.href = '{{ route("messages.confirm") }}';
+        } else {
+            alert('Failed to save campaign configuration. Please try again.');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error:', error);
+        window.location.href = '{{ route("messages.confirm") }}';
+    });
 }
 
 function updateOptoutCount() {

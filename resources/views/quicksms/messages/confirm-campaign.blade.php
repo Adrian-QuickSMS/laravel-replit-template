@@ -17,7 +17,7 @@
         <div class="col-xl-8 col-lg-10">
             <div class="card mb-3">
                 <div class="card-header py-3">
-                    <h4 class="card-title mb-0"><i class="fas fa-clipboard-list me-2 text-primary"></i>Campaign Summary</h4>
+                    <h4 class="card-title mb-0"><i class="fas fa-clipboard-list me-2" style="color: #886CC0;"></i>Campaign Summary</h4>
                 </div>
                 <div class="card-body p-4">
                     <div class="row mb-2">
@@ -36,9 +36,9 @@
                         <div class="col-sm-4 text-muted">Scheduled send time</div>
                         <div class="col-sm-8">
                             @if($campaign['scheduled_time'] === 'Immediate')
-                                <span class="badge bg-success">{{ $campaign['scheduled_time'] }}</span>
+                                <span class="badge" style="background-color: #d4edda; color: #155724;">{{ $campaign['scheduled_time'] }}</span>
                             @else
-                                <span class="badge bg-info">Scheduled: {{ $campaign['scheduled_time'] }}</span>
+                                <span class="badge" style="background-color: #f0ebf8; color: #886CC0;">Scheduled: {{ $campaign['scheduled_time'] }}</span>
                             @endif
                         </div>
                     </div>
@@ -55,18 +55,18 @@
 
             <div class="card mb-3">
                 <div class="card-header py-3">
-                    <h4 class="card-title mb-0"><i class="fas fa-broadcast-tower me-2 text-info"></i>Channel & Delivery</h4>
+                    <h4 class="card-title mb-0"><i class="fas fa-broadcast-tower me-2" style="color: #886CC0;"></i>Channel & Delivery</h4>
                 </div>
                 <div class="card-body p-4">
                     <div class="row mb-2">
                         <div class="col-sm-4 text-muted">Channel</div>
                         <div class="col-sm-8">
                             @if($channel['type'] === 'sms_only')
-                                <span class="badge bg-secondary"><i class="fas fa-sms me-1"></i>SMS only</span>
+                                <span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-sms me-1"></i>SMS only</span>
                             @elseif($channel['type'] === 'basic_rcs')
-                                <span class="badge bg-success"><i class="fas fa-comment-dots me-1"></i>Basic RCS with SMS fallback</span>
+                                <span class="badge" style="background-color: #d4edda; color: #155724;"><i class="fas fa-comment-dots me-1"></i>Basic RCS with SMS fallback</span>
                             @else
-                                <span class="badge bg-primary"><i class="fas fa-images me-1"></i>Rich RCS with SMS fallback</span>
+                                <span class="badge" style="background-color: #f0ebf8; color: #886CC0;"><i class="fas fa-images me-1"></i>Rich RCS with SMS fallback</span>
                             @endif
                         </div>
                     </div>
@@ -86,7 +86,7 @@
                         </div>
                     </div>
                     @endif
-                    <div class="alert alert-info py-2 mb-0 mt-2">
+                    <div class="py-2 mb-0 mt-2 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                         <i class="fas fa-info-circle me-2"></i>
                         <small>
                             @if($channel['type'] === 'sms_only')
@@ -103,7 +103,7 @@
 
             <div class="card mb-3">
                 <div class="card-header py-3">
-                    <h4 class="card-title mb-0"><i class="fas fa-users me-2 text-success"></i>Recipients</h4>
+                    <h4 class="card-title mb-0"><i class="fas fa-users me-2" style="color: #886CC0;"></i>Recipients</h4>
                 </div>
                 <div class="card-body p-4">
                     <div class="row text-center mb-3">
@@ -169,7 +169,7 @@
 
             <div class="card mb-3">
                 <div class="card-header py-3">
-                    <h4 class="card-title mb-0"><i class="fas fa-pound-sign me-2 text-warning"></i>Pricing</h4>
+                    <h4 class="card-title mb-0"><i class="fas fa-pound-sign me-2" style="color: #886CC0;"></i>Pricing</h4>
                 </div>
                 <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
@@ -203,7 +203,7 @@
                             <div class="col-6 text-end fw-bold h5 mb-0">&pound;{{ number_format($total, 2) }}</div>
                         </div>
                     @else
-                        <div class="alert alert-warning py-3 mb-3">
+                        <div class="py-3 mb-3 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Pricing Notice:</strong> This campaign includes RCS delivery. Because RCS availability varies by handset and network, the final cost cannot be calculated in advance.
                         </div>

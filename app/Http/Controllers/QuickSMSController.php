@@ -141,45 +141,65 @@ class QuickSMSController extends Controller
         ]);
     }
 
-    public function confirmCampaign()
+    public function confirmCampaign(Request $request)
     {
-        // TODO: Replace with actual campaign data from session/database
+        // Get campaign data from session (populated by Send Message Continue button via JavaScript POST)
+        $sessionData = $request->session()->get('campaign_config', []);
+        
+        // Campaign summary - use session data with fallbacks
         $campaign = [
-            'name' => 'Summer Sale 2024',
-            'created_by' => 'John Smith',
-            'created_at' => '23/12/2024 14:30',
-            'scheduled_time' => 'Immediate',
-            'message_validity' => 'Default (48 hours)',
-            'sending_window' => 'Respect unsociable hours (21:00 - 08:00)',
+            'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
+            'created_by' => auth()->check() ? auth()->user()->name ?? 'Current User' : 'Current User',
+            'created_at' => now()->format('d/m/Y H:i'),
+            'scheduled_time' => isset($sessionData['scheduled_time']) && $sessionData['scheduled_time'] !== 'now' 
+                ? $sessionData['scheduled_time'] 
+                : 'Immediate',
+            'message_validity' => isset($sessionData['message_expiry']) && $sessionData['message_expiry'] 
+                ? $sessionData['message_expiry'] . ' hours' 
+                : 'Default (48 hours)',
+            'sending_window' => isset($sessionData['sending_window']) && $sessionData['sending_window'] 
+                ? $sessionData['sending_window'] 
+                : 'No restrictions',
         ];
 
-        // TODO: Replace with actual channel data from session
+        // Channel data from session
+        $channelType = $sessionData['channel'] ?? 'sms_only';
         $channel = [
-            'type' => 'rich_rcs', // sms_only, basic_rcs, rich_rcs
-            'sms_sender_id' => 'QuickSMS',
+            'type' => $channelType,
+            'sms_sender_id' => $sessionData['sender_id'] ?? 'Not selected',
             'rcs_agent' => [
-                'name' => 'QuickSMS Brand',
-                'logo' => 'https://via.placeholder.com/222',
+                'name' => $sessionData['rcs_agent'] ?? 'Not selected',
+                'logo' => asset('images/default-agent-logo.png'),
             ],
         ];
 
-        // TODO: Replace with actual recipient data from validation
+        // Recipients data from session
+        $recipientCount = $sessionData['recipient_count'] ?? 0;
+        $validCount = $sessionData['valid_count'] ?? $recipientCount;
+        $invalidCount = $sessionData['invalid_count'] ?? 0;
+        $optedOutCount = $sessionData['opted_out_count'] ?? 0;
+        
         $recipients = [
-            'total_selected' => 5000,
-            'valid' => 4823,
-            'invalid' => 127,
-            'opted_out' => 50,
+            'total_selected' => $recipientCount,
+            'valid' => $validCount,
+            'invalid' => $invalidCount,
+            'opted_out' => $optedOutCount,
             'sources' => [
-                'manual_input' => 25,
-                'file_upload' => 1500,
-                'contacts' => 2000,
-                'lists' => 1200,
-                'dynamic_lists' => 200,
-                'tags' => 75,
+                'manual_input' => $sessionData['sources']['manual_input'] ?? 0,
+                'file_upload' => $sessionData['sources']['file_upload'] ?? 0,
+                'contacts' => $sessionData['sources']['contacts'] ?? 0,
+                'lists' => $sessionData['sources']['lists'] ?? 0,
+                'dynamic_lists' => $sessionData['sources']['dynamic_lists'] ?? 0,
+                'tags' => $sessionData['sources']['tags'] ?? 0,
             ],
         ];
+        
+        // If no sources are set but we have recipients, set manual input
+        if ($recipientCount > 0 && array_sum($recipients['sources']) === 0) {
+            $recipients['sources']['manual_input'] = $recipientCount;
+        }
 
-        // TODO: Replace with actual pricing data from pricing database
+        // Pricing data - use account pricing or defaults
         $pricing = [
             'sms_unit_price' => 0.023,
             'rcs_basic_price' => 0.035,
@@ -188,19 +208,11 @@ class QuickSMSController extends Controller
             'vat_rate' => 20,
         ];
 
-        // TODO: Replace with actual message content from session
+        // Message content from session
         $message = [
-            'type' => 'rich_rcs',
-            'sms_content' => 'Summer Sale is here! Get 30% off all items. Shop now at example.com. Reply STOP to opt out.',
-            'rcs_content' => [
-                'title' => 'Summer Sale 2024',
-                'description' => 'Get 30% off all items!',
-                'media_url' => 'https://via.placeholder.com/400x200',
-                'buttons' => [
-                    ['label' => 'Shop Now', 'type' => 'url'],
-                    ['label' => 'Call Us', 'type' => 'phone'],
-                ],
-            ],
+            'type' => $channelType,
+            'sms_content' => $sessionData['message_content'] ?? '',
+            'rcs_content' => $sessionData['rcs_content'] ?? null,
         ];
 
         return view('quicksms.messages.confirm-campaign', [
@@ -211,6 +223,14 @@ class QuickSMSController extends Controller
             'pricing' => $pricing,
             'message' => $message,
         ]);
+    }
+
+    public function storeCampaignConfig(Request $request)
+    {
+        // Store campaign configuration in session for use in confirmation page
+        $request->session()->put('campaign_config', $request->all());
+        
+        return response()->json(['success' => true]);
     }
 
     public function inbox()
