@@ -1156,28 +1156,42 @@ function confirmBulkAddToList() {
     
     var modalEl = document.getElementById('bulkAddToListModal');
     var modal = bootstrap.Modal.getInstance(modalEl);
-    if (modal) modal.hide();
     
-    showProcessingModal('Adding contacts to list...');
-    
-    ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
-        console.log('[BulkAction] Service result:', result);
-        if (result.success) {
-            clearBulkSelection();
+    // Wait for modal to fully hide before showing processing modal
+    var executeAction = function() {
+        console.log('[BulkAction] Modal hidden, showing processing modal');
+        showProcessingModal('Adding contacts to list...');
+        
+        ContactsService.bulkAddToList(ids, selectedList).then(function(result) {
+            console.log('[BulkAction] Service result:', result);
+            if (result.success) {
+                clearBulkSelection();
+                hideProcessingModal(function() {
+                    showSuccessModal('Contacts Added', count + ' contact(s) have been added to "' + selectedList + '" successfully.');
+                });
+            } else {
+                hideProcessingModal(function() {
+                    showErrorModal('Action Failed', result.message || 'Failed to add contacts to list.');
+                });
+            }
+        }).catch(function(error) {
+            console.error('[BulkAction] Error:', error);
             hideProcessingModal(function() {
-                showSuccessModal('Contacts Added', count + ' contact(s) have been added to "' + selectedList + '" successfully.');
+                showErrorModal('Error', 'An unexpected error occurred. Please try again.');
             });
-        } else {
-            hideProcessingModal(function() {
-                showErrorModal('Action Failed', result.message || 'Failed to add contacts to list.');
-            });
-        }
-    }).catch(function(error) {
-        console.error('[BulkAction] Error:', error);
-        hideProcessingModal(function() {
-            showErrorModal('Error', 'An unexpected error occurred. Please try again.');
         });
-    });
+    };
+    
+    if (modal) {
+        var handler = function() {
+            modalEl.removeEventListener('hidden.bs.modal', handler);
+            executeAction();
+        };
+        modalEl.addEventListener('hidden.bs.modal', handler);
+        modal.hide();
+    } else {
+        executeAction();
+    }
 }
 
 function bulkRemoveFromList() {
@@ -1201,28 +1215,42 @@ function confirmBulkRemoveFromList() {
     
     var modalEl = document.getElementById('bulkRemoveFromListModal');
     var modal = bootstrap.Modal.getInstance(modalEl);
-    if (modal) modal.hide();
     
-    showProcessingModal('Removing contacts from list...');
-    
-    ContactsService.bulkRemoveFromList(ids, selectedList).then(function(result) {
-        console.log('[BulkAction] Remove from list result:', result);
-        if (result.success) {
-            clearBulkSelection();
+    // Wait for modal to fully hide before showing processing modal
+    var executeAction = function() {
+        console.log('[BulkAction] Modal hidden, showing processing modal');
+        showProcessingModal('Removing contacts from list...');
+        
+        ContactsService.bulkRemoveFromList(ids, selectedList).then(function(result) {
+            console.log('[BulkAction] Remove from list result:', result);
+            if (result.success) {
+                clearBulkSelection();
+                hideProcessingModal(function() {
+                    showSuccessModal('Contacts Removed', count + ' contact(s) have been removed from "' + selectedList + '" successfully.');
+                });
+            } else {
+                hideProcessingModal(function() {
+                    showErrorModal('Action Failed', result.message || 'Failed to remove contacts from list.');
+                });
+            }
+        }).catch(function(error) {
+            console.error('[BulkAction] Error:', error);
             hideProcessingModal(function() {
-                showSuccessModal('Contacts Removed', count + ' contact(s) have been removed from "' + selectedList + '" successfully.');
+                showErrorModal('Error', 'An unexpected error occurred. Please try again.');
             });
-        } else {
-            hideProcessingModal(function() {
-                showErrorModal('Action Failed', result.message || 'Failed to remove contacts from list.');
-            });
-        }
-    }).catch(function(error) {
-        console.error('[BulkAction] Error:', error);
-        hideProcessingModal(function() {
-            showErrorModal('Error', 'An unexpected error occurred. Please try again.');
         });
-    });
+    };
+    
+    if (modal) {
+        var handler = function() {
+            modalEl.removeEventListener('hidden.bs.modal', handler);
+            executeAction();
+        };
+        modalEl.addEventListener('hidden.bs.modal', handler);
+        modal.hide();
+    } else {
+        executeAction();
+    }
 }
 
 function bulkAddTags() {
@@ -1248,28 +1276,42 @@ function confirmBulkAddTags() {
     
     var modalEl = document.getElementById('bulkAddTagsModal');
     var modal = bootstrap.Modal.getInstance(modalEl);
-    if (modal) modal.hide();
     
-    showProcessingModal('Adding tags to contacts...');
-    
-    ContactsService.bulkAddTags(ids, selectedTags).then(function(result) {
-        console.log('[BulkAction] Add tags result:', result);
-        if (result.success) {
-            clearBulkSelection();
+    // Wait for modal to fully hide before showing processing modal
+    var executeAction = function() {
+        console.log('[BulkAction] Modal hidden, showing processing modal');
+        showProcessingModal('Adding tags to contacts...');
+        
+        ContactsService.bulkAddTags(ids, selectedTags).then(function(result) {
+            console.log('[BulkAction] Add tags result:', result);
+            if (result.success) {
+                clearBulkSelection();
+                hideProcessingModal(function() {
+                    showSuccessModal('Tags Added', tagCount + ' tag(s) have been added to ' + count + ' contact(s) successfully.');
+                });
+            } else {
+                hideProcessingModal(function() {
+                    showErrorModal('Action Failed', result.message || 'Failed to add tags.');
+                });
+            }
+        }).catch(function(error) {
+            console.error('[BulkAction] Error:', error);
             hideProcessingModal(function() {
-                showSuccessModal('Tags Added', tagCount + ' tag(s) have been added to ' + count + ' contact(s) successfully.');
+                showErrorModal('Error', 'An unexpected error occurred. Please try again.');
             });
-        } else {
-            hideProcessingModal(function() {
-                showErrorModal('Action Failed', result.message || 'Failed to add tags.');
-            });
-        }
-    }).catch(function(error) {
-        console.error('[BulkAction] Error:', error);
-        hideProcessingModal(function() {
-            showErrorModal('Error', 'An unexpected error occurred. Please try again.');
         });
-    });
+    };
+    
+    if (modal) {
+        var handler = function() {
+            modalEl.removeEventListener('hidden.bs.modal', handler);
+            executeAction();
+        };
+        modalEl.addEventListener('hidden.bs.modal', handler);
+        modal.hide();
+    } else {
+        executeAction();
+    }
 }
 
 function bulkRemoveTags() {
@@ -1295,28 +1337,42 @@ function confirmBulkRemoveTags() {
     
     var modalEl = document.getElementById('bulkRemoveTagsModal');
     var modal = bootstrap.Modal.getInstance(modalEl);
-    if (modal) modal.hide();
     
-    showProcessingModal('Removing tags from contacts...');
-    
-    ContactsService.bulkRemoveTags(ids, selectedTags).then(function(result) {
-        console.log('[BulkAction] Remove tags result:', result);
-        if (result.success) {
-            clearBulkSelection();
+    // Wait for modal to fully hide before showing processing modal
+    var executeAction = function() {
+        console.log('[BulkAction] Modal hidden, showing processing modal');
+        showProcessingModal('Removing tags from contacts...');
+        
+        ContactsService.bulkRemoveTags(ids, selectedTags).then(function(result) {
+            console.log('[BulkAction] Remove tags result:', result);
+            if (result.success) {
+                clearBulkSelection();
+                hideProcessingModal(function() {
+                    showSuccessModal('Tags Removed', tagCount + ' tag(s) have been removed from ' + count + ' contact(s) successfully.');
+                });
+            } else {
+                hideProcessingModal(function() {
+                    showErrorModal('Action Failed', result.message || 'Failed to remove tags.');
+                });
+            }
+        }).catch(function(error) {
+            console.error('[BulkAction] Error:', error);
             hideProcessingModal(function() {
-                showSuccessModal('Tags Removed', tagCount + ' tag(s) have been removed from ' + count + ' contact(s) successfully.');
+                showErrorModal('Error', 'An unexpected error occurred. Please try again.');
             });
-        } else {
-            hideProcessingModal(function() {
-                showErrorModal('Action Failed', result.message || 'Failed to remove tags.');
-            });
-        }
-    }).catch(function(error) {
-        console.error('[BulkAction] Error:', error);
-        hideProcessingModal(function() {
-            showErrorModal('Error', 'An unexpected error occurred. Please try again.');
         });
-    });
+    };
+    
+    if (modal) {
+        var handler = function() {
+            modalEl.removeEventListener('hidden.bs.modal', handler);
+            executeAction();
+        };
+        modalEl.addEventListener('hidden.bs.modal', handler);
+        modal.hide();
+    } else {
+        executeAction();
+    }
 }
 
 function bulkDelete() {
@@ -1338,25 +1394,45 @@ function bulkDelete() {
 
 function confirmBulkDelete() {
     var ids = getSelectedContactIds();
+    var count = ids.length;
     
-    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkDeleteModal'));
-    modal.hide();
+    var modalEl = document.getElementById('bulkDeleteModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
     
-    showProcessingModal('Deleting contacts...');
+    // Wait for modal to fully hide before showing processing modal
+    var executeAction = function() {
+        console.log('[BulkAction] Modal hidden, showing processing modal');
+        showProcessingModal('Deleting contacts...');
+        
+        ContactsService.bulkDelete(ids).then(function(result) {
+            if (result.success) {
+                clearBulkSelection();
+                hideProcessingModal(function() {
+                    showSuccessModal('Contacts Deleted', count + ' contact(s) have been deleted successfully.');
+                });
+            } else {
+                hideProcessingModal(function() {
+                    showErrorModal('Error', result.message || 'Failed to delete contacts.');
+                });
+            }
+        }).catch(function(error) {
+            console.error('[ContactsService] Error:', error);
+            hideProcessingModal(function() {
+                showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+            });
+        });
+    };
     
-    ContactsService.bulkDelete(ids).then(function(result) {
-        hideProcessingModal();
-        if (result.success) {
-            showSuccessModal('Contacts Deleted', result.message);
-            clearBulkSelection();
-        } else {
-            showErrorModal('Error', result.message || 'Failed to delete contacts.');
-        }
-    }).catch(function(error) {
-        hideProcessingModal();
-        showErrorModal('Error', 'An unexpected error occurred. Please try again.');
-        console.error('[ContactsService] Error:', error);
-    });
+    if (modal) {
+        var handler = function() {
+            modalEl.removeEventListener('hidden.bs.modal', handler);
+            executeAction();
+        };
+        modalEl.addEventListener('hidden.bs.modal', handler);
+        modal.hide();
+    } else {
+        executeAction();
+    }
 }
 
 function clearBulkSelection() {
