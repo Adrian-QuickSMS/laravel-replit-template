@@ -2481,16 +2481,16 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-sm modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="successModalTitle"><i class="fas fa-check-circle me-2"></i>Success</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title text-dark" id="successModalTitle"><i class="fas fa-check-circle me-2 text-success"></i>Success</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center py-4">
                 <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
                 <p class="mb-0" id="successModalMessage">Operation completed successfully.</p>
             </div>
             <div class="modal-footer justify-content-center">
-                <button type="button" class="btn btn-success btn-sm" data-bs-dismiss="modal">OK</button>
+                <button type="button" class="btn btn-sm" style="background-color: #6b5b95; color: white;" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>
