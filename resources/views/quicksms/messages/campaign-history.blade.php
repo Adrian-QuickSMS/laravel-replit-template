@@ -1982,7 +1982,7 @@ function updateStatusActions(status, campaignId, campaignName, sendDate) {
     scheduledActions.style.display = 'none';
     sendingNotice.style.display = 'none';
     
-    if (status === 'scheduled') {
+    if (status === 'scheduled' || status === 'pending') {
         scheduledActions.style.display = '';
     } else if (status === 'sending') {
         sendingNotice.style.display = '';
