@@ -2658,6 +2658,33 @@ function saveRcsButton() {
     updateRcsButtonsPreview();
 }
 
+function migrateRcsButtonData(buttonData, cardIndex, buttonIndex) {
+    if (!buttonData) return null;
+    
+    var hasTrackingField = buttonData.hasOwnProperty('tracking') && buttonData.tracking !== null;
+    var hasCallbackMode = buttonData.hasOwnProperty('callback_data_mode');
+    
+    if (!hasTrackingField) {
+        buttonData.tracking = {
+            enabled: true,
+            trackingId: '',
+            events: { click: true, conversion: false },
+            utm: null
+        };
+    }
+    
+    if (!hasCallbackMode) {
+        buttonData.callback_data_mode = 'auto';
+    }
+    
+    var trackingEnabled = buttonData.tracking ? buttonData.tracking.enabled !== false : true;
+    if (trackingEnabled && !buttonData.callback_data) {
+        buttonData.callback_data = generateRcsCallbackData(cardIndex || 1, buttonIndex || 0);
+    }
+    
+    return buttonData;
+}
+
 function normalizeRcsButtonData(buttonData) {
     var normalized = {
         label: buttonData.label || '',
@@ -2682,6 +2709,35 @@ function normalizeRcsButtonData(buttonData) {
     }
     
     return normalized;
+}
+
+function loadRcsButtonsFromSaved(savedButtons, cardIndex) {
+    if (!savedButtons || !Array.isArray(savedButtons)) {
+        return [];
+    }
+    
+    return savedButtons.map(function(btn, index) {
+        return migrateRcsButtonData(btn, cardIndex || 1, index);
+    });
+}
+
+function loadRcsCardsFromSaved(savedCards) {
+    if (!savedCards || !Array.isArray(savedCards)) {
+        return {};
+    }
+    
+    var cardsData = {};
+    savedCards.forEach(function(card, index) {
+        var cardIndex = card.cardIndex || (index + 1);
+        cardsData[cardIndex] = {
+            title: card.title || '',
+            description: card.description || '',
+            media: card.media || null,
+            buttons: loadRcsButtonsFromSaved(card.buttons, cardIndex)
+        };
+    });
+    
+    return cardsData;
 }
 
 function getRcsButtonsPayload() {
