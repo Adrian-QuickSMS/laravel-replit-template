@@ -168,6 +168,28 @@ var ContactTimelineService = (function() {
         { id: 'tag_010', name: 'Verified', color: 'success' }
     ];
 
+    var OPTOUT_SCOPES = {
+        MASTER: { scope: 'master', label: 'Master Opt-Out', description: 'Blocks all messaging across entire account', blocks_all: true },
+        LIST: { scope: 'list', label: 'List-Specific', description: 'Blocks messaging for specific list only', blocks_all: false }
+    };
+
+    var OPTOUT_SOURCES = {
+        INBOUND_KEYWORD: { source: 'inbound_keyword', label: 'Inbound Keyword', icon: 'fa-sms', description: 'Reply-based opt-out' },
+        URL: { source: 'url', label: 'Opt-Out URL', icon: 'fa-link', description: 'Clicked opt-out link' },
+        MANUAL: { source: 'manual', label: 'Manual', icon: 'fa-hand-pointer', description: 'Manually added by user' },
+        API: { source: 'api', label: 'API', icon: 'fa-code', description: 'Added via API' },
+        IMPORT: { source: 'import', label: 'Import', icon: 'fa-file-import', description: 'Imported from file' }
+    };
+
+    var OPTOUT_KEYWORDS = ['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT', 'OPTOUT'];
+
+    var OPTIN_SOURCES = {
+        ADMIN: { source: 'admin', label: 'Admin Removal', icon: 'fa-user-shield', description: 'Removed by administrator' },
+        RESUBSCRIBE: { source: 'resubscribe', label: 'Portal Re-subscription', icon: 'fa-redo', description: 'Contact re-subscribed via portal' },
+        API: { source: 'api', label: 'API', icon: 'fa-code', description: 'Removed via API' },
+        EXPIRY: { source: 'expiry', label: 'Opt-Out Expired', icon: 'fa-clock', description: 'Automatic expiry after retention period' }
+    };
+
     function generateUUID() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random() * 16 | 0;
@@ -651,6 +673,120 @@ var ContactTimelineService = (function() {
         return html;
     }
 
+    function getRandomOptoutSource() {
+        var sources = Object.keys(OPTOUT_SOURCES);
+        var sourceKey = sources[Math.floor(Math.random() * sources.length)];
+        return OPTOUT_SOURCES[sourceKey];
+    }
+
+    function getRandomOptinSource() {
+        var sources = Object.keys(OPTIN_SOURCES);
+        var sourceKey = sources[Math.floor(Math.random() * sources.length)];
+        return OPTIN_SOURCES[sourceKey];
+    }
+
+    function getRandomOptoutScope(lists) {
+        var isMaster = Math.random() < 0.4;
+        if (isMaster) {
+            return {
+                scope_type: OPTOUT_SCOPES.MASTER,
+                list: null
+            };
+        } else {
+            var list = lists[Math.floor(Math.random() * lists.length)];
+            return {
+                scope_type: OPTOUT_SCOPES.LIST,
+                list: list
+            };
+        }
+    }
+
+    function buildOptoutDetails(scopeInfo, sourceInfo, keyword, actorName) {
+        var html = '';
+        
+        html += '<div class="mb-2 p-2 bg-warning bg-opacity-10 border border-warning rounded">' +
+            '<div class="d-flex align-items-center">' +
+                '<i class="fas fa-exclamation-triangle text-warning me-2"></i>' +
+                '<strong class="text-warning">Compliance Notice</strong>' +
+            '</div>' +
+            '<div class="mt-1 small">' +
+                (scopeInfo.scope_type.blocks_all 
+                    ? '<i class="fas fa-ban text-danger me-1"></i>This contact is blocked from receiving <strong>all messages</strong>.'
+                    : '<i class="fas fa-list text-warning me-1"></i>This contact is blocked from list: <strong>' + scopeInfo.list.name + '</strong> only.') +
+            '</div>' +
+        '</div>';
+        
+        html += '<div class="mb-2">' +
+            '<strong>Scope:</strong> ' +
+            '<span class="badge badge-pastel-warning">' +
+                '<i class="fas ' + (scopeInfo.scope_type.blocks_all ? 'fa-globe' : 'fa-list') + ' me-1"></i>' +
+                scopeInfo.scope_type.label +
+            '</span>' +
+        '</div>';
+        
+        if (scopeInfo.list) {
+            html += '<div class="mb-1"><strong>List:</strong> ' + scopeInfo.list.name + ' (<code class="small">' + scopeInfo.list.id + '</code>)</div>';
+        }
+        
+        html += '<div class="mb-2">' +
+            '<strong>Source:</strong> ' +
+            '<span class="badge badge-pastel-secondary">' +
+                '<i class="fas ' + sourceInfo.icon + ' me-1"></i>' + sourceInfo.label +
+            '</span>' +
+        '</div>';
+        
+        if (keyword) {
+            html += '<div class="mb-1"><strong>Keyword:</strong> <code class="bg-light px-2 py-1 rounded">' + keyword + '</code></div>';
+        }
+        
+        if (actorName && sourceInfo.source === 'manual') {
+            html += '<div class="mb-1"><strong>Added by:</strong> ' + actorName + '</div>';
+        }
+        
+        html += '<div class="mb-1 text-muted small">' +
+            '<i class="fas fa-info-circle me-1"></i>' + sourceInfo.description +
+        '</div>';
+        
+        return html;
+    }
+
+    function buildOptinDetails(sourceInfo, scopeInfo, actorName) {
+        var html = '';
+        
+        html += '<div class="mb-2 p-2 bg-success bg-opacity-10 border border-success rounded">' +
+            '<div class="d-flex align-items-center">' +
+                '<i class="fas fa-check-circle text-success me-2"></i>' +
+                '<strong class="text-success">Opt-Out Removed</strong>' +
+            '</div>' +
+            '<div class="mt-1 small">' +
+                (scopeInfo && scopeInfo.scope_type && !scopeInfo.scope_type.blocks_all
+                    ? '<i class="fas fa-list text-success me-1"></i>Contact can now receive messages from list: <strong>' + scopeInfo.list.name + '</strong>.'
+                    : '<i class="fas fa-envelope text-success me-1"></i>Contact can now receive <strong>all messages</strong>.') +
+            '</div>' +
+        '</div>';
+        
+        html += '<div class="mb-2">' +
+            '<strong>Source:</strong> ' +
+            '<span class="badge badge-pastel-success">' +
+                '<i class="fas ' + sourceInfo.icon + ' me-1"></i>' + sourceInfo.label +
+            '</span>' +
+        '</div>';
+        
+        if (scopeInfo && scopeInfo.list) {
+            html += '<div class="mb-1"><strong>List:</strong> ' + scopeInfo.list.name + '</div>';
+        }
+        
+        if (actorName && (sourceInfo.source === 'admin')) {
+            html += '<div class="mb-1"><strong>Removed by:</strong> ' + actorName + '</div>';
+        }
+        
+        html += '<div class="mb-1 text-muted small">' +
+            '<i class="fas fa-info-circle me-1"></i>' + sourceInfo.description +
+        '</div>';
+        
+        return html;
+    }
+
     function generateInboundMetadata(channel) {
         var messageId = 'inb_' + generateUUID().substring(0, 12);
         var conversationId = 'conv_' + generateUUID().substring(0, 8);
@@ -931,18 +1067,56 @@ var ContactTimelineService = (function() {
                 };
             
             case EVENT_TYPES.OPTOUT:
+                var optoutSource = getRandomOptoutSource();
+                var optoutScope = getRandomOptoutScope(CONTACT_BOOK_LISTS);
+                var optoutKeyword = optoutSource.source === 'inbound_keyword' 
+                    ? OPTOUT_KEYWORDS[Math.floor(Math.random() * OPTOUT_KEYWORDS.length)] 
+                    : null;
+                var optoutToken = optoutSource.source === 'url' ? 'tok_' + generateUUID().substring(0, 8) : null;
+                var optoutActorNames = ['Admin User', 'Support Agent', 'Compliance Team'];
+                var optoutActor = optoutSource.source === 'manual' 
+                    ? optoutActorNames[Math.floor(Math.random() * optoutActorNames.length)] 
+                    : null;
+                
+                var optoutSummary = optoutScope.scope_type.blocks_all 
+                    ? (optoutKeyword ? optoutKeyword + ' received' : 'Opted out')
+                    : (optoutScope.list ? 'List: ' + optoutScope.list.name : 'Opted out') + 
+                      (optoutKeyword ? ' — via ' + optoutKeyword : '');
+                
                 return {
-                    keyword: 'STOP',
-                    scope: 'All Lists',
-                    summary: 'STOP received',
-                    details: '<strong>Keyword:</strong> STOP<br><strong>Scope:</strong> All Lists<br><strong>Processed:</strong> Automatic'
+                    keyword: optoutKeyword,
+                    token: optoutToken,
+                    scope: optoutScope.scope_type.scope,
+                    scope_label: optoutScope.scope_type.label,
+                    list_id: optoutScope.list ? optoutScope.list.id : null,
+                    list_name: optoutScope.list ? optoutScope.list.name : null,
+                    source: optoutSource.source,
+                    source_label: optoutSource.label,
+                    blocks_all: optoutScope.scope_type.blocks_all,
+                    summary: optoutSummary,
+                    details: buildOptoutDetails(optoutScope, optoutSource, optoutKeyword || optoutToken, optoutActor)
                 };
             
             case EVENT_TYPES.OPTIN:
+                var optinSource = getRandomOptinSource();
+                var optinScope = getRandomOptoutScope(CONTACT_BOOK_LISTS);
+                var optinActorNames = ['Admin User', 'Support Manager', 'Compliance Officer'];
+                var optinActor = optinSource.source === 'admin' 
+                    ? optinActorNames[Math.floor(Math.random() * optinActorNames.length)] 
+                    : null;
+                
+                var optinSummary = optinSource.source === 'admin' 
+                    ? 'Removed by ' + optinActor
+                    : optinSource.label;
+                
                 return {
-                    method: 'Portal Re-subscription',
-                    summary: 'Resubscribed',
-                    details: '<strong>Method:</strong> Portal Re-subscription<br><strong>Confirmed:</strong> Yes'
+                    source: optinSource.source,
+                    source_label: optinSource.label,
+                    list_id: optinScope.list ? optinScope.list.id : null,
+                    list_name: optinScope.list ? optinScope.list.name : null,
+                    removed_by: optinActor,
+                    summary: optinSummary,
+                    details: buildOptinDetails(optinSource, optinScope, optinActor)
                 };
             
             case EVENT_TYPES.CONTACT_CREATED:
