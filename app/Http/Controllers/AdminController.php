@@ -135,6 +135,13 @@ class AdminController extends Controller
         ]);
     }
 
+    public function assetsCampaigns()
+    {
+        return view('admin.assets.campaigns', [
+            'page_title' => 'Campaign History'
+        ]);
+    }
+
     public function assetsNumbers()
     {
         return view('admin.assets.numbers', [
