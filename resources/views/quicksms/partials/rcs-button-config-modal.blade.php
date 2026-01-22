@@ -131,7 +131,7 @@
                                     <input class="form-check-input" type="checkbox" id="rcsButtonTrackingEnabled" checked>
                                 </div>
                             </div>
-                            <small class="text-muted">Track when users tap this button</small>
+                            <small class="text-muted">When enabled, taps on this button will be recorded for reporting.</small>
                         </div>
                         
                         <div class="mb-3">
@@ -140,7 +140,7 @@
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="rcsCallbackDataMode" id="rcsCallbackDataAuto" value="auto" checked onchange="toggleRcsCallbackDataMode()">
                                     <label class="form-check-label small" for="rcsCallbackDataAuto">
-                                        Auto-generated <span class="text-muted">(recommended)</span>
+                                        Auto-generated (recommended)
                                     </label>
                                 </div>
                                 <div class="form-check">
