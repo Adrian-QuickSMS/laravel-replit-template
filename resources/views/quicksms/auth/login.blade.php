@@ -491,11 +491,12 @@ $(document).ready(function() {
     
     var MockUsers = {
         'test@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '+447700900123', email_verified: true, rcs_capable: true },
-        'suspended@example.com': { password: 'Password123!', status: 'suspended', mfa_enabled: true, mobile: '+447700900456', email_verified: true, rcs_capable: false },
-        'pending@example.com': { password: 'Password123!', status: 'pending', mfa_enabled: true, mobile: '+447700900789', email_verified: false, rcs_capable: false },
-        'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '+447700900999', email_verified: true, rcs_capable: true },
+        'suspended@example.com': { password: 'Password123!', status: 'suspended', mfa_enabled: true, mobile: '447700900456', email_verified: true, rcs_capable: false },
+        'pending@example.com': { password: 'Password123!', status: 'pending', mfa_enabled: true, mobile: '07700900789', email_verified: false, rcs_capable: false },
+        'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '07712345678', email_verified: true, rcs_capable: true },
         'nomobile@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: null, email_verified: true, rcs_capable: false },
-        'nomfa@example.com': { password: 'Password123!', status: 'active', mfa_enabled: false, mobile: '+447700900555', email_verified: true, rcs_capable: false }
+        'nomfa@example.com': { password: 'Password123!', status: 'active', mfa_enabled: false, mobile: '+447700900555', email_verified: true, rcs_capable: false },
+        'badmobile@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '12025551234', email_verified: true, rcs_capable: false }
     };
     
     var canUpdateAccountDetails = true;
@@ -682,17 +683,73 @@ $(document).ready(function() {
     var resendCountdownInterval = null;
     var otpSentThisSession = false;
     
+    var UKMobileService = {
+        validPrefixes: ['71', '72', '73', '74', '75', '76', '77', '78', '79'],
+        
+        normalize: function(mobile) {
+            if (!mobile) return { valid: false, error: 'Mobile number is required' };
+            
+            var cleaned = mobile.replace(/[\s\-\(\)]/g, '');
+            var normalized = null;
+            
+            if (cleaned.match(/^07\d{9}$/)) {
+                normalized = '44' + cleaned.substring(1);
+            } else if (cleaned.match(/^\+447\d{9}$/)) {
+                normalized = cleaned.substring(1);
+            } else if (cleaned.match(/^447\d{9}$/)) {
+                normalized = cleaned;
+            } else {
+                return { 
+                    valid: false, 
+                    error: 'Invalid format. Accepted: 07xxxxxxxxx, +447xxxxxxxxx, or 447xxxxxxxxx',
+                    formatted: null
+                };
+            }
+            
+            var prefix = normalized.substring(2, 4);
+            if (!this.validPrefixes.includes(prefix)) {
+                return { 
+                    valid: false, 
+                    error: 'Not a valid UK mobile number range',
+                    formatted: null
+                };
+            }
+            
+            return { 
+                valid: true, 
+                normalized: normalized,
+                formatted: '+' + normalized,
+                masked: '****' + normalized.slice(-4)
+            };
+        },
+        
+        format: function(normalized) {
+            if (!normalized || normalized.length !== 12) return normalized;
+            return '+44 ' + normalized.substring(2, 6) + ' ' + normalized.substring(6);
+        }
+    };
+    
     function sendMfaOtp() {
         var channel = $('input[name="smsChannel"]:checked').val() || 'sms';
+        
+        var mobileResult = UKMobileService.normalize(currentMobile);
+        if (!mobileResult.valid) {
+            showMfaError(mobileResult.error);
+            AuditService.log('mfa_otp_send_failed', { reason: 'invalid_mobile', error: mobileResult.error });
+            return false;
+        }
+        
+        var normalizedMobile = mobileResult.normalized;
         
         currentOtp = String(Math.floor(100000 + Math.random() * 900000));
         otpExpiry = Date.now() + (5 * 60 * 1000);
         resendUnlockTime = Date.now() + resendCooldownMs;
         otpSentThisSession = true;
         
-        console.log('[MFA] OTP sent via ' + channel.toUpperCase() + ' to ' + currentMobile + ': ' + currentOtp);
+        console.log('[MFA] OTP sent via ' + channel.toUpperCase() + ' to ' + normalizedMobile + ': ' + currentOtp);
         AuditService.log('mfa_otp_sent', { 
-            mobile_masked: '****' + currentMobile.slice(-4),
+            mobile_normalized: normalizedMobile,
+            mobile_masked: mobileResult.masked,
             channel: channel
         });
         
@@ -706,6 +763,7 @@ $(document).ready(function() {
         startResendCooldown();
         
         $('#resendOtpBtn').prop('disabled', true);
+        return true;
     }
     
     function startResendCooldown() {
@@ -785,8 +843,10 @@ $(document).ready(function() {
         RateLimitService.recordAttempt('otp_send:' + currentEmail);
         
         setTimeout(function() {
-            sendMfaOtp();
-            showMfaSuccess('Verification code sent!');
+            var success = sendMfaOtp();
+            if (success) {
+                showMfaSuccess('Verification code sent!');
+            }
             resetButton($btn);
         }, 800);
     });
