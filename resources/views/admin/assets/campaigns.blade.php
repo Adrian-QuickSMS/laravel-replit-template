@@ -17,7 +17,7 @@
     --admin-secondary: #2d5a87;
     --admin-accent: #4a90d9;
 }
-.admin-page { padding: 1.5rem; }
+.admin-page { padding: 1rem; max-width: 100%; overflow-x: hidden; box-sizing: border-box; }
 
 /* =========================================
    Search & Filter Toolbar (Numbers-style)
@@ -160,19 +160,26 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 0;
+    padding: 0.5rem 0.25rem !important;
+    font-size: 0.85rem;
 }
 #campaignsTableBody td h6 {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-bottom: 0;
+    font-size: 0.85rem;
 }
 #campaignsTableBody td .text-muted {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     display: block;
+    font-size: 0.75rem;
+}
+#campaignsTableBody td .badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
 }
 .sortable-header:hover {
     background-color: rgba(30, 58, 95, 0.05);
@@ -660,27 +667,27 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     </div>
 
     <!-- Campaigns Table -->
-    <div class="card" style="border: 1px solid #e0e6ed;">
-        <div class="card-body p-3">
-            <div class="table-responsive" id="campaignsTable" style="overflow-x: hidden;">
-                <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: fixed;">
+    <div class="card" style="border: 1px solid #e0e6ed; overflow: hidden;">
+        <div class="card-body p-2" style="overflow: hidden;">
+            <div class="table-responsive" id="campaignsTable" style="overflow-x: auto; max-width: 100%;">
+                <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: fixed; min-width: 700px;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="py-3 px-2 sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 12%;">
+                            <th class="py-2 px-1 sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 11%;">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-2 sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 25%;">
-                                Campaign Name <i class="fas fa-sort sort-icon"></i>
+                            <th class="py-2 px-1 sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 22%;">
+                                Campaign <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-2" style="width: 10%;">Channel</th>
-                            <th class="py-3 px-2" style="width: 12%;">Status</th>
-                            <th class="py-3 px-2 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 14%;">
+                            <th class="py-2 px-1" style="width: 10%;">Channel</th>
+                            <th class="py-2 px-1" style="width: 12%;">Status</th>
+                            <th class="py-2 px-1 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 15%;">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-2 sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 14%;">
+                            <th class="py-2 px-1 sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 14%;">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="py-3 px-2 text-end" style="width: 8%;">Actions</th>
+                            <th class="py-2 px-1 text-center" style="width: 10%;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="campaignsTableBody">
@@ -731,7 +738,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <span class="badge badge-pastel-info">Rich RCS</span>
                                 @endif
                             </td>
-                            <td class="py-2 px-2 status-cell">
+                            <td class="py-1 px-1 status-cell">
                                 @if($campaign['status'] === 'scheduled')
                                 <span class="badge badge-pastel-warning"><i class="fas fa-clock me-1"></i>Scheduled</span>
                                 @elseif($campaign['status'] === 'sending')
@@ -754,7 +761,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 {{ \Carbon\Carbon::parse($campaign['send_date'])->format('d M Y') }}
                                 <br><small class="text-muted">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('H:i') }}</small>
                             </td>
-                            <td class="py-2 px-2 text-end actions-cell" onclick="event.stopPropagation()">
+                            <td class="py-1 px-1 text-center actions-cell" onclick="event.stopPropagation()">
                                 <div class="dropdown" style="position: relative;">
                                     <button class="action-dots-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
                                         <i class="fas fa-ellipsis-v"></i>
