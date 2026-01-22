@@ -90,6 +90,9 @@
                                 <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#importContactsModal">
                                     <i class="fas fa-file-import me-1"></i> Import
                                 </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addFieldModal">
+                                    <i class="fas fa-columns me-1"></i> Add Field
+                                </button>
                                 <button type="button" class="btn btn-primary btn-sm" id="btnAddContact" data-bs-toggle="modal" data-bs-target="#addContactModal">
                                     <i class="fas fa-plus me-1"></i> Add Contact
                                 </button>
@@ -1399,7 +1402,114 @@ function bulkDelete() {
         document.getElementById('bulkActionBar').classList.add('d-none');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var fieldTypeSelect = document.getElementById('customFieldType');
+    if (fieldTypeSelect) {
+        fieldTypeSelect.addEventListener('change', function() {
+            var dropdownContainer = document.getElementById('dropdownOptionsContainer');
+            if (this.value === 'dropdown') {
+                dropdownContainer.classList.remove('d-none');
+            } else {
+                dropdownContainer.classList.add('d-none');
+            }
+        });
+    }
+});
+
+function saveCustomField() {
+    var fieldName = document.getElementById('customFieldName').value.trim();
+    var fieldType = document.getElementById('customFieldType').value;
+    var fieldDefault = document.getElementById('customFieldDefault').value.trim();
+    var fieldRequired = document.getElementById('customFieldRequired').checked;
+    var dropdownOptions = document.getElementById('dropdownOptions').value.trim();
+    
+    if (!fieldName) {
+        showToast('Please enter a field name.', 'error');
+        return;
+    }
+    
+    if (fieldType === 'dropdown' && !dropdownOptions) {
+        showToast('Please enter at least one dropdown option.', 'error');
+        return;
+    }
+    
+    var fieldData = {
+        name: fieldName,
+        type: fieldType,
+        default_value: fieldDefault,
+        required: fieldRequired,
+        options: fieldType === 'dropdown' ? dropdownOptions.split('\n').filter(o => o.trim()) : []
+    };
+    
+    console.log('[CustomFields] Saving field:', fieldData);
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('addFieldModal'));
+    modal.hide();
+    
+    document.getElementById('addFieldForm').reset();
+    document.getElementById('dropdownOptionsContainer').classList.add('d-none');
+    
+    showToast('Custom field "' + fieldName + '" created successfully!', 'success');
+    
+    console.log('TODO: Save custom field to backend\n- API endpoint: POST /api/contacts/custom-fields\n- Payload:', JSON.stringify(fieldData));
+}
 </script>
+
+<div class="modal fade" id="addFieldModal" tabindex="-1" aria-labelledby="addFieldModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title text-dark" id="addFieldModalLabel"><i class="fas fa-columns me-2 text-dark"></i>Add Custom Field</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addFieldForm">
+                    <div class="mb-3">
+                        <label class="form-label">Field Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="customFieldName" placeholder="e.g., Company Name, Birthday, Loyalty ID" required>
+                        <div class="form-text">This name will appear as a column header in your contacts table.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Field Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="customFieldType">
+                            <option value="text">Text</option>
+                            <option value="number">Number</option>
+                            <option value="date">Date</option>
+                            <option value="email">Email</option>
+                            <option value="url">URL</option>
+                            <option value="dropdown">Dropdown (Single Select)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 d-none" id="dropdownOptionsContainer">
+                        <label class="form-label">Dropdown Options</label>
+                        <textarea class="form-control" id="dropdownOptions" rows="3" placeholder="Enter each option on a new line"></textarea>
+                        <div class="form-text">One option per line. These will be the choices available in the dropdown.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Default Value (Optional)</label>
+                        <input type="text" class="form-control" id="customFieldDefault" placeholder="Leave blank for no default">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="customFieldRequired">
+                        <label class="form-check-label" for="customFieldRequired">Make this field required</label>
+                    </div>
+                </form>
+                
+                <div class="rounded p-3" style="background-color: #f0ebf8;">
+                    <i class="fas fa-info-circle me-2 text-dark"></i>
+                    <strong class="text-dark">Note:</strong> <span class="text-dark">Custom fields can be used in message personalisation and for filtering contacts.</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="saveCustomField()">
+                    <i class="fas fa-save me-1"></i> Save Field
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="addContactModal" tabindex="-1" aria-labelledby="addContactModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
