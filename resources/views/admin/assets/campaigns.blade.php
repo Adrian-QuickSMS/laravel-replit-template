@@ -143,6 +143,31 @@
     align-items: center;
     background: #fff;
 }
+
+/* =========================================
+   Sortable Column Headers
+   ========================================= */
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+.sortable-header:hover {
+    background-color: rgba(30, 58, 95, 0.05);
+}
+.sortable-header .sort-icon {
+    margin-left: 0.5rem;
+    opacity: 0.3;
+    font-size: 0.75rem;
+}
+.sortable-header:hover .sort-icon {
+    opacity: 0.6;
+}
+.sortable-header.sort-asc .sort-icon,
+.sortable-header.sort-desc .sort-icon {
+    opacity: 1;
+    color: var(--admin-primary, #1e3a5f);
+}
 .table-footer .pagination-info {
     font-size: 0.85rem;
     color: #6c757d;
@@ -499,24 +524,6 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                     <span>Filters</span>
                     <span class="filter-count-badge" id="activeFilterCount" style="display: none;">0</span>
                 </button>
-                <div class="dropdown">
-                    <button class="filter-pill-btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-sort"></i>
-                        <span>Sort</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('date', 'desc'); return false;"><i class="fas fa-clock me-2"></i>Newest First</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('date', 'asc'); return false;"><i class="fas fa-clock me-2"></i>Oldest First</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('name', 'asc'); return false;"><i class="fas fa-font me-2"></i>Name A-Z</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('name', 'desc'); return false;"><i class="fas fa-font me-2"></i>Name Z-A</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('recipients', 'desc'); return false;"><i class="fas fa-users me-2"></i>Most Recipients</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('account', 'asc'); return false;"><i class="fas fa-building me-2"></i>Account A-Z</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="sortCampaigns('account', 'desc'); return false;"><i class="fas fa-building me-2"></i>Account Z-A</a></li>
-                    </ul>
-                </div>
             </div>
         </div>
     </div>
@@ -632,17 +639,25 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
 
     <!-- Campaigns Table -->
     <div class="card" style="border: 1px solid #e0e6ed;">
-        <div class="card-body p-0">
+        <div class="card-body p-3">
             <div class="table-responsive" id="campaignsTable">
                 <table class="table table-hover mb-0 align-middle">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="py-3 px-3" style="min-width: 150px;">Account</th>
-                            <th class="py-3 px-3" style="min-width: 200px;">Campaign Name</th>
+                            <th class="py-3 px-3 sortable-header" style="min-width: 150px;" data-sort="account" onclick="toggleSort('account')">
+                                Account <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="py-3 px-3 sortable-header" style="min-width: 200px;" data-sort="name" onclick="toggleSort('name')">
+                                Campaign Name <i class="fas fa-sort sort-icon"></i>
+                            </th>
                             <th class="py-3 px-3">Channel</th>
                             <th class="py-3 px-3">Status</th>
-                            <th class="py-3 px-3">Recipients</th>
-                            <th class="py-3 px-3">Send Date</th>
+                            <th class="py-3 px-3 sortable-header" data-sort="recipients" onclick="toggleSort('recipients')">
+                                Recipients <i class="fas fa-sort sort-icon"></i>
+                            </th>
+                            <th class="py-3 px-3 sortable-header" data-sort="date" onclick="toggleSort('date')">
+                                Send Date <i class="fas fa-sort sort-icon"></i>
+                            </th>
                             <th class="py-3 px-3 text-end">Actions</th>
                         </tr>
                     </thead>
@@ -1250,6 +1265,35 @@ function updateFilterBadge() {
     } else {
         badge.classList.add('d-none');
     }
+}
+
+var currentSortField = null;
+var currentSortDirection = 'asc';
+
+function toggleSort(field) {
+    if (currentSortField === field) {
+        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortField = field;
+        currentSortDirection = 'asc';
+    }
+    
+    document.querySelectorAll('.sortable-header').forEach(function(th) {
+        th.classList.remove('sort-asc', 'sort-desc');
+        var icon = th.querySelector('.sort-icon');
+        if (icon) icon.className = 'fas fa-sort sort-icon';
+    });
+    
+    var activeHeader = document.querySelector('.sortable-header[data-sort="' + field + '"]');
+    if (activeHeader) {
+        activeHeader.classList.add('sort-' + currentSortDirection);
+        var icon = activeHeader.querySelector('.sort-icon');
+        if (icon) {
+            icon.className = 'fas fa-sort-' + (currentSortDirection === 'asc' ? 'up' : 'down') + ' sort-icon';
+        }
+    }
+    
+    sortCampaigns(field, currentSortDirection);
 }
 
 function sortCampaigns(field, direction) {
