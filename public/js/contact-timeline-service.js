@@ -129,6 +129,25 @@ var ContactTimelineService = (function() {
         'DLR_010': 'Unknown error'
     };
 
+    var LIST_CHANGE_METHODS = {
+        MANUAL: { method: 'manual', label: 'Manual', icon: 'fa-hand-pointer', description: 'Manually added by user' },
+        IMPORT: { method: 'import', label: 'Import', icon: 'fa-file-import', description: 'Added via contact import' },
+        API: { method: 'api', label: 'API', icon: 'fa-code', description: 'Added via API integration' },
+        RULE: { method: 'rule', label: 'Automation Rule', icon: 'fa-robot', description: 'Added by automation rule' },
+        CAMPAIGN: { method: 'campaign', label: 'Campaign', icon: 'fa-bullhorn', description: 'Added from campaign targeting' }
+    };
+
+    var CONTACT_BOOK_LISTS = [
+        { id: 'list_001', name: 'Marketing Contacts', description: 'General marketing list', contact_count: 2450 },
+        { id: 'list_002', name: 'Newsletter Subscribers', description: 'Weekly newsletter recipients', contact_count: 8920 },
+        { id: 'list_003', name: 'Active Customers', description: 'Customers with recent orders', contact_count: 1580 },
+        { id: 'list_004', name: 'Leads', description: 'Prospective customers', contact_count: 3200 },
+        { id: 'list_005', name: 'Premium Members', description: 'VIP subscription holders', contact_count: 420 },
+        { id: 'list_006', name: 'Event Attendees', description: 'Registered for upcoming events', contact_count: 890 },
+        { id: 'list_007', name: 'Product Updates', description: 'Opted-in for product news', contact_count: 5670 },
+        { id: 'list_008', name: 'Seasonal Promos', description: 'Holiday and seasonal offers', contact_count: 4100 }
+    ];
+
     function generateUUID() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
             var r = Math.random() * 16 | 0;
@@ -523,6 +542,48 @@ var ContactTimelineService = (function() {
         };
     }
 
+    function getRandomList() {
+        return CONTACT_BOOK_LISTS[Math.floor(Math.random() * CONTACT_BOOK_LISTS.length)];
+    }
+
+    function getRandomListMethod() {
+        var methods = Object.keys(LIST_CHANGE_METHODS);
+        var methodKey = methods[Math.floor(Math.random() * methods.length)];
+        return LIST_CHANGE_METHODS[methodKey];
+    }
+
+    function buildListChangeDetails(listInfo, methodInfo, operation) {
+        var html = '';
+        
+        html += '<div class="mb-2">' +
+            '<strong>Operation:</strong> ' +
+            '<span class="badge bg-' + (operation === 'add' ? 'success' : 'secondary') + '">' +
+            '<i class="fas ' + (operation === 'add' ? 'fa-plus' : 'fa-minus') + ' me-1"></i>' +
+            (operation === 'add' ? 'Added' : 'Removed') +
+            '</span>' +
+        '</div>';
+        
+        html += '<div class="mb-1"><strong>List ID:</strong> <code class="small">' + listInfo.id + '</code></div>';
+        html += '<div class="mb-1"><strong>List Name:</strong> ' + listInfo.name + '</div>';
+        
+        if (listInfo.description) {
+            html += '<div class="mb-1"><strong>Description:</strong> ' + listInfo.description + '</div>';
+        }
+        
+        html += '<div class="mb-2">' +
+            '<strong>Method:</strong> ' +
+            '<span class="badge badge-pastel-primary">' +
+            '<i class="fas ' + methodInfo.icon + ' me-1"></i>' + methodInfo.label +
+            '</span>' +
+        '</div>';
+        
+        html += '<div class="mb-1 text-muted small">' +
+            '<i class="fas fa-info-circle me-1"></i>' + methodInfo.description +
+        '</div>';
+        
+        return html;
+    }
+
     function generateInboundMetadata(channel) {
         var messageId = 'inb_' + generateUUID().substring(0, 12);
         var conversationId = 'conv_' + generateUUID().substring(0, 8);
@@ -765,21 +826,31 @@ var ContactTimelineService = (function() {
                 };
             
             case EVENT_TYPES.LIST_ADDED:
-                var list = lists[Math.floor(Math.random() * lists.length)];
+                var addedList = getRandomList();
+                var addMethod = getRandomListMethod();
                 return {
-                    list_id: 'list_' + Math.floor(Math.random() * 100),
-                    list_name: list,
-                    summary: 'Added to: ' + list,
-                    details: '<strong>List:</strong> ' + list + '<br><strong>Action:</strong> Added'
+                    list_id: addedList.id,
+                    list_name: addedList.name,
+                    list_description: addedList.description,
+                    operation: 'add',
+                    method: addMethod.method,
+                    method_label: addMethod.label,
+                    summary: addedList.name,
+                    details: buildListChangeDetails(addedList, addMethod, 'add')
                 };
             
             case EVENT_TYPES.LIST_REMOVED:
-                var listRemoved = lists[Math.floor(Math.random() * lists.length)];
+                var removedList = getRandomList();
+                var removeMethod = getRandomListMethod();
                 return {
-                    list_id: 'list_' + Math.floor(Math.random() * 100),
-                    list_name: listRemoved,
-                    summary: 'Removed from: ' + listRemoved,
-                    details: '<strong>List:</strong> ' + listRemoved + '<br><strong>Action:</strong> Removed'
+                    list_id: removedList.id,
+                    list_name: removedList.name,
+                    list_description: removedList.description,
+                    operation: 'remove',
+                    method: removeMethod.method,
+                    method_label: removeMethod.label,
+                    summary: removedList.name,
+                    details: buildListChangeDetails(removedList, removeMethod, 'remove')
                 };
             
             case EVENT_TYPES.OPTOUT:
