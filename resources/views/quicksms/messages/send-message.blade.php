@@ -3140,13 +3140,12 @@ function sendTestMessage() {
         var success = true;
         
         if (success) {
-            successEl.classList.remove('d-none');
             sendBtn.disabled = false;
-            sendBtn.innerHTML = '<i class="fas fa-check me-1"></i>Sent';
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send test';
             
-            setTimeout(function() {
-                sendBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send another';
-            }, 2000);
+            testMessageModal.hide();
+            
+            showTestSentConfirmation(validation.normalized);
         } else {
             errorText.textContent = 'Failed to send test message. Please try again.';
             errorEl.classList.remove('d-none');
@@ -3154,6 +3153,37 @@ function sendTestMessage() {
             sendBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send test';
         }
     }, 1000);
+}
+
+function showTestSentConfirmation(phoneNumber) {
+    var existingModal = document.getElementById('testSentConfirmModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    var modalHtml = '<div class="modal fade" id="testSentConfirmModal" tabindex="-1">' +
+        '<div class="modal-dialog modal-dialog-centered modal-sm">' +
+        '<div class="modal-content">' +
+        '<div class="modal-body text-center py-4">' +
+        '<div class="mb-3"><i class="fas fa-check-circle text-success" style="font-size: 48px;"></i></div>' +
+        '<h5 class="mb-2">Test Message Sent!</h5>' +
+        '<p class="text-muted mb-0">Your test message has been sent to <strong>' + phoneNumber + '</strong>. Check your phone to preview it.</p>' +
+        '</div>' +
+        '<div class="modal-footer justify-content-center py-2 border-0">' +
+        '<button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    var confirmModal = new bootstrap.Modal(document.getElementById('testSentConfirmModal'));
+    confirmModal.show();
+    
+    document.getElementById('testSentConfirmModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
 }
 </script>
 @endsection
