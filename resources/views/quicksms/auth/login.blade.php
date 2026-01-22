@@ -256,27 +256,19 @@ a.text-primary:hover {
 }
 
 .login-status, .mfa-status {
-    padding: 0.75rem;
+    padding: 0.875rem 1rem;
     border-radius: 0.5rem;
     font-size: 0.875rem;
+    margin-bottom: 1rem;
 }
 
-.login-status.error, .mfa-status.error {
-    background: #fce8e6;
-    color: #c53929;
-    border: 1px solid #f5c6cb;
+.login-status.alert, .mfa-status.alert {
+    display: flex;
+    align-items: center;
 }
 
-.login-status.success, .mfa-status.success {
-    background: #e6f4ea;
-    color: #137333;
-    border: 1px solid #b7e1cd;
-}
-
-.login-status.warning {
-    background: #fef7e0;
-    color: #9a6700;
-    border: 1px solid #ffe08a;
+.login-status.alert i, .mfa-status.alert i {
+    flex-shrink: 0;
 }
 
 .form-label {
@@ -373,8 +365,33 @@ $(document).ready(function() {
     };
     
     var MockUsers = {
-        'test@example.com': { password_hash: 'hashed_password', mfa_enabled: true, mobile: '+447700900123', email_verified: true }
+        'test@example.com': { password: 'Password123!', status: 'active', mfa_enabled: true, mobile: '+447700900123', email_verified: true },
+        'suspended@example.com': { password: 'Password123!', status: 'suspended', mfa_enabled: true, mobile: '+447700900456', email_verified: true },
+        'pending@example.com': { password: 'Password123!', status: 'pending', mfa_enabled: true, mobile: '+447700900789', email_verified: false },
+        'demo@quicksms.com': { password: 'Demo2026!', status: 'active', mfa_enabled: true, mobile: '+447700900999', email_verified: true }
     };
+    
+    function showLoginError(message, type) {
+        type = type || 'danger';
+        var iconClass = type === 'warning' ? 'fa-exclamation-triangle' : 'fa-times-circle';
+        $('#loginStatus')
+            .removeClass('d-none alert-success alert-danger alert-warning')
+            .addClass('alert alert-' + type)
+            .html('<i class="fas ' + iconClass + ' me-2"></i>' + message);
+    }
+    
+    function showLoginSuccess(message) {
+        $('#loginStatus')
+            .removeClass('d-none alert-danger alert-warning')
+            .addClass('alert alert-success')
+            .html('<i class="fas fa-check-circle me-2"></i>' + message);
+    }
+    
+    function resetButton($btn) {
+        $btn.prop('disabled', false);
+        $btn.find('.btn-text').removeClass('d-none');
+        $btn.find('.btn-loading').addClass('d-none');
+    }
     
     $('#togglePassword').on('click', function() {
         var $input = $('#password');
@@ -420,16 +437,14 @@ $(document).ready(function() {
         if (!isValid) return;
         
         if (LockoutService.isLocked(email)) {
-            $('#loginStatus').removeClass('d-none success warning').addClass('error');
-            $('#loginStatus').html('<i class="fas fa-lock me-2"></i>Account locked. Try again in ' + LockoutService.getUnlockMinutes(email) + ' minutes.');
+            showLoginError('Too many failed attempts. Try again later.');
             AuditService.log('login_blocked_locked', { email: email });
             return;
         }
         
         var rateCheck = RateLimitService.checkLimit('login:' + email, SecurityConfig.rate_limits.login_per_email);
         if (!rateCheck.allowed) {
-            $('#loginStatus').removeClass('d-none success warning').addClass('error');
-            $('#loginStatus').html('<i class="fas fa-clock me-2"></i>Too many attempts. Try again in ' + Math.ceil(rateCheck.retryAfter / 60) + ' minutes.');
+            showLoginError('Too many failed attempts. Try again later.');
             AuditService.log('login_rate_limited', { email: email });
             return;
         }
@@ -444,34 +459,48 @@ $(document).ready(function() {
         AuditService.log('login_attempt', { email: email });
         
         setTimeout(function() {
-            var validPassword = (password === 'Password123!') || MockUsers[email];
+            var user = MockUsers[email];
+            var validCredentials = false;
             
-            if (!validPassword) {
+            if (user && user.password === password) {
+                validCredentials = true;
+            }
+            
+            if (!validCredentials) {
                 var attempts = LockoutService.recordFailedAttempt(email);
-                var remaining = SecurityConfig.account_lockout.max_failed_attempts - attempts;
                 
-                $('#loginStatus').removeClass('d-none success').addClass('error');
-                if (remaining > 0) {
-                    $('#loginStatus').html('<i class="fas fa-exclamation-circle me-2"></i>Invalid email or password. ' + remaining + ' attempts remaining.');
+                if (attempts >= SecurityConfig.account_lockout.max_failed_attempts) {
+                    showLoginError('Too many failed attempts. Try again later.');
                 } else {
-                    $('#loginStatus').html('<i class="fas fa-lock me-2"></i>Account locked due to too many failed attempts.');
+                    showLoginError('Incorrect email or password.');
                 }
                 
-                $btn.prop('disabled', false);
-                $btn.find('.btn-text').removeClass('d-none');
-                $btn.find('.btn-loading').addClass('d-none');
-                
+                resetButton($btn);
                 AuditService.log('login_failed', { email: email, attempts: attempts });
                 return;
             }
             
+            if (user.status === 'suspended') {
+                showLoginError('Your account is suspended. Contact support.', 'warning');
+                resetButton($btn);
+                AuditService.log('login_blocked_suspended', { email: email });
+                return;
+            }
+            
+            if (user.status === 'pending') {
+                showLoginError('Your account is pending activation. Please check your email.', 'warning');
+                resetButton($btn);
+                AuditService.log('login_blocked_pending', { email: email });
+                return;
+            }
+            
+            LockoutService.resetOnSuccess(email);
             currentEmail = email;
-            currentMobile = MockUsers[email] ? MockUsers[email].mobile : '+447700900123';
+            currentMobile = user.mobile || '+447700900123';
             
             AuditService.log('login_password_verified', { email: email });
             
-            $('#loginStatus').removeClass('d-none error').addClass('success');
-            $('#loginStatus').html('<i class="fas fa-check-circle me-2"></i>Password verified. Sending verification code...');
+            showLoginSuccess('Password verified. Sending verification code...');
             
             setTimeout(function() {
                 sendMfaOtp();
@@ -481,9 +510,7 @@ $(document).ready(function() {
                 $('#maskedMobile').text(currentMobile.slice(-4));
                 $('#otpCode').focus();
                 
-                $btn.prop('disabled', false);
-                $btn.find('.btn-text').removeClass('d-none');
-                $btn.find('.btn-loading').addClass('d-none');
+                resetButton($btn);
             }, 500);
             
         }, 1000);
