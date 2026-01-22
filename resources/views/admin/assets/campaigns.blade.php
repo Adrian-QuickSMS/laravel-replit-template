@@ -1,3 +1,7 @@
+{{-- Admin Campaign History - Backend-Ready Architecture --}}
+{{-- Data Source: Currently uses mock data. Service layer: CampaignsAdminService (public/js/campaigns-admin-service.js) --}}
+{{-- To switch to real backend: Set CampaignsAdminService.config.useMockData = false --}}
+{{-- Schema Extensions: accountId (String), accountName (String) - All other fields match customer schema --}}
 @extends('layouts.admin')
 
 @section('title', 'Campaign History - Admin')
@@ -663,6 +667,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
 @push('scripts')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <script src="{{ asset('js/rcs-preview-renderer.js') }}"></script>
+<script src="{{ asset('js/campaigns-admin-service.js') }}"></script>
 <script>
 var campaignDrawer = null;
 var comingSoonModal = null;
