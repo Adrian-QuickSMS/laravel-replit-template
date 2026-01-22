@@ -963,7 +963,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="alert alert-info py-2 mb-0">
+                <div class="py-2 mb-0 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                     <i class="fas fa-info-circle me-1"></i>
                     <small>When off, operator/platform defaults apply (typically 24-72 hours for SMS, configurable for RCS).</small>
                 </div>
