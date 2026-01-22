@@ -336,7 +336,7 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="mergeSourceTagId">
-                <div class="alert alert-warning">
+                <div class="alert" style="background-color: #f0ebf8; border-color: #d8d0e8; color: #6b5b95;">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <strong>Warning:</strong> Merging is permanent. The source tag will be deleted and all contacts will be moved to the target tag.
                 </div>
@@ -356,7 +356,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-warning" onclick="confirmMergeTag()">
+                <button type="button" class="btn" style="background-color: #6b5b95; color: white;" onclick="confirmMergeTag()">
                     <i class="fas fa-compress-arrows-alt me-1"></i> Merge Tags
                 </button>
             </div>
