@@ -866,9 +866,36 @@ function viewListContacts(id, name) {
     
     console.log('TODO: API call GET /api/lists/' + id + '/contacts');
     
+    document.getElementById('contactSearchView').value = '';
+    
     var modal = new bootstrap.Modal(document.getElementById('viewContactsModal'));
     modal.show();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var searchInput = document.getElementById('contactSearchView');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            var searchTerm = this.value.toLowerCase();
+            var rows = document.querySelectorAll('#contactsListView tr');
+            var visibleCount = 0;
+            
+            rows.forEach(function(row) {
+                var name = row.cells[1] ? row.cells[1].textContent.toLowerCase() : '';
+                var mobile = row.cells[2] ? row.cells[2].textContent.toLowerCase() : '';
+                
+                if (name.includes(searchTerm) || mobile.includes(searchTerm)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('viewContactsCount').textContent = visibleCount;
+        });
+    }
+});
 
 function removeSelectedFromList() {
     var listId = document.getElementById('viewContactsListId').value;
