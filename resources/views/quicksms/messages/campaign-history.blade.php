@@ -1239,6 +1239,7 @@ function clearSearch() {
 var activeFilters = {};
 
 function applyFilters() {
+    console.log('[CampaignHistory] Apply Filters clicked');
     activeFilters = {
         statuses: getCheckedValues('[data-filter="statuses"]'),
         channels: getCheckedValues('[data-filter="channels"]'),
@@ -1249,6 +1250,7 @@ function applyFilters() {
         tracking: getCheckedValues('[data-filter="tracking"]'),
         optout: getCheckedValues('[data-filter="optout"]')
     };
+    console.log('[CampaignHistory] Active Filters:', activeFilters);
     
     updateFilterBadge();
     filterCampaigns();
