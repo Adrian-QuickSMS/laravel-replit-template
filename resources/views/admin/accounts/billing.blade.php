@@ -315,6 +315,101 @@
     font-size: 1.25rem;
 }
 
+/* Inline Edit Controls */
+.inline-edit-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.inline-edit-value {
+    font-weight: 600;
+    color: #2c2c2c;
+}
+.inline-edit-btn {
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    border: 1px solid var(--admin-primary);
+    background: transparent;
+    color: var(--admin-primary);
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.inline-edit-btn:hover {
+    background: var(--admin-primary);
+    color: #fff;
+}
+.inline-edit-btn.hidden { display: none; }
+.inline-edit-input-group {
+    display: none;
+    align-items: center;
+    gap: 0.375rem;
+}
+.inline-edit-input-group.active {
+    display: flex;
+}
+.inline-edit-input {
+    width: 120px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+}
+.inline-edit-input:focus {
+    outline: none;
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.15);
+}
+.inline-edit-input.is-invalid {
+    border-color: #dc3545;
+}
+.inline-edit-save {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    background: var(--admin-primary);
+    color: #fff;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+.inline-edit-save:hover { background: var(--admin-primary-hover); }
+.inline-edit-save:disabled { opacity: 0.6; cursor: not-allowed; }
+.inline-edit-cancel {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    background: transparent;
+    color: #6c757d;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+.inline-edit-cancel:hover { background: #f8f9fa; }
+.inline-edit-helper {
+    font-size: 0.7rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+.inline-edit-error {
+    font-size: 0.75rem;
+    color: #dc3545;
+    margin-top: 0.25rem;
+    display: none;
+}
+.inline-edit-error.show { display: block; }
+.credit-limit-row {
+    flex-direction: column;
+    align-items: flex-start !important;
+}
+.credit-limit-row .billing-setting-label {
+    margin-bottom: 0.25rem;
+}
+.credit-limit-content {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
@@ -456,9 +551,29 @@
                         <span id="billingModeErrorText">Could not update HubSpot. No changes were saved.</span>
                     </div>
                     
-                    <div class="billing-setting-row">
+                    <div class="billing-setting-row credit-limit-row" id="creditLimitRow">
                         <span class="billing-setting-label">Credit Limit</span>
-                        <span class="billing-setting-value" id="settingCreditLimit">&pound;0.00</span>
+                        <div class="credit-limit-content">
+                            <div class="inline-edit-container">
+                                <span class="inline-edit-value" id="settingCreditLimit">&pound;0.00</span>
+                                <button type="button" class="inline-edit-btn hidden" id="creditLimitEditBtn">
+                                    <i class="fas fa-pencil-alt"></i> Edit
+                                </button>
+                            </div>
+                            <div class="inline-edit-input-group" id="creditLimitInputGroup">
+                                <span class="text-muted">&pound;</span>
+                                <input type="number" class="inline-edit-input" id="creditLimitInput" 
+                                       min="0" max="1000000" step="0.01" placeholder="0.00">
+                                <button type="button" class="inline-edit-save" id="creditLimitSaveBtn">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button type="button" class="inline-edit-cancel" id="creditLimitCancelBtn">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="inline-edit-helper">Credit limit is stored in HubSpot and will be synced.</div>
+                        <div class="inline-edit-error" id="creditLimitError">Could not update HubSpot. No changes were saved.</div>
                     </div>
                     <div class="billing-setting-row">
                         <span class="billing-setting-label">Payment Terms</span>
@@ -681,6 +796,20 @@ var AdminAccountBillingService = (function() {
                     }
                 }, 200);
             });
+        },
+        
+        updateCreditLimit: function(accountId, newLimit) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (mockAccounts[accountId]) {
+                        mockAccounts[accountId].creditLimit = newLimit;
+                        mockAccounts[accountId].lastUpdated = new Date().toISOString();
+                        resolve({ success: true, accountId: accountId, creditLimit: newLimit });
+                    } else {
+                        reject(new Error('Account not found'));
+                    }
+                }, 200);
+            });
         }
     };
 })();
@@ -708,6 +837,24 @@ var HubSpotBillingService = (function() {
         
         setSimulateFailure: function(value) {
             simulateFailure = value;
+        },
+        
+        updateCreditLimit: function(accountId, newLimit) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (simulateFailure) {
+                        reject(new Error('HubSpot API error: Unable to update credit limit'));
+                    } else {
+                        console.log('[HubSpotBillingService] Updated credit limit for ' + accountId + ' to ' + newLimit);
+                        resolve({
+                            success: true,
+                            hubspotRecordId: 'HS-' + Math.random().toString(36).substr(2, 9),
+                            creditLimit: newLimit,
+                            updatedAt: new Date().toISOString()
+                        });
+                    }
+                }, 500);
+            });
         }
     };
 })();
@@ -753,7 +900,8 @@ var BillingRiskService = (function() {
 var AdminPermissionService = (function() {
     var mockPermissions = {
         'billing.edit_mode': true,
-        'billing.override_risk': false
+        'billing.override_risk': false,
+        'billing.edit_credit_limit': true
     };
     
     return {
@@ -1084,6 +1232,147 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('exportInvoicesBtn').addEventListener('click', function() {
         alert('Export functionality - would generate CSV of invoices for ' + accountId);
+    });
+    
+    // Credit Limit Inline Edit
+    var currentCreditLimit = 0;
+    var canEditCreditLimit = AdminPermissionService.hasPermission('billing.edit_credit_limit');
+    var currentBillingData = null;
+    
+    var creditLimitEditBtn = document.getElementById('creditLimitEditBtn');
+    var creditLimitInputGroup = document.getElementById('creditLimitInputGroup');
+    var creditLimitInput = document.getElementById('creditLimitInput');
+    var creditLimitSaveBtn = document.getElementById('creditLimitSaveBtn');
+    var creditLimitCancelBtn = document.getElementById('creditLimitCancelBtn');
+    var creditLimitValueEl = document.getElementById('settingCreditLimit');
+    var creditLimitError = document.getElementById('creditLimitError');
+    
+    function initCreditLimitEdit(billingData) {
+        currentBillingData = billingData;
+        currentCreditLimit = billingData.creditLimit;
+        
+        if (canEditCreditLimit) {
+            creditLimitEditBtn.classList.remove('hidden');
+        }
+    }
+    
+    function showCreditLimitEditMode() {
+        creditLimitValueEl.style.display = 'none';
+        creditLimitEditBtn.style.display = 'none';
+        creditLimitInputGroup.classList.add('active');
+        creditLimitInput.value = currentCreditLimit.toFixed(2);
+        creditLimitInput.focus();
+        creditLimitInput.select();
+        hideCreditLimitError();
+    }
+    
+    function hideCreditLimitEditMode() {
+        creditLimitValueEl.style.display = '';
+        creditLimitEditBtn.style.display = '';
+        creditLimitInputGroup.classList.remove('active');
+        creditLimitInput.classList.remove('is-invalid');
+    }
+    
+    function showCreditLimitError(message) {
+        creditLimitError.textContent = message;
+        creditLimitError.classList.add('show');
+    }
+    
+    function hideCreditLimitError() {
+        creditLimitError.classList.remove('show');
+    }
+    
+    function validateCreditLimit(value) {
+        var num = parseFloat(value);
+        if (isNaN(num)) return { valid: false, error: 'Please enter a valid number' };
+        if (num < 0) return { valid: false, error: 'Credit limit cannot be negative' };
+        if (num > 1000000) return { valid: false, error: 'Credit limit cannot exceed £1,000,000' };
+        return { valid: true, value: Math.round(num * 100) / 100 };
+    }
+    
+    function updateCreditLimitUI(newLimit) {
+        currentCreditLimit = newLimit;
+        creditLimitValueEl.textContent = formatCurrency(newLimit);
+        document.getElementById('summaryCreditLimit').textContent = formatCurrency(newLimit);
+        
+        if (currentBillingData) {
+            currentBillingData.creditLimit = newLimit;
+            var availableCredit = AdminAccountBillingService.calculateAvailableCredit(currentBillingData);
+            var availableCreditEl = document.getElementById('summaryAvailableCredit');
+            availableCreditEl.textContent = (availableCredit < 0 ? '-' : '') + formatCurrency(availableCredit);
+            availableCreditEl.className = 'metric-value ' + (availableCredit <= 0 ? 'text-danger' : 'text-success');
+        }
+    }
+    
+    creditLimitEditBtn.addEventListener('click', function() {
+        showCreditLimitEditMode();
+    });
+    
+    creditLimitCancelBtn.addEventListener('click', function() {
+        hideCreditLimitEditMode();
+        creditLimitInput.value = currentCreditLimit.toFixed(2);
+    });
+    
+    creditLimitInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            creditLimitSaveBtn.click();
+        } else if (e.key === 'Escape') {
+            creditLimitCancelBtn.click();
+        }
+    });
+    
+    creditLimitSaveBtn.addEventListener('click', function() {
+        var validation = validateCreditLimit(creditLimitInput.value);
+        
+        if (!validation.valid) {
+            creditLimitInput.classList.add('is-invalid');
+            showCreditLimitError(validation.error);
+            return;
+        }
+        
+        var newLimit = validation.value;
+        var oldLimit = currentCreditLimit;
+        
+        if (newLimit === oldLimit) {
+            hideCreditLimitEditMode();
+            return;
+        }
+        
+        creditLimitInput.classList.remove('is-invalid');
+        creditLimitSaveBtn.disabled = true;
+        creditLimitSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        
+        HubSpotBillingService.updateCreditLimit(accountId, newLimit)
+            .then(function(result) {
+                return AdminAccountBillingService.updateCreditLimit(accountId, newLimit);
+            })
+            .then(function(result) {
+                updateCreditLimitUI(newLimit);
+                hideCreditLimitEditMode();
+                
+                if (typeof AdminControlPlane !== 'undefined') {
+                    AdminControlPlane.logAdminAction('CREDIT_LIMIT_CHANGED', accountId, {
+                        accountName: currentAccountName,
+                        oldValue: oldLimit,
+                        newValue: newLimit,
+                        sourceScreen: 'Admin > Accounts > Billing'
+                    });
+                }
+            })
+            .catch(function(error) {
+                console.error('Credit limit update failed:', error);
+                creditLimitInput.value = currentCreditLimit.toFixed(2);
+                showCreditLimitError('Could not update HubSpot. No changes were saved.');
+            })
+            .finally(function() {
+                creditLimitSaveBtn.disabled = false;
+                creditLimitSaveBtn.innerHTML = '<i class="fas fa-check"></i>';
+            });
+    });
+    
+    // Hook into billing data load to initialize credit limit edit
+    AdminAccountBillingService.getAccountBilling(accountId).then(function(data) {
+        initCreditLimitEdit(data);
     });
 });
 </script>
