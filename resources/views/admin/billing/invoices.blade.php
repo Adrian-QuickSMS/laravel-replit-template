@@ -840,6 +840,32 @@
                         <input type="email" class="form-control" id="overrideEmail" placeholder="email@example.com">
                         <div class="invalid-feedback" id="overrideEmailError">Please enter a valid email address</div>
                     </div>
+                    
+                    <div class="card mt-4" id="invoiceSummaryCard">
+                        <div class="card-header py-2">
+                            <h6 class="mb-0 small text-uppercase fw-bold">Invoice Summary</h6>
+                        </div>
+                        <div class="card-body py-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span class="fw-semibold" id="summarySubtotal">&pound;0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">
+                                    VAT <small id="vatRateDisplay" class="text-muted">(0%)</small>
+                                </span>
+                                <span class="fw-semibold" id="summaryVat">&pound;0.00</span>
+                            </div>
+                            <div id="vatNoteRow" class="d-none mb-2">
+                                <small class="text-info" id="vatNote"></small>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Total</span>
+                                <span class="fw-bold fs-5" id="summaryTotal">&pound;0.00</span>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -1541,16 +1567,16 @@ document.addEventListener('DOMContentLoaded', function() {
     let customerSearchTimeout = null;
     
     const mockCustomers = [
-        { id: 'ACC-001', name: 'TechStart Solutions', status: 'Live' },
-        { id: 'ACC-002', name: 'EduLearn Institute', status: 'Live' },
-        { id: 'ACC-003', name: 'GreenEnergy Co', status: 'Test' },
-        { id: 'ACC-004', name: 'HealthCare Plus', status: 'Live' },
-        { id: 'ACC-005', name: 'FoodService Network', status: 'Suspended' },
-        { id: 'ACC-006', name: 'RetailMax Ltd', status: 'Live' },
-        { id: 'ACC-007', name: 'LogiTrans Systems', status: 'Test' },
-        { id: 'ACC-008', name: 'MediaWorks Agency', status: 'Live' },
-        { id: 'ACC-009', name: 'FinanceFirst Group', status: 'Live' },
-        { id: 'ACC-010', name: 'BuildRight Construction', status: 'Test' }
+        { id: 'ACC-001', name: 'TechStart Solutions', status: 'Live', vatRegistered: true, vatRate: 20, reverseCharge: false, vatCountry: 'GB' },
+        { id: 'ACC-002', name: 'EduLearn Institute', status: 'Live', vatRegistered: false, vatRate: 0, reverseCharge: false, vatCountry: 'GB' },
+        { id: 'ACC-003', name: 'GreenEnergy Co', status: 'Test', vatRegistered: true, vatRate: 20, reverseCharge: false, vatCountry: 'GB' },
+        { id: 'ACC-004', name: 'HealthCare Plus', status: 'Live', vatRegistered: true, vatRate: 0, reverseCharge: true, vatCountry: 'DE' },
+        { id: 'ACC-005', name: 'FoodService Network', status: 'Suspended', vatRegistered: true, vatRate: 20, reverseCharge: false, vatCountry: 'GB' },
+        { id: 'ACC-006', name: 'RetailMax Ltd', status: 'Live', vatRegistered: true, vatRate: 20, reverseCharge: false, vatCountry: 'GB' },
+        { id: 'ACC-007', name: 'LogiTrans Systems', status: 'Test', vatRegistered: false, vatRate: 0, reverseCharge: false, vatCountry: 'GB' },
+        { id: 'ACC-008', name: 'MediaWorks Agency', status: 'Live', vatRegistered: true, vatRate: 0, reverseCharge: true, vatCountry: 'FR' },
+        { id: 'ACC-009', name: 'FinanceFirst Group', status: 'Live', vatRegistered: true, vatRate: 20, reverseCharge: false, vatCountry: 'GB' },
+        { id: 'ACC-010', name: 'BuildRight Construction', status: 'Test', vatRegistered: true, vatRate: 20, reverseCharge: false, vatCountry: 'GB' }
     ];
     
     function searchCustomers(query) {
@@ -1591,7 +1617,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function selectCustomer(id, name, status) {
-        selectedCustomer = { id, name, status };
+        const customer = mockCustomers.find(c => c.id === id);
+        selectedCustomer = customer || { id, name, status, vatRegistered: false, vatRate: 0, reverseCharge: false, vatCountry: 'GB' };
         document.getElementById('selectedCustomerId').value = id;
         document.getElementById('customerSearchInput').classList.add('d-none');
         document.getElementById('selectedCustomerDisplay').classList.remove('d-none');
@@ -1602,6 +1629,7 @@ document.addEventListener('DOMContentLoaded', function() {
         statusBadge.className = `badge ms-2 ${getStatusBadgeClass(status)}`;
         document.getElementById('customerTypeaheadDropdown').classList.remove('show');
         document.getElementById('customerSearchInput').classList.remove('is-invalid');
+        updateInvoiceSummary();
         validateForm();
     }
     
@@ -1611,6 +1639,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('customerSearchInput').value = '';
         document.getElementById('customerSearchInput').classList.remove('d-none');
         document.getElementById('selectedCustomerDisplay').classList.add('d-none');
+        updateInvoiceSummary();
         validateForm();
     }
     
@@ -1735,6 +1764,50 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const tooltipEl = document.getElementById('lineTotalTooltip');
         tooltipEl.setAttribute('data-bs-original-title', `Calculated: ${qty} × ${price} = ${total}`);
+        
+        updateInvoiceSummary();
+    }
+    
+    function updateInvoiceSummary() {
+        const qty = parseFloat(document.getElementById('itemQuantity').value) || 0;
+        const priceStr = document.getElementById('itemUnitPrice').value.trim();
+        const price = parseFloat(priceStr) || 0;
+        const subtotal = qty * price;
+        
+        let vatRate = 0;
+        let vatAmount = 0;
+        let vatNote = '';
+        
+        if (selectedCustomer) {
+            if (selectedCustomer.reverseCharge) {
+                vatRate = 0;
+                vatAmount = 0;
+                vatNote = `Reverse charge applies (${selectedCustomer.vatCountry})`;
+            } else if (selectedCustomer.vatRegistered) {
+                vatRate = selectedCustomer.vatRate;
+                vatAmount = subtotal * (vatRate / 100);
+            } else {
+                vatRate = 0;
+                vatAmount = 0;
+                vatNote = 'Customer not VAT registered';
+            }
+        }
+        
+        const total = subtotal + vatAmount;
+        
+        document.getElementById('summarySubtotal').textContent = '£' + subtotal.toFixed(2);
+        document.getElementById('vatRateDisplay').textContent = `(${vatRate}%)`;
+        document.getElementById('summaryVat').textContent = '£' + vatAmount.toFixed(2);
+        document.getElementById('summaryTotal').textContent = '£' + total.toFixed(2);
+        
+        const vatNoteRow = document.getElementById('vatNoteRow');
+        const vatNoteEl = document.getElementById('vatNote');
+        if (vatNote) {
+            vatNoteEl.textContent = vatNote;
+            vatNoteRow.classList.remove('d-none');
+        } else {
+            vatNoteRow.classList.add('d-none');
+        }
     }
     
     function validateForm() {
@@ -1768,6 +1841,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('itemQuantity').value = '1';
         document.getElementById('lineTotal').value = '0.00';
         document.getElementById('descCharCount').textContent = '0';
+        
+        document.getElementById('summarySubtotal').textContent = '£0.00';
+        document.getElementById('vatRateDisplay').textContent = '(0%)';
+        document.getElementById('summaryVat').textContent = '£0.00';
+        document.getElementById('summaryTotal').textContent = '£0.00';
+        document.getElementById('vatNoteRow').classList.add('d-none');
         
         ['itemDescription', 'itemQuantity', 'itemUnitPrice', 'overrideEmail', 'customerSearchInput'].forEach(id => {
             document.getElementById(id).classList.remove('is-invalid');
