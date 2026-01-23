@@ -2572,8 +2572,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupEventListeners() {
-    document.getElementById('createTemplateBtn').addEventListener('click', showCreateModal);
-    document.getElementById('templateContent').addEventListener('input', updateCharCount);
+    var createBtn = document.getElementById('createTemplateBtn');
+    if (createBtn) {
+        createBtn.addEventListener('click', showCreateModal);
+    }
+    
+    var templateContent = document.getElementById('templateContent');
+    if (templateContent) {
+        templateContent.addEventListener('input', updateCharCount);
+    }
     
     document.getElementById('templateSearch').addEventListener('input', function() {
         appliedFilters.search = this.value;
