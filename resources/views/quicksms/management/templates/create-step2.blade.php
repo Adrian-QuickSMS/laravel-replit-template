@@ -160,9 +160,9 @@
                 </div>
             </div>
             
-            <div class="card mb-3 border-0 p-0" id="smsContentCard">
+            <div class="card mb-3 border-0 p-0">
                 <div class="card-body p-0">
-                    <h6 class="form-section-title"><i class="fas fa-edit me-2"></i>Message Content</h6>
+                    <h6 class="form-section-title"><i class="fas fa-edit me-2"></i>Content</h6>
                     
                     <label class="form-label mb-2" id="contentLabel">SMS Content</label>
                     
@@ -189,41 +189,35 @@
                         </span>
                     </div>
                     
+                    <div class="d-none mb-2" id="rcsTextHelper">
+                        <div class="alert py-2 mb-0" style="background-color: #f0ebf8; color: #6b5b95; border: none;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span id="rcsHelperText">Messages over 160 characters will be automatically sent as a single RCS message where supported.</span>
+                        </div>
+                    </div>
+                    
                     <div class="d-flex justify-content-end">
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
                             <i class="fas fa-magic me-1"></i>Improve with AI
                         </button>
                     </div>
-                </div>
-            </div>
-            
-            <div class="card mb-3 border-0 p-0 d-none" id="rcsContentCard">
-                <div class="card-body p-0">
-                    <h6 class="form-section-title"><i class="fas fa-images me-2"></i>Rich RCS Content</h6>
                     
-                    <div class="alert alert-info mb-3">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Create rich cards with images, titles, descriptions and interactive buttons.
-                    </div>
-                    
-                    <div id="rcsContentPreviewArea" class="p-3 border rounded mb-3 d-none" style="background: #f8f9fa;">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>RCS Content Configured</span>
-                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="openRcsWizard()">
-                                <i class="fas fa-edit me-1"></i>Edit
+                    <div class="d-none mt-3" id="rcsContentSection">
+                        <div class="border rounded p-3 text-center" style="background-color: rgba(136, 108, 192, 0.1); border-color: rgba(136, 108, 192, 0.2) !important;">
+                            <i class="fas fa-image fa-2x text-primary mb-2"></i>
+                            <h6 class="mb-2">Rich RCS Card</h6>
+                            <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
+                            <button type="button" class="btn btn-primary" onclick="openRcsWizard()">
+                                <i class="fas fa-magic me-1"></i>Create RCS Message
                             </button>
+                            <div class="d-none mt-3" id="rcsConfiguredSummary">
+                                <div class="alert alert-primary py-2 mb-0">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    <span id="rcsConfiguredText">RCS content configured</span>
+                                    <a href="#" class="ms-2" onclick="openRcsWizard(); return false;">Edit</a>
+                                </div>
+                            </div>
                         </div>
-                        <div id="rcsContentSummary" class="small text-muted"></div>
-                    </div>
-                    
-                    <button type="button" class="btn btn-primary" id="openRcsWizardBtn" onclick="openRcsWizard()">
-                        <i class="fas fa-magic me-1"></i>Open RCS Content Wizard
-                    </button>
-                    
-                    <div class="mt-3">
-                        <label class="form-label small">SMS Fallback Message <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="smsFallback" rows="3" placeholder="Fallback text for non-RCS devices..."></textarea>
-                        <small class="text-muted">Displayed when the recipient's device doesn't support RCS</small>
                     </div>
                 </div>
             </div>
@@ -275,30 +269,51 @@ document.addEventListener('DOMContentLoaded', function() {
 function initChannelSelector() {
     document.querySelectorAll('input[name="channel"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
-            var channel = this.value;
-            
-            if (channel === 'sms') {
-                document.getElementById('senderIdSection').classList.remove('d-none');
-                document.getElementById('rcsAgentSection').classList.add('d-none');
-                document.getElementById('smsContentCard').classList.remove('d-none');
-                document.getElementById('rcsContentCard').classList.add('d-none');
-                document.getElementById('contentLabel').textContent = 'SMS Content';
-            } else if (channel === 'rcs_basic') {
-                document.getElementById('senderIdSection').classList.add('d-none');
-                document.getElementById('rcsAgentSection').classList.remove('d-none');
-                document.getElementById('smsContentCard').classList.remove('d-none');
-                document.getElementById('rcsContentCard').classList.add('d-none');
-                document.getElementById('contentLabel').textContent = 'Basic RCS Content';
-            } else if (channel === 'rcs_rich') {
-                document.getElementById('senderIdSection').classList.add('d-none');
-                document.getElementById('rcsAgentSection').classList.remove('d-none');
-                document.getElementById('smsContentCard').classList.add('d-none');
-                document.getElementById('rcsContentCard').classList.remove('d-none');
-            }
-            
-            sessionStorage.setItem('templateWizardChannel', channel);
+            handleChannelChange(this.value);
         });
     });
+}
+
+function handleChannelChange(channel) {
+    var senderIdSection = document.getElementById('senderIdSection');
+    var rcsAgentSection = document.getElementById('rcsAgentSection');
+    var contentLabel = document.getElementById('contentLabel');
+    var rcsTextHelper = document.getElementById('rcsTextHelper');
+    var rcsHelperText = document.getElementById('rcsHelperText');
+    var rcsContentSection = document.getElementById('rcsContentSection');
+    
+    if (channel === 'sms') {
+        senderIdSection.classList.remove('d-none');
+        rcsAgentSection.classList.add('d-none');
+        rcsContentSection.classList.add('d-none');
+        rcsTextHelper.classList.add('d-none');
+        contentLabel.textContent = 'SMS Content';
+    } else if (channel === 'rcs_basic') {
+        senderIdSection.classList.add('d-none');
+        rcsAgentSection.classList.remove('d-none');
+        rcsContentSection.classList.add('d-none');
+        rcsTextHelper.classList.remove('d-none');
+        rcsHelperText.textContent = 'Messages over 160 characters will be automatically sent as a single RCS message where supported.';
+        contentLabel.textContent = 'Message Content';
+        autoSelectFirstAgent();
+    } else if (channel === 'rcs_rich') {
+        senderIdSection.classList.add('d-none');
+        rcsAgentSection.classList.remove('d-none');
+        rcsContentSection.classList.remove('d-none');
+        rcsTextHelper.classList.add('d-none');
+        contentLabel.textContent = 'SMS Fallback Content';
+        autoSelectFirstAgent();
+    }
+    
+    sessionStorage.setItem('templateWizardChannel', channel);
+    handleContentChange();
+}
+
+function autoSelectFirstAgent() {
+    var rcsAgentSelect = document.getElementById('rcsAgent');
+    if (rcsAgentSelect && rcsAgentSelect.selectedIndex === 0 && rcsAgentSelect.options.length > 1) {
+        rcsAgentSelect.selectedIndex = 1;
+    }
 }
 
 function openRcsWizard() {
@@ -330,9 +345,11 @@ function openRcsWizard() {
 }
 
 function updateRcsContentPreview() {
-    if (rcsContentData) {
-        document.getElementById('rcsContentPreviewArea').classList.remove('d-none');
-        document.getElementById('openRcsWizardBtn').classList.add('d-none');
+    var summaryEl = document.getElementById('rcsConfiguredSummary');
+    var textEl = document.getElementById('rcsConfiguredText');
+    
+    if (rcsContentData && summaryEl) {
+        summaryEl.classList.remove('d-none');
         
         var summary = '';
         if (rcsContentData.messageType === 'carousel') {
@@ -344,7 +361,9 @@ function updateRcsContentPreview() {
         if (rcsContentData.buttonCount) {
             summary += ' (' + rcsContentData.buttonCount + ' buttons)';
         }
-        document.getElementById('rcsContentSummary').textContent = summary;
+        if (textEl) textEl.textContent = summary || 'RCS content configured';
+    } else if (summaryEl) {
+        summaryEl.classList.add('d-none');
     }
 }
 
@@ -377,24 +396,11 @@ function openAiAssistant() {
 }
 
 function loadSavedData() {
-    var savedChannel = sessionStorage.getItem('templateWizardChannel');
-    if (savedChannel) {
-        var radio = document.getElementById('channel' + savedChannel.charAt(0).toUpperCase() + savedChannel.slice(1).replace('_', ''));
-        if (radio) {
-            radio.checked = true;
-            radio.dispatchEvent(new Event('change'));
-        }
-    }
-    
     var savedContent = sessionStorage.getItem('templateWizardStep2');
     if (savedContent) {
         var data = JSON.parse(savedContent);
         if (data.smsText) {
             document.getElementById('smsContent').value = data.smsText;
-            handleContentChange();
-        }
-        if (data.smsFallback) {
-            document.getElementById('smsFallback').value = data.smsFallback;
         }
         if (data.senderId) {
             document.getElementById('senderId').value = data.senderId;
@@ -406,17 +412,39 @@ function loadSavedData() {
             rcsContentData = data.rcsContentData;
             updateRcsContentPreview();
         }
+        if (data.channel) {
+            var channelMap = { 'sms': 'channelSMS', 'rcs_basic': 'channelRCSBasic', 'rcs_rich': 'channelRCSRich' };
+            var radioId = channelMap[data.channel];
+            if (radioId) {
+                document.getElementById(radioId).checked = true;
+                handleChannelChange(data.channel);
+            }
+        }
     }
+    
+    var savedChannel = sessionStorage.getItem('templateWizardChannel');
+    if (savedChannel && !savedContent) {
+        var channelMap = { 'sms': 'channelSMS', 'rcs_basic': 'channelRCSBasic', 'rcs_rich': 'channelRCSRich' };
+        var radioId = channelMap[savedChannel];
+        if (radioId) {
+            document.getElementById(radioId).checked = true;
+            handleChannelChange(savedChannel);
+        }
+    }
+    
+    handleContentChange();
 }
 
 document.getElementById('nextBtn').addEventListener('click', function(e) {
     var channel = document.querySelector('input[name="channel"]:checked').value;
+    var smsContent = document.getElementById('smsContent');
     
     if (channel === 'sms' || channel === 'rcs_basic') {
-        var text = document.getElementById('smsContent').value.trim();
+        var text = smsContent.value.trim();
         if (!text) {
             e.preventDefault();
-            document.getElementById('smsContent').classList.add('is-invalid');
+            smsContent.classList.add('is-invalid');
+            smsContent.focus();
             return;
         }
     } else if (channel === 'rcs_rich') {
@@ -425,18 +453,18 @@ document.getElementById('nextBtn').addEventListener('click', function(e) {
             alert('Please configure your RCS content using the wizard.');
             return;
         }
-        var fallback = document.getElementById('smsFallback').value.trim();
-        if (!fallback) {
+        var fallbackText = smsContent.value.trim();
+        if (!fallbackText) {
             e.preventDefault();
-            document.getElementById('smsFallback').classList.add('is-invalid');
+            smsContent.classList.add('is-invalid');
+            smsContent.focus();
             return;
         }
     }
     
     sessionStorage.setItem('templateWizardStep2', JSON.stringify({
         channel: channel,
-        smsText: document.getElementById('smsContent').value,
-        smsFallback: document.getElementById('smsFallback').value,
+        smsText: smsContent.value,
         senderId: document.getElementById('senderId').value,
         rcsAgent: document.getElementById('rcsAgent').value,
         rcsContentData: rcsContentData
@@ -444,9 +472,6 @@ document.getElementById('nextBtn').addEventListener('click', function(e) {
 });
 
 document.getElementById('smsContent').addEventListener('input', function() {
-    this.classList.remove('is-invalid');
-});
-document.getElementById('smsFallback').addEventListener('input', function() {
     this.classList.remove('is-invalid');
 });
 </script>
