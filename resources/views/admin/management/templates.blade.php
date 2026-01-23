@@ -302,6 +302,44 @@
     font-size: 0.8rem;
     color: #495057;
 }
+.placeholder-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border-radius: 50rem;
+    background: rgba(30, 58, 95, 0.12);
+    color: #1e3a5f;
+    margin-right: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+.placeholder-pill i {
+    margin-right: 0.35rem;
+    font-size: 0.75rem;
+}
+.placeholder-pill .remove-btn {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.placeholder-pill .remove-btn:hover {
+    opacity: 1;
+}
+.placeholder-counter {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 50rem;
+    background: rgba(30, 58, 95, 0.12);
+    color: #1e3a5f;
+}
+.placeholder-counter.empty {
+    background: rgba(108, 117, 125, 0.12);
+    color: #6c757d;
+}
 .search-filter-bar {
     display: flex;
     justify-content: space-between;
@@ -1428,17 +1466,32 @@ function renderTemplates(templates) {
             html += '<li><a class="dropdown-item" href="#" onclick="editTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\'); return false;"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         
-        if (template.status === 'live' && AdminPermissions.canSuspend()) {
-            html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
+        html += '<li><a class="dropdown-item" href="#" onclick="viewDuplicate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
+        
+        html += '<li><a class="dropdown-item" href="#" onclick="viewVersionHistory(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-history me-2"></i>Version History</a></li>';
+        
+        if (!isArchived) {
+            html += '<li><a class="dropdown-item" href="#" onclick="viewPermissions(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-lock me-2"></i>Permissions</a></li>';
         }
         
-        if (template.status === 'paused' && AdminPermissions.canReactivate()) {
-            html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
+        if (template.trigger === 'api') {
+            html += '<li><a class="dropdown-item" href="#" onclick="viewApiStructure(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-code me-2"></i>API Structure</a></li>';
         }
         
-        if (!isArchived && AdminPermissions.canArchive()) {
+        if (!isArchived) {
             html += '<li><hr class="dropdown-divider"></li>';
-            html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\', \'' + template.status + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+            
+            if (template.status === 'live' && AdminPermissions.canSuspend()) {
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
+            }
+            
+            if (template.status === 'paused' && AdminPermissions.canReactivate()) {
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
+            }
+            
+            if (AdminPermissions.canArchive()) {
+                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\', \'' + template.status + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+            }
         }
         
         html += '</ul>';
@@ -1706,6 +1759,50 @@ function archiveTemplate(accountId, templateId, name, accountName, currentStatus
     document.getElementById('archiveReason').value = '';
     
     new bootstrap.Modal(document.getElementById('archiveTemplateModal')).show();
+}
+
+function viewDuplicate(accountId, templateId, templateName) {
+    showToast('Duplicate is a customer action. Use impersonation to duplicate "' + templateName + '" for account ' + accountId + '.', 'info');
+    
+    AdminControlPlane.logAudit({
+        action: 'TEMPLATE_DUPLICATE_VIEWED',
+        severity: 'LOW',
+        targetAccount: accountId,
+        details: { templateId: templateId, templateName: templateName, note: 'Admin viewed duplicate option - customer action' }
+    });
+}
+
+function viewVersionHistory(accountId, templateId, templateName) {
+    showToast('Version history for "' + templateName + '" - feature coming soon. Use impersonation to access customer portal version history.', 'info');
+    
+    AdminControlPlane.logAudit({
+        action: 'TEMPLATE_VERSION_HISTORY_VIEWED',
+        severity: 'LOW',
+        targetAccount: accountId,
+        details: { templateId: templateId, templateName: templateName }
+    });
+}
+
+function viewPermissions(accountId, templateId, templateName) {
+    showToast('Permissions for "' + templateName + '" - feature coming soon. Use impersonation to manage template permissions.', 'info');
+    
+    AdminControlPlane.logAudit({
+        action: 'TEMPLATE_PERMISSIONS_VIEWED',
+        severity: 'LOW',
+        targetAccount: accountId,
+        details: { templateId: templateId, templateName: templateName }
+    });
+}
+
+function viewApiStructure(accountId, templateId, templateName) {
+    showToast('API Structure for "' + templateName + '" - feature coming soon. Use impersonation to view API payload structure.', 'info');
+    
+    AdminControlPlane.logAudit({
+        action: 'TEMPLATE_API_STRUCTURE_VIEWED',
+        severity: 'LOW',
+        targetAccount: accountId,
+        details: { templateId: templateId, templateName: templateName }
+    });
 }
 
 async function confirmArchiveTemplate() {
