@@ -1003,6 +1003,36 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="archiveTemplateModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-archive me-2 text-warning"></i>Archive Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Are you sure you want to archive this template?</p>
+                <p class="text-muted mb-3">Archived templates cannot be edited or used by the customer.</p>
+                <div class="mb-3">
+                    <label class="form-label">Template</label>
+                    <div class="fw-medium" id="archiveTemplateName">-</div>
+                    <small class="text-muted" id="archiveTemplateAccount">-</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Reason for archiving <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="archiveReason" rows="3" placeholder="Enter reason for archiving..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmArchiveTemplate()">
+                    <i class="fas fa-archive me-1"></i>Archive
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1358,6 +1388,11 @@ function renderTemplates(templates) {
             html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
         }
         
+        if (!isArchived) {
+            html += '<li><hr class="dropdown-divider"></li>';
+            html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\', \'' + template.status + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+        }
+        
         html += '</ul>';
         html += '</div>';
         html += '</td>';
@@ -1512,6 +1547,12 @@ async function viewTemplate(accountId, templateId) {
     if (result.success) {
         var template = result.data;
         
+        logAdminAuditEvent('TEMPLATE_VIEWED', {
+            accountId: accountId,
+            templateId: templateId,
+            templateName: template.name
+        });
+        
         document.getElementById('viewAccountName').textContent = template.accountName;
         document.getElementById('viewAccountId').textContent = template.accountId;
         document.getElementById('viewTemplateId').textContent = template.templateId;
@@ -1556,6 +1597,15 @@ async function confirmSuspendTemplate() {
     );
     
     if (result.success) {
+        logAdminAuditEvent('TEMPLATE_SUSPENDED', {
+            accountId: currentActionTemplate.accountId,
+            templateId: currentActionTemplate.templateId,
+            templateName: currentActionTemplate.name,
+            reason: reason,
+            beforeSnapshot: { status: 'live' },
+            afterSnapshot: { status: 'paused' }
+        });
+        
         bootstrap.Modal.getInstance(document.getElementById('suspendTemplateModal')).hide();
         showToast('Template suspended successfully', 'success');
         loadTemplates();
@@ -1576,17 +1626,100 @@ function reactivateTemplate(accountId, templateId, name, accountName) {
 async function confirmReactivateTemplate() {
     if (!currentActionTemplate) return;
     
+    var beforeStatus = 'paused';
+    
     var result = await AdminTemplatesService.reactivateTemplate(
         currentActionTemplate.accountId,
         currentActionTemplate.templateId
     );
     
     if (result.success) {
+        logAdminAuditEvent('TEMPLATE_REACTIVATED', {
+            accountId: currentActionTemplate.accountId,
+            templateId: currentActionTemplate.templateId,
+            templateName: currentActionTemplate.name,
+            beforeSnapshot: { status: beforeStatus },
+            afterSnapshot: { status: 'live' }
+        });
+        
         bootstrap.Modal.getInstance(document.getElementById('reactivateTemplateModal')).hide();
         showToast('Template reactivated successfully', 'success');
         loadTemplates();
     } else {
         showToast('Failed to reactivate template: ' + result.error, 'error');
+    }
+}
+
+function archiveTemplate(accountId, templateId, name, accountName, currentStatus) {
+    currentActionTemplate = { accountId, templateId, name, accountName, currentStatus: currentStatus };
+    
+    document.getElementById('archiveTemplateName').textContent = name;
+    document.getElementById('archiveTemplateAccount').textContent = accountName + ' (' + accountId + ')';
+    document.getElementById('archiveReason').value = '';
+    
+    new bootstrap.Modal(document.getElementById('archiveTemplateModal')).show();
+}
+
+async function confirmArchiveTemplate() {
+    if (!currentActionTemplate) return;
+    
+    var reason = document.getElementById('archiveReason').value.trim();
+    if (!reason) {
+        showToast('Please enter a reason for archiving', 'warning');
+        return;
+    }
+    
+    var result = await AdminTemplatesService.archiveTemplate(
+        currentActionTemplate.accountId,
+        currentActionTemplate.templateId,
+        reason
+    );
+    
+    if (result.success) {
+        logAdminAuditEvent('TEMPLATE_ARCHIVED', {
+            accountId: currentActionTemplate.accountId,
+            templateId: currentActionTemplate.templateId,
+            templateName: currentActionTemplate.name,
+            reason: reason,
+            beforeSnapshot: { status: currentActionTemplate.currentStatus || 'unknown' },
+            afterSnapshot: { status: 'archived' }
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('archiveTemplateModal')).hide();
+        showToast('Template archived successfully', 'success');
+        loadTemplates();
+    } else {
+        showToast('Failed to archive template: ' + result.error, 'error');
+    }
+}
+
+function logAdminAuditEvent(eventType, payload) {
+    var adminUser = typeof AdminControlPlane !== 'undefined' ? AdminControlPlane.getCurrentUser() : null;
+    
+    var auditEntry = {
+        timestamp: new Date().toISOString(),
+        eventType: eventType,
+        adminUserId: adminUser ? adminUser.userId : 'unknown',
+        adminEmail: adminUser ? adminUser.email : 'unknown',
+        accountId: payload.accountId,
+        templateId: payload.templateId,
+        templateName: payload.templateName || null,
+        beforeSnapshot: payload.beforeSnapshot || null,
+        afterSnapshot: payload.afterSnapshot || null,
+        reason: payload.reason || null,
+        changedFields: payload.changedFields || null,
+        sourceScreen: 'Admin > Management > Templates',
+        ipAddress: null
+    };
+    
+    console.log('[AdminTemplatesAudit]', JSON.stringify(auditEntry));
+    
+    if (typeof AdminControlPlane !== 'undefined') {
+        if (AdminControlPlane.logAudit) {
+            AdminControlPlane.logAudit(eventType, auditEntry);
+        } else if (AdminControlPlane.logAccess) {
+            AdminControlPlane.logAccess(auditEntry);
+        }
     }
 }
 
@@ -1799,22 +1932,26 @@ async function saveTemplateChanges() {
     saveBtn.innerHTML = originalText;
     
     if (result.success) {
-        bootstrap.Modal.getInstance(document.getElementById('editTemplateModal')).hide();
-        showToast('Template updated successfully', 'success');
-        loadTemplates();
-        
-        AdminControlPlane.logAccess({
-            eventType: 'TEMPLATE_EDIT_COMPLETED',
+        logAdminAuditEvent('TEMPLATE_EDITED', {
             accountId: editTenantContext.accountId,
             templateId: editTenantContext.templateId,
             templateName: updatedData.name,
-            adminAction: 'edit_template',
-            changes: {
+            changedFields: ['name', 'channel', 'content'],
+            beforeSnapshot: {
+                name: editingTemplate.name,
+                channel: editingTemplate.channel,
+                status: editingTemplate.status
+            },
+            afterSnapshot: {
                 name: updatedData.name,
                 channel: updatedData.channel,
-                setLive: updatedData.setLive
+                status: updatedData.setLive ? 'live' : editingTemplate.status
             }
         });
+        
+        bootstrap.Modal.getInstance(document.getElementById('editTemplateModal')).hide();
+        showToast('Template updated successfully', 'success');
+        loadTemplates();
     } else {
         showToast('Failed to save template: ' + (result.error || 'Unknown error'), 'error');
     }
