@@ -1484,13 +1484,13 @@ $(document).ready(function() {
             // Suspend - only for active numbers
             if (num.status === 'active') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item" href="#" onclick="suspendNumber(' + num.id + '); return false;"><i class="fas fa-pause-circle me-2 text-muted"></i>Suspend</a></li>';
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendNumber(' + num.id + '); return false;"><i class="fas fa-pause me-2"></i>Suspend</a></li>';
             }
             
             // Reactivate - only for suspended numbers
             if (num.status === 'suspended') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item" href="#" onclick="reactivateNumber(' + num.id + '); return false;"><i class="fas fa-play-circle me-2 text-muted"></i>Reactivate</a></li>';
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateNumber(' + num.id + '); return false;"><i class="fas fa-play me-2"></i>Reactivate</a></li>';
             }
             
             // NOTE: No delete/release action - numbers are never deleted
@@ -2498,49 +2498,98 @@ $(document).ready(function() {
         navigateToConfigurePage([id]);
     };
 
-    // Suspend number function
+    // Helper function for two-step confirmation modal
+    function showConfirmModal(title, message, btnText, btnClass, callback, warning) {
+        $('#confirmModalLabel').text(title);
+        $('#confirmModalMessage').text(message);
+        
+        if (warning) {
+            $('#confirmModalWarning').show();
+            $('#confirmModalWarningText').text(warning);
+        } else {
+            $('#confirmModalWarning').hide();
+        }
+        
+        $('#confirmModalBtn').removeClass('btn-primary btn-warning btn-danger btn-success').addClass(btnClass).text(btnText);
+        
+        $('#confirmModalBtn').off('click').on('click', function() {
+            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+            if (callback) {
+                setTimeout(callback, 300);
+            }
+        });
+        
+        new bootstrap.Modal(document.getElementById('confirmModal')).show();
+    }
+
+    // Suspend number function - two-step confirmation
     window.suspendNumber = function(id) {
         var num = numbersData.find(function(n) { return n.id === id; });
         if (!num) return;
         
-        $('#confirmModalLabel').text('Suspend Number');
-        $('#confirmModalMessage').text('Are you sure you want to suspend ' + num.number + '? The number will be hidden from sender pickers across all modules.');
-        $('#confirmModalWarning').show();
-        $('#confirmModalWarningText').text('This will affect Send Message, Inbox, and Email-to-SMS functionality.');
-        $('#confirmModalBtn').removeClass('btn-primary btn-danger').addClass('btn-warning').text('Suspend');
-        
-        $('#confirmModalBtn').off('click').on('click', function() {
-            // TODO: Backend API call with audit logging
-            num.status = 'suspended';
-            addAuditEntry(num, 'Status changed', 'Number suspended');
-            renderTable();
-            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
-            toastr.success('Number suspended successfully');
-        });
-        
-        new bootstrap.Modal(document.getElementById('confirmModal')).show();
+        // Step 1 of 2
+        showConfirmModal(
+            'Suspend Number - Step 1 of 2',
+            'Suspending "' + num.number + '" will hide it from sender pickers across all modules. Any campaigns using this number will be affected.',
+            'Continue',
+            'btn-primary',
+            function() {
+                // Step 2 of 2 - Final confirmation
+                showConfirmModal(
+                    'Suspend Number - Final Confirmation',
+                    'Please confirm you want to suspend "' + num.number + '". This will affect Send Message, Inbox, and Email-to-SMS functionality.',
+                    'Suspend Now',
+                    'btn-danger',
+                    function() {
+                        // TODO: Backend API call with audit logging
+                        num.status = 'suspended';
+                        addAuditEntry(num, 'Status changed', 'Number suspended');
+                        renderTable();
+                        toastr.success('Number "' + num.number + '" has been suspended.');
+                    },
+                    null
+                );
+            },
+            'This will affect Send Message, Inbox, and Email-to-SMS functionality.'
+        );
     };
 
-    // Reactivate number function
+    // Reactivate number function - two-step confirmation
     window.reactivateNumber = function(id) {
         var num = numbersData.find(function(n) { return n.id === id; });
         if (!num) return;
         
-        $('#confirmModalLabel').text('Reactivate Number');
-        $('#confirmModalMessage').text('Are you sure you want to reactivate ' + num.number + '?');
-        $('#confirmModalWarning').hide();
-        $('#confirmModalBtn').removeClass('btn-warning btn-danger').addClass('btn-primary').text('Reactivate');
+        // Block if already active
+        if (num.status === 'active') {
+            toastr.error('This number is already active.');
+            return;
+        }
         
-        $('#confirmModalBtn').off('click').on('click', function() {
-            // TODO: Backend API call with audit logging
-            num.status = 'active';
-            addAuditEntry(num, 'Status changed', 'Number reactivated');
-            renderTable();
-            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
-            toastr.success('Number reactivated successfully');
-        });
-        
-        new bootstrap.Modal(document.getElementById('confirmModal')).show();
+        // Step 1 of 2
+        showConfirmModal(
+            'Reactivate Number - Step 1 of 2',
+            'Reactivating "' + num.number + '" will restore it to sender pickers. The number will immediately become available for messaging.',
+            'Continue',
+            'btn-primary',
+            function() {
+                // Step 2 of 2 - Final confirmation
+                showConfirmModal(
+                    'Reactivate Number - Final Confirmation',
+                    'Please confirm you want to reactivate "' + num.number + '". The number will be available immediately.',
+                    'Reactivate Now',
+                    'btn-primary',
+                    function() {
+                        // TODO: Backend API call with audit logging
+                        num.status = 'active';
+                        addAuditEntry(num, 'Status changed', 'Number reactivated');
+                        renderTable();
+                        toastr.success('Number "' + num.number + '" has been reactivated.');
+                    },
+                    null
+                );
+            },
+            null
+        );
     };
 
     // Assign Sub-Accounts function (Portal mode only)
