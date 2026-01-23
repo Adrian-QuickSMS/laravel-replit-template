@@ -470,6 +470,12 @@
                         <button type="button" class="btn btn-outline-admin btn-sm" id="exportBtn">
                             <i class="fas fa-download me-1"></i> Export
                         </button>
+                        <button type="button" class="btn btn-outline-admin btn-sm" id="createCreditBtn">
+                            <i class="fas fa-plus me-1"></i> Create Credit
+                        </button>
+                        <button type="button" class="btn btn-admin-primary btn-sm" id="createInvoiceBtn">
+                            <i class="fas fa-plus me-1"></i> Create Invoice
+                        </button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -704,6 +710,60 @@
                 <a href="#" class="btn btn-admin-primary flex-grow-1" id="viewAccountBtn">
                     <i class="fas fa-building me-1"></i> View Account
                 </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createInvoiceCreditModal" tabindex="-1" aria-labelledby="createInvoiceCreditModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--admin-primary, #1e3a5f); color: #fff;">
+                <h5 class="modal-title" id="createInvoiceCreditModalLabel">
+                    <i class="fas fa-file-invoice me-2" id="modalTitleIcon"></i>
+                    <span id="modalTitleText">Create Customer Invoice</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4" id="modalDescription">Complete the form below to create a new customer invoice.</p>
+                
+                <form id="createInvoiceCreditForm">
+                    <input type="hidden" id="formMode" name="mode" value="invoice">
+                    
+                    <div class="mb-3">
+                        <label for="modalAccountSelect" class="form-label fw-semibold">Account <span class="text-danger">*</span></label>
+                        <select class="form-select" id="modalAccountSelect" required>
+                            <option value="">Select an account...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="modalAmount" class="form-label fw-semibold">Amount <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">&pound;</span>
+                                <input type="number" class="form-control" id="modalAmount" step="0.01" min="0" placeholder="0.00" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="modalReference" class="form-label fw-semibold">Reference</label>
+                            <input type="text" class="form-control" id="modalReference" placeholder="Optional reference">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="modalDescription" class="form-label fw-semibold">Description</label>
+                        <textarea class="form-control" id="modalDescriptionField" rows="3" placeholder="Enter a description..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-admin-primary" id="modalSubmitBtn" disabled>
+                    <i class="fas fa-plus me-1"></i>
+                    <span id="modalSubmitBtnText">Create invoice</span>
+                </button>
             </div>
         </div>
     </div>
@@ -1389,6 +1449,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('exportBtn').addEventListener('click', function() {
         alert('Export functionality will be implemented. This will export the filtered invoice data to CSV/Excel.');
+    });
+
+    const createInvoiceCreditModal = new bootstrap.Modal(document.getElementById('createInvoiceCreditModal'));
+    
+    function openCreateModal(mode) {
+        const isInvoice = mode === 'invoice';
+        
+        document.getElementById('formMode').value = mode;
+        document.getElementById('modalTitleText').textContent = isInvoice ? 'Create Customer Invoice' : 'Create Customer Credit';
+        document.getElementById('modalTitleIcon').className = isInvoice ? 'fas fa-file-invoice me-2' : 'fas fa-credit-card me-2';
+        document.getElementById('modalDescription').textContent = isInvoice 
+            ? 'Complete the form below to create a new customer invoice.' 
+            : 'Complete the form below to create a new customer credit.';
+        document.getElementById('modalSubmitBtnText').textContent = isInvoice ? 'Create invoice' : 'Create credit';
+        
+        document.getElementById('createInvoiceCreditForm').reset();
+        document.getElementById('modalSubmitBtn').disabled = true;
+        
+        const accountSelect = document.getElementById('modalAccountSelect');
+        accountSelect.innerHTML = '<option value="">Select an account...</option>';
+        allAccountsData.forEach(account => {
+            accountSelect.innerHTML += `<option value="${account.id}">${account.name}</option>`;
+        });
+        
+        createInvoiceCreditModal.show();
+    }
+    
+    document.getElementById('createInvoiceBtn').addEventListener('click', function() {
+        openCreateModal('invoice');
+    });
+    
+    document.getElementById('createCreditBtn').addEventListener('click', function() {
+        openCreateModal('credit');
     });
 
     loadInvoices();
