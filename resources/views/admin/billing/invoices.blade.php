@@ -772,6 +772,23 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-danger d-none" id="modalErrorAlert" role="alert">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-exclamation-circle me-2 mt-1"></i>
+                        <div class="flex-grow-1">
+                            <strong id="modalErrorTitle">Unable to create document</strong>
+                            <p class="mb-2 small" id="modalErrorMessage"></p>
+                            <small class="text-muted" id="modalErrorRef"></small>
+                            <div class="mt-2">
+                                <a href="#" class="btn btn-outline-danger btn-sm" id="viewCustomerBillingBtn" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i>View customer billing details
+                                </a>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" onclick="hideModalError()" aria-label="Close"></button>
+                    </div>
+                </div>
+                
                 <p class="text-muted mb-4" id="modalDescription">Complete the form below to create a new customer invoice.</p>
                 
                 <form id="createInvoiceCreditForm" novalidate>
@@ -1883,6 +1900,168 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('createInvoiceCreditModal').addEventListener('hidden.bs.modal', function() {
         resetModalForm();
+    });
+    
+    const adminInvoiceService = {
+        createDocument: function(payload) {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    const shouldFail = Math.random() < 0.1;
+                    
+                    if (shouldFail) {
+                        reject({
+                            status: 'failed',
+                            message: 'Unable to connect to Xero API. Please try again.',
+                            referenceId: 'ERR-' + Date.now().toString(36).toUpperCase()
+                        });
+                        return;
+                    }
+                    
+                    const customer = mockCustomers.find(c => c.id === payload.customerAccountId);
+                    const subtotal = payload.quantity * payload.unitPrice;
+                    let vatRate = 0;
+                    if (customer && !customer.reverseCharge && customer.vatRegistered) {
+                        vatRate = customer.vatRate;
+                    }
+                    const vat = subtotal * (vatRate / 100);
+                    const total = subtotal + vat;
+                    
+                    const docType = payload.mode === 'invoice' ? 'invoice' : 'credit_note';
+                    const docPrefix = payload.mode === 'invoice' ? 'INV' : 'CN';
+                    const xeroDocId = 'xero-' + Math.random().toString(36).substr(2, 9);
+                    const xeroDocNumber = docPrefix + '-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 9999)).padStart(4, '0');
+                    
+                    const emailSent = Math.random() > 0.2;
+                    const sentToEmail = payload.overrideEmail || (customer ? customer.name.toLowerCase().replace(/\s+/g, '.') + '@example.com' : 'customer@example.com');
+                    
+                    resolve({
+                        status: 'success',
+                        xeroDocumentType: docType,
+                        xeroDocumentId: xeroDocId,
+                        xeroDocumentNumber: xeroDocNumber,
+                        sentToEmail: emailSent ? sentToEmail : null,
+                        emailSent: emailSent,
+                        subtotal: subtotal.toFixed(2),
+                        vat: vat.toFixed(2),
+                        total: total.toFixed(2),
+                        createdAt: new Date().toISOString()
+                    });
+                }, 1500);
+            });
+        }
+    };
+    
+    let newlyCreatedInvoiceId = null;
+    
+    function showModalError(message, referenceId, customerId) {
+        const errorAlert = document.getElementById('modalErrorAlert');
+        document.getElementById('modalErrorMessage').textContent = message;
+        document.getElementById('modalErrorRef').textContent = 'Error reference: ' + referenceId;
+        document.getElementById('viewCustomerBillingBtn').href = '/admin/accounts/' + (customerId || 'unknown');
+        errorAlert.classList.remove('d-none');
+        errorAlert.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    window.hideModalError = function() {
+        document.getElementById('modalErrorAlert').classList.add('d-none');
+    };
+    
+    function showSuccessToast(message) {
+        let toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toastContainer';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '1100';
+            document.body.appendChild(toastContainer);
+        }
+        
+        const toastId = 'toast-' + Date.now();
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true" style="background-color: var(--admin-primary);">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="fas fa-check-circle me-2"></i>${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        `;
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        
+        const toastEl = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+        toast.show();
+        
+        toastEl.addEventListener('hidden.bs.toast', function() {
+            toastEl.remove();
+        });
+    }
+    
+    function highlightNewRow(invoiceNumber) {
+        setTimeout(() => {
+            const rows = document.querySelectorAll('#invoicesTable tbody tr');
+            rows.forEach(row => {
+                const invoiceNumCell = row.querySelector('td:nth-child(3)');
+                if (invoiceNumCell && invoiceNumCell.textContent.includes(invoiceNumber)) {
+                    row.style.transition = 'background-color 0.5s ease';
+                    row.style.backgroundColor = 'rgba(30, 58, 95, 0.15)';
+                    setTimeout(() => {
+                        row.style.backgroundColor = '';
+                    }, 3000);
+                }
+            });
+        }, 500);
+    }
+    
+    document.getElementById('modalSubmitBtn').addEventListener('click', async function() {
+        const submitBtn = this;
+        const originalBtnHtml = submitBtn.innerHTML;
+        
+        hideModalError();
+        
+        const payload = {
+            customerAccountId: selectedCustomer ? selectedCustomer.id : null,
+            mode: document.getElementById('formMode').value,
+            itemDescription: document.getElementById('itemDescription').value.trim(),
+            quantity: parseFloat(document.getElementById('itemQuantity').value),
+            unitPrice: parseFloat(document.getElementById('itemUnitPrice').value),
+            overrideEmail: document.getElementById('overrideEmail').value.trim() || null
+        };
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...';
+        
+        try {
+            const response = await adminInvoiceService.createDocument(payload);
+            
+            createInvoiceCreditModal.hide();
+            
+            let toastMessage;
+            if (response.emailSent) {
+                toastMessage = payload.mode === 'invoice' 
+                    ? 'Invoice created in Xero and sent to customer.'
+                    : 'Credit note created in Xero and sent to customer.';
+            } else {
+                toastMessage = payload.mode === 'invoice'
+                    ? 'Invoice created in Xero. Sending will be handled by Xero rules/workflow.'
+                    : 'Credit note created in Xero. Sending will be handled by Xero rules/workflow.';
+            }
+            showSuccessToast(toastMessage);
+            
+            newlyCreatedInvoiceId = response.xeroDocumentNumber;
+            loadInvoices();
+            highlightNewRow(response.xeroDocumentNumber);
+            
+        } catch (error) {
+            showModalError(
+                error.message || 'An unexpected error occurred. Please try again.',
+                error.referenceId || 'ERR-UNKNOWN',
+                selectedCustomer ? selectedCustomer.id : null
+            );
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnHtml;
+        }
     });
 
     loadInvoices();
