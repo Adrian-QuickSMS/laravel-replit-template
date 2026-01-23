@@ -24,7 +24,6 @@
                     <li><a href="{{ route('admin.reporting.message-log') }}" class="{{ request()->routeIs('admin.reporting.message-log') ? 'mm-active' : '' }}">Message Log (Global)</a></li>
                     <li><a href="{{ route('admin.reporting.client') }}" class="{{ request()->routeIs('admin.reporting.client') ? 'mm-active' : '' }}">Client Reporting</a></li>
                     <li><a href="{{ route('admin.reporting.supplier') }}" class="{{ request()->routeIs('admin.reporting.supplier') ? 'mm-active' : '' }}">Supplier Reporting</a></li>
-                    <li><a href="{{ route('admin.reporting.finance') }}" class="{{ request()->routeIs('admin.reporting.finance') ? 'mm-active' : '' }}">Finance Reports</a></li>
                 </ul>
             </li>
             
