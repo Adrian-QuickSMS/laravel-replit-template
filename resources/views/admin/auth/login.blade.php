@@ -239,7 +239,7 @@ body {
 <div class="auth-wrapper">
     <div class="auth-card">
         <div class="auth-logo">
-            <img src="{{ asset('images/logo.png') }}" alt="QuickSMS" onerror="this.style.display='none'">
+            <img src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS" style="height: 50px;">
         </div>
         
         <div class="text-center mb-3">
