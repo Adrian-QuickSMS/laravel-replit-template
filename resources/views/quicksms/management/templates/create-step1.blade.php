@@ -220,25 +220,6 @@
                                         <label class="form-label">Description</label>
                                         <textarea class="form-control" id="templateDescription" rows="2" placeholder="Optional description of what this template is for..." maxlength="255"></textarea>
                                     </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Category</label>
-                                        <select class="form-select" id="templateCategory">
-                                            <option value="">Select category...</option>
-                                            <option value="marketing">Marketing</option>
-                                            <option value="transactional">Transactional</option>
-                                            <option value="alerts">Alerts & Notifications</option>
-                                            <option value="reminders">Reminders</option>
-                                            <option value="promotions">Promotions</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Tags</label>
-                                        <input type="text" class="form-control" id="templateTags" placeholder="e.g., welcome, onboarding">
-                                        <small class="text-muted">Comma-separated tags for organization</small>
-                                    </div>
                                 </div>
                                 
                                 <div class="toolbar-bottom">
@@ -275,8 +256,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var data = JSON.parse(savedData);
         document.getElementById('templateName').value = data.name || '';
         document.getElementById('templateDescription').value = data.description || '';
-        document.getElementById('templateCategory').value = data.category || '';
-        document.getElementById('templateTags').value = data.tags || '';
         if (data.type) {
             selectTemplateType(data.type);
         }
@@ -294,9 +273,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sessionStorage.setItem('templateWizardStep1', JSON.stringify({
             name: name,
             description: document.getElementById('templateDescription').value.trim(),
-            category: document.getElementById('templateCategory').value,
-            type: document.getElementById('templateType').value,
-            tags: document.getElementById('templateTags').value.trim()
+            type: document.getElementById('templateType').value
         }));
     });
 

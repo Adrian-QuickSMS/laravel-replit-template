@@ -188,10 +188,6 @@
                                         <span class="review-label">Description:</span>
                                         <span class="review-value" id="reviewDescription">-</span>
                                     </div>
-                                    <div class="review-row">
-                                        <span class="review-label">Category:</span>
-                                        <span class="review-value" id="reviewCategory">-</span>
-                                    </div>
                                 </div>
 
                                 <div class="review-section">
@@ -263,7 +259,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('reviewName').textContent = data1.name || '-';
         document.getElementById('reviewType').textContent = data1.type === 'api' ? 'API Template' : 'Portal Template';
         document.getElementById('reviewDescription').textContent = data1.description || 'No description';
-        document.getElementById('reviewCategory').textContent = data1.category ? data1.category.charAt(0).toUpperCase() + data1.category.slice(1) : 'Not specified';
     }
     
     if (step2) {
