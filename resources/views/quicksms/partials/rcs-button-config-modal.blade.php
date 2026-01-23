@@ -173,14 +173,7 @@
                         <input type="hidden" id="rcsButtonUtmCampaign">
                         <input type="hidden" id="rcsButtonUtmContent">
                         
-                        <div class="mb-0">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="rcsButtonTrackConversion">
-                                <label class="form-check-label small" for="rcsButtonTrackConversion">
-                                    Enable conversion tracking <span class="text-muted">(requires pixel)</span>
-                                </label>
-                            </div>
-                        </div>
+                        <input type="hidden" id="rcsButtonTrackConversion">
                     </div>
                 </div>
             </div>
