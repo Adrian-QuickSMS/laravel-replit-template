@@ -694,24 +694,24 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     <div class="card" style="border: 1px solid #e0e6ed;">
         <div class="card-body p-0">
             <div class="table-responsive" id="campaignsTable">
-                <table class="table table-hover mb-0 align-middle" style="width: 100%;">
+                <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: fixed;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 11%; min-width: 100px;">
+                            <th class="sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 12%;">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 22%; min-width: 180px;">
+                            <th class="sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 25%;">
                                 Campaign <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th style="width: 10%; min-width: 90px;">Channel</th>
-                            <th style="width: 12%; min-width: 100px;">Status</th>
-                            <th class="sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 15%; min-width: 120px;">
+                            <th style="width: 10%;">Channel</th>
+                            <th style="width: 12%;">Status</th>
+                            <th class="sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 15%;">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 14%; min-width: 110px;">
+                            <th class="sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 18%;">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="text-center" style="width: 10%; min-width: 80px;">Actions</th>
+                            <th class="text-center" style="width: 8%;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="campaignsTableBody">
