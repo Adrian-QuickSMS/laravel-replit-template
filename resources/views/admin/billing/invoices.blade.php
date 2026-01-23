@@ -349,6 +349,52 @@
     font-size: 0.75rem;
     color: #6c757d;
 }
+.customer-typeahead-wrapper {
+    position: relative;
+}
+.customer-typeahead-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1070;
+    display: none;
+}
+.customer-typeahead-dropdown.show {
+    display: block;
+}
+.customer-typeahead-item {
+    padding: 0.625rem 0.875rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f3f5;
+    transition: background-color 0.15s;
+}
+.customer-typeahead-item:last-child {
+    border-bottom: none;
+}
+.customer-typeahead-item:hover {
+    background-color: var(--admin-primary-light);
+}
+.customer-typeahead-item .customer-name {
+    font-weight: 600;
+    color: var(--admin-primary);
+}
+.customer-typeahead-item .customer-account-id {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.customer-typeahead-no-results {
+    padding: 0.75rem;
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+}
 .global-summary-strip {
     background: linear-gradient(135deg, #fff 0%, #f0f4f8 100%);
     border: 1px solid rgba(30, 58, 95, 0.2);
@@ -728,33 +774,71 @@
             <div class="modal-body">
                 <p class="text-muted mb-4" id="modalDescription">Complete the form below to create a new customer invoice.</p>
                 
-                <form id="createInvoiceCreditForm">
+                <form id="createInvoiceCreditForm" novalidate>
                     <input type="hidden" id="formMode" name="mode" value="invoice">
+                    <input type="hidden" id="selectedCustomerId" name="customerId" value="">
+                    
+                    <div class="mb-4">
+                        <label for="customerSearchInput" class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
+                        <div class="customer-typeahead-wrapper position-relative">
+                            <input type="text" class="form-control" id="customerSearchInput" placeholder="Select customer..." autocomplete="off">
+                            <div class="customer-typeahead-dropdown" id="customerTypeaheadDropdown"></div>
+                            <div class="selected-customer-display d-none" id="selectedCustomerDisplay">
+                                <div class="d-flex align-items-center justify-content-between p-2 border rounded bg-light">
+                                    <div>
+                                        <span class="fw-semibold" id="selectedCustomerName"></span>
+                                        <small class="text-muted ms-2" id="selectedCustomerAccountId"></small>
+                                        <span class="badge ms-2" id="selectedCustomerStatus"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-link text-danger p-0" id="clearCustomerBtn" title="Clear selection">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="invalid-feedback" id="customerError">Please select a customer</div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    <h6 class="text-muted text-uppercase small mb-3">Line Item</h6>
                     
                     <div class="mb-3">
-                        <label for="modalAccountSelect" class="form-label fw-semibold">Account <span class="text-danger">*</span></label>
-                        <select class="form-select" id="modalAccountSelect" required>
-                            <option value="">Select an account...</option>
-                        </select>
+                        <label for="itemDescription" class="form-label fw-semibold">Item description <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="itemDescription" maxlength="255" placeholder="e.g. Setup fee, Price correction, Professional services" required>
+                        <div class="d-flex justify-content-between">
+                            <div class="invalid-feedback" id="itemDescriptionError">Please enter an item description</div>
+                            <small class="text-muted mt-1"><span id="descCharCount">0</span>/255</small>
+                        </div>
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="modalAmount" class="form-label fw-semibold">Amount <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">&pound;</span>
-                                <input type="number" class="form-control" id="modalAmount" step="0.01" min="0" placeholder="0.00" required>
-                            </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="itemQuantity" class="form-label fw-semibold">Quantity <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="itemQuantity" value="1" min="0.01" step="0.01" required>
+                            <div class="invalid-feedback" id="itemQuantityError">Minimum 0.01</div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="modalReference" class="form-label fw-semibold">Reference</label>
-                            <input type="text" class="form-control" id="modalReference" placeholder="Optional reference">
+                        <div class="col-md-4 mb-3">
+                            <label for="itemUnitPrice" class="form-label fw-semibold">Unit price (&pound;) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="itemUnitPrice" placeholder="0.0000" required>
+                            <div class="invalid-feedback" id="itemUnitPriceError">Enter a valid price (max 4 decimal places)</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="lineTotal" class="form-label fw-semibold">Line total (&pound;)</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control bg-light" id="lineTotal" value="0.00" readonly>
+                                <span class="input-group-text" id="lineTotalTooltip" data-bs-toggle="tooltip" data-bs-placement="top" title="Calculated: qty × unit price">
+                                    <i class="fas fa-info-circle text-muted"></i>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     
+                    <hr class="my-4">
+                    
                     <div class="mb-3">
-                        <label for="modalDescription" class="form-label fw-semibold">Description</label>
-                        <textarea class="form-control" id="modalDescriptionField" rows="3" placeholder="Enter a description..."></textarea>
+                        <label for="overrideEmail" class="form-label fw-semibold">Send invoice to different email <small class="text-muted fw-normal">(optional)</small></label>
+                        <input type="email" class="form-control" id="overrideEmail" placeholder="email@example.com">
+                        <div class="invalid-feedback" id="overrideEmailError">Please enter a valid email address</div>
                     </div>
                 </form>
             </div>
@@ -1453,6 +1537,245 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const createInvoiceCreditModal = new bootstrap.Modal(document.getElementById('createInvoiceCreditModal'));
     
+    let selectedCustomer = null;
+    let customerSearchTimeout = null;
+    
+    const mockCustomers = [
+        { id: 'ACC-001', name: 'TechStart Solutions', status: 'Live' },
+        { id: 'ACC-002', name: 'EduLearn Institute', status: 'Live' },
+        { id: 'ACC-003', name: 'GreenEnergy Co', status: 'Test' },
+        { id: 'ACC-004', name: 'HealthCare Plus', status: 'Live' },
+        { id: 'ACC-005', name: 'FoodService Network', status: 'Suspended' },
+        { id: 'ACC-006', name: 'RetailMax Ltd', status: 'Live' },
+        { id: 'ACC-007', name: 'LogiTrans Systems', status: 'Test' },
+        { id: 'ACC-008', name: 'MediaWorks Agency', status: 'Live' },
+        { id: 'ACC-009', name: 'FinanceFirst Group', status: 'Live' },
+        { id: 'ACC-010', name: 'BuildRight Construction', status: 'Test' }
+    ];
+    
+    function searchCustomers(query) {
+        const lowerQuery = query.toLowerCase();
+        return mockCustomers.filter(c => 
+            c.name.toLowerCase().includes(lowerQuery) || 
+            c.id.toLowerCase().includes(lowerQuery)
+        );
+    }
+    
+    function getStatusBadgeClass(status) {
+        switch(status) {
+            case 'Live': return 'bg-success';
+            case 'Test': return 'bg-warning text-dark';
+            case 'Suspended': return 'bg-danger';
+            default: return 'bg-secondary';
+        }
+    }
+    
+    function renderCustomerDropdown(customers) {
+        const dropdown = document.getElementById('customerTypeaheadDropdown');
+        if (customers.length === 0) {
+            dropdown.innerHTML = '<div class="customer-typeahead-no-results">No customers found</div>';
+        } else {
+            dropdown.innerHTML = customers.map(c => `
+                <div class="customer-typeahead-item" data-id="${c.id}" data-name="${c.name}" data-status="${c.status}">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <span class="customer-name">${c.name}</span>
+                            <span class="customer-account-id ms-2">${c.id}</span>
+                        </div>
+                        <span class="badge ${getStatusBadgeClass(c.status)} badge-sm">${c.status}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        dropdown.classList.add('show');
+    }
+    
+    function selectCustomer(id, name, status) {
+        selectedCustomer = { id, name, status };
+        document.getElementById('selectedCustomerId').value = id;
+        document.getElementById('customerSearchInput').classList.add('d-none');
+        document.getElementById('selectedCustomerDisplay').classList.remove('d-none');
+        document.getElementById('selectedCustomerName').textContent = name;
+        document.getElementById('selectedCustomerAccountId').textContent = id;
+        const statusBadge = document.getElementById('selectedCustomerStatus');
+        statusBadge.textContent = status;
+        statusBadge.className = `badge ms-2 ${getStatusBadgeClass(status)}`;
+        document.getElementById('customerTypeaheadDropdown').classList.remove('show');
+        document.getElementById('customerSearchInput').classList.remove('is-invalid');
+        validateForm();
+    }
+    
+    function clearCustomerSelection() {
+        selectedCustomer = null;
+        document.getElementById('selectedCustomerId').value = '';
+        document.getElementById('customerSearchInput').value = '';
+        document.getElementById('customerSearchInput').classList.remove('d-none');
+        document.getElementById('selectedCustomerDisplay').classList.add('d-none');
+        validateForm();
+    }
+    
+    document.getElementById('customerSearchInput').addEventListener('input', function(e) {
+        const query = e.target.value.trim();
+        clearTimeout(customerSearchTimeout);
+        
+        if (query.length < 2) {
+            document.getElementById('customerTypeaheadDropdown').classList.remove('show');
+            return;
+        }
+        
+        customerSearchTimeout = setTimeout(() => {
+            const results = searchCustomers(query);
+            renderCustomerDropdown(results);
+        }, 300);
+    });
+    
+    document.getElementById('customerSearchInput').addEventListener('focus', function() {
+        if (this.value.trim().length >= 2) {
+            const results = searchCustomers(this.value.trim());
+            renderCustomerDropdown(results);
+        }
+    });
+    
+    document.getElementById('customerTypeaheadDropdown').addEventListener('click', function(e) {
+        const item = e.target.closest('.customer-typeahead-item');
+        if (item) {
+            selectCustomer(item.dataset.id, item.dataset.name, item.dataset.status);
+        }
+    });
+    
+    document.getElementById('clearCustomerBtn').addEventListener('click', clearCustomerSelection);
+    
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.customer-typeahead-wrapper')) {
+            document.getElementById('customerTypeaheadDropdown').classList.remove('show');
+        }
+    });
+    
+    document.getElementById('itemDescription').addEventListener('input', function() {
+        document.getElementById('descCharCount').textContent = this.value.length;
+        validateField('itemDescription');
+        validateForm();
+    });
+    
+    document.getElementById('itemQuantity').addEventListener('input', function() {
+        validateField('itemQuantity');
+        calculateLineTotal();
+        validateForm();
+    });
+    
+    document.getElementById('itemUnitPrice').addEventListener('input', function() {
+        validateField('itemUnitPrice');
+        calculateLineTotal();
+        validateForm();
+    });
+    
+    document.getElementById('overrideEmail').addEventListener('input', function() {
+        validateField('overrideEmail');
+        validateForm();
+    });
+    
+    function validateField(fieldName) {
+        let isValid = true;
+        let field, errorEl;
+        
+        switch(fieldName) {
+            case 'itemDescription':
+                field = document.getElementById('itemDescription');
+                isValid = field.value.trim().length > 0 && field.value.length <= 255;
+                field.classList.toggle('is-invalid', !isValid && field.value.length > 0);
+                break;
+                
+            case 'itemQuantity':
+                field = document.getElementById('itemQuantity');
+                const qty = parseFloat(field.value);
+                isValid = !isNaN(qty) && qty >= 0.01;
+                field.classList.toggle('is-invalid', !isValid && field.value.length > 0);
+                break;
+                
+            case 'itemUnitPrice':
+                field = document.getElementById('itemUnitPrice');
+                const priceStr = field.value.trim();
+                const priceRegex = /^-?\d+(\.\d{1,4})?$/;
+                const price = parseFloat(priceStr);
+                isValid = priceRegex.test(priceStr) && !isNaN(price);
+                
+                if (priceStr.length > 0 && priceStr.includes('.')) {
+                    const decimals = priceStr.split('.')[1];
+                    if (decimals && decimals.length > 4) {
+                        isValid = false;
+                        document.getElementById('itemUnitPriceError').textContent = 'Maximum 4 decimal places allowed';
+                    }
+                }
+                field.classList.toggle('is-invalid', !isValid && priceStr.length > 0);
+                break;
+                
+            case 'overrideEmail':
+                field = document.getElementById('overrideEmail');
+                const email = field.value.trim();
+                if (email.length > 0) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    isValid = emailRegex.test(email);
+                    field.classList.toggle('is-invalid', !isValid);
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+                break;
+        }
+        
+        return isValid;
+    }
+    
+    function calculateLineTotal() {
+        const qty = parseFloat(document.getElementById('itemQuantity').value) || 0;
+        const priceStr = document.getElementById('itemUnitPrice').value.trim();
+        const price = parseFloat(priceStr) || 0;
+        const total = qty * price;
+        const totalRounded = total.toFixed(2);
+        document.getElementById('lineTotal').value = totalRounded;
+        
+        const tooltipEl = document.getElementById('lineTotalTooltip');
+        tooltipEl.setAttribute('data-bs-original-title', `Calculated: ${qty} × ${price} = ${total}`);
+    }
+    
+    function validateForm() {
+        const customerValid = selectedCustomer !== null;
+        const descValid = document.getElementById('itemDescription').value.trim().length > 0;
+        
+        const qtyValue = parseFloat(document.getElementById('itemQuantity').value);
+        const qtyValid = !isNaN(qtyValue) && qtyValue >= 0.01;
+        
+        const priceStr = document.getElementById('itemUnitPrice').value.trim();
+        const priceRegex = /^-?\d+(\.\d{1,4})?$/;
+        const priceValid = priceRegex.test(priceStr) && !isNaN(parseFloat(priceStr));
+        
+        const emailField = document.getElementById('overrideEmail');
+        const email = emailField.value.trim();
+        let emailValid = true;
+        if (email.length > 0) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            emailValid = emailRegex.test(email);
+        }
+        
+        const formValid = customerValid && descValid && qtyValid && priceValid && emailValid;
+        document.getElementById('modalSubmitBtn').disabled = !formValid;
+        
+        return formValid;
+    }
+    
+    function resetModalForm() {
+        document.getElementById('createInvoiceCreditForm').reset();
+        clearCustomerSelection();
+        document.getElementById('itemQuantity').value = '1';
+        document.getElementById('lineTotal').value = '0.00';
+        document.getElementById('descCharCount').textContent = '0';
+        
+        ['itemDescription', 'itemQuantity', 'itemUnitPrice', 'overrideEmail', 'customerSearchInput'].forEach(id => {
+            document.getElementById(id).classList.remove('is-invalid');
+        });
+        
+        document.getElementById('modalSubmitBtn').disabled = true;
+    }
+    
     function openCreateModal(mode) {
         const isInvoice = mode === 'invoice';
         
@@ -1464,14 +1787,9 @@ document.addEventListener('DOMContentLoaded', function() {
             : 'Complete the form below to create a new customer credit.';
         document.getElementById('modalSubmitBtnText').textContent = isInvoice ? 'Create invoice' : 'Create credit';
         
-        document.getElementById('createInvoiceCreditForm').reset();
-        document.getElementById('modalSubmitBtn').disabled = true;
+        resetModalForm();
         
-        const accountSelect = document.getElementById('modalAccountSelect');
-        accountSelect.innerHTML = '<option value="">Select an account...</option>';
-        allAccountsData.forEach(account => {
-            accountSelect.innerHTML += `<option value="${account.id}">${account.name}</option>`;
-        });
+        const tooltip = new bootstrap.Tooltip(document.getElementById('lineTotalTooltip'));
         
         createInvoiceCreditModal.show();
     }
@@ -1482,6 +1800,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('createCreditBtn').addEventListener('click', function() {
         openCreateModal('credit');
+    });
+    
+    document.getElementById('createInvoiceCreditModal').addEventListener('hidden.bs.modal', function() {
+        resetModalForm();
     });
 
     loadInvoices();
