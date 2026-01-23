@@ -37,6 +37,9 @@
 .admin-page .table tbody td {
     padding: 0.5rem 0.75rem;
     vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .admin-page .table .actions-cell {
     text-align: center;
@@ -697,21 +700,21 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                 <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: fixed;">
                     <thead style="background-color: #f8f9fa;">
                         <tr>
-                            <th class="sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 12%;">
+                            <th class="sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 11%;">
                                 Account <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 25%;">
+                            <th class="sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 22%;">
                                 Campaign <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th style="width: 10%;">Channel</th>
-                            <th style="width: 12%;">Status</th>
-                            <th class="sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 15%;">
+                            <th style="width: 9%;">Channel</th>
+                            <th style="width: 10%;">Status</th>
+                            <th class="sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 14%;">
                                 Recipients <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 18%;">
+                            <th class="sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 14%;">
                                 Send Date <i class="fas fa-sort sort-icon"></i>
                             </th>
-                            <th class="text-center" style="width: 8%;">Actions</th>
+                            <th class="text-center" style="width: 6%; min-width: 50px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="campaignsTableBody">
