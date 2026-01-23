@@ -49,6 +49,14 @@ class AdminController extends Controller
         ]);
     }
 
+    public function accountsBilling($accountId)
+    {
+        return view('admin.accounts.billing', [
+            'page_title' => 'Account Billing',
+            'account_id' => $accountId
+        ]);
+    }
+
     public function reportingMessageLog()
     {
         return view('admin.reporting.message-log', [

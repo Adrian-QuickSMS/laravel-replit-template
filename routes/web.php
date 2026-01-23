@@ -115,6 +115,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/accounts/sub-accounts', 'accountsSubAccounts')->name('admin.accounts.sub-accounts');
             Route::get('/accounts/balances', 'accountsBalances')->name('admin.accounts.balances');
             Route::get('/accounts/details/{accountId}', 'accountsDetails')->name('admin.accounts.details');
+            Route::get('/accounts/{accountId}/billing', 'accountsBilling')->name('admin.accounts.billing');
             
             Route::get('/reporting/message-log', 'reportingMessageLog')->name('admin.reporting.message-log');
             Route::get('/reporting/client', 'reportingClient')->name('admin.reporting.client');

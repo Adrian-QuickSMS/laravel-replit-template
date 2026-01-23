@@ -202,6 +202,11 @@
                 <i class="fas fa-tags me-2"></i>Pricing
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" href="{{ route('admin.accounts.billing', ['accountId' => $account_id]) }}">
+                <i class="fas fa-file-invoice-dollar me-2"></i>Billing
+            </a>
+        </li>
     </ul>
 
     <div class="tab-content" id="accountTabsContent">
