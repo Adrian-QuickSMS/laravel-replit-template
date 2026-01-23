@@ -211,8 +211,12 @@
                                         <a href="{{ route('management.templates.create.step3') }}"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
-                                        <span class="review-label">Visibility:</span>
-                                        <span class="review-value" id="reviewVisibility">-</span>
+                                        <span class="review-label">Assigned Sub-Accounts:</span>
+                                        <span class="review-value" id="reviewSubAccounts">-</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Assigned Users:</span>
+                                        <span class="review-value" id="reviewUsers">-</span>
                                     </div>
                                     <div class="review-row">
                                         <span class="review-label">Opt-Out:</span>
@@ -266,8 +270,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (step3) {
         var data3 = JSON.parse(step3);
-        var visibilityMap = { 'private': 'Private (Only me)', 'team': 'Team (All users)', 'sub-accounts': 'Sub-accounts included' };
-        document.getElementById('reviewVisibility').textContent = visibilityMap[data3.visibility] || data3.visibility;
+        
+        // Display sub-accounts
+        if (data3.subAccounts && data3.subAccounts.length > 0) {
+            document.getElementById('reviewSubAccounts').textContent = data3.subAccounts.length + ' sub-account(s) selected';
+        } else {
+            document.getElementById('reviewSubAccounts').textContent = 'None selected';
+        }
+        
+        // Display users
+        if (data3.users && data3.users.length > 0) {
+            var userNames = data3.users.map(function(u) { return u.name; }).join(', ');
+            document.getElementById('reviewUsers').textContent = userNames;
+        } else {
+            document.getElementById('reviewUsers').textContent = 'None selected';
+        }
+        
         document.getElementById('reviewOptOut').textContent = data3.includeOptOut ? 'Enabled' : 'Disabled';
     }
     
