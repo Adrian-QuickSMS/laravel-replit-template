@@ -66,7 +66,7 @@
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
-    overflow-x: auto;
+    overflow-x: hidden;
 }
 .templates-table {
     width: 100%;
@@ -75,26 +75,28 @@
 }
 .templates-table thead th {
     background: #f8f9fa;
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 0.35rem;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #495057;
     border-bottom: 1px solid #e9ecef;
     cursor: pointer;
     white-space: nowrap;
     user-select: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.templates-table thead th:first-child { width: 12%; }
-.templates-table thead th:nth-child(2) { width: 9%; }
-.templates-table thead th:nth-child(3) { width: 6%; }
-.templates-table thead th:nth-child(4) { width: 9%; }
-.templates-table thead th:nth-child(5) { width: 8%; }
-.templates-table thead th:nth-child(6) { width: 16%; }
-.templates-table thead th:nth-child(7) { width: 11%; }
-.templates-table thead th:nth-child(8) { width: 7%; }
-.templates-table thead th:nth-child(9) { width: 9%; }
+.templates-table thead th:first-child { width: 11%; }
+.templates-table thead th:nth-child(2) { width: 8%; }
+.templates-table thead th:nth-child(3) { width: 5%; }
+.templates-table thead th:nth-child(4) { width: 8%; }
+.templates-table thead th:nth-child(5) { width: 7%; }
+.templates-table thead th:nth-child(6) { width: 15%; }
+.templates-table thead th:nth-child(7) { width: 10%; }
+.templates-table thead th:nth-child(8) { width: 6%; }
+.templates-table thead th:nth-child(9) { width: 8%; }
 .templates-table thead th:last-child { 
-    width: 5%; 
+    width: 4%; 
     position: sticky;
     right: 0;
     background: #f8f9fa;
@@ -116,10 +118,14 @@
     color: var(--primary);
 }
 .templates-table tbody td {
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 0.35rem;
     vertical-align: middle;
     border-bottom: 1px solid #f1f3f5;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 0;
 }
 .templates-table tbody td:last-child {
     position: sticky;
