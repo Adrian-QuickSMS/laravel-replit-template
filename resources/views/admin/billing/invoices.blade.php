@@ -352,6 +352,22 @@
 .customer-typeahead-wrapper {
     position: relative;
 }
+.customer-select-input {
+    cursor: pointer;
+    background-color: #fff !important;
+    padding-right: 2.5rem;
+}
+.customer-select-input::placeholder {
+    color: #6c757d;
+}
+.customer-select-caret {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #6c757d;
+}
 .customer-typeahead-dropdown {
     position: absolute;
     top: 100%;
@@ -798,7 +814,8 @@
                     <div class="mb-4">
                         <label for="customerSearchInput" class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
                         <div class="customer-typeahead-wrapper position-relative">
-                            <input type="text" class="form-control" id="customerSearchInput" placeholder="Select customer..." autocomplete="off">
+                            <input type="text" class="form-control customer-select-input" id="customerSearchInput" placeholder="Select customer..." autocomplete="off">
+                            <span class="customer-select-caret"><i class="fas fa-chevron-down"></i></span>
                             <div class="customer-typeahead-dropdown" id="customerTypeaheadDropdown"></div>
                             <div class="selected-customer-display d-none" id="selectedCustomerDisplay">
                                 <div class="d-flex align-items-center justify-content-between p-2 border rounded bg-light">
@@ -1771,9 +1788,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.getElementById('customerSearchInput').addEventListener('focus', function() {
-        if (this.value.trim().length >= 2) {
-            const results = searchCustomers(this.value.trim());
+        const query = this.value.trim();
+        if (query.length >= 2) {
+            const results = searchCustomers(query);
             renderCustomerDropdown(results);
+        } else {
+            renderCustomerDropdown(mockCustomers);
+        }
+    });
+    
+    document.getElementById('customerSearchInput').addEventListener('click', function() {
+        const query = this.value.trim();
+        if (query.length >= 2) {
+            const results = searchCustomers(query);
+            renderCustomerDropdown(results);
+        } else {
+            renderCustomerDropdown(mockCustomers);
         }
     });
     
