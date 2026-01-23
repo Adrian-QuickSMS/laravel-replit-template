@@ -1726,6 +1726,70 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function templateCreateStep1()
+    {
+        return view('quicksms.management.templates.create-step1', [
+            'page_title' => 'Create Template - Metadata',
+            'current_step' => 1
+        ]);
+    }
+
+    public function templateCreateStep2()
+    {
+        $sender_ids = [
+            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
+            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
+            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
+        ];
+
+        $rcs_agents = [
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
+        ];
+
+        $opt_out_lists = [
+            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847, 'is_default' => true],
+            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245, 'is_default' => false],
+            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
+        ];
+
+        $virtual_numbers = [
+            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main Number'],
+            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
+        ];
+
+        $optout_domains = [
+            ['id' => 1, 'domain' => 'qsms.uk', 'is_default' => true],
+            ['id' => 2, 'domain' => 'optout.quicksms.com', 'is_default' => false],
+        ];
+
+        return view('quicksms.management.templates.create-step2', [
+            'page_title' => 'Create Template - Content',
+            'current_step' => 2,
+            'sender_ids' => $sender_ids,
+            'rcs_agents' => $rcs_agents,
+            'opt_out_lists' => $opt_out_lists,
+            'virtual_numbers' => $virtual_numbers,
+            'optout_domains' => $optout_domains
+        ]);
+    }
+
+    public function templateCreateStep3()
+    {
+        return view('quicksms.management.templates.create-step3', [
+            'page_title' => 'Create Template - Settings',
+            'current_step' => 3
+        ]);
+    }
+
+    public function templateCreateReview()
+    {
+        return view('quicksms.management.templates.create-review', [
+            'page_title' => 'Create Template - Review',
+            'current_step' => 4
+        ]);
+    }
+
     public function apiConnections()
     {
         return view('quicksms.management.api-connections', [
