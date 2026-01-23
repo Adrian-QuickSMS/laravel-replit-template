@@ -60,6 +60,14 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, leveraging the Fillow SaaS Admin
   - Clean separation between UI and backend API - swap endpoints only
   - No PII leakage - MSISDN stored as hash, reveal requires audit-logged API call
 - **NumbersAdminService (`public/js/numbers-admin-service.js`):** Backend-ready abstraction layer for Admin Numbers Management, providing separation between UI and backend API, supporting mock data for development, and handling various operations for numbers, accounts, and audit history with validation and error handling.
+- **BillingServices (`public/js/billing-services.js`):** Unified billing services layer supporting the Admin Account Billing page.
+  - **HubSpotBillingService:** Source of truth for billingMode and creditLimit. Methods: `getBillingProfile(accountId)`, `updateBillingMode(accountId, mode)`, `updateCreditLimit(accountId, creditLimit)`. Returns typed BillingProfile objects with hubspotContactId, hubspotUrl, paymentTerms, currency, VAT settings.
+  - **InternalBillingLedgerService:** Internal balance tracking. Methods: `getBalance(accountId)` returns LedgerBalance (currentBalance, lastUpdatedTimestamp, currency), `calculateAvailableCredit(billingMode, currentBalance, creditLimit)`.
+  - **InvoicesService:** Invoice and credit note management with Xero integration. Methods: `listInvoices(filters)` with pagination, `createInvoice(request)`, `createCredit(request)`, `getInvoice(invoiceNumber)`, `syncToXero(invoiceNumber)`. Returns typed Invoice objects with xeroInvoiceId.
+  - **AccountDetailsService:** Basic account information. Method: `getAccountDetails(accountId)` returns name, status.
+  - **BillingFacade:** Unified data loading combining all services. Methods: `loadCompleteBillingData(accountId)` returns complete billing profile, `checkOutstandingInvoices(accountId)` returns outstanding invoice summary.
+  - **Configuration:** `BillingServices.config.useMockData` controls mock/real API mode. Set to `false` to use real API endpoints defined in `apiBaseUrl`, `hubspotApiUrl`, `xeroApiUrl`.
+  - **Design Principles:** Typed JSDoc objects, no hardcoded credentials, HubSpot as source of truth, UI revert on API failure via Promise rejection, backend-ready without refactor.
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
