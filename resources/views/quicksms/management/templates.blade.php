@@ -86,17 +86,17 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.templates-table thead th:first-child { width: 11%; }
-.templates-table thead th:nth-child(2) { width: 8%; }
-.templates-table thead th:nth-child(3) { width: 5%; }
-.templates-table thead th:nth-child(4) { width: 8%; }
-.templates-table thead th:nth-child(5) { width: 7%; }
-.templates-table thead th:nth-child(6) { width: 15%; }
-.templates-table thead th:nth-child(7) { width: 10%; }
-.templates-table thead th:nth-child(8) { width: 6%; }
-.templates-table thead th:nth-child(9) { width: 8%; }
+.templates-table thead th:first-child { width: 14%; }  /* Name */
+.templates-table thead th:nth-child(2) { width: 10%; } /* ID */
+.templates-table thead th:nth-child(3) { width: 6%; }  /* Ver */
+.templates-table thead th:nth-child(4) { width: 10%; } /* Channel */
+.templates-table thead th:nth-child(5) { width: 8%; }  /* Trigger */
+.templates-table thead th:nth-child(6) { width: 18%; } /* Preview */
+.templates-table thead th:nth-child(7) { width: 12%; } /* Scope */
+.templates-table thead th:nth-child(8) { width: 7%; }  /* Status */
+.templates-table thead th:nth-child(9) { width: 10%; } /* Updated */
 .templates-table thead th:last-child { 
-    width: 4%; 
+    width: 5%; 
     position: sticky;
     right: 0;
     background: #f8f9fa;
@@ -748,20 +748,20 @@
 
             <div class="active-filters mb-3" id="activeFilters"></div>
 
-            <div class="table-responsive">
-                <table class="table table-hover">
+            <div class="templates-table-container">
+                <table class="templates-table">
                     <thead>
                         <tr>
-                            <th data-sort="name" onclick="sortTable('name')">Template Name <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="templateId" onclick="sortTable('templateId')">Template ID <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="version" onclick="sortTable('version')">Version <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="name" onclick="sortTable('name')">Name <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="templateId" onclick="sortTable('templateId')">ID <i class="fas fa-sort sort-icon"></i></th>
+                            <th data-sort="version" onclick="sortTable('version')">Ver <i class="fas fa-sort sort-icon"></i></th>
                             <th data-sort="channel" onclick="sortTable('channel')">Channel <i class="fas fa-sort sort-icon"></i></th>
                             <th data-sort="trigger" onclick="sortTable('trigger')">Trigger <i class="fas fa-sort sort-icon"></i></th>
-                            <th>Content Preview</th>
-                            <th data-sort="accessScope" onclick="sortTable('accessScope')">Access Scope <i class="fas fa-sort sort-icon"></i></th>
+                            <th>Preview</th>
+                            <th data-sort="accessScope" onclick="sortTable('accessScope')">Scope <i class="fas fa-sort sort-icon"></i></th>
                             <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="lastUpdated" onclick="sortTable('lastUpdated')">Last Updated <i class="fas fa-sort sort-icon"></i></th>
-                            <th>Actions</th>
+                            <th data-sort="lastUpdated" onclick="sortTable('lastUpdated')">Updated <i class="fas fa-sort sort-icon"></i></th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody id="templatesBody">
