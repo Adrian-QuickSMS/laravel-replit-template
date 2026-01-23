@@ -1516,6 +1516,12 @@ function renderTemplates(templates) {
     });
     
     tbody.innerHTML = html || '<tr><td colspan="11" class="text-center text-muted py-4">No templates match your filters</td></tr>';
+    
+    // Initialize Bootstrap dropdowns for dynamically added content
+    var dropdownElements = tbody.querySelectorAll('[data-bs-toggle="dropdown"]');
+    dropdownElements.forEach(function(element) {
+        new bootstrap.Dropdown(element);
+    });
 }
 
 function renderPagination(pagination) {
