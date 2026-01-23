@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     loginStatus.innerHTML = '<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-2"></i>Login successful! Redirecting...</div>';
                     loginStatus.classList.remove('d-none');
                     setTimeout(function() {
-                        window.location.href = '/admin/dashboard';
+                        window.location.href = '/admin/';
                     }, 1000);
                 }
             } else {
@@ -460,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mfaStatus.classList.remove('d-none');
             
             setTimeout(function() {
-                window.location.href = '/admin/dashboard';
+                window.location.href = '/admin/';
             }, 1000);
         }, 1500);
     });
