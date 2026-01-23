@@ -218,10 +218,6 @@
                                         <span class="review-label">Opt-Out:</span>
                                         <span class="review-value" id="reviewOptOut">-</span>
                                     </div>
-                                    <div class="review-row">
-                                        <span class="review-label">Scheduling:</span>
-                                        <span class="review-value" id="reviewScheduling">-</span>
-                                    </div>
                                 </div>
 
                                 <div class="toolbar-bottom">
@@ -273,7 +269,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var visibilityMap = { 'private': 'Private (Only me)', 'team': 'Team (All users)', 'sub-accounts': 'Sub-accounts included' };
         document.getElementById('reviewVisibility').textContent = visibilityMap[data3.visibility] || data3.visibility;
         document.getElementById('reviewOptOut').textContent = data3.includeOptOut ? 'Enabled' : 'Disabled';
-        document.getElementById('reviewScheduling').textContent = data3.enableScheduling ? 'Enabled' : 'Disabled';
     }
     
     document.getElementById('createTemplateBtn').addEventListener('click', function() {

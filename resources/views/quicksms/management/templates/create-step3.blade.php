@@ -185,22 +185,6 @@
                                     </div>
                                 </div>
 
-                                <div class="settings-section">
-                                    <h6><i class="fas fa-clock me-2"></i>Scheduling</h6>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" id="enableScheduling">
-                                        <label class="form-check-label" for="enableScheduling">
-                                            Allow scheduled sending for this template
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="enableQuietHours">
-                                        <label class="form-check-label" for="enableQuietHours">
-                                            Respect quiet hours (no sending between 9pm-8am)
-                                        </label>
-                                    </div>
-                                </div>
-
                                 <div class="toolbar-bottom">
                                     <a href="{{ route('management.templates.create.step2') }}" class="btn btn-outline-secondary">
                                         <i class="fas fa-arrow-left me-1"></i>Back
@@ -235,8 +219,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('includeOptOut').checked = data.includeOptOut !== false;
         document.getElementById('optOutText').value = data.optOutText || 'Reply STOP to opt out';
         document.getElementById('optOutList').value = data.optOutList || 'master';
-        document.getElementById('enableScheduling').checked = data.enableScheduling || false;
-        document.getElementById('enableQuietHours').checked = data.enableQuietHours || false;
     }
 
     document.getElementById('includeOptOut').addEventListener('change', function() {
@@ -249,9 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
             allowEditing: document.getElementById('allowEditing').checked,
             includeOptOut: document.getElementById('includeOptOut').checked,
             optOutText: document.getElementById('optOutText').value,
-            optOutList: document.getElementById('optOutList').value,
-            enableScheduling: document.getElementById('enableScheduling').checked,
-            enableQuietHours: document.getElementById('enableQuietHours').checked
+            optOutList: document.getElementById('optOutList').value
         }));
     });
 });
