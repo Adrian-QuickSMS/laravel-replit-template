@@ -66,7 +66,10 @@
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
-    overflow-x: hidden;
+    overflow: visible;
+}
+.templates-table-container .dropdown-menu {
+    z-index: 1050;
 }
 .templates-table {
     width: 100%;
