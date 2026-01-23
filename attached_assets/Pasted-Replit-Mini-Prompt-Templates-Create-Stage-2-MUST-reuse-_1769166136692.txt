@@ -1,0 +1,74 @@
+Replit Mini Prompt — Templates Create (Stage 2) MUST reuse shared Send Message composer (no UI drift)
+
+Context
+We are refactoring Customer Portal → Management → Templates → Create/Edit. The content step must use the exact same shared composer as Messages → Send Message (shared source of truth), including all controls, layout, toggles, dropdowns, and logic.
+
+Bug / Regression
+When selecting Basic RCS or Rich RCS inside Template Create/Edit:
+
+The RCS Agent dropdown has disappeared
+
+The “Improve with API” button is in a different place than Send Message
+
+Trackable link and Message expiry toggles are missing
+
+Opt-out management card/setting is missing or moved
+
+Some social/other toggles present in Send Message are not present
+This proves Template Create is NOT using the shared Send Message source or has forked UI/logic.
+
+Hard Requirements (non-negotiable)
+
+Do not rebuild, redesign, or fork the content composer UI for templates.
+
+The Templates “Content” step must mount the same shared component used by Send Message (single shared code path), passing only a mode="template" (or equivalent) flag to hide recipients/pricing/scheduling — but everything else must remain identical.
+
+All controls that exist in Send Message must also exist here in the same places, including:
+
+Channel toggle (SMS / Basic RCS / Rich RCS)
+
+SenderID dropdown
+
+RCS Agent dropdown (must show for Basic/Rich RCS modes exactly as in Send Message)
+
+“Improve with API” button in the same location
+
+Trackable link toggle + expiry toggle (same card/placement)
+
+Opt-out management card in its traditional place (same placement as Send Message)
+
+Any other toggles/cards present in Send Message must render unchanged
+
+Rich RCS Wizard must open from the same shared wizard module as Send Message and behave identically.
+
+Use Fillow template design only (customer portal purple). No new UI patterns, no new icons, no new styling.
+
+Implementation Notes
+
+Remove/undo any template-specific composer JSX that duplicates Send Message.
+
+Import the existing Send Message composer and reuse it directly.
+
+Only template-specific differences are via props:
+
+Hide recipients selection
+
+Hide pricing preview
+
+Hide scheduling
+
+Change primary CTA to Save Draft / Launch
+
+Do not change layout grids, card ordering, or button positioning.
+
+Acceptance Criteria
+
+In Template Create/Edit → Content step:
+
+Selecting Basic RCS shows RCS Agent dropdown exactly as Send Message.
+
+Selecting Rich RCS shows RCS Agent dropdown and opens the same Rich RCS Wizard as Send Message.
+
+“Improve with API”, trackable link, expiry toggles, and opt-out management appear and are positioned identically to Send Message.
+
+A visual diff between Send Message composer and Template composer (same channel selected) should show no differences other than recipient/pricing/scheduling being hidden and CTA text changing.

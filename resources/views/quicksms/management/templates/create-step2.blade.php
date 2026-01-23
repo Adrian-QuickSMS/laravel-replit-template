@@ -99,6 +99,58 @@
     border: 1px solid rgba(136, 108, 192, 0.2);
     color: #614099;
 }
+
+/* 2-column layout matching Send Message */
+.template-content-layout {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+.template-content-left {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.template-content-right {
+    flex: 0 0 380px;
+    width: 380px;
+    max-width: 100%;
+    position: sticky;
+    top: 90px;
+    align-self: flex-start;
+}
+.template-content-right .card {
+    max-height: calc(100vh - 120px);
+    overflow: auto;
+}
+@media (max-width: 1199.98px) {
+    .template-content-layout {
+        flex-direction: column;
+    }
+    .template-content-left,
+    .template-content-right {
+        flex: 0 0 100%;
+        width: 100%;
+        max-width: 100%;
+        position: static;
+    }
+    .template-content-right .card {
+        max-height: none;
+        overflow: visible;
+    }
+}
+@media (max-width: 1440px) {
+    .template-content-layout {
+        gap: 1rem;
+    }
+    .template-content-right {
+        flex: 0 0 340px;
+        width: 340px;
+    }
+    #mainPreviewContainer {
+        transform: scale(0.7);
+        margin-bottom: -120px;
+    }
+}
 </style>
 @endpush
 
@@ -127,11 +179,12 @@
                             <li class="nav-item"><a class="nav-link" href="#step-4"><span>4</span><small>Review</small></a></li>
                         </ul>
                         
-                        <div class="row">
-                            <div class="col-lg-10 mx-auto">
-                                <div class="alert alert-pastel-primary mb-4">
-                                    <strong>Step 2: Content</strong> - Choose channel and compose your message content.
-                                </div>
+                        <div class="alert alert-pastel-primary mb-4">
+                            <strong>Step 2: Content</strong> - Choose channel and compose your message content.
+                        </div>
+                        
+                        <div class="template-content-layout">
+                            <div class="template-content-left">
             <div class="card mb-3 border-0 p-0">
                 <div class="card-body p-0">
                     <h6 class="form-section-title"><i class="fas fa-broadcast-tower me-2"></i>Channel & Sender</h6>
@@ -248,6 +301,36 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <div class="template-content-right">
+                                <div class="card mb-3">
+                                    <div class="card-body p-4">
+                                        <h6 class="mb-3">Message Preview</h6>
+                                        <div id="mainPreviewContainer" class="d-flex justify-content-center" style="transform: scale(0.85); transform-origin: top center; margin-bottom: -70px;"></div>
+                                        
+                                        <div class="text-center d-none" id="previewToggleContainer">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-sm py-0 px-3 active" id="previewRCSBtn" onclick="showPreview('rcs')" style="font-size: 11px; background: #886CC0; color: white; border: 1px solid #886CC0;">RCS</button>
+                                                <button type="button" class="btn btn-sm py-0 px-3" id="previewSMSBtn" onclick="showPreview('sms')" style="font-size: 11px; background: white; color: #886CC0; border: 1px solid #886CC0;">SMS</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="text-center d-none" id="basicRcsPreviewToggle">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-sm py-0 px-3 active" id="basicPreviewRCSBtn" onclick="toggleBasicRcsPreview('rcs')" style="font-size: 11px; background: #886CC0; color: white; border: 1px solid #886CC0;">RCS</button>
+                                                <button type="button" class="btn btn-sm py-0 px-3" id="basicPreviewSMSBtn" onclick="toggleBasicRcsPreview('sms')" style="font-size: 11px; background: white; color: #886CC0; border: 1px solid #886CC0;">SMS</button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mt-3 border-top pt-2">
+                                            <div class="row text-center">
+                                                <div class="col-6"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel" class="small">SMS</strong></div>
+                                                <div class="col-6"><small class="text-muted d-block mb-1">Encoding</small><strong id="previewEncoding" class="small">GSM-7</strong></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -261,12 +344,14 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/rcs-preview.js') }}"></script>
+<script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106b"></script>
 <script src="{{ asset('js/rcs-wizard.js') }}"></script>
 <script>
 var composerMode = 'template';
 var rcsWizardCallback = null;
 var rcsContentData = null;
+var basicRcsPreviewMode = 'rcs';
+var richRcsPreviewMode = 'rcs';
 
 window.sender_ids = @json($sender_ids);
 window.rcs_agents = @json($rcs_agents);
@@ -277,6 +362,15 @@ window.optout_domains = @json($optout_domains);
 document.addEventListener('DOMContentLoaded', function() {
     initChannelSelector();
     loadSavedData();
+    
+    setTimeout(function() {
+        if (typeof RcsPreviewRenderer !== 'undefined') {
+            updatePreview();
+        } else {
+            console.warn('[Templates] RcsPreviewRenderer not available yet, retrying...');
+            setTimeout(updatePreview, 500);
+        }
+    }, 100);
     
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
         new bootstrap.Tooltip(el);
@@ -298,6 +392,9 @@ function handleChannelChange(channel) {
     var rcsTextHelper = document.getElementById('rcsTextHelper');
     var rcsHelperText = document.getElementById('rcsHelperText');
     var rcsContentSection = document.getElementById('rcsContentSection');
+    var basicRcsPreviewToggle = document.getElementById('basicRcsPreviewToggle');
+    var previewToggleContainer = document.getElementById('previewToggleContainer');
+    var previewChannel = document.getElementById('previewChannel');
     
     if (channel === 'sms') {
         senderIdSection.classList.remove('d-none');
@@ -305,6 +402,9 @@ function handleChannelChange(channel) {
         rcsContentSection.classList.add('d-none');
         rcsTextHelper.classList.add('d-none');
         contentLabel.textContent = 'SMS Content';
+        if (basicRcsPreviewToggle) basicRcsPreviewToggle.classList.add('d-none');
+        if (previewToggleContainer) previewToggleContainer.classList.add('d-none');
+        if (previewChannel) previewChannel.textContent = 'SMS';
     } else if (channel === 'rcs_basic') {
         senderIdSection.classList.add('d-none');
         rcsAgentSection.classList.remove('d-none');
@@ -312,6 +412,9 @@ function handleChannelChange(channel) {
         rcsTextHelper.classList.remove('d-none');
         rcsHelperText.textContent = 'Messages over 160 characters will be automatically sent as a single RCS message where supported.';
         contentLabel.textContent = 'Message Content';
+        if (basicRcsPreviewToggle) basicRcsPreviewToggle.classList.remove('d-none');
+        if (previewToggleContainer) previewToggleContainer.classList.add('d-none');
+        if (previewChannel) previewChannel.textContent = 'Basic RCS';
         autoSelectFirstAgent();
     } else if (channel === 'rcs_rich') {
         senderIdSection.classList.add('d-none');
@@ -319,6 +422,9 @@ function handleChannelChange(channel) {
         rcsContentSection.classList.remove('d-none');
         rcsTextHelper.classList.add('d-none');
         contentLabel.textContent = 'SMS Fallback Content';
+        if (basicRcsPreviewToggle) basicRcsPreviewToggle.classList.add('d-none');
+        if (previewToggleContainer) previewToggleContainer.classList.remove('d-none');
+        if (previewChannel) previewChannel.textContent = 'Rich RCS';
         autoSelectFirstAgent();
     }
     
@@ -382,6 +488,8 @@ function updateRcsContentPreview() {
     } else if (summaryEl) {
         summaryEl.classList.add('d-none');
     }
+    
+    updatePreview();
 }
 
 function handleContentChange() {
@@ -394,14 +502,113 @@ function handleContentChange() {
     document.getElementById('smsPartCount').textContent = partCount || 1;
     document.getElementById('encodingType').textContent = hasUnicode ? 'Unicode' : 'GSM-7';
     
+    var previewEncoding = document.getElementById('previewEncoding');
+    if (previewEncoding) previewEncoding.textContent = hasUnicode ? 'Unicode' : 'GSM-7';
+    
     if (hasUnicode) {
         document.getElementById('unicodeWarning').classList.remove('d-none');
     } else {
         document.getElementById('unicodeWarning').classList.add('d-none');
     }
+    
+    updatePreview();
 }
 
 function updatePreview() {
+    var channel = document.querySelector('input[name="channel"]:checked')?.value || 'sms';
+    var container = document.getElementById('mainPreviewContainer');
+    if (!container) return;
+    if (typeof RcsPreviewRenderer === 'undefined') return;
+    
+    var senderId = document.getElementById('senderId');
+    var smsContent = document.getElementById('smsContent');
+    var rcsAgentSelect = document.getElementById('rcsAgent');
+    
+    var senderIdText = (senderId?.selectedOptions[0]?.text || 'Sender').replace(/\s*\(.*?\)\s*$/, '');
+    var messageText = smsContent?.value || '';
+    
+    var previewConfig = {
+        channel: 'sms',
+        senderId: senderIdText,
+        message: { body: messageText }
+    };
+    
+    if (channel === 'sms') {
+        previewConfig.channel = 'sms';
+    } else if (channel === 'rcs_basic') {
+        if (basicRcsPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+        } else {
+            previewConfig.channel = 'basic_rcs';
+            var selectedOption = rcsAgentSelect?.selectedOptions[0];
+            previewConfig.agent = {
+                name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
+                logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                verified: true,
+                tagline: selectedOption?.dataset?.tagline || 'Business messaging'
+            };
+        }
+    } else if (channel === 'rcs_rich') {
+        if (richRcsPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+        } else {
+            var selectedOption = rcsAgentSelect?.selectedOptions[0];
+            var agent = {
+                name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
+                logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                verified: true,
+                tagline: selectedOption?.dataset?.tagline || 'Business messaging'
+            };
+            
+            if (rcsContentData) {
+                container.innerHTML = RcsPreviewRenderer.renderRichRcsPreview(rcsContentData, agent);
+                RcsPreviewRenderer.initCarouselBehavior('#mainPreviewContainer');
+            } else {
+                container.innerHTML = RcsPreviewRenderer.renderRichRcsPlaceholder(agent);
+            }
+            return;
+        }
+    }
+    
+    container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
+}
+
+function toggleBasicRcsPreview(mode) {
+    basicRcsPreviewMode = mode;
+    var rcsBtn = document.getElementById('basicPreviewRCSBtn');
+    var smsBtn = document.getElementById('basicPreviewSMSBtn');
+    
+    if (mode === 'rcs') {
+        rcsBtn.style.background = '#886CC0';
+        rcsBtn.style.color = 'white';
+        smsBtn.style.background = 'white';
+        smsBtn.style.color = '#886CC0';
+    } else {
+        rcsBtn.style.background = 'white';
+        rcsBtn.style.color = '#886CC0';
+        smsBtn.style.background = '#886CC0';
+        smsBtn.style.color = 'white';
+    }
+    updatePreview();
+}
+
+function showPreview(mode) {
+    richRcsPreviewMode = mode;
+    var rcsBtn = document.getElementById('previewRCSBtn');
+    var smsBtn = document.getElementById('previewSMSBtn');
+    
+    if (mode === 'rcs') {
+        rcsBtn.style.background = '#886CC0';
+        rcsBtn.style.color = 'white';
+        smsBtn.style.background = 'white';
+        smsBtn.style.color = '#886CC0';
+    } else {
+        rcsBtn.style.background = 'white';
+        rcsBtn.style.color = '#886CC0';
+        smsBtn.style.background = '#886CC0';
+        smsBtn.style.color = 'white';
+    }
+    updatePreview();
 }
 
 function openPersonalisationModal() {
