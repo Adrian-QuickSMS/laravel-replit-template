@@ -119,19 +119,11 @@
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
     overflow-x: auto;
-    overflow-y: visible;
-}
-.api-table-container .dropdown {
-    position: static;
 }
 .api-table-container .dropdown-menu {
-    position: fixed !important;
     z-index: 1060;
     min-width: 180px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    right: auto !important;
-    left: auto !important;
-    transform: translateX(-80%);
 }
 .api-table {
     width: 100%;
@@ -1091,9 +1083,28 @@ $(document).ready(function() {
         $('#showingCount').text(filtered.length);
         $('#totalCount').text(appliedFilters.showArchived ? apiConnections.length : apiConnections.filter(c => !c.archived).length);
         
-        // Initialize Bootstrap dropdowns for dynamically added content
+        // Initialize Bootstrap dropdowns for dynamically added content with proper Popper config
         $('#apiConnectionsBody [data-bs-toggle="dropdown"]').each(function() {
-            new bootstrap.Dropdown(this);
+            new bootstrap.Dropdown(this, {
+                popperConfig: {
+                    strategy: 'fixed',
+                    modifiers: [
+                        {
+                            name: 'preventOverflow',
+                            options: {
+                                boundary: 'viewport',
+                                padding: 8
+                            }
+                        },
+                        {
+                            name: 'flip',
+                            options: {
+                                fallbackPlacements: ['top-end', 'bottom-end', 'left-start']
+                            }
+                        }
+                    ]
+                }
+            });
         });
         
         $('.api-table thead th').removeClass('sorted');
