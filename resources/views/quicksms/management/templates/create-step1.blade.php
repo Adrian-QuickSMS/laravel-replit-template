@@ -4,86 +4,144 @@
 
 @push('styles')
 <style>
-.wizard-container {
-    max-width: 900px;
-    margin: 0 auto;
+.form-wizard {
+    border: 0;
 }
-.wizard-progress {
+.form-wizard .nav-wizard {
+    box-shadow: none !important;
+    margin-bottom: 2rem;
     display: flex;
     justify-content: center;
-    margin-bottom: 2rem;
-    padding: 0;
     list-style: none;
+    padding: 0;
 }
-.wizard-progress li {
+.form-wizard .nav-wizard li {
     flex: 1;
-    max-width: 180px;
-    position: relative;
+    max-width: 150px;
 }
-.wizard-progress li .step-circle {
+.form-wizard .nav-wizard li .nav-link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #6c757d;
+    padding: 0;
+    background: transparent !important;
+    border: none !important;
+}
+.form-wizard .nav-wizard li .nav-link span {
+    border-radius: 3.125rem;
     width: 3rem;
     height: 3rem;
-    border-radius: 50%;
-    border: 2px solid #e9ecef;
-    background: #fff;
+    border: 0.125rem solid var(--primary, #886CC0);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 0.5rem;
-    font-weight: 600;
-    color: #6c757d;
-    position: relative;
-    z-index: 2;
-}
-.wizard-progress li.active .step-circle,
-.wizard-progress li.completed .step-circle {
-    background: var(--primary, #886CC0);
-    border-color: var(--primary, #886CC0);
-    color: #fff;
-}
-.wizard-progress li .step-label {
-    font-size: 0.8rem;
-    color: #6c757d;
-    text-align: center;
-}
-.wizard-progress li.active .step-label {
+    font-size: 1.125rem;
+    font-weight: 500;
+    background: #fff;
     color: var(--primary, #886CC0);
-    font-weight: 600;
+    position: relative;
+    z-index: 1;
 }
-.wizard-progress li:not(:last-child)::after {
-    content: '';
+.form-wizard .nav-wizard li .nav-link:after {
     position: absolute;
     top: 1.5rem;
     left: 50%;
-    width: 100%;
-    height: 2px;
+    height: 0.1875rem;
     background: #e9ecef;
-    z-index: 1;
+    content: "";
+    z-index: 0;
+    width: 100%;
 }
-.wizard-progress li.completed:not(:last-child)::after {
+.form-wizard .nav-wizard li:last-child .nav-link:after {
+    content: none;
+}
+.form-wizard .nav-wizard li .nav-link.active span,
+.form-wizard .nav-wizard li .nav-link.done span {
     background: var(--primary, #886CC0);
+    color: #fff;
+    border-color: var(--primary, #886CC0);
 }
-.wizard-card {
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
-    padding: 2rem;
+.form-wizard .nav-wizard li .nav-link.active:after,
+.form-wizard .nav-wizard li .nav-link.done:after {
+    background: var(--primary, #886CC0) !important;
 }
-.wizard-footer {
+.form-wizard .nav-wizard li .nav-link small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+}
+.form-wizard .nav-wizard li .nav-link.active small {
+    color: var(--primary, #886CC0);
+    font-weight: 600;
+}
+.toolbar-bottom {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding-top: 1.5rem;
+    gap: 0.5rem;
+    padding: 1.5rem 0 0 0;
     border-top: 1px solid #e9ecef;
     margin-top: 2rem;
 }
-.form-section-title {
-    font-size: 1rem;
+.selectable-tile {
+    border: 2px solid #e9ecef;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 100%;
+    background: #fff;
+}
+.selectable-tile:hover {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.05);
+}
+.selectable-tile.selected {
+    border-color: #886CC0;
+    background: rgba(136, 108, 192, 0.1);
+}
+.selectable-tile .tile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+.selectable-tile .tile-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+.selectable-tile .tile-check {
+    color: #886CC0;
+    font-size: 1.25rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.selectable-tile.selected .tile-check {
+    opacity: 1;
+}
+.selectable-tile .tile-title {
+    margin-bottom: 0.25rem;
     font-weight: 600;
-    color: #343a40;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e9ecef;
+    font-size: 1rem;
+}
+.selectable-tile .tile-desc {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+.bg-pastel-primary { background: rgba(136, 108, 192, 0.15); color: #886CC0; }
+.bg-pastel-info { background: rgba(23, 162, 184, 0.15); color: #117a8b; }
+.alert-pastel-primary {
+    background: rgba(136, 108, 192, 0.1);
+    border: 1px solid rgba(136, 108, 192, 0.2);
+    color: #614099;
 }
 </style>
 @endpush
@@ -98,76 +156,103 @@
         </ol>
     </div>
 
-    <div class="wizard-container">
-        <ul class="wizard-progress">
-            <li class="active">
-                <div class="step-circle">1</div>
-                <div class="step-label">Metadata</div>
-            </li>
-            <li>
-                <div class="step-circle">2</div>
-                <div class="step-label">Content</div>
-            </li>
-            <li>
-                <div class="step-circle">3</div>
-                <div class="step-label">Settings</div>
-            </li>
-            <li>
-                <div class="step-circle">4</div>
-                <div class="step-label">Review</div>
-            </li>
-        </ul>
-
-        <div class="wizard-card">
-            <h5 class="form-section-title"><i class="fas fa-info-circle me-2"></i>Template Metadata</h5>
-            
-            <div class="mb-3">
-                <label class="form-label">Template Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="templateName" placeholder="e.g., Welcome Message" maxlength="100">
-                <small class="text-muted">A descriptive name to identify this template</small>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" id="templateDescription" rows="2" placeholder="Optional description..." maxlength="255"></textarea>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Category</label>
-                    <select class="form-select" id="templateCategory">
-                        <option value="">Select category...</option>
-                        <option value="marketing">Marketing</option>
-                        <option value="transactional">Transactional</option>
-                        <option value="alerts">Alerts & Notifications</option>
-                        <option value="reminders">Reminders</option>
-                        <option value="promotions">Promotions</option>
-                        <option value="other">Other</option>
-                    </select>
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Create Message Template</h4>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Trigger Type <span class="text-danger">*</span></label>
-                    <select class="form-select" id="templateTrigger">
-                        <option value="portal">Portal (Manual)</option>
-                        <option value="api">API Triggered</option>
-                        <option value="both">Both</option>
-                    </select>
+                <div class="card-body">
+                    <div class="form-wizard">
+                        <ul class="nav nav-wizard">
+                            <li class="nav-item"><a class="nav-link active" href="#step-1"><span>1</span><small>Metadata</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-2"><span>2</span><small>Content</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-3"><span>3</span><small>Settings</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-4"><span>4</span><small>Review</small></a></li>
+                        </ul>
+                        
+                        <div class="row">
+                            <div class="col-lg-10 mx-auto">
+                                <div class="alert alert-pastel-primary mb-4">
+                                    <strong>Step 1: Metadata</strong> - Define your template's name, type, and basic details.
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold mb-3">Template Type <span class="text-danger">*</span></label>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <div class="selectable-tile selected" data-value="portal" onclick="selectTemplateType('portal')">
+                                                <div class="tile-header">
+                                                    <div class="tile-icon bg-pastel-primary">
+                                                        <i class="fas fa-desktop"></i>
+                                                    </div>
+                                                    <i class="fas fa-check-circle tile-check"></i>
+                                                </div>
+                                                <div class="tile-title">Portal Template</div>
+                                                <p class="tile-desc">Use from the QuickSMS portal. Ideal for manual sending by your team.</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="selectable-tile" data-value="api" onclick="selectTemplateType('api')">
+                                                <div class="tile-header">
+                                                    <div class="tile-icon bg-pastel-info">
+                                                        <i class="fas fa-code"></i>
+                                                    </div>
+                                                    <i class="fas fa-check-circle tile-check"></i>
+                                                </div>
+                                                <div class="tile-title">API Template</div>
+                                                <p class="tile-desc">Triggered via API integration. Ideal for automated workflows.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="templateType" value="portal">
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-lg-12 mb-3">
+                                        <label class="form-label">Template Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="templateName" placeholder="e.g., Welcome Message" maxlength="100">
+                                        <small class="text-muted">A descriptive name to identify this template</small>
+                                        <div class="invalid-feedback">Please enter a template name</div>
+                                    </div>
+                                    
+                                    <div class="col-lg-12 mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" id="templateDescription" rows="2" placeholder="Optional description of what this template is for..." maxlength="255"></textarea>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Category</label>
+                                        <select class="form-select" id="templateCategory">
+                                            <option value="">Select category...</option>
+                                            <option value="marketing">Marketing</option>
+                                            <option value="transactional">Transactional</option>
+                                            <option value="alerts">Alerts & Notifications</option>
+                                            <option value="reminders">Reminders</option>
+                                            <option value="promotions">Promotions</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Tags</label>
+                                        <input type="text" class="form-control" id="templateTags" placeholder="e.g., welcome, onboarding">
+                                        <small class="text-muted">Comma-separated tags for organization</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="toolbar-bottom">
+                                    <a href="{{ route('management.templates') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-1"></i>Cancel
+                                    </a>
+                                    <a href="{{ route('management.templates.create.step2') }}" class="btn btn-primary" id="nextBtn">
+                                        Next: Content <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Tags</label>
-                <input type="text" class="form-control" id="templateTags" placeholder="e.g., welcome, onboarding, new-user">
-                <small class="text-muted">Comma-separated tags for organization</small>
-            </div>
-
-            <div class="wizard-footer">
-                <a href="{{ route('management.templates') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-times me-1"></i>Cancel
-                </a>
-                <a href="{{ route('management.templates.create.step2') }}" class="btn btn-primary" id="nextBtn">
-                    Next: Content <i class="fas fa-arrow-right ms-1"></i>
-                </a>
             </div>
         </div>
     </div>
@@ -176,6 +261,14 @@
 
 @push('scripts')
 <script>
+function selectTemplateType(type) {
+    document.querySelectorAll('.selectable-tile').forEach(function(tile) {
+        tile.classList.remove('selected');
+    });
+    document.querySelector('.selectable-tile[data-value="' + type + '"]').classList.add('selected');
+    document.getElementById('templateType').value = type;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     var savedData = sessionStorage.getItem('templateWizardStep1');
     if (savedData) {
@@ -183,8 +276,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('templateName').value = data.name || '';
         document.getElementById('templateDescription').value = data.description || '';
         document.getElementById('templateCategory').value = data.category || '';
-        document.getElementById('templateTrigger').value = data.trigger || 'portal';
         document.getElementById('templateTags').value = data.tags || '';
+        if (data.type) {
+            selectTemplateType(data.type);
+        }
     }
 
     document.getElementById('nextBtn').addEventListener('click', function(e) {
@@ -192,6 +287,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!name) {
             e.preventDefault();
             document.getElementById('templateName').classList.add('is-invalid');
+            document.getElementById('templateName').focus();
             return;
         }
 
@@ -199,7 +295,7 @@ document.addEventListener('DOMContentLoaded', function() {
             name: name,
             description: document.getElementById('templateDescription').value.trim(),
             category: document.getElementById('templateCategory').value,
-            trigger: document.getElementById('templateTrigger').value,
+            type: document.getElementById('templateType').value,
             tags: document.getElementById('templateTags').value.trim()
         }));
     });

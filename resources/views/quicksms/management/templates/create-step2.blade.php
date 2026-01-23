@@ -5,76 +5,84 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
-.wizard-container {
-    max-width: 1200px;
-    margin: 0 auto;
+.form-wizard {
+    border: 0;
 }
-.wizard-progress {
+.form-wizard .nav-wizard {
+    box-shadow: none !important;
+    margin-bottom: 2rem;
     display: flex;
     justify-content: center;
-    margin-bottom: 2rem;
-    padding: 0;
     list-style: none;
+    padding: 0;
 }
-.wizard-progress li {
+.form-wizard .nav-wizard li {
     flex: 1;
-    max-width: 180px;
-    position: relative;
+    max-width: 150px;
 }
-.wizard-progress li .step-circle {
+.form-wizard .nav-wizard li .nav-link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #6c757d;
+    padding: 0;
+    background: transparent !important;
+    border: none !important;
+}
+.form-wizard .nav-wizard li .nav-link span {
+    border-radius: 3.125rem;
     width: 3rem;
     height: 3rem;
-    border-radius: 50%;
-    border: 2px solid #e9ecef;
-    background: #fff;
+    border: 0.125rem solid var(--primary, #886CC0);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 0.5rem;
-    font-weight: 600;
-    color: #6c757d;
-    position: relative;
-    z-index: 2;
-}
-.wizard-progress li.active .step-circle,
-.wizard-progress li.completed .step-circle {
-    background: var(--primary, #886CC0);
-    border-color: var(--primary, #886CC0);
-    color: #fff;
-}
-.wizard-progress li .step-label {
-    font-size: 0.8rem;
-    color: #6c757d;
-    text-align: center;
-}
-.wizard-progress li.active .step-label {
+    font-size: 1.125rem;
+    font-weight: 500;
+    background: #fff;
     color: var(--primary, #886CC0);
-    font-weight: 600;
+    position: relative;
+    z-index: 1;
 }
-.wizard-progress li:not(:last-child)::after {
-    content: '';
+.form-wizard .nav-wizard li .nav-link:after {
     position: absolute;
     top: 1.5rem;
     left: 50%;
-    width: 100%;
-    height: 2px;
+    height: 0.1875rem;
     background: #e9ecef;
-    z-index: 1;
+    content: "";
+    z-index: 0;
+    width: 100%;
 }
-.wizard-progress li.completed:not(:last-child)::after {
+.form-wizard .nav-wizard li:last-child .nav-link:after {
+    content: none;
+}
+.form-wizard .nav-wizard li .nav-link.active span,
+.form-wizard .nav-wizard li .nav-link.done span {
     background: var(--primary, #886CC0);
+    color: #fff;
+    border-color: var(--primary, #886CC0);
 }
-.wizard-card {
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
-    padding: 2rem;
+.form-wizard .nav-wizard li .nav-link.active:after,
+.form-wizard .nav-wizard li .nav-link.done:after {
+    background: var(--primary, #886CC0) !important;
 }
-.wizard-footer {
+.form-wizard .nav-wizard li .nav-link small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+}
+.form-wizard .nav-wizard li .nav-link.active small {
+    color: var(--primary, #886CC0);
+    font-weight: 600;
+}
+.toolbar-bottom {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding-top: 1.5rem;
+    gap: 0.5rem;
+    padding: 1.5rem 0 0 0;
     border-top: 1px solid #e9ecef;
     margin-top: 2rem;
 }
@@ -85,6 +93,11 @@
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid #e9ecef;
+}
+.alert-pastel-primary {
+    background: rgba(136, 108, 192, 0.1);
+    border: 1px solid rgba(136, 108, 192, 0.2);
+    color: #614099;
 }
 </style>
 @endpush
@@ -99,27 +112,26 @@
         </ol>
     </div>
 
-    <div class="wizard-container">
-        <ul class="wizard-progress">
-            <li class="completed">
-                <div class="step-circle"><i class="fas fa-check"></i></div>
-                <div class="step-label">Metadata</div>
-            </li>
-            <li class="active">
-                <div class="step-circle">2</div>
-                <div class="step-label">Content</div>
-            </li>
-            <li>
-                <div class="step-circle">3</div>
-                <div class="step-label">Settings</div>
-            </li>
-            <li>
-                <div class="step-circle">4</div>
-                <div class="step-label">Review</div>
-            </li>
-        </ul>
-
-        <div class="wizard-card">
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Create Message Template</h4>
+                </div>
+                <div class="card-body">
+                    <div class="form-wizard">
+                        <ul class="nav nav-wizard">
+                            <li class="nav-item"><a class="nav-link done" href="#step-1"><span><i class="fas fa-check"></i></span><small>Metadata</small></a></li>
+                            <li class="nav-item"><a class="nav-link active" href="#step-2"><span>2</span><small>Content</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-3"><span>3</span><small>Settings</small></a></li>
+                            <li class="nav-item"><a class="nav-link" href="#step-4"><span>4</span><small>Review</small></a></li>
+                        </ul>
+                        
+                        <div class="row">
+                            <div class="col-lg-10 mx-auto">
+                                <div class="alert alert-pastel-primary mb-4">
+                                    <strong>Step 2: Content</strong> - Choose channel and compose your message content.
+                                </div>
             <div class="card mb-3 border-0 p-0">
                 <div class="card-body p-0">
                     <h6 class="form-section-title"><i class="fas fa-broadcast-tower me-2"></i>Channel & Sender</h6>
@@ -222,17 +234,22 @@
                 </div>
             </div>
 
-            <div class="wizard-footer">
-                <a href="{{ route('management.templates.create.step1') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-1"></i>Back
-                </a>
-                <div>
-                    <button type="button" class="btn btn-outline-primary me-2" id="saveDraftBtn">
-                        <i class="fas fa-save me-1"></i>Save Draft
-                    </button>
-                    <a href="{{ route('management.templates.create.step3') }}" class="btn btn-primary" id="nextBtn">
-                        Next: Settings <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
+                                <div class="toolbar-bottom">
+                                    <a href="{{ route('management.templates.create.step1') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-1"></i>Back
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-primary me-2" id="saveDraftBtn">
+                                            <i class="fas fa-save me-1"></i>Save Draft
+                                        </button>
+                                        <a href="{{ route('management.templates.create.step3') }}" class="btn btn-primary" id="nextBtn">
+                                            Next: Settings <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

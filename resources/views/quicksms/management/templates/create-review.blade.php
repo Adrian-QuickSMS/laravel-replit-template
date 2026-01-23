@@ -4,76 +4,84 @@
 
 @push('styles')
 <style>
-.wizard-container {
-    max-width: 900px;
-    margin: 0 auto;
+.form-wizard {
+    border: 0;
 }
-.wizard-progress {
+.form-wizard .nav-wizard {
+    box-shadow: none !important;
+    margin-bottom: 2rem;
     display: flex;
     justify-content: center;
-    margin-bottom: 2rem;
-    padding: 0;
     list-style: none;
+    padding: 0;
 }
-.wizard-progress li {
+.form-wizard .nav-wizard li {
     flex: 1;
-    max-width: 180px;
-    position: relative;
+    max-width: 150px;
 }
-.wizard-progress li .step-circle {
+.form-wizard .nav-wizard li .nav-link {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #6c757d;
+    padding: 0;
+    background: transparent !important;
+    border: none !important;
+}
+.form-wizard .nav-wizard li .nav-link span {
+    border-radius: 3.125rem;
     width: 3rem;
     height: 3rem;
-    border-radius: 50%;
-    border: 2px solid #e9ecef;
-    background: #fff;
+    border: 0.125rem solid var(--primary, #886CC0);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 0.5rem;
-    font-weight: 600;
-    color: #6c757d;
-    position: relative;
-    z-index: 2;
-}
-.wizard-progress li.active .step-circle,
-.wizard-progress li.completed .step-circle {
-    background: var(--primary, #886CC0);
-    border-color: var(--primary, #886CC0);
-    color: #fff;
-}
-.wizard-progress li .step-label {
-    font-size: 0.8rem;
-    color: #6c757d;
-    text-align: center;
-}
-.wizard-progress li.active .step-label {
+    font-size: 1.125rem;
+    font-weight: 500;
+    background: #fff;
     color: var(--primary, #886CC0);
-    font-weight: 600;
+    position: relative;
+    z-index: 1;
 }
-.wizard-progress li:not(:last-child)::after {
-    content: '';
+.form-wizard .nav-wizard li .nav-link:after {
     position: absolute;
     top: 1.5rem;
     left: 50%;
-    width: 100%;
-    height: 2px;
+    height: 0.1875rem;
     background: #e9ecef;
-    z-index: 1;
+    content: "";
+    z-index: 0;
+    width: 100%;
 }
-.wizard-progress li.completed:not(:last-child)::after {
+.form-wizard .nav-wizard li:last-child .nav-link:after {
+    content: none;
+}
+.form-wizard .nav-wizard li .nav-link.active span,
+.form-wizard .nav-wizard li .nav-link.done span {
     background: var(--primary, #886CC0);
+    color: #fff;
+    border-color: var(--primary, #886CC0);
 }
-.wizard-card {
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
-    padding: 2rem;
+.form-wizard .nav-wizard li .nav-link.active:after,
+.form-wizard .nav-wizard li .nav-link.done:after {
+    background: var(--primary, #886CC0) !important;
 }
-.wizard-footer {
+.form-wizard .nav-wizard li .nav-link small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+}
+.form-wizard .nav-wizard li .nav-link.active small {
+    color: var(--primary, #886CC0);
+    font-weight: 600;
+}
+.toolbar-bottom {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding-top: 1.5rem;
+    gap: 0.5rem;
+    padding: 1.5rem 0 0 0;
     border-top: 1px solid #e9ecef;
     margin-top: 2rem;
 }
@@ -84,6 +92,11 @@
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid #e9ecef;
+}
+.alert-pastel-primary {
+    background: rgba(136, 108, 192, 0.1);
+    border: 1px solid rgba(136, 108, 192, 0.2);
+    color: #614099;
 }
 .review-section {
     background: #f8f9fa;
@@ -137,116 +150,101 @@
         </ol>
     </div>
 
-    <div class="wizard-container">
-        <ul class="wizard-progress">
-            <li class="completed">
-                <div class="step-circle"><i class="fas fa-check"></i></div>
-                <div class="step-label">Metadata</div>
-            </li>
-            <li class="completed">
-                <div class="step-circle"><i class="fas fa-check"></i></div>
-                <div class="step-label">Content</div>
-            </li>
-            <li class="completed">
-                <div class="step-circle"><i class="fas fa-check"></i></div>
-                <div class="step-label">Settings</div>
-            </li>
-            <li class="active">
-                <div class="step-circle">4</div>
-                <div class="step-label">Review</div>
-            </li>
-        </ul>
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Create Message Template</h4>
+                </div>
+                <div class="card-body">
+                    <div class="form-wizard">
+                        <ul class="nav nav-wizard">
+                            <li class="nav-item"><a class="nav-link done" href="#step-1"><span><i class="fas fa-check"></i></span><small>Metadata</small></a></li>
+                            <li class="nav-item"><a class="nav-link done" href="#step-2"><span><i class="fas fa-check"></i></span><small>Content</small></a></li>
+                            <li class="nav-item"><a class="nav-link done" href="#step-3"><span><i class="fas fa-check"></i></span><small>Settings</small></a></li>
+                            <li class="nav-item"><a class="nav-link active" href="#step-4"><span>4</span><small>Review</small></a></li>
+                        </ul>
+                        
+                        <div class="row">
+                            <div class="col-lg-10 mx-auto">
+                                <div class="alert alert-pastel-primary mb-4">
+                                    <strong>Step 4: Review</strong> - Review your template before saving. Click "Edit" to make changes.
+                                </div>
 
-        <div class="wizard-card">
-            <h5 class="form-section-title"><i class="fas fa-clipboard-check me-2"></i>Review Your Template</h5>
-            
-            <div class="alert alert-info mb-4">
-                <i class="fas fa-info-circle me-2"></i>
-                Review your template details before saving. Click "Edit" on any section to make changes.
-            </div>
+                                <div class="review-section">
+                                    <h6>
+                                        <span><i class="fas fa-info-circle me-2"></i>Metadata</span>
+                                        <a href="{{ route('management.templates.create.step1') }}"><i class="fas fa-edit me-1"></i>Edit</a>
+                                    </h6>
+                                    <div class="review-row">
+                                        <span class="review-label">Name:</span>
+                                        <span class="review-value" id="reviewName">-</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Type:</span>
+                                        <span class="review-value" id="reviewType">-</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Description:</span>
+                                        <span class="review-value" id="reviewDescription">-</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Category:</span>
+                                        <span class="review-value" id="reviewCategory">-</span>
+                                    </div>
+                                </div>
 
-            <div class="review-section">
-                <h6>
-                    <span><i class="fas fa-info-circle me-2"></i>Metadata</span>
-                    <a href="{{ route('management.templates.create.step1') }}"><i class="fas fa-edit me-1"></i>Edit</a>
-                </h6>
-                <div class="review-row">
-                    <span class="review-label">Name:</span>
-                    <span class="review-value" id="reviewName">-</span>
-                </div>
-                <div class="review-row">
-                    <span class="review-label">Description:</span>
-                    <span class="review-value" id="reviewDescription">-</span>
-                </div>
-                <div class="review-row">
-                    <span class="review-label">Category:</span>
-                    <span class="review-value" id="reviewCategory">-</span>
-                </div>
-                <div class="review-row">
-                    <span class="review-label">Trigger:</span>
-                    <span class="review-value" id="reviewTrigger">-</span>
-                </div>
-            </div>
+                                <div class="review-section">
+                                    <h6>
+                                        <span><i class="fas fa-envelope me-2"></i>Content</span>
+                                        <a href="{{ route('management.templates.create.step2') }}"><i class="fas fa-edit me-1"></i>Edit</a>
+                                    </h6>
+                                    <div class="review-row">
+                                        <span class="review-label">Channel:</span>
+                                        <span class="review-value" id="reviewChannel">-</span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <div class="review-label mb-1">Message:</div>
+                                        <div class="message-preview" id="reviewMessage">-</div>
+                                    </div>
+                                </div>
 
-            <div class="review-section">
-                <h6>
-                    <span><i class="fas fa-envelope me-2"></i>Content</span>
-                    <a href="{{ route('management.templates.create.step2') }}"><i class="fas fa-edit me-1"></i>Edit</a>
-                </h6>
-                <div class="review-row">
-                    <span class="review-label">Channel:</span>
-                    <span class="review-value" id="reviewChannel">-</span>
-                </div>
-                <div class="mt-2">
-                    <span class="review-label d-block mb-2">Message Preview:</span>
-                    <div class="message-preview" id="reviewMessagePreview">-</div>
-                </div>
-            </div>
+                                <div class="review-section">
+                                    <h6>
+                                        <span><i class="fas fa-cog me-2"></i>Settings</span>
+                                        <a href="{{ route('management.templates.create.step3') }}"><i class="fas fa-edit me-1"></i>Edit</a>
+                                    </h6>
+                                    <div class="review-row">
+                                        <span class="review-label">Visibility:</span>
+                                        <span class="review-value" id="reviewVisibility">-</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Opt-Out:</span>
+                                        <span class="review-value" id="reviewOptOut">-</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Scheduling:</span>
+                                        <span class="review-value" id="reviewScheduling">-</span>
+                                    </div>
+                                </div>
 
-            <div class="review-section">
-                <h6>
-                    <span><i class="fas fa-cog me-2"></i>Settings</span>
-                    <a href="{{ route('management.templates.create.step3') }}"><i class="fas fa-edit me-1"></i>Edit</a>
-                </h6>
-                <div class="review-row">
-                    <span class="review-label">Visibility:</span>
-                    <span class="review-value" id="reviewVisibility">-</span>
+                                <div class="toolbar-bottom">
+                                    <a href="{{ route('management.templates.create.step3') }}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left me-1"></i>Back
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-primary me-2" id="saveDraftBtn">
+                                            <i class="fas fa-save me-1"></i>Save as Draft
+                                        </button>
+                                        <button type="button" class="btn btn-primary" id="createTemplateBtn">
+                                            <i class="fas fa-check me-1"></i>Create Template
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="review-row">
-                    <span class="review-label">Opt-Out:</span>
-                    <span class="review-value" id="reviewOptOut">-</span>
-                </div>
-            </div>
-
-            <div class="wizard-footer">
-                <a href="{{ route('management.templates.create.step3') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-1"></i>Back
-                </a>
-                <div>
-                    <button type="button" class="btn btn-outline-primary me-2" id="saveDraftBtn">
-                        <i class="fas fa-save me-1"></i>Save as Draft
-                    </button>
-                    <button type="button" class="btn btn-success" id="createTemplateBtn">
-                        <i class="fas fa-check me-1"></i>Create Template
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-body text-center py-5">
-                <div class="mb-4">
-                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
-                </div>
-                <h4 class="mb-2">Template Created!</h4>
-                <p class="text-muted mb-4">Your template has been successfully created and is ready to use.</p>
-                <a href="{{ route('management.templates') }}" class="btn btn-primary">
-                    <i class="fas fa-arrow-left me-1"></i>Back to Templates
-                </a>
             </div>
         </div>
     </div>
@@ -256,40 +254,46 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var step1 = JSON.parse(sessionStorage.getItem('templateWizardStep1') || '{}');
-    var step2 = JSON.parse(sessionStorage.getItem('templateWizardStep2') || '{}');
-    var step3 = JSON.parse(sessionStorage.getItem('templateWizardStep3') || '{}');
-    var channel = sessionStorage.getItem('templateWizardChannel') || 'sms';
-
-    document.getElementById('reviewName').textContent = step1.name || '-';
-    document.getElementById('reviewDescription').textContent = step1.description || 'No description';
-    document.getElementById('reviewCategory').textContent = step1.category ? step1.category.charAt(0).toUpperCase() + step1.category.slice(1) : 'Not specified';
-    document.getElementById('reviewTrigger').textContent = step1.trigger === 'portal' ? 'Portal (Manual)' : step1.trigger === 'api' ? 'API Triggered' : 'Both';
-
-    var channelLabels = {
-        'sms': 'SMS',
-        'basic-rcs': 'Basic RCS + SMS Fallback',
-        'rich-rcs': 'Rich RCS + SMS Fallback'
-    };
-    document.getElementById('reviewChannel').textContent = channelLabels[channel] || 'SMS';
-    document.getElementById('reviewMessagePreview').textContent = step2.smsText || 'No message content';
-
-    var visibilityLabels = {
-        'private': 'Private (Only me)',
-        'team': 'Team (All users)',
-        'sub-accounts': 'Include sub-accounts'
-    };
-    document.getElementById('reviewVisibility').textContent = visibilityLabels[step3.visibility] || 'Private';
-    document.getElementById('reviewOptOut').textContent = step3.includeOptOut !== false ? 'Included' : 'Not included';
-
+    var step1 = sessionStorage.getItem('templateWizardStep1');
+    var step2 = sessionStorage.getItem('templateWizardStep2');
+    var step3 = sessionStorage.getItem('templateWizardStep3');
+    
+    if (step1) {
+        var data1 = JSON.parse(step1);
+        document.getElementById('reviewName').textContent = data1.name || '-';
+        document.getElementById('reviewType').textContent = data1.type === 'api' ? 'API Template' : 'Portal Template';
+        document.getElementById('reviewDescription').textContent = data1.description || 'No description';
+        document.getElementById('reviewCategory').textContent = data1.category ? data1.category.charAt(0).toUpperCase() + data1.category.slice(1) : 'Not specified';
+    }
+    
+    if (step2) {
+        var data2 = JSON.parse(step2);
+        var channelMap = { 'sms': 'SMS only', 'rcs_basic': 'Basic RCS + SMS Fallback', 'rcs_rich': 'Rich RCS + SMS Fallback' };
+        document.getElementById('reviewChannel').textContent = channelMap[data2.channel] || data2.channel;
+        document.getElementById('reviewMessage').textContent = data2.smsText || 'No content';
+    }
+    
+    if (step3) {
+        var data3 = JSON.parse(step3);
+        var visibilityMap = { 'private': 'Private (Only me)', 'team': 'Team (All users)', 'sub-accounts': 'Sub-accounts included' };
+        document.getElementById('reviewVisibility').textContent = visibilityMap[data3.visibility] || data3.visibility;
+        document.getElementById('reviewOptOut').textContent = data3.includeOptOut ? 'Enabled' : 'Disabled';
+        document.getElementById('reviewScheduling').textContent = data3.enableScheduling ? 'Enabled' : 'Disabled';
+    }
+    
     document.getElementById('createTemplateBtn').addEventListener('click', function() {
         sessionStorage.removeItem('templateWizardStep1');
         sessionStorage.removeItem('templateWizardStep2');
         sessionStorage.removeItem('templateWizardStep3');
         sessionStorage.removeItem('templateWizardChannel');
-
-        var modal = new bootstrap.Modal(document.getElementById('successModal'));
-        modal.show();
+        
+        alert('Template created successfully!');
+        window.location.href = '{{ route("management.templates") }}';
+    });
+    
+    document.getElementById('saveDraftBtn').addEventListener('click', function() {
+        alert('Template saved as draft.');
+        window.location.href = '{{ route("management.templates") }}';
     });
 });
 </script>
