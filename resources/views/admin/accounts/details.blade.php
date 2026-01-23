@@ -418,108 +418,145 @@
 
                         <div class="accordion-item">
                             <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#billingInfo" aria-expanded="false">
-                                    <i class="fas fa-file-invoice me-2" style="color: #1e3a5f;"></i>Billing & Invoicing
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#supportOperations" aria-expanded="false">
+                                    <i class="fas fa-headset me-2" style="color: #1e3a5f;"></i>Support & Operations
                                     <span class="section-indicator complete"><i class="fas fa-check-circle"></i> Complete</span>
                                 </button>
                             </h2>
-                            <div id="billingInfo" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
+                            <div id="supportOperations" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
                                 <div class="accordion-body">
+                                    <p class="text-muted small mb-4">Configure email addresses for billing notifications, support communications, and incident alerts. Shared or group inboxes are accepted.</p>
+                                    
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="field-group">
-                                                <label class="form-label">VAT Number<span class="optional-indicator">(Optional)</span></label>
-                                                <input type="text" class="form-control" id="vatNumber" value="">
+                                                <label class="form-label">Accounts & Billing Email<span class="required-indicator">*</span></label>
+                                                <input type="email" class="form-control" id="billingEmail" value="accounts@acmecomms.co.uk" placeholder="e.g., accounts@company.com">
+                                                <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
-                                                <label class="form-label">Billing Email<span class="required-indicator">*</span></label>
-                                                <input type="email" class="form-control" id="billingEmail" value="">
+                                                <label class="form-label">Support Email Address<span class="required-indicator">*</span></label>
+                                                <input type="email" class="form-control" id="supportEmail" value="support@acmecomms.co.uk" placeholder="e.g., support@company.com">
+                                                <div class="field-hint">Receives support ticket updates and general communications</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
-                                                <label class="form-label">Purchase Order Required</label>
-                                                <select class="form-select" id="poRequired">
-                                                    <option value="no">No</option>
-                                                    <option value="yes">Yes</option>
+                                                <label class="form-label">Incident Email Address<span class="required-indicator">*</span></label>
+                                                <input type="email" class="form-control" id="incidentEmail" value="incidents@acmecomms.co.uk" placeholder="e.g., incidents@company.com">
+                                                <div class="field-hint">Receives urgent incident alerts and service disruption notices</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="section-actions">
+                                        <button type="button" class="btn btn-admin-primary btn-sm">
+                                            <i class="fas fa-save me-1"></i>Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contractSignatory" aria-expanded="false">
+                                    <i class="fas fa-signature me-2" style="color: #1e3a5f;"></i>Contract Signatory
+                                    <span class="section-indicator complete"><i class="fas fa-check-circle"></i> Complete</span>
+                                </button>
+                            </h2>
+                            <div id="contractSignatory" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
+                                <div class="accordion-body">
+                                    <p class="text-muted small mb-4">The contract signatory is the individual authorised to enter contracts on behalf of the company. This person will receive legal notices and approval requests.</p>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="field-group">
+                                                <label class="form-label">Full Name<span class="required-indicator">*</span></label>
+                                                <input type="text" class="form-control" id="signatoryName" value="James Wilson" placeholder="e.g., John Smith">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="field-group">
+                                                <label class="form-label">Job Title<span class="required-indicator">*</span></label>
+                                                <input type="text" class="form-control" id="signatoryTitle" value="Managing Director" placeholder="e.g., CEO, Managing Director">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="field-group">
+                                                <label class="form-label">Email Address<span class="required-indicator">*</span></label>
+                                                <input type="email" class="form-control" id="signatoryEmail" value="j.wilson@acmecomms.co.uk" placeholder="e.g., signatory@company.com">
+                                                <div class="field-hint">Used for contract signing and legal communications</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="section-actions">
+                                        <button type="button" class="btn btn-admin-primary btn-sm">
+                                            <i class="fas fa-save me-1"></i>Save Changes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vatTaxInfo" aria-expanded="false">
+                                    <i class="fas fa-receipt me-2" style="color: #1e3a5f;"></i>VAT & Tax Information
+                                    <span class="section-indicator complete"><i class="fas fa-check-circle"></i> Complete</span>
+                                </button>
+                            </h2>
+                            <div id="vatTaxInfo" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
+                                <div class="accordion-body">
+                                    <p class="text-muted small mb-4">VAT settings are used for billing and invoice generation. Changes to VAT details are audit-logged.</p>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="field-group">
+                                                <label class="form-label">VAT Registered<span class="required-indicator">*</span></label>
+                                                <select class="form-select" id="vatRegistered">
+                                                    <option value="">Select...</option>
+                                                    <option value="yes" selected>Yes - VAT registered</option>
+                                                    <option value="no">No - Not VAT registered</option>
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <div class="section-actions">
-                                        <button type="button" class="btn btn-admin-primary btn-sm">
-                                            <i class="fas fa-save me-1"></i>Save Changes
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#contactsSection" aria-expanded="false">
-                                    <i class="fas fa-users me-2" style="color: #1e3a5f;"></i>Account Contacts
-                                    <span class="section-indicator complete"><i class="fas fa-check-circle"></i> Complete</span>
-                                </button>
-                            </h2>
-                            <div id="contactsSection" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
-                                <div class="accordion-body">
-                                    <p class="text-muted small mb-3">Primary and secondary contacts for account communications.</p>
-                                    
-                                    <h6 class="fw-bold mb-3">Primary Contact</h6>
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="field-group">
-                                                <label class="form-label">Name<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" value="">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="field-group">
-                                                <label class="form-label">Email<span class="required-indicator">*</span></label>
-                                                <input type="email" class="form-control" value="">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="field-group">
-                                                <label class="form-label">Phone<span class="required-indicator">*</span></label>
-                                                <input type="tel" class="form-control" value="">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="section-actions">
-                                        <button type="button" class="btn btn-admin-primary btn-sm">
-                                            <i class="fas fa-save me-1"></i>Save Changes
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dataGovernance" aria-expanded="false">
-                                    <i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i>Data Governance & Compliance
-                                    <span class="section-indicator complete"><i class="fas fa-check-circle"></i> Complete</span>
-                                </button>
-                            </h2>
-                            <div id="dataGovernance" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
-                                <div class="accordion-body">
-                                    <div class="row">
+                                    <div class="row" id="vatDetailsSection">
                                         <div class="col-md-6">
                                             <div class="field-group">
-                                                <label class="form-label">Data Protection Officer<span class="optional-indicator">(Optional)</span></label>
-                                                <input type="text" class="form-control" value="">
+                                                <label class="form-label">VAT Number<span class="required-indicator">*</span></label>
+                                                <input type="text" class="form-control" id="vatNumber" value="GB123456789" placeholder="e.g., GB123456789">
+                                                <div class="field-hint">Format: GB followed by 9 digits</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
-                                                <label class="form-label">DPO Email<span class="optional-indicator">(Optional)</span></label>
-                                                <input type="email" class="form-control" value="">
+                                                <label class="form-label">VAT Country<span class="required-indicator">*</span></label>
+                                                <select class="form-select" id="vatCountry">
+                                                    <option value="">Select country...</option>
+                                                    <option value="GB" selected>United Kingdom (GB)</option>
+                                                    <option value="DE">Germany (DE)</option>
+                                                    <option value="FR">France (FR)</option>
+                                                    <option value="IE">Ireland (IE)</option>
+                                                    <option value="NL">Netherlands (NL)</option>
+                                                    <option value="ES">Spain (ES)</option>
+                                                    <option value="IT">Italy (IT)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="field-group">
+                                                <label class="form-label">Reverse Charge Applicable</label>
+                                                <select class="form-select" id="reverseCharge">
+                                                    <option value="no" selected>No</option>
+                                                    <option value="yes">Yes - EU Reverse Charge applies</option>
+                                                </select>
+                                                <div class="field-hint">Applies to B2B transactions with EU businesses</div>
                                             </div>
                                         </div>
                                     </div>
