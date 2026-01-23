@@ -41,6 +41,18 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, leveraging the Fillow SaaS Admin
   - **Admin Accounts Module:** Overview, dedicated Account Details page with hierarchy modal, and row actions like Add Credit, Change Name, Edit Details, Suspend/Reactivate.
   - **Admin Email-to-SMS Module:** Global view of configurations across customer accounts, reusing customer logic with admin-specific additions like account column and filtering.
   - **Admin Campaign History Module:** Global view of all campaigns with account name, filters, and actions (Cancel, Suspend, Resume) requiring reasons and audit logging.
+  - **Admin Global Templates Library:** Cross-tenant template management at `/admin/management/templates` with Admin Blue theme. Features:
+    - Account column as first column showing account name + account ID for cross-tenant visibility
+    - Searchable Account filter dropdown with async search via AdminTemplatesService.searchAccounts()
+    - Pagination with 20 rows per page and Apply Filters button pattern
+    - Row actions: View Details, Edit (non-archived), Suspend (live), Reactivate (paused)
+    - **Admin Template Edit Capability (Impersonation-safe):** 3-step wizard modal (Metadata → Content → Review) for cross-tenant template editing
+      - Tenant context (accountId) passed to all AdminTemplatesService calls
+      - Edit modal shows account badge and customer name for context awareness
+      - Supports SMS and Basic RCS content editing with character counting and preview
+      - Change note and "Set Live" options on review step
+      - Audit logging: TEMPLATE_EDIT_STARTED, TEMPLATE_EDIT_COMPLETED events
+      - Note: Rich RCS wizard editing requires the full customer portal editor (future enhancement)
   - **Admin Invoices Module:** Global view of all customer invoices, cloned from Customer Portal invoice module with: Account Name as first data column (sortable, clickable navigation to account), Account Name filter (typeahead/searchable dropdown), global summary strip (Total Invoices, Total Value, Outstanding, Overdue, Paid This Month, Accounts), admin blue (#1e3a5f) theme applied throughout, Apply Filters pattern with active filter chips, 25 invoices per page pagination.
   - **Admin Account Billing Page:** Customer-scoped billing view at `/admin/accounts/{accountId}/billing` with summary bar (Billing Mode, Current Balance, Credit Limit, Available Credit, Account Status, Last Updated), billing settings card (Billing Type toggle with Prepaid/Postpaid, inline-editable Credit Limit with HubSpot sync, Payment Terms, Currency, VAT status), and Customer Invoices table. Features include:
     - **Billing Type Toggle:** Segmented control with confirmation modal, permission-gated (`billing.edit_mode`), billing risk warnings for outstanding invoices.
