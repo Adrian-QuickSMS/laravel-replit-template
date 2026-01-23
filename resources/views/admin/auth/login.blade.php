@@ -228,6 +228,67 @@ body {
     color: var(--admin-primary);
 }
 
+.mfa-method-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.mfa-method-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.25rem 1rem;
+    background: #f8f9fa;
+    border: 2px solid #e0e6ed;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.mfa-method-btn:hover {
+    border-color: var(--admin-primary);
+    background: rgba(30, 58, 95, 0.05);
+}
+
+.mfa-method-btn i {
+    font-size: 1.75rem;
+    color: var(--admin-primary);
+    margin-bottom: 0.5rem;
+}
+
+.mfa-method-btn .method-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+    display: block;
+}
+
+.mfa-method-btn .method-desc {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+.mfa-code-instruction {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 1.25rem;
+    text-align: center;
+}
+
+.resend-link {
+    color: var(--admin-primary);
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.resend-link:hover {
+    text-decoration: underline;
+}
+
 .copyright-text {
     text-align: center;
     margin-top: 1.5rem;
@@ -295,24 +356,54 @@ body {
                     <i class="fas fa-shield-alt"></i>
                 </div>
                 <h5 class="mfa-title">Two-Factor Authentication</h5>
-                <p class="mfa-subtitle">Enter the 6-digit code from your authenticator app</p>
+                <p class="mfa-subtitle" id="mfaSubtitle">Choose your verification method</p>
                 
-                <div class="otp-input-group">
-                    <input type="text" class="otp-input" maxlength="1" data-index="0" inputmode="numeric">
-                    <input type="text" class="otp-input" maxlength="1" data-index="1" inputmode="numeric">
-                    <input type="text" class="otp-input" maxlength="1" data-index="2" inputmode="numeric">
-                    <input type="text" class="otp-input" maxlength="1" data-index="3" inputmode="numeric">
-                    <input type="text" class="otp-input" maxlength="1" data-index="4" inputmode="numeric">
-                    <input type="text" class="otp-input" maxlength="1" data-index="5" inputmode="numeric">
+                <div id="mfaMethodChoice" class="mb-3">
+                    <div class="mfa-method-options">
+                        <button type="button" class="mfa-method-btn" id="chooseAuthenticator">
+                            <i class="fas fa-mobile-alt"></i>
+                            <span class="method-title">Authenticator App</span>
+                            <span class="method-desc">Use Google Authenticator or similar</span>
+                        </button>
+                        <button type="button" class="mfa-method-btn" id="chooseSmsRcs">
+                            <i class="fas fa-comment-dots"></i>
+                            <span class="method-title">SMS / RCS</span>
+                            <span class="method-desc">Receive code via text message</span>
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="login-status d-none" id="mfaStatus"></div>
+                <div id="mfaCodeEntry" class="d-none">
+                    <p class="mfa-code-instruction" id="mfaCodeInstruction">Enter the 6-digit code from your authenticator app</p>
+                    
+                    <div class="otp-input-group">
+                        <input type="text" class="otp-input" maxlength="1" data-index="0" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" data-index="1" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" data-index="2" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" data-index="3" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" data-index="4" inputmode="numeric">
+                        <input type="text" class="otp-input" maxlength="1" data-index="5" inputmode="numeric">
+                    </div>
+                    
+                    <div id="smsResendSection" class="d-none text-center mb-3">
+                        <span class="text-muted small">Didn't receive the code? </span>
+                        <a href="#" class="resend-link" id="resendCode">Resend</a>
+                    </div>
+                    
+                    <div class="login-status d-none" id="mfaStatus"></div>
+                    
+                    <button type="button" class="btn btn-signin" id="verifyMfaBtn">
+                        <i class="fas fa-check-circle me-2"></i>Verify & Sign In
+                    </button>
+                    
+                    <div class="mt-3">
+                        <a href="#" class="back-link" id="backToMethodChoice">
+                            <i class="fas fa-arrow-left me-1"></i> Choose different method
+                        </a>
+                    </div>
+                </div>
                 
-                <button type="button" class="btn btn-signin" id="verifyMfaBtn">
-                    <i class="fas fa-check-circle me-2"></i>Verify & Sign In
-                </button>
-                
-                <div class="mt-3">
+                <div class="mt-3" id="backToLoginSection">
                     <a href="#" class="back-link" id="backToLogin">
                         <i class="fas fa-arrow-left me-1"></i> Back to login
                     </a>
@@ -387,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (user.mfa_enabled) {
                     document.getElementById('loginStep1').classList.add('d-none');
                     document.getElementById('loginStep2').classList.remove('d-none');
-                    document.querySelectorAll('.otp-input')[0].focus();
+                    resetMfaStep();
                 } else {
                     loginStatus.innerHTML = '<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-2"></i>Login successful! Redirecting...</div>';
                     loginStatus.classList.remove('d-none');
@@ -469,9 +560,70 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         document.getElementById('loginStep2').classList.add('d-none');
         document.getElementById('loginStep1').classList.remove('d-none');
-        otpInputs.forEach(function(input) { input.value = ''; });
-        document.getElementById('mfaStatus').classList.add('d-none');
+        resetMfaStep();
     });
+    
+    document.getElementById('chooseAuthenticator').addEventListener('click', function() {
+        selectMfaMethod('authenticator');
+    });
+    
+    document.getElementById('chooseSmsRcs').addEventListener('click', function() {
+        selectMfaMethod('sms');
+    });
+    
+    document.getElementById('backToMethodChoice').addEventListener('click', function(e) {
+        e.preventDefault();
+        resetMfaStep();
+    });
+    
+    document.getElementById('resendCode').addEventListener('click', function(e) {
+        e.preventDefault();
+        var link = this;
+        link.textContent = 'Sending...';
+        link.style.pointerEvents = 'none';
+        
+        setTimeout(function() {
+            link.textContent = 'Resend';
+            link.style.pointerEvents = 'auto';
+            document.getElementById('mfaStatus').innerHTML = '<div class="alert alert-info mb-0"><i class="fas fa-check me-2"></i>New code sent to your phone</div>';
+            document.getElementById('mfaStatus').classList.remove('d-none');
+            otpInputs.forEach(function(input) { input.value = ''; });
+            otpInputs[0].focus();
+        }, 1500);
+    });
+    
+    function resetMfaStep() {
+        document.getElementById('mfaMethodChoice').classList.remove('d-none');
+        document.getElementById('mfaCodeEntry').classList.add('d-none');
+        document.getElementById('mfaSubtitle').textContent = 'Choose your verification method';
+        document.getElementById('smsResendSection').classList.add('d-none');
+        document.getElementById('mfaStatus').classList.add('d-none');
+        document.getElementById('backToLoginSection').classList.remove('d-none');
+        otpInputs.forEach(function(input) { input.value = ''; });
+    }
+    
+    function selectMfaMethod(method) {
+        document.getElementById('mfaMethodChoice').classList.add('d-none');
+        document.getElementById('backToLoginSection').classList.add('d-none');
+        
+        if (method === 'authenticator') {
+            document.getElementById('mfaSubtitle').textContent = 'Authenticator App';
+            document.getElementById('mfaCodeInstruction').textContent = 'Enter the 6-digit code from your authenticator app';
+            document.getElementById('smsResendSection').classList.add('d-none');
+            document.getElementById('mfaCodeEntry').classList.remove('d-none');
+            otpInputs[0].focus();
+        } else {
+            document.getElementById('mfaSubtitle').textContent = 'SMS / RCS Verification';
+            document.getElementById('mfaCodeInstruction').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending code to your registered phone...';
+            document.getElementById('mfaCodeEntry').classList.remove('d-none');
+            
+            setTimeout(function() {
+                document.getElementById('mfaCodeInstruction').textContent = 'Enter the 6-digit code sent to your phone ending in ****42';
+                document.getElementById('smsResendSection').classList.remove('d-none');
+                otpInputs[0].focus();
+            }, 2000);
+        }
+    }
 });
 </script>
 @endsection
