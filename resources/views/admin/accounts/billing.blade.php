@@ -807,206 +807,88 @@
 
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
+<script src="{{ asset('js/billing-services.js') }}"></script>
 <script src="{{ asset('js/invoice-credit-modal.js') }}"></script>
 <script>
+/**
+ * AdminAccountBillingService - Adapter Layer
+ * 
+ * This adapter bridges the billing page with the unified BillingServices layer.
+ * It provides backward compatibility while using the new service architecture.
+ * 
+ * Backend Integration:
+ * - Set BillingServices.config.useMockData = false to use real APIs
+ * - All service calls flow through the unified BillingServices module
+ */
 var AdminAccountBillingService = (function() {
-    var mockAccounts = {
-        'ACC-1234': {
-            name: 'Acme Corporation',
-            status: 'live',
-            hubspotId: 'HS-12345',
-            billingMode: 'prepaid',
-            currentBalance: 2450.00,
-            creditLimit: 0,
-            paymentTerms: 'Immediate',
-            currency: 'GBP',
-            vatRegistered: true,
-            vatRate: 20,
-            reverseCharge: false,
-            vatCountry: 'GB',
-            lastUpdated: '2026-01-23T10:30:00Z'
-        },
-        'ACC-5678': {
-            name: 'Finance Ltd',
-            status: 'live',
-            hubspotId: 'HS-67890',
-            billingMode: 'postpaid',
-            currentBalance: -1250.00,
-            creditLimit: 5000.00,
-            paymentTerms: 'Net 30',
-            currency: 'GBP',
-            vatRegistered: true,
-            vatRate: 20,
-            reverseCharge: false,
-            vatCountry: 'GB',
-            lastUpdated: '2026-01-22T14:15:00Z'
-        },
-        'ACC-7890': {
-            name: 'NewClient Inc',
-            status: 'test',
-            hubspotId: 'HS-78901',
-            billingMode: 'prepaid',
-            currentBalance: 100.00,
-            creditLimit: 0,
-            paymentTerms: 'Immediate',
-            currency: 'GBP',
-            vatRegistered: false,
-            vatRate: 0,
-            reverseCharge: false,
-            vatCountry: 'GB',
-            lastUpdated: '2026-01-20T09:00:00Z'
-        },
-        'ACC-4567': {
-            name: 'TestCo Ltd',
-            status: 'suspended',
-            hubspotId: 'HS-45678',
-            billingMode: 'postpaid',
-            currentBalance: -3500.00,
-            creditLimit: 2000.00,
-            paymentTerms: 'Net 14',
-            currency: 'GBP',
-            vatRegistered: true,
-            vatRate: 20,
-            reverseCharge: false,
-            vatCountry: 'GB',
-            lastUpdated: '2026-01-15T16:45:00Z'
-        }
-    };
-    
-    var mockInvoices = {
-        'ACC-1234': [
-            { number: 'INV-2024-0074', period: 'Dec 2024', date: '2024-12-25', dueDate: '2025-01-08', status: 'paid', amountExVat: 1815.00, vat: 363.00, total: 2178.00, outstanding: 0 },
-            { number: 'INV-2024-0065', period: 'Nov 2024', date: '2024-11-25', dueDate: '2024-12-09', status: 'paid', amountExVat: 1420.00, vat: 284.00, total: 1704.00, outstanding: 0 },
-            { number: 'INV-2024-0052', period: 'Oct 2024', date: '2024-10-25', dueDate: '2024-11-08', status: 'paid', amountExVat: 1680.00, vat: 336.00, total: 2016.00, outstanding: 0 }
-        ],
-        'ACC-5678': [
-            { number: 'INV-2024-0026', period: 'Dec 2024', date: '2024-12-10', dueDate: '2025-01-09', status: 'issued', amountExVat: 2509.00, vat: 501.80, total: 3010.80, outstanding: 3010.80 },
-            { number: 'INV-2024-0018', period: 'Nov 2024', date: '2024-11-10', dueDate: '2024-12-10', status: 'paid', amountExVat: 2150.00, vat: 430.00, total: 2580.00, outstanding: 0 },
-            { number: 'INV-2025-0003', period: 'Jan 2025', date: '2025-01-05', dueDate: '2025-02-04', status: 'draft', amountExVat: 1850.00, vat: 370.00, total: 2220.00, outstanding: 2220.00 },
-            { number: 'INV-2023-0098', period: 'Dec 2023', date: '2023-12-15', dueDate: '2024-01-14', status: 'paid', amountExVat: 1920.00, vat: 384.00, total: 2304.00, outstanding: 0 },
-            { number: 'INV-2023-0085', period: 'Nov 2023', date: '2023-11-10', dueDate: '2023-12-10', status: 'paid', amountExVat: 2050.00, vat: 410.00, total: 2460.00, outstanding: 0 }
-        ],
-        'ACC-7890': [],
-        'ACC-4567': [
-            { number: 'INV-2024-0045', period: 'Nov 2024', date: '2024-11-15', dueDate: '2024-11-29', status: 'overdue', amountExVat: 3500.00, vat: 700.00, total: 4200.00, outstanding: 4200.00 }
-        ]
-    };
+    var Services = window.BillingServices;
     
     return {
         getAccountBilling: function(accountId) {
-            return new Promise(function(resolve, reject) {
-                setTimeout(function() {
-                    var data = mockAccounts[accountId];
-                    if (data) {
-                        resolve(Object.assign({}, data, { accountId: accountId }));
-                    } else {
-                        resolve({
-                            accountId: accountId,
-                            name: 'Unknown Account',
-                            status: 'test',
-                            hubspotId: null,
-                            billingMode: 'prepaid',
-                            currentBalance: 0,
-                            creditLimit: 0,
-                            paymentTerms: 'Immediate',
-                            currency: 'GBP',
-                            vatRegistered: false,
-                            lastUpdated: new Date().toISOString()
-                        });
-                    }
-                }, 300);
-            });
+            return Services.BillingFacade.loadCompleteBillingData(accountId);
         },
         
         getAccountInvoices: function(accountId) {
-            return new Promise(function(resolve, reject) {
-                setTimeout(function() {
-                    var invoices = mockInvoices[accountId] || [];
-                    resolve(invoices);
-                }, 400);
-            });
+            return Services.InvoicesService.listInvoices({ customerAccountId: accountId })
+                .then(function(result) {
+                    return result.invoices;
+                });
         },
         
         calculateAvailableCredit: function(billingData) {
-            if (billingData.billingMode === 'prepaid') {
-                return Math.max(0, billingData.currentBalance);
-            } else {
-                return billingData.currentBalance + billingData.creditLimit;
-            }
+            return Services.InternalBillingLedgerService.calculateAvailableCredit(
+                billingData.billingMode,
+                billingData.currentBalance,
+                billingData.creditLimit
+            );
         },
         
         updateBillingMode: function(accountId, newMode) {
-            var self = this;
-            return new Promise(function(resolve, reject) {
-                setTimeout(function() {
-                    if (mockAccounts[accountId]) {
-                        mockAccounts[accountId].billingMode = newMode;
-                        mockAccounts[accountId].lastUpdated = new Date().toISOString();
-                        resolve({ success: true, accountId: accountId, billingMode: newMode });
-                    } else {
-                        reject(new Error('Account not found'));
+            return Services.HubSpotBillingService.updateBillingMode(accountId, newMode)
+                .then(function(response) {
+                    if (response.success) {
+                        return { success: true, accountId: accountId, billingMode: newMode };
                     }
-                }, 200);
-            });
+                    throw new Error(response.error || 'Failed to update billing mode');
+                });
         },
         
         updateCreditLimit: function(accountId, newLimit) {
-            return new Promise(function(resolve, reject) {
-                setTimeout(function() {
-                    if (mockAccounts[accountId]) {
-                        mockAccounts[accountId].creditLimit = newLimit;
-                        mockAccounts[accountId].lastUpdated = new Date().toISOString();
-                        resolve({ success: true, accountId: accountId, creditLimit: newLimit });
-                    } else {
-                        reject(new Error('Account not found'));
+            return Services.HubSpotBillingService.updateCreditLimit(accountId, newLimit)
+                .then(function(response) {
+                    if (response.success) {
+                        return { success: true, accountId: accountId, creditLimit: newLimit };
                     }
-                }, 200);
-            });
+                    throw new Error(response.error || 'Failed to update credit limit');
+                });
         }
     };
 })();
 
+/**
+ * Legacy compatibility services - now delegate to BillingServices
+ */
 var HubSpotBillingService = (function() {
+    var Services = window.BillingServices;
     var simulateFailure = false;
     
     return {
         updateBillingMode: function(accountId, mode) {
-            return new Promise(function(resolve, reject) {
-                setTimeout(function() {
-                    if (simulateFailure) {
-                        reject(new Error('HubSpot API error: Unable to update billing mode'));
-                    } else {
-                        console.log('[HubSpotBillingService] Updated billing mode for ' + accountId + ' to ' + mode);
-                        resolve({
-                            success: true,
-                            hubspotRecordId: 'HS-' + Math.random().toString(36).substr(2, 9),
-                            updatedAt: new Date().toISOString()
-                        });
-                    }
-                }, 500);
-            });
+            if (simulateFailure) {
+                return Promise.reject(new Error('HubSpot API error: Unable to update billing mode'));
+            }
+            return Services.HubSpotBillingService.updateBillingMode(accountId, mode);
+        },
+        
+        updateCreditLimit: function(accountId, newLimit) {
+            if (simulateFailure) {
+                return Promise.reject(new Error('HubSpot API error: Unable to update credit limit'));
+            }
+            return Services.HubSpotBillingService.updateCreditLimit(accountId, newLimit);
         },
         
         setSimulateFailure: function(value) {
             simulateFailure = value;
-        },
-        
-        updateCreditLimit: function(accountId, newLimit) {
-            return new Promise(function(resolve, reject) {
-                setTimeout(function() {
-                    if (simulateFailure) {
-                        reject(new Error('HubSpot API error: Unable to update credit limit'));
-                    } else {
-                        console.log('[HubSpotBillingService] Updated credit limit for ' + accountId + ' to ' + newLimit);
-                        resolve({
-                            success: true,
-                            hubspotRecordId: 'HS-' + Math.random().toString(36).substr(2, 9),
-                            creditLimit: newLimit,
-                            updatedAt: new Date().toISOString()
-                        });
-                    }
-                }, 500);
-            });
         }
     };
 })();
@@ -1014,37 +896,30 @@ var HubSpotBillingService = (function() {
 var InternalBillingConfigService = (function() {
     return {
         updateBillingMode: function(accountId, mode) {
-            return new Promise(function(resolve, reject) {
-                setTimeout(function() {
-                    console.log('[InternalBillingConfigService] Updated billing mode for ' + accountId + ' to ' + mode);
-                    resolve({
-                        success: true,
-                        accountId: accountId,
-                        billingMode: mode,
-                        effectiveDate: new Date().toISOString()
-                    });
-                }, 300);
+            console.log('[InternalBillingConfigService] Updated billing mode for ' + accountId + ' to ' + mode);
+            return Promise.resolve({
+                success: true,
+                accountId: accountId,
+                billingMode: mode,
+                effectiveDate: new Date().toISOString()
             });
         }
     };
 })();
 
 var BillingRiskService = (function() {
-    var mockRiskData = {
-        'ACC-1234': { hasOutstandingInvoices: false, overdueAmount: 0, overdueCount: 0 },
-        'ACC-5678': { hasOutstandingInvoices: true, overdueAmount: 0, overdueCount: 0 },
-        'ACC-7890': { hasOutstandingInvoices: false, overdueAmount: 0, overdueCount: 0 },
-        'ACC-4567': { hasOutstandingInvoices: true, overdueAmount: 4200.00, overdueCount: 1 }
-    };
+    var Services = window.BillingServices;
     
     return {
         checkBillingRisk: function(accountId) {
-            return new Promise(function(resolve) {
-                setTimeout(function() {
-                    var risk = mockRiskData[accountId] || { hasOutstandingInvoices: false, overdueAmount: 0, overdueCount: 0 };
-                    resolve(risk);
-                }, 200);
-            });
+            return Services.BillingFacade.checkOutstandingInvoices(accountId)
+                .then(function(result) {
+                    return {
+                        hasOutstandingInvoices: result.hasOutstanding,
+                        overdueAmount: result.totalOutstanding,
+                        overdueCount: result.count
+                    };
+                });
         }
     };
 })();
