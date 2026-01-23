@@ -268,10 +268,10 @@
                     <small class="text-muted mt-2 d-block">Use this ID when sending messages via the API with <code>template_id</code> parameter.</small>
                 </div>
                 
-                <div class="alert alert-info small mb-0">
+                <div class="alert small mb-0" style="background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #614099;">
                     <i class="fas fa-info-circle me-1"></i>
                     <strong>API Usage Example:</strong>
-                    <pre class="mb-0 mt-2" style="font-size: 0.75rem; background: #fff; padding: 0.5rem; border-radius: 4px; overflow-x: auto;">{
+                    <pre class="mb-0 mt-2" style="font-size: 0.75rem; background: #fff; padding: 0.5rem; border-radius: 4px; overflow-x: auto; color: #333;">{
   "template_id": "<span id="templateIdExample">TPL-XXXXXXXX</span>",
   "recipients": ["+447123456789"],
   "variables": { "name": "John" }
