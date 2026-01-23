@@ -197,6 +197,124 @@
     color: #2c2c2c;
 }
 
+/* Segmented Toggle Control */
+.segmented-toggle {
+    display: inline-flex;
+    background: #f1f3f5;
+    border-radius: 0.5rem;
+    padding: 3px;
+    gap: 2px;
+}
+.segmented-toggle .toggle-option {
+    padding: 0.375rem 1rem;
+    border-radius: 0.375rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #6c757d;
+    border: none;
+    background: transparent;
+}
+.segmented-toggle .toggle-option:hover:not(.active):not(:disabled) {
+    background: rgba(30, 58, 95, 0.08);
+    color: #495057;
+}
+.segmented-toggle .toggle-option.active {
+    background: var(--admin-primary);
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.segmented-toggle .toggle-option:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.segmented-toggle.readonly .toggle-option {
+    cursor: default;
+}
+.segmented-toggle.readonly .toggle-option:hover:not(.active) {
+    background: transparent;
+    color: #6c757d;
+}
+
+/* Billing Risk Warning Banner */
+.billing-risk-banner {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%);
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.billing-risk-banner.hidden { display: none; }
+.billing-risk-banner .risk-icon {
+    color: #856404;
+    font-size: 1.25rem;
+}
+.billing-risk-banner .risk-text {
+    flex: 1;
+    font-size: 0.875rem;
+    color: #856404;
+}
+.billing-risk-banner .risk-text strong {
+    display: block;
+    margin-bottom: 0.125rem;
+}
+
+/* Inline Error Message */
+.billing-inline-error {
+    background: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: #dc3545;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.billing-inline-error.hidden { display: none; }
+.permission-lock.hidden { display: none; }
+
+/* Permission Lock Indicator */
+.permission-lock {
+    font-size: 0.75rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Confirmation Modal Styling */
+.billing-confirm-modal .modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 1.25rem;
+}
+.billing-confirm-modal .modal-title {
+    font-weight: 600;
+    color: var(--admin-primary);
+}
+.billing-confirm-modal .modal-body {
+    padding: 1.25rem;
+}
+.billing-confirm-modal .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1rem 1.25rem;
+}
+.billing-confirm-modal .change-summary {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+.billing-confirm-modal .change-arrow {
+    color: #6c757d;
+    font-size: 1.25rem;
+}
+
 .empty-state {
     text-align: center;
     padding: 3rem 1rem;
@@ -308,10 +426,36 @@
                     <h6><i class="fas fa-cog me-2"></i>Billing Settings</h6>
                 </div>
                 <div class="billing-card-body">
-                    <div class="billing-setting-row">
-                        <span class="billing-setting-label">Billing Type</span>
-                        <span class="billing-setting-value" id="settingBillingType">Prepaid</span>
+                    <!-- Billing Risk Warning Banner -->
+                    <div class="billing-risk-banner hidden" id="billingRiskBanner">
+                        <i class="fas fa-exclamation-triangle risk-icon"></i>
+                        <div class="risk-text">
+                            <strong>Outstanding Invoices</strong>
+                            <span id="riskBannerMessage">This account has unpaid invoices. Billing mode changes are restricted.</span>
+                        </div>
                     </div>
+                    
+                    <div class="billing-setting-row">
+                        <span class="billing-setting-label">
+                            Billing Type
+                            <span class="permission-lock hidden" id="permissionLock">
+                                <i class="fas fa-lock"></i> Read only
+                            </span>
+                        </span>
+                        <div id="billingTypeControl">
+                            <div class="segmented-toggle" id="billingTypeToggle">
+                                <button type="button" class="toggle-option" data-value="prepaid">Prepaid</button>
+                                <button type="button" class="toggle-option" data-value="postpaid">Postpaid</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Inline Error Message -->
+                    <div class="billing-inline-error hidden" id="billingModeError">
+                        <i class="fas fa-times-circle"></i>
+                        <span id="billingModeErrorText">Could not update HubSpot. No changes were saved.</span>
+                    </div>
+                    
                     <div class="billing-setting-row">
                         <span class="billing-setting-label">Credit Limit</span>
                         <span class="billing-setting-value" id="settingCreditLimit">&pound;0.00</span>
@@ -329,7 +473,7 @@
                         <span class="billing-setting-value" id="settingVatRegistered">Yes</span>
                     </div>
                     <div class="mt-3 text-muted small">
-                        <i class="fas fa-info-circle me-1"></i>Billing settings are managed in HubSpot.
+                        <i class="fas fa-info-circle me-1"></i>Billing settings are synced with HubSpot.
                     </div>
                 </div>
             </div>
@@ -370,6 +514,40 @@
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Billing Mode Change Confirmation Modal -->
+<div class="modal fade billing-confirm-modal" id="billingModeConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exchange-alt me-2"></i>Change Billing Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="change-summary">
+                    <div class="d-flex align-items-center justify-content-center gap-3">
+                        <div class="text-center">
+                            <div class="text-muted small mb-1">Current</div>
+                            <span class="pill-status" id="confirmOldMode">Prepaid</span>
+                        </div>
+                        <i class="fas fa-arrow-right change-arrow"></i>
+                        <div class="text-center">
+                            <div class="text-muted small mb-1">New</div>
+                            <span class="pill-status" id="confirmNewMode">Postpaid</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="mb-0 text-center">This will affect billing behaviour for this customer. Continue?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-admin-primary" id="confirmBillingModeChange">
+                    <i class="fas fa-check me-1"></i>Confirm Change
+                </button>
             </div>
         </div>
     </div>
@@ -488,6 +666,103 @@ var AdminAccountBillingService = (function() {
             } else {
                 return billingData.currentBalance + billingData.creditLimit;
             }
+        },
+        
+        updateBillingMode: function(accountId, newMode) {
+            var self = this;
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (mockAccounts[accountId]) {
+                        mockAccounts[accountId].billingMode = newMode;
+                        mockAccounts[accountId].lastUpdated = new Date().toISOString();
+                        resolve({ success: true, accountId: accountId, billingMode: newMode });
+                    } else {
+                        reject(new Error('Account not found'));
+                    }
+                }, 200);
+            });
+        }
+    };
+})();
+
+var HubSpotBillingService = (function() {
+    var simulateFailure = false;
+    
+    return {
+        updateBillingMode: function(accountId, mode) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    if (simulateFailure) {
+                        reject(new Error('HubSpot API error: Unable to update billing mode'));
+                    } else {
+                        console.log('[HubSpotBillingService] Updated billing mode for ' + accountId + ' to ' + mode);
+                        resolve({
+                            success: true,
+                            hubspotRecordId: 'HS-' + Math.random().toString(36).substr(2, 9),
+                            updatedAt: new Date().toISOString()
+                        });
+                    }
+                }, 500);
+            });
+        },
+        
+        setSimulateFailure: function(value) {
+            simulateFailure = value;
+        }
+    };
+})();
+
+var InternalBillingConfigService = (function() {
+    return {
+        updateBillingMode: function(accountId, mode) {
+            return new Promise(function(resolve, reject) {
+                setTimeout(function() {
+                    console.log('[InternalBillingConfigService] Updated billing mode for ' + accountId + ' to ' + mode);
+                    resolve({
+                        success: true,
+                        accountId: accountId,
+                        billingMode: mode,
+                        effectiveDate: new Date().toISOString()
+                    });
+                }, 300);
+            });
+        }
+    };
+})();
+
+var BillingRiskService = (function() {
+    var mockRiskData = {
+        'ACC-1234': { hasOutstandingInvoices: false, overdueAmount: 0, overdueCount: 0 },
+        'ACC-5678': { hasOutstandingInvoices: true, overdueAmount: 0, overdueCount: 0 },
+        'ACC-7890': { hasOutstandingInvoices: false, overdueAmount: 0, overdueCount: 0 },
+        'ACC-4567': { hasOutstandingInvoices: true, overdueAmount: 4200.00, overdueCount: 1 }
+    };
+    
+    return {
+        checkBillingRisk: function(accountId) {
+            return new Promise(function(resolve) {
+                setTimeout(function() {
+                    var risk = mockRiskData[accountId] || { hasOutstandingInvoices: false, overdueAmount: 0, overdueCount: 0 };
+                    resolve(risk);
+                }, 200);
+            });
+        }
+    };
+})();
+
+var AdminPermissionService = (function() {
+    var mockPermissions = {
+        'billing.edit_mode': true,
+        'billing.override_risk': false
+    };
+    
+    return {
+        hasPermission: function(permission) {
+            return mockPermissions[permission] === true;
+        },
+        
+        setPermission: function(permission, value) {
+            mockPermissions[permission] = value;
         }
     };
 })();
@@ -573,16 +848,186 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('summaryLastUpdated').textContent = formatTimestamp(data.lastUpdated);
         
-        document.getElementById('settingBillingType').textContent = 
-            data.billingMode.charAt(0).toUpperCase() + data.billingMode.slice(1);
         document.getElementById('settingCreditLimit').textContent = formatCurrency(data.creditLimit);
         document.getElementById('settingPaymentTerms').textContent = data.paymentTerms;
         document.getElementById('settingCurrency').textContent = data.currency + ' (£)';
         document.getElementById('settingVatRegistered').textContent = data.vatRegistered ? 'Yes' : 'No';
         
+        initBillingTypeToggle(data.billingMode, data.name);
+        
         if (typeof AdminControlPlane !== 'undefined') {
             AdminControlPlane.logAdminAction('ACCOUNT_BILLING_VIEWED', accountId, { accountName: data.name });
         }
+    });
+    
+    var currentBillingMode = null;
+    var pendingBillingMode = null;
+    var canEditBillingMode = true;
+    var hasOutstandingInvoices = false;
+    var canOverrideRisk = false;
+    var currentAccountName = '';
+    
+    function initBillingTypeToggle(billingMode, accountName) {
+        currentBillingMode = billingMode;
+        currentAccountName = accountName;
+        
+        var toggle = document.getElementById('billingTypeToggle');
+        var toggleOptions = toggle.querySelectorAll('.toggle-option');
+        
+        toggleOptions.forEach(function(option) {
+            if (option.dataset.value === billingMode) {
+                option.classList.add('active');
+            } else {
+                option.classList.remove('active');
+            }
+        });
+        
+        canEditBillingMode = AdminPermissionService.hasPermission('billing.edit_mode');
+        canOverrideRisk = AdminPermissionService.hasPermission('billing.override_risk');
+        
+        if (!canEditBillingMode) {
+            toggle.classList.add('readonly');
+            toggleOptions.forEach(function(option) {
+                option.disabled = true;
+            });
+            document.getElementById('permissionLock').classList.remove('hidden');
+        }
+        
+        BillingRiskService.checkBillingRisk(accountId).then(function(risk) {
+            hasOutstandingInvoices = risk.hasOutstandingInvoices;
+            
+            if (hasOutstandingInvoices) {
+                var banner = document.getElementById('billingRiskBanner');
+                banner.classList.remove('hidden');
+                
+                var message = 'This account has ';
+                if (risk.overdueAmount > 0) {
+                    message += formatCurrency(risk.overdueAmount) + ' in overdue invoices (' + risk.overdueCount + ' invoice' + (risk.overdueCount > 1 ? 's' : '') + ').';
+                } else {
+                    message += 'outstanding invoices that need attention.';
+                }
+                message += ' Billing mode changes are ' + (canOverrideRisk ? 'restricted but can be overridden.' : 'restricted.');
+                document.getElementById('riskBannerMessage').textContent = message;
+                
+                if (!canOverrideRisk) {
+                    toggle.classList.add('readonly');
+                    toggleOptions.forEach(function(option) {
+                        option.disabled = true;
+                    });
+                }
+            }
+        });
+        
+        toggleOptions.forEach(function(option) {
+            option.addEventListener('click', function() {
+                if (option.disabled || toggle.classList.contains('readonly')) return;
+                if (option.classList.contains('active')) return;
+                
+                pendingBillingMode = option.dataset.value;
+                showBillingModeConfirmModal(currentBillingMode, pendingBillingMode);
+            });
+        });
+    }
+    
+    function showBillingModeConfirmModal(oldMode, newMode) {
+        var oldModeEl = document.getElementById('confirmOldMode');
+        var newModeEl = document.getElementById('confirmNewMode');
+        
+        oldModeEl.className = 'pill-status ' + getBillingModePillClass(oldMode);
+        oldModeEl.innerHTML = '<i class="fas fa-' + (oldMode === 'postpaid' ? 'credit-card' : 'wallet') + ' me-1"></i>' +
+            oldMode.charAt(0).toUpperCase() + oldMode.slice(1);
+        
+        newModeEl.className = 'pill-status ' + getBillingModePillClass(newMode);
+        newModeEl.innerHTML = '<i class="fas fa-' + (newMode === 'postpaid' ? 'credit-card' : 'wallet') + ' me-1"></i>' +
+            newMode.charAt(0).toUpperCase() + newMode.slice(1);
+        
+        var modal = new bootstrap.Modal(document.getElementById('billingModeConfirmModal'));
+        modal.show();
+    }
+    
+    function updateBillingModeUI(newMode) {
+        var toggle = document.getElementById('billingTypeToggle');
+        var toggleOptions = toggle.querySelectorAll('.toggle-option');
+        
+        toggleOptions.forEach(function(option) {
+            if (option.dataset.value === newMode) {
+                option.classList.add('active');
+            } else {
+                option.classList.remove('active');
+            }
+        });
+        
+        var billingModePill = document.getElementById('billingModePill');
+        billingModePill.className = 'pill-status ' + getBillingModePillClass(newMode);
+        billingModePill.innerHTML = '<i class="fas fa-' + (newMode === 'postpaid' ? 'credit-card' : 'wallet') + 
+            ' me-1"></i>' + newMode.charAt(0).toUpperCase() + newMode.slice(1);
+        
+        document.getElementById('summaryBillingMode').innerHTML = 
+            '<span class="pill-status ' + getBillingModePillClass(newMode) + '" style="font-size: 0.8rem;">' +
+            '<i class="fas fa-' + (newMode === 'postpaid' ? 'credit-card' : 'wallet') + ' me-1"></i>' +
+            newMode.charAt(0).toUpperCase() + newMode.slice(1) + '</span>';
+        
+        currentBillingMode = newMode;
+    }
+    
+    function showBillingModeError(message) {
+        var errorEl = document.getElementById('billingModeError');
+        document.getElementById('billingModeErrorText').textContent = message;
+        errorEl.classList.remove('hidden');
+        
+        setTimeout(function() {
+            errorEl.classList.add('hidden');
+        }, 8000);
+    }
+    
+    function hideBillingModeError() {
+        document.getElementById('billingModeError').classList.add('hidden');
+    }
+    
+    document.getElementById('confirmBillingModeChange').addEventListener('click', function() {
+        var confirmBtn = this;
+        var oldMode = currentBillingMode;
+        var newMode = pendingBillingMode;
+        
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating...';
+        
+        hideBillingModeError();
+        
+        Promise.all([
+            HubSpotBillingService.updateBillingMode(accountId, newMode),
+            InternalBillingConfigService.updateBillingMode(accountId, newMode)
+        ])
+        .then(function(results) {
+            return AdminAccountBillingService.updateBillingMode(accountId, newMode);
+        })
+        .then(function(result) {
+            updateBillingModeUI(newMode);
+            
+            if (typeof AdminControlPlane !== 'undefined') {
+                AdminControlPlane.logAdminAction('BILLING_MODE_CHANGED', accountId, {
+                    accountName: currentAccountName,
+                    oldValue: oldMode,
+                    newValue: newMode,
+                    sourceScreen: 'Admin > Accounts > Billing'
+                });
+            }
+            
+            var modal = bootstrap.Modal.getInstance(document.getElementById('billingModeConfirmModal'));
+            modal.hide();
+        })
+        .catch(function(error) {
+            console.error('Billing mode update failed:', error);
+            showBillingModeError('Could not update HubSpot. No changes were saved.');
+            
+            var modal = bootstrap.Modal.getInstance(document.getElementById('billingModeConfirmModal'));
+            modal.hide();
+        })
+        .finally(function() {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm Change';
+            pendingBillingMode = null;
+        });
     });
     
     AdminAccountBillingService.getAccountInvoices(accountId).then(function(invoices) {
