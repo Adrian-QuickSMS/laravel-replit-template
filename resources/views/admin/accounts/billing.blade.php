@@ -178,6 +178,54 @@
 .badge-void { background: rgba(108, 117, 125, 0.15); color: #6c757d; }
 .badge-draft { background: rgba(255, 193, 7, 0.15); color: #856404; }
 
+.invoices-table thead th.sortable {
+    cursor: pointer;
+    white-space: nowrap;
+}
+.invoices-table thead th.sortable:hover {
+    color: var(--admin-primary);
+    background-color: #e9ecef;
+}
+.invoices-table thead th .sort-icon {
+    margin-left: 0.25rem;
+    opacity: 0.4;
+    font-size: 0.75rem;
+}
+.invoices-table thead th.sorted .sort-icon {
+    opacity: 1;
+    color: var(--admin-primary);
+}
+.invoices-table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+.invoices-table tbody tr:hover td {
+    background-color: #f8f9fa;
+}
+.invoices-table .actions-cell {
+    white-space: nowrap;
+}
+.invoices-table .actions-cell .btn {
+    padding: 0.25rem 0.5rem;
+}
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: var(--admin-primary);
+    color: #fff;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+}
+.filter-chip .chip-remove {
+    cursor: pointer;
+    opacity: 0.7;
+}
+.filter-chip .chip-remove:hover {
+    opacity: 1;
+}
+
 .billing-setting-row {
     display: flex;
     justify-content: space-between;
@@ -601,38 +649,118 @@
         </div>
         
         <div class="col-lg-8">
-            <div class="billing-card">
+            <div class="billing-card" id="invoicesCard">
                 <div class="billing-card-header">
                     <h6><i class="fas fa-file-invoice me-2"></i>Customer Invoices</h6>
-                    <div class="d-flex gap-2">
+                    <div id="invoicesHeaderActions" class="d-flex gap-2">
+                        <button class="btn btn-sm btn-admin-outline" data-bs-toggle="collapse" data-bs-target="#invoiceFiltersPanel">
+                            <i class="fas fa-filter me-1"></i>Filters
+                        </button>
                         <button class="btn btn-sm btn-admin-outline" id="exportInvoicesBtn">
                             <i class="fas fa-download me-1"></i>Export
                         </button>
                     </div>
                 </div>
-                <div class="billing-card-body p-0">
-                    <div class="table-responsive">
-                        <table class="invoices-table" id="customerInvoicesTable">
-                            <thead>
-                                <tr>
-                                    <th>Invoice #</th>
-                                    <th>Period</th>
-                                    <th>Date</th>
-                                    <th>Due Date</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Amount (ex VAT)</th>
-                                    <th class="text-end">VAT</th>
-                                    <th class="text-end">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody id="invoicesTableBody">
-                                <tr>
-                                    <td colspan="8" class="loading-state">
-                                        <i class="fas fa-spinner fa-spin me-2"></i>Loading invoices...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                
+                <div id="permissionDeniedState" class="billing-card-body text-center py-5" style="display: none;">
+                    <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+                    <h6 class="text-muted">Permission Required</h6>
+                    <p class="text-muted small mb-0">You do not have permission to view invoices for this account.</p>
+                </div>
+                
+                <div id="invoicesContent" class="billing-card-body p-0">
+                    <div class="collapse p-3 bg-light border-bottom" id="invoiceFiltersPanel">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Invoice Number</label>
+                                <input type="text" class="form-control form-control-sm" id="invoiceNumberFilter" placeholder="Search..." style="background-color: #fff;">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Status</label>
+                                <select class="form-select form-select-sm" id="statusFilter" style="background-color: #fff;">
+                                    <option value="">All Statuses</option>
+                                    <option value="draft">Draft</option>
+                                    <option value="issued">Issued</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="overdue">Overdue</option>
+                                    <option value="void">Void</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label small fw-bold">Year</label>
+                                <select class="form-select form-select-sm" id="yearFilter" style="background-color: #fff;">
+                                    <option value="">All Years</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2023">2023</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3 d-flex gap-2">
+                                <button type="button" class="btn btn-admin-primary btn-sm flex-grow-1" id="applyInvoiceFilters">
+                                    <i class="fas fa-check me-1"></i>Apply
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm flex-grow-1" id="resetInvoiceFilters">
+                                    <i class="fas fa-undo me-1"></i>Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="activeInvoiceFilters" class="px-3 py-2 border-bottom bg-light" style="display: none;">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="small text-muted fw-bold">Active Filters:</span>
+                            <div id="activeFilterChips" class="d-flex flex-wrap gap-1"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="invoicesTableWrapper">
+                        <div class="table-responsive">
+                            <table class="invoices-table" id="customerInvoicesTable">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" data-sort="number">Invoice # <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="sortable" data-sort="period">Period <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="sortable" data-sort="date">Date <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="sortable" data-sort="dueDate">Due Date <i class="fas fa-sort sort-icon"></i></th>
+                                        <th>Status</th>
+                                        <th class="text-end sortable" data-sort="amountExVat">Amount (ex VAT) <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="text-end">VAT</th>
+                                        <th class="text-end sortable" data-sort="total">Total <i class="fas fa-sort sort-icon"></i></th>
+                                        <th class="text-end">Outstanding</th>
+                                        <th class="text-center" style="width: 80px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoicesTableBody">
+                                    <tr>
+                                        <td colspan="10" class="loading-state">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>Loading invoices...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div id="invoicesErrorState" class="text-center py-5" style="display: none;">
+                            <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                            <h6 class="text-muted">Failed to Load Invoices</h6>
+                            <p class="text-muted small mb-3">There was an error loading invoices. Please try again.</p>
+                            <button type="button" class="btn btn-admin-primary btn-sm" id="retryLoadInvoices">
+                                <i class="fas fa-redo me-1"></i>Retry
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="invoices-footer border-top p-3" id="invoicesPagination">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                Showing <span id="showingStart">0</span>-<span id="showingEnd">0</span> of <span id="totalInvoiceCount">0</span> invoices
+                            </div>
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                                </ul>
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -747,17 +875,20 @@ var AdminAccountBillingService = (function() {
     
     var mockInvoices = {
         'ACC-1234': [
-            { number: 'INV-2024-0074', period: 'Dec 2024', date: '2024-12-25', dueDate: '2025-01-08', status: 'paid', amountExVat: 1815.00, vat: 363.00, total: 2178.00 },
-            { number: 'INV-2024-0065', period: 'Nov 2024', date: '2024-11-25', dueDate: '2024-12-09', status: 'paid', amountExVat: 1420.00, vat: 284.00, total: 1704.00 },
-            { number: 'INV-2024-0052', period: 'Oct 2024', date: '2024-10-25', dueDate: '2024-11-08', status: 'paid', amountExVat: 1680.00, vat: 336.00, total: 2016.00 }
+            { number: 'INV-2024-0074', period: 'Dec 2024', date: '2024-12-25', dueDate: '2025-01-08', status: 'paid', amountExVat: 1815.00, vat: 363.00, total: 2178.00, outstanding: 0 },
+            { number: 'INV-2024-0065', period: 'Nov 2024', date: '2024-11-25', dueDate: '2024-12-09', status: 'paid', amountExVat: 1420.00, vat: 284.00, total: 1704.00, outstanding: 0 },
+            { number: 'INV-2024-0052', period: 'Oct 2024', date: '2024-10-25', dueDate: '2024-11-08', status: 'paid', amountExVat: 1680.00, vat: 336.00, total: 2016.00, outstanding: 0 }
         ],
         'ACC-5678': [
-            { number: 'INV-2024-0026', period: 'Dec 2024', date: '2024-12-10', dueDate: '2025-01-09', status: 'issued', amountExVat: 2509.00, vat: 501.80, total: 3010.80 },
-            { number: 'INV-2024-0018', period: 'Nov 2024', date: '2024-11-10', dueDate: '2024-12-10', status: 'paid', amountExVat: 2150.00, vat: 430.00, total: 2580.00 }
+            { number: 'INV-2024-0026', period: 'Dec 2024', date: '2024-12-10', dueDate: '2025-01-09', status: 'issued', amountExVat: 2509.00, vat: 501.80, total: 3010.80, outstanding: 3010.80 },
+            { number: 'INV-2024-0018', period: 'Nov 2024', date: '2024-11-10', dueDate: '2024-12-10', status: 'paid', amountExVat: 2150.00, vat: 430.00, total: 2580.00, outstanding: 0 },
+            { number: 'INV-2025-0003', period: 'Jan 2025', date: '2025-01-05', dueDate: '2025-02-04', status: 'draft', amountExVat: 1850.00, vat: 370.00, total: 2220.00, outstanding: 2220.00 },
+            { number: 'INV-2023-0098', period: 'Dec 2023', date: '2023-12-15', dueDate: '2024-01-14', status: 'paid', amountExVat: 1920.00, vat: 384.00, total: 2304.00, outstanding: 0 },
+            { number: 'INV-2023-0085', period: 'Nov 2023', date: '2023-11-10', dueDate: '2023-12-10', status: 'paid', amountExVat: 2050.00, vat: 410.00, total: 2460.00, outstanding: 0 }
         ],
         'ACC-7890': [],
         'ACC-4567': [
-            { number: 'INV-2024-0045', period: 'Nov 2024', date: '2024-11-15', dueDate: '2024-11-29', status: 'overdue', amountExVat: 3500.00, vat: 700.00, total: 4200.00 }
+            { number: 'INV-2024-0045', period: 'Nov 2024', date: '2024-11-15', dueDate: '2024-11-29', status: 'overdue', amountExVat: 3500.00, vat: 700.00, total: 4200.00, outstanding: 4200.00 }
         ]
     };
     
@@ -924,7 +1055,8 @@ var AdminPermissionService = (function() {
         'billing.override_risk': false,
         'billing.edit_credit_limit': true,
         'billing.create_invoice': true,
-        'billing.create_credit': true
+        'billing.create_credit': true,
+        'billing.view_invoices': true
     };
     
     return {
@@ -1226,19 +1358,137 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    AdminAccountBillingService.getAccountInvoices(accountId).then(function(invoices) {
-        var tbody = document.getElementById('invoicesTableBody');
+    // Enhanced Invoices Table with Filters, Sorting, Pagination
+    var canViewInvoices = AdminPermissionService.hasPermission('billing.view_invoices');
+    var allInvoices = [];
+    var filteredInvoices = [];
+    var currentSort = { field: 'date', direction: 'desc' };
+    var currentFilters = { number: '', status: '', year: '' };
+    var currentPage = 1;
+    var pageSize = 10;
+    var isLoadingInvoices = false;
+    
+    function initInvoicesTable() {
+        if (!canViewInvoices) {
+            document.getElementById('invoicesContent').style.display = 'none';
+            document.getElementById('invoicesHeaderActions').style.display = 'none';
+            document.getElementById('permissionDeniedState').style.display = '';
+            return;
+        }
         
-        if (invoices.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">' +
-                '<i class="fas fa-file-invoice"></i>' +
-                '<div>No invoices found for this customer</div></td></tr>';
+        loadInvoices();
+        setupInvoiceTableEvents();
+    }
+    
+    function loadInvoices() {
+        if (isLoadingInvoices) return;
+        isLoadingInvoices = true;
+        
+        var tbody = document.getElementById('invoicesTableBody');
+        var errorState = document.getElementById('invoicesErrorState');
+        var tableWrapper = document.getElementById('invoicesTableWrapper');
+        var paginationFooter = document.getElementById('invoicesPagination');
+        
+        errorState.style.display = 'none';
+        tableWrapper.style.display = '';
+        paginationFooter.style.display = '';
+        tbody.innerHTML = '<tr><td colspan="10" class="loading-state text-center py-4">' +
+            '<i class="fas fa-spinner fa-spin me-2"></i>Loading invoices...</td></tr>';
+        
+        AdminAccountBillingService.getAccountInvoices(accountId)
+            .then(function(invoices) {
+                allInvoices = invoices;
+                applyFiltersAndRender();
+                isLoadingInvoices = false;
+            })
+            .catch(function(error) {
+                console.error('Failed to load invoices:', error);
+                tbody.innerHTML = '';
+                tableWrapper.style.display = 'none';
+                paginationFooter.style.display = 'none';
+                errorState.style.display = '';
+                isLoadingInvoices = false;
+            });
+    }
+    
+    function applyFiltersAndRender() {
+        filteredInvoices = allInvoices.filter(function(inv) {
+            if (currentFilters.number && inv.number.toLowerCase().indexOf(currentFilters.number.toLowerCase()) === -1) {
+                return false;
+            }
+            if (currentFilters.status && inv.status !== currentFilters.status) {
+                return false;
+            }
+            if (currentFilters.year && inv.date.indexOf(currentFilters.year) === -1) {
+                return false;
+            }
+            return true;
+        });
+        
+        sortInvoices();
+        currentPage = 1;
+        renderInvoicesTable();
+        renderPagination();
+        updateActiveFiltersDisplay();
+    }
+    
+    function parsePeriodToDate(period) {
+        var months = { 'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
+                       'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11 };
+        var parts = period.split(' ');
+        if (parts.length === 2 && months[parts[0]] !== undefined) {
+            return new Date(parseInt(parts[1]), months[parts[0]], 1).getTime();
+        }
+        return 0;
+    }
+    
+    function sortInvoices() {
+        filteredInvoices.sort(function(a, b) {
+            var aVal, bVal;
+            switch (currentSort.field) {
+                case 'number': aVal = a.number; bVal = b.number; break;
+                case 'period': 
+                    aVal = parsePeriodToDate(a.period); 
+                    bVal = parsePeriodToDate(b.period); 
+                    break;
+                case 'date': 
+                    aVal = new Date(a.date).getTime(); 
+                    bVal = new Date(b.date).getTime(); 
+                    break;
+                case 'dueDate': 
+                    aVal = new Date(a.dueDate).getTime(); 
+                    bVal = new Date(b.dueDate).getTime(); 
+                    break;
+                case 'amountExVat': aVal = a.amountExVat; bVal = b.amountExVat; break;
+                case 'total': aVal = a.total; bVal = b.total; break;
+                default: 
+                    aVal = new Date(a.date).getTime(); 
+                    bVal = new Date(b.date).getTime();
+            }
+            if (typeof aVal === 'string') {
+                return currentSort.direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            }
+            return currentSort.direction === 'asc' ? aVal - bVal : bVal - aVal;
+        });
+    }
+    
+    function renderInvoicesTable() {
+        var tbody = document.getElementById('invoicesTableBody');
+        var start = (currentPage - 1) * pageSize;
+        var end = Math.min(start + pageSize, filteredInvoices.length);
+        var pageInvoices = filteredInvoices.slice(start, end);
+        
+        if (filteredInvoices.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="empty-state text-center py-5">' +
+                '<i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>' +
+                '<div class="text-muted">No invoices found</div></td></tr>';
             return;
         }
         
         var html = '';
-        invoices.forEach(function(inv) {
-            html += '<tr>' +
+        pageInvoices.forEach(function(inv) {
+            var outstandingClass = inv.outstanding > 0 ? 'text-danger fw-bold' : 'text-muted';
+            html += '<tr data-invoice="' + inv.number + '">' +
                 '<td><a href="#" class="invoice-link">' + inv.number + '</a></td>' +
                 '<td>' + inv.period + '</td>' +
                 '<td>' + formatDate(inv.date) + '</td>' +
@@ -1247,11 +1497,151 @@ document.addEventListener('DOMContentLoaded', function() {
                 '<td class="text-end">' + formatCurrency(inv.amountExVat) + '</td>' +
                 '<td class="text-end">' + formatCurrency(inv.vat) + '</td>' +
                 '<td class="text-end fw-bold">' + formatCurrency(inv.total) + '</td>' +
+                '<td class="text-end ' + outstandingClass + '">' + formatCurrency(inv.outstanding) + '</td>' +
+                '<td class="text-center actions-cell">' +
+                    '<button class="btn btn-sm btn-link text-admin-primary p-0" title="View Details"><i class="fas fa-eye"></i></button>' +
+                '</td>' +
                 '</tr>';
         });
         
         tbody.innerHTML = html;
-    });
+        
+        document.getElementById('showingStart').textContent = filteredInvoices.length > 0 ? start + 1 : 0;
+        document.getElementById('showingEnd').textContent = end;
+        document.getElementById('totalInvoiceCount').textContent = filteredInvoices.length;
+    }
+    
+    function renderPagination() {
+        var container = document.getElementById('paginationContainer');
+        var totalPages = Math.ceil(filteredInvoices.length / pageSize);
+        
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        var html = '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">' +
+            '<a class="page-link" href="#" data-page="' + (currentPage - 1) + '"><i class="fas fa-chevron-left"></i></a></li>';
+        
+        for (var i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                html += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '">' +
+                    '<a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                html += '<li class="page-item disabled"><span class="page-link">...</span></li>';
+            }
+        }
+        
+        html += '<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">' +
+            '<a class="page-link" href="#" data-page="' + (currentPage + 1) + '"><i class="fas fa-chevron-right"></i></a></li>';
+        
+        container.innerHTML = html;
+    }
+    
+    function updateActiveFiltersDisplay() {
+        var container = document.getElementById('activeInvoiceFilters');
+        var chipsContainer = document.getElementById('activeFilterChips');
+        var hasFilters = currentFilters.number || currentFilters.status || currentFilters.year;
+        
+        if (!hasFilters) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = '';
+        var chips = '';
+        
+        if (currentFilters.number) {
+            chips += '<span class="filter-chip">Invoice: ' + currentFilters.number + 
+                ' <i class="fas fa-times chip-remove" data-filter="number"></i></span>';
+        }
+        if (currentFilters.status) {
+            chips += '<span class="filter-chip">Status: ' + currentFilters.status + 
+                ' <i class="fas fa-times chip-remove" data-filter="status"></i></span>';
+        }
+        if (currentFilters.year) {
+            chips += '<span class="filter-chip">Year: ' + currentFilters.year + 
+                ' <i class="fas fa-times chip-remove" data-filter="year"></i></span>';
+        }
+        
+        chipsContainer.innerHTML = chips;
+    }
+    
+    function setupInvoiceTableEvents() {
+        document.getElementById('applyInvoiceFilters').addEventListener('click', function() {
+            currentFilters.number = document.getElementById('invoiceNumberFilter').value.trim();
+            currentFilters.status = document.getElementById('statusFilter').value;
+            currentFilters.year = document.getElementById('yearFilter').value;
+            applyFiltersAndRender();
+        });
+        
+        document.getElementById('resetInvoiceFilters').addEventListener('click', function() {
+            document.getElementById('invoiceNumberFilter').value = '';
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('yearFilter').value = '';
+            currentFilters = { number: '', status: '', year: '' };
+            applyFiltersAndRender();
+        });
+        
+        document.getElementById('activeFilterChips').addEventListener('click', function(e) {
+            if (e.target.classList.contains('chip-remove')) {
+                var filter = e.target.dataset.filter;
+                currentFilters[filter] = '';
+                document.getElementById(filter === 'number' ? 'invoiceNumberFilter' : filter + 'Filter').value = '';
+                applyFiltersAndRender();
+            }
+        });
+        
+        document.getElementById('paginationContainer').addEventListener('click', function(e) {
+            e.preventDefault();
+            var pageLink = e.target.closest('[data-page]');
+            if (pageLink && !pageLink.parentElement.classList.contains('disabled')) {
+                currentPage = parseInt(pageLink.dataset.page);
+                renderInvoicesTable();
+                renderPagination();
+            }
+        });
+        
+        document.querySelectorAll('#customerInvoicesTable thead th.sortable').forEach(function(th) {
+            th.addEventListener('click', function() {
+                var sortField = this.dataset.sort;
+                if (currentSort.field === sortField) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.field = sortField;
+                    currentSort.direction = 'desc';
+                }
+                
+                document.querySelectorAll('#customerInvoicesTable thead th.sortable').forEach(function(header) {
+                    header.classList.remove('sorted');
+                    header.querySelector('.sort-icon').className = 'fas fa-sort sort-icon';
+                });
+                
+                this.classList.add('sorted');
+                this.querySelector('.sort-icon').className = 'fas fa-sort-' + 
+                    (currentSort.direction === 'asc' ? 'up' : 'down') + ' sort-icon';
+                
+                sortInvoices();
+                renderInvoicesTable();
+            });
+        });
+        
+        document.getElementById('retryLoadInvoices').addEventListener('click', function() {
+            loadInvoices();
+        });
+        
+        document.getElementById('invoicesTableBody').addEventListener('click', function(e) {
+            var link = e.target.closest('.invoice-link');
+            if (link) {
+                e.preventDefault();
+                var row = link.closest('tr');
+                var invoiceNumber = row.dataset.invoice;
+                alert('View invoice details: ' + invoiceNumber);
+            }
+        });
+    }
+    
+    initInvoicesTable();
     
     document.getElementById('exportInvoicesBtn').addEventListener('click', function() {
         alert('Export functionality - would generate CSV of invoices for ' + accountId);
@@ -1476,44 +1866,32 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function refreshInvoicesTable(newDocumentNumber) {
         var tbody = document.getElementById('invoicesTableBody');
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>Refreshing...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>Refreshing...</td></tr>';
         
         AdminAccountBillingService.getAccountInvoices(accountId).then(function(invoices) {
-            if (invoices.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">' +
-                    '<i class="fas fa-file-invoice"></i>' +
-                    '<div>No invoices found for this customer</div></td></tr>';
-                return;
+            allInvoices = invoices;
+            
+            if (newDocumentNumber) {
+                document.getElementById('invoiceNumberFilter').value = '';
+                document.getElementById('statusFilter').value = '';
+                document.getElementById('yearFilter').value = '';
+                currentFilters = { number: '', status: '', year: '' };
+                currentSort = { field: 'date', direction: 'desc' };
             }
             
-            var html = '';
-            invoices.forEach(function(inv) {
-                var rowClass = inv.number === newDocumentNumber ? 'highlight-new-row' : '';
-                html += '<tr class="' + rowClass + '">' +
-                    '<td><a href="#" class="invoice-link">' + inv.number + '</a></td>' +
-                    '<td>' + inv.period + '</td>' +
-                    '<td>' + formatDate(inv.date) + '</td>' +
-                    '<td>' + formatDate(inv.dueDate) + '</td>' +
-                    '<td>' + getInvoiceStatusBadge(inv.status) + '</td>' +
-                    '<td class="text-end">' + formatCurrency(inv.amountExVat) + '</td>' +
-                    '<td class="text-end">' + formatCurrency(inv.vat) + '</td>' +
-                    '<td class="text-end fw-bold">' + formatCurrency(inv.total) + '</td>' +
-                    '</tr>';
-            });
-            
-            tbody.innerHTML = html;
+            applyFiltersAndRender();
             
             if (newDocumentNumber) {
                 setTimeout(function() {
-                    var highlightedRows = document.querySelectorAll('.highlight-new-row');
-                    highlightedRows.forEach(function(row) {
+                    var row = document.querySelector('tr[data-invoice="' + newDocumentNumber + '"]');
+                    if (row) {
+                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         row.style.transition = 'background-color 0.5s ease';
                         row.style.backgroundColor = 'rgba(30, 58, 95, 0.15)';
                         setTimeout(function() {
                             row.style.backgroundColor = '';
-                            row.classList.remove('highlight-new-row');
                         }, 3000);
-                    });
+                    }
                 }, 100);
             }
         });
