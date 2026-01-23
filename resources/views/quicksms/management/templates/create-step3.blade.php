@@ -112,12 +112,13 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.35rem;
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
     border: 1px solid #ced4da;
     border-radius: 0.375rem;
     min-height: 42px;
-    background: #fff;
+    background-color: #ffffff !important;
     cursor: pointer;
+    align-items: center;
 }
 .multiselect-tags:focus-within {
     border-color: var(--primary, #886CC0);
@@ -142,9 +143,11 @@
 .multiselect-tags .tag .remove-tag:hover {
     opacity: 1;
 }
-.multiselect-tags .placeholder {
+.multiselect-tags .multiselect-placeholder {
     color: #6c757d;
     font-size: 0.875rem;
+    background: transparent !important;
+    opacity: 1 !important;
 }
 .multiselect-dropdown-menu {
     position: absolute;
@@ -256,7 +259,7 @@
                         <div class="row">
                             <div class="col-lg-10 mx-auto">
                                 <div class="alert alert-pastel-primary mb-4">
-                                    <strong>Step 3: Settings</strong> - Configure access control and opt-out options.
+                                    <strong>Step 3: Settings</strong> - Configure access control for this template.
                                 </div>
                                 
                                 <div class="settings-section">
@@ -266,8 +269,8 @@
                                     <div class="mb-3">
                                         <label class="form-label">Assign to Sub-Account(s)</label>
                                         <div class="multiselect-wrapper" id="subAccountsWrapper">
-                                            <div class="multiselect-tags" id="subAccountsTags" tabindex="0">
-                                                <span class="placeholder">Select sub-accounts...</span>
+                                            <div class="multiselect-tags" id="subAccountsTags" tabindex="0" style="background-color: #fff !important;">
+                                                <span class="multiselect-placeholder">Select sub-accounts...</span>
                                             </div>
                                             <div class="multiselect-dropdown-menu" id="subAccountsDropdown">
                                                 <div class="search-box">
@@ -282,8 +285,8 @@
                                     <div class="mb-3" id="usersSelectionContainer" style="display: none;">
                                         <label class="form-label">Assign to User(s)</label>
                                         <div class="multiselect-wrapper" id="usersWrapper">
-                                            <div class="multiselect-tags" id="usersTags" tabindex="0">
-                                                <span class="placeholder">Select users from sub-accounts...</span>
+                                            <div class="multiselect-tags" id="usersTags" tabindex="0" style="background-color: #fff !important;">
+                                                <span class="multiselect-placeholder">Select users from sub-accounts...</span>
                                             </div>
                                             <div class="multiselect-dropdown-menu" id="usersDropdown">
                                                 <div class="search-box">
@@ -301,31 +304,6 @@
                                         <label class="form-check-label" for="allowEditing">
                                             Allow assigned users to edit this template
                                         </label>
-                                    </div>
-                                </div>
-
-                                <div class="settings-section">
-                                    <h6><i class="fas fa-ban me-2"></i>Opt-Out Settings</h6>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" id="includeOptOut" checked>
-                                        <label class="form-check-label" for="includeOptOut">
-                                            Include opt-out link in message
-                                        </label>
-                                    </div>
-                                    <div id="optOutOptions">
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Opt-Out Link Text</label>
-                                                <input type="text" class="form-control" id="optOutText" value="Reply STOP to opt out" placeholder="e.g., Reply STOP to opt out">
-                                            </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label">Opt-Out List</label>
-                                                <select class="form-select" id="optOutList">
-                                                    <option value="master">Master Opt-Out List</option>
-                                                    <option value="marketing">Marketing Opt-Outs</option>
-                                                </select>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
 
@@ -441,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateSubAccountsTags() {
         const tagsContainer = document.getElementById('subAccountsTags');
         if (selectedSubAccounts.length === 0) {
-            tagsContainer.innerHTML = '<span class="placeholder">Select sub-accounts...</span>';
+            tagsContainer.innerHTML = '<span class="multiselect-placeholder">Select sub-accounts...</span>';
         } else {
             tagsContainer.innerHTML = selectedSubAccounts.map(id => {
                 const sa = subAccountsData.find(s => s.id === id);
@@ -525,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateUsersTags() {
         const tagsContainer = document.getElementById('usersTags');
         if (selectedUsers.length === 0) {
-            tagsContainer.innerHTML = '<span class="placeholder">Select users from sub-accounts...</span>';
+            tagsContainer.innerHTML = '<span class="multiselect-placeholder">Select users from sub-accounts...</span>';
         } else {
             tagsContainer.innerHTML = selectedUsers.map(u => 
                 `<span class="tag">${u.name} <i class="fas fa-times remove-tag" data-id="${u.id}"></i></span>`
@@ -588,23 +566,13 @@ document.addEventListener('DOMContentLoaded', function() {
             updateUsersTags();
         }
         document.getElementById('allowEditing').checked = data.allowEditing || false;
-        document.getElementById('includeOptOut').checked = data.includeOptOut !== false;
-        document.getElementById('optOutText').value = data.optOutText || 'Reply STOP to opt out';
-        document.getElementById('optOutList').value = data.optOutList || 'master';
     }
-
-    document.getElementById('includeOptOut').addEventListener('change', function() {
-        document.getElementById('optOutOptions').style.display = this.checked ? 'block' : 'none';
-    });
 
     document.getElementById('nextBtn').addEventListener('click', function() {
         sessionStorage.setItem('templateWizardStep3', JSON.stringify({
             subAccounts: selectedSubAccounts,
             users: selectedUsers,
-            allowEditing: document.getElementById('allowEditing').checked,
-            includeOptOut: document.getElementById('includeOptOut').checked,
-            optOutText: document.getElementById('optOutText').value,
-            optOutList: document.getElementById('optOutList').value
+            allowEditing: document.getElementById('allowEditing').checked
         }));
     });
 });

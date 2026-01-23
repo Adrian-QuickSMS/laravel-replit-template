@@ -218,10 +218,6 @@
                                         <span class="review-label">Assigned Users:</span>
                                         <span class="review-value" id="reviewUsers">-</span>
                                     </div>
-                                    <div class="review-row">
-                                        <span class="review-label">Opt-Out:</span>
-                                        <span class="review-value" id="reviewOptOut">-</span>
-                                    </div>
                                 </div>
 
                                 <div class="toolbar-bottom">
@@ -285,8 +281,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             document.getElementById('reviewUsers').textContent = 'None selected';
         }
-        
-        document.getElementById('reviewOptOut').textContent = data3.includeOptOut ? 'Enabled' : 'Disabled';
     }
     
     document.getElementById('createTemplateBtn').addEventListener('click', function() {
