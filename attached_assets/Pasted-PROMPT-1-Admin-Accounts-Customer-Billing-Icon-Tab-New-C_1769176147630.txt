@@ -1,0 +1,33 @@
+PROMPT 1 — Admin > Accounts > [Customer] > Billing (Icon/Tab) — New Customer-Scoped Billing Page (UI + Data Wiring)
+Build a new page in the Admin Console: Admin > Accounts > {accountId} > Billing (accessible via a Billing icon/tab on the customer account page).
+Hard rules:
+- Use ONLY existing Fillow components and patterns (same typography, spacing, tables, modals, pills).
+- Admin styling = blue accents only. Do NOT redesign components. Do NOT change coloured row logic.
+- This page is ALWAYS customer-scoped (must load using a single accountId from route params).
+Page layout:
+1) Header (customer context)
+- Customer Name
+- Account ID (small text)
+- Status pill: Live / Test / Suspended
+- Billing mode pill: Prepaid / Postpaid
+- Optional external link button: “View in HubSpot” (opens new tab; placeholder URL ok)
+2) Billing Summary Bar (thin horizontal stat bar like existing portal summary bars)
+Displayed left-to-right with thin dividers:
+- Billing Mode (pill)
+- Current Balance (£)
+- Credit Limit (£) (editable later prompt)
+- Available Credit (£) computed:
+  - If Prepaid: Available Credit = Current Balance
+  - If Postpaid: Available Credit = Current Balance + Credit Limit
+- Account Status pill (Active/Suspended OR reuse Live/Test/Suspended; keep consistent with existing admin pills)
+- Last Updated timestamp
+3) Main content cards
+- Billing settings card (for Billing Type + Credit Limit controls in later prompts)
+- Customer invoices table card (must reuse the same invoices table component as Admin > Invoices & Payments > Invoices, but filtered to this customer)
+Data sources (stub if needed):
+- HubSpot is source of truth for Billing Mode + Credit Limit (use a mock service for now; must be easy to replace with real API).
+- Internal billing system provides Current Balance + Last Updated (mock ok).
+Acceptance:
+- Page renders with mock data for a chosen accountId.
+- Summary bar values display correctly and Available Credit calculation works.
+- No new UI patterns invented.
