@@ -80,11 +80,29 @@
 }
 .toolbar-bottom {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 0.5rem;
     padding: 1.5rem 0 0 0;
     border-top: 1px solid #e9ecef;
     margin-top: 2rem;
+}
+.toolbar-bottom .btn-back {
+    background: #a894d4 !important;
+    color: #fff !important;
+    border: none !important;
+    font-weight: 500;
+}
+.toolbar-bottom .btn-back:hover {
+    background: #9783c7 !important;
+}
+.toolbar-bottom .btn-save-draft {
+    background-color: #fff !important;
+    color: #D653C1 !important;
+    border: 1px solid #D653C1 !important;
+    font-weight: 500;
+}
+.toolbar-bottom .btn-save-draft:hover {
+    background-color: rgba(214, 83, 193, 0.08) !important;
 }
 .form-section-title {
     font-size: 1rem;
@@ -188,17 +206,15 @@
                                 @include('quicksms.partials.message-composer', ['composerMode' => 'template'])
 
                                 <div class="toolbar-bottom">
-                                    <a href="{{ route('management.templates.create.step1') }}" class="btn btn-outline-primary">
+                                    <a href="{{ route('management.templates.create.step1') }}" class="btn btn-back">
                                         <i class="fas fa-arrow-left me-1"></i>Back
                                     </a>
-                                    <div>
-                                        <button type="button" class="btn btn-primary me-2" id="saveDraftBtn">
-                                            <i class="fas fa-save me-1"></i>Save Draft
-                                        </button>
-                                        <a href="{{ route('management.templates.create.step3') }}" class="btn btn-primary" id="nextBtn">
-                                            Next: Settings <i class="fas fa-arrow-right ms-1"></i>
-                                        </a>
-                                    </div>
+                                    <button type="button" class="btn btn-save-draft" id="saveDraftBtn">
+                                        <i class="fas fa-save me-1"></i>Save Draft
+                                    </button>
+                                    <a href="{{ route('management.templates.create.step3') }}" class="btn btn-primary" id="nextBtn">
+                                        Next: Settings <i class="fas fa-arrow-right ms-1"></i>
+                                    </a>
                                 </div>
                             </div>
                             

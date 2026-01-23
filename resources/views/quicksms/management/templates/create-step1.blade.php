@@ -79,11 +79,29 @@
 }
 .toolbar-bottom {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 0.5rem;
     padding: 1.5rem 0 0 0;
     border-top: 1px solid #e9ecef;
     margin-top: 2rem;
+}
+.toolbar-bottom .btn-back {
+    background: #a894d4 !important;
+    color: #fff !important;
+    border: none !important;
+    font-weight: 500;
+}
+.toolbar-bottom .btn-back:hover {
+    background: #9783c7 !important;
+}
+.toolbar-bottom .btn-save-draft {
+    background-color: #fff !important;
+    color: #D653C1 !important;
+    border: 1px solid #D653C1 !important;
+    font-weight: 500;
+}
+.toolbar-bottom .btn-save-draft:hover {
+    background-color: rgba(214, 83, 193, 0.08) !important;
 }
 .selectable-tile {
     border: 2px solid #e9ecef;
@@ -223,7 +241,7 @@
                                 </div>
                                 
                                 <div class="toolbar-bottom">
-                                    <a href="{{ route('management.templates') }}" class="btn btn-outline-primary">
+                                    <a href="{{ route('management.templates') }}" class="btn btn-back">
                                         <i class="fas fa-times me-1"></i>Cancel
                                     </a>
                                     <a href="{{ route('management.templates.create.step2') }}" class="btn btn-primary" id="nextBtn">
