@@ -137,6 +137,17 @@
 }
 .templates-table-container .dropdown-menu {
     z-index: 1050;
+    position: absolute !important;
+}
+.templates-table-container .dropdown {
+    position: static;
+}
+.templates-table tbody tr {
+    position: relative;
+}
+.templates-table tbody td:last-child .dropdown-menu {
+    position: fixed !important;
+    z-index: 1060;
 }
 .templates-table {
     width: 100%;
