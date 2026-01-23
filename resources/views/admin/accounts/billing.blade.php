@@ -472,6 +472,12 @@
             </div>
         </div>
         <div class="billing-header-actions">
+            <button class="btn btn-admin-primary btn-sm" id="createInvoiceBtn" style="display: none;">
+                <i class="fas fa-file-invoice me-1"></i>Create Invoice
+            </button>
+            <button class="btn btn-admin-outline btn-sm" id="createCreditBtn" style="display: none;">
+                <i class="fas fa-credit-card me-1"></i>Create Credit
+            </button>
             <a href="#" class="btn btn-admin-outline btn-sm" id="hubspotLink" target="_blank">
                 <i class="fas fa-external-link-alt me-1"></i>View in HubSpot
             </a>
@@ -667,10 +673,13 @@
         </div>
     </div>
 </div>
+
+@include('admin.partials.create-invoice-credit-modal')
 @endsection
 
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
+<script src="{{ asset('js/invoice-credit-modal.js') }}"></script>
 <script>
 var AdminAccountBillingService = (function() {
     var mockAccounts = {
@@ -684,6 +693,9 @@ var AdminAccountBillingService = (function() {
             paymentTerms: 'Immediate',
             currency: 'GBP',
             vatRegistered: true,
+            vatRate: 20,
+            reverseCharge: false,
+            vatCountry: 'GB',
             lastUpdated: '2026-01-23T10:30:00Z'
         },
         'ACC-5678': {
@@ -696,6 +708,9 @@ var AdminAccountBillingService = (function() {
             paymentTerms: 'Net 30',
             currency: 'GBP',
             vatRegistered: true,
+            vatRate: 20,
+            reverseCharge: false,
+            vatCountry: 'GB',
             lastUpdated: '2026-01-22T14:15:00Z'
         },
         'ACC-7890': {
@@ -708,6 +723,9 @@ var AdminAccountBillingService = (function() {
             paymentTerms: 'Immediate',
             currency: 'GBP',
             vatRegistered: false,
+            vatRate: 0,
+            reverseCharge: false,
+            vatCountry: 'GB',
             lastUpdated: '2026-01-20T09:00:00Z'
         },
         'ACC-4567': {
@@ -720,6 +738,9 @@ var AdminAccountBillingService = (function() {
             paymentTerms: 'Net 14',
             currency: 'GBP',
             vatRegistered: true,
+            vatRate: 20,
+            reverseCharge: false,
+            vatCountry: 'GB',
             lastUpdated: '2026-01-15T16:45:00Z'
         }
     };
@@ -901,7 +922,9 @@ var AdminPermissionService = (function() {
     var mockPermissions = {
         'billing.edit_mode': true,
         'billing.override_risk': false,
-        'billing.edit_credit_limit': true
+        'billing.edit_credit_limit': true,
+        'billing.create_invoice': true,
+        'billing.create_credit': true
     };
     
     return {
@@ -1374,6 +1397,127 @@ document.addEventListener('DOMContentLoaded', function() {
     AdminAccountBillingService.getAccountBilling(accountId).then(function(data) {
         initCreditLimitEdit(data);
     });
+    
+    // Create Invoice/Credit buttons visibility based on permissions
+    (function() {
+        var createInvoiceBtn = document.getElementById('createInvoiceBtn');
+        var createCreditBtn = document.getElementById('createCreditBtn');
+        
+        if (AdminPermissionService.hasPermission('billing.create_invoice')) {
+            createInvoiceBtn.style.display = '';
+        }
+        if (AdminPermissionService.hasPermission('billing.create_credit')) {
+            createCreditBtn.style.display = '';
+        }
+    })();
+    
+    // Initialize modal with locked customer after billing data loads
+    AdminAccountBillingService.getAccountBilling(accountId).then(function(data) {
+        var customerData = {
+            id: accountId,
+            name: currentAccountName,
+            status: data.status === 'live' ? 'Live' : (data.status === 'test' ? 'Test' : 'Suspended'),
+            vatRegistered: data.vatRegistered !== undefined ? data.vatRegistered : true,
+            vatRate: data.vatRate !== undefined ? data.vatRate : 20,
+            reverseCharge: data.reverseCharge || false,
+            vatCountry: data.vatCountry || 'GB'
+        };
+        
+        InvoiceCreditModal.init({
+            lockedCustomer: customerData,
+            onSuccess: function(response, payload) {
+                var toastMessage = payload.mode === 'invoice' 
+                    ? 'Invoice created in Xero' + (response.emailSent ? ' and sent to customer.' : '.')
+                    : 'Credit note created in Xero' + (response.emailSent ? ' and sent to customer.' : '.');
+                showSuccessToast(toastMessage);
+                
+                refreshInvoicesTable(response.xeroDocumentNumber);
+            }
+        });
+        
+        document.getElementById('createInvoiceBtn').addEventListener('click', function() {
+            InvoiceCreditModal.open('invoice');
+        });
+        
+        document.getElementById('createCreditBtn').addEventListener('click', function() {
+            InvoiceCreditModal.open('credit');
+        });
+    });
+    
+    function showSuccessToast(message) {
+        var toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toastContainer';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '1080';
+            document.body.appendChild(toastContainer);
+        }
+        
+        var toastId = 'toast-' + Date.now();
+        var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">' +
+            '<div class="d-flex">' +
+                '<div class="toast-body">' +
+                    '<i class="fas fa-check-circle me-2"></i>' + message +
+                '</div>' +
+                '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+            '</div>' +
+        '</div>';
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        var toastEl = document.getElementById(toastId);
+        var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+        toast.show();
+        
+        toastEl.addEventListener('hidden.bs.toast', function() {
+            toastEl.remove();
+        });
+    }
+    
+    function refreshInvoicesTable(newDocumentNumber) {
+        var tbody = document.getElementById('invoicesTableBody');
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>Refreshing...</td></tr>';
+        
+        AdminAccountBillingService.getAccountInvoices(accountId).then(function(invoices) {
+            if (invoices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">' +
+                    '<i class="fas fa-file-invoice"></i>' +
+                    '<div>No invoices found for this customer</div></td></tr>';
+                return;
+            }
+            
+            var html = '';
+            invoices.forEach(function(inv) {
+                var rowClass = inv.number === newDocumentNumber ? 'highlight-new-row' : '';
+                html += '<tr class="' + rowClass + '">' +
+                    '<td><a href="#" class="invoice-link">' + inv.number + '</a></td>' +
+                    '<td>' + inv.period + '</td>' +
+                    '<td>' + formatDate(inv.date) + '</td>' +
+                    '<td>' + formatDate(inv.dueDate) + '</td>' +
+                    '<td>' + getInvoiceStatusBadge(inv.status) + '</td>' +
+                    '<td class="text-end">' + formatCurrency(inv.amountExVat) + '</td>' +
+                    '<td class="text-end">' + formatCurrency(inv.vat) + '</td>' +
+                    '<td class="text-end fw-bold">' + formatCurrency(inv.total) + '</td>' +
+                    '</tr>';
+            });
+            
+            tbody.innerHTML = html;
+            
+            if (newDocumentNumber) {
+                setTimeout(function() {
+                    var highlightedRows = document.querySelectorAll('.highlight-new-row');
+                    highlightedRows.forEach(function(row) {
+                        row.style.transition = 'background-color 0.5s ease';
+                        row.style.backgroundColor = 'rgba(30, 58, 95, 0.15)';
+                        setTimeout(function() {
+                            row.style.backgroundColor = '';
+                            row.classList.remove('highlight-new-row');
+                        }, 3000);
+                    });
+                }, 100);
+            }
+        });
+    }
 });
 </script>
 @endpush
