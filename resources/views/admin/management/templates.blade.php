@@ -167,23 +167,25 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.templates-table thead th:first-child { width: 12%; }  /* Account */
-.templates-table thead th:nth-child(2) { width: 12%; } /* Name */
+.templates-table thead th:first-child { width: 11%; }  /* Account */
+.templates-table thead th:nth-child(2) { width: 11%; } /* Name */
 .templates-table thead th:nth-child(3) { width: 9%; }  /* ID */
-.templates-table thead th:nth-child(4) { width: 5%; }  /* Ver */
-.templates-table thead th:nth-child(5) { width: 9%; }  /* Channel */
+.templates-table thead th:nth-child(4) { width: 4%; }  /* Ver */
+.templates-table thead th:nth-child(5) { width: 8%; }  /* Channel */
 .templates-table thead th:nth-child(6) { width: 7%; }  /* Trigger */
 .templates-table thead th:nth-child(7) { width: 14%; } /* Preview */
 .templates-table thead th:nth-child(8) { width: 10%; } /* Scope */
 .templates-table thead th:nth-child(9) { width: 7%; }  /* Status */
 .templates-table thead th:nth-child(10) { width: 9%; } /* Updated */
 .templates-table thead th:last-child { 
-    width: 5%; 
+    width: 10%; 
+    min-width: 60px;
     position: sticky;
     right: 0;
     background: #f8f9fa;
     z-index: 2;
     cursor: default;
+    text-align: center;
 }
 .templates-table thead th:hover {
     background: #e9ecef;
@@ -215,6 +217,8 @@
     background: #fff;
     z-index: 1;
     box-shadow: -2px 0 4px rgba(0,0,0,0.05);
+    text-align: center;
+    min-width: 60px;
 }
 .templates-table tbody tr:last-child td {
     border-bottom: none;
