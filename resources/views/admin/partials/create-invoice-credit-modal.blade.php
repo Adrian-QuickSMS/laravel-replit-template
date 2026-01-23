@@ -1,6 +1,38 @@
 <style>
+.btn-admin-primary {
+    background-color: #1e3a5f;
+    border-color: #1e3a5f;
+    color: #fff;
+    font-weight: 500;
+}
+.btn-admin-primary:hover {
+    background-color: #152a45;
+    border-color: #152a45;
+    color: #fff;
+}
+.btn-admin-primary:disabled {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    opacity: 0.65;
+}
 .customer-typeahead-wrapper {
     position: relative;
+}
+.customer-select-input {
+    cursor: pointer;
+    background-color: #fff !important;
+    padding-right: 2.5rem;
+}
+.customer-select-input::placeholder {
+    color: #6c757d;
+}
+.customer-select-caret {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #6c757d;
 }
 .customer-typeahead-dropdown {
     position: absolute;
@@ -93,7 +125,8 @@
                     <div class="mb-4" id="customerSelectionSection">
                         <label for="customerSearchInput" class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
                         <div class="customer-typeahead-wrapper position-relative" id="customerTypeaheadWrapper">
-                            <input type="text" class="form-control" id="customerSearchInput" placeholder="Select customer..." autocomplete="off">
+                            <input type="text" class="form-control customer-select-input" id="customerSearchInput" placeholder="Select customer..." autocomplete="off">
+                            <span class="customer-select-caret"><i class="fas fa-chevron-down"></i></span>
                             <div class="customer-typeahead-dropdown" id="customerTypeaheadDropdown"></div>
                             <div class="selected-customer-display d-none" id="selectedCustomerDisplay">
                                 <div class="d-flex align-items-center justify-content-between p-2 border rounded bg-light">

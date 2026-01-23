@@ -271,12 +271,17 @@ var InvoiceCreditModal = (function() {
             document.getElementById('customerLocked').value = 'true';
         }
         
+        document.getElementById('customerSearchInput').addEventListener('click', function(e) {
+            if (isCustomerLocked) return;
+            renderCustomerDropdown(mockCustomers);
+        });
+        
         document.getElementById('customerSearchInput').addEventListener('input', function(e) {
             var query = e.target.value.trim();
             clearTimeout(customerSearchTimeout);
             
-            if (query.length < 2) {
-                document.getElementById('customerTypeaheadDropdown').classList.remove('show');
+            if (query.length < 1) {
+                renderCustomerDropdown(mockCustomers);
                 return;
             }
             
