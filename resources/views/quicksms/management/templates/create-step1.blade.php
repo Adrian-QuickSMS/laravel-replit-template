@@ -223,7 +223,7 @@
                                 </div>
                                 
                                 <div class="toolbar-bottom">
-                                    <a href="{{ route('management.templates') }}" class="btn btn-outline-secondary">
+                                    <a href="{{ route('management.templates') }}" class="btn btn-outline-primary">
                                         <i class="fas fa-times me-1"></i>Cancel
                                     </a>
                                     <a href="{{ route('management.templates.create.step2') }}" class="btn btn-primary" id="nextBtn">

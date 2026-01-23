@@ -308,11 +308,11 @@
                                 </div>
 
                                 <div class="toolbar-bottom">
-                                    <a href="{{ route('management.templates.create.step2') }}" class="btn btn-outline-secondary">
+                                    <a href="{{ route('management.templates.create.step2') }}" class="btn btn-outline-primary">
                                         <i class="fas fa-arrow-left me-1"></i>Back
                                     </a>
                                     <div>
-                                        <button type="button" class="btn btn-outline-primary me-2" id="saveDraftBtn">
+                                        <button type="button" class="btn btn-primary me-2" id="saveDraftBtn">
                                             <i class="fas fa-save me-1"></i>Save Draft
                                         </button>
                                         <a href="{{ route('management.templates.create.review') }}" class="btn btn-primary" id="nextBtn">
