@@ -1578,6 +1578,101 @@ document.addEventListener('DOMContentLoaded', function() {
         alert('Export functionality will be implemented. This will export the filtered invoice data to CSV/Excel.');
     });
 
+    const adminPermissions = {
+        userId: 'admin-001',
+        email: 'admin@quicksms.co.uk',
+        permissions: [
+            'billing.view_invoices',
+            'billing.create_invoice',
+            'billing.create_credit',
+            'billing.export'
+        ],
+        hasPermission: function(permission) {
+            return this.permissions.includes(permission);
+        }
+    };
+    
+    const adminAuditService = {
+        log: function(event, payload) {
+            const auditEntry = {
+                eventType: event,
+                adminUserId: adminPermissions.userId,
+                adminEmail: adminPermissions.email,
+                timestamp: new Date().toISOString(),
+                ...payload
+            };
+            
+            console.log('[AdminAudit]', JSON.stringify(auditEntry));
+            
+            return Promise.resolve({ logged: true, auditId: 'AUD-' + Date.now().toString(36).toUpperCase() });
+        },
+        
+        logInvoiceCreated: function(payload) {
+            return this.log('INVOICE_CREATED', {
+                customerAccountId: payload.customerAccountId,
+                mode: payload.mode,
+                quantity: payload.quantity,
+                unitPrice: payload.unitPrice,
+                lineTotal: payload.lineTotal,
+                vatApplied: payload.vatApplied,
+                vatRate: payload.vatRate,
+                xeroDocumentId: payload.xeroDocumentId,
+                xeroDocumentNumber: payload.xeroDocumentNumber,
+                status: 'success'
+            });
+        },
+        
+        logCreditCreated: function(payload) {
+            return this.log('CREDIT_CREATED', {
+                customerAccountId: payload.customerAccountId,
+                mode: payload.mode,
+                quantity: payload.quantity,
+                unitPrice: payload.unitPrice,
+                lineTotal: payload.lineTotal,
+                vatApplied: payload.vatApplied,
+                vatRate: payload.vatRate,
+                xeroDocumentId: payload.xeroDocumentId,
+                xeroDocumentNumber: payload.xeroDocumentNumber,
+                status: 'success'
+            });
+        },
+        
+        logCreateAttempt: function(payload) {
+            return this.log('DOCUMENT_CREATE_ATTEMPT', {
+                customerAccountId: payload.customerAccountId,
+                mode: payload.mode,
+                quantity: payload.quantity,
+                unitPrice: payload.unitPrice,
+                lineTotal: payload.lineTotal
+            });
+        },
+        
+        logCreateFailure: function(payload, error) {
+            return this.log('DOCUMENT_CREATE_FAILURE', {
+                customerAccountId: payload.customerAccountId,
+                mode: payload.mode,
+                quantity: payload.quantity,
+                unitPrice: payload.unitPrice,
+                lineTotal: payload.lineTotal,
+                status: 'failure',
+                referenceId: error.referenceId,
+                errorMessage: error.message
+            });
+        }
+    };
+    
+    (function applyPermissionVisibility() {
+        const createInvoiceBtn = document.getElementById('createInvoiceBtn');
+        const createCreditBtn = document.getElementById('createCreditBtn');
+        
+        if (createInvoiceBtn) {
+            createInvoiceBtn.style.display = adminPermissions.hasPermission('billing.create_invoice') ? '' : 'none';
+        }
+        if (createCreditBtn) {
+            createCreditBtn.style.display = adminPermissions.hasPermission('billing.create_credit') ? '' : 'none';
+        }
+    })();
+    
     const createInvoiceCreditModal = new bootstrap.Modal(document.getElementById('createInvoiceCreditModal'));
     
     let selectedCustomer = null;
@@ -2020,20 +2115,45 @@ document.addEventListener('DOMContentLoaded', function() {
         
         hideModalError();
         
+        const lineTotal = parseFloat(document.getElementById('itemQuantity').value) * parseFloat(document.getElementById('itemUnitPrice').value);
+        let vatRate = 0;
+        let vatApplied = 0;
+        if (selectedCustomer && !selectedCustomer.reverseCharge && selectedCustomer.vatRegistered) {
+            vatRate = selectedCustomer.vatRate;
+            vatApplied = lineTotal * (vatRate / 100);
+        }
+        
         const payload = {
             customerAccountId: selectedCustomer ? selectedCustomer.id : null,
             mode: document.getElementById('formMode').value,
             itemDescription: document.getElementById('itemDescription').value.trim(),
             quantity: parseFloat(document.getElementById('itemQuantity').value),
             unitPrice: parseFloat(document.getElementById('itemUnitPrice').value),
-            overrideEmail: document.getElementById('overrideEmail').value.trim() || null
+            overrideEmail: document.getElementById('overrideEmail').value.trim() || null,
+            lineTotal: lineTotal,
+            vatRate: vatRate,
+            vatApplied: vatApplied
         };
+        
+        adminAuditService.logCreateAttempt(payload);
         
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Processing...';
         
         try {
             const response = await adminInvoiceService.createDocument(payload);
+            
+            const auditPayload = {
+                ...payload,
+                xeroDocumentId: response.xeroDocumentId,
+                xeroDocumentNumber: response.xeroDocumentNumber
+            };
+            
+            if (payload.mode === 'invoice') {
+                adminAuditService.logInvoiceCreated(auditPayload);
+            } else {
+                adminAuditService.logCreditCreated(auditPayload);
+            }
             
             createInvoiceCreditModal.hide();
             
@@ -2054,6 +2174,8 @@ document.addEventListener('DOMContentLoaded', function() {
             highlightNewRow(response.xeroDocumentNumber);
             
         } catch (error) {
+            adminAuditService.logCreateFailure(payload, error);
+            
             showModalError(
                 error.message || 'An unexpected error occurred. Please try again.',
                 error.referenceId || 'ERR-UNKNOWN',
