@@ -984,10 +984,35 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('billingModeError').classList.add('hidden');
     }
     
+    var billingModeModal = document.getElementById('billingModeConfirmModal');
+    billingModeModal.addEventListener('hidden.bs.modal', function() {
+        pendingBillingMode = null;
+    });
+    
     document.getElementById('confirmBillingModeChange').addEventListener('click', function() {
         var confirmBtn = this;
         var oldMode = currentBillingMode;
         var newMode = pendingBillingMode;
+        
+        if (!canEditBillingMode) {
+            showBillingModeError('You do not have permission to change billing mode.');
+            var modal = bootstrap.Modal.getInstance(billingModeModal);
+            modal.hide();
+            return;
+        }
+        
+        if (hasOutstandingInvoices && !canOverrideRisk) {
+            showBillingModeError('Cannot change billing mode while account has outstanding invoices.');
+            var modal = bootstrap.Modal.getInstance(billingModeModal);
+            modal.hide();
+            return;
+        }
+        
+        if (!newMode || newMode === oldMode) {
+            var modal = bootstrap.Modal.getInstance(billingModeModal);
+            modal.hide();
+            return;
+        }
         
         confirmBtn.disabled = true;
         confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Updating...';
