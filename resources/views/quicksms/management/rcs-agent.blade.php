@@ -140,16 +140,16 @@
     color: #cc9900;
 }
 .badge-approved {
-    background: rgba(28, 187, 140, 0.15);
-    color: #1cbb8c;
+    background: rgba(144, 238, 144, 0.35);
+    color: #2e7d32;
 }
 .badge-rejected {
     background: rgba(220, 53, 69, 0.15);
     color: #dc3545;
 }
 .badge-conversational {
-    background: rgba(136, 108, 192, 0.15);
-    color: #886CC0;
+    background: rgba(144, 238, 144, 0.35);
+    color: #2e7d32;
 }
 .badge-non-conversational {
     background: rgba(108, 117, 125, 0.15);
@@ -235,7 +235,7 @@
     font-size: 0.7rem;
     font-weight: 600;
 }
-.rcs-toggle-badge.shown { background: #d9f99d; color: #3f6212; }
+.rcs-toggle-badge.shown { background: rgba(144, 238, 144, 0.35); color: #2e7d32; }
 .rcs-toggle-badge.hidden { background: #f1f5f9; color: #64748b; }
 .rcs-logo-preview {
     width: 60px;
@@ -274,7 +274,7 @@
     font-size: 0.7rem;
     font-weight: 600;
 }
-.rcs-yes-no.yes { background: #d9f99d; color: #3f6212; }
+.rcs-yes-no.yes { background: rgba(255, 182, 193, 0.4); color: #d63384; }
 .rcs-yes-no.no { background: #fecaca; color: #991b1b; }
 .search-filter-bar {
     display: flex;
@@ -996,7 +996,7 @@
                             <div class="rcs-section-header">
                                 <span class="section-letter">F</span>
                                 <i class="fas fa-phone"></i> Test Numbers
-                                <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;" id="viewAgentTestNumbersCount">0 / 20</span>
+                                <span class="badge ms-auto" style="font-size: 0.65rem; background: rgba(255, 182, 193, 0.4); color: #d63384;" id="viewAgentTestNumbersCount">0 / 20</span>
                             </div>
                             <div class="rcs-review-row">
                                 <span class="rcs-review-label">Numbers</span>

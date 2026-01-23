@@ -10,10 +10,22 @@
     color: #6f42c1 !important;
 }
 
-/* Green - Success (Messages Sent, RCS Seen, Active status) */
+/* Pastel Green - For "Displayed", "Conversational", blue UI elements */
+.badge-pastel-green {
+    background-color: rgba(144, 238, 144, 0.35) !important;
+    color: #2e7d32 !important;
+}
+
+/* Pastel Pink - Success (Yes, counts, active indicators) */
 .badge-pastel-success {
-    background-color: rgba(28, 187, 140, 0.15) !important;
-    color: #1cbb8c !important;
+    background-color: rgba(255, 182, 193, 0.4) !important;
+    color: #d63384 !important;
+}
+
+/* Pastel Pink - Explicit class */
+.badge-pastel-pink-soft {
+    background-color: rgba(255, 182, 193, 0.4) !important;
+    color: #d63384 !important;
 }
 
 /* Amber/Yellow - Warning (Inbound, Manual source) */
