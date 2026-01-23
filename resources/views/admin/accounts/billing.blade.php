@@ -497,7 +497,7 @@
 @endpush
 
 @section('content')
-<div class="admin-page">
+<div class="admin-page" id="billingPageContent">
     <div class="admin-breadcrumb">
         <a href="{{ route('admin.dashboard') }}">Admin</a>
         <span class="separator">/</span>
@@ -823,6 +823,17 @@
 var AdminAccountBillingService = (function() {
     var Services = window.BillingServices;
     
+    if (!Services) {
+        console.error('[AdminAccountBillingService] BillingServices not loaded');
+        return {
+            getAccountBilling: function() { return Promise.reject(new Error('BillingServices not available')); },
+            getAccountInvoices: function() { return Promise.reject(new Error('BillingServices not available')); },
+            calculateAvailableCredit: function() { return 0; },
+            updateBillingMode: function() { return Promise.reject(new Error('BillingServices not available')); },
+            updateCreditLimit: function() { return Promise.reject(new Error('BillingServices not available')); }
+        };
+    }
+    
     return {
         getAccountBilling: function(accountId) {
             return Services.BillingFacade.loadCompleteBillingData(accountId);
@@ -926,6 +937,7 @@ var BillingRiskService = (function() {
 
 var AdminPermissionService = (function() {
     var mockPermissions = {
+        'accounts.view_billing': true,
         'billing.edit_mode': true,
         'billing.override_risk': false,
         'billing.edit_credit_limit': true,
@@ -941,12 +953,205 @@ var AdminPermissionService = (function() {
         
         setPermission: function(permission, value) {
             mockPermissions[permission] = value;
+        },
+        
+        getAllPermissions: function() {
+            return Object.assign({}, mockPermissions);
+        }
+    };
+})();
+
+/**
+ * Admin Billing Audit Logger
+ * Logs billing-related admin actions with required metadata
+ * Uses admin-only audit trail (not customer logs)
+ */
+var AdminBillingAuditLogger = (function() {
+    var SOURCE_SCREEN = 'Admin > Accounts > Billing';
+    
+    function getAdminContext() {
+        var adminUser = window.AdminControlPlane ? AdminControlPlane.getCurrentUser() : null;
+        return {
+            adminUserId: adminUser ? adminUser.id : 'unknown',
+            adminEmail: adminUser ? adminUser.email : 'admin@quicksms.co.uk',
+            adminRole: adminUser ? adminUser.role : 'super_admin',
+            adminName: adminUser ? adminUser.name : 'System Administrator',
+            ipAddress: null,
+            userAgent: navigator.userAgent
+        };
+    }
+    
+    function generateAuditId() {
+        return 'BAUD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    }
+    
+    function logAuditEvent(eventType, customerAccountId, details, oldValue, newValue) {
+        var context = getAdminContext();
+        var auditEntry = {
+            auditId: generateAuditId(),
+            timestamp: new Date().toISOString(),
+            timestampUnix: Date.now(),
+            eventType: eventType,
+            sourceScreen: SOURCE_SCREEN,
+            adminUser: {
+                id: context.adminUserId,
+                email: context.adminEmail,
+                role: context.adminRole,
+                name: context.adminName
+            },
+            customerAccountId: customerAccountId,
+            oldValue: oldValue !== undefined ? oldValue : null,
+            newValue: newValue !== undefined ? newValue : null,
+            details: details || {},
+            ipAddress: context.ipAddress,
+            userAgent: context.userAgent,
+            success: true
+        };
+        
+        console.log('[ADMIN_BILLING_AUDIT]', JSON.stringify(auditEntry, null, 2));
+        
+        if (window.AdminControlPlane && AdminControlPlane.logAdminAction) {
+            AdminControlPlane.logAdminAction(eventType, customerAccountId, details, 
+                oldValue ? { value: oldValue } : null, 
+                newValue ? { value: newValue } : null
+            );
+        }
+        
+        return auditEntry;
+    }
+    
+    function logFailure(eventType, customerAccountId, error, referenceId) {
+        var context = getAdminContext();
+        var auditEntry = {
+            auditId: generateAuditId(),
+            timestamp: new Date().toISOString(),
+            timestampUnix: Date.now(),
+            eventType: eventType + '_FAILED',
+            sourceScreen: SOURCE_SCREEN,
+            adminUser: {
+                id: context.adminUserId,
+                email: context.adminEmail,
+                role: context.adminRole,
+                name: context.adminName
+            },
+            customerAccountId: customerAccountId,
+            error: error.message || String(error),
+            referenceId: referenceId || null,
+            success: false
+        };
+        
+        console.error('[ADMIN_BILLING_AUDIT][FAILURE]', JSON.stringify(auditEntry, null, 2));
+        
+        return auditEntry;
+    }
+    
+    return {
+        logBillingModeChanged: function(customerAccountId, oldMode, newMode) {
+            return logAuditEvent('BILLING_MODE_CHANGED', customerAccountId, {
+                action: 'Billing type changed from ' + oldMode + ' to ' + newMode,
+                hubspotSync: true
+            }, oldMode, newMode);
+        },
+        
+        logBillingModeChangeFailed: function(customerAccountId, attemptedMode, error) {
+            return logFailure('BILLING_MODE_CHANGE', customerAccountId, error, attemptedMode);
+        },
+        
+        logCreditLimitChanged: function(customerAccountId, oldLimit, newLimit, currency) {
+            return logAuditEvent('CREDIT_LIMIT_CHANGED', customerAccountId, {
+                action: 'Credit limit changed',
+                currency: currency || 'GBP',
+                hubspotSync: true
+            }, oldLimit, newLimit);
+        },
+        
+        logCreditLimitChangeFailed: function(customerAccountId, attemptedLimit, error) {
+            return logFailure('CREDIT_LIMIT_CHANGE', customerAccountId, error, attemptedLimit);
+        },
+        
+        logInvoiceCreated: function(customerAccountId, invoiceNumber, total) {
+            return logAuditEvent('INVOICE_CREATED', customerAccountId, {
+                action: 'Invoice created',
+                invoiceNumber: invoiceNumber,
+                total: total
+            }, null, invoiceNumber);
+        },
+        
+        logCreditCreated: function(customerAccountId, creditNumber, total) {
+            return logAuditEvent('CREDIT_NOTE_CREATED', customerAccountId, {
+                action: 'Credit note created',
+                creditNumber: creditNumber,
+                total: total
+            }, null, creditNumber);
+        },
+        
+        logPageViewed: function(customerAccountId) {
+            return logAuditEvent('BILLING_PAGE_VIEWED', customerAccountId, {
+                action: 'Admin viewed billing page'
+            });
         }
     };
 })();
 
 document.addEventListener('DOMContentLoaded', function() {
     var accountId = '{{ $account_id }}';
+    
+    // Page-level access check
+    if (!AdminPermissionService.hasPermission('accounts.view_billing')) {
+        document.getElementById('billingPageContent').innerHTML = 
+            '<div class="card shadow-none border">' +
+            '<div class="card-body text-center py-5">' +
+            '<i class="fas fa-lock fa-4x text-muted mb-4"></i>' +
+            '<h4 class="text-muted">Not Authorised</h4>' +
+            '<p class="text-muted mb-4">You do not have permission to view billing information for this account.</p>' +
+            '<a href="/admin/accounts" class="btn btn-admin-primary">' +
+            '<i class="fas fa-arrow-left me-2"></i>Back to Accounts</a>' +
+            '</div></div>';
+        return;
+    }
+    
+    // Log page view
+    AdminBillingAuditLogger.logPageViewed(accountId);
+    
+    // Apply permission-based UI states
+    applyPermissionStates();
+    
+    function applyPermissionStates() {
+        var canEditMode = AdminPermissionService.hasPermission('billing.edit_mode');
+        var canEditCreditLimit = AdminPermissionService.hasPermission('billing.edit_credit_limit');
+        var canCreateInvoice = AdminPermissionService.hasPermission('billing.create_invoice');
+        var canCreateCredit = AdminPermissionService.hasPermission('billing.create_credit');
+        
+        // Hide Create Invoice button if no permission
+        if (!canCreateInvoice) {
+            var createInvoiceBtn = document.getElementById('createInvoiceBtn');
+            if (createInvoiceBtn) createInvoiceBtn.style.display = 'none';
+        }
+        
+        // Hide Create Credit button if no permission
+        if (!canCreateCredit) {
+            var createCreditBtn = document.getElementById('createCreditBtn');
+            if (createCreditBtn) createCreditBtn.style.display = 'none';
+        }
+        
+        // Make billing type toggle read-only if no edit permission
+        if (!canEditMode) {
+            var billingTypeToggle = document.getElementById('billingTypeToggle');
+            if (billingTypeToggle) {
+                billingTypeToggle.classList.add('readonly');
+                var buttons = billingTypeToggle.querySelectorAll('button');
+                buttons.forEach(function(btn) {
+                    btn.disabled = true;
+                });
+            }
+        }
+        
+        // Hide credit limit edit button if no edit permission
+        if (!canEditCreditLimit) {
+            var creditLimitEditBtn = document.getElementById('creditLimitEditBtn');
+            if (creditLimitEditBtn) creditLimitEditBtn.style.display = 'none';
+        }
+    }
     
     function formatCurrency(amount) {
         return '£' + Math.abs(amount).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1036,6 +1241,20 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof AdminControlPlane !== 'undefined') {
             AdminControlPlane.logAdminAction('ACCOUNT_BILLING_VIEWED', accountId, { accountName: data.name });
         }
+    }).catch(function(error) {
+        console.error('[AdminAccountBilling] Failed to load billing data:', error);
+        document.getElementById('customerName').textContent = 'Error loading account';
+        document.getElementById('summaryBillingMode').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('summaryCurrentBalance').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('summaryCreditLimit').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('summaryAvailableCredit').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('summaryAccountStatus').innerHTML = '<span class="text-muted">--</span>';
+        document.getElementById('summaryLastUpdated').innerHTML = '<span class="text-muted">--</span>';
+        
+        var errorAlert = document.createElement('div');
+        errorAlert.className = 'alert alert-danger mt-3';
+        errorAlert.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Failed to load billing data. Please refresh the page or contact support.';
+        document.getElementById('billingPageContent').prepend(errorAlert);
     });
     
     var currentBillingMode = null;
@@ -1207,20 +1426,15 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(function(result) {
             updateBillingModeUI(newMode);
             
-            if (typeof AdminControlPlane !== 'undefined') {
-                AdminControlPlane.logAdminAction('BILLING_MODE_CHANGED', accountId, {
-                    accountName: currentAccountName,
-                    oldValue: oldMode,
-                    newValue: newMode,
-                    sourceScreen: 'Admin > Accounts > Billing'
-                });
-            }
+            // Admin audit logging
+            AdminBillingAuditLogger.logBillingModeChanged(accountId, oldMode, newMode);
             
             var modal = bootstrap.Modal.getInstance(document.getElementById('billingModeConfirmModal'));
             modal.hide();
         })
         .catch(function(error) {
             console.error('Billing mode update failed:', error);
+            AdminBillingAuditLogger.logBillingModeChangeFailed(accountId, newMode, error);
             showBillingModeError('Could not update HubSpot. No changes were saved.');
             
             var modal = bootstrap.Modal.getInstance(document.getElementById('billingModeConfirmModal'));
@@ -1638,17 +1852,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateCreditLimitUI(newLimit);
                 hideCreditLimitEditMode();
                 
-                if (typeof AdminControlPlane !== 'undefined') {
-                    AdminControlPlane.logAdminAction('CREDIT_LIMIT_CHANGED', accountId, {
-                        accountName: currentAccountName,
-                        oldValue: oldLimit,
-                        newValue: newLimit,
-                        sourceScreen: 'Admin > Accounts > Billing'
-                    });
-                }
+                // Admin audit logging
+                AdminBillingAuditLogger.logCreditLimitChanged(accountId, oldLimit, newLimit, 'GBP');
             })
             .catch(function(error) {
                 console.error('Credit limit update failed:', error);
+                AdminBillingAuditLogger.logCreditLimitChangeFailed(accountId, newLimit, error);
                 creditLimitInput.value = currentCreditLimit.toFixed(2);
                 showCreditLimitError('Could not update HubSpot. No changes were saved.');
             })

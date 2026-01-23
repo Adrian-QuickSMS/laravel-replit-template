@@ -66,8 +66,10 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, leveraging the Fillow SaaS Admin
   - **InvoicesService:** Invoice and credit note management with Xero integration. Methods: `listInvoices(filters)` with pagination, `createInvoice(request)`, `createCredit(request)`, `getInvoice(invoiceNumber)`, `syncToXero(invoiceNumber)`. Returns typed Invoice objects with xeroInvoiceId.
   - **AccountDetailsService:** Basic account information. Method: `getAccountDetails(accountId)` returns name, status.
   - **BillingFacade:** Unified data loading combining all services. Methods: `loadCompleteBillingData(accountId)` returns complete billing profile, `checkOutstandingInvoices(accountId)` returns outstanding invoice summary.
+  - **AdminAccountBillingService Adapter:** Page-level adapter in `billing.blade.php` that wraps BillingServices for the Admin Account Billing page. Provides defensive error handling when BillingServices is not available and consistent API for the page.
   - **Configuration:** `BillingServices.config.useMockData` controls mock/real API mode. Set to `false` to use real API endpoints defined in `apiBaseUrl`, `hubspotApiUrl`, `xeroApiUrl`.
   - **Design Principles:** Typed JSDoc objects, no hardcoded credentials, HubSpot as source of truth, UI revert on API failure via Promise rejection, backend-ready without refactor.
+  - **AdminControlPlane.getCurrentUser():** Returns the current admin user object for audit logging integration.
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.

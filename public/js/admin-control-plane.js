@@ -1786,7 +1786,11 @@ var AdminControlPlane = (function() {
         
         ApprovalFramework: ApprovalFramework,
         APPROVAL_LIFECYCLE: APPROVAL_LIFECYCLE,
-        REJECTION_TEMPLATES: REJECTION_TEMPLATES
+        REJECTION_TEMPLATES: REJECTION_TEMPLATES,
+        
+        getCurrentUser: function() {
+            return currentAdmin;
+        }
     };
 })();
 

@@ -380,7 +380,8 @@ var InvoiceCreditModal = (function() {
                         AdminControlPlane.logAdminAction('INVOICE_CREATE_FAILED', payload.customerAccountId, {
                             mode: payload.mode,
                             error: error.message,
-                            referenceId: error.referenceId
+                            referenceId: error.referenceId,
+                            sourceScreen: isCustomerLocked ? 'Admin > Accounts > Billing' : 'Admin > Invoices'
                         });
                     }
                     
