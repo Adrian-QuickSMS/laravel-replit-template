@@ -287,4 +287,11 @@ class AdminController extends Controller
             'page_title' => 'Platform Flags'
         ]);
     }
+
+    public function managementTemplates()
+    {
+        return view('admin.management.templates', [
+            'page_title' => 'Global Templates Library'
+        ]);
+    }
 }
