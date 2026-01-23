@@ -241,6 +241,70 @@
         </div>
     </div>
 </div>
+
+<!-- Template Created Success Modal -->
+<div class="modal fade" id="templateSuccessModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title"><i class="fas fa-check-circle text-success me-2"></i>Template Created Successfully</h5>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="success-icon-circle mb-3">
+                        <i class="fas fa-file-alt fa-3x text-primary"></i>
+                    </div>
+                    <p class="text-muted mb-0">Your template has been created and is ready to use.</p>
+                </div>
+                
+                <div class="template-id-box p-3 rounded mb-3" style="background: #f8f9fa; border: 1px dashed #886CC0;">
+                    <label class="form-label small fw-bold mb-2">Template ID (for API use)</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="generatedTemplateId" readonly style="font-family: monospace; font-size: 0.9rem;">
+                        <button class="btn btn-outline-primary" type="button" id="copyTemplateIdBtn" title="Copy to clipboard">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 d-block">Use this ID when sending messages via the API with <code>template_id</code> parameter.</small>
+                </div>
+                
+                <div class="alert alert-info small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>API Usage Example:</strong>
+                    <pre class="mb-0 mt-2" style="font-size: 0.75rem; background: #fff; padding: 0.5rem; border-radius: 4px; overflow-x: auto;">{
+  "template_id": "<span id="templateIdExample">TPL-XXXXXXXX</span>",
+  "recipients": ["+447123456789"],
+  "variables": { "name": "John" }
+}</pre>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <a href="{{ route('management.templates') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-list me-1"></i>View All Templates
+                </a>
+                <button type="button" class="btn btn-primary" id="createAnotherBtn">
+                    <i class="fas fa-plus me-1"></i>Create Another
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.success-icon-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(136, 108, 192, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+#templateSuccessModal .modal-content {
+    border: none;
+    border-radius: 0.75rem;
+}
+</style>
 @endsection
 
 @push('scripts')
@@ -283,14 +347,57 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Generate unique template ID
+    function generateTemplateId() {
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        var id = 'TPL-';
+        for (var i = 0; i < 8; i++) {
+            id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return id;
+    }
+    
     document.getElementById('createTemplateBtn').addEventListener('click', function() {
+        // Generate template ID
+        var templateId = generateTemplateId();
+        
+        // Clear session storage
         sessionStorage.removeItem('templateWizardStep1');
         sessionStorage.removeItem('templateWizardStep2');
         sessionStorage.removeItem('templateWizardStep3');
         sessionStorage.removeItem('templateWizardChannel');
         
-        alert('Template created successfully!');
-        window.location.href = '{{ route("management.templates") }}';
+        // Display the template ID in the modal
+        document.getElementById('generatedTemplateId').value = templateId;
+        document.getElementById('templateIdExample').textContent = templateId;
+        
+        // Show the success modal
+        var successModal = new bootstrap.Modal(document.getElementById('templateSuccessModal'));
+        successModal.show();
+    });
+    
+    // Copy template ID to clipboard
+    document.getElementById('copyTemplateIdBtn').addEventListener('click', function() {
+        var templateIdInput = document.getElementById('generatedTemplateId');
+        templateIdInput.select();
+        templateIdInput.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(templateIdInput.value).then(function() {
+            var btn = document.getElementById('copyTemplateIdBtn');
+            var originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.classList.remove('btn-outline-primary');
+            btn.classList.add('btn-success');
+            setTimeout(function() {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-primary');
+            }, 2000);
+        });
+    });
+    
+    // Create another template
+    document.getElementById('createAnotherBtn').addEventListener('click', function() {
+        window.location.href = '{{ route("management.templates.create.step1") }}';
     });
     
     document.getElementById('saveDraftBtn').addEventListener('click', function() {
