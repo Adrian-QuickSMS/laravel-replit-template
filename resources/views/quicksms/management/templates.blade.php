@@ -622,9 +622,9 @@
         </div>
         <h4>No templates yet</h4>
         <p>Create your first message template to save time when sending messages. Templates can include personalization tags and are available for both SMS and RCS.</p>
-        <button class="btn btn-primary" onclick="showCreateModal()">
+        <a href="{{ route('management.templates.create.step1') }}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Create Template
-        </button>
+        </a>
     </div>
 
     <div class="card" id="templatesTableContainer">
@@ -638,9 +638,9 @@
                 <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                     <i class="fas fa-filter me-1"></i>Filters
                 </button>
-                <button class="btn btn-primary btn-sm" id="createTemplateBtn">
+                <a href="{{ route('management.templates.create.step1') }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus me-1"></i>Create Template
-                </button>
+                </a>
             </div>
         </div>
         <div class="card-body">
