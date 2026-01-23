@@ -76,6 +76,9 @@
 .numbers-table .dropdown-menu {
     z-index: 2050 !important;
 }
+.numbers-table .dropdown {
+    position: relative;
+}
 .numbers-table-container:has(.dropdown.show),
 .numbers-table-container.has-dropdown-open {
     overflow: visible !important;
@@ -1462,7 +1465,7 @@ $(document).ready(function() {
             
             html += '<td>';
             html += '<div class="dropdown">';
-            html += '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">';
+            html += '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">';
             html += '<i class="fas fa-ellipsis-v"></i>';
             html += '</button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';
