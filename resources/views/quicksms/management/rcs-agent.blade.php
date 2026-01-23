@@ -155,6 +155,127 @@
     background: rgba(108, 117, 125, 0.15);
     color: #6c757d;
 }
+.rcs-review-section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+.rcs-section-header {
+    font-weight: 600;
+    color: var(--pastel-purple, #886cc0);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.rcs-section-header .section-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: #886cc0;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+.rcs-review-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8fafc;
+    align-items: flex-start;
+}
+.rcs-review-row:last-child {
+    border-bottom: none;
+}
+.rcs-review-label {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+.rcs-review-value {
+    font-size: 0.8rem;
+    color: #1e293b;
+    font-weight: 500;
+    text-align: right;
+    max-width: 60%;
+}
+.rcs-review-value.mono {
+    font-family: 'SF Mono', 'Monaco', monospace;
+    background: #f1f5f9;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+.rcs-color-swatch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.rcs-color-swatch .swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 2px solid #e2e8f0;
+}
+.rcs-toggle-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.rcs-toggle-badge.shown { background: #d9f99d; color: #3f6212; }
+.rcs-toggle-badge.hidden { background: #f1f5f9; color: #64748b; }
+.rcs-logo-preview {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+}
+.rcs-hero-preview {
+    width: 120px;
+    height: auto;
+    max-height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+.rcs-test-numbers-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    justify-content: flex-end;
+}
+.rcs-test-number-pill {
+    background: #f1f5f9;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-family: 'SF Mono', monospace;
+}
+.rcs-yes-no {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.rcs-yes-no.yes { background: #d9f99d; color: #3f6212; }
+.rcs-yes-no.no { background: #fecaca; color: #991b1b; }
 .search-filter-bar {
     display: flex;
     justify-content: space-between;
@@ -730,47 +851,193 @@
 </div>
 
 <div class="modal fade" id="viewAgentModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">View RCS Agent</h5>
+                <h5 class="modal-title"><i class="fas fa-robot me-2"></i>View RCS Agent</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Agent Name</label>
-                        <p class="fw-semibold mb-0" id="viewAgentName"></p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Status</label>
-                        <p class="mb-0" id="viewAgentStatus"></p>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Billing Category</label>
-                        <p class="mb-0" id="viewAgentBilling"></p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Use Case</label>
-                        <p class="mb-0" id="viewAgentUseCase"></p>
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Created Date</label>
-                        <p class="mb-0" id="viewAgentCreated"></p>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small text-muted">Last Updated</label>
-                        <p class="mb-0" id="viewAgentUpdated"></p>
-                    </div>
-                </div>
+            <div class="modal-body" style="background: #f8f9fa;">
                 <div class="mb-3" id="viewRejectionReasonContainer" style="display: none;">
-                    <label class="form-label small text-muted">Rejection Reason</label>
-                    <div class="border rounded p-3 bg-white">
-                        <p class="mb-0 text-danger" id="viewAgentRejectionReason"></p>
+                    <div class="alert alert-danger mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-exclamation-circle me-2 mt-1"></i>
+                            <div>
+                                <strong>Rejection Reason</strong>
+                                <p class="mb-0 mt-1" id="viewAgentRejectionReason"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="rcs-review-section">
+                            <div class="rcs-section-header">
+                                <span class="section-letter">A</span>
+                                <i class="fas fa-palette"></i> Agent Identity & Branding
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Agent Name</span>
+                                <span class="rcs-review-value" id="viewAgentName">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Status</span>
+                                <span class="rcs-review-value" id="viewAgentStatus">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Agent Description</span>
+                                <span class="rcs-review-value" id="viewAgentDescription">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Brand Colour</span>
+                                <span class="rcs-review-value rcs-color-swatch">
+                                    <span class="swatch" id="viewColorSwatch" style="background: #886CC0;"></span>
+                                    <span class="mono" id="viewColorHex">#886CC0</span>
+                                </span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Logo</span>
+                                <span class="rcs-review-value" id="viewAgentLogo">
+                                    <span class="text-muted">Not uploaded</span>
+                                </span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Hero/Banner Image</span>
+                                <span class="rcs-review-value" id="viewAgentHero">
+                                    <span class="text-muted">Not uploaded</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="rcs-review-section">
+                            <div class="rcs-section-header">
+                                <span class="section-letter">B</span>
+                                <i class="fas fa-mobile-alt"></i> Handset Contact Details
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Call</span>
+                                <span class="rcs-review-value" id="viewAgentPhone">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Website</span>
+                                <span class="rcs-review-value" id="viewAgentWebsite">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Email</span>
+                                <span class="rcs-review-value" id="viewAgentEmail">-</span>
+                            </div>
+                        </div>
+
+                        <div class="rcs-review-section">
+                            <div class="rcs-section-header">
+                                <span class="section-letter">C</span>
+                                <i class="fas fa-shield-alt"></i> Compliance URLs
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Privacy Policy URL</span>
+                                <span class="rcs-review-value" id="viewAgentPrivacy">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Terms of Service URL</span>
+                                <span class="rcs-review-value" id="viewAgentTerms">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="rcs-review-section">
+                            <div class="rcs-section-header">
+                                <span class="section-letter">D</span>
+                                <i class="fas fa-tags"></i> Agent Classification
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Billing Category</span>
+                                <span class="rcs-review-value" id="viewAgentBilling">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Use Case</span>
+                                <span class="rcs-review-value" id="viewAgentUseCase">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Created Date</span>
+                                <span class="rcs-review-value" id="viewAgentCreated">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Last Updated</span>
+                                <span class="rcs-review-value" id="viewAgentUpdated">-</span>
+                            </div>
+                        </div>
+
+                        <div class="rcs-review-section">
+                            <div class="rcs-section-header">
+                                <span class="section-letter">E</span>
+                                <i class="fas fa-comments"></i> Messaging Behaviour
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Use Case Description</span>
+                                <span class="rcs-review-value" id="viewAgentUseCaseOverview">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Opt-in Consent</span>
+                                <span class="rcs-review-value" id="viewAgentOptIn">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Opt-out Supported</span>
+                                <span class="rcs-review-value" id="viewAgentOptOut">-</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Monthly Volume Estimate</span>
+                                <span class="rcs-review-value" id="viewAgentVolume">-</span>
+                            </div>
+                        </div>
+
+                        <div class="rcs-review-section">
+                            <div class="rcs-section-header">
+                                <span class="section-letter">F</span>
+                                <i class="fas fa-phone"></i> Test Numbers
+                                <span class="badge bg-secondary ms-auto" style="font-size: 0.65rem;" id="viewAgentTestNumbersCount">0 / 20</span>
+                            </div>
+                            <div class="rcs-review-row">
+                                <span class="rcs-review-label">Numbers</span>
+                                <span class="rcs-review-value rcs-test-numbers-list" id="viewAgentTestNumbers">
+                                    <span class="text-muted">No test numbers added</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="rcs-review-section">
+                            <div class="rcs-section-header">
+                                <span class="section-letter">G</span>
+                                <i class="fas fa-building"></i> Company & Approver Details
+                            </div>
+                            <div style="margin-bottom: 0.75rem;">
+                                <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Company Information</div>
+                                <div class="rcs-review-row">
+                                    <span class="rcs-review-label">Company Name</span>
+                                    <span class="rcs-review-value" id="viewAgentCompanyName">-</span>
+                                </div>
+                                <div class="rcs-review-row">
+                                    <span class="rcs-review-label">Company Number</span>
+                                    <span class="rcs-review-value mono" id="viewAgentCompanyNumber">-</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Approver Details</div>
+                                <div class="rcs-review-row">
+                                    <span class="rcs-review-label">Approver Name</span>
+                                    <span class="rcs-review-value" id="viewAgentApproverName">-</span>
+                                </div>
+                                <div class="rcs-review-row">
+                                    <span class="rcs-review-label">Job Title</span>
+                                    <span class="rcs-review-value" id="viewAgentApproverJobTitle">-</span>
+                                </div>
+                                <div class="rcs-review-row">
+                                    <span class="rcs-review-label">Email</span>
+                                    <span class="rcs-review-value" id="viewAgentApproverEmail">-</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1653,82 +1920,250 @@ var mockAgents = [
     {
         id: 'agent-001',
         name: 'QuickSMS Notifications',
+        description: 'Official transactional messaging agent for order confirmations and delivery updates.',
         status: 'approved',
         billing: 'conversational',
         useCase: 'transactional',
         created: '2025-09-15',
         updated: '2025-10-02',
-        rejectionReason: null
+        rejectionReason: null,
+        brandColor: '#886CC0',
+        logoUrl: '/images/placeholder-logo.png',
+        heroUrl: '/images/placeholder-hero.png',
+        supportPhone: '+44 20 7946 0958',
+        showPhone: true,
+        website: 'https://quicksms.example.com',
+        supportEmail: 'support@quicksms.example.com',
+        showEmail: true,
+        privacyUrl: 'https://quicksms.example.com/privacy',
+        termsUrl: 'https://quicksms.example.com/terms',
+        useCaseOverview: 'Sends order confirmations, shipping updates, and delivery notifications to customers who have made purchases.',
+        userConsent: true,
+        optOutAvailable: true,
+        monthlyVolume: '50,000 - 100,000',
+        testNumbers: ['+447911123456', '+447911123457', '+447911123458'],
+        companyName: 'QuickSMS Ltd',
+        companyNumber: '12345678',
+        approverName: 'Sarah Johnson',
+        approverJobTitle: 'Head of Marketing',
+        approverEmail: 'sarah.johnson@quicksms.example.com'
     },
     {
         id: 'agent-002',
         name: 'Marketing Campaigns',
+        description: 'Promotional messaging agent for marketing campaigns and special offers.',
         status: 'approved',
         billing: 'non-conversational',
         useCase: 'promotional',
         created: '2025-08-20',
         updated: '2025-09-10',
-        rejectionReason: null
+        rejectionReason: null,
+        brandColor: '#3065D0',
+        logoUrl: null,
+        heroUrl: null,
+        supportPhone: '+44 20 7946 0959',
+        showPhone: false,
+        website: 'https://marketing.quicksms.example.com',
+        supportEmail: 'marketing@quicksms.example.com',
+        showEmail: true,
+        privacyUrl: 'https://quicksms.example.com/privacy',
+        termsUrl: 'https://quicksms.example.com/terms',
+        useCaseOverview: 'Sends promotional offers, discounts, and marketing messages to opted-in customers.',
+        userConsent: true,
+        optOutAvailable: true,
+        monthlyVolume: '100,000 - 500,000',
+        testNumbers: ['+447911234567'],
+        companyName: 'QuickSMS Ltd',
+        companyNumber: '12345678',
+        approverName: 'John Smith',
+        approverJobTitle: 'Marketing Director',
+        approverEmail: 'john.smith@quicksms.example.com'
     },
     {
         id: 'agent-003',
         name: 'OTP Verification',
+        description: 'Secure one-time password delivery for two-factor authentication.',
         status: 'in-review',
         billing: 'non-conversational',
         useCase: 'otp',
         created: '2025-12-01',
         updated: '2025-12-01',
-        rejectionReason: null
+        rejectionReason: null,
+        brandColor: '#1cbb8c',
+        logoUrl: null,
+        heroUrl: null,
+        supportPhone: '+44 20 7946 0960',
+        showPhone: true,
+        website: 'https://auth.quicksms.example.com',
+        supportEmail: 'security@quicksms.example.com',
+        showEmail: false,
+        privacyUrl: 'https://quicksms.example.com/privacy',
+        termsUrl: 'https://quicksms.example.com/terms',
+        useCaseOverview: 'Delivers OTP codes for account verification, password resets, and two-factor authentication.',
+        userConsent: true,
+        optOutAvailable: false,
+        monthlyVolume: '10,000 - 50,000',
+        testNumbers: ['+447911345678', '+447911345679'],
+        companyName: 'QuickSMS Ltd',
+        companyNumber: '12345678',
+        approverName: 'Sarah Johnson',
+        approverJobTitle: 'Head of Security',
+        approverEmail: 'sarah.johnson@quicksms.example.com'
     },
     {
         id: 'agent-004',
         name: 'Customer Support Bot',
+        description: 'AI-powered customer support agent for handling inquiries and providing assistance.',
         status: 'submitted',
         billing: 'conversational',
         useCase: 'multi-use',
         created: '2025-12-28',
         updated: '2025-12-28',
-        rejectionReason: null
+        rejectionReason: null,
+        brandColor: '#FF6B35',
+        logoUrl: null,
+        heroUrl: null,
+        supportPhone: '+44 20 7946 0961',
+        showPhone: true,
+        website: 'https://support.quicksms.example.com',
+        supportEmail: 'help@quicksms.example.com',
+        showEmail: true,
+        privacyUrl: 'https://quicksms.example.com/privacy',
+        termsUrl: 'https://quicksms.example.com/terms',
+        useCaseOverview: 'Provides 24/7 customer support via conversational AI, handling FAQs, order status, and support tickets.',
+        userConsent: true,
+        optOutAvailable: true,
+        monthlyVolume: '5,000 - 10,000',
+        testNumbers: [],
+        companyName: 'QuickSMS Ltd',
+        companyNumber: '12345678',
+        approverName: 'Emma Wilson',
+        approverJobTitle: 'Customer Success Manager',
+        approverEmail: 'emma.wilson@quicksms.example.com'
     },
     {
         id: 'agent-005',
         name: 'Holiday Promotions',
+        description: 'Seasonal promotional messaging for holiday sales and events.',
         status: 'rejected',
         billing: 'non-conversational',
         useCase: 'promotional',
         created: '2025-11-15',
         updated: '2025-11-20',
-        rejectionReason: 'Brand logo does not meet minimum resolution requirements. Please upload a logo with at least 224x224 pixels.'
+        rejectionReason: 'Brand logo does not meet minimum resolution requirements. Please upload a logo with at least 224x224 pixels.',
+        brandColor: '#dc3545',
+        logoUrl: null,
+        heroUrl: null,
+        supportPhone: '+44 20 7946 0962',
+        showPhone: true,
+        website: 'https://holidays.quicksms.example.com',
+        supportEmail: 'holidays@quicksms.example.com',
+        showEmail: true,
+        privacyUrl: 'https://quicksms.example.com/privacy',
+        termsUrl: 'https://quicksms.example.com/terms',
+        useCaseOverview: 'Holiday-specific promotional campaigns for Black Friday, Christmas, and seasonal sales.',
+        userConsent: true,
+        optOutAvailable: true,
+        monthlyVolume: '200,000 - 500,000',
+        testNumbers: ['+447911456789'],
+        companyName: 'QuickSMS Ltd',
+        companyNumber: '12345678',
+        approverName: 'Michael Brown',
+        approverJobTitle: 'Marketing Manager',
+        approverEmail: 'michael.brown@quicksms.example.com'
     },
     {
         id: 'agent-006',
         name: 'Appointment Reminders',
+        description: 'Automated appointment reminders and scheduling notifications.',
         status: 'draft',
         billing: 'non-conversational',
         useCase: 'transactional',
         created: '2026-01-05',
         updated: '2026-01-05',
-        rejectionReason: null
+        rejectionReason: null,
+        brandColor: '#17a2b8',
+        logoUrl: null,
+        heroUrl: null,
+        supportPhone: '',
+        showPhone: false,
+        website: '',
+        supportEmail: '',
+        showEmail: false,
+        privacyUrl: '',
+        termsUrl: '',
+        useCaseOverview: '',
+        userConsent: false,
+        optOutAvailable: false,
+        monthlyVolume: '',
+        testNumbers: [],
+        companyName: 'QuickSMS Ltd',
+        companyNumber: '12345678',
+        approverName: '',
+        approverJobTitle: '',
+        approverEmail: ''
     },
     {
         id: 'agent-007',
         name: 'Order Updates',
+        description: 'Real-time order status updates and delivery tracking notifications.',
         status: 'approved',
         billing: 'non-conversational',
         useCase: 'transactional',
         created: '2025-07-10',
         updated: '2025-08-15',
-        rejectionReason: null
+        rejectionReason: null,
+        brandColor: '#28a745',
+        logoUrl: null,
+        heroUrl: null,
+        supportPhone: '+44 20 7946 0963',
+        showPhone: true,
+        website: 'https://orders.quicksms.example.com',
+        supportEmail: 'orders@quicksms.example.com',
+        showEmail: true,
+        privacyUrl: 'https://quicksms.example.com/privacy',
+        termsUrl: 'https://quicksms.example.com/terms',
+        useCaseOverview: 'Sends real-time order updates including confirmation, processing, shipped, and delivered notifications.',
+        userConsent: true,
+        optOutAvailable: true,
+        monthlyVolume: '75,000 - 150,000',
+        testNumbers: ['+447911567890', '+447911567891'],
+        companyName: 'QuickSMS Ltd',
+        companyNumber: '12345678',
+        approverName: 'David Lee',
+        approverJobTitle: 'Operations Manager',
+        approverEmail: 'david.lee@quicksms.example.com'
     },
     {
         id: 'agent-008',
         name: 'Loyalty Program',
+        description: 'Customer loyalty program communications and rewards notifications.',
         status: 'draft',
         billing: 'conversational',
         useCase: 'promotional',
         created: '2026-01-02',
         updated: '2026-01-06',
-        rejectionReason: null
+        rejectionReason: null,
+        brandColor: '#ffc107',
+        logoUrl: null,
+        heroUrl: null,
+        supportPhone: '',
+        showPhone: false,
+        website: '',
+        supportEmail: '',
+        showEmail: false,
+        privacyUrl: '',
+        termsUrl: '',
+        useCaseOverview: '',
+        userConsent: false,
+        optOutAvailable: false,
+        monthlyVolume: '',
+        testNumbers: [],
+        companyName: 'QuickSMS Ltd',
+        companyNumber: '12345678',
+        approverName: '',
+        approverJobTitle: '',
+        approverEmail: ''
     }
 ];
 
@@ -1996,13 +2431,96 @@ function viewAgent(agentId) {
     var agent = mockAgents.find(function(a) { return a.id === agentId; });
     if (!agent) return;
     
-    document.getElementById('viewAgentName').textContent = agent.name;
+    // Section A: Agent Identity & Branding
+    document.getElementById('viewAgentName').textContent = agent.name || '-';
     document.getElementById('viewAgentStatus').innerHTML = getStatusBadge(agent.status);
+    document.getElementById('viewAgentDescription').textContent = agent.description || '-';
+    
+    // Brand color
+    var brandColor = agent.brandColor || '#886CC0';
+    document.getElementById('viewColorSwatch').style.background = brandColor;
+    document.getElementById('viewColorHex').textContent = brandColor;
+    
+    // Logo
+    var logoContainer = document.getElementById('viewAgentLogo');
+    if (agent.logoUrl) {
+        logoContainer.innerHTML = '<img src="' + agent.logoUrl + '" class="rcs-logo-preview" alt="Logo" onerror="this.parentNode.innerHTML=\'<span class=text-muted>Not uploaded</span>\'">';
+    } else {
+        logoContainer.innerHTML = '<span class="text-muted">Not uploaded</span>';
+    }
+    
+    // Hero
+    var heroContainer = document.getElementById('viewAgentHero');
+    if (agent.heroUrl) {
+        heroContainer.innerHTML = '<img src="' + agent.heroUrl + '" class="rcs-hero-preview" alt="Hero" onerror="this.parentNode.innerHTML=\'<span class=text-muted>Not uploaded</span>\'">';
+    } else {
+        heroContainer.innerHTML = '<span class="text-muted">Not uploaded</span>';
+    }
+    
+    // Section B: Handset Contact Details
+    var phoneHtml = agent.supportPhone || '-';
+    if (agent.supportPhone) {
+        phoneHtml += agent.showPhone ? 
+            ' <span class="rcs-toggle-badge shown ms-2"><i class="fas fa-eye"></i> Displayed</span>' :
+            ' <span class="rcs-toggle-badge hidden ms-2"><i class="fas fa-eye-slash"></i> Hidden</span>';
+    }
+    document.getElementById('viewAgentPhone').innerHTML = phoneHtml;
+    document.getElementById('viewAgentWebsite').textContent = agent.website || '-';
+    
+    var emailHtml = agent.supportEmail || '-';
+    if (agent.supportEmail) {
+        emailHtml += agent.showEmail ? 
+            ' <span class="rcs-toggle-badge shown ms-2"><i class="fas fa-eye"></i> Displayed</span>' :
+            ' <span class="rcs-toggle-badge hidden ms-2"><i class="fas fa-eye-slash"></i> Hidden</span>';
+    }
+    document.getElementById('viewAgentEmail').innerHTML = emailHtml;
+    
+    // Section C: Compliance URLs
+    document.getElementById('viewAgentPrivacy').textContent = agent.privacyUrl || '-';
+    document.getElementById('viewAgentTerms').textContent = agent.termsUrl || '-';
+    
+    // Section D: Agent Classification
     document.getElementById('viewAgentBilling').innerHTML = getBillingBadge(agent.billing);
     document.getElementById('viewAgentUseCase').textContent = formatUseCase(agent.useCase);
     document.getElementById('viewAgentCreated').textContent = formatDate(agent.created);
     document.getElementById('viewAgentUpdated').textContent = formatDate(agent.updated);
     
+    // Section E: Messaging Behaviour
+    document.getElementById('viewAgentUseCaseOverview').textContent = agent.useCaseOverview || '-';
+    
+    var optInHtml = agent.userConsent ? 
+        '<span class="rcs-yes-no yes"><i class="fas fa-check"></i> Yes</span>' :
+        '<span class="rcs-yes-no no"><i class="fas fa-times"></i> No</span>';
+    document.getElementById('viewAgentOptIn').innerHTML = optInHtml;
+    
+    var optOutHtml = agent.optOutAvailable ? 
+        '<span class="rcs-yes-no yes"><i class="fas fa-check"></i> Yes</span>' :
+        '<span class="rcs-yes-no no"><i class="fas fa-times"></i> No</span>';
+    document.getElementById('viewAgentOptOut').innerHTML = optOutHtml;
+    
+    document.getElementById('viewAgentVolume').textContent = agent.monthlyVolume || '-';
+    
+    // Section F: Test Numbers
+    var testNumbers = agent.testNumbers || [];
+    document.getElementById('viewAgentTestNumbersCount').textContent = testNumbers.length + ' / 20';
+    
+    var testNumbersContainer = document.getElementById('viewAgentTestNumbers');
+    if (testNumbers.length > 0) {
+        testNumbersContainer.innerHTML = testNumbers.map(function(num) {
+            return '<span class="rcs-test-number-pill">' + num + '</span>';
+        }).join('');
+    } else {
+        testNumbersContainer.innerHTML = '<span class="text-muted">No test numbers added</span>';
+    }
+    
+    // Section G: Company & Approver Details
+    document.getElementById('viewAgentCompanyName').textContent = agent.companyName || '-';
+    document.getElementById('viewAgentCompanyNumber').textContent = agent.companyNumber || '-';
+    document.getElementById('viewAgentApproverName').textContent = agent.approverName || '-';
+    document.getElementById('viewAgentApproverJobTitle').textContent = agent.approverJobTitle || '-';
+    document.getElementById('viewAgentApproverEmail').textContent = agent.approverEmail || '-';
+    
+    // Rejection reason
     var rejectionContainer = document.getElementById('viewRejectionReasonContainer');
     if (agent.rejectionReason) {
         rejectionContainer.style.display = 'block';
