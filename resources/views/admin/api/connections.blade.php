@@ -129,6 +129,9 @@
     z-index: 1060;
     min-width: 180px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    right: auto !important;
+    left: auto !important;
+    transform: translateX(-80%);
 }
 .api-table {
     width: 100%;
@@ -1087,6 +1090,11 @@ $(document).ready(function() {
         $('#apiConnectionsBody').html(html);
         $('#showingCount').text(filtered.length);
         $('#totalCount').text(appliedFilters.showArchived ? apiConnections.length : apiConnections.filter(c => !c.archived).length);
+        
+        // Initialize Bootstrap dropdowns for dynamically added content
+        $('#apiConnectionsBody [data-bs-toggle="dropdown"]').each(function() {
+            new bootstrap.Dropdown(this);
+        });
         
         $('.api-table thead th').removeClass('sorted');
         $('.api-table thead th[data-sort="' + currentSort.column + '"]').addClass('sorted');
