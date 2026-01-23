@@ -1066,6 +1066,54 @@ var filterLabels = {
 
 var currentActionTemplate = null;
 
+var AdminPermissions = (function() {
+    var currentUserPermissions = [
+        'templates.admin.view',
+        'templates.admin.edit',
+        'templates.admin.suspend',
+        'templates.admin.reactivate',
+        'templates.admin.archive'
+    ];
+    
+    function hasPermission(permission) {
+        return currentUserPermissions.includes(permission);
+    }
+    
+    function canView() {
+        return hasPermission('templates.admin.view');
+    }
+    
+    function canEdit() {
+        return hasPermission('templates.admin.edit');
+    }
+    
+    function canSuspend() {
+        return hasPermission('templates.admin.suspend');
+    }
+    
+    function canReactivate() {
+        return hasPermission('templates.admin.reactivate');
+    }
+    
+    function canArchive() {
+        return hasPermission('templates.admin.archive');
+    }
+    
+    function setPermissions(permissions) {
+        currentUserPermissions = permissions;
+    }
+    
+    return {
+        hasPermission: hasPermission,
+        canView: canView,
+        canEdit: canEdit,
+        canSuspend: canSuspend,
+        canReactivate: canReactivate,
+        canArchive: canArchive,
+        setPermissions: setPermissions
+    };
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     loadTemplates();
     setupEventListeners();
@@ -1376,19 +1424,19 @@ function renderTemplates(templates) {
         
         html += '<li><a class="dropdown-item" href="#" onclick="viewTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>';
         
-        if (!isArchived) {
+        if (!isArchived && AdminPermissions.canEdit()) {
             html += '<li><a class="dropdown-item" href="#" onclick="editTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\'); return false;"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         
-        if (template.status === 'live') {
+        if (template.status === 'live' && AdminPermissions.canSuspend()) {
             html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
         }
         
-        if (template.status === 'paused') {
+        if (template.status === 'paused' && AdminPermissions.canReactivate()) {
             html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
         }
         
-        if (!isArchived) {
+        if (!isArchived && AdminPermissions.canArchive()) {
             html += '<li><hr class="dropdown-divider"></li>';
             html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\', \'' + template.status + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
         }
@@ -1759,6 +1807,7 @@ function showToast(message, type) {
 var editWizardStep = 1;
 var editingTemplate = null;
 var editTenantContext = null;
+var editReadOnlyMode = false;
 
 async function editTemplate(accountId, templateId) {
     var loadingOverlay = document.getElementById('editLoadingOverlay');
@@ -1769,6 +1818,7 @@ async function editTemplate(accountId, templateId) {
     
     editWizardStep = 1;
     editTenantContext = { accountId: accountId, templateId: templateId };
+    editReadOnlyMode = !AdminPermissions.canEdit();
     
     updateEditWizardUI();
     new bootstrap.Modal(document.getElementById('editTemplateModal')).show();
@@ -1790,6 +1840,8 @@ async function editTemplate(accountId, templateId) {
         document.getElementById('editErrorMessage').textContent = 'Archived templates cannot be edited.';
         return;
     }
+    
+    applyEditReadOnlyMode(editReadOnlyMode);
     
     document.getElementById('editAccountBadge').textContent = editingTemplate.accountName + ' (' + accountId + ')';
     document.getElementById('editCustomerName').textContent = editingTemplate.accountName;
@@ -1849,7 +1901,57 @@ function updateEditWizardUI() {
     
     document.getElementById('editPrevBtn').style.display = editWizardStep > 1 ? 'inline-block' : 'none';
     document.getElementById('editNextBtn').style.display = editWizardStep < 3 ? 'inline-block' : 'none';
-    document.getElementById('editSaveBtn').style.display = editWizardStep === 3 ? 'inline-block' : 'none';
+    
+    if (editReadOnlyMode) {
+        document.getElementById('editSaveBtn').style.display = 'none';
+    } else {
+        document.getElementById('editSaveBtn').style.display = editWizardStep === 3 ? 'inline-block' : 'none';
+    }
+}
+
+function applyEditReadOnlyMode(isReadOnly) {
+    var modalTitleIcon = document.querySelector('#editTemplateModal .modal-header .modal-title i');
+    var modalTitleText = document.querySelector('#editTemplateModal .modal-header .modal-title');
+    var readOnlyBadge = document.getElementById('editReadOnlyBadge');
+    
+    if (isReadOnly) {
+        if (modalTitleIcon) {
+            modalTitleIcon.className = 'fas fa-eye me-2';
+        }
+        
+        if (!readOnlyBadge && modalTitleText) {
+            var badge = document.createElement('span');
+            badge.id = 'editReadOnlyBadge';
+            badge.className = 'badge bg-secondary ms-2';
+            badge.textContent = 'Read Only';
+            badge.style.fontSize = '0.7rem';
+            badge.style.verticalAlign = 'middle';
+            modalTitleText.parentNode.insertBefore(badge, modalTitleText.nextSibling);
+        }
+    } else {
+        if (modalTitleIcon) {
+            modalTitleIcon.className = 'fas fa-edit me-2';
+        }
+        if (readOnlyBadge) {
+            readOnlyBadge.remove();
+        }
+    }
+    
+    document.getElementById('editTemplateName').readOnly = isReadOnly;
+    document.getElementById('editTemplateContent').readOnly = isReadOnly;
+    
+    document.querySelectorAll('input[name="editChannel"]').forEach(function(radio) {
+        radio.disabled = isReadOnly;
+    });
+    
+    document.querySelectorAll('#editTemplateModal .placeholder-btn').forEach(function(btn) {
+        btn.style.display = isReadOnly ? 'none' : 'inline-block';
+    });
+    
+    var setLiveCheckbox = document.getElementById('editSetLive');
+    var changeNoteTextarea = document.getElementById('editChangeNote');
+    if (setLiveCheckbox) setLiveCheckbox.disabled = isReadOnly;
+    if (changeNoteTextarea) changeNoteTextarea.readOnly = isReadOnly;
 }
 
 function editWizardNext() {
@@ -1908,6 +2010,11 @@ function populateReviewStep() {
 
 async function saveTemplateChanges() {
     if (!editingTemplate || !editTenantContext) return;
+    
+    if (editReadOnlyMode) {
+        showToast('Cannot save changes in read-only mode', 'warning');
+        return;
+    }
     
     var saveBtn = document.getElementById('editSaveBtn');
     var originalText = saveBtn.innerHTML;
