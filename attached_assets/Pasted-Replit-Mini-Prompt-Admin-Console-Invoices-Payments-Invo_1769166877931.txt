@@ -1,0 +1,96 @@
+Replit Mini Prompt — Admin Console > Invoices & Payments > Invoices (Global Clone)
+
+Context
+You are working in the QuickSMS Admin Console (internal-only). Build Admin → Invoices & Payments → Invoices by making an identical copy of the Customer Portal invoice module (Reporting > Invoices / Invoices UI) — same layout, same components, same table style, same filters, same actions, same modals, same pagination, same empty states, same confirmation patterns.
+
+Hard Rule (No redesign)
+
+Do NOT redesign anything.
+
+Reuse the existing invoice module code/components/logic from the customer portal wherever possible (shared components).
+
+Only allowed visual change: swap Fillow purple accents → Admin blue accents.
+
+Do not change row colouring/status colouring other than accent highlights (keep status pill colours as-is).
+
+Keep the same background + card styles as the customer invoice module, just with admin blue.
+
+1) Navigation / Routing
+
+Add route: Admin Console → Invoices & Payments → Invoices
+
+Ensure left nav reflects this path and highlights active section.
+
+2) Core Functional Difference (Global View)
+
+This is a global view across all customer accounts.
+
+Table changes
+
+Add first column: Account Name (customer account display name).
+
+Must be sortable A–Z / Z–A using the same table sort patterns as customer module.
+
+Clicking Account Name should drill to that account’s admin account page (if exists), otherwise no-op for now.
+
+Filters
+
+Add filter: Account Name (searchable dropdown / typeahead using the same Fillow filter control style already used in admin modules).
+
+Filtering must be Apply Filters driven (no auto filtering until Apply is clicked), matching admin filter pattern.
+
+Everything else must remain identical to customer invoice module.
+
+3) UI Requirements (Identical Clone)
+
+Replicate exactly:
+
+Page header + breadcrumb style (admin console breadcrumb format)
+
+Summary cards/tiles (if they exist in customer invoices module)
+
+Table header styling, column spacing, row height, pagination, export/download actions, three-dot actions, confirmation modals, empty/loading states
+
+Status pills/badges and their colours (unchanged)
+
+Any invoice detail view / view modal / download invoice / credit note flows (exact same UX)
+
+Only change:
+
+Replace purple accents (buttons, highlights, focus states, active tab indicator) with admin blue.
+
+4) Data Model (Mock + Backend-Ready)
+
+Use mock data if backend is not ready, but structure it so it’s drop-in replaceable with real endpoints.
+
+Mock invoices must include accountName (string) and accountId (string) for the new column/filter.
+
+Keep existing invoice fields exactly as customer module expects (invoice number, period, amount, status, issued date, due date, etc).
+
+5) Column Fit & Density
+
+Ensure all columns fit on screen like the customer module.
+
+If needed, reduce font size slightly using existing Fillow typography scale (don’t invent new sizes).
+
+No horizontal scroll unless customer module already uses it.
+
+6) Acceptance Criteria
+
+Admin Invoices page looks and behaves identically to customer invoice module (same UI/UX), except:
+
+Admin blue accents instead of purple
+
+First column is Account Name
+
+Filter includes Account Name
+
+Data scope is global (all accounts)
+
+Apply Filters updates table correctly.
+
+Sorting works including Account Name.
+
+Actions/modals behave exactly like customer module.
+
+Code uses shared components (no duplicated “new invoice UI” implementations).

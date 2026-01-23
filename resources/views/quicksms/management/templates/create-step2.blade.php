@@ -185,107 +185,7 @@
                         
                         <div class="template-content-layout">
                             <div class="template-content-left">
-            <div class="card mb-3 border-0 p-0">
-                <div class="card-body p-0">
-                    <h6 class="form-section-title"><i class="fas fa-broadcast-tower me-2"></i>Channel & Sender</h6>
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <div class="btn-group w-100" role="group">
-                                <input type="radio" class="btn-check" name="channel" id="channelSMS" value="sms" checked>
-                                <label class="btn btn-outline-primary" for="channelSMS"><i class="fas fa-sms me-1"></i>SMS only</label>
-                                <input type="radio" class="btn-check" name="channel" id="channelRCSBasic" value="rcs_basic">
-                                <label class="btn btn-outline-primary" for="channelRCSBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
-                                <input type="radio" class="btn-check" name="channel" id="channelRCSRich" value="rcs_rich">
-                                <label class="btn btn-outline-primary" for="channelRCSRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6" id="senderIdSection">
-                            <select class="form-select" id="senderId" onchange="updatePreview()">
-                                <option value="">SMS Sender ID *</option>
-                                @foreach($sender_ids as $sender)
-                                <option value="{{ $sender['id'] }}">{{ $sender['name'] }} ({{ $sender['type'] }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6 d-none" id="rcsAgentSection">
-                            <select class="form-select" id="rcsAgent" onchange="updatePreview()">
-                                <option value="">RCS Agent *</option>
-                                @foreach($rcs_agents as $agent)
-                                <option value="{{ $agent['id'] }}" 
-                                    data-name="{{ $agent['name'] }}"
-                                    data-logo="{{ $agent['logo'] ?? '' }}"
-                                    data-tagline="{{ $agent['tagline'] ?? '' }}"
-                                    data-brand-color="{{ $agent['brand_color'] ?? '#886CC0' }}">{{ $agent['name'] }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card mb-3 border-0 p-0">
-                <div class="card-body p-0">
-                    <h6 class="form-section-title"><i class="fas fa-edit me-2"></i>Content</h6>
-                    
-                    <label class="form-label mb-2" id="contentLabel">SMS Content</label>
-                    
-                    <div class="position-relative border rounded mb-2">
-                        <textarea class="form-control border-0" id="smsContent" rows="5" placeholder="Type your message here..." oninput="handleContentChange()" style="padding-bottom: 40px;"></textarea>
-                        <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
-                            <button type="button" class="btn btn-sm btn-light border" onclick="openPersonalisationModal()" title="Insert personalisation">
-                                <i class="fas fa-user-tag"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-light border" id="emojiPickerBtn" title="Insert emoji">
-                                <i class="fas fa-smile"></i>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <span class="text-muted me-3">Characters: <strong id="charCount">0</strong></span>
-                            <span class="text-muted me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
-                            <span class="text-muted" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
-                        </div>
-                        <span class="badge bg-warning text-dark d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding.">
-                            <i class="fas fa-exclamation-triangle me-1"></i>Unicode
-                        </span>
-                    </div>
-                    
-                    <div class="d-none mb-2" id="rcsTextHelper">
-                        <div class="alert py-2 mb-0" style="background-color: #f0ebf8; color: #6b5b95; border: none;">
-                            <i class="fas fa-info-circle me-1"></i>
-                            <span id="rcsHelperText">Messages over 160 characters will be automatically sent as a single RCS message where supported.</span>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-end">
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="openAiAssistant()">
-                            <i class="fas fa-magic me-1"></i>Improve with AI
-                        </button>
-                    </div>
-                    
-                    <div class="d-none mt-3" id="rcsContentSection">
-                        <div class="border rounded p-3 text-center" style="background-color: rgba(136, 108, 192, 0.1); border-color: rgba(136, 108, 192, 0.2) !important;">
-                            <i class="fas fa-image fa-2x text-primary mb-2"></i>
-                            <h6 class="mb-2">Rich RCS Card</h6>
-                            <p class="text-muted small mb-3">Create rich media cards with images, descriptions, and interactive buttons.</p>
-                            <button type="button" class="btn btn-primary" onclick="openRcsWizard()">
-                                <i class="fas fa-magic me-1"></i>Create RCS Message
-                            </button>
-                            <div class="d-none mt-3" id="rcsConfiguredSummary">
-                                <div class="alert alert-primary py-2 mb-0">
-                                    <i class="fas fa-check-circle me-1"></i>
-                                    <span id="rcsConfiguredText">RCS content configured</span>
-                                    <a href="#" class="ms-2" onclick="openRcsWizard(); return false;">Edit</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                                @include('quicksms.partials.message-composer', ['composerMode' => 'template'])
 
                                 <div class="toolbar-bottom">
                                     <a href="{{ route('management.templates.create.step1') }}" class="btn btn-outline-secondary">
@@ -406,7 +306,7 @@ function handleChannelChange(channel) {
         if (previewToggleContainer) previewToggleContainer.classList.add('d-none');
         if (previewChannel) previewChannel.textContent = 'SMS';
     } else if (channel === 'rcs_basic') {
-        senderIdSection.classList.add('d-none');
+        senderIdSection.classList.remove('d-none');
         rcsAgentSection.classList.remove('d-none');
         rcsContentSection.classList.add('d-none');
         rcsTextHelper.classList.remove('d-none');
@@ -417,7 +317,7 @@ function handleChannelChange(channel) {
         if (previewChannel) previewChannel.textContent = 'Basic RCS';
         autoSelectFirstAgent();
     } else if (channel === 'rcs_rich') {
-        senderIdSection.classList.add('d-none');
+        senderIdSection.classList.remove('d-none');
         rcsAgentSection.classList.remove('d-none');
         rcsContentSection.classList.remove('d-none');
         rcsTextHelper.classList.add('d-none');
@@ -617,6 +517,58 @@ function openPersonalisationModal() {
 
 function openAiAssistant() {
     alert('AI Assistant would open here');
+}
+
+function toggleOptoutManagement() {
+    var enabled = document.getElementById('enableOptoutManagement').checked;
+    var section = document.getElementById('optoutManagementSection');
+    var disabledMsg = document.getElementById('optoutDisabledMessage');
+    
+    if (section) section.classList.toggle('d-none', !enabled);
+    if (disabledMsg) disabledMsg.classList.toggle('d-none', enabled);
+}
+
+function toggleReplyOptout() {
+    var enabled = document.getElementById('enableReplyOptout').checked;
+    var config = document.getElementById('replyOptoutConfig');
+    if (config) config.classList.toggle('d-none', !enabled);
+}
+
+function toggleUrlOptout() {
+    var enabled = document.getElementById('enableUrlOptout').checked;
+    var config = document.getElementById('urlOptoutConfig');
+    if (config) config.classList.toggle('d-none', !enabled);
+}
+
+function toggleTrackableLinkModal() {
+    var enabled = document.getElementById('includeTrackableLink').checked;
+    var summary = document.getElementById('trackableLinkSummary');
+    if (summary) summary.classList.toggle('d-none', !enabled);
+}
+
+function toggleMessageExpiryModal() {
+    var enabled = document.getElementById('messageExpiry').checked;
+    var summary = document.getElementById('messageExpirySummary');
+    if (summary) summary.classList.toggle('d-none', !enabled);
+}
+
+function addOptoutToMessage(type) {
+    var contentEl = document.getElementById('smsContent');
+    if (!contentEl) return;
+    
+    var text = '';
+    if (type === 'reply') {
+        var vnSelect = document.getElementById('replyVirtualNumber');
+        var number = vnSelect?.selectedOptions[0]?.dataset?.number || '@{' + '{number}}';
+        text = document.getElementById('replyOptoutText')?.value.replace('@{' + '{number}}', number) || '';
+    } else if (type === 'url') {
+        text = document.getElementById('urlOptoutText')?.value || '';
+    }
+    
+    if (text) {
+        contentEl.value = contentEl.value + (contentEl.value ? '\n' : '') + text;
+        handleContentChange();
+    }
 }
 
 function loadSavedData() {
