@@ -147,6 +147,16 @@ body > .dropdown-menu.dropdown-menu-end,
     font-weight: 500;
     color: #343a40;
 }
+.action-menu-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+.action-menu-btn:hover {
+    color: var(--primary);
+}
 .badge-draft {
     background: rgba(108, 117, 125, 0.15);
     color: #6c757d;
@@ -1601,7 +1611,7 @@ $(document).ready(function() {
             html += '<td>' + (item.lastUsed ? formatDate(item.lastUsed) : '<span class="text-muted">Never</span>') + '</td>';
             html += '<td class="text-center">';
             html += '<div class="dropdown">';
-            html += '<button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown" data-bs-container="body"><i class="fas fa-ellipsis-v"></i></button>';
+            html += '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';
             html += '<li><a class="dropdown-item btn-view-details" href="#" data-id="' + item.id + '"><i class="fas fa-eye me-2"></i>View Details</a></li>';
             html += '<li><a class="dropdown-item btn-view-audit" href="#" data-id="' + item.id + '"><i class="fas fa-history me-2"></i>View Audit History</a></li>';

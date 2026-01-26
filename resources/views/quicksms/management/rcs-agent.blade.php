@@ -155,6 +155,16 @@
     background: rgba(108, 117, 125, 0.15);
     color: #6c757d;
 }
+.action-menu-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+.action-menu-btn:hover {
+    color: var(--primary);
+}
 .rcs-review-section {
     background: #fff;
     border: 1px solid #e2e8f0;
@@ -2423,7 +2433,7 @@ function getActionsMenu(agent) {
     }
     
     return '<div class="dropdown action-menu">' +
-        '<button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown">' +
+        '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
             '<i class="fas fa-ellipsis-v"></i>' +
         '</button>' +
         '<ul class="dropdown-menu dropdown-menu-end">' + menuItems + '</ul>' +
