@@ -4,28 +4,7 @@
 
 @push('styles')
 <style>
-.finance-data-container {
-    height: calc(100vh - 120px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-.finance-data-container .card {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    margin-bottom: 0 !important;
-}
-.finance-data-container .card-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding-bottom: 0;
-}
 .finance-data-fixed-header {
-    flex-shrink: 0;
     overflow: visible;
 }
 #filtersPanel {
@@ -50,12 +29,9 @@
     z-index: 1050;
 }
 .finance-data-table-wrapper {
-    flex: 1 1 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-height: 0;
-    max-height: 100%;
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
@@ -73,11 +49,8 @@
     color: #3065d0 !important;
 }
 #tableContainer {
-    flex: 1 1 0;
-    overflow-y: auto !important;
+    overflow-y: auto;
     overflow-x: auto;
-    min-height: 0;
-    max-height: 100%;
 }
 #tableContainer.table-responsive {
     overflow-y: auto !important;
@@ -353,8 +326,8 @@
 @endpush
 
 @section('content')
-<div class="container-fluid finance-data-container">
-    <div class="row page-titles mb-2" style="flex-shrink: 0;">
+<div class="container-fluid">
+    <div class="row page-titles mb-2">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
             <li class="breadcrumb-item"><a href="{{ route('reporting') }}">Reporting</a></li>
@@ -362,8 +335,8 @@
         </ol>
     </div>
     
-    <div class="row flex-grow-1" style="min-height: 0;">
-        <div class="col-12 d-flex flex-column" style="min-height: 0;">
+    <div class="row">
+        <div class="col-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap finance-data-fixed-header">
                     <h5 class="card-title mb-2 mb-md-0">Finance Data</h5>
