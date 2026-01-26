@@ -4,28 +4,7 @@
 
 @push('styles')
 <style>
-.download-area-container {
-    height: calc(100vh - 120px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-.download-area-container .card {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    margin-bottom: 0 !important;
-}
-.download-area-container .card-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding-bottom: 0;
-}
 .download-area-fixed-header {
-    flex-shrink: 0;
     overflow: visible;
 }
 #filtersPanel {
@@ -35,22 +14,17 @@
     overflow: visible !important;
 }
 .download-area-table-wrapper {
-    flex: 1 1 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
-    max-height: 100%;
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
 }
 #tableContainer {
-    flex: 1 1 0;
-    overflow-y: auto !important;
+    overflow-y: auto;
     overflow-x: auto;
-    min-height: 0;
-    max-height: 100%;
 }
 .download-area-footer {
     flex-shrink: 0;
@@ -138,27 +112,27 @@
 .status-processing { background-color: #fff3cd; color: #856404; }
 .status-pill {
     display: inline-block;
-    padding: 0.25rem 0.625rem;
-    border-radius: 1rem;
-    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
     font-weight: 500;
     white-space: nowrap;
 }
 .status-pill-completed {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: rgba(28, 187, 140, 0.15);
+    color: #1cbb8c;
 }
 .status-pill-failed {
-    background-color: #f8d7da;
-    color: #721c24;
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
 }
 .status-pill-expired {
-    background-color: #e2e3e5;
+    background-color: rgba(108, 117, 125, 0.15);
     color: #6c757d;
 }
 .status-pill-processing {
-    background-color: #fff3cd;
-    color: #856404;
+    background-color: rgba(255, 191, 0, 0.15);
+    color: #cc9900;
 }
 .empty-state {
     text-align: center;
@@ -647,22 +621,20 @@
 @endpush
 
 @section('content')
-<div class="container-fluid download-area-container">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('reporting.dashboard') }}">Reporting</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Download Area</li>
-            </ol>
-        </nav>
-    </div>
-
-    <div class="row flex-grow-1" style="min-height: 0;">
-        <div class="col-12 d-flex flex-column" style="min-height: 0;">
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap download-area-fixed-header">
-                    <h5 class="card-title mb-2 mb-md-0">Download Area</h5>
+                <div class="card-header">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-3">
+                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('reporting.dashboard') }}">Reporting</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Download Area</li>
+                        </ol>
+                    </nav>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <h5 class="card-title mb-2 mb-md-0">Download Area</h5>
                     <div class="d-flex align-items-center gap-2">
                         <div class="btn-group" id="bulkActionsHeader" style="display: none;">
                             <button class="btn btn-outline-primary btn-sm" onclick="downloadSelected()">
@@ -679,7 +651,7 @@
                             <i class="fas fa-sync-alt me-1"></i> Refresh
                         </button>
                     </div>
-
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="download-area-fixed-header">
