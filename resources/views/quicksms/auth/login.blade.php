@@ -616,6 +616,65 @@ $(document).ready(function() {
         'policy-test@example.com': { password: 'test123', name: 'Policy Test User', company: 'Test Corp', mobile: null, mfa_enabled: true, totp_enabled: false, rcs_enabled: false, groups: [], dev_bypass_enabled: false }
     };
     
+    // Account IP Allowlist Policy - TODO: Fetch from backend API
+    var AccountIPPolicy = {
+        ip_allowlist_enabled: true, // Set to true to test enforcement
+        ip_allowlist: [
+            { ip: '192.168.1.0/24', label: 'Office Network' },
+            { ip: '10.0.0.1', label: 'VPN Gateway' },
+            { ip: '127.0.0.1', label: 'Localhost' }
+        ],
+        // Check if IP is in allowlist
+        isIPAllowed: function(clientIP) {
+            if (!this.ip_allowlist_enabled) {
+                return { allowed: true, reason: 'policy_disabled' };
+            }
+            
+            if (this.ip_allowlist.length === 0) {
+                return { allowed: true, reason: 'empty_allowlist' };
+            }
+            
+            var allowed = this.ip_allowlist.some(function(entry) {
+                return AccountIPPolicy.matchIP(clientIP, entry.ip);
+            });
+            
+            return {
+                allowed: allowed,
+                reason: allowed ? 'ip_in_allowlist' : 'IP_BLOCKED'
+            };
+        },
+        // Match IP against single IP or CIDR range
+        matchIP: function(clientIP, allowedIP) {
+            if (allowedIP.includes('/')) {
+                // CIDR match
+                return this.matchCIDR(clientIP, allowedIP);
+            }
+            // Exact match
+            return clientIP === allowedIP;
+        },
+        matchCIDR: function(ip, cidr) {
+            var parts = cidr.split('/');
+            var baseIP = parts[0];
+            var prefix = parseInt(parts[1], 10);
+            
+            var ipNum = this.ipToNum(ip);
+            var baseNum = this.ipToNum(baseIP);
+            var mask = ~((1 << (32 - prefix)) - 1);
+            
+            return (ipNum & mask) === (baseNum & mask);
+        },
+        ipToNum: function(ip) {
+            var parts = ip.split('.');
+            return ((parseInt(parts[0]) << 24) | 
+                    (parseInt(parts[1]) << 16) | 
+                    (parseInt(parts[2]) << 8) | 
+                    parseInt(parts[3])) >>> 0;
+        },
+        generateRequestId: function() {
+            return 'REQ-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+    };
+    
     // Account MFA Policy - TODO: Fetch from backend API
     var AccountMfaPolicy = {
         mfa_required: true,
@@ -705,6 +764,34 @@ $(document).ready(function() {
             var user = MockUsers[email];
             if (user && user.password === password) {
                 IPService.logLoginAttempt(email, true, { stage: 'credentials' });
+                
+                // Check IP allowlist policy BEFORE MFA challenge
+                var ipCheck = AccountIPPolicy.isIPAllowed(IPService.currentIP);
+                if (!ipCheck.allowed) {
+                    var requestId = AccountIPPolicy.generateRequestId();
+                    var timestamp = new Date().toISOString();
+                    
+                    // Log security event
+                    AuditService.log('LOGIN_BLOCKED_BY_IP_POLICY', {
+                        source_ip: IPService.currentIP,
+                        timestamp: timestamp,
+                        reason: 'IP_BLOCKED',
+                        email_hash: btoa(email).substring(0, 16), // Simple hash for privacy
+                        request_id: requestId
+                    });
+                    
+                    // Show blocked error banner
+                    $('#loginStatus')
+                        .removeClass('d-none alert-danger')
+                        .addClass('alert-danger')
+                        .html('<i class="fas fa-ban me-2"></i><strong>Login blocked:</strong> your network is not permitted for this account. Please contact your administrator.<br><small class="text-muted mt-1 d-block">Request ID: ' + requestId + ' | ' + new Date().toLocaleString() + '</small>');
+                    
+                    $btn.find('.btn-text').removeClass('d-none');
+                    $btn.find('.btn-loading').addClass('d-none');
+                    $btn.prop('disabled', false);
+                    return;
+                }
+                
                 AuditService.log('login_success_step1', { email: email });
                 currentEmail = email;
                 
