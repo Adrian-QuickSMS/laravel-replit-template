@@ -206,13 +206,13 @@
                                 @include('quicksms.partials.message-composer', ['composerMode' => 'template'])
 
                                 <div class="toolbar-bottom">
-                                    <a href="{{ $isEditMode ? route('management.templates.edit.step1', ['templateId' => $templateId]) : route('management.templates.create.step1') }}" class="btn btn-back">
+                                    <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step1', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step1', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step1') }}@endif" class="btn btn-back">
                                         <i class="fas fa-arrow-left me-1"></i>Back
                                     </a>
                                     <button type="button" class="btn btn-save-draft" id="saveDraftBtn">
                                         <i class="fas fa-save me-1"></i>Save Draft
                                     </button>
-                                    <a href="{{ $isEditMode ? route('management.templates.edit.step3', ['templateId' => $templateId]) : route('management.templates.create.step3') }}" class="btn btn-primary" id="nextBtn">
+                                    <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step3', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step3', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step3') }}@endif" class="btn btn-primary" id="nextBtn">
                                         Next: Settings <i class="fas fa-arrow-right ms-1"></i>
                                     </a>
                                 </div>

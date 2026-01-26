@@ -192,7 +192,7 @@
                                 <div class="review-section">
                                     <h6>
                                         <span><i class="fas fa-info-circle me-2"></i>Metadata</span>
-                                        <a href="{{ $isEditMode ? route('management.templates.edit.step1', ['templateId' => $templateId]) : route('management.templates.create.step1') }}"><i class="fas fa-edit me-1"></i>Edit</a>
+                                        <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step1', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step1', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step1') }}@endif"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
                                         <span class="review-label">Name:</span>
@@ -211,7 +211,7 @@
                                 <div class="review-section">
                                     <h6>
                                         <span><i class="fas fa-envelope me-2"></i>Content</span>
-                                        <a href="{{ $isEditMode ? route('management.templates.edit.step2', ['templateId' => $templateId]) : route('management.templates.create.step2') }}"><i class="fas fa-edit me-1"></i>Edit</a>
+                                        <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step2', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step2', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step2') }}@endif"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
                                         <span class="review-label">Channel:</span>
@@ -226,7 +226,7 @@
                                 <div class="review-section">
                                     <h6>
                                         <span><i class="fas fa-cog me-2"></i>Settings</span>
-                                        <a href="{{ $isEditMode ? route('management.templates.edit.step3', ['templateId' => $templateId]) : route('management.templates.create.step3') }}"><i class="fas fa-edit me-1"></i>Edit</a>
+                                        <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step3', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step3', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step3') }}@endif"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
                                         <span class="review-label">Assigned Sub-Accounts:</span>
@@ -239,7 +239,7 @@
                                 </div>
 
                                 <div class="toolbar-bottom">
-                                    <a href="{{ $isEditMode ? route('management.templates.edit.step3', ['templateId' => $templateId]) : route('management.templates.create.step3') }}" class="btn btn-back">
+                                    <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step3', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step3', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step3') }}@endif" class="btn btn-back">
                                         <i class="fas fa-arrow-left me-1"></i>Back
                                     </a>
                                     <button type="button" class="btn btn-save-draft" id="saveDraftBtn">

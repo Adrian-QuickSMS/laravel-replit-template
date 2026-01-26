@@ -326,13 +326,13 @@
                                 </div>
 
                                 <div class="toolbar-bottom">
-                                    <a href="{{ $isEditMode ? route('management.templates.edit.step2', ['templateId' => $templateId]) : route('management.templates.create.step2') }}" class="btn btn-back">
+                                    <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step2', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step2', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step2') }}@endif" class="btn btn-back">
                                         <i class="fas fa-arrow-left me-1"></i>Back
                                     </a>
                                     <button type="button" class="btn btn-save-draft" id="saveDraftBtn">
                                         <i class="fas fa-save me-1"></i>Save Draft
                                     </button>
-                                    <a href="{{ $isEditMode ? route('management.templates.edit.review', ['templateId' => $templateId]) : route('management.templates.create.review') }}" class="btn btn-primary" id="nextBtn">
+                                    <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.review', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.review', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.review') }}@endif" class="btn btn-primary" id="nextBtn">
                                         Next: Review <i class="fas fa-arrow-right ms-1"></i>
                                     </a>
                                 </div>

@@ -1731,6 +1731,7 @@ class QuickSMSController extends Controller
         return view('quicksms.management.templates.create-step1', [
             'page_title' => 'Create Template - Metadata',
             'isEditMode' => false,
+            'isAdminMode' => false,
             'template' => null
         ]);
     }
@@ -1751,6 +1752,7 @@ class QuickSMSController extends Controller
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Create Template - Content',
             'isEditMode' => false,
+            'isAdminMode' => false,
             'template' => null,
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents
@@ -1762,6 +1764,7 @@ class QuickSMSController extends Controller
         return view('quicksms.management.templates.create-step3', [
             'page_title' => 'Create Template - Settings',
             'isEditMode' => false,
+            'isAdminMode' => false,
             'template' => null
         ]);
     }
@@ -1771,6 +1774,7 @@ class QuickSMSController extends Controller
         return view('quicksms.management.templates.create-review', [
             'page_title' => 'Create Template - Review',
             'isEditMode' => false,
+            'isAdminMode' => false,
             'template' => null
         ]);
     }
@@ -1783,6 +1787,7 @@ class QuickSMSController extends Controller
         return view('quicksms.management.templates.create-step1', [
             'page_title' => 'Edit Template - Metadata',
             'isEditMode' => true,
+            'isAdminMode' => false,
             'templateId' => $templateId,
             'template' => $template
         ]);
@@ -1807,6 +1812,7 @@ class QuickSMSController extends Controller
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Edit Template - Content',
             'isEditMode' => true,
+            'isAdminMode' => false,
             'templateId' => $templateId,
             'template' => $template,
             'sender_ids' => $sender_ids,
@@ -1822,6 +1828,7 @@ class QuickSMSController extends Controller
         return view('quicksms.management.templates.create-step3', [
             'page_title' => 'Edit Template - Settings',
             'isEditMode' => true,
+            'isAdminMode' => false,
             'templateId' => $templateId,
             'template' => $template
         ]);
@@ -1835,7 +1842,109 @@ class QuickSMSController extends Controller
         return view('quicksms.management.templates.create-review', [
             'page_title' => 'Edit Template - Review',
             'isEditMode' => true,
+            'isAdminMode' => false,
             'templateId' => $templateId,
+            'template' => $template
+        ]);
+    }
+
+    public function adminTemplateEditStep1($accountId, $templateId)
+    {
+        // TODO: Replace with API call - templatesService.getTemplate(templateId)
+        $template = $this->getMockTemplate($templateId);
+        
+        // TODO: Replace with API call - accountsService.getAccount(accountId)
+        $account = [
+            'id' => $accountId,
+            'name' => 'Acme Corp'
+        ];
+
+        return view('quicksms.management.templates.create-step1', [
+            'page_title' => 'Edit Template - Metadata',
+            'isEditMode' => true,
+            'isAdminMode' => true,
+            'templateId' => $templateId,
+            'accountId' => $accountId,
+            'account' => $account,
+            'template' => $template
+        ]);
+    }
+
+    public function adminTemplateEditStep2($accountId, $templateId)
+    {
+        $sender_ids = [
+            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
+            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
+            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
+        ];
+
+        $rcs_agents = [
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
+        ];
+
+        // TODO: Replace with API call - templatesService.getTemplate(templateId)
+        $template = $this->getMockTemplate($templateId);
+        
+        // TODO: Replace with API call - accountsService.getAccount(accountId)
+        $account = [
+            'id' => $accountId,
+            'name' => 'Acme Corp'
+        ];
+
+        return view('quicksms.management.templates.create-step2', [
+            'page_title' => 'Edit Template - Content',
+            'isEditMode' => true,
+            'isAdminMode' => true,
+            'templateId' => $templateId,
+            'accountId' => $accountId,
+            'account' => $account,
+            'template' => $template,
+            'sender_ids' => $sender_ids,
+            'rcs_agents' => $rcs_agents
+        ]);
+    }
+
+    public function adminTemplateEditStep3($accountId, $templateId)
+    {
+        // TODO: Replace with API call - templatesService.getTemplate(templateId)
+        $template = $this->getMockTemplate($templateId);
+        
+        // TODO: Replace with API call - accountsService.getAccount(accountId)
+        $account = [
+            'id' => $accountId,
+            'name' => 'Acme Corp'
+        ];
+
+        return view('quicksms.management.templates.create-step3', [
+            'page_title' => 'Edit Template - Settings',
+            'isEditMode' => true,
+            'isAdminMode' => true,
+            'templateId' => $templateId,
+            'accountId' => $accountId,
+            'account' => $account,
+            'template' => $template
+        ]);
+    }
+
+    public function adminTemplateEditReview($accountId, $templateId)
+    {
+        // TODO: Replace with API call - templatesService.getTemplate(templateId)
+        $template = $this->getMockTemplate($templateId);
+        
+        // TODO: Replace with API call - accountsService.getAccount(accountId)
+        $account = [
+            'id' => $accountId,
+            'name' => 'Acme Corp'
+        ];
+
+        return view('quicksms.management.templates.create-review', [
+            'page_title' => 'Edit Template - Review',
+            'isEditMode' => true,
+            'isAdminMode' => true,
+            'templateId' => $templateId,
+            'accountId' => $accountId,
+            'account' => $account,
             'template' => $template
         ]);
     }

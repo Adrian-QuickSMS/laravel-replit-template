@@ -256,7 +256,7 @@
                                     <a href="{{ route('management.templates') }}" class="btn btn-back">
                                         <i class="fas fa-times me-1"></i>Cancel
                                     </a>
-                                    <a href="{{ $isEditMode ? route('management.templates.edit.step2', ['templateId' => $templateId]) : route('management.templates.create.step2') }}" class="btn btn-primary" id="nextBtn">
+                                    <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step2', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step2', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step2') }}@endif" class="btn btn-primary" id="nextBtn">
                                         Next: Content <i class="fas fa-arrow-right ms-1"></i>
                                     </a>
                                 </div>

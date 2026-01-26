@@ -139,7 +139,10 @@ Route::prefix('admin')->group(function () {
             Route::get('/assets/templates', 'assetsTemplates')->name('admin.assets.templates');
             
             Route::get('/management/templates', 'managementTemplates')->name('admin.management.templates');
-            Route::get('/management/templates/{accountId}/{templateId}/edit', 'managementTemplateEdit')->name('admin.management.templates.edit');
+            Route::get('/management/templates/{accountId}/{templateId}/edit/step1', 'adminTemplateEditStep1')->name('admin.management.templates.edit.step1');
+            Route::get('/management/templates/{accountId}/{templateId}/edit/step2', 'adminTemplateEditStep2')->name('admin.management.templates.edit.step2');
+            Route::get('/management/templates/{accountId}/{templateId}/edit/step3', 'adminTemplateEditStep3')->name('admin.management.templates.edit.step3');
+            Route::get('/management/templates/{accountId}/{templateId}/edit/review', 'adminTemplateEditReview')->name('admin.management.templates.edit.review');
             Route::get('/assets/campaigns', 'assetsCampaigns')->name('admin.assets.campaigns');
             Route::get('/assets/numbers', 'assetsNumbers')->name('admin.assets.numbers');
             Route::get('/assets/numbers/{id}/configure', 'assetsNumberConfigure')->name('admin.assets.number.configure');
