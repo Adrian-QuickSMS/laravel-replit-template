@@ -12,11 +12,12 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 **UI/UX and Design Decisions:**
 - **Consistent UI/UX:** Responsive sidebar, standardized data tables with client-side features, and uniform forms/modals.
 - **Table Standardization (Management Section):** All Management section tables use consistent styling:
-  - Headers: padding 0.5rem 0.35rem, font-size 0.75rem, font-weight 600, background #f8f9fa
+  - Headers: padding 0.5rem 0.35rem, font-size 0.75rem, font-weight 600, background #f8f9fa, border-bottom 1px solid #e9ecef
   - Body cells: padding 0.5rem 0.35rem, font-size 0.8rem, border-bottom 1px solid #f1f3f5
-  - Date format: YYYY-MM-DD across all tables
-  - Status badges: Consistent color scheme (green for active/approved, yellow for pending, gray for draft, red for rejected)
-  - Sort icons with click-to-sort functionality on all table headers
+  - Date format: DD-MM-YYYY across all tables
+  - Status badges: Consistent color scheme (green for active/approved, yellow for pending, gray for draft, red for rejected, blue for conversational)
+  - Sort icons: fa-sort icons with click-to-sort functionality on all table headers
+  - Action buttons: .action-menu-btn class with gray (#6c757d) color, purple on hover
 - **Interactive Elements:** Mobile number masking, dynamic validation, real-time character counting, and enhanced content editors with personalization and emoji support.
 - **Wizards and Previews:** Multi-step wizards for RCS Agent Registration, Message Templates, and Email-to-SMS, alongside an RCS preview system with an Android-style phone UI.
 - **Shared Components:** Reusable JavaScript components for image editing (with fixed aspect ratio), RCS button click tracking with UTM parameters and conversion tracking, and a shared template-edit-wizard partial (`resources/views/shared/partials/template-edit-wizard.blade.php`) that supports both admin and customer contexts via `$wizardMode` parameter, theme customization, and Rich RCS availability controls.

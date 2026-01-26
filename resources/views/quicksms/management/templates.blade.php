@@ -2611,6 +2611,15 @@ var showArchived = false;
 var sortColumn = 'lastUpdated';
 var sortDirection = 'desc';
 
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    var date = new Date(dateStr);
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
+    return day + '-' + month + '-' + year;
+}
+
 var appliedFilters = {
     search: '',
     channels: [],
@@ -3579,7 +3588,7 @@ function renderTemplates() {
         html += '<td><span class="content-preview">' + getContentPreviewText(template) + '</span></td>';
         html += '<td><span class="access-scope">' + template.accessScope + '</span></td>';
         html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span></td>';
-        html += '<td>' + template.lastUpdated + '</td>';
+        html += '<td>' + formatDate(template.lastUpdated) + '</td>';
         html += '<td>';
         html += '<div class="dropdown">';
         html += '<button class="action-menu-btn" type="button" onclick="toggleActionMenu(this, event)">';
