@@ -919,13 +919,25 @@
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#vatTaxInfo" aria-expanded="false">
-                        <i class="fas fa-receipt me-2 text-primary"></i>VAT & Tax Information
+                        <i class="fas fa-receipt me-2 text-primary"></i>Billing, VAT and Tax Information
                         <span class="section-indicator required" id="vatStatusBadge"><i class="fas fa-exclamation-circle"></i> Required to go live</span>
                     </button>
                 </h2>
                 <div id="vatTaxInfo" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
                     <div class="accordion-body">
-                        <p class="text-muted small mb-4">VAT settings are used for billing and invoice generation. Changes to VAT details are audit-logged.</p>
+                        <p class="text-muted small mb-4">Billing and VAT settings are used for invoice generation. Changes to these details are audit-logged.</p>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="field-group">
+                                    <label class="form-label">Purchase Order Number</label>
+                                    <input type="text" class="form-control" id="purchaseOrderNumber" value="" placeholder="e.g., PO-12345">
+                                    <div class="field-hint">Optional: This number will be included on all invoices</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
                         
                         <div class="row">
                             <div class="col-md-6">
