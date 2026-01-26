@@ -56,6 +56,21 @@
     overflow: hidden;
     min-height: 0;
     max-height: 100%;
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+}
+.badge-status-finalised {
+    background-color: rgba(28, 187, 140, 0.15) !important;
+    color: #1cbb8c !important;
+}
+.badge-status-adjusted {
+    background-color: rgba(255, 191, 0, 0.15) !important;
+    color: #cc9900 !important;
+}
+.badge-status-provisional {
+    background-color: rgba(48, 101, 208, 0.15) !important;
+    color: #3065d0 !important;
 }
 #tableContainer {
     flex: 1 1 0;
@@ -646,7 +661,7 @@
                                         <td class="text-end">2,321</td>
                                         <td class="text-end fw-semibold">133,051</td>
                                         <td class="text-end fw-semibold">£4,183.36</td>
-                                        <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
+                                        <td class="text-center"><span class="badge badge-status-finalised">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="November 2025">
                                         <td><span class="drill-label fw-semibold">November 2025</span></td>
@@ -654,7 +669,7 @@
                                         <td class="text-end">1,559</td>
                                         <td class="text-end fw-semibold">94,716</td>
                                         <td class="text-end fw-semibold">£2,981.02</td>
-                                        <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
+                                        <td class="text-center"><span class="badge badge-status-finalised">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="October 2025">
                                         <td><span class="drill-label fw-semibold">October 2025</span></td>
@@ -662,7 +677,7 @@
                                         <td class="text-end">5,829</td>
                                         <td class="text-end fw-semibold">106,268</td>
                                         <td class="text-end fw-semibold">£3,214.05</td>
-                                        <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
+                                        <td class="text-center"><span class="badge badge-status-finalised">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="adjusted" data-value="September 2025">
                                         <td><span class="drill-label fw-semibold">September 2025</span></td>
@@ -670,7 +685,7 @@
                                         <td class="text-end">1,405</td>
                                         <td class="text-end fw-semibold">92,116</td>
                                         <td class="text-end fw-semibold">£2,902.75</td>
-                                        <td class="text-center"><span class="badge light badge-warning">Adjusted</span></td>
+                                        <td class="text-center"><span class="badge badge-status-adjusted">Adjusted</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="provisional" data-value="August 2025">
                                         <td><span class="drill-label fw-semibold">August 2025</span></td>
@@ -678,7 +693,7 @@
                                         <td class="text-end">5,783</td>
                                         <td class="text-end fw-semibold">141,061</td>
                                         <td class="text-end fw-semibold">£4,328.90</td>
-                                        <td class="text-center"><span class="badge light badge-info">Provisional</span></td>
+                                        <td class="text-center"><span class="badge badge-status-provisional">Provisional</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="provisional" data-value="July 2025">
                                         <td><span class="drill-label fw-semibold">July 2025</span></td>
@@ -686,7 +701,7 @@
                                         <td class="text-end">2,622</td>
                                         <td class="text-end fw-semibold">124,112</td>
                                         <td class="text-end fw-semibold">£3,887.68</td>
-                                        <td class="text-center"><span class="badge light badge-info">Provisional</span></td>
+                                        <td class="text-center"><span class="badge badge-status-provisional">Provisional</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="June 2025">
                                         <td><span class="drill-label fw-semibold">June 2025</span></td>
@@ -694,7 +709,7 @@
                                         <td class="text-end">3,201</td>
                                         <td class="text-end fw-semibold">119,526</td>
                                         <td class="text-end fw-semibold">£3,722.40</td>
-                                        <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
+                                        <td class="text-center"><span class="badge badge-status-finalised">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="May 2025">
                                         <td><span class="drill-label fw-semibold">May 2025</span></td>
@@ -702,7 +717,7 @@
                                         <td class="text-end">2,145</td>
                                         <td class="text-end fw-semibold">100,379</td>
                                         <td class="text-end fw-semibold">£3,143.49</td>
-                                        <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
+                                        <td class="text-center"><span class="badge badge-status-finalised">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="April 2025">
                                         <td><span class="drill-label fw-semibold">April 2025</span></td>
@@ -710,7 +725,7 @@
                                         <td class="text-end">1,876</td>
                                         <td class="text-end fw-semibold">89,332</td>
                                         <td class="text-end fw-semibold">£2,798.59</td>
-                                        <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
+                                        <td class="text-center"><span class="badge badge-status-finalised">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="March 2025">
                                         <td><span class="drill-label fw-semibold">March 2025</span></td>
@@ -718,7 +733,7 @@
                                         <td class="text-end">2,567</td>
                                         <td class="text-end fw-semibold">104,912</td>
                                         <td class="text-end fw-semibold">£3,275.04</td>
-                                        <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
+                                        <td class="text-center"><span class="badge badge-status-finalised">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="February 2025">
                                         <td><span class="drill-label fw-semibold">February 2025</span></td>
@@ -726,7 +741,7 @@
                                         <td class="text-end">1,456</td>
                                         <td class="text-end fw-semibold">80,368</td>
                                         <td class="text-end fw-semibold">£2,525.18</td>
-                                        <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
+                                        <td class="text-center"><span class="badge badge-status-finalised">Finalised</span></td>
                                     </tr>
                                     <tr class="drill-row" data-status="finalised" data-value="January 2025">
                                         <td><span class="drill-label fw-semibold">January 2025</span></td>
@@ -734,7 +749,7 @@
                                         <td class="text-end">2,234</td>
                                         <td class="text-end fw-semibold">93,579</td>
                                         <td class="text-end fw-semibold">£2,923.04</td>
-                                        <td class="text-center"><span class="badge light badge-success">Finalised</span></td>
+                                        <td class="text-center"><span class="badge badge-status-finalised">Finalised</span></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -2190,24 +2205,24 @@ function getRowAttributes(status) {
         classes: 'drill-row',
         attrs: '',
         labelIcon: '',
-        statusBadge: '<span class="badge light badge-success">Finalised</span>'
+        statusBadge: '<span class="badge badge-status-finalised">Finalised</span>'
     };
     
     if (status === 'Finalised') {
         result.classes = 'drill-row';
         result.attrs = '';
         result.labelIcon = '';
-        result.statusBadge = '<span class="badge light badge-success">Finalised</span>';
+        result.statusBadge = '<span class="badge badge-status-finalised">Finalised</span>';
     } else if (status === 'Adjusted') {
         result.classes = 'drill-row';
         result.attrs = '';
         result.labelIcon = '';
-        result.statusBadge = '<span class="badge light badge-warning">Adjusted</span>';
+        result.statusBadge = '<span class="badge badge-status-adjusted">Adjusted</span>';
     } else if (status === 'Provisional') {
         result.classes = 'drill-row';
         result.attrs = '';
         result.labelIcon = '';
-        result.statusBadge = '<span class="badge light badge-info">Provisional</span>';
+        result.statusBadge = '<span class="badge badge-status-provisional">Provisional</span>';
     }
     
     return result;

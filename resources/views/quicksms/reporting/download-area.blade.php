@@ -41,6 +41,9 @@
     overflow: hidden;
     min-height: 0;
     max-height: 100%;
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
 }
 #tableContainer {
     flex: 1 1 0;
