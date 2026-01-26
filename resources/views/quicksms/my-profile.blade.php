@@ -255,9 +255,7 @@
                         
                         <div class="d-flex flex-wrap gap-2">
                             @if($twoFactorEnabled)
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#mfaMethodModal">
-                                    <i class="fas fa-exchange-alt me-1"></i>Change Method
-                                </button>
+                                {{-- Change Method removed - MFA method is managed at account level via Security Settings --}}
                                 @if(in_array('authenticator', $mfaMethods))
                                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#reenrolAuthenticatorModal">
                                     <i class="fas fa-sync-alt me-1"></i>Re-enrol Authenticator
