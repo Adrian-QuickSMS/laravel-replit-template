@@ -2572,7 +2572,36 @@ var filterLabels = {
 document.addEventListener('DOMContentLoaded', function() {
     renderTemplates();
     setupEventListeners();
+    initTableDropdowns();
 });
+
+function initTableDropdowns() {
+    var templatesBody = document.getElementById('templatesBody');
+    if (templatesBody) {
+        templatesBody.closest('table').addEventListener('show.bs.dropdown', function(e) {
+            var dropdown = e.target;
+            var dropdownMenu = dropdown.nextElementSibling;
+            if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
+                var bsDropdown = bootstrap.Dropdown.getInstance(dropdown);
+                if (bsDropdown) {
+                    bsDropdown.dispose();
+                }
+                new bootstrap.Dropdown(dropdown, {
+                    popperConfig: function(defaultConfig) {
+                        defaultConfig.modifiers = defaultConfig.modifiers || [];
+                        defaultConfig.modifiers.push({
+                            name: 'preventOverflow',
+                            options: {
+                                boundary: 'viewport'
+                            }
+                        });
+                        return defaultConfig;
+                    }
+                });
+            }
+        });
+    }
+}
 
 function setupEventListeners() {
     var createBtn = document.getElementById('createTemplateBtn');
