@@ -2634,7 +2634,7 @@ window.toggleActionMenu = function(btn, event) {
         // Apply all styles at once
         menu.style.cssText = 'position: fixed !important; ' +
             'top: ' + (rect.bottom + 2) + 'px !important; ' +
-            'left: ' + (rect.right - 180) + 'px !important; ' +
+            'left: ' + (rect.right - 160) + 'px !important; ' +
             'z-index: 99999 !important; ' +
             'display: block !important; ' +
             'opacity: 1 !important; ' +
@@ -2642,7 +2642,10 @@ window.toggleActionMenu = function(btn, event) {
             'background: #fff !important; ' +
             'border: 1px solid rgba(0,0,0,.15) !important; ' +
             'border-radius: 0.375rem !important; ' +
-            'box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15) !important;';
+            'box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15) !important; ' +
+            'min-width: auto !important; ' +
+            'width: auto !important; ' +
+            'padding: 0.5rem 0 !important;';
         
         menu.classList.add('show');
         activeMenu = menu;
