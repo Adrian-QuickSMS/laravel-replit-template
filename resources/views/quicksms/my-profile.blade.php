@@ -127,9 +127,9 @@
         </div>
     </div>
     
-    <div class="row">
+    <div class="row align-items-start">
         <div class="col-xl-6 col-lg-12">
-            <div class="card">
+            <div class="card h-auto">
                 <div class="card-header">
                     <h4 class="card-title">Profile Information</h4>
                 </div>
@@ -196,7 +196,7 @@
                 </div>
             </div>
             
-            <div class="card">
+            <div class="card h-auto">
                 <div class="card-header">
                     <h4 class="card-title">Security</h4>
                 </div>
@@ -292,7 +292,7 @@
         </div>
         
         <div class="col-xl-6 col-lg-12">
-            <div class="card">
+            <div class="card h-auto">
                 <div class="card-header">
                     <h4 class="card-title">Account & Permissions</h4>
                 </div>
@@ -323,7 +323,7 @@
                 </div>
             </div>
             
-            <div class="card">
+            <div class="card h-auto">
                 <div class="card-header">
                     <h4 class="card-title">Audit & Metadata</h4>
                 </div>
