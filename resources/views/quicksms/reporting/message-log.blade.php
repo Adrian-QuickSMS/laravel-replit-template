@@ -41,11 +41,16 @@
     flex: 1 1 auto;
     display: block;
     overflow: visible;
+    width: 100%;
 }
 #tableContainer {
     max-height: calc(100vh - 460px);
     overflow-y: auto !important;
     overflow-x: auto;
+    width: 100%;
+}
+#messageLogTable {
+    width: 100% !important;
 }
 .message-log-footer {
     flex-shrink: 0;
@@ -540,7 +545,7 @@
                     
                     <div class="message-log-table-wrapper">
                         <div class="table-responsive" id="tableContainer">
-                        <table class="table table-hover mb-0" id="messageLogTable">
+                        <table class="table table-hover mb-0 w-100" id="messageLogTable" style="min-width: 100%; table-layout: auto;">
                             <thead class="sticky-top bg-white" style="z-index: 10;">
                                 <tr id="tableHeaderRow">
                                     <th data-column="mobileNumber">Mobile Number</th>
