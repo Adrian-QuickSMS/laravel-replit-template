@@ -277,28 +277,39 @@
                     <div class="success-icon-circle mb-3">
                         <i class="fas fa-file-alt fa-3x text-primary"></i>
                     </div>
-                    <p class="text-muted mb-0">Your template has been created and is ready to use.</p>
+                    <p class="text-muted mb-0" id="successMessage">Your template has been created and is ready to use.</p>
                 </div>
                 
-                <div class="template-id-box p-3 rounded mb-3" style="background: #f8f9fa; border: 1px dashed #886CC0;">
-                    <label class="form-label small fw-bold mb-2">Template ID (for API use)</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="generatedTemplateId" readonly style="font-family: monospace; font-size: 0.9rem;">
-                        <button class="btn btn-outline-primary" type="button" id="copyTemplateIdBtn" title="Copy to clipboard">
-                            <i class="fas fa-copy"></i>
-                        </button>
+                <!-- API Template Details - shown only for API templates -->
+                <div id="apiTemplateDetails" style="display: none;">
+                    <div class="template-id-box p-3 rounded mb-3" style="background: #f8f9fa; border: 1px dashed #886CC0;">
+                        <label class="form-label small fw-bold mb-2">Template ID (for API use)</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="generatedTemplateId" readonly style="font-family: monospace; font-size: 0.9rem;">
+                            <button class="btn btn-outline-primary" type="button" id="copyTemplateIdBtn" title="Copy to clipboard">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">Use this ID when sending messages via the API with <code>template_id</code> parameter.</small>
                     </div>
-                    <small class="text-muted mt-2 d-block">Use this ID when sending messages via the API with <code>template_id</code> parameter.</small>
-                </div>
-                
-                <div class="alert small mb-0" style="background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #614099;">
-                    <i class="fas fa-info-circle me-1"></i>
-                    <strong>API Usage Example:</strong>
-                    <pre class="mb-0 mt-2" style="font-size: 0.75rem; background: #fff; padding: 0.5rem; border-radius: 4px; overflow-x: auto; color: #333;">{
+                    
+                    <div class="alert small mb-0" style="background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #614099;">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>API Usage Example:</strong>
+                        <pre class="mb-0 mt-2" style="font-size: 0.75rem; background: #fff; padding: 0.5rem; border-radius: 4px; overflow-x: auto; color: #333;">{
   "template_id": "<span id="templateIdExample">TPL-XXXXXXXX</span>",
   "recipients": ["+447123456789"],
   "variables": { "name": "John" }
 }</pre>
+                    </div>
+                </div>
+                
+                <!-- Portal Template Details - shown only for portal templates -->
+                <div id="portalTemplateDetails" style="display: none;">
+                    <div class="alert small mb-0" style="background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #614099;">
+                        <i class="fas fa-info-circle me-1"></i>
+                        You can now use this template when sending messages from the portal. Find it in your templates list when composing a new message.
+                    </div>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
@@ -381,6 +392,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     document.getElementById('createTemplateBtn').addEventListener('click', function() {
+        // Get trigger type from step 1 data
+        var step1Data = sessionStorage.getItem('templateWizardStep1');
+        var triggerType = 'portal'; // default
+        
+        @if(isset($isEditMode) && $isEditMode && isset($template))
+        // In edit mode, get trigger from template data
+        triggerType = '{{ $template["trigger"] ?? "portal" }}';
+        @else
+        // In create mode, get from sessionStorage
+        if (step1Data) {
+            try {
+                var parsed = JSON.parse(step1Data);
+                triggerType = parsed.trigger || 'portal';
+            } catch (e) {}
+        }
+        @endif
+        
         // Generate template ID
         var templateId = generateTemplateId();
         
@@ -390,9 +418,21 @@ document.addEventListener('DOMContentLoaded', function() {
         sessionStorage.removeItem('templateWizardStep3');
         sessionStorage.removeItem('templateWizardChannel');
         
-        // Display the template ID in the modal
-        document.getElementById('generatedTemplateId').value = templateId;
-        document.getElementById('templateIdExample').textContent = templateId;
+        // Show appropriate section based on trigger type
+        var apiDetails = document.getElementById('apiTemplateDetails');
+        var portalDetails = document.getElementById('portalTemplateDetails');
+        
+        if (triggerType === 'api') {
+            // Show API template details
+            apiDetails.style.display = 'block';
+            portalDetails.style.display = 'none';
+            document.getElementById('generatedTemplateId').value = templateId;
+            document.getElementById('templateIdExample').textContent = templateId;
+        } else {
+            // Show portal template details
+            apiDetails.style.display = 'none';
+            portalDetails.style.display = 'block';
+        }
         
         // Show the success modal
         var successModal = new bootstrap.Modal(document.getElementById('templateSuccessModal'));
