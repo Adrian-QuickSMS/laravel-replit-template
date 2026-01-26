@@ -101,8 +101,8 @@
             if($page == 'ui_badge'){ $body_class = 'badge-demo';}
         @endphp
         <div class="content-body default-height qsms-density-compact {{$body_class}} @yield('body_class')">
-            <!-- TEST MODE BANNER - Non-dismissible, visible on all pages -->
-            <div id="test-mode-activation-banner" class="alert alert-warning alert-dismissible fade show mb-0" role="alert" style="display: none; border-radius: 0; border-left: none; border-right: none; border-top: none;">
+            <!-- TEST MODE BANNER - Overlay with dismiss option -->
+            <div id="test-mode-activation-banner" class="alert alert-warning fade show mb-0" role="alert" style="display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 1050; border-radius: 0; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                 <div class="container-fluid">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div class="d-flex align-items-center">
@@ -119,6 +119,9 @@
                             <a href="{{ url('/support/knowledge-base/test-mode') }}" class="btn btn-outline-secondary btn-sm">
                                 Learn More
                             </a>
+                            <button type="button" class="btn btn-link btn-sm text-muted p-0 ms-2" id="test-mode-banner-close" title="Dismiss for this page">
+                                <i class="fas fa-times" style="font-size: 16px;"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -182,6 +185,47 @@
     @endif
     
     <script src="{{ asset('js/quicksms-enforcement-notifications.js') }}" type="text/javascript"></script>
+    
+    <!-- Test Mode Banner Close Handler -->
+    <script>
+    (function() {
+        var testModeBanner = document.getElementById('test-mode-activation-banner');
+        var closeBtn = document.getElementById('test-mode-banner-close');
+        var contentBody = document.querySelector('.content-body');
+        
+        function adjustContentPadding() {
+            if (testModeBanner && contentBody) {
+                if (testModeBanner.style.display !== 'none' && testModeBanner.offsetHeight > 0) {
+                    contentBody.style.paddingTop = testModeBanner.offsetHeight + 'px';
+                } else {
+                    contentBody.style.paddingTop = '';
+                }
+            }
+        }
+        
+        if (closeBtn && testModeBanner) {
+            closeBtn.addEventListener('click', function() {
+                testModeBanner.style.display = 'none';
+                adjustContentPadding();
+            });
+        }
+        
+        // Observe banner visibility changes to adjust padding
+        if (testModeBanner) {
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'style') {
+                        setTimeout(adjustContentPadding, 10);
+                    }
+                });
+            });
+            observer.observe(testModeBanner, { attributes: true });
+            
+            // Initial adjustment
+            setTimeout(adjustContentPadding, 100);
+        }
+    })();
+    </script>
         
         @stack('scripts')
 
