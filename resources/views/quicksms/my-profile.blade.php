@@ -744,6 +744,32 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[MyProfile] Page loaded');
     
+    // ========== AUDIT EVENT UTILITY ==========
+    var currentUserId = 'usr_8f4a2b1c'; // TODO: Get from backend session
+    
+    function emitAuditEvent(action, details) {
+        var event = {
+            userId: currentUserId,
+            action: action,
+            timestamp: new Date().toISOString(),
+            ipAddress: '{{ request()->ip() ?? "127.0.0.1" }}',
+            details: details || {}
+        };
+        
+        console.log('[AuditEvent]', JSON.stringify(event, null, 2));
+        
+        // TODO: Send to backend API
+        // fetch('/api/audit-events', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify(event)
+        // });
+        
+        return event;
+    }
+    
+    // ========================================
+    
     var form = document.getElementById('profileForm');
     var saveBtn = document.getElementById('saveBtn');
     var cancelBtn = document.getElementById('cancelBtn');
@@ -865,11 +891,37 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
         
         setTimeout(function() {
+            // Emit audit events for changes
+            var changedFields = [];
+            fields.forEach(function(field) {
+                var input = document.getElementById(field);
+                if (input && input.value !== originalValues[field]) {
+                    changedFields.push(field);
+                }
+            });
+            
             if (emailChanged) {
+                emitAuditEvent('EMAIL_CHANGED', {
+                    oldEmail: originalValues['emailAddress'],
+                    newEmail: emailInput.value
+                });
                 emailPendingBanner.classList.add('show');
                 emailUnverifiedBadge.style.display = 'inline-block';
                 document.getElementById('displayEmail').textContent = emailInput.value;
             }
+            
+            var mobileInput = document.getElementById('mobileNumber');
+            if (mobileInput && mobileInput.value !== originalValues['mobileNumber']) {
+                emitAuditEvent('MOBILE_NUMBER_CHANGED', {
+                    oldMobile: originalValues['mobileNumber'],
+                    newMobile: mobileInput.value
+                });
+            }
+            
+            // Emit general profile update event
+            emitAuditEvent('PROFILE_UPDATED', {
+                fieldsChanged: changedFields
+            });
             
             var firstName = document.getElementById('firstName').value;
             var lastName = document.getElementById('lastName').value;
@@ -1068,6 +1120,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 successToast.classList.remove('show');
             }, 3000);
             
+            emitAuditEvent('PASSWORD_CHANGED', {});
             console.log('[MyProfile] Password changed successfully');
         }, 1000);
     });
@@ -1231,6 +1284,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     successToast.classList.remove('show');
                     location.reload();
                 }, 2000);
+                emitAuditEvent('MFA_ENABLED', { method: selectedMfaMethod });
                 console.log('[MFA] SMS/RCS MFA enabled successfully');
             }, 1000);
         } else if (currentMfaStep === 'authenticator') {
@@ -1252,6 +1306,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     successToast.classList.remove('show');
                     location.reload();
                 }, 2000);
+                emitAuditEvent('MFA_ENABLED', { method: 'authenticator' });
                 console.log('[MFA] Authenticator MFA enabled successfully');
             }, 1000);
         }
@@ -1318,6 +1373,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(function() {
                         successToast.classList.remove('show');
                     }, 3000);
+                    emitAuditEvent('MFA_METHOD_CHANGED', { newMethod: selectedMethod.value });
                     console.log('[MFA] Method changed to: ' + selectedMethod.value);
                 }, 1000);
             }
@@ -1450,6 +1506,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     successToast.classList.remove('show');
                     location.reload();
                 }, 2000);
+                emitAuditEvent('MFA_DISABLED', {});
                 console.log('[MFA] MFA disabled');
             }, 1000);
         });
