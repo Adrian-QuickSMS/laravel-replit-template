@@ -53,14 +53,19 @@ $permissions = [
 
 @push('styles')
 <style>
-.card {
-    border-radius: 0.75rem !important;
-    border: 1px solid #e9ecef !important;
-    box-shadow: none !important;
+.table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
 }
-.container-fluid > .row > .col-12 > .card {
-    border: 1px solid #e9ecef !important;
-    border-radius: 0.75rem !important;
+.table-container .card-header {
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem;
+}
+.table-container .card-body {
+    padding: 1rem;
 }
 .table thead th {
     background: #f8f9fa !important;
@@ -156,7 +161,7 @@ $permissions = [
     
     <div class="row">
         <div class="col-12">
-            <div class="card">
+            <div class="table-container">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
                     <h5 class="card-title mb-2 mb-md-0">Campaign History</h5>
                     <div class="d-flex align-items-center gap-2">
