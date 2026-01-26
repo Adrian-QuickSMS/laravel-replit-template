@@ -193,7 +193,7 @@
                                 <h6 class="mb-1">Password</h6>
                                 <span class="text-muted" style="font-size: 0.85rem;">Last changed: {{ $lastPasswordChange }}</span>
                             </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm">Change Password</button>
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Change Password</button>
                         </div>
                     </div>
                     
@@ -273,6 +273,100 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="changePasswordForm" novalidate>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Current Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="currentPassword" required autocomplete="current-password">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleCurrentPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="currentPasswordError">Please enter your current password</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">New Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="newPassword" required autocomplete="new-password">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleNewPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="newPasswordError">Password does not meet requirements</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Confirm New Password <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="confirmPassword" required autocomplete="new-password">
+                            <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback" id="confirmPasswordError">Passwords do not match</div>
+                    </div>
+                    
+                    <!-- Password Rules (collapsed by default) -->
+                    <div class="card bg-light border-0 mb-0" id="passwordRulesCard">
+                        <div class="card-header bg-transparent border-0 p-2" style="cursor: pointer;" id="passwordRulesToggle">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted" style="font-size: 0.85rem;">
+                                    <i class="fas fa-info-circle me-1"></i>Password requirements
+                                </span>
+                                <i class="fas fa-chevron-down text-muted" id="passwordRulesIcon" style="font-size: 0.75rem; transition: transform 0.2s;"></i>
+                            </div>
+                        </div>
+                        <div class="collapse" id="passwordRulesCollapse">
+                            <div class="card-body pt-0 px-2 pb-2">
+                                <ul class="list-unstyled mb-0" style="font-size: 0.8rem;">
+                                    <li class="mb-1" id="rule-length">
+                                        <i class="fas fa-circle me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                                        Minimum 12 characters
+                                    </li>
+                                    <li class="mb-1" id="rule-upper">
+                                        <i class="fas fa-circle me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                                        At least one uppercase letter
+                                    </li>
+                                    <li class="mb-1" id="rule-lower">
+                                        <i class="fas fa-circle me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                                        At least one lowercase letter
+                                    </li>
+                                    <li class="mb-1" id="rule-number">
+                                        <i class="fas fa-circle me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                                        At least one number
+                                    </li>
+                                    <li class="mb-1" id="rule-special">
+                                        <i class="fas fa-circle me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                                        At least one special character (!@#$%^&*...)
+                                    </li>
+                                    <li id="rule-reuse">
+                                        <i class="fas fa-circle me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
+                                        Cannot reuse last 5 passwords
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="changePasswordBtn">Change Password</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -432,6 +526,183 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 3000);
             
         }, 800);
+    });
+    
+    // Change Password Modal functionality
+    var changePasswordModal = document.getElementById('changePasswordModal');
+    var changePasswordForm = document.getElementById('changePasswordForm');
+    var currentPasswordInput = document.getElementById('currentPassword');
+    var newPasswordInput = document.getElementById('newPassword');
+    var confirmPasswordInput = document.getElementById('confirmPassword');
+    var passwordRulesToggle = document.getElementById('passwordRulesToggle');
+    var passwordRulesCollapse = document.getElementById('passwordRulesCollapse');
+    var passwordRulesIcon = document.getElementById('passwordRulesIcon');
+    var changePasswordBtn = document.getElementById('changePasswordBtn');
+    
+    // Toggle password visibility
+    function setupPasswordToggle(toggleBtnId, inputId) {
+        var btn = document.getElementById(toggleBtnId);
+        var input = document.getElementById(inputId);
+        if (btn && input) {
+            btn.addEventListener('click', function() {
+                var type = input.type === 'password' ? 'text' : 'password';
+                input.type = type;
+                var icon = btn.querySelector('i');
+                icon.classList.toggle('fa-eye');
+                icon.classList.toggle('fa-eye-slash');
+            });
+        }
+    }
+    
+    setupPasswordToggle('toggleCurrentPassword', 'currentPassword');
+    setupPasswordToggle('toggleNewPassword', 'newPassword');
+    setupPasswordToggle('toggleConfirmPassword', 'confirmPassword');
+    
+    // Toggle password rules collapse
+    var rulesExpanded = false;
+    passwordRulesToggle.addEventListener('click', function() {
+        rulesExpanded = !rulesExpanded;
+        if (rulesExpanded) {
+            passwordRulesCollapse.classList.add('show');
+            passwordRulesIcon.style.transform = 'rotate(180deg)';
+        } else {
+            passwordRulesCollapse.classList.remove('show');
+            passwordRulesIcon.style.transform = 'rotate(0deg)';
+        }
+    });
+    
+    // Password validation rules
+    function validatePasswordRules(password) {
+        var rules = {
+            length: password.length >= 12,
+            upper: /[A-Z]/.test(password),
+            lower: /[a-z]/.test(password),
+            number: /[0-9]/.test(password),
+            special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+        };
+        
+        // Update rule indicators
+        Object.keys(rules).forEach(function(rule) {
+            var ruleEl = document.getElementById('rule-' + rule);
+            if (ruleEl) {
+                var icon = ruleEl.querySelector('i');
+                if (rules[rule]) {
+                    ruleEl.classList.add('text-success');
+                    ruleEl.classList.remove('text-danger');
+                    icon.classList.remove('fa-circle');
+                    icon.classList.add('fa-check-circle');
+                } else {
+                    ruleEl.classList.remove('text-success');
+                    if (password.length > 0) {
+                        ruleEl.classList.add('text-danger');
+                    } else {
+                        ruleEl.classList.remove('text-danger');
+                    }
+                    icon.classList.add('fa-circle');
+                    icon.classList.remove('fa-check-circle');
+                }
+            }
+        });
+        
+        return rules.length && rules.upper && rules.lower && rules.number && rules.special;
+    }
+    
+    // Real-time password validation
+    newPasswordInput.addEventListener('input', function() {
+        validatePasswordRules(this.value);
+    });
+    
+    // Reset modal on close
+    changePasswordModal.addEventListener('hidden.bs.modal', function() {
+        changePasswordForm.reset();
+        currentPasswordInput.classList.remove('is-invalid');
+        newPasswordInput.classList.remove('is-invalid');
+        confirmPasswordInput.classList.remove('is-invalid');
+        
+        // Reset password rule indicators
+        ['length', 'upper', 'lower', 'number', 'special'].forEach(function(rule) {
+            var ruleEl = document.getElementById('rule-' + rule);
+            if (ruleEl) {
+                ruleEl.classList.remove('text-success', 'text-danger');
+                var icon = ruleEl.querySelector('i');
+                icon.classList.add('fa-circle');
+                icon.classList.remove('fa-check-circle');
+            }
+        });
+        
+        // Collapse rules
+        rulesExpanded = false;
+        passwordRulesCollapse.classList.remove('show');
+        passwordRulesIcon.style.transform = 'rotate(0deg)';
+        
+        // Reset button
+        changePasswordBtn.innerHTML = 'Change Password';
+        changePasswordBtn.disabled = false;
+    });
+    
+    // Form submission
+    changePasswordForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var isValid = true;
+        var expandRules = false;
+        
+        // Validate current password
+        if (!currentPasswordInput.value) {
+            currentPasswordInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            currentPasswordInput.classList.remove('is-invalid');
+        }
+        
+        // Validate new password
+        if (!validatePasswordRules(newPasswordInput.value)) {
+            newPasswordInput.classList.add('is-invalid');
+            isValid = false;
+            expandRules = true;
+        } else {
+            newPasswordInput.classList.remove('is-invalid');
+        }
+        
+        // Validate confirm password
+        if (confirmPasswordInput.value !== newPasswordInput.value || !confirmPasswordInput.value) {
+            confirmPasswordInput.classList.add('is-invalid');
+            if (confirmPasswordInput.value && confirmPasswordInput.value !== newPasswordInput.value) {
+                document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
+            } else {
+                document.getElementById('confirmPasswordError').textContent = 'Please confirm your new password';
+            }
+            isValid = false;
+        } else {
+            confirmPasswordInput.classList.remove('is-invalid');
+        }
+        
+        // Auto-expand rules if validation failed
+        if (expandRules && !rulesExpanded) {
+            rulesExpanded = true;
+            passwordRulesCollapse.classList.add('show');
+            passwordRulesIcon.style.transform = 'rotate(180deg)';
+        }
+        
+        if (!isValid) return;
+        
+        // Simulate API call
+        changePasswordBtn.disabled = true;
+        changePasswordBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Changing...';
+        
+        setTimeout(function() {
+            // Close modal
+            var modal = bootstrap.Modal.getInstance(changePasswordModal);
+            modal.hide();
+            
+            // Show success toast
+            successToast.classList.add('show');
+            setTimeout(function() {
+                successToast.classList.remove('show');
+            }, 3000);
+            
+            console.log('[MyProfile] Password changed successfully');
+        }, 1000);
     });
 });
 </script>
