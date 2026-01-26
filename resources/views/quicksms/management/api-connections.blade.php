@@ -238,10 +238,14 @@
 .dropdown .dropdown-menu {
     z-index: 9999 !important;
 }
-.dropdown .dropdown-menu.show {
+.table-dropdown-clone {
     position: fixed !important;
-    inset: auto !important;
-    transform: none !important;
+    z-index: 99999 !important;
+    min-width: 160px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.175);
 }
 .archived-row {
     opacity: 0.6;
@@ -788,20 +792,9 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/table-dropdown-fix.js') }}"></script>
 <script>
 $(document).ready(function() {
-    // Position dropdown menu with fixed positioning to escape table constraints
-    $(document).on('shown.bs.dropdown', '.dropdown', function() {
-        var $btn = $(this).find('.action-menu-btn');
-        var $menu = $(this).find('.dropdown-menu');
-        if ($btn.length && $menu.length) {
-            var btnRect = $btn[0].getBoundingClientRect();
-            $menu.css({
-                top: btnRect.bottom + 'px',
-                left: (btnRect.right - $menu.outerWidth()) + 'px'
-            });
-        }
-    });
 
     var apiConnections = [
         {
@@ -1227,7 +1220,7 @@ $(document).ready(function() {
             html += '<td>' + formatDateTime(conn.lastUsed) + '</td>';
             
             html += '<td>';
-            html += '<div class="dropdown">';
+            html += '<div class="dropdown table-action-dropdown">';
             html += '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">';
             html += '<i class="fas fa-ellipsis-v"></i>';
             html += '</button>';

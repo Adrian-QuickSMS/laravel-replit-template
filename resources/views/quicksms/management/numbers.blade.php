@@ -79,13 +79,17 @@
 .numbers-table .dropdown-menu {
     z-index: 9999 !important;
 }
-.numbers-table .dropdown-menu.show {
-    position: fixed !important;
-    inset: auto !important;
-    transform: none !important;
-}
 .numbers-table .dropdown {
     position: relative;
+}
+.table-dropdown-clone {
+    position: fixed !important;
+    z-index: 99999 !important;
+    min-width: 160px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.175);
 }
 .numbers-table-container:has(.dropdown.show),
 .numbers-table-container.has-dropdown-open {
@@ -1137,6 +1141,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('js/table-dropdown-fix.js') }}"></script>
 <script>
 $(document).ready(function() {
     // TODO: Replace with backend API data
@@ -1315,22 +1320,6 @@ $(document).ready(function() {
 
     var selectedNumbers = [];
 
-    // Position dropdown menu with fixed positioning to escape sticky column constraints
-    $(document).on('shown.bs.dropdown', '.numbers-table .dropdown', function() {
-        var $btn = $(this).find('.action-menu-btn');
-        var $menu = $(this).find('.dropdown-menu');
-        var btnRect = $btn[0].getBoundingClientRect();
-        $menu.css({
-            top: btnRect.bottom + 'px',
-            left: (btnRect.right - $menu.outerWidth()) + 'px'
-        });
-        $(this).closest('td').addClass('dropdown-active');
-        $('#numbersTableContainer').addClass('has-dropdown-open');
-    });
-    $(document).on('hidden.bs.dropdown', '.numbers-table .dropdown', function() {
-        $(this).closest('td').removeClass('dropdown-active');
-        $('#numbersTableContainer').removeClass('has-dropdown-open');
-    });
 
     function getTypeLabel(type) {
         switch(type) {
@@ -1484,8 +1473,8 @@ $(document).ready(function() {
             html += '<td>' + formatDateTime(num.lastUsed) + '</td>';
             
             html += '<td>';
-            html += '<div class="dropdown">';
-            html += '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">';
+            html += '<div class="dropdown table-action-dropdown">';
+            html += '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">';
             html += '<i class="fas fa-ellipsis-v"></i>';
             html += '</button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';

@@ -309,10 +309,14 @@
 .action-menu .dropdown-menu {
     z-index: 9999 !important;
 }
-.action-menu .dropdown-menu.show {
+.table-dropdown-clone {
     position: fixed !important;
-    inset: auto !important;
-    transform: none !important;
+    z-index: 99999 !important;
+    min-width: 160px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.175);
 }
 .action-menu .dropdown-item {
     font-size: 0.85rem;
@@ -1911,6 +1915,7 @@
 
 @push('scripts')
 <script src="{{ asset('js/shared-image-editor.js') }}"></script>
+<script src="{{ asset('js/table-dropdown-fix.js') }}"></script>
 <script>
 // RBAC Configuration - passed from PHP
 var currentUserRole = @json($currentUserRole);
@@ -1934,18 +1939,6 @@ function getCurrentUserId() {
     return currentUserId;
 }
 
-// Position dropdown menu with fixed positioning to escape table constraints
-$(document).on('shown.bs.dropdown', '.dropdown.action-menu', function() {
-    var $btn = $(this).find('.action-menu-btn');
-    var $menu = $(this).find('.dropdown-menu');
-    if ($btn.length && $menu.length) {
-        var btnRect = $btn[0].getBoundingClientRect();
-        $menu.css({
-            top: btnRect.bottom + 'px',
-            left: (btnRect.right - $menu.outerWidth()) + 'px'
-        });
-    }
-});
 
 var mockAgents = [
     {
@@ -2453,7 +2446,7 @@ function getActionsMenu(agent) {
             '<i class="fas fa-trash-alt"></i>Delete</a></li>';
     }
     
-    return '<div class="dropdown action-menu">' +
+    return '<div class="dropdown action-menu table-action-dropdown">' +
         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
             '<i class="fas fa-ellipsis-v"></i>' +
         '</button>' +
