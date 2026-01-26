@@ -13,7 +13,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 - **Consistent UI/UX:** Responsive sidebar, standardized data tables with client-side features, and uniform forms/modals.
 - **Interactive Elements:** Mobile number masking, dynamic validation, real-time character counting, and enhanced content editors with personalization and emoji support.
 - **Wizards and Previews:** Multi-step wizards for RCS Agent Registration, Message Templates, and Email-to-SMS, alongside an RCS preview system with an Android-style phone UI.
-- **Shared Components:** Reusable JavaScript components for image editing (with fixed aspect ratio) and RCS button click tracking with UTM parameters and conversion tracking.
+- **Shared Components:** Reusable JavaScript components for image editing (with fixed aspect ratio), RCS button click tracking with UTM parameters and conversion tracking, and a shared template-edit-wizard partial (`resources/views/shared/partials/template-edit-wizard.blade.php`) that supports both admin and customer contexts via `$wizardMode` parameter, theme customization, and Rich RCS availability controls.
 
 **Technical Implementations & Feature Specifications:**
 - **Core Modules:** Dashboard, Messages, Contact Book, Reporting, Purchase, Management, Account, and Support, with a focus on granular features within each.
