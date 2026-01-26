@@ -667,16 +667,16 @@
                 <div class="mb-3">
                     <label class="text-muted mb-2 d-block" style="font-size: 0.8rem;">Remaining Codes: <strong id="remainingCodesCount">{{ $backupCodesRemaining }}</strong> of 10</label>
                     <div class="row g-2" id="backupCodesList">
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">ABC12-DEF34</code></div>
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">GHI56-JKL78</code></div>
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">MNO90-PQR12</code></div>
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">STU34-VWX56</code></div>
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">YZA78-BCD90</code></div>
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">EFG12-HIJ34</code></div>
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center text-muted text-decoration-line-through">KLM56-NOP78</code></div>
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center text-muted text-decoration-line-through">QRS90-TUV12</code></div>
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center text-muted text-decoration-line-through">WXY34-ZAB56</code></div>
-                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center text-muted text-decoration-line-through">CDE78-FGH90</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center" style="background: #f1f3f5; color: #212529;">ABC12-DEF34</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center" style="background: #f1f3f5; color: #212529;">GHI56-JKL78</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center" style="background: #f1f3f5; color: #212529;">MNO90-PQR12</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center" style="background: #f1f3f5; color: #212529;">STU34-VWX56</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center" style="background: #f1f3f5; color: #212529;">YZA78-BCD90</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center" style="background: #f1f3f5; color: #212529;">EFG12-HIJ34</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center text-decoration-line-through" style="background: #f1f3f5; color: #adb5bd;">KLM56-NOP78</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center text-decoration-line-through" style="background: #f1f3f5; color: #adb5bd;">QRS90-TUV12</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center text-decoration-line-through" style="background: #f1f3f5; color: #adb5bd;">WXY34-ZAB56</code></div>
+                        <div class="col-6"><code class="d-block p-2 rounded text-center text-decoration-line-through" style="background: #f1f3f5; color: #adb5bd;">CDE78-FGH90</code></div>
                     </div>
                 </div>
                 
