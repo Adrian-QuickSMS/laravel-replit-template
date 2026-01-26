@@ -15,10 +15,11 @@
     border-radius: 0.75rem !important;
 }
 .table-container {
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
+    background: #fff !important;
+    border-radius: 0.75rem !important;
+    border: 1px solid #ced4da !important;
     overflow: hidden;
+    margin-bottom: 1.5rem;
 }
 .approval-stats {
     display: flex;
@@ -28,7 +29,7 @@
 .stat-card {
     background: #fff;
     border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
+    border: 1px solid #ced4da;
     padding: 1rem 1.5rem;
     flex: 1;
     display: flex;
@@ -333,7 +334,7 @@
         </div>
     </div>
     
-    <div class="table-container mb-4">
+    <div class="table-container mb-4" style="border: 1px solid #ced4da; border-radius: 0.75rem; background: #fff;">
         <div class="section-header px-3 pt-3">
             <h5 class="section-title"><i class="fas fa-hourglass-half me-2" style="color: #886cc0;"></i>Pending Approvals</h5>
         </div>
@@ -341,102 +342,100 @@
         @if(count($pending_approvals) > 0)
         <div class="table-responsive">
             <table class="table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Campaign</th>
-                            <th>Sub-Account</th>
-                            <th>Created By</th>
-                            <th>Message Volume</th>
-                            <th>Est. Cost</th>
-                            <th>Scheduled</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($pending_approvals as $approval)
-                        <tr>
-                            <td>
-                                <div class="campaign-name">{{ $approval['name'] }}</div>
-                                <div class="campaign-meta">Created {{ \Carbon\Carbon::parse($approval['created_at'])->diffForHumans() }}</div>
-                            </td>
-                            <td>{{ $approval['sub_account'] }}</td>
-                            <td>{{ $approval['created_by'] }}</td>
-                            <td>{{ number_format($approval['message_volume']) }} messages</td>
-                            <td>£{{ number_format($approval['estimated_cost'], 2) }}</td>
-                            <td>{{ \Carbon\Carbon::parse($approval['scheduled_time'])->format('M j, H:i') }}</td>
-                            <td>
-                                <span class="status-badge pending">
-                                    <span class="dot"></span>
-                                    Pending
-                                </span>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-1">
-                                    <button class="btn action-btn btn-view" data-campaign-id="{{ $approval['id'] }}" title="View Campaign"><i class="fas fa-eye"></i></button>
-                                    <button class="btn action-btn btn-approve" data-campaign-id="{{ $approval['id'] }}"><i class="fas fa-check me-1"></i>Approve</button>
-                                    <button class="btn action-btn btn-reject" data-campaign-id="{{ $approval['id'] }}" data-bs-toggle="modal" data-bs-target="#rejectModal"><i class="fas fa-times me-1"></i>Reject</button>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            @else
-            <div class="text-center py-5">
-                <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
-                <h5 class="text-muted">No Pending Approvals</h5>
-                <p class="text-muted" style="font-size: 0.85rem;">All campaigns have been reviewed. Check back later.</p>
-            </div>
-            @endif
+                <thead>
+                    <tr>
+                        <th>Campaign</th>
+                        <th>Sub-Account</th>
+                        <th>Created By</th>
+                        <th>Message Volume</th>
+                        <th>Est. Cost</th>
+                        <th>Scheduled</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($pending_approvals as $approval)
+                    <tr>
+                        <td>
+                            <div class="campaign-name">{{ $approval['name'] }}</div>
+                            <div class="campaign-meta">Created {{ \Carbon\Carbon::parse($approval['created_at'])->diffForHumans() }}</div>
+                        </td>
+                        <td>{{ $approval['sub_account'] }}</td>
+                        <td>{{ $approval['created_by'] }}</td>
+                        <td>{{ number_format($approval['message_volume']) }} messages</td>
+                        <td>£{{ number_format($approval['estimated_cost'], 2) }}</td>
+                        <td>{{ \Carbon\Carbon::parse($approval['scheduled_time'])->format('M j, H:i') }}</td>
+                        <td>
+                            <span class="status-badge pending">
+                                <span class="dot"></span>
+                                Pending
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <button class="btn action-btn btn-view" data-campaign-id="{{ $approval['id'] }}" title="View Campaign"><i class="fas fa-eye"></i></button>
+                                <button class="btn action-btn btn-approve" data-campaign-id="{{ $approval['id'] }}"><i class="fas fa-check me-1"></i>Approve</button>
+                                <button class="btn action-btn btn-reject" data-campaign-id="{{ $approval['id'] }}" data-bs-toggle="modal" data-bs-target="#rejectModal"><i class="fas fa-times me-1"></i>Reject</button>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
+        @else
+        <div class="text-center py-5">
+            <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No Pending Approvals</h5>
+            <p class="text-muted" style="font-size: 0.85rem;">All campaigns have been reviewed. Check back later.</p>
+        </div>
+        @endif
     </div>
     
-    <div class="table-container">
+    <div class="table-container" style="border: 1px solid #ced4da; border-radius: 0.75rem; background: #fff;">
         <div class="section-header px-3 pt-3">
             <h5 class="section-title"><i class="fas fa-history me-2" style="color: #6b7280;"></i>Recent Decisions</h5>
             <button class="btn btn-export" id="btn-export-audit">
                 <i class="fas fa-download me-1"></i>Export Audit Log
             </button>
         </div>
-            
-            <div class="table-responsive">
-                <table class="table approval-table mb-0">
-                    <thead>
-                        <tr>
-                            <th>Campaign</th>
-                            <th>Sub-Account</th>
-                            <th>Created By</th>
-                            <th>Decision</th>
-                            <th>Approved/Rejected By</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($recent_decisions as $decision)
-                        <tr>
-                            <td>
-                                <div class="campaign-name">{{ $decision['name'] }}</div>
-                            </td>
-                            <td>{{ $decision['sub_account'] }}</td>
-                            <td>{{ $decision['created_by'] }}</td>
-                            <td>
-                                <span class="decision-badge {{ $decision['decision'] }}">
-                                    <i class="fas fa-{{ $decision['decision'] === 'approved' ? 'check' : 'times' }} me-1"></i>
-                                    {{ ucfirst($decision['decision']) }}
-                                </span>
-                                @if(isset($decision['rejection_reason']))
-                                <div class="campaign-meta mt-1">{{ $decision['rejection_reason'] }}</div>
-                                @endif
-                            </td>
-                            <td>{{ $decision['approver'] }}</td>
-                            <td>{{ \Carbon\Carbon::parse($decision['decided_at'])->format('M j, H:i') }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+        
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Campaign</th>
+                        <th>Sub-Account</th>
+                        <th>Created By</th>
+                        <th>Decision</th>
+                        <th>Approved/Rejected By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($recent_decisions as $decision)
+                    <tr>
+                        <td>
+                            <div class="campaign-name">{{ $decision['name'] }}</div>
+                        </td>
+                        <td>{{ $decision['sub_account'] }}</td>
+                        <td>{{ $decision['created_by'] }}</td>
+                        <td>
+                            <span class="decision-badge {{ $decision['decision'] }}">
+                                <i class="fas fa-{{ $decision['decision'] === 'approved' ? 'check' : 'times' }} me-1"></i>
+                                {{ ucfirst($decision['decision']) }}
+                            </span>
+                            @if(isset($decision['rejection_reason']))
+                            <div class="campaign-meta mt-1">{{ $decision['rejection_reason'] }}</div>
+                            @endif
+                        </td>
+                        <td>{{ $decision['approver'] }}</td>
+                        <td>{{ \Carbon\Carbon::parse($decision['decided_at'])->format('M j, H:i') }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

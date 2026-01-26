@@ -56,7 +56,7 @@ $permissions = [
 .table-container {
     background: #fff;
     border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
+    border: 1px solid #ced4da;
     overflow: hidden;
 }
 .table-container .card-header {
@@ -161,7 +161,7 @@ $permissions = [
     
     <div class="row">
         <div class="col-12">
-            <div class="table-container">
+            <div class="table-container" style="border: 1px solid #ced4da; border-radius: 0.75rem; background: #fff;">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
                     <h5 class="card-title mb-2 mb-md-0">Campaign History</h5>
                     <div class="d-flex align-items-center gap-2">
