@@ -53,6 +53,10 @@ $permissions = [
 
 @push('styles')
 <style>
+.card {
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+}
 .table thead th {
     background: #f8f9fa !important;
     border-bottom: 1px solid #e9ecef !important;

@@ -5,6 +5,10 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
+.card {
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+}
 .approval-stats {
     display: flex;
     gap: 1.5rem;
