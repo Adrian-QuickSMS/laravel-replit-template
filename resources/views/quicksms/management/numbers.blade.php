@@ -85,7 +85,7 @@
     transform: none !important;
 }
 .numbers-table .dropdown {
-    position: static;
+    position: relative;
 }
 .numbers-table-container:has(.dropdown.show),
 .numbers-table-container.has-dropdown-open {
