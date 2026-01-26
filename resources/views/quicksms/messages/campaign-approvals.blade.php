@@ -8,6 +8,17 @@
 .card {
     border-radius: 0.75rem !important;
     border: 1px solid #e9ecef !important;
+    box-shadow: none !important;
+}
+.container-fluid > .card {
+    border: 1px solid #e9ecef !important;
+    border-radius: 0.75rem !important;
+}
+.table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
 }
 .approval-stats {
     display: flex;
@@ -322,15 +333,14 @@
         </div>
     </div>
     
-    <div class="card mb-4">
-        <div class="card-body p-0">
-            <div class="section-header px-3 pt-3">
-                <h5 class="section-title"><i class="fas fa-hourglass-half me-2" style="color: #886cc0;"></i>Pending Approvals</h5>
-            </div>
-            
-            @if(count($pending_approvals) > 0)
-            <div class="table-responsive">
-                <table class="table approval-table mb-0">
+    <div class="table-container mb-4">
+        <div class="section-header px-3 pt-3">
+            <h5 class="section-title"><i class="fas fa-hourglass-half me-2" style="color: #886cc0;"></i>Pending Approvals</h5>
+        </div>
+        
+        @if(count($pending_approvals) > 0)
+        <div class="table-responsive">
+            <table class="table mb-0">
                     <thead>
                         <tr>
                             <th>Campaign</th>
@@ -383,14 +393,13 @@
         </div>
     </div>
     
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="section-header px-3 pt-3">
-                <h5 class="section-title"><i class="fas fa-history me-2" style="color: #6b7280;"></i>Recent Decisions</h5>
-                <button class="btn btn-export" id="btn-export-audit">
-                    <i class="fas fa-download me-1"></i>Export Audit Log
-                </button>
-            </div>
+    <div class="table-container">
+        <div class="section-header px-3 pt-3">
+            <h5 class="section-title"><i class="fas fa-history me-2" style="color: #6b7280;"></i>Recent Decisions</h5>
+            <button class="btn btn-export" id="btn-export-audit">
+                <i class="fas fa-download me-1"></i>Export Audit Log
+            </button>
+        </div>
             
             <div class="table-responsive">
                 <table class="table approval-table mb-0">
