@@ -2043,6 +2043,15 @@ body > .dropdown-menu.dropdown-menu-end {
 $(document).ready(function() {
     var EMAIL_DOMAIN = '@sms.quicksms.io';
 
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        var parts = dateStr.split('-');
+        if (parts.length === 3) {
+            return parts[2] + '-' + parts[1] + '-' + parts[0];
+        }
+        return dateStr;
+    }
+
     // Close all other dropdowns when opening a new one
     $(document).on('show.bs.dropdown', '[data-bs-toggle="dropdown"]', function(e) {
         var currentToggle = this;
@@ -2702,7 +2711,7 @@ $(document).ready(function() {
                 '<td>' + addr.type + '</td>' +
                 '<td>' + (addr.reportingGroup ? addr.reportingGroup : '<span class="text-muted">-</span>') + '</td>' +
                 '<td>' + statusBadge + '</td>' +
-                '<td>' + addr.created + '</td>' +
+                '<td>' + formatDate(addr.created) + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +
@@ -2758,7 +2767,7 @@ $(document).ready(function() {
                 '<td>' + linkedDisplay + '</td>' +
                 '<td>' + group.messagesSent.toLocaleString() + '</td>' +
                 '<td>' + group.lastActivity + '</td>' +
-                '<td>' + group.created + '</td>' +
+                '<td>' + formatDate(group.created) + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +
@@ -2994,7 +3003,7 @@ $(document).ready(function() {
                 '<td>' + originatingEmailsDisplay + '</td>' +
                 '<td>' + targetDisplay + '</td>' +
                 '<td>' + statusBadge + '</td>' +
-                '<td>' + (mapping.created || '-') + '</td>' +
+                '<td>' + formatDate(mapping.created) + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +
@@ -4748,7 +4757,7 @@ $(document).ready(function() {
                 '<td>' + originatingEmailsHtml + '</td>' +
                 '<td>' + escapeHtml(item.subaccountName) + '</td>' +
                 '<td>' + statusBadge + '</td>' +
-                '<td>' + item.created + '</td>' +
+                '<td>' + formatDate(item.created) + '</td>' +
                 '<td class="text-end">' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" onclick="event.stopPropagation();">' +

@@ -1535,14 +1535,14 @@ $(document).ready(function() {
 
     function getStatusLabel(status) {
         var statusConfig = {
-            'draft': { label: 'Draft', class: 'badge-pastel-secondary' },
-            'pending': { label: 'Pending Approval', class: 'badge-pastel-warning' },
-            'approved': { label: 'Approved', class: 'badge-pastel-success' },
-            'rejected': { label: 'Rejected', class: 'badge-pastel-danger' },
-            'suspended': { label: 'Suspended', class: 'badge-pastel-danger' },
-            'archived': { label: 'Archived', class: 'badge-pastel-secondary' }
+            'draft': { label: 'Draft', class: 'badge-draft' },
+            'pending': { label: 'Pending Approval', class: 'badge-pending' },
+            'approved': { label: 'Approved', class: 'badge-approved' },
+            'rejected': { label: 'Rejected', class: 'badge-rejected' },
+            'suspended': { label: 'Suspended', class: 'badge-suspended' },
+            'archived': { label: 'Archived', class: 'badge-archived' }
         };
-        var config = statusConfig[status] || { label: status, class: 'badge-pastel-secondary' };
+        var config = statusConfig[status] || { label: status, class: 'badge-draft' };
         return '<span class="badge ' + config.class + '">' + config.label + '</span>';
     }
 
