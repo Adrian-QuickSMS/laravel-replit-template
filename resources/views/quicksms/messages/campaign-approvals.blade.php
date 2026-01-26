@@ -340,7 +340,7 @@
         </div>
         
         @if(count($pending_approvals) > 0)
-        <div class="table-responsive" style="border: 1px solid #adb5bd; border-radius: 0.75rem; overflow: hidden;">
+        <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: hidden; margin: 0 1rem 1rem 1rem;">
             <table class="table mb-0">
                 <thead>
                     <tr>
@@ -401,7 +401,7 @@
             </button>
         </div>
         
-        <div class="table-responsive" style="border: 1px solid #adb5bd; border-radius: 0.75rem; overflow: hidden;">
+        <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: hidden; margin: 0 1rem 1rem 1rem;">
             <table class="table mb-0">
                 <thead>
                     <tr>

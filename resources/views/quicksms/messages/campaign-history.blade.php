@@ -341,7 +341,7 @@ $permissions = [
                         </div>
                     </div>
 
-                    <div class="table-responsive" style="border: 1px solid #adb5bd; border-radius: 0.75rem; overflow: hidden;">
+                    <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: hidden;">
                         <table class="table table-hover mb-0" id="campaignsTable">
                             <thead>
                                 <tr>
