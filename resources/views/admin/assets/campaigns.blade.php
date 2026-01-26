@@ -33,9 +33,21 @@
 .admin-page .card-body.p-0 {
     padding: 0 !important;
 }
-.admin-page .table thead th,
+.admin-page .table thead th {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .admin-page .table tbody td {
-    padding: 0.5rem 0.75rem;
+    padding: 0.5rem 0.35rem;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #f1f3f5;
     vertical-align: middle;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -694,11 +706,11 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     </div>
 
     <!-- Campaigns Table -->
-    <div class="card" style="border: 1px solid #e0e6ed;">
+    <div class="card" style="border: 1px solid #e9ecef; border-radius: 0.75rem;">
         <div class="card-body p-0">
             <div class="table-responsive" id="campaignsTable">
                 <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: fixed;">
-                    <thead style="background-color: #f8f9fa;">
+                    <thead>
                         <tr>
                             <th class="sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 11%;">
                                 Account <i class="fas fa-sort sort-icon"></i>
@@ -736,7 +748,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                             data-tags="{{ $campaign['tags'] ?? '' }}"
                             data-template="{{ $campaign['template'] ?? '' }}"
                             onclick="openCampaignDrawer('{{ $campaign['id'] }}')">
-                            <td class="py-2 px-2">
+                            <td>
                                 <a href="{{ route('admin.accounts.details', ['accountId' => $campaign['account_id']]) }}" 
                                    class="account-link text-decoration-none" 
                                    onclick="event.stopPropagation();"
@@ -746,17 +758,17 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                     {{ $campaign['account_name'] }}
                                 </a>
                             </td>
-                            <td class="py-2 px-2">
-                                <h6 class="mb-0 fs-6">{{ $campaign['name'] }}</h6>
+                            <td>
+                                <span class="fw-medium">{{ $campaign['name'] }}</span>
                                 @if(!empty($campaign['tags']))
-                                <small class="text-muted">
+                                <div class="mt-1">
                                     @foreach(explode(',', $campaign['tags']) as $tag)
                                     <span class="badge badge-pastel-secondary me-1">{{ trim($tag) }}</span>
                                     @endforeach
-                                </small>
+                                </div>
                                 @endif
                             </td>
-                            <td class="py-2 px-2">
+                            <td>
                                 @if($campaign['channel'] === 'sms_only')
                                 <span class="badge badge-pastel-success">SMS</span>
                                 @elseif($campaign['channel'] === 'basic_rcs')
@@ -765,7 +777,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <span class="badge badge-pastel-info">Rich RCS</span>
                                 @endif
                             </td>
-                            <td class="py-1 px-1 status-cell">
+                            <td class="status-cell">
                                 @if($campaign['status'] === 'scheduled')
                                 <span class="badge badge-pastel-warning"><i class="fas fa-clock me-1"></i>Scheduled</span>
                                 @elseif($campaign['status'] === 'sending')
@@ -778,17 +790,17 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 <span class="badge badge-pastel-warning"><i class="fas fa-pause-circle me-1"></i>Suspended</span>
                                 @endif
                             </td>
-                            <td class="py-2 px-2">
+                            <td>
                                 <span class="fw-medium">{{ number_format($campaign['recipients_total']) }}</span>
                                 @if(isset($campaign['recipients_delivered']) && $campaign['recipients_delivered'] && $campaign['status'] !== 'scheduled')
-                                <br><small class="text-success">{{ number_format($campaign['recipients_delivered']) }} delivered</small>
+                                <div><small class="text-success">{{ number_format($campaign['recipients_delivered']) }} delivered</small></div>
                                 @endif
                             </td>
-                            <td class="py-2 px-2">
-                                {{ \Carbon\Carbon::parse($campaign['send_date'])->format('d M Y') }}
-                                <br><small class="text-muted">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('H:i') }}</small>
+                            <td>
+                                {{ \Carbon\Carbon::parse($campaign['send_date'])->format('d-m-Y') }}
+                                <div><small class="text-muted">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('H:i') }}</small></div>
                             </td>
-                            <td class="py-1 px-1 text-center actions-cell" onclick="event.stopPropagation()">
+                            <td class="text-center actions-cell" onclick="event.stopPropagation()">
                                 <div class="dropdown" style="position: relative;">
                                     <button class="action-dots-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation()">
                                         <i class="fas fa-ellipsis-v"></i>
