@@ -27,6 +27,12 @@
 .table tbody tr:hover td {
     background-color: #f8f9fa !important;
 }
+.lists-table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: visible;
+}
 </style>
 @endpush
 
@@ -73,6 +79,7 @@
                             </button>
                         </div>
                         <div class="card-body">
+                            <div class="lists-table-container">
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
                                     <thead>
@@ -124,6 +131,7 @@
                                         @endforeach
                                     </tbody>
                                 </table>
+                            </div>
                             </div>
                         </div>
                     </div>

@@ -34,6 +34,12 @@
 .table tbody tr:hover td {
     background-color: #f8f9fa !important;
 }
+.contacts-table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: visible;
+}
 .filter-chip {
     display: inline-flex;
     align-items: center;
@@ -248,6 +254,7 @@
                         </div>
                     </div>
 
+                    <div class="contacts-table-container">
                     <div class="table-responsive">
                         <table class="table table-hover mb-0" id="contactsTable">
                             <thead>
@@ -372,6 +379,7 @@
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap">

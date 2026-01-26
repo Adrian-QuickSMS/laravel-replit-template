@@ -27,6 +27,12 @@
 .table tbody tr:hover td {
     background-color: #f8f9fa !important;
 }
+.optout-table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: visible;
+}
 </style>
 @endpush
 
@@ -78,6 +84,7 @@
                                 <strong>Master Opt-Out List</strong> contains all suppressed numbers globally. <strong>Secondary lists</strong> allow brand/campaign-specific suppression management.
                             </div>
                             
+                            <div class="optout-table-container">
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
                                     <thead>
@@ -156,6 +163,7 @@
                                         @endforeach
                                     </tbody>
                                 </table>
+                            </div>
                             </div>
                         </div>
                     </div>
