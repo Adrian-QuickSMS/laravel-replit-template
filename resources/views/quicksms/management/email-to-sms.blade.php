@@ -117,6 +117,7 @@
 .table-container {
     background: #fff;
     border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
     overflow: visible;
 }
 .table-container .dropdown-menu,

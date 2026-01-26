@@ -6,6 +6,9 @@
 <style>
 .numbers-table-container {
     overflow-x: auto;
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
 }
 .numbers-table {
     width: 100%;
