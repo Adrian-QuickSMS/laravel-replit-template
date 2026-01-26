@@ -202,12 +202,13 @@
     align-items: center;
 }
 
-.role-pill {
+.role-pill, .status-pill, .capability-pill, .account-status-pill {
     font-size: 0.7rem;
     font-weight: 500;
-    padding: 0.2rem 0.5rem;
+    padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     text-transform: capitalize;
+    display: inline-block;
 }
 .role-pill.owner {
     background: rgba(136, 108, 192, 0.15);
@@ -234,12 +235,15 @@
     color: #6b7280;
 }
 
-.status-pill {
-    font-size: 0.65rem;
-    font-weight: 500;
-    padding: 0.15rem 0.4rem;
-    border-radius: 0.25rem;
+.capability-pill.advanced {
+    background: rgba(136, 108, 192, 0.12);
+    color: #7c3aed;
 }
+.capability-pill.restricted {
+    background: rgba(107, 114, 128, 0.12);
+    color: #6b7280;
+}
+
 .status-pill.active {
     background: rgba(16, 185, 129, 0.12);
     color: #10b981;
@@ -253,6 +257,19 @@
     color: #ef4444;
 }
 .status-pill.expired {
+    background: rgba(107, 114, 128, 0.12);
+    color: #6b7280;
+}
+
+.account-status-pill.live {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+.account-status-pill.suspended {
+    background: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+}
+.account-status-pill.archived {
     background: rgba(107, 114, 128, 0.12);
     color: #6b7280;
 }
@@ -1656,8 +1673,7 @@ document.addEventListener('DOMContentLoaded', function() {
             html += '<div class="d-flex align-items-center gap-2 flex-grow-1">';
             html += '<div>';
             html += '<div class="sub-name sub-name-clickable" data-sub-detail="' + subAccount.id + '" style="cursor: pointer;">' + escapeHtml(subAccount.name) + '</div>';
-            var statusClass = subAccount.accountStatus === 'live' ? 'bg-success' : (subAccount.accountStatus === 'suspended' ? 'bg-warning' : 'bg-secondary');
-            html += '<div class="sub-meta"><span class="badge ' + statusClass + ' me-1" style="font-size: 0.6rem;">' + capitalise(subAccount.accountStatus) + '</span>' + subAccount.users.length + ' user' + (subAccount.users.length !== 1 ? 's' : '') + '</div>';
+            html += '<div class="sub-meta"><span class="account-status-pill ' + subAccount.accountStatus + ' me-1">' + capitalise(subAccount.accountStatus) + '</span>' + subAccount.users.length + ' user' + (subAccount.users.length !== 1 ? 's' : '') + '</div>';
             html += '</div>';
             html += '</div>';
             html += '<div class="d-flex align-items-center gap-2">';
@@ -1684,8 +1700,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     if (hasMessagingRole && user.senderCapability) {
                         var capLabel = user.senderCapability === 'advanced' ? 'Advanced' : 'Restricted';
-                        var capStyle = user.senderCapability === 'advanced' ? 'background: #f3e8ff; color: #6b21a8;' : 'background: #f3f4f6; color: #6b7280;';
-                        html += '<span class="badge ms-1" style="' + capStyle + ' font-size: 0.7rem;">' + capLabel + '</span>';
+                        html += '<span class="capability-pill ' + user.senderCapability + '">' + capLabel + '</span>';
                     }
                     
                     html += '<span class="status-pill ' + user.status + '">' + capitalise(user.status) + '</span>';
