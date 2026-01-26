@@ -1,0 +1,188 @@
+File: resources/views/quicksms/management/templates.blade.php
+
+PROBLEM:
+The three-dot action menu buttons (⋮) in the templates table don't show the dropdown menu when clicked. The menu options (Edit, Duplicate, Version History, etc.) should appear but nothing happens.
+
+ROOT CAUSE:
+The event handler is correctly attached to document.body using event delegation, but there may be:
+1. A timing issue where the handler fires before console.log appears
+2. CSS pointer-events or z-index conflicts preventing clicks from registering
+3. The button element needs explicit pointer-events and better click target handling
+
+SOLUTION:
+
+STEP 1: Update the button CSS (around line 387-396)
+
+Replace:
+.action-menu-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+}
+
+With:
+.action-menu-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 1;
+}
+.action-menu-btn i {
+    pointer-events: none;
+}
+
+This ensures clicks on the icon <i> element don't bypass the button, and the button has proper z-index.
+
+STEP 2: Update the dropdown menu CSS (around line 154-158)
+
+Replace:
+.templates-table .dropdown-menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+With:
+.templates-table .dropdown-menu {
+    display: none;
+    position: absolute;
+    z-index: 1050;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    min-width: 180px;
+}
+.templates-table .dropdown-menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+STEP 3: Replace the event handler (lines 2595-2629)
+
+Replace the entire document.body.addEventListener('click') block with this improved version:
+
+document.body.addEventListener('click', function(e) {
+    console.log('[Templates] Click detected:', e.target);
+    
+    // Find if click is on or inside action button
+    var actionBtn = e.target.closest('.action-menu-btn');
+    if (actionBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Templates] Action button clicked, button element:', actionBtn);
+        
+        // Find parent dropdown div
+        var dropdown = actionBtn.parentElement;
+        console.log('[Templates] Parent dropdown:', dropdown);
+        
+        // Find menu as next sibling
+        var menu = actionBtn.nextElementSibling;
+        console.log('[Templates] Menu element:', menu, 'Has dropdown-menu class:', menu ? menu.classList.contains('dropdown-menu') : false);
+        
+        if (menu && menu.classList.contains('dropdown-menu')) {
+            // Close all other menus first
+            document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(openMenu) {
+                if (openMenu !== menu) {
+                    console.log('[Templates] Closing other menu:', openMenu);
+                    openMenu.classList.remove('show');
+                    openMenu.style.display = 'none';
+                }
+            });
+            
+            // Toggle current menu
+            var isShowing = menu.classList.contains('show');
+            console.log('[Templates] Menu current state - isShowing:', isShowing);
+            
+            if (isShowing) {
+                menu.classList.remove('show');
+                menu.style.display = 'none';
+                console.log('[Templates] Menu hidden');
+            } else {
+                menu.classList.add('show');
+                
+                // Position menu using fixed positioning
+                var rect = actionBtn.getBoundingClientRect();
+                menu.style.position = 'fixed';
+                menu.style.top = (rect.bottom + 2) + 'px';
+                menu.style.left = (rect.right - 180) + 'px';
+                menu.style.right = 'auto';
+                menu.style.zIndex = '9999';
+                menu.style.display = 'block';
+                
+                console.log('[Templates] Menu shown at position:', {
+                    top: menu.style.top,
+                    left: menu.style.left,
+                    zIndex: menu.style.zIndex
+                });
+            }
+        } else {
+            console.error('[Templates] Menu not found or invalid. Expected nextElementSibling with .dropdown-menu class');
+        }
+        return;
+    }
+    
+    // Close menus when clicking outside
+    if (!e.target.closest('.dropdown-menu')) {
+        var openMenus = document.querySelectorAll('#templatesBody .dropdown-menu.show');
+        if (openMenus.length > 0) {
+            console.log('[Templates] Closing', openMenus.length, 'open menus (clicked outside)');
+            openMenus.forEach(function(menu) {
+                menu.classList.remove('show');
+                menu.style.display = 'none';
+            });
+        }
+    }
+});
+
+STEP 4: Verify the button HTML generation (around line 3520-3522)
+
+Confirm these lines exist and button has proper structure:
+
+html += '<button class="action-menu-btn" type="button">';
+html += '<i class="fas fa-ellipsis-v"></i>';
+html += '</button>';
+
+Make sure there's NO data-bs-toggle="dropdown" attribute on the button.
+
+STEP 5: Test the fix
+
+After making these changes:
+1. Refresh the Templates page
+2. Open browser console (F12)
+3. Click on a three-dot menu button
+4. You should see console logs like:
+   - "[Templates] Click detected: <i> or <button>"
+   - "[Templates] Action button clicked"
+   - "[Templates] Menu element: <ul.dropdown-menu>"
+   - "[Templates] Menu shown at position: ..."
+5. The dropdown menu should appear below the button
+
+WHY THIS WORKS:
+✅ pointer-events: auto on button ensures clicks are captured
+✅ pointer-events: none on icon prevents icon from being the click target
+✅ Comprehensive console logging helps debug if it still fails
+✅ Explicit display: none when hiding menu (not just removing .show class)
+✅ Fixed positioning with z-index: 9999 ensures menu appears above everything
+✅ Better error handling with console.error if menu not found
+
+IF IT STILL DOESN'T WORK:
+Check the console logs to see which step fails:
+- If no logs appear: Another event handler is preventing this handler from firing
+- If "Action button clicked" appears but "Menu element" is null: HTML structure is wrong
+- If menu appears but is invisible: CSS conflict with Fillow template
+
+NEXT DEBUGGING STEP:
+If the console shows "Action button clicked" but menu is null, add this temporary debug code after line 3522:
+
+html += '<span style="color:red;font-size:10px;">DEBUG</span>';
+
+This will confirm the HTML is being generated correctly.
