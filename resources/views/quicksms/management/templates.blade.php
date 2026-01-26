@@ -787,6 +787,18 @@
 
             <div class="active-filters mb-3" id="activeFilters"></div>
 
+            <!-- STATIC TEST DROPDOWN - Delete after debugging -->
+            <div class="dropdown d-inline-block" style="margin-bottom: 15px;">
+                <button class="btn btn-danger" type="button" onclick="toggleActionMenu(this, event)">
+                    <i class="fas fa-ellipsis-v"></i> TEST DROPDOWN
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">Test Item 1</a></li>
+                    <li><a class="dropdown-item" href="#">Test Item 2</a></li>
+                    <li><a class="dropdown-item" href="#">Test Item 3</a></li>
+                </ul>
+            </div>
+
             <div class="templates-table-container">
                 <table class="templates-table">
                     <thead>
@@ -2606,6 +2618,7 @@ var filterLabels = {
 
 
 var menuJustOpened = false;
+var activeMenu = null;
 
 window.toggleActionMenu = function(btn, event) {
     if (event) {
@@ -2614,36 +2627,48 @@ window.toggleActionMenu = function(btn, event) {
     }
     
     var menu = btn.nextElementSibling;
+    console.log('[DEBUG] toggleActionMenu called, menu:', menu);
     
     if (!menu) {
         console.error('[Templates] No menu found');
+        document.body.style.backgroundColor = 'red'; // Visual debug
         return;
     }
     
-    // Close all other menus
-    document.querySelectorAll('#templatesBody .dropdown-menu').forEach(function(m) {
-        if (m !== menu) {
-            m.classList.remove('show');
-            m.style.display = 'none';
-        }
-    });
+    // Close any previously active menu
+    if (activeMenu && activeMenu !== menu) {
+        activeMenu.classList.remove('show');
+        activeMenu.style.cssText = '';
+    }
     
     // Toggle this menu
     if (menu.classList.contains('show')) {
         menu.classList.remove('show');
-        menu.style.display = 'none';
+        menu.style.cssText = '';
+        activeMenu = null;
     } else {
-        menu.classList.add('show');
         var rect = btn.getBoundingClientRect();
-        menu.style.position = 'fixed';
-        menu.style.top = (rect.bottom + 2) + 'px';
-        menu.style.left = (rect.right - 180) + 'px';
-        menu.style.zIndex = '9999';
-        menu.style.display = 'block';
+        
+        // Apply all styles at once
+        menu.style.cssText = 'position: fixed !important; ' +
+            'top: ' + (rect.bottom + 2) + 'px !important; ' +
+            'left: ' + (rect.right - 180) + 'px !important; ' +
+            'z-index: 99999 !important; ' +
+            'display: block !important; ' +
+            'opacity: 1 !important; ' +
+            'visibility: visible !important; ' +
+            'background: #fff !important; ' +
+            'border: 2px solid red !important; ' +  // Debug border
+            'box-shadow: 0 5px 15px rgba(0,0,0,0.3) !important;';
+        
+        menu.classList.add('show');
+        activeMenu = menu;
+        
+        console.log('[DEBUG] Menu styled, computed display:', window.getComputedStyle(menu).display);
         
         // Set flag to prevent immediate close
         menuJustOpened = true;
-        setTimeout(function() { menuJustOpened = false; }, 100);
+        setTimeout(function() { menuJustOpened = false; }, 200);
     }
 };
 
