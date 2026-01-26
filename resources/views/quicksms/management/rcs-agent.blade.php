@@ -2377,7 +2377,10 @@ function formatUseCase(useCase) {
 
 function formatDate(dateStr) {
     var date = new Date(dateStr);
-    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
+    return year + '-' + month + '-' + day;
 }
 
 function getActionsMenu(agent) {

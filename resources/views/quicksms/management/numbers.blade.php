@@ -1375,15 +1375,21 @@ $(document).ready(function() {
     function formatDateTime(dateStr) {
         if (!dateStr) return '<span class="text-muted">Never</span>';
         var date = new Date(dateStr);
-        var options = { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
-        return date.toLocaleDateString('en-GB', options);
+        var year = date.getFullYear();
+        var month = String(date.getMonth() + 1).padStart(2, '0');
+        var day = String(date.getDate()).padStart(2, '0');
+        var hours = String(date.getHours()).padStart(2, '0');
+        var minutes = String(date.getMinutes()).padStart(2, '0');
+        return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
     }
 
     function formatDate(dateStr) {
         if (!dateStr) return '-';
         var date = new Date(dateStr);
-        var options = { day: '2-digit', month: 'short', year: 'numeric' };
-        return date.toLocaleDateString('en-GB', options);
+        var year = date.getFullYear();
+        var month = String(date.getMonth() + 1).padStart(2, '0');
+        var day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
     }
 
     function renderTable() {
