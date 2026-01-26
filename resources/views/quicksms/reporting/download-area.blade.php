@@ -22,6 +22,8 @@
 #tableContainer {
     overflow-y: auto;
     overflow-x: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
 }
 .download-area-footer {
     flex-shrink: 0;
