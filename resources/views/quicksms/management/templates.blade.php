@@ -787,18 +787,6 @@
 
             <div class="active-filters mb-3" id="activeFilters"></div>
 
-            <!-- STATIC TEST DROPDOWN - Delete after debugging -->
-            <div class="dropdown d-inline-block" style="margin-bottom: 15px;">
-                <button class="btn btn-danger" type="button" onclick="toggleActionMenu(this, event)">
-                    <i class="fas fa-ellipsis-v"></i> TEST DROPDOWN
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Test Item 1</a></li>
-                    <li><a class="dropdown-item" href="#">Test Item 2</a></li>
-                    <li><a class="dropdown-item" href="#">Test Item 3</a></li>
-                </ul>
-            </div>
-
             <div class="templates-table-container">
                 <table class="templates-table">
                     <thead>
@@ -2627,13 +2615,7 @@ window.toggleActionMenu = function(btn, event) {
     }
     
     var menu = btn.nextElementSibling;
-    console.log('[DEBUG] toggleActionMenu called, menu:', menu);
-    
-    if (!menu) {
-        console.error('[Templates] No menu found');
-        document.body.style.backgroundColor = 'red'; // Visual debug
-        return;
-    }
+    if (!menu) return;
     
     // Close any previously active menu
     if (activeMenu && activeMenu !== menu) {
@@ -2658,13 +2640,12 @@ window.toggleActionMenu = function(btn, event) {
             'opacity: 1 !important; ' +
             'visibility: visible !important; ' +
             'background: #fff !important; ' +
-            'border: 2px solid red !important; ' +  // Debug border
-            'box-shadow: 0 5px 15px rgba(0,0,0,0.3) !important;';
+            'border: 1px solid rgba(0,0,0,.15) !important; ' +
+            'border-radius: 0.375rem !important; ' +
+            'box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15) !important;';
         
         menu.classList.add('show');
         activeMenu = menu;
-        
-        console.log('[DEBUG] Menu styled, computed display:', window.getComputedStyle(menu).display);
         
         // Set flag to prevent immediate close
         menuJustOpened = true;
