@@ -133,6 +133,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/assets/templates', 'assetsTemplates')->name('admin.assets.templates');
             
             Route::get('/management/templates', 'managementTemplates')->name('admin.management.templates');
+            Route::get('/management/templates/{accountId}/{templateId}/edit', 'managementTemplateEdit')->name('admin.management.templates.edit');
             Route::get('/assets/campaigns', 'assetsCampaigns')->name('admin.assets.campaigns');
             Route::get('/assets/numbers', 'assetsNumbers')->name('admin.assets.numbers');
             Route::get('/assets/numbers/{id}/configure', 'assetsNumberConfigure')->name('admin.assets.number.configure');

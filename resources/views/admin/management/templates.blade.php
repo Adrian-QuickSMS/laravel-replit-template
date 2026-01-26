@@ -762,21 +762,6 @@
     </div>
 </div>
 
-{{-- Template Edit Wizard Modal - Uses shared component --}}
-<div class="modal fade template-wizard-modal" id="editTemplateModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content" style="height: 100vh; display: flex; flex-direction: column;">
-            @include('shared.partials.template-edit-wizard', [
-                'wizardMode' => 'admin',
-                'showRichRcs' => false,
-                'theme' => 'blue',
-                'sender_ids' => [],
-                'rcs_agents' => []
-            ])
-        </div>
-    </div>
-</div>
-
 <div class="modal fade" id="suspendTemplateModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -1258,7 +1243,7 @@ function renderTemplates(templates) {
         html += '<li><a class="dropdown-item" href="#" onclick="viewTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>';
         
         if (!isArchived && AdminPermissions.canEdit()) {
-            html += '<li><a class="dropdown-item" href="#" onclick="editTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\'); return false;"><i class="fas fa-edit me-2"></i>Edit</a></li>';
+            html += '<li><a class="dropdown-item" href="/admin/management/templates/' + template.accountId + '/' + template.templateId + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         
         html += '<li><a class="dropdown-item" href="#" onclick="viewDuplicate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
@@ -1721,121 +1706,5 @@ function showToast(message, type) {
     });
 }
 
-var editWizardStep = 1;
-var editingTemplate = null;
-var editTenantContext = null;
-var editReadOnlyMode = false;
-
-async function editTemplate(accountId, templateId) {
-    var loadingOverlay = document.getElementById('wizardLoadingOverlay');
-    var errorOverlay = document.getElementById('wizardErrorOverlay');
-    
-    if (loadingOverlay) loadingOverlay.classList.remove('d-none');
-    if (errorOverlay) errorOverlay.classList.add('d-none');
-    
-    editTenantContext = { accountId: accountId, templateId: templateId };
-    editReadOnlyMode = !AdminPermissions.canEdit();
-    
-    new bootstrap.Modal(document.getElementById('editTemplateModal')).show();
-    
-    var result = await AdminTemplatesService.getTemplateDetails(accountId, templateId);
-    
-    if (!result.success) {
-        if (loadingOverlay) loadingOverlay.classList.add('d-none');
-        if (errorOverlay) errorOverlay.classList.remove('d-none');
-        var errorMsg = document.getElementById('wizardErrorMessage');
-        if (errorMsg) errorMsg.textContent = result.error || 'Failed to load template details.';
-        return;
-    }
-    
-    editingTemplate = result.data;
-    
-    if (editingTemplate.status === 'archived') {
-        if (loadingOverlay) loadingOverlay.classList.add('d-none');
-        if (errorOverlay) errorOverlay.classList.remove('d-none');
-        var errorMsg = document.getElementById('wizardErrorMessage');
-        if (errorMsg) errorMsg.textContent = 'Archived templates cannot be edited.';
-        return;
-    }
-    
-    var tenantContext = {
-        accountId: accountId,
-        accountName: editingTemplate.accountName
-    };
-    
-    if (typeof initSharedWizard === 'function') {
-        initSharedWizard(editingTemplate, tenantContext);
-    }
-    
-    if (loadingOverlay) loadingOverlay.classList.add('d-none');
-    
-    AdminControlPlane.logAccess({
-        eventType: 'TEMPLATE_EDIT_STARTED',
-        accountId: accountId,
-        templateId: templateId,
-        templateName: editingTemplate.name,
-        adminAction: 'edit_template'
-    });
-}
-
-function onWizardSave(updateData, template, tenantContext) {
-    if (!editTenantContext || !editingTemplate) return;
-    
-    var auditData = {
-        eventType: 'TEMPLATE_UPDATED',
-        accountId: editTenantContext.accountId,
-        templateId: editingTemplate.templateId,
-        templateName: updateData.name,
-        changes: {
-            channel: updateData.channel,
-            content: updateData.content ? 'updated' : 'unchanged',
-            setLive: updateData.setLive
-        },
-        changeNote: updateData.changeNote || ''
-    };
-    
-    AdminControlPlane.logAccess(auditData);
-    
-    console.log('[Admin Templates] Saving template:', updateData);
-    
-    var idx = mockTemplates.findIndex(function(t) {
-        return t.accountId === editTenantContext.accountId && t.templateId === editingTemplate.templateId;
-    });
-    
-    if (idx !== -1) {
-        mockTemplates[idx].name = updateData.name;
-        mockTemplates[idx].content = updateData.content;
-        mockTemplates[idx].channel = updateData.channel;
-        if (updateData.setLive) {
-            mockTemplates[idx].status = 'live';
-        }
-        mockTemplates[idx].lastUpdated = new Date().toISOString().split('T')[0];
-    }
-    
-    bootstrap.Modal.getInstance(document.getElementById('editTemplateModal')).hide();
-    renderTemplates();
-    
-    showToast('Template updated successfully', 'success');
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    var editModal = document.getElementById('editTemplateModal');
-    if (editModal) {
-        editModal.addEventListener('hidden.bs.modal', function() {
-            editingTemplate = null;
-            editTenantContext = null;
-            var wizardTemplateName = document.getElementById('wizardTemplateName');
-            var wizardTemplateIdField = document.getElementById('wizardTemplateIdField');
-            var wizardTemplateContent = document.getElementById('wizardTemplateContent');
-            var wizardChangeNote = document.getElementById('wizardChangeNote');
-            var wizardSetLive = document.getElementById('wizardSetLive');
-            if (wizardTemplateName) wizardTemplateName.value = '';
-            if (wizardTemplateIdField) wizardTemplateIdField.value = '';
-            if (wizardTemplateContent) wizardTemplateContent.value = '';
-            if (wizardChangeNote) wizardChangeNote.value = '';
-            if (wizardSetLive) wizardSetLive.checked = false;
-        });
-    }
-});
 </script>
 @endpush

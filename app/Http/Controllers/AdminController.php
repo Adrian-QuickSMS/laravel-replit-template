@@ -294,4 +294,13 @@ class AdminController extends Controller
             'page_title' => 'Global Templates Library'
         ]);
     }
+
+    public function managementTemplateEdit($accountId, $templateId)
+    {
+        return view('admin.management.template-edit-wizard', [
+            'page_title' => 'Edit Template',
+            'account_id' => $accountId,
+            'template_id' => $templateId
+        ]);
+    }
 }
