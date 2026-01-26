@@ -24,12 +24,6 @@
     overflow: hidden;
     padding-bottom: 0;
 }
-#summaryBar .card-body {
-    display: block !important;
-    flex: none !important;
-    overflow: visible !important;
-    padding: 1.25rem !important;
-}
 .message-log-fixed-header {
     flex-shrink: 0;
     overflow: visible;
@@ -42,10 +36,6 @@
 }
 #filtersPanel .dropdown-menu {
     z-index: 1050;
-}
-#summaryBar .card {
-    flex: none !important;
-    overflow: visible !important;
 }
 .message-log-table-wrapper {
     flex: 1 1 auto;
@@ -523,50 +513,18 @@
                             </div>
                         </div>
 
-                        <div class="mb-4" id="summaryBar" style="display: none;">
-                        <div class="row g-3">
-                            <div class="col-6 col-md-4 col-lg-3">
-                                <div class="card shadow-sm">
-                                    <div class="card-body p-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3">
-                                                <span class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
-                                                    <i class="fas fa-envelope text-primary fs-5"></i>
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <p class="mb-1 text-muted">Total Messages</p>
-                                                <h3 class="mb-0 fw-bold" id="summaryTotal">0</h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-3">
-                                <div class="card shadow-sm">
-                                    <div class="card-body p-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3">
-                                                <span class="bg-success-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
-                                                    <i class="fas fa-puzzle-piece text-success fs-5"></i>
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <p class="mb-1 text-muted">Total Parts</p>
-                                                <h3 class="mb-0 fw-bold" id="summaryParts">0</h3>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <div class="text-muted small" id="rowCountInfo">
                                 <span id="renderedCount">0</span> rows loaded (max 10,000)
                             </div>
                             <div class="d-flex align-items-center gap-3">
+                                <div class="summary-stats small" id="summaryBar" style="display: none;">
+                                    <span class="fw-semibold" id="summaryParts">0</span> <span class="text-muted">parts</span>
+                                    <span class="text-muted mx-1">|</span>
+                                    <span class="fw-semibold" id="summaryTotal">0</span> <span class="text-muted">messages</span>
+                                    <span class="text-muted mx-1">|</span>
+                                    <span class="fw-semibold" id="summaryAvg">0.00</span> <span class="text-muted">parts/msg avg</span>
+                                </div>
                                 <div class="table-style-toggle">
                                     <span class="toggle-label" id="labelColoredRows">Coloured Rows</span>
                                     <div class="form-check form-switch mb-0">
@@ -1520,10 +1478,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update summary bar if it exists
                 const summaryTotalEl = document.getElementById('summaryTotal');
                 const summaryPartsEl = document.getElementById('summaryParts');
+                const summaryAvgEl = document.getElementById('summaryAvg');
                 const renderedCountEl = document.getElementById('renderedCount');
+                const totalParts = Math.floor(totalMessages * 1.15);
+                const avgParts = totalMessages > 0 ? (totalParts / totalMessages).toFixed(2) : '0.00';
                 if (summaryTotalEl) summaryTotalEl.textContent = totalMessages.toLocaleString();
-                if (summaryPartsEl) summaryPartsEl.textContent = Math.floor(totalMessages * 1.15).toLocaleString();
-                if (summaryBar) summaryBar.style.display = 'block';
+                if (summaryPartsEl) summaryPartsEl.textContent = totalParts.toLocaleString();
+                if (summaryAvgEl) summaryAvgEl.textContent = avgParts;
+                if (summaryBar) summaryBar.style.display = 'flex';
             }
             
             // Check max rows limit
