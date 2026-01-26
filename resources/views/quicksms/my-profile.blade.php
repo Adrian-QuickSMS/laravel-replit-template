@@ -421,17 +421,17 @@
                     </div>
                     
                     <!-- Password Rules (collapsed by default) -->
-                    <div class="card bg-light border-0 mb-0" id="passwordRulesCard">
-                        <div class="card-header bg-transparent border-0 p-2" style="cursor: pointer;" id="passwordRulesToggle">
+                    <div class="card border-0 mb-0" id="passwordRulesCard" style="background: #f3e8ff;">
+                        <div class="card-header border-0 p-2" style="cursor: pointer; background: transparent;" id="passwordRulesToggle">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted" style="font-size: 0.85rem;">
-                                    <i class="fas fa-info-circle me-1"></i>Password requirements
+                                <span style="font-size: 0.85rem; color: #6b21a8;">
+                                    <i class="fas fa-info-circle me-1" style="color: #886cc0;"></i>Password requirements
                                 </span>
-                                <i class="fas fa-chevron-down text-muted" id="passwordRulesIcon" style="font-size: 0.75rem; transition: transform 0.2s;"></i>
+                                <i class="fas fa-chevron-down" id="passwordRulesIcon" style="font-size: 0.75rem; transition: transform 0.2s; color: #886cc0;"></i>
                             </div>
                         </div>
                         <div class="collapse" id="passwordRulesCollapse">
-                            <div class="card-body pt-0 px-2 pb-2">
+                            <div class="card-body pt-0 px-2 pb-2" style="color: #6b21a8;">
                                 <ul class="list-unstyled mb-0" style="font-size: 0.8rem;">
                                     <li class="mb-1" id="rule-length">
                                         <i class="fas fa-circle me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
