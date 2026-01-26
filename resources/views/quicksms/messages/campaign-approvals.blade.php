@@ -334,13 +334,13 @@
         </div>
     </div>
     
-    <div class="table-container mb-4" style="border: 1px solid #adb5bd; border-radius: 0.75rem; background: #fff;">
-        <div class="section-header px-3 pt-3">
+    <div class="mb-4" style="background: #fff;">
+        <div class="section-header px-0 pt-0 pb-3">
             <h5 class="section-title"><i class="fas fa-hourglass-half me-2" style="color: #886cc0;"></i>Pending Approvals</h5>
         </div>
         
         @if(count($pending_approvals) > 0)
-        <div class="table-responsive">
+        <div class="table-responsive" style="border: 1px solid #adb5bd; border-radius: 0.75rem; overflow: hidden;">
             <table class="table mb-0">
                 <thead>
                     <tr>
@@ -393,15 +393,15 @@
         @endif
     </div>
     
-    <div class="table-container" style="border: 1px solid #adb5bd; border-radius: 0.75rem; background: #fff;">
-        <div class="section-header px-3 pt-3">
+    <div style="background: #fff;">
+        <div class="section-header px-0 pt-0 pb-3">
             <h5 class="section-title"><i class="fas fa-history me-2" style="color: #6b7280;"></i>Recent Decisions</h5>
             <button class="btn btn-export" id="btn-export-audit">
                 <i class="fas fa-download me-1"></i>Export Audit Log
             </button>
         </div>
         
-        <div class="table-responsive">
+        <div class="table-responsive" style="border: 1px solid #adb5bd; border-radius: 0.75rem; overflow: hidden;">
             <table class="table mb-0">
                 <thead>
                     <tr>

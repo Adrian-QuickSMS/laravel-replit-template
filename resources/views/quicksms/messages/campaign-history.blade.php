@@ -161,8 +161,8 @@ $permissions = [
     
     <div class="row">
         <div class="col-12">
-            <div class="table-container" style="border: 1px solid #adb5bd; border-radius: 0.75rem; background: #fff;">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <div class="card" style="border: none; box-shadow: none; background: #fff;">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="background: #fff; border-bottom: none;">
                     <h5 class="card-title mb-2 mb-md-0">Campaign History</h5>
                     <div class="d-flex align-items-center gap-2">
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
@@ -341,7 +341,7 @@ $permissions = [
                         </div>
                     </div>
 
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="border: 1px solid #adb5bd; border-radius: 0.75rem; overflow: hidden;">
                         <table class="table table-hover mb-0" id="campaignsTable">
                             <thead>
                                 <tr>
