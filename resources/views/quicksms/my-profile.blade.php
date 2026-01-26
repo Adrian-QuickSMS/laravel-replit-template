@@ -108,6 +108,16 @@
         $mfaPhone = '+447700900123';
         $backupCodesRemaining = 6;
         $loginCount = 247;
+        $lastLoginIp = '192.168.1.45';
+        $mfaLastVerified = '26 Jan 2026, 08:30';
+        
+        $securityEvents = [
+            ['date' => '26 Jan 2026, 09:15', 'event' => 'Successful login', 'ip' => '192.168.1.45', 'icon' => 'fa-sign-in-alt', 'color' => 'success'],
+            ['date' => '25 Jan 2026, 14:22', 'event' => 'Password changed', 'ip' => '192.168.1.45', 'icon' => 'fa-key', 'color' => 'info'],
+            ['date' => '25 Jan 2026, 10:05', 'event' => 'MFA verified', 'ip' => '192.168.1.45', 'icon' => 'fa-shield-alt', 'color' => 'primary'],
+            ['date' => '24 Jan 2026, 16:30', 'event' => 'Successful login', 'ip' => '10.0.0.12', 'icon' => 'fa-sign-in-alt', 'color' => 'success'],
+            ['date' => '23 Jan 2026, 09:45', 'event' => 'Failed login attempt', 'ip' => '203.45.67.89', 'icon' => 'fa-exclamation-triangle', 'color' => 'warning'],
+        ];
     @endphp
     
     <div class="toast-container">
@@ -318,22 +328,47 @@
                     <h4 class="card-title">Audit & Metadata</h4>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row mb-3">
+                        <div class="col-6 mb-3">
+                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Last Login</label>
+                            <span>{{ $lastLogin }}</span>
+                            <small class="text-muted d-block" style="font-size: 0.75rem;">IP: {{ $lastLoginIp }}</small>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Last Password Change</label>
+                            <span>{{ $lastPasswordChange }}</span>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">MFA Last Verified</label>
+                            <span>{{ $mfaLastVerified }}</span>
+                        </div>
                         <div class="col-6 mb-3">
                             <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Account Created</label>
                             <span>{{ $accountCreated }}</span>
                         </div>
-                        <div class="col-6 mb-3">
-                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Last Login</label>
-                            <span>{{ $lastLogin }}</span>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Total Logins</label>
-                            <span>{{ $loginCount }}</span>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">User ID</label>
-                            <span class="text-muted" style="font-family: monospace; font-size: 0.85rem;">usr_8f4a2b1c</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div>
+                        <h6 class="mb-3" style="font-size: 0.9rem;">Recent Security Events</h6>
+                        <div class="security-events-list">
+                            @foreach($securityEvents as $event)
+                            <div class="d-flex align-items-start mb-2 pb-2 {{ !$loop->last ? 'border-bottom' : '' }}" style="font-size: 0.85rem;">
+                                <div class="me-3">
+                                    <span class="badge badge-{{ $event['color'] }} light" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                        <i class="fas {{ $event['icon'] }}" style="font-size: 0.7rem;"></i>
+                                    </span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <span>{{ $event['event'] }}</span>
+                                        <small class="text-muted">{{ $event['date'] }}</small>
+                                    </div>
+                                    <small class="text-muted">IP: {{ $event['ip'] }}</small>
+                                </div>
+                            </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>
