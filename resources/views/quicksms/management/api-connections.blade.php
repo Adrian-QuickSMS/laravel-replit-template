@@ -232,6 +232,12 @@
 .action-menu-btn:hover {
     color: var(--primary);
 }
+.dropdown .dropdown-menu {
+    z-index: 1050;
+    position: absolute;
+    inset: auto 0 auto auto !important;
+    transform: translate(0, 0) !important;
+}
 .archived-row {
     opacity: 0.6;
     background-color: #f8f9fa;
