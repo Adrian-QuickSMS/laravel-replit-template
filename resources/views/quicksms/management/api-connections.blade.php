@@ -232,6 +232,9 @@
 .action-menu-btn:hover {
     color: var(--primary);
 }
+.dropdown {
+    position: relative;
+}
 .dropdown .dropdown-menu {
     z-index: 9999 !important;
 }
