@@ -399,7 +399,14 @@ table .cursor-pointer:hover {
         <!-- Dashboard Toolbar -->
         <div class="row mb-3">
             <div class="col-12">
-                <div class="d-flex justify-content-end align-items-center">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="summary-stats small" id="dashboardSummaryStats">
+                        <span class="fw-semibold" id="summaryParts">0</span> <span class="text-muted">parts</span>
+                        <span class="text-muted mx-1">|</span>
+                        <span class="fw-semibold" id="summaryMessages">0</span> <span class="text-muted">messages</span>
+                        <span class="text-muted mx-1">|</span>
+                        <span class="fw-semibold" id="summaryAvg">0.00</span> <span class="text-muted">parts/msg avg</span>
+                    </div>
                     <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" id="btnToggleFilters">
                         <i class="fas fa-filter me-1"></i> Filters
                         <span class="badge bg-primary ms-1" id="filterCountBadge" style="display: none;">0</span>
@@ -1406,6 +1413,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p class="mb-1">UNDELIVERED MESSAGES</p>
                 <h4 class="mb-0 d-flex align-items-center" style="white-space: nowrap;">${formatNumber(data.undeliveredMessages.count)}${undelTrendBadge}</h4>
             `;
+            
+            // Update summary stats bar
+            const totalMessages = data.messagesSent.count;
+            const totalParts = Math.floor(totalMessages * 1.15);
+            const avgParts = totalMessages > 0 ? (totalParts / totalMessages).toFixed(2) : '0.00';
+            document.getElementById('summaryParts').textContent = totalParts.toLocaleString();
+            document.getElementById('summaryMessages').textContent = totalMessages.toLocaleString();
+            document.getElementById('summaryAvg').textContent = avgParts;
             
             console.log('[Dashboard] KPIs loaded');
         } catch (error) {
