@@ -229,7 +229,7 @@
                         </div>
                         
                         @if($twoFactorEnabled)
-                        <div class="mb-3 p-3 rounded" style="background: #f3e8ff;">
+                        <div class="mb-3 p-3 rounded" style="background: #f7ddf3;">
                             <div class="mb-2">
                                 <label class="mb-1 d-block" style="font-size: 0.8rem; color: #6b21a8;">Active Method(s)</label>
                                 <div class="d-flex flex-wrap gap-2">
@@ -421,7 +421,7 @@
                     </div>
                     
                     <!-- Password Rules (collapsed by default) -->
-                    <div class="card border-0 mb-0" id="passwordRulesCard" style="background: #f3e8ff;">
+                    <div class="card border-0 mb-0" id="passwordRulesCard" style="background: #f7ddf3;">
                         <div class="card-header border-0 p-2" style="cursor: pointer; background: transparent;" id="passwordRulesToggle">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span style="font-size: 0.85rem; color: #6b21a8;">
