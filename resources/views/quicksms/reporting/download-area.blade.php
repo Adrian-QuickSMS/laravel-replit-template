@@ -622,19 +622,26 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row">
+    <div class="row mb-3">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
+                <div class="card-body py-2">
                     <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-3">
+                        <ol class="breadcrumb mb-0">
                             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
                             <li class="breadcrumb-item"><a href="{{ route('reporting.dashboard') }}">Reporting</a></li>
                             <li class="breadcrumb-item active" aria-current="page">Download Area</li>
                         </ol>
                     </nav>
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <h5 class="card-title mb-2 mb-md-0">Download Area</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <h5 class="card-title mb-2 mb-md-0">Download Area</h5>
                     <div class="d-flex align-items-center gap-2">
                         <div class="btn-group" id="bulkActionsHeader" style="display: none;">
                             <button class="btn btn-outline-primary btn-sm" onclick="downloadSelected()">
