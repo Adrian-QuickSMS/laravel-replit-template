@@ -1,38 +1,12 @@
 /**
  * Table Dropdown Fix
  * Fixes dropdown positioning issues in tables with sticky columns, overflow, etc.
- * Works by cloning the dropdown menu to body and positioning it with fixed coordinates.
+ * Uses a simpler approach: moves the original menu to body temporarily.
  */
 (function() {
     'use strict';
 
-    var activeDropdown = null;
-    var clonedMenu = null;
-
-    function positionDropdown($btn, $menu) {
-        var btnRect = $btn[0].getBoundingClientRect();
-        var menuWidth = $menu.outerWidth();
-        var menuHeight = $menu.outerHeight();
-        
-        var top = btnRect.bottom + 2;
-        var left = btnRect.right - menuWidth;
-        
-        if (left < 10) {
-            left = btnRect.left;
-        }
-        
-        if (top + menuHeight > window.innerHeight - 10) {
-            top = btnRect.top - menuHeight - 2;
-        }
-        
-        $menu.css({
-            position: 'fixed',
-            top: top + 'px',
-            left: left + 'px',
-            zIndex: 99999,
-            display: 'block'
-        });
-    }
+    var activeData = null;
 
     function showDropdown(e) {
         var $dropdown = $(this);
@@ -41,64 +15,77 @@
         
         if (!$btn.length || !$menu.length) return;
 
-        if (clonedMenu) {
-            clonedMenu.remove();
-            clonedMenu = null;
+        var btnRect = $btn[0].getBoundingClientRect();
+        var menuWidth = $menu.outerWidth() || 160;
+        
+        var top = btnRect.bottom + 2;
+        var left = btnRect.right - menuWidth;
+        
+        if (left < 10) {
+            left = btnRect.left;
         }
 
-        clonedMenu = $menu.clone();
-        clonedMenu.removeClass('show').addClass('table-dropdown-clone');
-        $('body').append(clonedMenu);
+        activeData = {
+            $dropdown: $dropdown,
+            $menu: $menu,
+            $btn: $btn,
+            originalParent: $menu.parent(),
+            originalStyles: $menu.attr('style') || ''
+        };
+
+        $menu.appendTo('body');
         
-        clonedMenu.find('.dropdown-item').on('click', function(e) {
-            var originalItem = $menu.find('.dropdown-item').eq($(this).index());
-            originalItem.trigger('click');
-            
-            $btn.dropdown('hide');
+        $menu.css({
+            position: 'fixed',
+            top: top + 'px',
+            left: left + 'px',
+            zIndex: 99999,
+            transform: 'none',
+            inset: 'auto'
         });
 
         setTimeout(function() {
-            clonedMenu.addClass('show');
-            positionDropdown($btn, clonedMenu);
-        }, 0);
-
-        $menu.css('visibility', 'hidden');
-        
-        activeDropdown = {
-            $dropdown: $dropdown,
-            $btn: $btn,
-            $menu: $menu
-        };
+            var menuHeight = $menu.outerHeight();
+            if (top + menuHeight > window.innerHeight - 10) {
+                $menu.css('top', (btnRect.top - menuHeight - 2) + 'px');
+            }
+        }, 10);
     }
 
     function hideDropdown(e) {
-        if (clonedMenu) {
-            clonedMenu.remove();
-            clonedMenu = null;
-        }
+        if (!activeData) return;
         
-        if (activeDropdown && activeDropdown.$menu) {
-            activeDropdown.$menu.css('visibility', '');
-        }
+        var $menu = activeData.$menu;
+        var $dropdown = activeData.$dropdown;
         
-        activeDropdown = null;
+        $menu.attr('style', activeData.originalStyles);
+        $menu.removeClass('show');
+        $dropdown.append($menu);
+        
+        activeData = null;
     }
 
     $(document).on('shown.bs.dropdown', '.table-action-dropdown', showDropdown);
     $(document).on('hidden.bs.dropdown', '.table-action-dropdown', hideDropdown);
 
     $(window).on('scroll resize', function() {
-        if (activeDropdown && clonedMenu) {
-            positionDropdown(activeDropdown.$btn, clonedMenu);
-        }
-    });
-
-    $(document).on('click', function(e) {
-        if (clonedMenu && !$(e.target).closest('.table-dropdown-clone').length && 
-            !$(e.target).closest('.table-action-dropdown').length) {
-            if (activeDropdown && activeDropdown.$btn) {
-                activeDropdown.$btn.dropdown('hide');
+        if (activeData && activeData.$menu.hasClass('show')) {
+            var btnRect = activeData.$btn[0].getBoundingClientRect();
+            var menuWidth = activeData.$menu.outerWidth() || 160;
+            var menuHeight = activeData.$menu.outerHeight();
+            
+            var top = btnRect.bottom + 2;
+            var left = btnRect.right - menuWidth;
+            
+            if (left < 10) left = btnRect.left;
+            if (top + menuHeight > window.innerHeight - 10) {
+                top = btnRect.top - menuHeight - 2;
             }
+            
+            activeData.$menu.css({
+                top: top + 'px',
+                left: left + 'px'
+            });
         }
     });
 })();
