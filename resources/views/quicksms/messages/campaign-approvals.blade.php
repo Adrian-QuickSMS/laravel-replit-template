@@ -334,13 +334,14 @@
         </div>
     </div>
     
-    <div class="mb-4" style="background: #fff;">
-        <div class="section-header px-0 pt-0 pb-3">
-            <h5 class="section-title"><i class="fas fa-hourglass-half me-2" style="color: #886cc0;"></i>Pending Approvals</h5>
-        </div>
-        
-        @if(count($pending_approvals) > 0)
-        <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: hidden; margin: 0 1rem 1rem 1rem;">
+    <div class="card mb-4" style="background: #fff; border: none; box-shadow: none;">
+        <div class="card-body p-3">
+            <div class="section-header mb-3">
+                <h5 class="section-title mb-0"><i class="fas fa-hourglass-half me-2" style="color: #886cc0;"></i>Pending Approvals</h5>
+            </div>
+            
+            @if(count($pending_approvals) > 0)
+            <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: hidden;">
             <table class="table mb-0">
                 <thead>
                     <tr>
@@ -386,22 +387,24 @@
         </div>
         @else
         <div class="text-center py-5">
-            <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
-            <h5 class="text-muted">No Pending Approvals</h5>
-            <p class="text-muted" style="font-size: 0.85rem;">All campaigns have been reviewed. Check back later.</p>
+                <i class="fas fa-clipboard-check fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Pending Approvals</h5>
+                <p class="text-muted" style="font-size: 0.85rem;">All campaigns have been reviewed. Check back later.</p>
+            </div>
+            @endif
         </div>
-        @endif
     </div>
     
-    <div style="background: #fff;">
-        <div class="section-header px-0 pt-0 pb-3">
-            <h5 class="section-title"><i class="fas fa-history me-2" style="color: #6b7280;"></i>Recent Decisions</h5>
-            <button class="btn btn-export" id="btn-export-audit">
-                <i class="fas fa-download me-1"></i>Export Audit Log
-            </button>
-        </div>
-        
-        <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: hidden; margin: 0 1rem 1rem 1rem;">
+    <div class="card" style="background: #fff; border: none; box-shadow: none;">
+        <div class="card-body p-3">
+            <div class="section-header mb-3 d-flex justify-content-between align-items-center">
+                <h5 class="section-title mb-0"><i class="fas fa-history me-2" style="color: #6b7280;"></i>Recent Decisions</h5>
+                <button class="btn btn-export" id="btn-export-audit">
+                    <i class="fas fa-download me-1"></i>Export Audit Log
+                </button>
+            </div>
+            
+            <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: hidden;">
             <table class="table mb-0">
                 <thead>
                     <tr>
@@ -436,6 +439,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>
