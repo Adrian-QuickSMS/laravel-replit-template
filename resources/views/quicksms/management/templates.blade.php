@@ -786,6 +786,9 @@
         </div>
 
             <div class="active-filters mb-3" id="activeFilters"></div>
+            
+            <!-- DEBUG: Test if onclick handlers work -->
+            <button onclick="alert('Test button works!')" style="margin:10px; padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">DEBUG: Click to Test</button>
 
             <div class="templates-table-container">
                 <table class="templates-table">
@@ -2605,80 +2608,57 @@ var filterLabels = {
 };
 
 
+window.toggleActionMenu = function(btn, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    alert('Menu clicked!'); // Debug - will show if function fires
+    console.log('[Templates] toggleActionMenu called');
+    
+    var menu = btn.nextElementSibling;
+    console.log('[Templates] Menu found:', menu);
+    
+    if (!menu) {
+        console.error('[Templates] No menu found');
+        return;
+    }
+    
+    // Close all other menus
+    document.querySelectorAll('#templatesBody .dropdown-menu').forEach(function(m) {
+        if (m !== menu) {
+            m.classList.remove('show');
+            m.style.display = 'none';
+        }
+    });
+    
+    // Toggle this menu
+    if (menu.classList.contains('show')) {
+        menu.classList.remove('show');
+        menu.style.display = 'none';
+    } else {
+        menu.classList.add('show');
+        var rect = btn.getBoundingClientRect();
+        menu.style.position = 'fixed';
+        menu.style.top = (rect.bottom + 2) + 'px';
+        menu.style.left = (rect.right - 180) + 'px';
+        menu.style.zIndex = '9999';
+        menu.style.display = 'block';
+        console.log('[Templates] Menu shown');
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     renderTemplates();
     setupEventListeners();
     
-    document.body.addEventListener('click', function(e) {
-        console.log('[Templates] Click detected:', e.target);
-        
-        // Find if click is on or inside action button
-        var actionBtn = e.target.closest('.action-menu-btn');
-        if (actionBtn) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('[Templates] Action button clicked, button element:', actionBtn);
-            
-            // Find parent dropdown div
-            var dropdown = actionBtn.parentElement;
-            console.log('[Templates] Parent dropdown:', dropdown);
-            
-            // Find menu as next sibling
-            var menu = actionBtn.nextElementSibling;
-            console.log('[Templates] Menu element:', menu, 'Has dropdown-menu class:', menu ? menu.classList.contains('dropdown-menu') : false);
-            
-            if (menu && menu.classList.contains('dropdown-menu')) {
-                // Close all other menus first
-                document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(openMenu) {
-                    if (openMenu !== menu) {
-                        console.log('[Templates] Closing other menu:', openMenu);
-                        openMenu.classList.remove('show');
-                        openMenu.style.display = 'none';
-                    }
-                });
-                
-                // Toggle current menu
-                var isShowing = menu.classList.contains('show');
-                console.log('[Templates] Menu current state - isShowing:', isShowing);
-                
-                if (isShowing) {
-                    menu.classList.remove('show');
-                    menu.style.display = 'none';
-                    console.log('[Templates] Menu hidden');
-                } else {
-                    menu.classList.add('show');
-                    
-                    // Position menu using fixed positioning
-                    var rect = actionBtn.getBoundingClientRect();
-                    menu.style.position = 'fixed';
-                    menu.style.top = (rect.bottom + 2) + 'px';
-                    menu.style.left = (rect.right - 180) + 'px';
-                    menu.style.right = 'auto';
-                    menu.style.zIndex = '9999';
-                    menu.style.display = 'block';
-                    
-                    console.log('[Templates] Menu shown at position:', {
-                        top: menu.style.top,
-                        left: menu.style.left,
-                        zIndex: menu.style.zIndex
-                    });
-                }
-            } else {
-                console.error('[Templates] Menu not found or invalid. Expected nextElementSibling with .dropdown-menu class');
-            }
-            return;
-        }
-        
-        // Close menus when clicking outside
-        if (!e.target.closest('.dropdown-menu')) {
-            var openMenus = document.querySelectorAll('#templatesBody .dropdown-menu.show');
-            if (openMenus.length > 0) {
-                console.log('[Templates] Closing', openMenus.length, 'open menus (clicked outside)');
-                openMenus.forEach(function(menu) {
-                    menu.classList.remove('show');
-                    menu.style.display = 'none';
-                });
-            }
+    // Close menus when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(menu) {
+                menu.classList.remove('show');
+                menu.style.display = 'none';
+            });
         }
     });
 });
@@ -3571,7 +3551,7 @@ function renderTemplates() {
         html += '<td>' + template.lastUpdated + '</td>';
         html += '<td>';
         html += '<div class="dropdown">';
-        html += '<button class="action-menu-btn" type="button">';
+        html += '<button class="action-menu-btn" type="button" onclick="toggleActionMenu(this, event)">';
         html += '<i class="fas fa-ellipsis-v"></i>';
         html += '</button>';
         html += '<ul class="dropdown-menu dropdown-menu-end">';
