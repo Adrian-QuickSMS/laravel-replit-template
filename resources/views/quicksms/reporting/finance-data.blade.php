@@ -32,9 +32,6 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
 }
 .badge-status-finalised {
     background-color: rgba(28, 187, 140, 0.15) !important;

@@ -18,9 +18,6 @@
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
 }
 #tableContainer {
     overflow-y: auto;
@@ -622,20 +619,12 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-3">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body py-2">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
-                            <li class="breadcrumb-item"><a href="{{ route('reporting.dashboard') }}">Reporting</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Download Area</li>
-                        </ol>
-                    </nav>
-                </div>
-            </div>
-        </div>
+    <div class="row page-titles mb-2">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('reporting.dashboard') }}">Reporting</a></li>
+            <li class="breadcrumb-item active">Download Area</li>
+        </ol>
     </div>
     <div class="row">
         <div class="col-12">
@@ -657,7 +646,6 @@
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="refreshDownloads()">
                             <i class="fas fa-sync-alt me-1"></i> Refresh
                         </button>
-                    </div>
                     </div>
                 </div>
                 <div class="card-body">
