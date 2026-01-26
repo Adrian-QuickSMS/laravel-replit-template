@@ -202,6 +202,45 @@
 .save-indicator i {
     color: #16a34a;
 }
+.mfa-method-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.mfa-method-option {
+    display: inline-block;
+    cursor: pointer;
+}
+.mfa-method-option input[type="checkbox"] {
+    display: none;
+}
+.mfa-method-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+    background: #f9fafb;
+    transition: all 0.15s;
+}
+.mfa-method-pill i {
+    font-size: 0.9rem;
+}
+.mfa-method-option:hover .mfa-method-pill {
+    border-color: #886cc0;
+    background: #faf8ff;
+}
+.mfa-method-option input[type="checkbox"]:checked + .mfa-method-pill {
+    border-color: #886cc0;
+    background: rgba(111, 66, 193, 0.08);
+    color: #374151;
+}
+.mfa-method-option input[type="checkbox"]:checked + .mfa-method-pill i {
+    color: #886cc0;
+}
 .ip-list {
     display: flex;
     flex-direction: column;
@@ -379,6 +418,33 @@
                     <div class="warning-banner" id="mfaWarning" style="display: none;">
                         <i class="fas fa-exclamation-triangle"></i>
                         <span>Disabling MFA reduces account security. This is not recommended.</span>
+                    </div>
+                    
+                    <div class="mfa-methods-section" id="mfaMethodsSection">
+                        <div class="setting-info mb-2" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e9ecef;">
+                            <div class="setting-label">Allowed MFA Methods</div>
+                            <div class="setting-description">Select which authentication methods users can use. At least one method must be enabled.</div>
+                        </div>
+                        <div class="mfa-method-toggles">
+                            <label class="mfa-method-option" id="methodAuthenticatorOption">
+                                <input type="checkbox" id="mfaMethodAuthenticator" value="authenticator">
+                                <span class="mfa-method-pill">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    Authenticator App (TOTP)
+                                </span>
+                            </label>
+                            <label class="mfa-method-option" id="methodSmsRcsOption">
+                                <input type="checkbox" id="mfaMethodSmsRcs" value="sms_rcs">
+                                <span class="mfa-method-pill">
+                                    <i class="fas fa-sms"></i>
+                                    SMS/RCS OTP
+                                </span>
+                            </label>
+                        </div>
+                        <div class="warning-banner" id="mfaMethodsWarning" style="display: none; margin-top: 0.75rem;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>At least one MFA method must be enabled.</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -732,6 +798,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var SecuritySettingsService = {
         settings: {
             mfa_required: true, // Default: ON (recommended)
+            mfa_methods: {
+                authenticator: true, // Default: enabled
+                sms_rcs: true // Default: enabled
+            },
             ip_allowlist_enabled: false,
             ip_allowlist: [
                 { ip: '192.168.1.0/24', label: 'Office Network' },
@@ -818,6 +888,65 @@ document.addEventListener('DOMContentLoaded', function() {
             showSaveIndicator();
         });
     }
+    
+    // MFA Allowed Methods
+    var mfaMethodAuthenticator = document.getElementById('mfaMethodAuthenticator');
+    var mfaMethodSmsRcs = document.getElementById('mfaMethodSmsRcs');
+    var mfaMethodsWarning = document.getElementById('mfaMethodsWarning');
+    
+    function getEnabledMethods() {
+        return {
+            authenticator: mfaMethodAuthenticator ? mfaMethodAuthenticator.checked : false,
+            sms_rcs: mfaMethodSmsRcs ? mfaMethodSmsRcs.checked : false
+        };
+    }
+    
+    function validateMfaMethods() {
+        var methods = getEnabledMethods();
+        var hasAtLeastOne = methods.authenticator || methods.sms_rcs;
+        if (mfaMethodsWarning) {
+            mfaMethodsWarning.style.display = hasAtLeastOne ? 'none' : 'flex';
+        }
+        return hasAtLeastOne;
+    }
+    
+    function handleMfaMethodChange() {
+        var oldMethods = JSON.parse(JSON.stringify(SecuritySettingsService.settings.mfa_methods));
+        var newMethods = getEnabledMethods();
+        
+        // Prevent unchecking if it would leave no methods enabled
+        if (!newMethods.authenticator && !newMethods.sms_rcs) {
+            // Revert the change
+            if (mfaMethodAuthenticator) mfaMethodAuthenticator.checked = oldMethods.authenticator;
+            if (mfaMethodSmsRcs) mfaMethodSmsRcs.checked = oldMethods.sms_rcs;
+            validateMfaMethods();
+            return;
+        }
+        
+        SecuritySettingsService.save('mfa_methods', newMethods);
+        validateMfaMethods();
+        
+        // Emit audit event: MFA_ALLOWED_METHODS_CHANGED
+        emitAuditEvent('MFA_ALLOWED_METHODS_CHANGED', {
+            actor: 'Sarah Mitchell', // TODO: Get from session
+            timestamp: new Date().toISOString(),
+            source_ip: '192.168.1.100', // TODO: Get from request
+            old_value: oldMethods,
+            new_value: newMethods
+        }, 'mfa');
+        showSaveIndicator();
+    }
+    
+    // Initialize MFA methods from service state
+    if (mfaMethodAuthenticator) {
+        mfaMethodAuthenticator.checked = SecuritySettingsService.settings.mfa_methods.authenticator;
+        mfaMethodAuthenticator.addEventListener('change', handleMfaMethodChange);
+    }
+    if (mfaMethodSmsRcs) {
+        mfaMethodSmsRcs.checked = SecuritySettingsService.settings.mfa_methods.sms_rcs;
+        mfaMethodSmsRcs.addEventListener('change', handleMfaMethodChange);
+    }
+    validateMfaMethods();
     
     // IP Allowlist Toggle
     var ipAllowlistToggle = document.getElementById('ipAllowlistToggle');
