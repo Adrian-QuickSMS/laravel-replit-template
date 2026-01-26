@@ -46,9 +46,13 @@
     // Show/hide TEST mode activation banner based on account state
     // Default: Show banner if no lifecycle state is set (new accounts default to TEST)
     var testModeBanner = document.getElementById('test-mode-activation-banner');
+    var collapsedTab = document.getElementById('test-mode-collapsed-tab');
+    var BANNER_STORAGE_KEY = 'quicksms_test_banner_collapsed';
+    
     if (testModeBanner) {
         var lifecycleState = sessionStorage.getItem('lifecycle_state');
         var isTestMode = false;
+        var isCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
         
         // Check AccountLifecycle if initialized
         if (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.getCurrentState()) {
@@ -61,12 +65,36 @@
             isTestMode = true;
         }
         
-        testModeBanner.style.display = isTestMode ? 'block' : 'none';
+        // Respect user's collapse preference when showing banner
+        if (isTestMode) {
+            if (isCollapsed) {
+                testModeBanner.style.display = 'none';
+                if (collapsedTab) collapsedTab.style.display = 'block';
+            } else {
+                testModeBanner.style.display = 'block';
+                if (collapsedTab) collapsedTab.style.display = 'none';
+            }
+        } else {
+            testModeBanner.style.display = 'none';
+            if (collapsedTab) collapsedTab.style.display = 'none';
+        }
         
         // Listen for state changes to update banner visibility
         if (typeof AccountLifecycle !== 'undefined') {
             AccountLifecycle.onStateChange(function(newState, oldState) {
-                testModeBanner.style.display = (newState === 'TEST') ? 'block' : 'none';
+                var stillCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
+                if (newState === 'TEST') {
+                    if (stillCollapsed) {
+                        testModeBanner.style.display = 'none';
+                        if (collapsedTab) collapsedTab.style.display = 'block';
+                    } else {
+                        testModeBanner.style.display = 'block';
+                        if (collapsedTab) collapsedTab.style.display = 'none';
+                    }
+                } else {
+                    testModeBanner.style.display = 'none';
+                    if (collapsedTab) collapsedTab.style.display = 'none';
+                }
             });
         }
     }
