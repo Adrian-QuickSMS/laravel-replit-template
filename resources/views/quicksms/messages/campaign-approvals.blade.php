@@ -6,8 +6,8 @@
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
 .card {
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
+    border-radius: 0.75rem !important;
+    border: 1px solid #e9ecef !important;
 }
 .approval-stats {
     display: flex;
@@ -16,9 +16,9 @@
 }
 .stat-card {
     background: #fff;
-    border-radius: 0.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
     padding: 1rem 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     flex: 1;
     display: flex;
     align-items: center;
@@ -39,26 +39,28 @@
 .stat-card .stat-value { font-size: 1.5rem; font-weight: 700; color: #374151; }
 .stat-card .stat-label { font-size: 0.8rem; color: #6b7280; }
 
-.approval-table {
-    background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
-    overflow: hidden;
+.table thead th {
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #e9ecef !important;
+    padding: 0.75rem 0.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    color: #495057 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
 }
-.approval-table th {
-    background: #f8f9fa;
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: none;
-    color: #495057;
-    padding: 0.5rem 0.35rem;
-    border-bottom: 1px solid #e9ecef;
-}
-.approval-table td {
-    padding: 0.5rem 0.35rem;
-    border-bottom: 1px solid #f1f3f5;
+.table tbody td {
+    padding: 0.75rem 0.5rem !important;
     vertical-align: middle;
-    font-size: 0.8rem;
+    border-bottom: 1px solid #f1f3f5 !important;
+    font-size: 0.85rem;
+    color: #495057;
+}
+.table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+.table tbody tr:hover td {
+    background-color: #f8f9fa !important;
 }
 .approval-table tbody tr:hover {
     background: #faf8ff;
