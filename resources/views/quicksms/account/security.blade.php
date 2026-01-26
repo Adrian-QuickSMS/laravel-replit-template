@@ -588,8 +588,13 @@
                 <div class="security-card-body">
                     <div class="setting-row">
                         <div class="setting-info">
-                            <div class="setting-label">Enable IP Allowlist</div>
+                            <div class="setting-label">Restrict portal login by IP allowlist</div>
                             <div class="setting-description">When enabled, users can only log in from IP addresses in the allowlist. Use this to restrict access to specific office locations or VPNs.</div>
+                            
+                            <div class="alert d-none mt-2" id="ipAllowlistError" style="background: #fee2e2; border: 1px solid #fecaca; font-size: 0.8rem; color: #991b1b; padding: 0.5rem 0.75rem; border-radius: 0.375rem;">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                Add at least one IP before enabling to prevent lockout.
+                            </div>
                         </div>
                         <div class="setting-control">
                             <div class="form-check form-switch">
@@ -598,7 +603,7 @@
                         </div>
                     </div>
                     
-                    <div id="ipAllowlistContainer" style="display: none;">
+                    <div id="ipAllowlistContainer">
                         <div class="ip-list" id="ipAllowlist">
                             <!-- IP entries rendered from service state -->
                         </div>
@@ -784,6 +789,32 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn" id="confirmAddIP" style="background: #886cc0; color: white;">
                     <i class="fas fa-plus me-1"></i>Add IP
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmIPAllowlistModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2" style="color: #f59e0b;"></i>Enable IP Allowlist?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: #374151; margin-bottom: 1rem;">
+                    Are you sure? If you haven't added your office/VPN IPs you may lock yourself out.
+                </p>
+                <div class="alert" style="background: rgba(111, 66, 193, 0.08); border: none; font-size: 0.8rem; color: #495057;">
+                    <i class="fas fa-info-circle me-1" style="color: #886cc0;"></i>
+                    Make sure your current IP address is in the allowlist before proceeding.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelIPAllowlist">Cancel</button>
+                <button type="button" class="btn" id="confirmEnableIPAllowlist" style="background: #886cc0; color: white;">
+                    <i class="fas fa-check me-1"></i>Yes, Enable
                 </button>
             </div>
         </div>
@@ -979,17 +1010,85 @@ document.addEventListener('DOMContentLoaded', function() {
         renderIPList();
         
         ipAllowlistToggle.addEventListener('change', function() {
-            SecuritySettingsService.save('ip_allowlist_enabled', this.checked);
-            if (ipAllowlistContainer) {
-                ipAllowlistContainer.style.display = this.checked ? 'block' : 'none';
+            var toggle = this;
+            var ipAllowlistError = document.getElementById('ipAllowlistError');
+            
+            if (toggle.checked) {
+                // Hard guardrail: Cannot enable with 0 entries
+                if (SecuritySettingsService.settings.ip_allowlist.length === 0) {
+                    toggle.checked = false;
+                    if (ipAllowlistError) {
+                        ipAllowlistError.classList.remove('d-none');
+                    }
+                    return;
+                }
+                
+                // Hide error if previously shown
+                if (ipAllowlistError) {
+                    ipAllowlistError.classList.add('d-none');
+                }
+                
+                // Show confirmation modal before enabling
+                toggle.checked = false; // Reset until confirmed
+                var confirmModal = new bootstrap.Modal(document.getElementById('confirmIPAllowlistModal'));
+                confirmModal.show();
+            } else {
+                // Disabling - no confirmation needed
+                var oldValue = SecuritySettingsService.settings.ip_allowlist_enabled;
+                SecuritySettingsService.save('ip_allowlist_enabled', false);
+                if (ipAllowlistWarning) {
+                    ipAllowlistWarning.style.display = 'none';
+                }
+                emitAuditEvent('IP_ALLOWLIST_ENABLED_CHANGED', { 
+                    old_value: oldValue, 
+                    new_value: false,
+                    actor: 'Sarah Mitchell',
+                    source_ip: '192.168.1.100'
+                }, 'ip');
+                showSaveIndicator();
             }
-            if (ipAllowlistWarning) {
-                ipAllowlistWarning.style.display = this.checked ? 'flex' : 'none';
-            }
-            emitAuditEvent(this.checked ? 'IP_ALLOWLIST_ENABLED' : 'IP_ALLOWLIST_DISABLED', { enabled: this.checked }, 'ip');
-            showSaveIndicator();
         });
     }
+    
+    // Confirm enable IP allowlist
+    var confirmEnableIPAllowlistBtn = document.getElementById('confirmEnableIPAllowlist');
+    if (confirmEnableIPAllowlistBtn) {
+        confirmEnableIPAllowlistBtn.addEventListener('click', function() {
+            var oldValue = SecuritySettingsService.settings.ip_allowlist_enabled;
+            SecuritySettingsService.save('ip_allowlist_enabled', true);
+            
+            var ipAllowlistToggle = document.getElementById('ipAllowlistToggle');
+            if (ipAllowlistToggle) {
+                ipAllowlistToggle.checked = true;
+            }
+            
+            var ipAllowlistWarning = document.getElementById('ipAllowlistWarning');
+            if (ipAllowlistWarning) {
+                ipAllowlistWarning.style.display = 'flex';
+            }
+            
+            emitAuditEvent('IP_ALLOWLIST_ENABLED_CHANGED', { 
+                old_value: oldValue, 
+                new_value: true,
+                actor: 'Sarah Mitchell',
+                source_ip: '192.168.1.100'
+            }, 'ip');
+            showSaveIndicator();
+            
+            var modal = bootstrap.Modal.getInstance(document.getElementById('confirmIPAllowlistModal'));
+            if (modal) modal.hide();
+        });
+    }
+    
+    // Cancel IP allowlist enable
+    var cancelIPAllowlistBtn = document.getElementById('cancelIPAllowlist');
+    if (cancelIPAllowlistBtn) {
+        cancelIPAllowlistBtn.addEventListener('click', function() {
+            var ipAllowlistToggle = document.getElementById('ipAllowlistToggle');
+            if (ipAllowlistToggle) {
+                ipAllowlistToggle.checked = false;
+            }
+        });
     
     // Add IP
     var confirmAddIPBtn = document.getElementById('confirmAddIP');
@@ -1013,6 +1112,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             SecuritySettingsService.settings.ip_allowlist.push({ ip: ip, label: label });
+            
+            // Hide error message now that there's at least one IP
+            var ipAllowlistError = document.getElementById('ipAllowlistError');
+            if (ipAllowlistError) {
+                ipAllowlistError.classList.add('d-none');
+            }
             
             var ipList = document.getElementById('ipAllowlist');
             if (ipList) {
