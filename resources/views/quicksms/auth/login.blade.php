@@ -273,8 +273,18 @@ body {
         </div>
         
         <div id="loginStep2" class="d-none">
-            <h4 class="auth-title">Verify it's you</h4>
-            <p class="text-muted text-center mb-4">Choose how you want to verify.</p>
+            <h4 class="auth-title" id="mfaStepTitle">Verify it's you</h4>
+            <p class="text-muted text-center mb-4" id="mfaStepSubtitle">Choose how you want to verify.</p>
+            
+            <div id="policyChangedAlert" class="alert d-none mb-4" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 0.5rem;">
+                <div class="d-flex align-items-start">
+                    <i class="fas fa-shield-alt me-3 mt-1" style="color: #dc3545;"></i>
+                    <div>
+                        <strong style="color: #dc3545;">Security Policy Changed</strong>
+                        <p class="mb-0 small" style="color: #495057;">Your account security policy has changed. Please set up an approved MFA method to continue.</p>
+                    </div>
+                </div>
+            </div>
             
             <div id="mfaMethodSelection">
                 <div class="mfa-method-card mb-2" id="totpMethodCard" data-method="totp">
@@ -336,6 +346,37 @@ body {
                             <i class="fas fa-headset me-1"></i>Contact admin
                         </a>
                     </div>
+                </div>
+            </div>
+            
+            <div id="forcedEnrollmentSection" class="d-none mb-4">
+                <div class="text-center mb-3">
+                    <div style="width: 60px; height: 60px; background: rgba(111, 66, 193, 0.1); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-mobile-alt" style="font-size: 1.5rem; color: var(--qs-primary);"></i>
+                    </div>
+                    <h6 class="fw-semibold mb-2">Set Up Authenticator App</h6>
+                    <p class="text-muted small mb-3">Scan the QR code or enter the secret key in your authenticator app.</p>
+                </div>
+                <div class="text-center mb-3 p-3" style="background: #f8f9fa; border-radius: 0.5rem;">
+                    <i class="fas fa-qrcode fa-3x text-muted mb-2"></i>
+                    <p class="text-muted small mb-2">QR code placeholder (TODO: Backend integration)</p>
+                    <div style="font-family: monospace; background: #fff; padding: 0.5rem; border-radius: 0.25rem; font-size: 0.9rem; letter-spacing: 0.1em;">
+                        JBSWY3DPEHPK3PXP
+                    </div>
+                    <small class="text-muted">Copy this secret key into your authenticator app</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Verification Code</label>
+                    <input type="text" class="form-control otp-input" id="enrollmentCode" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" pattern="[0-9]{6}">
+                    <small class="text-muted">Enter the code from your authenticator app to complete setup</small>
+                </div>
+                <button type="button" class="btn btn-signin" id="completeEnrollmentBtn">
+                    <i class="fas fa-check-circle me-2"></i>Complete Setup & Continue
+                </button>
+                <div class="text-center mt-3">
+                    <button type="button" class="btn btn-link back-link" id="backToLoginFromEnrollment">
+                        <i class="fas fa-arrow-left me-1"></i> Back to login
+                    </button>
                 </div>
             </div>
             
@@ -570,8 +611,58 @@ $(document).ready(function() {
         'john@techstart.io': { password: 'Demo123!', name: 'John Smith', company: 'TechStart Solutions', mobile: '7911123456', mfa_enabled: true, totp_enabled: true, rcs_enabled: true, groups: ['developers'], dev_bypass_enabled: true },
         'sarah@edulearn.ac.uk': { password: 'Demo123!', name: 'Sarah Johnson', company: 'EduLearn Institute', mobile: '7922234567', mfa_enabled: true, totp_enabled: false, rcs_enabled: false, groups: [], dev_bypass_enabled: false },
         'mike@greenenergy.com': { password: 'Demo123!', name: 'Mike Wilson', company: 'GreenEnergy Co', mobile: null, mfa_enabled: true, totp_enabled: true, rcs_enabled: false, groups: ['qa_team'], dev_bypass_enabled: true },
-        'demo@quicksms.io': { password: 'demo123', name: 'Demo User', company: 'QuickSMS Demo', mobile: '7900000000', mfa_enabled: true, totp_enabled: true, rcs_enabled: true, groups: ['internal_testers'], dev_bypass_enabled: true }
+        'demo@quicksms.io': { password: 'demo123', name: 'Demo User', company: 'QuickSMS Demo', mobile: '7900000000', mfa_enabled: true, totp_enabled: true, rcs_enabled: true, groups: ['internal_testers'], dev_bypass_enabled: true },
+        // Test user for policy enforcement - enrolled only in SMS (no TOTP), to test when authenticator-only policy is enforced
+        'policy-test@example.com': { password: 'test123', name: 'Policy Test User', company: 'Test Corp', mobile: null, mfa_enabled: true, totp_enabled: false, rcs_enabled: false, groups: [], dev_bypass_enabled: false }
     };
+    
+    // Account MFA Policy - TODO: Fetch from backend API
+    var AccountMfaPolicy = {
+        mfa_required: true,
+        allowed_methods: {
+            authenticator: true, // Authenticator App (TOTP)
+            sms_rcs: true // SMS/RCS OTP
+        },
+        // Check if user needs forced enrollment due to policy change
+        checkPolicyCompliance: function(user) {
+            var userHasAuthenticator = user.totp_enabled;
+            var userHasSmsRcs = user.mobile && user.mfa_enabled;
+            
+            // Check if user has ANY allowed method available
+            var hasAllowedMethod = false;
+            if (this.allowed_methods.authenticator && userHasAuthenticator) {
+                hasAllowedMethod = true;
+            }
+            if (this.allowed_methods.sms_rcs && userHasSmsRcs) {
+                hasAllowedMethod = true;
+            }
+            
+            // User is enrolled ONLY in a now-disallowed method
+            if (!hasAllowedMethod) {
+                return {
+                    compliant: false,
+                    reason: 'POLICY_CHANGED',
+                    message: 'Your account security policy has changed. Please set up an approved MFA method to continue.',
+                    requiresEnrollment: true
+                };
+            }
+            
+            return { compliant: true };
+        },
+        // Get list of methods user can use based on policy
+        getAvailableMethods: function(user) {
+            var methods = [];
+            if (this.allowed_methods.authenticator) {
+                methods.push('authenticator');
+            }
+            if (this.allowed_methods.sms_rcs && user.mobile) {
+                methods.push('sms_rcs');
+            }
+            return methods;
+        }
+    };
+    
+    var forcedEnrollmentMode = false;
     
     $('#togglePassword').on('click', function() {
         var passwordField = $('#password');
@@ -623,34 +714,83 @@ $(document).ready(function() {
                         $('#maskedMobile').text(currentMobile.slice(-4));
                     }
                     
-                    if (!user.totp_enabled) {
-                        $('#totpMethodCard').hide();
-                        $('#smsMethodCard').addClass('active');
+                    // Check policy compliance
+                    var policyCheck = AccountMfaPolicy.checkPolicyCompliance(user);
+                    forcedEnrollmentMode = !policyCheck.compliant;
+                    
+                    if (forcedEnrollmentMode) {
+                        // User needs to enroll in an allowed method - BLOCK verification
+                        $('#policyChangedAlert').removeClass('d-none');
+                        $('#mfaStepTitle').text('Security Policy Update Required');
+                        $('#mfaStepSubtitle').text('Set up an approved authentication method.');
+                        
+                        // Hide verification UI, show enrollment UI
+                        $('#mfaMethodSelection').addClass('d-none');
+                        $('#sendCodeSection').addClass('d-none');
+                        $('#mfaForm').addClass('d-none');
+                        $('#forcedEnrollmentSection').removeClass('d-none');
+                        
+                        // Emit audit event for forced enrollment
+                        AuditService.log('SECURITY_POLICY_FORCED_MFA_ENROLMENT', {
+                            user: email,
+                            timestamp: new Date().toISOString(),
+                            source_ip: IPService.currentIP,
+                            reason: 'POLICY_CHANGED'
+                        });
                     } else {
-                        $('#totpMethodCard').show();
+                        $('#policyChangedAlert').addClass('d-none');
+                        $('#mfaStepTitle').text('Verify it\'s you');
+                        $('#mfaStepSubtitle').text('Choose how you want to verify.');
+                        
+                        // Show verification UI, hide enrollment UI
+                        $('#mfaMethodSelection').removeClass('d-none');
+                        $('#mfaForm').removeClass('d-none');
+                        $('#forcedEnrollmentSection').addClass('d-none');
                     }
                     
-                    if (!currentMobile) {
-                        $('#smsMethodCard').hide();
-                        $('#totpMethodCard').addClass('active');
-                        if (!user.totp_enabled) {
-                            $('#noMobileWarning').removeClass('d-none');
-                            $('#sendCodeSection').addClass('d-none');
-                        }
+                    // Show/hide methods based on POLICY (not just user settings)
+                    var showAuthenticator = AccountMfaPolicy.allowed_methods.authenticator;
+                    var showSmsRcs = AccountMfaPolicy.allowed_methods.sms_rcs;
+                    
+                    // Authenticator App - show if policy allows AND (user has it OR forced enrollment mode)
+                    if (showAuthenticator && (user.totp_enabled || forcedEnrollmentMode)) {
+                        $('#totpMethodCard').show();
                     } else {
+                        $('#totpMethodCard').hide();
+                    }
+                    
+                    // SMS/RCS - show if policy allows AND user has mobile
+                    if (showSmsRcs && currentMobile) {
                         $('#smsMethodCard').show();
+                    } else {
+                        $('#smsMethodCard').hide();
+                    }
+                    
+                    // Set default selection based on what's visible
+                    $('.mfa-method-card').removeClass('active');
+                    if (showSmsRcs && currentMobile) {
+                        $('#smsMethodCard').addClass('active');
+                    } else if (showAuthenticator) {
+                        $('#totpMethodCard').addClass('active');
+                    }
+                    
+                    // Handle case where no methods are available (shouldn't happen if policy is valid)
+                    if (!showAuthenticator && !(showSmsRcs && currentMobile)) {
+                        $('#noMobileWarning').removeClass('d-none');
+                        $('#sendCodeSection').addClass('d-none');
+                    } else {
                         $('#noMobileWarning').addClass('d-none');
                         $('#sendCodeSection').removeClass('d-none');
                     }
                     
-                    if (user.rcs_enabled && currentMobile) {
+                    if (user.rcs_enabled && currentMobile && showSmsRcs) {
                         $('#rcsChannelOption').show();
                     } else {
                         $('#rcsChannelOption').hide();
                     }
                     
                     var bypassResult = DevBypassService.canBypass(user);
-                    if (bypassResult.allowed) {
+                    if (bypassResult.allowed && !forcedEnrollmentMode) {
                         $('#devBypassSection').removeClass('d-none');
                     } else {
                         $('#devBypassSection').addClass('d-none');
@@ -675,6 +815,12 @@ $(document).ready(function() {
     });
     
     $('.mfa-method-card').on('click', function() {
+        // Block if in forced enrollment mode
+        if (forcedEnrollmentMode) {
+            console.log('[Security] Blocked: User in forced enrollment mode');
+            return;
+        }
+        
         $('.mfa-method-card').removeClass('active');
         $(this).addClass('active');
         
@@ -725,6 +871,12 @@ $(document).ready(function() {
     }
     
     $('#sendCodeBtn').on('click', function() {
+        // Block if in forced enrollment mode
+        if (forcedEnrollmentMode) {
+            console.log('[Security] Blocked: User in forced enrollment mode');
+            return;
+        }
+        
         var $btn = $(this);
         $btn.find('.btn-text').addClass('d-none');
         $btn.find('.btn-loading').removeClass('d-none');
@@ -759,6 +911,13 @@ $(document).ready(function() {
     
     $('#mfaForm').on('submit', function(e) {
         e.preventDefault();
+        
+        // Block if in forced enrollment mode
+        if (forcedEnrollmentMode) {
+            console.log('[Security] Blocked: User in forced enrollment mode');
+            return;
+        }
+        
         var code = $('#otpCode').val().trim();
         
         $('#otpCode').removeClass('is-invalid');
@@ -818,7 +977,69 @@ $(document).ready(function() {
         currentEmail = null;
         currentMobile = null;
         currentOtp = null;
+        forcedEnrollmentMode = false;
         if (countdownInterval) clearInterval(countdownInterval);
+    });
+    
+    // Back to login from forced enrollment
+    $('#backToLoginFromEnrollment').on('click', function() {
+        $('#loginStep2').addClass('d-none');
+        $('#loginStep1').removeClass('d-none');
+        $('#password').val('');
+        $('#enrollmentCode').val('');
+        $('#loginStatus').addClass('d-none');
+        
+        // Hide enrollment, reset visibility
+        $('#forcedEnrollmentSection').addClass('d-none');
+        $('#policyChangedAlert').addClass('d-none');
+        
+        currentEmail = null;
+        currentMobile = null;
+        forcedEnrollmentMode = false;
+    });
+    
+    // Complete forced enrollment
+    $('#completeEnrollmentBtn').on('click', function() {
+        var code = $('#enrollmentCode').val().trim();
+        
+        if (!code || code.length !== 6) {
+            $('#enrollmentCode').addClass('is-invalid');
+            return;
+        }
+        $('#enrollmentCode').removeClass('is-invalid');
+        
+        // TODO: Validate TOTP code with backend
+        // For now, accept any 6-digit code or test code
+        if (code === '000000' || code.length === 6) {
+            // Update mock user state to enable TOTP
+            var user = mockUsers.find(function(u) { return u.email === currentEmail; });
+            if (user) {
+                user.totp_enabled = true;
+            }
+            
+            AuditService.log('mfa_enrollment_completed', {
+                user: currentEmail,
+                method: 'authenticator',
+                reason: 'POLICY_CHANGED',
+                timestamp: new Date().toISOString(),
+                source_ip: IPService.currentIP
+            });
+            
+            forcedEnrollmentMode = false;
+            
+            // Enrollment successful - proceed to dashboard
+            window.location.href = '/dashboard';
+        } else {
+            $('#enrollmentCode').addClass('is-invalid');
+        }
+    });
+    
+    // Allow Enter key to submit enrollment
+    $('#enrollmentCode').on('keypress', function(e) {
+        if (e.which === 13) {
+            e.preventDefault();
+            $('#completeEnrollmentBtn').click();
+        }
     });
     
     $('#skipMfaDev').on('click', function() {
