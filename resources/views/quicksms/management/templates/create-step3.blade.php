@@ -575,20 +575,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize
     renderSubAccountsOptions();
 
-    // Restore saved data
-    var savedData = sessionStorage.getItem('templateWizardStep3');
-    if (savedData) {
-        var data = JSON.parse(savedData);
-        if (data.subAccounts && Array.isArray(data.subAccounts)) {
-            selectedSubAccounts = data.subAccounts;
-            updateSubAccountsTags();
-            updateUsersOptions();
+    // Restore saved data based on mode
+    var isEditMode = {{ $isEditMode ? 'true' : 'false' }};
+    
+    if (isEditMode) {
+        // In Edit mode, load from template data
+        @if($isEditMode && $template)
+        // TODO: Pre-populate sub-accounts and users from template data when available
+        document.getElementById('allowEditing').checked = {{ ($template['allowEditing'] ?? false) ? 'true' : 'false' }};
+        @endif
+    } else {
+        // In Create mode, restore from sessionStorage
+        var savedData = sessionStorage.getItem('templateWizardStep3');
+        if (savedData) {
+            var data = JSON.parse(savedData);
+            if (data.subAccounts && Array.isArray(data.subAccounts)) {
+                selectedSubAccounts = data.subAccounts;
+                updateSubAccountsTags();
+                updateUsersOptions();
+            }
+            if (data.users && Array.isArray(data.users)) {
+                selectedUsers = data.users;
+                updateUsersTags();
+            }
+            document.getElementById('allowEditing').checked = data.allowEditing || false;
         }
-        if (data.users && Array.isArray(data.users)) {
-            selectedUsers = data.users;
-            updateUsersTags();
-        }
-        document.getElementById('allowEditing').checked = data.allowEditing || false;
     }
 
     document.getElementById('nextBtn').addEventListener('click', function() {

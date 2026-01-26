@@ -2030,6 +2030,45 @@ class QuickSMSController extends Controller
                 'rcsAgent' => '',
                 'trackableLink' => false,
                 'optOut' => true
+            ],
+            'TPL-12345678' => [
+                'id' => 4,
+                'name' => 'Winter Sale 2026',
+                'templateId' => 'TPL-12345678',
+                'trigger' => 'portal',
+                'channel' => 'sms',
+                'content' => 'Hi {FirstName}! Our Winter Sale is here. Get 40% off all items. Shop now: {Link}',
+                'senderId' => '1',
+                'rcsAgent' => '',
+                'trackableLink' => true,
+                'optOut' => true,
+                'description' => 'Promotional template for winter sale campaign'
+            ],
+            'TPL-23456789' => [
+                'id' => 5,
+                'name' => 'Appointment Confirmation',
+                'templateId' => 'TPL-23456789',
+                'trigger' => 'api',
+                'channel' => 'sms',
+                'content' => 'Hi {FirstName}, your appointment is confirmed for {AppointmentDate} at {AppointmentTime}.',
+                'senderId' => '2',
+                'rcsAgent' => '',
+                'trackableLink' => false,
+                'optOut' => false,
+                'description' => 'API-triggered appointment confirmation message'
+            ],
+            'TPL-34567890' => [
+                'id' => 6,
+                'name' => 'Delivery Update',
+                'templateId' => 'TPL-34567890',
+                'trigger' => 'api',
+                'channel' => 'basic_rcs',
+                'content' => 'Your order #{OrderId} is on its way! Track here: {TrackingLink}',
+                'senderId' => '1',
+                'rcsAgent' => '1',
+                'trackableLink' => true,
+                'optOut' => false,
+                'description' => 'RCS delivery notification with tracking link'
             ]
         ];
 

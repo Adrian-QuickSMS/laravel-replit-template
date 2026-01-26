@@ -595,39 +595,67 @@ function addOptoutToMessage(type) {
 }
 
 function loadSavedData() {
-    var savedContent = sessionStorage.getItem('templateWizardStep2');
-    if (savedContent) {
-        var data = JSON.parse(savedContent);
-        if (data.smsText) {
-            document.getElementById('smsContent').value = data.smsText;
+    var isEditMode = {{ $isEditMode ? 'true' : 'false' }};
+    
+    if (isEditMode) {
+        // In Edit mode, load from template data
+        @if($isEditMode && $template)
+        var templateChannel = '{{ $template['channel'] ?? 'sms' }}';
+        var channelMap = { 'sms': 'channelSMS', 'basic_rcs': 'channelRCSBasic', 'rich_rcs': 'channelRCSRich' };
+        var radioId = channelMap[templateChannel];
+        if (radioId && document.getElementById(radioId)) {
+            document.getElementById(radioId).checked = true;
+            handleChannelChange(templateChannel === 'basic_rcs' ? 'rcs_basic' : (templateChannel === 'rich_rcs' ? 'rcs_rich' : templateChannel));
         }
-        if (data.senderId) {
-            document.getElementById('senderId').value = data.senderId;
+        
+        document.getElementById('smsContent').value = '{{ addslashes($template['content'] ?? '') }}';
+        
+        var templateSenderId = '{{ $template['senderId'] ?? '' }}';
+        if (templateSenderId && document.getElementById('senderId')) {
+            document.getElementById('senderId').value = templateSenderId;
         }
-        if (data.rcsAgent) {
-            document.getElementById('rcsAgent').value = data.rcsAgent;
+        
+        var templateRcsAgent = '{{ $template['rcsAgent'] ?? '' }}';
+        if (templateRcsAgent && document.getElementById('rcsAgent')) {
+            document.getElementById('rcsAgent').value = templateRcsAgent;
         }
-        if (data.rcsContentData) {
-            rcsContentData = data.rcsContentData;
-            updateRcsContentPreview();
-        }
-        if (data.channel) {
-            var channelMap = { 'sms': 'channelSMS', 'rcs_basic': 'channelRCSBasic', 'rcs_rich': 'channelRCSRich' };
-            var radioId = channelMap[data.channel];
-            if (radioId) {
-                document.getElementById(radioId).checked = true;
-                handleChannelChange(data.channel);
+        @endif
+    } else {
+        // In Create mode, restore from sessionStorage
+        var savedContent = sessionStorage.getItem('templateWizardStep2');
+        if (savedContent) {
+            var data = JSON.parse(savedContent);
+            if (data.smsText) {
+                document.getElementById('smsContent').value = data.smsText;
+            }
+            if (data.senderId) {
+                document.getElementById('senderId').value = data.senderId;
+            }
+            if (data.rcsAgent) {
+                document.getElementById('rcsAgent').value = data.rcsAgent;
+            }
+            if (data.rcsContentData) {
+                rcsContentData = data.rcsContentData;
+                updateRcsContentPreview();
+            }
+            if (data.channel) {
+                var channelMap = { 'sms': 'channelSMS', 'rcs_basic': 'channelRCSBasic', 'rcs_rich': 'channelRCSRich' };
+                var radioId = channelMap[data.channel];
+                if (radioId) {
+                    document.getElementById(radioId).checked = true;
+                    handleChannelChange(data.channel);
+                }
             }
         }
-    }
-    
-    var savedChannel = sessionStorage.getItem('templateWizardChannel');
-    if (savedChannel && !savedContent) {
-        var channelMap = { 'sms': 'channelSMS', 'rcs_basic': 'channelRCSBasic', 'rcs_rich': 'channelRCSRich' };
-        var radioId = channelMap[savedChannel];
-        if (radioId) {
-            document.getElementById(radioId).checked = true;
-            handleChannelChange(savedChannel);
+        
+        var savedChannel = sessionStorage.getItem('templateWizardChannel');
+        if (savedChannel && !savedContent) {
+            var channelMap = { 'sms': 'channelSMS', 'rcs_basic': 'channelRCSBasic', 'rcs_rich': 'channelRCSRich' };
+            var radioId = channelMap[savedChannel];
+            if (radioId) {
+                document.getElementById(radioId).checked = true;
+                handleChannelChange(savedChannel);
+            }
         }
     }
     
