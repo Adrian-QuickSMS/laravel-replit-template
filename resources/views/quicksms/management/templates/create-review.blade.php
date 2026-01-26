@@ -164,7 +164,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
             <li class="breadcrumb-item"><a href="{{ route('management.templates') }}">Templates</a></li>
-            <li class="breadcrumb-item active">Create Template</li>
+            <li class="breadcrumb-item active">{{ $isEditMode ? 'Edit Template' : 'Create Template' }}</li>
         </ol>
     </div>
 
@@ -172,7 +172,7 @@
         <div class="col-xl-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Create Message Template</h4>
+                    <h4 class="card-title mb-0"><i class="fas fa-{{ $isEditMode ? 'edit' : 'file-alt' }} me-2 text-primary"></i>{{ $isEditMode ? 'Edit Message Template' : 'Create Message Template' }}</h4>
                 </div>
                 <div class="card-body">
                     <div class="form-wizard">
@@ -192,7 +192,7 @@
                                 <div class="review-section">
                                     <h6>
                                         <span><i class="fas fa-info-circle me-2"></i>Metadata</span>
-                                        <a href="{{ route('management.templates.create.step1') }}"><i class="fas fa-edit me-1"></i>Edit</a>
+                                        <a href="{{ $isEditMode ? route('management.templates.edit.step1', ['templateId' => $templateId]) : route('management.templates.create.step1') }}"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
                                         <span class="review-label">Name:</span>
@@ -211,7 +211,7 @@
                                 <div class="review-section">
                                     <h6>
                                         <span><i class="fas fa-envelope me-2"></i>Content</span>
-                                        <a href="{{ route('management.templates.create.step2') }}"><i class="fas fa-edit me-1"></i>Edit</a>
+                                        <a href="{{ $isEditMode ? route('management.templates.edit.step2', ['templateId' => $templateId]) : route('management.templates.create.step2') }}"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
                                         <span class="review-label">Channel:</span>
@@ -226,7 +226,7 @@
                                 <div class="review-section">
                                     <h6>
                                         <span><i class="fas fa-cog me-2"></i>Settings</span>
-                                        <a href="{{ route('management.templates.create.step3') }}"><i class="fas fa-edit me-1"></i>Edit</a>
+                                        <a href="{{ $isEditMode ? route('management.templates.edit.step3', ['templateId' => $templateId]) : route('management.templates.create.step3') }}"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
                                         <span class="review-label">Assigned Sub-Accounts:</span>
@@ -239,14 +239,14 @@
                                 </div>
 
                                 <div class="toolbar-bottom">
-                                    <a href="{{ route('management.templates.create.step3') }}" class="btn btn-back">
+                                    <a href="{{ $isEditMode ? route('management.templates.edit.step3', ['templateId' => $templateId]) : route('management.templates.create.step3') }}" class="btn btn-back">
                                         <i class="fas fa-arrow-left me-1"></i>Back
                                     </a>
                                     <button type="button" class="btn btn-save-draft" id="saveDraftBtn">
                                         <i class="fas fa-save me-1"></i>Save as Draft
                                     </button>
                                     <button type="button" class="btn btn-primary" id="createTemplateBtn">
-                                        <i class="fas fa-check me-1"></i>Create Template
+                                        <i class="fas fa-check me-1"></i>{{ $isEditMode ? 'Save Changes' : 'Create Template' }}
                                     </button>
                                 </div>
                             </div>

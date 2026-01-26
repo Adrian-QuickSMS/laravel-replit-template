@@ -255,7 +255,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
             <li class="breadcrumb-item"><a href="{{ route('management.templates') }}">Templates</a></li>
-            <li class="breadcrumb-item active">Create Template</li>
+            <li class="breadcrumb-item active">{{ $isEditMode ? 'Edit Template' : 'Create Template' }}</li>
         </ol>
     </div>
 
@@ -263,7 +263,7 @@
         <div class="col-xl-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Create Message Template</h4>
+                    <h4 class="card-title mb-0"><i class="fas fa-{{ $isEditMode ? 'edit' : 'file-alt' }} me-2 text-primary"></i>{{ $isEditMode ? 'Edit Message Template' : 'Create Message Template' }}</h4>
                 </div>
                 <div class="card-body">
                     <div class="form-wizard">
@@ -326,13 +326,13 @@
                                 </div>
 
                                 <div class="toolbar-bottom">
-                                    <a href="{{ route('management.templates.create.step2') }}" class="btn btn-back">
+                                    <a href="{{ $isEditMode ? route('management.templates.edit.step2', ['templateId' => $templateId]) : route('management.templates.create.step2') }}" class="btn btn-back">
                                         <i class="fas fa-arrow-left me-1"></i>Back
                                     </a>
                                     <button type="button" class="btn btn-save-draft" id="saveDraftBtn">
                                         <i class="fas fa-save me-1"></i>Save Draft
                                     </button>
-                                    <a href="{{ route('management.templates.create.review') }}" class="btn btn-primary" id="nextBtn">
+                                    <a href="{{ $isEditMode ? route('management.templates.edit.review', ['templateId' => $templateId]) : route('management.templates.create.review') }}" class="btn btn-primary" id="nextBtn">
                                         Next: Review <i class="fas fa-arrow-right ms-1"></i>
                                     </a>
                                 </div>

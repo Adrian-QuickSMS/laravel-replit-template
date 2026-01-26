@@ -161,6 +161,15 @@
     border: 1px solid rgba(136, 108, 192, 0.2);
     color: #614099;
 }
+.selectable-tile.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+.selectable-tile.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
 </style>
 @endpush
 
@@ -170,7 +179,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
             <li class="breadcrumb-item"><a href="{{ route('management.templates') }}">Templates</a></li>
-            <li class="breadcrumb-item active">Create Template</li>
+            <li class="breadcrumb-item active">{{ $isEditMode ? 'Edit Template' : 'Create Template' }}</li>
         </ol>
     </div>
 
@@ -178,7 +187,7 @@
         <div class="col-xl-12">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="card-title mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Create Message Template</h4>
+                    <h4 class="card-title mb-0"><i class="fas fa-{{ $isEditMode ? 'edit' : 'file-alt' }} me-2 text-primary"></i>{{ $isEditMode ? 'Edit Message Template' : 'Create Message Template' }}</h4>
                 </div>
                 <div class="card-body">
                     <div class="form-wizard">
@@ -197,9 +206,12 @@
                                 
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold mb-3">Template Type <span class="text-danger">*</span></label>
+                                    @if($isEditMode)
+                                    <small class="text-muted d-block mb-2"><i class="fas fa-lock me-1"></i>Template type cannot be changed after creation.</small>
+                                    @endif
                                     <div class="row g-3">
                                         <div class="col-md-6">
-                                            <div class="selectable-tile selected" data-value="portal" onclick="selectTemplateType('portal')">
+                                            <div class="selectable-tile {{ ($isEditMode && $template['trigger'] == 'portal') || (!$isEditMode) ? 'selected' : '' }} {{ $isEditMode ? 'disabled' : '' }}" data-value="portal" {{ $isEditMode ? '' : 'onclick=selectTemplateType(\'portal\')' }}>
                                                 <div class="tile-header">
                                                     <div class="tile-icon bg-pastel-primary">
                                                         <i class="fas fa-desktop"></i>
@@ -211,7 +223,7 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <div class="selectable-tile" data-value="api" onclick="selectTemplateType('api')">
+                                            <div class="selectable-tile {{ ($isEditMode && $template['trigger'] == 'api') ? 'selected' : '' }} {{ $isEditMode ? 'disabled' : '' }}" data-value="api" {{ $isEditMode ? '' : 'onclick=selectTemplateType(\'api\')' }}>
                                                 <div class="tile-header">
                                                     <div class="tile-icon bg-pastel-info">
                                                         <i class="fas fa-code"></i>
@@ -223,20 +235,20 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <input type="hidden" id="templateType" value="portal">
+                                    <input type="hidden" id="templateType" value="{{ $isEditMode ? $template['trigger'] : 'portal' }}">
                                 </div>
                                 
                                 <div class="row">
                                     <div class="col-lg-12 mb-3">
                                         <label class="form-label">Template Name <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="templateName" placeholder="e.g., Welcome Message" maxlength="100">
+                                        <input type="text" class="form-control" id="templateName" placeholder="e.g., Welcome Message" maxlength="100" value="{{ $isEditMode && $template ? $template['name'] : '' }}">
                                         <small class="text-muted">A descriptive name to identify this template</small>
                                         <div class="invalid-feedback">Please enter a template name</div>
                                     </div>
                                     
                                     <div class="col-lg-12 mb-3">
                                         <label class="form-label">Description</label>
-                                        <textarea class="form-control" id="templateDescription" rows="2" placeholder="Optional description of what this template is for..." maxlength="255"></textarea>
+                                        <textarea class="form-control" id="templateDescription" rows="2" placeholder="Optional description of what this template is for..." maxlength="255">{{ $isEditMode && $template ? ($template['description'] ?? '') : '' }}</textarea>
                                     </div>
                                 </div>
                                 
@@ -244,7 +256,7 @@
                                     <a href="{{ route('management.templates') }}" class="btn btn-back">
                                         <i class="fas fa-times me-1"></i>Cancel
                                     </a>
-                                    <a href="{{ route('management.templates.create.step2') }}" class="btn btn-primary" id="nextBtn">
+                                    <a href="{{ $isEditMode ? route('management.templates.edit.step2', ['templateId' => $templateId]) : route('management.templates.create.step2') }}" class="btn btn-primary" id="nextBtn">
                                         Next: Content <i class="fas fa-arrow-right ms-1"></i>
                                     </a>
                                 </div>
