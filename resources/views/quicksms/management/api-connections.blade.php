@@ -128,9 +128,9 @@
 }
 .api-table thead th {
     background: #f8f9fa;
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 0.35rem;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #495057;
     border-bottom: 1px solid #e9ecef;
     cursor: pointer;
@@ -170,10 +170,10 @@
     color: var(--primary);
 }
 .api-table tbody td {
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 0.35rem;
     vertical-align: middle;
     border-bottom: 1px solid #f1f3f5;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 .api-table tbody td:last-child {
     position: sticky;

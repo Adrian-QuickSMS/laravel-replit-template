@@ -71,8 +71,8 @@
 .email-sms-table thead th {
     font-weight: 600;
     color: #495057;
-    font-size: 0.8rem;
-    padding: 0.75rem 0.5rem;
+    font-size: 0.75rem;
+    padding: 0.5rem 0.35rem;
     text-align: left;
     white-space: nowrap;
     border: none;
@@ -94,10 +94,10 @@
 }
 .email-sms-table tbody td {
     vertical-align: middle;
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 0.35rem;
     border: none;
     border-bottom: 1px solid #f1f3f5;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #495057;
     font-weight: 400;
 }
