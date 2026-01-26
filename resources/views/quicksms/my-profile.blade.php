@@ -231,7 +231,7 @@
                         @if($twoFactorEnabled)
                         <div class="mb-3 p-3 rounded" style="background: #f7ddf3;">
                             <div class="mb-2">
-                                <label class="mb-1 d-block" style="font-size: 0.8rem; color: #6b21a8;">Active Method(s)</label>
+                                <label class="mb-1 d-block" style="font-size: 0.8rem; color: #495057;">Active Method(s)</label>
                                 <div class="d-flex flex-wrap gap-2">
                                     @foreach($mfaMethods as $method)
                                         @if($method === 'authenticator')
@@ -246,8 +246,8 @@
                             </div>
                             @if(in_array('sms', $mfaMethods) || in_array('rcs', $mfaMethods))
                             <div class="mt-2">
-                                <label class="mb-1 d-block" style="font-size: 0.8rem; color: #6b21a8;">Registered Number</label>
-                                <span style="font-size: 0.9rem; color: #6b21a8;">{{ $mfaPhone }}</span>
+                                <label class="mb-1 d-block" style="font-size: 0.8rem; color: #495057;">Registered Number</label>
+                                <span style="font-size: 0.9rem; color: #495057;">{{ $mfaPhone }}</span>
                             </div>
                             @endif
                         </div>
@@ -424,14 +424,14 @@
                     <div class="card border-0 mb-0" id="passwordRulesCard" style="background: #f7ddf3;">
                         <div class="card-header border-0 p-2" style="cursor: pointer; background: transparent;" id="passwordRulesToggle">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span style="font-size: 0.85rem; color: #6b21a8;">
+                                <span style="font-size: 0.85rem; color: #495057;">
                                     <i class="fas fa-info-circle me-1" style="color: #886cc0;"></i>Password requirements
                                 </span>
                                 <i class="fas fa-chevron-down" id="passwordRulesIcon" style="font-size: 0.75rem; transition: transform 0.2s; color: #886cc0;"></i>
                             </div>
                         </div>
                         <div class="collapse" id="passwordRulesCollapse">
-                            <div class="card-body pt-0 px-2 pb-2" style="color: #6b21a8;">
+                            <div class="card-body pt-0 px-2 pb-2" style="color: #495057;">
                                 <ul class="list-unstyled mb-0" style="font-size: 0.8rem;">
                                     <li class="mb-1" id="rule-length">
                                         <i class="fas fa-circle me-2" style="font-size: 0.4rem; vertical-align: middle;"></i>
