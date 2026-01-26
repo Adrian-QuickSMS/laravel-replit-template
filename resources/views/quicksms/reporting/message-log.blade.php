@@ -555,7 +555,7 @@
                                                 </span>
                                             </div>
                                             <div>
-                                                <p class="mb-1 text-muted">Total Parts/Fragments</p>
+                                                <p class="mb-1 text-muted">Total Parts</p>
                                                 <h3 class="mb-0 fw-bold" id="summaryParts">0</h3>
                                             </div>
                                         </div>
@@ -648,7 +648,7 @@
                                     <th data-column="user" class="d-none">User</th>
                                     <th data-column="origin" class="d-none">Origin</th>
                                     <th data-column="country" class="d-none">Country</th>
-                                    <th data-column="parts" class="d-none">Fragments/Parts</th>
+                                    <th data-column="parts" class="d-none">Parts</th>
                                     <th data-column="encoding" class="d-none">Encoding</th>
                                     <th data-column="messageId" class="d-none">Message ID</th>
                                     <th data-column="content" class="d-none">Content</th>
@@ -759,7 +759,7 @@
                     </label>
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-parts" data-column="parts">
-                        <span>Fragments / Parts</span>
+                        <span>Parts</span>
                     </label>
                     <label class="list-group-item d-flex align-items-center">
                         <input class="form-check-input column-toggle me-3" type="checkbox" id="col-encoding" data-column="encoding">
