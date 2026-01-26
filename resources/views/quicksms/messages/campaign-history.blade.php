@@ -56,18 +56,18 @@ $permissions = [
 .table thead th {
     background: #f8f9fa !important;
     border-bottom: 1px solid #e9ecef !important;
-    padding: 0.75rem 0.5rem !important;
+    padding: 0.5rem 0.35rem !important;
     font-weight: 600 !important;
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
     color: #495057 !important;
     text-transform: none !important;
     letter-spacing: normal !important;
 }
 .table tbody td {
-    padding: 0.75rem 0.5rem !important;
+    padding: 0.5rem 0.35rem !important;
     vertical-align: middle;
     border-bottom: 1px solid #f1f3f5 !important;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #495057;
 }
 .table tbody tr:last-child td {

@@ -37,23 +37,24 @@
 
 .approval-table {
     background: #fff;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
     overflow: hidden;
 }
 .approval-table th {
     background: #f8f9fa;
     font-size: 0.75rem;
     font-weight: 600;
-    text-transform: uppercase;
-    color: #6b7280;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #e5e7eb;
+    text-transform: none;
+    color: #495057;
+    padding: 0.5rem 0.35rem;
+    border-bottom: 1px solid #e9ecef;
 }
 .approval-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #f3f4f6;
+    padding: 0.5rem 0.35rem;
+    border-bottom: 1px solid #f1f3f5;
     vertical-align: middle;
+    font-size: 0.8rem;
 }
 .approval-table tbody tr:hover {
     background: #faf8ff;
