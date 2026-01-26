@@ -229,9 +229,9 @@
                         </div>
                         
                         @if($twoFactorEnabled)
-                        <div class="mb-3 p-3 bg-light rounded">
+                        <div class="mb-3 p-3 rounded" style="background: #f3e8ff;">
                             <div class="mb-2">
-                                <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Active Method(s)</label>
+                                <label class="mb-1 d-block" style="font-size: 0.8rem; color: #6b21a8;">Active Method(s)</label>
                                 <div class="d-flex flex-wrap gap-2">
                                     @foreach($mfaMethods as $method)
                                         @if($method === 'authenticator')
@@ -246,8 +246,8 @@
                             </div>
                             @if(in_array('sms', $mfaMethods) || in_array('rcs', $mfaMethods))
                             <div class="mt-2">
-                                <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Registered Number</label>
-                                <span style="font-size: 0.9rem;">{{ $mfaPhone }}</span>
+                                <label class="mb-1 d-block" style="font-size: 0.8rem; color: #6b21a8;">Registered Number</label>
+                                <span style="font-size: 0.9rem; color: #6b21a8;">{{ $mfaPhone }}</span>
                             </div>
                             @endif
                         </div>
