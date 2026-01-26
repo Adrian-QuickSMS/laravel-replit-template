@@ -334,7 +334,7 @@
         </div>
     </div>
     
-    <div class="table-container mb-4" style="border: 1px solid #ced4da; border-radius: 0.75rem; background: #fff;">
+    <div class="table-container mb-4" style="border: 1px solid #adb5bd; border-radius: 0.75rem; background: #fff;">
         <div class="section-header px-3 pt-3">
             <h5 class="section-title"><i class="fas fa-hourglass-half me-2" style="color: #886cc0;"></i>Pending Approvals</h5>
         </div>
@@ -393,7 +393,7 @@
         @endif
     </div>
     
-    <div class="table-container" style="border: 1px solid #ced4da; border-radius: 0.75rem; background: #fff;">
+    <div class="table-container" style="border: 1px solid #adb5bd; border-radius: 0.75rem; background: #fff;">
         <div class="section-header px-3 pt-3">
             <h5 class="section-title"><i class="fas fa-history me-2" style="color: #6b7280;"></i>Recent Decisions</h5>
             <button class="btn btn-export" id="btn-export-audit">
