@@ -202,72 +202,6 @@
 .save-indicator i {
     color: #16a34a;
 }
-.policy-select-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-.policy-option {
-    display: flex;
-    align-items: flex-start;
-    padding: 0.75rem;
-    border: 1px solid #e9ecef;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-.policy-option:hover {
-    border-color: #886cc0;
-    background: #faf8ff;
-}
-.policy-option.selected {
-    border-color: #886cc0;
-    background: rgba(111, 66, 193, 0.08);
-}
-.policy-option input[type="radio"] {
-    margin-right: 0.75rem;
-    margin-top: 0.15rem;
-    accent-color: #886cc0;
-}
-.policy-option-content {
-    flex: 1;
-}
-.policy-option-label {
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: #374151;
-    margin-bottom: 0.125rem;
-}
-.policy-option-desc {
-    font-size: 0.75rem;
-    color: #6b7280;
-    line-height: 1.4;
-}
-.method-toggles {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid #e9ecef;
-}
-.method-toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 0;
-}
-.method-toggle-info {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-.method-toggle-info i {
-    width: 20px;
-    color: #886cc0;
-    font-size: 0.9rem;
-}
-.method-toggle-label {
-    font-size: 0.85rem;
-    color: #374151;
-}
 .ip-list {
     display: flex;
     flex-direction: column;
@@ -430,85 +364,21 @@
                     <h6>MFA Policy</h6>
                 </div>
                 <div class="security-card-body">
-                    <div class="setting-info mb-3">
-                        <div class="setting-label">Enforcement Level</div>
-                        <div class="setting-description">Choose how multi-factor authentication is enforced for all users in your account.</div>
-                    </div>
-                    
-                    <div class="policy-select-group" id="mfaPolicyGroup">
-                        <label class="policy-option" data-policy="disabled">
-                            <input type="radio" name="mfaPolicy" value="disabled">
-                            <div class="policy-option-content">
-                                <div class="policy-option-label">Disabled</div>
-                                <div class="policy-option-desc">MFA is not available for users. Not recommended for production accounts.</div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <div class="setting-label">Require MFA for all users</div>
+                            <div class="setting-description">When enabled, all users must configure multi-factor authentication to access their account.</div>
+                        </div>
+                        <div class="setting-control">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="mfaRequiredToggle">
                             </div>
-                        </label>
-                        <label class="policy-option" data-policy="optional">
-                            <input type="radio" name="mfaPolicy" value="optional">
-                            <div class="policy-option-content">
-                                <div class="policy-option-label">Optional</div>
-                                <div class="policy-option-desc">Users can choose to enable MFA but it is not required.</div>
-                            </div>
-                        </label>
-                        <label class="policy-option" data-policy="recommended">
-                            <input type="radio" name="mfaPolicy" value="recommended">
-                            <div class="policy-option-content">
-                                <div class="policy-option-label">Recommended</div>
-                                <div class="policy-option-desc">Users are prompted to enable MFA at login but can skip.</div>
-                            </div>
-                        </label>
-                        <label class="policy-option" data-policy="required">
-                            <input type="radio" name="mfaPolicy" value="required">
-                            <div class="policy-option-content">
-                                <div class="policy-option-label">Required</div>
-                                <div class="policy-option-desc">All users must configure MFA. Users without MFA cannot access the account.</div>
-                            </div>
-                        </label>
-                        <label class="policy-option" data-policy="required_grace">
-                            <input type="radio" name="mfaPolicy" value="required_grace">
-                            <div class="policy-option-content">
-                                <div class="policy-option-label">Required (7-Day Grace Period)</div>
-                                <div class="policy-option-desc">MFA becomes mandatory after a 7-day grace period for new users.</div>
-                            </div>
-                        </label>
+                        </div>
                     </div>
                     
                     <div class="warning-banner" id="mfaWarning" style="display: none;">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <span>Disabling or making MFA optional significantly reduces account security. This is not recommended for production accounts.</span>
-                    </div>
-                    
-                    <div class="method-toggles">
-                        <div class="setting-label mb-2">Allowed MFA Methods</div>
-                        <div class="setting-description mb-3">Select which authentication methods users can use. At least one method must be enabled.</div>
-                        
-                        <div class="method-toggle-row">
-                            <div class="method-toggle-info">
-                                <i class="fas fa-mobile-alt"></i>
-                                <span class="method-toggle-label">Authenticator App (TOTP)</span>
-                            </div>
-                            <div class="form-check form-switch mb-0">
-                                <input class="form-check-input" type="checkbox" id="mfaMethodAuthenticator">
-                            </div>
-                        </div>
-                        <div class="method-toggle-row">
-                            <div class="method-toggle-info">
-                                <i class="fas fa-sms"></i>
-                                <span class="method-toggle-label">SMS One-Time Password</span>
-                            </div>
-                            <div class="form-check form-switch mb-0">
-                                <input class="form-check-input" type="checkbox" id="mfaMethodSMS">
-                            </div>
-                        </div>
-                        <div class="method-toggle-row">
-                            <div class="method-toggle-info">
-                                <i class="fas fa-comment-dots"></i>
-                                <span class="method-toggle-label">RCS Messaging</span>
-                            </div>
-                            <div class="form-check form-switch mb-0">
-                                <input class="form-check-input" type="checkbox" id="mfaMethodRCS">
-                            </div>
-                        </div>
+                        <span>Disabling MFA reduces account security. This is not recommended.</span>
                     </div>
                 </div>
             </div>
@@ -692,8 +562,8 @@
                                 <i class="fas fa-shield-alt" style="font-size: 0.7rem;"></i>
                             </div>
                             <div class="audit-entry-content">
-                                <div class="audit-entry-action">MFA Policy changed to Required</div>
-                                <div class="audit-entry-details">Previous: Recommended</div>
+                                <div class="audit-entry-action">MFA enabled for all users</div>
+                                <div class="audit-entry-details">Previous: Disabled</div>
                             </div>
                             <div class="audit-entry-meta">
                                 <div class="audit-entry-time">Jan 20, 16:45</div>
@@ -711,19 +581,6 @@
                             <div class="audit-entry-meta">
                                 <div class="audit-entry-time">Jan 18, 10:22</div>
                                 <div class="audit-entry-user">Sarah Mitchell</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-entry-icon mfa">
-                                <i class="fas fa-mobile-alt" style="font-size: 0.7rem;"></i>
-                            </div>
-                            <div class="audit-entry-content">
-                                <div class="audit-entry-action">SMS MFA method enabled</div>
-                                <div class="audit-entry-details">Added to allowed methods</div>
-                            </div>
-                            <div class="audit-entry-meta">
-                                <div class="audit-entry-time">Jan 15, 14:30</div>
-                                <div class="audit-entry-user">John Thompson</div>
                             </div>
                         </div>
                         <div class="audit-entry">
@@ -874,12 +731,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mock Security Settings Service - TODO: Replace with actual API calls
     var SecuritySettingsService = {
         settings: {
-            mfa_policy: 'required',
-            mfa_methods: {
-                authenticator: true,
-                sms: true,
-                rcs: false
-            },
+            mfa_required: true, // Default: ON (recommended)
             ip_allowlist_enabled: false,
             ip_allowlist: [
                 { ip: '192.168.1.0/24', label: 'Office Network' },
@@ -899,9 +751,8 @@ document.addEventListener('DOMContentLoaded', function() {
             ]
         },
         auditLog: [
-            { action: 'MFA Policy changed to Required', details: 'Previous: Recommended', user: 'Sarah Mitchell', time: 'Jan 20, 16:45', type: 'mfa' },
+            { action: 'MFA enabled for all users', details: 'Previous: Disabled', user: 'Sarah Mitchell', time: 'Jan 20, 16:45', type: 'mfa' },
             { action: 'IP added to allowlist', details: '192.168.1.0/24 (Office Network)', user: 'Sarah Mitchell', time: 'Jan 18, 10:22', type: 'ip' },
-            { action: 'SMS MFA method enabled', details: 'Added to allowed methods', user: 'John Thompson', time: 'Jan 15, 14:30', type: 'mfa' },
             { action: 'Retention period changed', details: '30 days → 60 days', user: 'Sarah Mitchell', time: 'Jan 10, 09:15', type: 'retention' },
             { action: 'Country request submitted', details: 'Ireland - Pending approval', user: 'Sarah Mitchell', time: 'Jan 8, 11:40', type: 'security' }
         ],
@@ -933,77 +784,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function emitAuditEvent(action, details, type) {
-        SecuritySettingsService.addAuditEntry(action, JSON.stringify(details), type);
+        // TODO: Replace with actual API call
+        // details is a structured object containing: actor, timestamp, source_ip, old_value, new_value
+        SecuritySettingsService.addAuditEntry(action, details, type);
     }
     
-    // MFA Policy Selection
-    var mfaPolicyGroup = document.getElementById('mfaPolicyGroup');
+    // MFA Required Toggle
+    var mfaRequiredToggle = document.getElementById('mfaRequiredToggle');
     var mfaWarning = document.getElementById('mfaWarning');
     
-    if (mfaPolicyGroup) {
-        var policyOptions = mfaPolicyGroup.querySelectorAll('.policy-option');
-        var currentPolicy = SecuritySettingsService.settings.mfa_policy;
+    if (mfaRequiredToggle) {
+        // Initialize from service state (default: ON)
+        mfaRequiredToggle.checked = SecuritySettingsService.settings.mfa_required;
+        mfaWarning.style.display = SecuritySettingsService.settings.mfa_required ? 'none' : 'flex';
         
-        // Initialize from service state
-        policyOptions.forEach(function(option) {
-            var policy = option.dataset.policy;
-            var radio = option.querySelector('input[type="radio"]');
-            if (policy === currentPolicy) {
-                option.classList.add('selected');
-                radio.checked = true;
-            } else {
-                option.classList.remove('selected');
-                radio.checked = false;
-            }
-        });
-        mfaWarning.style.display = (currentPolicy === 'disabled' || currentPolicy === 'optional') ? 'flex' : 'none';
-        
-        policyOptions.forEach(function(option) {
-            option.addEventListener('click', function() {
-                var policy = this.dataset.policy;
-                var radio = this.querySelector('input[type="radio"]');
-                
-                // Update selection state
-                policyOptions.forEach(function(opt) { opt.classList.remove('selected'); });
-                this.classList.add('selected');
-                radio.checked = true;
-                
-                // Show warning for weak policies
-                mfaWarning.style.display = (policy === 'disabled' || policy === 'optional') ? 'flex' : 'none';
-                
-                SecuritySettingsService.save('mfa_policy', policy);
-                emitAuditEvent('MFA_POLICY_CHANGED', { policy: policy }, 'mfa');
-                showSaveIndicator();
-            });
+        mfaRequiredToggle.addEventListener('change', function() {
+            var oldValue = SecuritySettingsService.settings.mfa_required;
+            var newValue = this.checked;
+            
+            SecuritySettingsService.save('mfa_required', newValue);
+            
+            // Show warning when MFA is disabled
+            mfaWarning.style.display = newValue ? 'none' : 'flex';
+            
+            // Emit audit event: MFA_REQUIRED_CHANGED
+            emitAuditEvent('MFA_REQUIRED_CHANGED', {
+                actor: 'Sarah Mitchell', // TODO: Get from session
+                timestamp: new Date().toISOString(),
+                source_ip: '192.168.1.100', // TODO: Get from request
+                old_value: oldValue,
+                new_value: newValue
+            }, 'mfa');
+            showSaveIndicator();
         });
     }
-    
-    // MFA Methods
-    ['Authenticator', 'SMS', 'RCS'].forEach(function(method) {
-        var toggle = document.getElementById('mfaMethod' + method);
-        if (toggle) {
-            var methodKey = method.toLowerCase();
-            toggle.checked = SecuritySettingsService.settings.mfa_methods[methodKey] || false;
-            
-            toggle.addEventListener('change', function() {
-                SecuritySettingsService.settings.mfa_methods[methodKey] = this.checked;
-                
-                // Ensure at least one method is enabled
-                var methods = SecuritySettingsService.settings.mfa_methods;
-                var enabledCount = Object.values(methods).filter(function(v) { return v; }).length;
-                if (enabledCount === 0) {
-                    this.checked = true;
-                    methods[methodKey] = true;
-                    alert('At least one MFA method must be enabled.');
-                    return;
-                }
-                
-                SecuritySettingsService.save('mfa_methods', methods);
-                emitAuditEvent(this.checked ? method.toUpperCase() + '_MFA_ENABLED' : method.toUpperCase() + '_MFA_DISABLED', { method: method }, 'mfa');
-                showSaveIndicator();
-            });
-        }
-    });
     
     // IP Allowlist Toggle
     var ipAllowlistToggle = document.getElementById('ipAllowlistToggle');
