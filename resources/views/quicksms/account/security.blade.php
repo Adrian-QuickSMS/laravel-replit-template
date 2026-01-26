@@ -657,63 +657,30 @@
                 <div class="security-card-body">
                     <p class="setting-description mb-3">Security-related changes to your account. This log is read-only and retained for 7 years for compliance purposes.</p>
                     
-                    <div class="audit-timeline" id="auditTimeline">
-                        <div class="audit-entry">
-                            <div class="audit-entry-icon mfa">
-                                <i class="fas fa-shield-alt" style="font-size: 0.7rem;"></i>
-                            </div>
-                            <div class="audit-entry-content">
-                                <div class="audit-entry-action">MFA enabled for all users</div>
-                                <div class="audit-entry-details">Previous: Disabled</div>
-                            </div>
-                            <div class="audit-entry-meta">
-                                <div class="audit-entry-time">Jan 20, 16:45</div>
-                                <div class="audit-entry-user">Sarah Mitchell</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-entry-icon ip">
-                                <i class="fas fa-network-wired" style="font-size: 0.7rem;"></i>
-                            </div>
-                            <div class="audit-entry-content">
-                                <div class="audit-entry-action">IP added to allowlist</div>
-                                <div class="audit-entry-details">192.168.1.0/24 (Office Network)</div>
-                            </div>
-                            <div class="audit-entry-meta">
-                                <div class="audit-entry-time">Jan 18, 10:22</div>
-                                <div class="audit-entry-user">Sarah Mitchell</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-entry-icon retention">
-                                <i class="fas fa-database" style="font-size: 0.7rem;"></i>
-                            </div>
-                            <div class="audit-entry-content">
-                                <div class="audit-entry-action">Retention period changed</div>
-                                <div class="audit-entry-details">30 days → 60 days</div>
-                            </div>
-                            <div class="audit-entry-meta">
-                                <div class="audit-entry-time">Jan 10, 09:15</div>
-                                <div class="audit-entry-user">Sarah Mitchell</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-entry-icon security">
-                                <i class="fas fa-globe" style="font-size: 0.7rem;"></i>
-                            </div>
-                            <div class="audit-entry-content">
-                                <div class="audit-entry-action">Country request submitted</div>
-                                <div class="audit-entry-details">Ireland - Pending approval</div>
-                            </div>
-                            <div class="audit-entry-meta">
-                                <div class="audit-entry-time">Jan 8, 11:40</div>
-                                <div class="audit-entry-user">Sarah Mitchell</div>
-                            </div>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="auditLogTable">
+                            <thead>
+                                <tr>
+                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Timestamp</th>
+                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Actor</th>
+                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Action Type</th>
+                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Summary</th>
+                                    <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Source IP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditLogTableBody">
+                                <!-- Populated from AuditLogService -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="text-center py-3 d-none" id="auditLogEmpty" style="color: #9ca3af; font-size: 0.85rem;">
+                        <i class="fas fa-clipboard-list mb-2" style="font-size: 1.5rem;"></i>
+                        <div>No audit entries yet</div>
                     </div>
                     
                     <div class="text-center mt-3">
-                        <a href="#" class="text-muted" style="font-size: 0.8rem;"><i class="fas fa-external-link-alt me-1"></i>View Full Audit Log</a>
+                        <a href="/account/audit-logs" class="text-muted" style="font-size: 0.8rem;"><i class="fas fa-external-link-alt me-1"></i>View Full Audit Log</a>
                     </div>
                 </div>
             </div>
@@ -944,10 +911,13 @@ document.addEventListener('DOMContentLoaded', function() {
             ]
         },
         auditLog: [
-            { action: 'MFA enabled for all users', details: 'Previous: Disabled', user: 'Sarah Mitchell', time: 'Jan 20, 16:45', type: 'mfa' },
-            { action: 'IP added to allowlist', details: '192.168.1.0/24 (Office Network)', user: 'Sarah Mitchell', time: 'Jan 18, 10:22', type: 'ip' },
-            { action: 'Retention period changed', details: '30 days → 60 days', user: 'Sarah Mitchell', time: 'Jan 10, 09:15', type: 'retention' },
-            { action: 'Country request submitted', details: 'Ireland - Pending approval', user: 'Sarah Mitchell', time: 'Jan 8, 11:40', type: 'security' }
+            { timestamp: '26-01-2026 16:45', actor: 'Sarah Mitchell', action_type: 'MFA_REQUIRED_CHANGED', summary: 'MFA requirement enabled for all users', source_ip: '192.168.1.100' },
+            { timestamp: '25-01-2026 14:22', actor: 'Sarah Mitchell', action_type: 'IP_ALLOWLIST_ENTRY_ADDED', summary: 'Added IP: 10.0.0.0/8 (VPN Gateway)', source_ip: '192.168.1.100' },
+            { timestamp: '20-01-2026 10:15', actor: 'John Smith', action_type: 'IP_ALLOWLIST_ENABLED_CHANGED', summary: 'IP allowlist enforcement enabled', source_ip: '192.168.1.45' },
+            { timestamp: '18-01-2026 09:30', actor: 'Sarah Mitchell', action_type: 'IP_ALLOWLIST_ENTRY_ADDED', summary: 'Added IP: 192.168.1.0/24 (Office Network)', source_ip: '192.168.1.100' },
+            { timestamp: '15-01-2026 11:40', actor: 'Sarah Mitchell', action_type: 'RETENTION_PERIOD_CHANGED', summary: 'Message retention changed from 30 to 60 days', source_ip: '192.168.1.100' },
+            { timestamp: '10-01-2026 08:55', actor: 'John Smith', action_type: 'MFA_ALLOWED_METHODS_CHANGED', summary: 'Enabled SMS/RCS OTP as MFA method', source_ip: '192.168.1.45' },
+            { timestamp: '08-01-2026 14:20', actor: 'Sarah Mitchell', action_type: 'COUNTRY_REQUEST_SUBMITTED', summary: 'Requested access to Ireland', source_ip: '192.168.1.100' }
         ],
         save: function(key, value) {
             // Route MFA/IP policy saves through centralized service
@@ -962,18 +932,103 @@ document.addEventListener('DOMContentLoaded', function() {
             return Promise.resolve({ success: true });
         },
         addAuditEntry: function(action, details, type) {
+            var now = new Date();
+            var day = String(now.getDate()).padStart(2, '0');
+            var month = String(now.getMonth() + 1).padStart(2, '0');
+            var year = now.getFullYear();
+            var hours = String(now.getHours()).padStart(2, '0');
+            var minutes = String(now.getMinutes()).padStart(2, '0');
+            var timestamp = day + '-' + month + '-' + year + ' ' + hours + ':' + minutes;
+            
+            var summary = this.getActionSummary(action, details);
+            
             var entry = {
-                action: action,
-                details: details,
-                user: 'Sarah Mitchell',
-                time: new Date().toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                type: type || 'security'
+                timestamp: timestamp,
+                actor: details.actor || 'Sarah Mitchell',
+                action_type: action,
+                summary: summary,
+                source_ip: details.source_ip || '192.168.1.100'
             };
             this.auditLog.unshift(entry);
             console.log('[AUDIT]', entry);
+            renderAuditLogTable();
             return entry;
+        },
+        getActionSummary: function(action, details) {
+            switch(action) {
+                case 'MFA_REQUIRED_CHANGED':
+                    return details.new_value ? 'MFA requirement enabled for all users' : 'MFA requirement disabled';
+                case 'MFA_ALLOWED_METHODS_CHANGED':
+                    var methods = [];
+                    if (details.new_value && details.new_value.authenticator) methods.push('Authenticator App');
+                    if (details.new_value && details.new_value.sms_rcs) methods.push('SMS/RCS OTP');
+                    return 'Allowed MFA methods: ' + (methods.length > 0 ? methods.join(', ') : 'None');
+                case 'IP_ALLOWLIST_ENABLED_CHANGED':
+                    return details.new_value ? 'IP allowlist enforcement enabled' : 'IP allowlist enforcement disabled';
+                case 'IP_ALLOWLIST_ENTRY_ADDED':
+                    return 'Added IP: ' + details.ip + (details.label ? ' (' + details.label + ')' : '');
+                case 'IP_ALLOWLIST_ENTRY_EDITED':
+                    return 'Edited IP: ' + details.old_ip + ' → ' + details.new_ip;
+                case 'IP_ALLOWLIST_ENTRY_REMOVED':
+                    return 'Removed IP: ' + details.ip + (details.label ? ' (' + details.label + ')' : '');
+                case 'RETENTION_PERIOD_CHANGED':
+                    return 'Message retention changed to ' + details.new_value + ' days';
+                default:
+                    return action.replace(/_/g, ' ').toLowerCase();
+            }
         }
     };
+    
+    function renderAuditLogTable() {
+        var tbody = document.getElementById('auditLogTableBody');
+        var emptyState = document.getElementById('auditLogEmpty');
+        var table = document.getElementById('auditLogTable');
+        
+        if (!tbody) return;
+        
+        var entries = SecuritySettingsService.auditLog;
+        
+        if (entries.length === 0) {
+            table.classList.add('d-none');
+            emptyState.classList.remove('d-none');
+            return;
+        }
+        
+        table.classList.remove('d-none');
+        emptyState.classList.add('d-none');
+        
+        var cellStyle = 'padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5; vertical-align: middle;';
+        
+        tbody.innerHTML = entries.map(function(entry) {
+            var actionBadgeClass = getActionBadgeClass(entry.action_type);
+            return '<tr>' +
+                '<td style="' + cellStyle + ' white-space: nowrap;">' + escapeHtml(entry.timestamp) + '</td>' +
+                '<td style="' + cellStyle + '">' + escapeHtml(entry.actor) + '</td>' +
+                '<td style="' + cellStyle + '"><span class="badge ' + actionBadgeClass + '" style="font-size: 0.7rem; font-weight: 500;">' + formatActionType(entry.action_type) + '</span></td>' +
+                '<td style="' + cellStyle + '">' + escapeHtml(entry.summary) + '</td>' +
+                '<td style="' + cellStyle + ' font-family: monospace; font-size: 0.75rem; color: #6b7280;">' + escapeHtml(entry.source_ip) + '</td>' +
+            '</tr>';
+        }).join('');
+    }
+    
+    function getActionBadgeClass(actionType) {
+        if (actionType.indexOf('MFA') >= 0) return 'bg-primary';
+        if (actionType.indexOf('IP_ALLOWLIST') >= 0) return 'bg-info';
+        if (actionType.indexOf('RETENTION') >= 0) return 'bg-secondary';
+        if (actionType.indexOf('LOGIN_BLOCKED') >= 0) return 'bg-danger';
+        return 'bg-secondary';
+    }
+    
+    function formatActionType(actionType) {
+        return actionType.replace(/_/g, ' ');
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
     
     function showSaveIndicator() {
         var indicator = document.getElementById('saveIndicator');
@@ -1237,6 +1292,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Render initial IP list
         renderIPList();
+        
+        // Render initial audit log table
+        renderAuditLogTable();
         
         ipAllowlistToggle.addEventListener('change', function() {
             var toggle = this;
