@@ -300,13 +300,17 @@
 <div class="container-fluid">
     <div class="row mb-3">
         <div class="col-12">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0" style="background: transparent; padding: 0;">
-                    <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-muted">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('messages') }}" class="text-muted">Messages</a></li>
-                    <li class="breadcrumb-item active">Campaign Approvals</li>
-                </ol>
-            </nav>
+            <div class="card" style="border: none; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
+                <div class="card-body py-2 px-3">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0" style="background: transparent; padding: 0;">
+                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-muted">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('messages') }}" class="text-muted">Messages</a></li>
+                            <li class="breadcrumb-item active">Campaign Approvals</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
         </div>
     </div>
     
