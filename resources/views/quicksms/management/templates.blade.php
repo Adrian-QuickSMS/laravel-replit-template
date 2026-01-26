@@ -109,12 +109,10 @@
 .templates-table thead th:nth-child(8) { width: 7%; }  /* Status */
 .templates-table thead th:nth-child(9) { width: 10%; } /* Updated */
 .templates-table thead th:last-child { 
-    width: 5%; 
-    position: sticky;
-    right: 0;
+    width: 40px; 
     background: #f8f9fa;
-    z-index: 2;
     cursor: default;
+    text-align: center;
 }
 .templates-table thead th:hover {
     background: #e9ecef;
@@ -141,12 +139,10 @@
     max-width: 0;
 }
 .templates-table tbody td:last-child {
-    position: sticky;
-    right: 0;
     background: #fff;
-    z-index: 1;
-    box-shadow: -2px 0 4px rgba(0,0,0,0.05);
     overflow: visible !important;
+    text-align: center;
+    width: 40px;
 }
 .templates-table tbody td:last-child .dropdown {
     position: static;
@@ -159,7 +155,13 @@
     border: 1px solid rgba(0,0,0,.15);
     border-radius: 0.375rem;
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
-    min-width: 180px;
+    min-width: 140px;
+    padding: 0.25rem 0;
+}
+.templates-table .dropdown-menu .dropdown-item {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
 }
 .templates-table .dropdown-menu.show {
     display: block !important;
@@ -2634,7 +2636,7 @@ window.toggleActionMenu = function(btn, event) {
         // Apply all styles at once
         menu.style.cssText = 'position: fixed !important; ' +
             'top: ' + (rect.bottom + 2) + 'px !important; ' +
-            'left: ' + (rect.right - 160) + 'px !important; ' +
+            'left: ' + (rect.right - 145) + 'px !important; ' +
             'z-index: 99999 !important; ' +
             'display: block !important; ' +
             'opacity: 1 !important; ' +
@@ -2643,9 +2645,9 @@ window.toggleActionMenu = function(btn, event) {
             'border: 1px solid rgba(0,0,0,.15) !important; ' +
             'border-radius: 0.375rem !important; ' +
             'box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15) !important; ' +
-            'min-width: auto !important; ' +
+            'min-width: 140px !important; ' +
             'width: auto !important; ' +
-            'padding: 0.5rem 0 !important;';
+            'padding: 0.25rem 0 !important;';
         
         menu.classList.add('show');
         activeMenu = menu;
