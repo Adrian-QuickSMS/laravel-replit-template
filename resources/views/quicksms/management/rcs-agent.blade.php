@@ -148,8 +148,8 @@
     color: #dc3545;
 }
 .badge-conversational {
-    background: rgba(144, 238, 144, 0.35);
-    color: #2e7d32;
+    background: rgba(48, 101, 208, 0.15);
+    color: #3065D0;
 }
 .badge-non-conversational {
     background: rgba(108, 117, 125, 0.15);
