@@ -197,6 +197,7 @@
     <!-- Test Mode Banner Toggle Handler -->
     <script>
     (function() {
+        var STORAGE_KEY = 'quicksms_test_banner_collapsed';
         var testModeBanner = document.getElementById('test-mode-activation-banner');
         var collapsedTab = document.getElementById('test-mode-collapsed-tab');
         var closeBtn = document.getElementById('test-mode-banner-close');
@@ -207,7 +208,6 @@
                 if (testModeBanner && testModeBanner.style.display !== 'none' && testModeBanner.offsetHeight > 0) {
                     contentBody.style.paddingTop = testModeBanner.offsetHeight + 'px';
                 } else if (collapsedTab && collapsedTab.style.display !== 'none') {
-                    // Small padding for the collapsed tab
                     contentBody.style.paddingTop = '32px';
                 } else {
                     contentBody.style.paddingTop = '';
@@ -219,6 +219,7 @@
             if (testModeBanner && collapsedTab) {
                 testModeBanner.style.display = 'none';
                 collapsedTab.style.display = 'block';
+                localStorage.setItem(STORAGE_KEY, 'true');
                 adjustContentPadding();
             }
         }
@@ -227,6 +228,22 @@
             if (testModeBanner && collapsedTab) {
                 collapsedTab.style.display = 'none';
                 testModeBanner.style.display = 'block';
+                localStorage.setItem(STORAGE_KEY, 'false');
+                adjustContentPadding();
+            }
+        }
+        
+        // Restore saved state on page load
+        function restoreBannerState() {
+            var isCollapsed = localStorage.getItem(STORAGE_KEY) === 'true';
+            if (testModeBanner && collapsedTab) {
+                if (isCollapsed) {
+                    testModeBanner.style.display = 'none';
+                    collapsedTab.style.display = 'block';
+                } else {
+                    collapsedTab.style.display = 'none';
+                    testModeBanner.style.display = 'block';
+                }
                 adjustContentPadding();
             }
         }
@@ -252,7 +269,8 @@
             });
             observer.observe(testModeBanner, { attributes: true });
             
-            // Initial adjustment
+            // Restore state and adjust padding
+            restoreBannerState();
             setTimeout(adjustContentPadding, 100);
         }
     })();
