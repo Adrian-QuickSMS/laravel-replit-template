@@ -1726,7 +1726,16 @@ class QuickSMSController extends Controller
         ]);
     }
 
-    public function templateWizardCreate()
+    public function templateCreateStep1()
+    {
+        return view('quicksms.management.templates.create-step1', [
+            'page_title' => 'Create Template - Metadata',
+            'isEditMode' => false,
+            'template' => null
+        ]);
+    }
+
+    public function templateCreateStep2()
     {
         $sender_ids = [
             ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
@@ -1739,18 +1748,47 @@ class QuickSMSController extends Controller
             ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
         ];
 
-        return view('shared.template-wizard', [
-            'page_title' => 'Create Template',
-            'mode' => 'create',
-            'isAdminMode' => false,
+        return view('quicksms.management.templates.create-step2', [
+            'page_title' => 'Create Template - Content',
             'isEditMode' => false,
-            'showRichRcs' => true,
+            'template' => null,
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents
         ]);
     }
 
-    public function templateWizardEdit($templateId)
+    public function templateCreateStep3()
+    {
+        return view('quicksms.management.templates.create-step3', [
+            'page_title' => 'Create Template - Settings',
+            'isEditMode' => false,
+            'template' => null
+        ]);
+    }
+
+    public function templateCreateReview()
+    {
+        return view('quicksms.management.templates.create-review', [
+            'page_title' => 'Create Template - Review',
+            'isEditMode' => false,
+            'template' => null
+        ]);
+    }
+
+    public function templateEditStep1($templateId)
+    {
+        // TODO: Replace with API call - templatesService.getTemplate(templateId)
+        $template = $this->getMockTemplate($templateId);
+
+        return view('quicksms.management.templates.create-step1', [
+            'page_title' => 'Edit Template - Metadata',
+            'isEditMode' => true,
+            'templateId' => $templateId,
+            'template' => $template
+        ]);
+    }
+
+    public function templateEditStep2($templateId)
     {
         $sender_ids = [
             ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
@@ -1766,16 +1804,39 @@ class QuickSMSController extends Controller
         // TODO: Replace with API call - templatesService.getTemplate(templateId)
         $template = $this->getMockTemplate($templateId);
 
-        return view('shared.template-wizard', [
-            'page_title' => 'Edit Template',
-            'mode' => 'edit',
-            'isAdminMode' => false,
+        return view('quicksms.management.templates.create-step2', [
+            'page_title' => 'Edit Template - Content',
             'isEditMode' => true,
-            'showRichRcs' => true,
             'templateId' => $templateId,
             'template' => $template,
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents
+        ]);
+    }
+
+    public function templateEditStep3($templateId)
+    {
+        // TODO: Replace with API call - templatesService.getTemplate(templateId)
+        $template = $this->getMockTemplate($templateId);
+
+        return view('quicksms.management.templates.create-step3', [
+            'page_title' => 'Edit Template - Settings',
+            'isEditMode' => true,
+            'templateId' => $templateId,
+            'template' => $template
+        ]);
+    }
+
+    public function templateEditReview($templateId)
+    {
+        // TODO: Replace with API call - templatesService.getTemplate(templateId)
+        $template = $this->getMockTemplate($templateId);
+
+        return view('quicksms.management.templates.create-review', [
+            'page_title' => 'Edit Template - Review',
+            'isEditMode' => true,
+            'templateId' => $templateId,
+            'template' => $template
         ]);
     }
 

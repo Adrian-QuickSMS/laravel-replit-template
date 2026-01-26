@@ -46,8 +46,16 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/management/sms-sender-id', 'smsSenderIdRegistration')->name('management.sms-sender-id');
     Route::get('/management/sms-sender-id/register', 'smsSenderIdRegister')->name('management.sms-sender-id.register');
     Route::get('/management/templates', 'templates')->name('management.templates');
-    Route::get('/management/templates/create', 'templateWizardCreate')->name('management.templates.create');
-    Route::get('/management/templates/{templateId}/edit', 'templateWizardEdit')->name('management.templates.edit');
+    Route::get('/management/templates/create', 'templateCreateStep1')->name('management.templates.create');
+    Route::get('/management/templates/create/step1', 'templateCreateStep1')->name('management.templates.create.step1');
+    Route::get('/management/templates/create/step2', 'templateCreateStep2')->name('management.templates.create.step2');
+    Route::get('/management/templates/create/step3', 'templateCreateStep3')->name('management.templates.create.step3');
+    Route::get('/management/templates/create/review', 'templateCreateReview')->name('management.templates.create.review');
+    Route::get('/management/templates/{templateId}/edit', 'templateEditStep1')->name('management.templates.edit');
+    Route::get('/management/templates/{templateId}/edit/step1', 'templateEditStep1')->name('management.templates.edit.step1');
+    Route::get('/management/templates/{templateId}/edit/step2', 'templateEditStep2')->name('management.templates.edit.step2');
+    Route::get('/management/templates/{templateId}/edit/step3', 'templateEditStep3')->name('management.templates.edit.step3');
+    Route::get('/management/templates/{templateId}/edit/review', 'templateEditReview')->name('management.templates.edit.review');
     Route::get('/management/api-connections', 'apiConnections')->name('management.api-connections');
     Route::get('/management/api-connections/create', 'apiConnectionCreate')->name('management.api-connections.create');
     Route::get('/management/email-to-sms', 'emailToSms')->name('management.email-to-sms');
