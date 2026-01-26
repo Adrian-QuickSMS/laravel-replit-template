@@ -78,6 +78,9 @@
 }
 .numbers-table .dropdown-menu {
     z-index: 2050 !important;
+    position: absolute !important;
+    inset: auto 0 auto auto !important;
+    transform: translate(0, 0) !important;
 }
 .numbers-table .dropdown {
     position: relative;
