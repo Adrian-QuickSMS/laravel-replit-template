@@ -4,6 +4,21 @@
 
 @push('styles')
 <style>
+/* API Integration code blocks - black background with white text */
+#optout-api code.bg-light,
+#optout-api pre.bg-light {
+    background-color: #1e1e1e !important;
+    color: #f8f8f2 !important;
+}
+/* API Integration info box - pastel purple with black text and purple icon */
+#optout-api .alert-info {
+    background-color: rgba(111, 66, 193, 0.08) !important;
+    border: 1px solid rgba(111, 66, 193, 0.2) !important;
+    color: #1f2937 !important;
+}
+#optout-api .alert-info i {
+    color: #6f42c1 !important;
+}
 .table thead th {
     background: #f8f9fa !important;
     border-bottom: 1px solid #e9ecef !important;
