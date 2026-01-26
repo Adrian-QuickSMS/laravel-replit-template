@@ -103,6 +103,10 @@
         $lastPasswordChange = '10 Jan 2026';
         $twoFactorEnabled = true;
         $mfaMethod = 'sms';
+        $mfaMethods = ['sms'];
+        $mfaEnforced = true;
+        $mfaPhone = '+447700900123';
+        $backupCodesRemaining = 6;
         $loginCount = 247;
     @endphp
     
@@ -199,18 +203,79 @@
                     
                     <hr>
                     
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-1">Two-Factor Authentication</h6>
-                            <span class="text-muted" style="font-size: 0.85rem;">Add an extra layer of security to your account</span>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-1">Two-Factor Authentication</h6>
+                                <span class="text-muted" style="font-size: 0.85rem;">Add an extra layer of security to your account</span>
+                            </div>
+                            <div>
+                                @if($twoFactorEnabled)
+                                    <span class="badge badge-success light">Enabled</span>
+                                @else
+                                    <span class="badge badge-warning light">Disabled</span>
+                                @endif
+                            </div>
                         </div>
-                        <div>
-                            @if($twoFactorEnabled)
-                                <span class="badge badge-success light">Enabled</span>
-                            @else
-                                <span class="badge badge-warning light">Disabled</span>
+                        
+                        @if($twoFactorEnabled)
+                        <div class="mb-3 p-3 bg-light rounded">
+                            <div class="mb-2">
+                                <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Active Method(s)</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach($mfaMethods as $method)
+                                        @if($method === 'authenticator')
+                                            <span class="badge badge-primary light"><i class="fas fa-mobile-alt me-1"></i>Authenticator App</span>
+                                        @elseif($method === 'sms')
+                                            <span class="badge badge-info light"><i class="fas fa-sms me-1"></i>SMS</span>
+                                        @elseif($method === 'rcs')
+                                            <span class="badge badge-purple light"><i class="fas fa-comment-dots me-1"></i>RCS</span>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                            @if(in_array('sms', $mfaMethods) || in_array('rcs', $mfaMethods))
+                            <div class="mt-2">
+                                <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Registered Number</label>
+                                <span style="font-size: 0.9rem;">{{ $mfaPhone }}</span>
+                            </div>
                             @endif
                         </div>
+                        @endif
+                        
+                        <div class="d-flex flex-wrap gap-2">
+                            @if($twoFactorEnabled)
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#mfaMethodModal">
+                                    <i class="fas fa-exchange-alt me-1"></i>Change Method
+                                </button>
+                                @if(in_array('authenticator', $mfaMethods))
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#reenrolAuthenticatorModal">
+                                    <i class="fas fa-sync-alt me-1"></i>Re-enrol Authenticator
+                                </button>
+                                @endif
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#backupCodesModal">
+                                    <i class="fas fa-key me-1"></i>Backup Codes
+                                    <span class="badge bg-secondary ms-1">{{ $backupCodesRemaining }}</span>
+                                </button>
+                                @if(!$mfaEnforced)
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#disableMfaModal">
+                                    <i class="fas fa-times me-1"></i>Disable
+                                </button>
+                                @endif
+                            @else
+                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#enableMfaModal">
+                                    <i class="fas fa-shield-alt me-1"></i>Enable MFA
+                                </button>
+                            @endif
+                        </div>
+                        
+                        @if($mfaEnforced && $twoFactorEnabled)
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-lock me-1"></i>MFA is enforced by your account administrator and cannot be disabled.
+                            </small>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -367,6 +432,273 @@
                     <button type="submit" class="btn btn-primary" id="changePasswordBtn">Change Password</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Enable MFA Modal -->
+<div class="modal fade" id="enableMfaModal" tabindex="-1" aria-labelledby="enableMfaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="enableMfaModalLabel">Enable Two-Factor Authentication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">Choose your preferred authentication method:</p>
+                
+                <div class="list-group" id="mfaMethodSelection">
+                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
+                        <input type="radio" name="mfaMethodChoice" value="authenticator" class="me-3">
+                        <div>
+                            <h6 class="mb-1"><i class="fas fa-mobile-alt me-2"></i>Authenticator App</h6>
+                            <small class="text-muted">Use Google Authenticator, Authy, or similar apps</small>
+                        </div>
+                    </label>
+                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
+                        <input type="radio" name="mfaMethodChoice" value="sms" class="me-3">
+                        <div>
+                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>SMS</h6>
+                            <small class="text-muted">Receive codes via text message (UK numbers only)</small>
+                        </div>
+                    </label>
+                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
+                        <input type="radio" name="mfaMethodChoice" value="rcs" class="me-3">
+                        <div>
+                            <h6 class="mb-1"><i class="fas fa-comment-dots me-2"></i>RCS</h6>
+                            <small class="text-muted">Receive codes via RCS messaging (UK numbers only)</small>
+                        </div>
+                    </label>
+                </div>
+                
+                <!-- SMS/RCS Phone Setup (hidden by default) -->
+                <div id="phoneSetupSection" class="mt-4" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">UK Mobile Number <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control" id="mfaPhoneInput" placeholder="07700 900123">
+                        <div class="invalid-feedback" id="mfaPhoneError">Please enter a valid UK mobile number</div>
+                        <small class="text-muted">Enter a UK mobile number starting with 07, +447, or 447</small>
+                    </div>
+                    <div id="otpSection" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">Verification Code <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-2">
+                                <input type="text" class="form-control" id="mfaOtpInput" placeholder="Enter 6-digit code" maxlength="6" style="width: 150px;">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="resendOtpBtn">Resend Code</button>
+                            </div>
+                            <div class="invalid-feedback" id="mfaOtpError">Invalid verification code</div>
+                            <small class="text-muted" id="otpCooldownText"></small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Authenticator Setup (hidden by default) -->
+                <div id="authenticatorSetupSection" class="mt-4" style="display: none;">
+                    <div class="text-center mb-3">
+                        <div class="p-4 bg-light rounded d-inline-block">
+                            <i class="fas fa-qrcode" style="font-size: 120px; color: #333;"></i>
+                        </div>
+                        <p class="text-muted mt-2 mb-0" style="font-size: 0.85rem;">Scan this QR code with your authenticator app</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Or enter this code manually:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control bg-light" value="JBSWY3DPEHPK3PXP" readonly id="mfaSecretKey">
+                            <button class="btn btn-outline-secondary" type="button" id="copySecretBtn">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Verification Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="authenticatorOtpInput" placeholder="Enter 6-digit code" maxlength="6" style="width: 150px;">
+                        <div class="invalid-feedback" id="authenticatorOtpError">Invalid verification code</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="enableMfaBtn" disabled>Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change MFA Method Modal -->
+<div class="modal fade" id="mfaMethodModal" tabindex="-1" aria-labelledby="mfaMethodModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mfaMethodModalLabel">Change MFA Method</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-4">Select your new authentication method:</p>
+                
+                <div class="list-group" id="changeMfaMethodSelection">
+                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
+                        <input type="radio" name="changeMfaMethod" value="authenticator" class="me-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1"><i class="fas fa-mobile-alt me-2"></i>Authenticator App</h6>
+                            <small class="text-muted">Use Google Authenticator, Authy, or similar apps</small>
+                        </div>
+                    </label>
+                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
+                        <input type="radio" name="changeMfaMethod" value="sms" class="me-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>SMS</h6>
+                            <small class="text-muted">Receive codes via text message (UK numbers only)</small>
+                        </div>
+                    </label>
+                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
+                        <input type="radio" name="changeMfaMethod" value="rcs" class="me-3">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1"><i class="fas fa-comment-dots me-2"></i>RCS</h6>
+                            <small class="text-muted">Receive codes via RCS messaging (UK numbers only)</small>
+                        </div>
+                    </label>
+                </div>
+                
+                <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.85rem;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Changing your MFA method will require you to verify your identity.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="changeMfaMethodBtn" disabled>Continue</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Re-enrol Authenticator Modal -->
+<div class="modal fade" id="reenrolAuthenticatorModal" tabindex="-1" aria-labelledby="reenrolAuthenticatorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reenrolAuthenticatorModalLabel">Re-enrol Authenticator</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-4" style="font-size: 0.85rem;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Re-enrolling will generate a new secret key. Your old authenticator setup will no longer work.
+                </div>
+                
+                <div class="text-center mb-3">
+                    <div class="p-4 bg-light rounded d-inline-block">
+                        <i class="fas fa-qrcode" style="font-size: 120px; color: #333;"></i>
+                    </div>
+                    <p class="text-muted mt-2 mb-0" style="font-size: 0.85rem;">Scan this new QR code with your authenticator app</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Or enter this code manually:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bg-light" value="NEWKY3DPEHPK3ABC" readonly id="reenrolSecretKey">
+                        <button class="btn btn-outline-secondary" type="button" id="copyReenrolSecretBtn">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Verification Code <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="reenrolOtpInput" placeholder="Enter 6-digit code" maxlength="6" style="width: 150px;">
+                    <div class="invalid-feedback" id="reenrolOtpError">Invalid verification code</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="reenrolAuthenticatorBtn">Verify & Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Backup Codes Modal -->
+<div class="modal fade" id="backupCodesModal" tabindex="-1" aria-labelledby="backupCodesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="backupCodesModalLabel">Backup Codes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning mb-3" style="font-size: 0.85rem;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Store these codes securely. Each code can only be used once.
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted mb-2 d-block" style="font-size: 0.8rem;">Remaining Codes: <strong id="remainingCodesCount">{{ $backupCodesRemaining }}</strong> of 10</label>
+                    <div class="row g-2" id="backupCodesList">
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">ABC12-DEF34</code></div>
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">GHI56-JKL78</code></div>
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">MNO90-PQR12</code></div>
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">STU34-VWX56</code></div>
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">YZA78-BCD90</code></div>
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center">EFG12-HIJ34</code></div>
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center text-muted text-decoration-line-through">KLM56-NOP78</code></div>
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center text-muted text-decoration-line-through">QRS90-TUV12</code></div>
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center text-muted text-decoration-line-through">WXY34-ZAB56</code></div>
+                        <div class="col-6"><code class="d-block p-2 bg-light rounded text-center text-muted text-decoration-line-through">CDE78-FGH90</code></div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="copyBackupCodesBtn">
+                        <i class="fas fa-copy me-1"></i>Copy All
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="downloadBackupCodesBtn">
+                        <i class="fas fa-download me-1"></i>Download
+                    </button>
+                </div>
+                
+                <hr>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">Regenerate Codes</h6>
+                        <small class="text-muted">This will invalidate all existing codes</small>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="regenerateCodesBtn">
+                        <i class="fas fa-sync-alt me-1"></i>Regenerate
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Disable MFA Modal -->
+<div class="modal fade" id="disableMfaModal" tabindex="-1" aria-labelledby="disableMfaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="disableMfaModalLabel">Disable Two-Factor Authentication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger mb-4">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> Disabling MFA will make your account less secure.
+                </div>
+                
+                <p class="mb-3">To confirm, please enter your password:</p>
+                
+                <div class="mb-3">
+                    <label class="form-label">Password <span class="text-danger">*</span></label>
+                    <input type="password" class="form-control" id="disableMfaPassword" autocomplete="current-password">
+                    <div class="invalid-feedback" id="disableMfaPasswordError">Incorrect password</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="disableMfaBtn">Disable MFA</button>
+            </div>
         </div>
     </div>
 </div>
@@ -704,6 +1036,389 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('[MyProfile] Password changed successfully');
         }, 1000);
     });
+    
+    // ========== MFA FUNCTIONALITY ==========
+    
+    // OTP rate limiting state (mock - would be server-side in production)
+    var otpState = {
+        lastRequestTime: null,
+        requestCount: 0,
+        cooldownMinutes: 15,
+        maxRequestsPerDay: 4
+    };
+    
+    // UK phone number validation and normalization
+    function validateUKMobile(phone) {
+        // Remove all non-digit characters except +
+        var cleaned = phone.replace(/[^\d+]/g, '');
+        
+        // Valid formats: 07xxxxxxxxx, +447xxxxxxxxx, 447xxxxxxxxx
+        var patterns = [
+            /^07\d{9}$/,           // 07700900123
+            /^\+447\d{9}$/,        // +447700900123
+            /^447\d{9}$/           // 447700900123
+        ];
+        
+        return patterns.some(function(pattern) {
+            return pattern.test(cleaned);
+        });
+    }
+    
+    function normalizeUKMobile(phone) {
+        var cleaned = phone.replace(/[^\d+]/g, '');
+        
+        // Convert to 447xxxxxxxxx format
+        if (cleaned.startsWith('07')) {
+            return '44' + cleaned.substring(1);
+        } else if (cleaned.startsWith('+447')) {
+            return cleaned.substring(1);
+        } else if (cleaned.startsWith('447')) {
+            return cleaned;
+        }
+        return cleaned;
+    }
+    
+    function checkOTPCooldown() {
+        if (!otpState.lastRequestTime) return { allowed: true };
+        
+        var now = new Date();
+        var timeSinceLastRequest = (now - otpState.lastRequestTime) / 1000 / 60; // minutes
+        
+        if (otpState.requestCount >= otpState.maxRequestsPerDay) {
+            return { 
+                allowed: false, 
+                message: 'Maximum OTP requests reached. Try again tomorrow.' 
+            };
+        }
+        
+        if (timeSinceLastRequest < otpState.cooldownMinutes) {
+            var remainingMinutes = Math.ceil(otpState.cooldownMinutes - timeSinceLastRequest);
+            return { 
+                allowed: false, 
+                message: 'Try again in ' + remainingMinutes + ' minute' + (remainingMinutes > 1 ? 's' : '') 
+            };
+        }
+        
+        return { allowed: true };
+    }
+    
+    function recordOTPRequest() {
+        otpState.lastRequestTime = new Date();
+        otpState.requestCount++;
+    }
+    
+    // Enable MFA Modal
+    var enableMfaModal = document.getElementById('enableMfaModal');
+    var enableMfaBtn = document.getElementById('enableMfaBtn');
+    var mfaMethodRadios = document.querySelectorAll('input[name="mfaMethodChoice"]');
+    var phoneSetupSection = document.getElementById('phoneSetupSection');
+    var authenticatorSetupSection = document.getElementById('authenticatorSetupSection');
+    var mfaPhoneInput = document.getElementById('mfaPhoneInput');
+    var otpSection = document.getElementById('otpSection');
+    var mfaOtpInput = document.getElementById('mfaOtpInput');
+    var resendOtpBtn = document.getElementById('resendOtpBtn');
+    var otpCooldownText = document.getElementById('otpCooldownText');
+    
+    var currentMfaStep = 'select'; // select, phone, otp, authenticator
+    var selectedMfaMethod = null;
+    
+    mfaMethodRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            selectedMfaMethod = this.value;
+            enableMfaBtn.disabled = false;
+            
+            // Reset sections
+            phoneSetupSection.style.display = 'none';
+            authenticatorSetupSection.style.display = 'none';
+            otpSection.style.display = 'none';
+            
+            currentMfaStep = 'select';
+            enableMfaBtn.textContent = 'Continue';
+        });
+    });
+    
+    enableMfaBtn.addEventListener('click', function() {
+        if (currentMfaStep === 'select') {
+            if (selectedMfaMethod === 'sms' || selectedMfaMethod === 'rcs') {
+                phoneSetupSection.style.display = 'block';
+                authenticatorSetupSection.style.display = 'none';
+                currentMfaStep = 'phone';
+                enableMfaBtn.textContent = 'Send Code';
+            } else if (selectedMfaMethod === 'authenticator') {
+                authenticatorSetupSection.style.display = 'block';
+                phoneSetupSection.style.display = 'none';
+                currentMfaStep = 'authenticator';
+                enableMfaBtn.textContent = 'Verify & Enable';
+            }
+        } else if (currentMfaStep === 'phone') {
+            // Validate phone
+            if (!validateUKMobile(mfaPhoneInput.value)) {
+                mfaPhoneInput.classList.add('is-invalid');
+                return;
+            }
+            mfaPhoneInput.classList.remove('is-invalid');
+            
+            // Check cooldown
+            var cooldownCheck = checkOTPCooldown();
+            if (!cooldownCheck.allowed) {
+                otpCooldownText.textContent = cooldownCheck.message;
+                otpCooldownText.classList.add('text-danger');
+                return;
+            }
+            
+            // Send OTP
+            recordOTPRequest();
+            var normalizedPhone = normalizeUKMobile(mfaPhoneInput.value);
+            console.log('[MFA] Sending OTP to: ' + normalizedPhone);
+            
+            otpSection.style.display = 'block';
+            otpCooldownText.textContent = 'Code sent to ' + mfaPhoneInput.value;
+            otpCooldownText.classList.remove('text-danger');
+            currentMfaStep = 'otp';
+            enableMfaBtn.textContent = 'Verify & Enable';
+        } else if (currentMfaStep === 'otp') {
+            // Validate OTP
+            if (!mfaOtpInput.value || mfaOtpInput.value.length !== 6) {
+                mfaOtpInput.classList.add('is-invalid');
+                return;
+            }
+            mfaOtpInput.classList.remove('is-invalid');
+            
+            // Simulate verification
+            enableMfaBtn.disabled = true;
+            enableMfaBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+            
+            setTimeout(function() {
+                var modal = bootstrap.Modal.getInstance(enableMfaModal);
+                modal.hide();
+                successToast.classList.add('show');
+                setTimeout(function() {
+                    successToast.classList.remove('show');
+                    location.reload();
+                }, 2000);
+                console.log('[MFA] SMS/RCS MFA enabled successfully');
+            }, 1000);
+        } else if (currentMfaStep === 'authenticator') {
+            var authenticatorOtp = document.getElementById('authenticatorOtpInput');
+            if (!authenticatorOtp.value || authenticatorOtp.value.length !== 6) {
+                authenticatorOtp.classList.add('is-invalid');
+                return;
+            }
+            authenticatorOtp.classList.remove('is-invalid');
+            
+            enableMfaBtn.disabled = true;
+            enableMfaBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+            
+            setTimeout(function() {
+                var modal = bootstrap.Modal.getInstance(enableMfaModal);
+                modal.hide();
+                successToast.classList.add('show');
+                setTimeout(function() {
+                    successToast.classList.remove('show');
+                    location.reload();
+                }, 2000);
+                console.log('[MFA] Authenticator MFA enabled successfully');
+            }, 1000);
+        }
+    });
+    
+    // Resend OTP button
+    if (resendOtpBtn) {
+        resendOtpBtn.addEventListener('click', function() {
+            var cooldownCheck = checkOTPCooldown();
+            if (!cooldownCheck.allowed) {
+                otpCooldownText.textContent = cooldownCheck.message;
+                otpCooldownText.classList.add('text-danger');
+                return;
+            }
+            
+            recordOTPRequest();
+            otpCooldownText.textContent = 'Code resent to ' + mfaPhoneInput.value;
+            otpCooldownText.classList.remove('text-danger');
+            console.log('[MFA] OTP resent');
+        });
+    }
+    
+    // Reset Enable MFA modal on close
+    if (enableMfaModal) {
+        enableMfaModal.addEventListener('hidden.bs.modal', function() {
+            mfaMethodRadios.forEach(function(radio) { radio.checked = false; });
+            phoneSetupSection.style.display = 'none';
+            authenticatorSetupSection.style.display = 'none';
+            otpSection.style.display = 'none';
+            mfaPhoneInput.value = '';
+            mfaPhoneInput.classList.remove('is-invalid');
+            mfaOtpInput.value = '';
+            mfaOtpInput.classList.remove('is-invalid');
+            var authOtp = document.getElementById('authenticatorOtpInput');
+            if (authOtp) { authOtp.value = ''; authOtp.classList.remove('is-invalid'); }
+            currentMfaStep = 'select';
+            selectedMfaMethod = null;
+            enableMfaBtn.disabled = true;
+            enableMfaBtn.textContent = 'Continue';
+        });
+    }
+    
+    // Change MFA Method Modal
+    var changeMfaMethodBtn = document.getElementById('changeMfaMethodBtn');
+    var changeMfaRadios = document.querySelectorAll('input[name="changeMfaMethod"]');
+    
+    changeMfaRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            changeMfaMethodBtn.disabled = false;
+        });
+    });
+    
+    if (changeMfaMethodBtn) {
+        changeMfaMethodBtn.addEventListener('click', function() {
+            var selectedMethod = document.querySelector('input[name="changeMfaMethod"]:checked');
+            if (selectedMethod) {
+                changeMfaMethodBtn.disabled = true;
+                changeMfaMethodBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+                
+                setTimeout(function() {
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('mfaMethodModal'));
+                    modal.hide();
+                    successToast.classList.add('show');
+                    setTimeout(function() {
+                        successToast.classList.remove('show');
+                    }, 3000);
+                    console.log('[MFA] Method changed to: ' + selectedMethod.value);
+                }, 1000);
+            }
+        });
+    }
+    
+    // Backup Codes functionality
+    var copyBackupCodesBtn = document.getElementById('copyBackupCodesBtn');
+    var downloadBackupCodesBtn = document.getElementById('downloadBackupCodesBtn');
+    var regenerateCodesBtn = document.getElementById('regenerateCodesBtn');
+    
+    if (copyBackupCodesBtn) {
+        copyBackupCodesBtn.addEventListener('click', function() {
+            var codes = [];
+            document.querySelectorAll('#backupCodesList code:not(.text-decoration-line-through)').forEach(function(el) {
+                codes.push(el.textContent);
+            });
+            navigator.clipboard.writeText(codes.join('\n'));
+            copyBackupCodesBtn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            setTimeout(function() {
+                copyBackupCodesBtn.innerHTML = '<i class="fas fa-copy me-1"></i>Copy All';
+            }, 2000);
+        });
+    }
+    
+    if (downloadBackupCodesBtn) {
+        downloadBackupCodesBtn.addEventListener('click', function() {
+            var codes = [];
+            document.querySelectorAll('#backupCodesList code:not(.text-decoration-line-through)').forEach(function(el) {
+                codes.push(el.textContent);
+            });
+            var blob = new Blob(['QuickSMS Backup Codes\n\n' + codes.join('\n') + '\n\nKeep these codes safe!'], { type: 'text/plain' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'quicksms-backup-codes.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+    
+    if (regenerateCodesBtn) {
+        regenerateCodesBtn.addEventListener('click', function() {
+            if (confirm('Are you sure? All existing backup codes will be invalidated.')) {
+                regenerateCodesBtn.disabled = true;
+                regenerateCodesBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Regenerating...';
+                
+                setTimeout(function() {
+                    regenerateCodesBtn.disabled = false;
+                    regenerateCodesBtn.innerHTML = '<i class="fas fa-sync-alt me-1"></i>Regenerate';
+                    document.getElementById('remainingCodesCount').textContent = '10';
+                    console.log('[MFA] Backup codes regenerated');
+                }, 1000);
+            }
+        });
+    }
+    
+    // Copy secret key buttons
+    var copySecretBtn = document.getElementById('copySecretBtn');
+    if (copySecretBtn) {
+        copySecretBtn.addEventListener('click', function() {
+            var secret = document.getElementById('mfaSecretKey').value;
+            navigator.clipboard.writeText(secret);
+            copySecretBtn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(function() {
+                copySecretBtn.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
+        });
+    }
+    
+    var copyReenrolSecretBtn = document.getElementById('copyReenrolSecretBtn');
+    if (copyReenrolSecretBtn) {
+        copyReenrolSecretBtn.addEventListener('click', function() {
+            var secret = document.getElementById('reenrolSecretKey').value;
+            navigator.clipboard.writeText(secret);
+            copyReenrolSecretBtn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(function() {
+                copyReenrolSecretBtn.innerHTML = '<i class="fas fa-copy"></i>';
+            }, 2000);
+        });
+    }
+    
+    // Re-enrol Authenticator
+    var reenrolAuthenticatorBtn = document.getElementById('reenrolAuthenticatorBtn');
+    if (reenrolAuthenticatorBtn) {
+        reenrolAuthenticatorBtn.addEventListener('click', function() {
+            var otpInput = document.getElementById('reenrolOtpInput');
+            if (!otpInput.value || otpInput.value.length !== 6) {
+                otpInput.classList.add('is-invalid');
+                return;
+            }
+            otpInput.classList.remove('is-invalid');
+            
+            reenrolAuthenticatorBtn.disabled = true;
+            reenrolAuthenticatorBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+            
+            setTimeout(function() {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('reenrolAuthenticatorModal'));
+                modal.hide();
+                successToast.classList.add('show');
+                setTimeout(function() {
+                    successToast.classList.remove('show');
+                }, 3000);
+                reenrolAuthenticatorBtn.disabled = false;
+                reenrolAuthenticatorBtn.textContent = 'Verify & Save';
+                console.log('[MFA] Authenticator re-enrolled');
+            }, 1000);
+        });
+    }
+    
+    // Disable MFA
+    var disableMfaBtn = document.getElementById('disableMfaBtn');
+    if (disableMfaBtn) {
+        disableMfaBtn.addEventListener('click', function() {
+            var passwordInput = document.getElementById('disableMfaPassword');
+            if (!passwordInput.value) {
+                passwordInput.classList.add('is-invalid');
+                return;
+            }
+            passwordInput.classList.remove('is-invalid');
+            
+            disableMfaBtn.disabled = true;
+            disableMfaBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Disabling...';
+            
+            setTimeout(function() {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('disableMfaModal'));
+                modal.hide();
+                successToast.classList.add('show');
+                setTimeout(function() {
+                    successToast.classList.remove('show');
+                    location.reload();
+                }, 2000);
+                console.log('[MFA] MFA disabled');
+            }, 1000);
+        });
+    }
 });
 </script>
 @endpush
