@@ -1517,10 +1517,29 @@ function renderTemplates(templates) {
     
     tbody.innerHTML = html || '<tr><td colspan="11" class="text-center text-muted py-4">No templates match your filters</td></tr>';
     
-    // Initialize Bootstrap dropdowns for dynamically added content
+    // Initialize Bootstrap dropdowns for dynamically added content with proper Popper config
     var dropdownElements = tbody.querySelectorAll('[data-bs-toggle="dropdown"]');
     dropdownElements.forEach(function(element) {
-        new bootstrap.Dropdown(element);
+        new bootstrap.Dropdown(element, {
+            popperConfig: {
+                strategy: 'fixed',
+                modifiers: [
+                    {
+                        name: 'preventOverflow',
+                        options: {
+                            boundary: 'viewport',
+                            padding: 8
+                        }
+                    },
+                    {
+                        name: 'flip',
+                        options: {
+                            fallbackPlacements: ['top-end', 'bottom-end', 'left-start']
+                        }
+                    }
+                ]
+            }
+        });
     });
 }
 
