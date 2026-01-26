@@ -1002,7 +1002,7 @@ $(document).ready(function() {
         var year = date.getFullYear();
         var month = String(date.getMonth() + 1).padStart(2, '0');
         var day = String(date.getDate()).padStart(2, '0');
-        return year + '-' + month + '-' + day;
+        return day + '-' + month + '-' + year;
     }
     
     function formatDateTime(dateTimeStr) {
@@ -1012,7 +1012,7 @@ $(document).ready(function() {
         var day = String(date.getDate()).padStart(2, '0');
         var hours = String(date.getHours()).padStart(2, '0');
         var minutes = String(date.getMinutes()).padStart(2, '0');
-        return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+        return day + '-' + month + '-' + year + ' ' + hours + ':' + minutes;
     }
     
     function copyToClipboard(text, btn) {
