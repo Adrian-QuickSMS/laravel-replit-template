@@ -56,6 +56,11 @@ $permissions = [
 .card {
     border-radius: 0.75rem !important;
     border: 1px solid #e9ecef !important;
+    box-shadow: none !important;
+}
+.container-fluid > .row > .col-12 > .card {
+    border: 1px solid #e9ecef !important;
+    border-radius: 0.75rem !important;
 }
 .table thead th {
     background: #f8f9fa !important;
