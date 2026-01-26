@@ -48,17 +48,14 @@
     overflow: visible !important;
 }
 .message-log-table-wrapper {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-height: 0;
+    flex: 1 1 auto;
+    display: block;
+    overflow: visible;
 }
 #tableContainer {
-    flex: 1;
-    overflow-y: auto;
+    max-height: calc(100vh - 460px);
+    overflow-y: auto !important;
     overflow-x: auto;
-    min-height: 0;
 }
 .message-log-footer {
     flex-shrink: 0;
