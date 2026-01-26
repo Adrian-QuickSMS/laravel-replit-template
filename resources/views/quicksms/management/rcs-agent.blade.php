@@ -306,6 +306,12 @@
     align-items: center;
     flex-wrap: wrap;
 }
+.action-menu .dropdown-menu {
+    z-index: 1050;
+    position: absolute;
+    inset: auto 0 auto auto !important;
+    transform: translate(0, 0) !important;
+}
 .action-menu .dropdown-item {
     font-size: 0.85rem;
     padding: 0.5rem 1rem;
