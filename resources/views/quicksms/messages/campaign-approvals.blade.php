@@ -298,7 +298,7 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="row mb-3">
+    <div class="row mb-2">
         <div class="col-12">
             <div class="card" style="border: none; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
                 <div class="card-body py-2 px-3">
