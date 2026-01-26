@@ -3529,8 +3529,32 @@ function renderTemplates() {
     
     tbody.innerHTML = html || '<tr><td colspan="10" class="text-center text-muted py-4">No templates match your filters</td></tr>';
     
-    tbody.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function(btn) {
-        new bootstrap.Dropdown(btn);
+    tbody.querySelectorAll('.action-menu-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var menu = this.nextElementSibling;
+            if (menu && menu.classList.contains('dropdown-menu')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(function(openMenu) {
+                    if (openMenu !== menu) openMenu.classList.remove('show');
+                });
+                menu.classList.toggle('show');
+                
+                var rect = this.getBoundingClientRect();
+                menu.style.position = 'fixed';
+                menu.style.top = (rect.bottom + 2) + 'px';
+                menu.style.left = (rect.left - 150) + 'px';
+                menu.style.right = 'auto';
+            }
+        });
+    });
+    
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+            document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
+                menu.classList.remove('show');
+            });
+        }
     });
 }
 
