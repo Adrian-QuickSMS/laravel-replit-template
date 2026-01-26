@@ -77,8 +77,36 @@
 .scope-indicator { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; background-color: rgba(111, 66, 193, 0.1); color: #6f42c1; }
 .export-restricted { opacity: 0.5; pointer-events: none; }
 
-.audit-table-container { max-height: 600px; overflow-y: auto; }
+.audit-table-container { 
+    max-height: 600px; 
+    overflow-y: auto; 
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.75rem;
+}
 .audit-table-container.infinite-scroll-enabled { max-height: none; }
+
+.audit-logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.audit-logs-table thead th {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+}
+.audit-logs-table tbody td {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #f1f3f5;
+    vertical-align: middle;
+}
+.audit-logs-table tbody tr:hover {
+    background-color: rgba(111, 66, 193, 0.03);
+}
 
 .audit-log-row { 
     cursor: default; 
@@ -429,9 +457,9 @@
                     </div>
                 </div>
 
-                <div class="table-responsive audit-table-container" id="auditTableContainer">
-                    <table class="table table-hover mb-0 table-read-only" id="auditLogsTable">
-                        <thead class="sticky-top bg-white">
+                <div class="audit-table-container" id="auditTableContainer">
+                    <table class="audit-logs-table" id="auditLogsTable">
+                        <thead>
                             <tr>
                                 <th style="width: 150px;" class="sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
                                 <th style="width: 100px;">Event ID</th>
@@ -520,8 +548,8 @@
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="securityLogsTable">
+                <div class="audit-table-container">
+                    <table class="audit-logs-table" id="securityLogsTable">
                         <thead>
                             <tr>
                                 <th>Timestamp</th>
@@ -558,8 +586,8 @@
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="messagingLogsTable">
+                <div class="audit-table-container">
+                    <table class="audit-logs-table" id="messagingLogsTable">
                         <thead>
                             <tr>
                                 <th>Timestamp</th>
@@ -596,8 +624,8 @@
                     </div>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="financialLogsTable">
+                <div class="audit-table-container">
+                    <table class="audit-logs-table" id="financialLogsTable">
                         <thead>
                             <tr>
                                 <th>Timestamp</th>
