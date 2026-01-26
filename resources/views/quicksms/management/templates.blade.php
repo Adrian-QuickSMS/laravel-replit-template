@@ -146,6 +146,15 @@
     background: #fff;
     z-index: 1;
     box-shadow: -2px 0 4px rgba(0,0,0,0.05);
+    overflow: visible !important;
+}
+.templates-table tbody td:last-child .dropdown {
+    position: static;
+}
+.templates-table .dropdown-menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 .templates-table tbody tr:last-child td {
     border-bottom: none;
@@ -2588,7 +2597,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (actionBtn) {
             e.preventDefault();
             e.stopPropagation();
+            console.log('[Templates] Action button clicked');
             var menu = actionBtn.nextElementSibling;
+            console.log('[Templates] Menu element:', menu);
             if (menu && menu.classList.contains('dropdown-menu')) {
                 document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(openMenu) {
                     if (openMenu !== menu) openMenu.classList.remove('show');
@@ -2602,6 +2613,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     menu.style.left = (rect.right - 180) + 'px';
                     menu.style.right = 'auto';
                     menu.style.zIndex = '9999';
+                    menu.style.display = 'block';
+                } else {
+                    menu.style.display = '';
                 }
             }
             return;
