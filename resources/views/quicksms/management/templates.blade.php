@@ -2582,36 +2582,39 @@ var filterLabels = {
 document.addEventListener('DOMContentLoaded', function() {
     renderTemplates();
     setupEventListeners();
-    initTableDropdowns();
+    
+    document.body.addEventListener('click', function(e) {
+        var actionBtn = e.target.closest('.action-menu-btn');
+        if (actionBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            var menu = actionBtn.nextElementSibling;
+            if (menu && menu.classList.contains('dropdown-menu')) {
+                document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(openMenu) {
+                    if (openMenu !== menu) openMenu.classList.remove('show');
+                });
+                menu.classList.toggle('show');
+                
+                if (menu.classList.contains('show')) {
+                    var rect = actionBtn.getBoundingClientRect();
+                    menu.style.position = 'fixed';
+                    menu.style.top = (rect.bottom + 2) + 'px';
+                    menu.style.left = (rect.right - 180) + 'px';
+                    menu.style.right = 'auto';
+                    menu.style.zIndex = '9999';
+                }
+            }
+            return;
+        }
+        
+        if (!e.target.closest('.dropdown-menu')) {
+            document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(menu) {
+                menu.classList.remove('show');
+            });
+        }
+    });
 });
 
-function initTableDropdowns() {
-    var templatesBody = document.getElementById('templatesBody');
-    if (templatesBody) {
-        templatesBody.closest('table').addEventListener('show.bs.dropdown', function(e) {
-            var dropdown = e.target;
-            var dropdownMenu = dropdown.nextElementSibling;
-            if (dropdownMenu && dropdownMenu.classList.contains('dropdown-menu')) {
-                var bsDropdown = bootstrap.Dropdown.getInstance(dropdown);
-                if (bsDropdown) {
-                    bsDropdown.dispose();
-                }
-                new bootstrap.Dropdown(dropdown, {
-                    popperConfig: function(defaultConfig) {
-                        defaultConfig.modifiers = defaultConfig.modifiers || [];
-                        defaultConfig.modifiers.push({
-                            name: 'preventOverflow',
-                            options: {
-                                boundary: 'viewport'
-                            }
-                        });
-                        return defaultConfig;
-                    }
-                });
-            }
-        });
-    }
-}
 
 function setupEventListeners() {
     var createBtn = document.getElementById('createTemplateBtn');
@@ -3500,7 +3503,7 @@ function renderTemplates() {
         html += '<td>' + template.lastUpdated + '</td>';
         html += '<td>';
         html += '<div class="dropdown">';
-        html += '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">';
+        html += '<button class="action-menu-btn" type="button">';
         html += '<i class="fas fa-ellipsis-v"></i>';
         html += '</button>';
         html += '<ul class="dropdown-menu dropdown-menu-end">';
@@ -3528,34 +3531,6 @@ function renderTemplates() {
     });
     
     tbody.innerHTML = html || '<tr><td colspan="10" class="text-center text-muted py-4">No templates match your filters</td></tr>';
-    
-    tbody.querySelectorAll('.action-menu-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var menu = this.nextElementSibling;
-            if (menu && menu.classList.contains('dropdown-menu')) {
-                document.querySelectorAll('.dropdown-menu.show').forEach(function(openMenu) {
-                    if (openMenu !== menu) openMenu.classList.remove('show');
-                });
-                menu.classList.toggle('show');
-                
-                var rect = this.getBoundingClientRect();
-                menu.style.position = 'fixed';
-                menu.style.top = (rect.bottom + 2) + 'px';
-                menu.style.left = (rect.left - 150) + 'px';
-                menu.style.right = 'auto';
-            }
-        });
-    });
-    
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.dropdown')) {
-            document.querySelectorAll('.dropdown-menu.show').forEach(function(menu) {
-                menu.classList.remove('show');
-            });
-        }
-    });
 }
 
 function editTemplate(id) {
