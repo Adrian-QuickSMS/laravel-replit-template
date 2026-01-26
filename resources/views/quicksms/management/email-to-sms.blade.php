@@ -593,7 +593,7 @@ body > .dropdown-menu.dropdown-menu-end {
                             
                             <div class="table-container" id="addressesTableContainer">
                                 <div class="table-responsive">
-                                    <table class="table api-table mb-0">
+                                    <table class="email-sms-table mb-0">
                                         <thead>
                                             <tr>
                                                 <th data-sort="name" onclick="sortAddressesTable('name')">Name <i class="fas fa-sort sort-icon"></i></th>
@@ -698,7 +698,7 @@ body > .dropdown-menu.dropdown-menu-end {
                                     
                                     <div class="api-table-container" id="contactListsTableContainer">
                                         <div class="table-responsive">
-                                            <table class="table api-table mb-0">
+                                            <table class="email-sms-table mb-0">
                                                 <thead>
                                                     <tr>
                                                         <th data-sort="name" onclick="sortContactListsTable('name')">Name <i class="fas fa-sort sort-icon"></i></th>
@@ -796,7 +796,7 @@ body > .dropdown-menu.dropdown-menu-end {
                             
                             <div class="table-container" id="reportingGroupsTableContainer">
                                 <div class="table-responsive">
-                                    <table class="table api-table mb-0">
+                                    <table class="email-sms-table mb-0">
                                         <thead>
                                             <tr>
                                                 <th data-sort="name" onclick="sortReportingGroupsTable('name')">Group Name <i class="fas fa-sort sort-icon"></i></th>
@@ -893,7 +893,7 @@ body > .dropdown-menu.dropdown-menu-end {
                             
                             <div class="table-container" id="standardSmsTableContainer">
                                 <div class="table-responsive">
-                                    <table class="table api-table mb-0">
+                                    <table class="email-sms-table mb-0">
                                         <thead>
                                             <tr>
                                                 <th data-sort="name" onclick="sortStandardSmsTable('name')" style="width: 18%;">Name <i class="fas fa-sort sort-icon"></i></th>

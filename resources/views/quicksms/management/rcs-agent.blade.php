@@ -809,8 +809,8 @@
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover" id="agentsTable">
+            <div class="agents-table-container">
+                <table class="agents-table" id="agentsTable">
                     <thead>
                         <tr>
                             <th data-sort="name" onclick="sortTable('name')">Agent Name <i class="fas fa-sort sort-icon"></i></th>

@@ -472,8 +472,8 @@
                 </div>
             </div>
             
-            <div class="table-responsive">
-                <table class="table table-hover" id="apiConnectionsTable">
+            <div class="api-table-container">
+                <table class="api-table" id="apiConnectionsTable">
             <thead>
                 <tr>
                     <th data-sort="name">API Name <i class="fas fa-sort sort-icon"></i></th>

@@ -70,6 +70,12 @@ body > .dropdown-menu.dropdown-menu-end,
 .senderid-table td .dropdown.show .dropdown-menu {
     z-index: 2001 !important;
 }
+.senderid-table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: visible;
+}
 .senderid-table {
     width: 100%;
     margin: 0;
@@ -654,8 +660,8 @@ body > .dropdown-menu.dropdown-menu-end,
                     </div>
 
                     <div id="senderIdLibrary">
-                        <div class="table-responsive">
-                            <table class="table senderid-table" id="senderIdTable">
+                        <div class="senderid-table-container">
+                            <table class="senderid-table" id="senderIdTable">
                                 <thead>
                                     <tr>
                                         <th data-sort="senderId" onclick="sortTable('senderId')">SenderID <i class="fas fa-sort sort-icon"></i></th>

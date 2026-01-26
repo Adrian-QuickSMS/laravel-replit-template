@@ -601,7 +601,7 @@
             
             <div class="numbers-table-container" id="numbersTableContainer">
                 <div class="table-responsive">
-                    <table class="table numbers-table mb-0" id="numbersTable">
+                    <table class="numbers-table mb-0" id="numbersTable">
                         <thead>
                             <tr>
                                 <th class="checkbox-col"><input type="checkbox" class="form-check-input" id="selectAllCheckbox" title="Select all"></th>
