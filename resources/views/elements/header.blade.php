@@ -510,6 +510,72 @@
                             </div>
                         </div>
                         <ul class="navbar-nav header-right">
+                                                        <li class="nav-item dropdown notification_dropdown">
+                                <a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown">
+                                                                        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                                <path d="M23.3333 19.8333H23.1187C23.2568 19.4597 23.3295 19.065 23.3333 18.6666V12.8333C23.3294 10.7663 22.6402 8.75902 21.3735 7.12565C20.1068 5.49228 18.3343 4.32508 16.3333 3.80679V3.49996C16.3333 2.88112 16.0875 2.28763 15.6499 1.85004C15.2123 1.41246 14.6188 1.16663 14 1.16663C13.3812 1.16663 12.7877 1.41246 12.3501 1.85004C11.9125 2.28763 11.6667 2.88112 11.6667 3.49996V3.80679C9.66574 4.32508 7.89317 5.49228 6.6265 7.12565C5.35983 8.75902 4.67058 10.7663 4.66667 12.8333V18.6666C4.67053 19.065 4.74316 19.4597 4.88133 19.8333H4.66667C4.35725 19.8333 4.0605 19.9562 3.84171 20.175C3.62292 20.3938 3.5 20.6905 3.5 21C3.5 21.3094 3.62292 21.6061 3.84171 21.8249C4.0605 22.0437 4.35725 22.1666 4.66667 22.1666H23.3333C23.6428 22.1666 23.9395 22.0437 24.1583 21.8249C24.3771 21.6061 24.5 21.3094 24.5 21C24.5 20.6905 24.3771 20.3938 24.1583 20.175C23.9395 19.9562 23.6428 19.8333 23.3333 19.8333Z" fill="#717579"/>
+                                                                                <path d="M9.9819 24.5C10.3863 25.2088 10.971 25.7981 11.6766 26.2079C12.3823 26.6178 13.1838 26.8337 13.9999 26.8337C14.816 26.8337 15.6175 26.6178 16.3232 26.2079C17.0288 25.7981 17.6135 25.2088 18.0179 24.5H9.9819Z" fill="#717579"/>
+                                                                        </svg>
+                                    <span id="enforcement-notification-badge" class="badge light text-white bg-warning rounded-circle">3</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end" style="width: 340px;">
+                                    <div class="card-header border-0 pb-0">
+                                        <h6 class="mb-0"><i class="fas fa-bell me-2" style="color: #886cc0;"></i>Enforcement Alerts</h6>
+                                    </div>
+                                    <div id="enforcement-notification-list" class="widget-media dlab-scroll p-3" style="max-height: 380px; overflow-y: auto;">
+                                        <ul class="timeline" id="notification-timeline">
+                                            <li>
+                                                <div class="timeline-panel" style="border-left: 3px solid #f59e0b; padding-left: 12px;">
+                                                    <div class="media me-2 media-warning" style="background: #fef3c7;">
+                                                        <i class="fas fa-exclamation-triangle" style="color: #d97706;"></i>
+                                                    </div>
+                                                    <div class="media-body">
+                                                        <h6 class="mb-1" style="font-size: 0.85rem;">Spend Cap Warning</h6>
+                                                        <p class="mb-1" style="font-size: 0.75rem; color: #6b7280;">Marketing Department at 85% of monthly cap</p>
+                                                        <small class="d-block text-muted">10 minutes ago</small>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="timeline-panel" style="border-left: 3px solid #ef4444; padding-left: 12px;">
+                                                    <div class="media me-2 media-danger" style="background: #fee2e2;">
+                                                        <i class="fas fa-exclamation-circle" style="color: #dc2626;"></i>
+                                                    </div>
+                                                    <div class="media-body">
+                                                        <h6 class="mb-1" style="font-size: 0.85rem;">Spend Cap Reached</h6>
+                                                        <p class="mb-1" style="font-size: 0.75rem; color: #6b7280;">Customer Support hit 100% of monthly cap</p>
+                                                        <small class="d-block text-muted">2 hours ago</small>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                            <li>
+                                                <div class="timeline-panel" style="border-left: 3px solid #ec4899; padding-left: 12px;">
+                                                    <div class="media me-2" style="background: #fce7f3;">
+                                                        <i class="fas fa-ban" style="color: #be185d;"></i>
+                                                    </div>
+                                                    <div class="media-body">
+                                                        <h6 class="mb-1" style="font-size: 0.85rem;">Campaign Blocked</h6>
+                                                        <p class="mb-1" style="font-size: 0.75rem; color: #6b7280;">"Flash Sale Alert" blocked - limit exceeded</p>
+                                                        <small class="d-block text-muted">Yesterday</small>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="card-footer text-center border-top py-2">
+                                        <a href="{{ url('/account/users-access') }}" class="text-primary" style="font-size: 0.8rem;">View All Notifications <i class="fas fa-arrow-right ms-1"></i></a>
+                                    </div>
+                                </div>
+                            </li>
+                                                        <li class="nav-item dropdown notification_dropdown">
+                                <a class="nav-link inbox-link" href="{{ route('messages.inbox') }}" title="Go to Inbox">
+                                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M27.076 6.24662C26.962 5.48439 26.5787 4.78822 25.9955 4.28434C25.4123 3.78045 24.6679 3.50219 23.8971 3.5H4.10289C3.33217 3.50219 2.58775 3.78045 2.00456 4.28434C1.42137 4.78822 1.03803 5.48439 0.924011 6.24662L14 14.7079L27.076 6.24662Z" fill="#717579"/>
+                                        <path d="M14.4751 16.485C14.3336 16.5765 14.1686 16.6252 14 16.6252C13.8314 16.6252 13.6664 16.5765 13.5249 16.485L0.875 8.30025V21.2721C0.875926 22.1279 1.2163 22.9484 1.82145 23.5536C2.42659 24.1587 3.24707 24.4991 4.10288 24.5H23.8971C24.7529 24.4991 25.5734 24.1587 26.1786 23.5536C26.7837 22.9484 27.1241 22.1279 27.125 21.2721V8.29938L14.4751 16.485Z" fill="#717579"/>
+                                    </svg>
+                                    <span id="navInboxBadge" class="badge light text-white bg-danger rounded-circle">{{ $inbox_unread_count ?? 0 }}</span>
+                                </a>
+                            </li>
                                                         <li class="nav-item dropdown  header-profile">
                                                                 <a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown">
                                                                         <img src="{{ asset('images/user.jpg') }}" width="56" alt="">
