@@ -101,7 +101,7 @@
             if($page == 'ui_badge'){ $body_class = 'badge-demo';}
         @endphp
         <div class="content-body default-height qsms-density-compact {{$body_class}} @yield('body_class')">
-            <!-- TEST MODE BANNER - Overlay with dismiss option -->
+            <!-- TEST MODE BANNER - Collapsible overlay -->
             <div id="test-mode-activation-banner" class="alert alert-warning fade show mb-0" role="alert" style="display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 1050; border-radius: 0; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
                 <div class="container-fluid">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -119,11 +119,19 @@
                             <a href="{{ url('/support/knowledge-base/test-mode') }}" class="btn btn-outline-secondary btn-sm">
                                 Learn More
                             </a>
-                            <button type="button" class="btn btn-link btn-sm text-muted p-0 ms-2" id="test-mode-banner-close" title="Dismiss for this page">
-                                <i class="fas fa-times" style="font-size: 16px;"></i>
+                            <button type="button" class="btn btn-link btn-sm text-muted p-0 ms-2" id="test-mode-banner-close" title="Collapse banner">
+                                <i class="fas fa-chevron-up" style="font-size: 14px;"></i>
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- Collapsed Test Mode Tab -->
+            <div id="test-mode-collapsed-tab" style="display: none; position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 1050; cursor: pointer;">
+                <div style="background: linear-gradient(135deg, #886cc0, #6f42c1); color: white; padding: 6px 16px; border-radius: 0 0 8px 8px; font-size: 0.8rem; font-weight: 500; box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-lock" style="font-size: 12px;"></i>
+                    <span>Test Mode</span>
+                    <i class="fas fa-chevron-down" style="font-size: 10px;"></i>
                 </div>
             </div>
             <!-- END TEST MODE BANNER -->
@@ -186,28 +194,51 @@
     
     <script src="{{ asset('js/quicksms-enforcement-notifications.js') }}" type="text/javascript"></script>
     
-    <!-- Test Mode Banner Close Handler -->
+    <!-- Test Mode Banner Toggle Handler -->
     <script>
     (function() {
         var testModeBanner = document.getElementById('test-mode-activation-banner');
+        var collapsedTab = document.getElementById('test-mode-collapsed-tab');
         var closeBtn = document.getElementById('test-mode-banner-close');
         var contentBody = document.querySelector('.content-body');
         
         function adjustContentPadding() {
-            if (testModeBanner && contentBody) {
-                if (testModeBanner.style.display !== 'none' && testModeBanner.offsetHeight > 0) {
+            if (contentBody) {
+                if (testModeBanner && testModeBanner.style.display !== 'none' && testModeBanner.offsetHeight > 0) {
                     contentBody.style.paddingTop = testModeBanner.offsetHeight + 'px';
+                } else if (collapsedTab && collapsedTab.style.display !== 'none') {
+                    // Small padding for the collapsed tab
+                    contentBody.style.paddingTop = '32px';
                 } else {
                     contentBody.style.paddingTop = '';
                 }
             }
         }
         
-        if (closeBtn && testModeBanner) {
-            closeBtn.addEventListener('click', function() {
+        function collapseBanner() {
+            if (testModeBanner && collapsedTab) {
                 testModeBanner.style.display = 'none';
+                collapsedTab.style.display = 'block';
                 adjustContentPadding();
-            });
+            }
+        }
+        
+        function expandBanner() {
+            if (testModeBanner && collapsedTab) {
+                collapsedTab.style.display = 'none';
+                testModeBanner.style.display = 'block';
+                adjustContentPadding();
+            }
+        }
+        
+        // Close button collapses the banner
+        if (closeBtn) {
+            closeBtn.addEventListener('click', collapseBanner);
+        }
+        
+        // Collapsed tab expands the banner
+        if (collapsedTab) {
+            collapsedTab.addEventListener('click', expandBanner);
         }
         
         // Observe banner visibility changes to adjust padding
