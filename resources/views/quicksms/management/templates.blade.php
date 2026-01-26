@@ -156,6 +156,8 @@
     border-radius: 0.375rem;
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
     min-width: 140px;
+    max-width: 160px;
+    width: auto;
     padding: 0.25rem 0;
 }
 .templates-table .dropdown-menu .dropdown-item {
@@ -668,7 +670,7 @@
         </div>
         <h4>No templates yet</h4>
         <p>Create your first message template to save time when sending messages. Templates can include personalization tags and are available for both SMS and RCS.</p>
-        <a href="{{ route('management.templates.create.step1') }}" class="btn btn-primary">
+        <a href="{{ route('management.templates.create') }}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Create Template
         </a>
     </div>
