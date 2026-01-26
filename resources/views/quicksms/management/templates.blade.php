@@ -786,9 +786,6 @@
         </div>
 
             <div class="active-filters mb-3" id="activeFilters"></div>
-            
-            <!-- DEBUG: Test if onclick handlers work -->
-            <button onclick="alert('Test button works!')" style="margin:10px; padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:4px; cursor:pointer;">DEBUG: Click to Test</button>
 
             <div class="templates-table-container">
                 <table class="templates-table">
@@ -2608,16 +2605,15 @@ var filterLabels = {
 };
 
 
+var menuJustOpened = false;
+
 window.toggleActionMenu = function(btn, event) {
     if (event) {
         event.preventDefault();
         event.stopPropagation();
     }
-    alert('Menu clicked!'); // Debug - will show if function fires
-    console.log('[Templates] toggleActionMenu called');
     
     var menu = btn.nextElementSibling;
-    console.log('[Templates] Menu found:', menu);
     
     if (!menu) {
         console.error('[Templates] No menu found');
@@ -2644,7 +2640,10 @@ window.toggleActionMenu = function(btn, event) {
         menu.style.left = (rect.right - 180) + 'px';
         menu.style.zIndex = '9999';
         menu.style.display = 'block';
-        console.log('[Templates] Menu shown');
+        
+        // Set flag to prevent immediate close
+        menuJustOpened = true;
+        setTimeout(function() { menuJustOpened = false; }, 100);
     }
 };
 
@@ -2654,6 +2653,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Close menus when clicking outside
     document.addEventListener('click', function(e) {
+        if (menuJustOpened) return; // Prevent immediate close
         if (!e.target.closest('.dropdown')) {
             document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(menu) {
                 menu.classList.remove('show');
