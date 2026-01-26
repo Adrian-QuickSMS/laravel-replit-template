@@ -2156,6 +2156,13 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function myProfile()
+    {
+        return view('quicksms.my-profile', [
+            'page_title' => 'My Profile'
+        ]);
+    }
+    
     public function account()
     {
         return view('quicksms.placeholder', [
