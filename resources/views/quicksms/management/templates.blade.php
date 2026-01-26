@@ -151,10 +151,21 @@
 .templates-table tbody td:last-child .dropdown {
     position: static;
 }
+.templates-table .dropdown-menu {
+    display: none;
+    position: absolute;
+    z-index: 1050;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 0.375rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    min-width: 180px;
+}
 .templates-table .dropdown-menu.show {
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
+    pointer-events: auto !important;
 }
 .templates-table tbody tr:last-child td {
     border-bottom: none;
@@ -390,6 +401,12 @@
     padding: 0.25rem 0.5rem;
     cursor: pointer;
     color: #6c757d;
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 1;
+}
+.action-menu-btn i {
+    pointer-events: none;
 }
 .action-menu-btn:hover {
     color: var(--primary);
@@ -2593,20 +2610,45 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     
     document.body.addEventListener('click', function(e) {
+        console.log('[Templates] Click detected:', e.target);
+        
+        // Find if click is on or inside action button
         var actionBtn = e.target.closest('.action-menu-btn');
         if (actionBtn) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('[Templates] Action button clicked');
+            console.log('[Templates] Action button clicked, button element:', actionBtn);
+            
+            // Find parent dropdown div
+            var dropdown = actionBtn.parentElement;
+            console.log('[Templates] Parent dropdown:', dropdown);
+            
+            // Find menu as next sibling
             var menu = actionBtn.nextElementSibling;
-            console.log('[Templates] Menu element:', menu);
+            console.log('[Templates] Menu element:', menu, 'Has dropdown-menu class:', menu ? menu.classList.contains('dropdown-menu') : false);
+            
             if (menu && menu.classList.contains('dropdown-menu')) {
+                // Close all other menus first
                 document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(openMenu) {
-                    if (openMenu !== menu) openMenu.classList.remove('show');
+                    if (openMenu !== menu) {
+                        console.log('[Templates] Closing other menu:', openMenu);
+                        openMenu.classList.remove('show');
+                        openMenu.style.display = 'none';
+                    }
                 });
-                menu.classList.toggle('show');
                 
-                if (menu.classList.contains('show')) {
+                // Toggle current menu
+                var isShowing = menu.classList.contains('show');
+                console.log('[Templates] Menu current state - isShowing:', isShowing);
+                
+                if (isShowing) {
+                    menu.classList.remove('show');
+                    menu.style.display = 'none';
+                    console.log('[Templates] Menu hidden');
+                } else {
+                    menu.classList.add('show');
+                    
+                    // Position menu using fixed positioning
                     var rect = actionBtn.getBoundingClientRect();
                     menu.style.position = 'fixed';
                     menu.style.top = (rect.bottom + 2) + 'px';
@@ -2614,17 +2656,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     menu.style.right = 'auto';
                     menu.style.zIndex = '9999';
                     menu.style.display = 'block';
-                } else {
-                    menu.style.display = '';
+                    
+                    console.log('[Templates] Menu shown at position:', {
+                        top: menu.style.top,
+                        left: menu.style.left,
+                        zIndex: menu.style.zIndex
+                    });
                 }
+            } else {
+                console.error('[Templates] Menu not found or invalid. Expected nextElementSibling with .dropdown-menu class');
             }
             return;
         }
         
+        // Close menus when clicking outside
         if (!e.target.closest('.dropdown-menu')) {
-            document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(menu) {
-                menu.classList.remove('show');
-            });
+            var openMenus = document.querySelectorAll('#templatesBody .dropdown-menu.show');
+            if (openMenus.length > 0) {
+                console.log('[Templates] Closing', openMenus.length, 'open menus (clicked outside)');
+                openMenus.forEach(function(menu) {
+                    menu.classList.remove('show');
+                    menu.style.display = 'none';
+                });
+            }
         }
     });
 });
