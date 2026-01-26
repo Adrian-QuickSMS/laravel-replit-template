@@ -94,7 +94,9 @@
         $emailVerified = true;
         $mobile = '+447700900123';
         $role = 'Account Administrator';
+        $senderCapabilityLevel = 'Full Access';
         $subAccount = 'Marketing Department';
+        $campaignApprovalResponsibility = 'Can approve campaigns';
         $accountName = 'Acme Corporation Ltd';
         $lastLogin = '26 Jan 2026, 09:15';
         $accountCreated = '15 Mar 2024';
@@ -221,26 +223,27 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3 pb-3 border-bottom">
-                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Account</label>
-                        <span>{{ $accountName }}</span>
-                    </div>
-                    <div class="mb-3 pb-3 border-bottom">
-                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Sub-Account</label>
-                        <span>{{ $subAccount }}</span>
-                    </div>
-                    <div class="mb-3 pb-3 border-bottom">
                         <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Role</label>
                         <span class="badge badge-primary light">{{ $role }}</span>
                     </div>
-                    <div>
-                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Permissions</label>
-                        <div class="d-flex flex-wrap gap-2">
-                            <span class="badge badge-light">Send Messages</span>
-                            <span class="badge badge-light">View Reports</span>
-                            <span class="badge badge-light">Manage Contacts</span>
-                            <span class="badge badge-light">Manage Templates</span>
-                            <span class="badge badge-light">View Billing</span>
-                        </div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Sender Capability Level</label>
+                        <span>{{ $senderCapabilityLevel }}</span>
+                    </div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Sub-Account Membership</label>
+                        <span>{{ $subAccount }}</span>
+                    </div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Campaign Approval Responsibility</label>
+                        <span class="badge badge-success light">{{ $campaignApprovalResponsibility }}</span>
+                    </div>
+                    
+                    <div class="mt-3 pt-3 border-top">
+                        <p class="text-muted mb-2" style="font-size: 0.85rem;">If you need changes to your role or permissions, contact your account administrator.</p>
+                        <a href="{{ url('/support/knowledge-base') }}" class="text-primary" style="font-size: 0.85rem;">
+                            <i class="fas fa-external-link-alt me-1"></i>Learn more about roles & permissions
+                        </a>
                     </div>
                 </div>
             </div>
