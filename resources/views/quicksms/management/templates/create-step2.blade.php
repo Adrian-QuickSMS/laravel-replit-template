@@ -182,6 +182,13 @@
         </ol>
     </div>
 
+    @if(isset($isAdminMode) && $isAdminMode)
+    <div class="alert alert-warning mb-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Admin Mode:</strong> You are editing a template belonging to <strong>{{ $account['name'] ?? 'Unknown Account' }}</strong>. Changes will affect the customer's account.
+    </div>
+    @endif
+
     <div class="row">
         <div class="col-xl-12">
             <div class="card">

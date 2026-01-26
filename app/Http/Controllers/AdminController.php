@@ -394,4 +394,85 @@ class AdminController extends Controller
 
         return $accounts[$accountId] ?? 'Account ' . $accountId;
     }
+
+    public function adminTemplateEditStep1($accountId, $templateId)
+    {
+        // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
+        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $accountName = $this->getAccountName($accountId);
+
+        return view('quicksms.management.templates.create-step1', [
+            'page_title' => 'Edit Template - Metadata',
+            'isEditMode' => true,
+            'isAdminMode' => true,
+            'templateId' => $templateId,
+            'accountId' => $accountId,
+            'account' => ['id' => $accountId, 'name' => $accountName],
+            'template' => $template
+        ]);
+    }
+
+    public function adminTemplateEditStep2($accountId, $templateId)
+    {
+        $sender_ids = [
+            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
+            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
+            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
+        ];
+
+        $rcs_agents = [
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => '/images/rcs-agents/quicksms-brand.svg', 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => '/images/rcs-agents/promotions-agent.svg', 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
+        ];
+
+        // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
+        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $accountName = $this->getAccountName($accountId);
+
+        return view('quicksms.management.templates.create-step2', [
+            'page_title' => 'Edit Template - Content',
+            'isEditMode' => true,
+            'isAdminMode' => true,
+            'templateId' => $templateId,
+            'accountId' => $accountId,
+            'account' => ['id' => $accountId, 'name' => $accountName],
+            'template' => $template,
+            'sender_ids' => $sender_ids,
+            'rcs_agents' => $rcs_agents
+        ]);
+    }
+
+    public function adminTemplateEditStep3($accountId, $templateId)
+    {
+        // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
+        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $accountName = $this->getAccountName($accountId);
+
+        return view('quicksms.management.templates.create-step3', [
+            'page_title' => 'Edit Template - Settings',
+            'isEditMode' => true,
+            'isAdminMode' => true,
+            'templateId' => $templateId,
+            'accountId' => $accountId,
+            'account' => ['id' => $accountId, 'name' => $accountName],
+            'template' => $template
+        ]);
+    }
+
+    public function adminTemplateEditReview($accountId, $templateId)
+    {
+        // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
+        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $accountName = $this->getAccountName($accountId);
+
+        return view('quicksms.management.templates.create-review', [
+            'page_title' => 'Edit Template - Review',
+            'isEditMode' => true,
+            'isAdminMode' => true,
+            'templateId' => $templateId,
+            'accountId' => $accountId,
+            'account' => ['id' => $accountId, 'name' => $accountName],
+            'template' => $template
+        ]);
+    }
 }
