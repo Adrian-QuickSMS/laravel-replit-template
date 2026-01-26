@@ -169,9 +169,9 @@ body > .dropdown-menu.dropdown-menu-end {
 }
 .api-table thead th {
     background: #f8f9fa;
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 0.35rem;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     color: #495057;
     border-bottom: 1px solid #e9ecef;
     white-space: nowrap;
@@ -202,10 +202,10 @@ body > .dropdown-menu.dropdown-menu-end {
     z-index: 2;
 }
 .api-table tbody td {
-    padding: 0.75rem 0.75rem;
+    padding: 0.5rem 0.35rem;
     vertical-align: middle;
     border-bottom: 1px solid #f1f3f5;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 .api-table tbody td:first-child {
     font-weight: 500;
@@ -2833,7 +2833,8 @@ $(document).ready(function() {
             contactListsSortDirection = 'asc';
         }
         updateSortIcons('#contactListsTableContainer table', contactListsSortColumn, contactListsSortDirection);
-        // TODO: Integrate with contact lists data when available
+        var sorted = sortData(contactListSetups, contactListsSortColumn, contactListsSortDirection);
+        renderContactListMappings(sorted);
     }
     
     function sortReportingGroupsTable(column) {
@@ -2856,7 +2857,8 @@ $(document).ready(function() {
             standardSmsSortDirection = 'asc';
         }
         updateSortIcons('#standardSmsTableContainer table', standardSmsSortColumn, standardSmsSortDirection);
-        // TODO: Integrate with standard SMS data when available
+        var sorted = sortData(mockStandardSms, standardSmsSortColumn, standardSmsSortDirection);
+        renderStandardSmsTable(sorted);
     }
     
     function filterReportingGroups() {

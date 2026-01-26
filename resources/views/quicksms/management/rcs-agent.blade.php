@@ -140,8 +140,8 @@
     color: #cc9900;
 }
 .badge-approved {
-    background: rgba(144, 238, 144, 0.35);
-    color: #2e7d32;
+    background: rgba(28, 187, 140, 0.15);
+    color: #1cbb8c;
 }
 .badge-rejected {
     background: rgba(220, 53, 69, 0.15);

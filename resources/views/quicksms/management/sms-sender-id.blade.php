@@ -148,8 +148,8 @@ body > .dropdown-menu.dropdown-menu-end,
     color: #343a40;
 }
 .badge-draft {
-    background: rgba(173, 181, 189, 0.15);
-    color: #868e96;
+    background: rgba(108, 117, 125, 0.15);
+    color: #6c757d;
 }
 .badge-pending {
     background: rgba(255, 191, 0, 0.15);
