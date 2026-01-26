@@ -452,6 +452,7 @@ body {
 
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ asset('js/account-policy-service.js') }}"></script>
 <script>
 $(document).ready(function() {
     var currentEmail = null;
@@ -616,108 +617,33 @@ $(document).ready(function() {
         'policy-test@example.com': { password: 'test123', name: 'Policy Test User', company: 'Test Corp', mobile: null, mfa_enabled: true, totp_enabled: false, rcs_enabled: false, groups: [], dev_bypass_enabled: false }
     };
     
-    // Account IP Allowlist Policy - TODO: Fetch from backend API
-    var AccountIPPolicy = {
-        ip_allowlist_enabled: true, // Set to true to test enforcement
-        ip_allowlist: [
-            { ip: '192.168.1.0/24', label: 'Office Network' },
-            { ip: '10.0.0.1', label: 'VPN Gateway' },
-            { ip: '127.0.0.1', label: 'Localhost' }
-        ],
-        // Check if IP is in allowlist
-        isIPAllowed: function(clientIP) {
-            if (!this.ip_allowlist_enabled) {
-                return { allowed: true, reason: 'policy_disabled' };
-            }
-            
-            if (this.ip_allowlist.length === 0) {
-                return { allowed: true, reason: 'empty_allowlist' };
-            }
-            
-            var allowed = this.ip_allowlist.some(function(entry) {
-                return AccountIPPolicy.matchIP(clientIP, entry.ip);
-            });
-            
-            return {
-                allowed: allowed,
-                reason: allowed ? 'ip_in_allowlist' : 'IP_BLOCKED'
-            };
-        },
-        // Match IP against single IP or CIDR range
-        matchIP: function(clientIP, allowedIP) {
-            if (allowedIP.includes('/')) {
-                // CIDR match
-                return this.matchCIDR(clientIP, allowedIP);
-            }
-            // Exact match
-            return clientIP === allowedIP;
-        },
-        matchCIDR: function(ip, cidr) {
-            var parts = cidr.split('/');
-            var baseIP = parts[0];
-            var prefix = parseInt(parts[1], 10);
-            
-            var ipNum = this.ipToNum(ip);
-            var baseNum = this.ipToNum(baseIP);
-            var mask = ~((1 << (32 - prefix)) - 1);
-            
-            return (ipNum & mask) === (baseNum & mask);
-        },
-        ipToNum: function(ip) {
-            var parts = ip.split('.');
-            return ((parseInt(parts[0]) << 24) | 
-                    (parseInt(parts[1]) << 16) | 
-                    (parseInt(parts[2]) << 8) | 
-                    parseInt(parts[3])) >>> 0;
-        },
-        generateRequestId: function() {
-            return 'REQ-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        }
-    };
-    
-    // Account MFA Policy - TODO: Fetch from backend API
+    // Account MFA Policy - wraps centralized AccountPolicyService
     var AccountMfaPolicy = {
-        mfa_required: true,
-        allowed_methods: {
-            authenticator: true, // Authenticator App (TOTP)
-            sms_rcs: true // SMS/RCS OTP
-        },
-        // Check if user needs forced enrollment due to policy change
+        get mfa_required() { return AccountPolicyService.isMfaRequired(); },
+        get allowed_methods() { return AccountPolicyService.getMfaMethods(); },
         checkPolicyCompliance: function(user) {
-            var userHasAuthenticator = user.totp_enabled;
-            var userHasSmsRcs = user.mobile && user.mfa_enabled;
-            
-            // Check if user has ANY allowed method available
-            var hasAllowedMethod = false;
-            if (this.allowed_methods.authenticator && userHasAuthenticator) {
-                hasAllowedMethod = true;
-            }
-            if (this.allowed_methods.sms_rcs && userHasSmsRcs) {
-                hasAllowedMethod = true;
-            }
-            
-            // User is enrolled ONLY in a now-disallowed method
-            if (!hasAllowedMethod) {
-                return {
-                    compliant: false,
-                    reason: 'POLICY_CHANGED',
-                    message: 'Your account security policy has changed. Please set up an approved MFA method to continue.',
-                    requiresEnrollment: true
-                };
-            }
-            
-            return { compliant: true };
+            return AccountPolicyService.checkMfaCompliance(user);
         },
-        // Get list of methods user can use based on policy
         getAvailableMethods: function(user) {
             var methods = [];
-            if (this.allowed_methods.authenticator) {
+            var allowed = this.allowed_methods;
+            if (allowed.authenticator) {
                 methods.push('authenticator');
             }
-            if (this.allowed_methods.sms_rcs && user.mobile) {
+            if (allowed.sms_rcs && user.mobile) {
                 methods.push('sms_rcs');
             }
             return methods;
+        }
+    };
+    
+    // Account IP Policy - wraps centralized AccountPolicyService
+    var AccountIPPolicy = {
+        isIPAllowed: function(clientIP) {
+            return AccountPolicyService.isIpAllowed(clientIP);
+        },
+        generateRequestId: function() {
+            return AccountPolicyService.generateRequestId();
         }
     };
     

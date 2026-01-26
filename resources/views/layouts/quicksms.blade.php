@@ -6,6 +6,7 @@
 @endpush
 
 @push('scripts')
+<script src="{{ asset('js/account-policy-service.js') }}"></script>
 <script src="{{ asset('js/quicksms-account-lifecycle.js') }}"></script>
 <script src="{{ asset('js/quicksms-test-mode.js') }}"></script>
 <script src="{{ asset('js/quicksms-role-navigation.js') }}"></script>

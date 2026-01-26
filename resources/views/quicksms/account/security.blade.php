@@ -917,19 +917,18 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Mock Security Settings Service - TODO: Replace with actual API calls
+    // Security Settings Service - wraps centralized AccountPolicyService for MFA/IP policy
+    // Other settings remain local until backend integration
     var SecuritySettingsService = {
         settings: {
-            mfa_required: true, // Default: ON (recommended)
-            mfa_methods: {
-                authenticator: true, // Default: enabled
-                sms_rcs: true // Default: enabled
-            },
-            ip_allowlist_enabled: false,
-            ip_allowlist: [
-                { ip: '192.168.1.0/24', label: 'Office Network', created_by: 'Sarah Mitchell', created_date: '15-01-2026', status: 'active' },
-                { ip: '10.0.0.1', label: 'VPN Gateway', created_by: 'John Smith', created_date: '10-01-2026', status: 'active' }
-            ],
+            // MFA and IP policies now use centralized AccountPolicyService
+            get mfa_required() { return AccountPolicyService.isMfaRequired(); },
+            set mfa_required(v) { AccountPolicyService.setMfaRequired(v); },
+            get mfa_methods() { return AccountPolicyService.getMfaMethods(); },
+            get ip_allowlist_enabled() { return AccountPolicyService.isIpAllowlistEnabled(); },
+            set ip_allowlist_enabled(v) { AccountPolicyService.setIpAllowlistEnabled(v); },
+            get ip_allowlist() { return AccountPolicyService.getIpAllowlist(); },
+            set ip_allowlist(v) { /* handled by AccountPolicyService methods */ },
             current_ip: '192.168.1.100',
             retention_days: 60,
             visibility_mobile: false,
@@ -951,6 +950,13 @@ document.addEventListener('DOMContentLoaded', function() {
             { action: 'Country request submitted', details: 'Ireland - Pending approval', user: 'Sarah Mitchell', time: 'Jan 8, 11:40', type: 'security' }
         ],
         save: function(key, value) {
+            // Route MFA/IP policy saves through centralized service
+            if (key === 'mfa_required') {
+                return Promise.resolve(AccountPolicyService.setMfaRequired(value));
+            }
+            if (key === 'ip_allowlist_enabled') {
+                return Promise.resolve(AccountPolicyService.setIpAllowlistEnabled(value));
+            }
             this.settings[key] = value;
             console.log('[SecuritySettingsService] Saved:', key, value);
             return Promise.resolve({ success: true });
@@ -1186,7 +1192,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function openEditIPModal(index) {
-        var entry = SecuritySettingsService.settings.ip_allowlist[index];
+        var ipList = AccountPolicyService.getIpAllowlist();
+        var entry = ipList[index];
         if (!entry) return;
         
         document.getElementById('editIPIndex').value = index;
@@ -1199,7 +1206,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function openRemoveIPModal(index) {
-        var entry = SecuritySettingsService.settings.ip_allowlist[index];
+        var ipList = AccountPolicyService.getIpAllowlist();
+        var entry = ipList[index];
         if (!entry) return;
         
         document.getElementById('removeIPIndex').value = index;
@@ -1331,7 +1339,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 status: 'active'
             };
             
-            SecuritySettingsService.settings.ip_allowlist.push(newEntry);
+            AccountPolicyService.addIpEntry(newEntry);
             
             // Hide error message now that there's at least one IP
             var ipAllowlistError = document.getElementById('ipAllowlistError');
@@ -1368,7 +1376,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            var validation = validateIPEntry(ip);
+            var validation = AccountPolicyService.validateIpEntry(ip);
             if (!validation.valid) {
                 ipInput.classList.add('is-invalid');
                 errorEl.textContent = validation.error;
@@ -1385,7 +1393,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 status: 'active'
             };
             
-            SecuritySettingsService.settings.ip_allowlist.push(newEntry);
+            AccountPolicyService.addIpEntry(newEntry);
             
             // Hide error message now that there's at least one IP
             var ipAllowlistError = document.getElementById('ipAllowlistError');
@@ -1438,12 +1446,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             ipInput.classList.remove('is-invalid');
             
-            var oldEntry = SecuritySettingsService.settings.ip_allowlist[index];
+            var ipList = AccountPolicyService.getIpAllowlist();
+            var oldEntry = ipList[index];
             var oldIP = oldEntry.ip;
             var oldLabel = oldEntry.label;
             
-            SecuritySettingsService.settings.ip_allowlist[index].ip = ip;
-            SecuritySettingsService.settings.ip_allowlist[index].label = label;
+            var updatedEntry = Object.assign({}, oldEntry, { ip: ip, label: label });
+            AccountPolicyService.updateIpEntry(index, updatedEntry);
             
             renderIPList();
             
@@ -1470,11 +1479,12 @@ document.addEventListener('DOMContentLoaded', function() {
             var indexInput = document.getElementById('removeIPIndex');
             var index = parseInt(indexInput.value, 10);
             
-            var entry = SecuritySettingsService.settings.ip_allowlist[index];
+            var ipList = AccountPolicyService.getIpAllowlist();
+            var entry = ipList[index];
             var removedIP = entry.ip;
             var removedLabel = entry.label;
             
-            SecuritySettingsService.settings.ip_allowlist.splice(index, 1);
+            AccountPolicyService.removeIpEntry(index);
             
             renderIPList();
             
