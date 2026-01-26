@@ -565,7 +565,7 @@
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
                             <div class="text-muted small" id="rowCountInfo">
                                 <span id="renderedCount">0</span> rows loaded (max 10,000)
                             </div>
