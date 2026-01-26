@@ -5,6 +5,14 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
+#apiStructureModal pre code,
+#apiStructureModal pre code * {
+    color: #f8f9fa !important;
+    background: transparent !important;
+}
+#apiStructureModal pre {
+    background-color: #1a1a1a !important;
+}
 #rcsWizardModal {
     z-index: 1060 !important;
 }
@@ -1946,12 +1954,12 @@
                     <div class="flex-grow-1">
                         <h5 class="mb-1" id="apiTemplateName">Template Name</h5>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-secondary" id="apiTemplateIdBadge">ID: 00000000</span>
-                            <span class="badge bg-primary" id="apiChannelBadge">SMS</span>
-                            <span class="badge bg-info" id="apiVersionBadge">v1</span>
+                            <span class="badge" id="apiTemplateIdBadge" style="background-color: #e8e0f0; color: #6b5b7a;">ID: 00000000</span>
+                            <span class="badge" id="apiChannelBadge" style="background-color: #d4edda; color: #155724;">SMS</span>
+                            <span class="badge" id="apiVersionBadge" style="background-color: #d1ecf1; color: #0c5460;">v1</span>
                         </div>
                     </div>
-                    <span class="badge bg-success py-2 px-3"><i class="fas fa-check-circle me-1"></i>API Enabled</span>
+                    <span class="badge py-2 px-3" style="background-color: #d4edda; color: #155724;"><i class="fas fa-check-circle me-1"></i>API Enabled</span>
                 </div>
                 
                 <div class="row">
@@ -1973,22 +1981,22 @@
                                         <tr>
                                             <td><code>template_id</code></td>
                                             <td>string</td>
-                                            <td><span class="badge bg-danger">Required</span></td>
+                                            <td><span class="badge" style="background-color: #f8d7da; color: #721c24;">Required</span></td>
                                         </tr>
                                         <tr>
                                             <td><code>msisdn</code></td>
                                             <td>string | string[]</td>
-                                            <td><span class="badge bg-danger">Required</span></td>
+                                            <td><span class="badge" style="background-color: #f8d7da; color: #721c24;">Required</span></td>
                                         </tr>
                                         <tr>
                                             <td><code>sub_account_id</code></td>
                                             <td>string</td>
-                                            <td><span class="badge bg-warning text-dark">Optional</span></td>
+                                            <td><span class="badge" style="background-color: #fff3cd; color: #856404;">Optional</span></td>
                                         </tr>
                                         <tr>
                                             <td><code>callback_url</code></td>
                                             <td>string</td>
-                                            <td><span class="badge bg-warning text-dark">Optional</span></td>
+                                            <td><span class="badge" style="background-color: #fff3cd; color: #856404;">Optional</span></td>
                                         </tr>
                                     </tbody>
                                 </table>
