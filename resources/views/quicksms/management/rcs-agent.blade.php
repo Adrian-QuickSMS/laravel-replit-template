@@ -1935,14 +1935,16 @@ function getCurrentUserId() {
 }
 
 // Position dropdown menu with fixed positioning to escape table constraints
-$(document).on('shown.bs.dropdown', '.action-menu .dropdown', function() {
+$(document).on('shown.bs.dropdown', '.dropdown.action-menu', function() {
     var $btn = $(this).find('.action-menu-btn');
     var $menu = $(this).find('.dropdown-menu');
-    var btnRect = $btn[0].getBoundingClientRect();
-    $menu.css({
-        top: btnRect.bottom + 'px',
-        left: (btnRect.right - $menu.outerWidth()) + 'px'
-    });
+    if ($btn.length && $menu.length) {
+        var btnRect = $btn[0].getBoundingClientRect();
+        $menu.css({
+            top: btnRect.bottom + 'px',
+            left: (btnRect.right - $menu.outerWidth()) + 'px'
+        });
+    }
 });
 
 var mockAgents = [
