@@ -4,119 +4,27 @@
 
 @push('styles')
 <style>
-.breadcrumb {
-    background: transparent;
-    padding: 0;
-    margin: 0;
-}
-.breadcrumb-item a {
-    color: #6c757d;
-    text-decoration: none;
-}
-.breadcrumb-item.active {
-    font-weight: 500;
-}
-.profile-header {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-.profile-avatar {
-    width: 80px;
-    height: 80px;
+.profile-avatar-large {
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background-color: #886cc0;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.75rem;
-    font-weight: 600;
-}
-.profile-info h2 {
-    margin: 0 0 0.25rem 0;
     font-size: 1.5rem;
     font-weight: 600;
-    color: #333;
 }
-.profile-info p {
-    margin: 0;
-    color: #6c757d;
-    font-size: 0.9rem;
-}
-.profile-card {
-    background: #fff;
-    border: 1px solid #adb5bd;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-.profile-card h5 {
-    margin: 0 0 1.25rem 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #333;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px solid #e9ecef;
-}
-.profile-field {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f1f3f5;
-}
-.profile-field:last-child {
-    border-bottom: none;
-}
-.profile-field-label {
-    font-size: 0.85rem;
-    color: #6c757d;
-    font-weight: 500;
-    min-width: 140px;
-}
-.profile-field-value {
-    font-size: 0.85rem;
-    color: #333;
-    text-align: right;
-    flex: 1;
-}
-.profile-field-value .badge {
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.35rem 0.65rem;
-}
-.btn-edit-profile {
-    background: #886cc0;
-    border-color: #886cc0;
-    color: #fff;
-    font-size: 0.85rem;
-    padding: 0.5rem 1rem;
-}
-.btn-edit-profile:hover {
-    background: #7559a8;
-    border-color: #7559a8;
-    color: #fff;
-}
-.security-note {
-    background: rgba(136, 108, 192, 0.08);
-    border: 1px solid rgba(136, 108, 192, 0.2);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    font-size: 0.85rem;
-    color: #6c757d;
-}
-.security-note i {
-    color: #886cc0;
-    margin-right: 0.5rem;
+.form-label .text-muted {
+    font-weight: 400;
 }
 </style>
 @endpush
 
 @section('content')
 <div class="container-fluid">
-    <div class="page-header mb-4">
+    <div class="page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ url('/') }}">Dashboard</a></li>
             <li class="breadcrumb-item active">My Profile</li>
@@ -130,79 +38,146 @@
         $email = 'sarah.mitchell@example.com';
         $mobile = '+44 7700 900123';
         $role = 'Account Administrator';
-        $department = 'Marketing';
+        $subAccount = 'Marketing Department';
+        $accountName = 'Acme Corporation Ltd';
         $lastLogin = '26 Jan 2026, 09:15';
         $accountCreated = '15 Mar 2024';
+        $lastPasswordChange = '10 Jan 2026';
         $twoFactorEnabled = true;
+        $loginCount = 247;
     @endphp
     
-    <div class="profile-header">
-        <div class="profile-avatar">{{ $initials }}</div>
-        <div class="profile-info">
-            <h2>{{ $firstName }} {{ $lastName }}</h2>
-            <p>{{ $email }}</p>
-        </div>
-    </div>
-    
     <div class="row">
-        <div class="col-lg-6">
-            <div class="profile-card">
-                <h5><i class="fas fa-user me-2" style="color: #886cc0;"></i>Personal Information</h5>
-                <div class="profile-field">
-                    <span class="profile-field-label">First Name</span>
-                    <span class="profile-field-value">{{ $firstName }}</span>
+        <div class="col-xl-6 col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Profile Information</h4>
                 </div>
-                <div class="profile-field">
-                    <span class="profile-field-label">Last Name</span>
-                    <span class="profile-field-value">{{ $lastName }}</span>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="profile-avatar-large me-3">{{ $initials }}</div>
+                        <div>
+                            <h5 class="mb-1">{{ $firstName }} {{ $lastName }}</h5>
+                            <span class="text-muted">{{ $email }}</span>
+                        </div>
+                    </div>
+                    
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" value="{{ $firstName }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" value="{{ $lastName }}">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" value="{{ $email }}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mobile Number</label>
+                            <input type="tel" class="form-control" value="{{ $mobile }}">
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-primary">Save Changes</button>
+                            <button type="button" class="btn btn-light ms-2">Cancel</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="profile-field">
-                    <span class="profile-field-label">Email Address</span>
-                    <span class="profile-field-value">{{ $email }}</span>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Security</h4>
                 </div>
-                <div class="profile-field">
-                    <span class="profile-field-label">Mobile Number</span>
-                    <span class="profile-field-value">{{ $mobile }}</span>
-                </div>
-                <div class="profile-field">
-                    <span class="profile-field-label">Department</span>
-                    <span class="profile-field-value">{{ $department }}</span>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div>
+                                <h6 class="mb-1">Password</h6>
+                                <span class="text-muted" style="font-size: 0.85rem;">Last changed: {{ $lastPasswordChange }}</span>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm">Change Password</button>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-1">Two-Factor Authentication</h6>
+                            <span class="text-muted" style="font-size: 0.85rem;">Add an extra layer of security to your account</span>
+                        </div>
+                        <div>
+                            @if($twoFactorEnabled)
+                                <span class="badge badge-success light">Enabled</span>
+                            @else
+                                <span class="badge badge-warning light">Disabled</span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="col-lg-6">
-            <div class="profile-card">
-                <h5><i class="fas fa-shield-alt me-2" style="color: #886cc0;"></i>Account & Security</h5>
-                <div class="profile-field">
-                    <span class="profile-field-label">Role</span>
-                    <span class="profile-field-value">
-                        <span class="badge" style="background: rgba(136, 108, 192, 0.15); color: #886cc0;">{{ $role }}</span>
-                    </span>
+        <div class="col-xl-6 col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Account & Permissions</h4>
                 </div>
-                <div class="profile-field">
-                    <span class="profile-field-label">Two-Factor Auth</span>
-                    <span class="profile-field-value">
-                        @if($twoFactorEnabled)
-                            <span class="badge bg-success">Enabled</span>
-                        @else
-                            <span class="badge bg-warning text-dark">Disabled</span>
-                        @endif
-                    </span>
-                </div>
-                <div class="profile-field">
-                    <span class="profile-field-label">Last Login</span>
-                    <span class="profile-field-value">{{ $lastLogin }}</span>
-                </div>
-                <div class="profile-field">
-                    <span class="profile-field-label">Account Created</span>
-                    <span class="profile-field-value">{{ $accountCreated }}</span>
+                <div class="card-body">
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Account</label>
+                        <span>{{ $accountName }}</span>
+                    </div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Sub-Account</label>
+                        <span>{{ $subAccount }}</span>
+                    </div>
+                    <div class="mb-3 pb-3 border-bottom">
+                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Role</label>
+                        <span class="badge badge-primary light">{{ $role }}</span>
+                    </div>
+                    <div>
+                        <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Permissions</label>
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge badge-light">Send Messages</span>
+                            <span class="badge badge-light">View Reports</span>
+                            <span class="badge badge-light">Manage Contacts</span>
+                            <span class="badge badge-light">Manage Templates</span>
+                            <span class="badge badge-light">View Billing</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="security-note">
-                <i class="fas fa-info-circle"></i>
-                To update your password or security settings, please contact your account administrator.
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Audit & Metadata</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Account Created</label>
+                            <span>{{ $accountCreated }}</span>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Last Login</label>
+                            <span>{{ $lastLogin }}</span>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">Total Logins</label>
+                            <span>{{ $loginCount }}</span>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="text-muted mb-1 d-block" style="font-size: 0.8rem;">User ID</label>
+                            <span class="text-muted" style="font-family: monospace; font-size: 0.85rem;">usr_8f4a2b1c</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
