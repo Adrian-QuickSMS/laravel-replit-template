@@ -139,6 +139,9 @@ Route::prefix('admin')->group(function () {
             Route::get('/assets/templates', 'assetsTemplates')->name('admin.assets.templates');
             
             Route::get('/management/templates', 'managementTemplates')->name('admin.management.templates');
+            Route::get('/management/templates/{accountId}/{templateId}/edit', function($accountId, $templateId) {
+                return redirect()->route('admin.management.templates.edit.step1', ['accountId' => $accountId, 'templateId' => $templateId]);
+            })->name('admin.management.templates.edit');
             Route::get('/management/templates/{accountId}/{templateId}/edit/step1', 'adminTemplateEditStep1')->name('admin.management.templates.edit.step1');
             Route::get('/management/templates/{accountId}/{templateId}/edit/step2', 'adminTemplateEditStep2')->name('admin.management.templates.edit.step2');
             Route::get('/management/templates/{accountId}/{templateId}/edit/step3', 'adminTemplateEditStep3')->name('admin.management.templates.edit.step3');
