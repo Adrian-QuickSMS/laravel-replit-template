@@ -70,6 +70,16 @@
 }
 .templates-table-container .dropdown-menu {
     z-index: 1050;
+    position: absolute !important;
+}
+.templates-table .dropdown {
+    position: static;
+}
+.templates-table td:last-child {
+    overflow: visible;
+}
+.card-body {
+    overflow: visible;
 }
 .templates-table {
     width: 100%;
@@ -3518,6 +3528,10 @@ function renderTemplates() {
     });
     
     tbody.innerHTML = html || '<tr><td colspan="10" class="text-center text-muted py-4">No templates match your filters</td></tr>';
+    
+    tbody.querySelectorAll('[data-bs-toggle="dropdown"]').forEach(function(btn) {
+        new bootstrap.Dropdown(btn);
+    });
 }
 
 function editTemplate(id) {
