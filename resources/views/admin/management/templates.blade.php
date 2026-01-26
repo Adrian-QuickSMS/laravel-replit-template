@@ -762,237 +762,17 @@
     </div>
 </div>
 
-<div class="modal fade" id="editTemplateModal" tabindex="-1" data-bs-backdrop="static">
+{{-- Template Edit Wizard Modal - Uses shared component --}}
+<div class="modal fade template-wizard-modal" id="editTemplateModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content" style="height: 100vh; display: flex; flex-direction: column;">
-            <div class="modal-header py-3 flex-shrink-0" style="background-color: #1e3a5f; color: #fff;">
-                <div class="d-flex align-items-center">
-                    <h5 class="modal-title mb-0" id="editModalTitle"><i class="fas fa-edit me-2"></i>Edit Template</h5>
-                    <div class="wizard-steps ms-4">
-                        <span class="wizard-step active" data-step="1">
-                            <span class="step-number">1</span>
-                            <span class="step-label">Metadata</span>
-                        </span>
-                        <span class="wizard-step" data-step="2">
-                            <span class="step-number">2</span>
-                            <span class="step-label">Content</span>
-                        </span>
-                        <span class="wizard-step" data-step="3">
-                            <span class="step-number">3</span>
-                            <span class="step-label">Review</span>
-                        </span>
-                    </div>
-                    <div class="ms-3 d-flex align-items-center">
-                        <span class="badge bg-light text-dark me-2" id="editAccountBadge">-</span>
-                        <small class="text-white-50">(Tenant Context)</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0 flex-grow-1 overflow-auto position-relative" style="background: #f5f7fa;">
-                <div class="loading-overlay d-none" id="editLoadingOverlay">
-                    <div class="text-center">
-                        <div class="spinner-border text-primary mb-3" role="status"></div>
-                        <p class="mb-0">Loading template...</p>
-                    </div>
-                </div>
-                <div class="error-overlay d-none" id="editErrorOverlay">
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
-                        <h5>Failed to Load Template</h5>
-                        <p class="text-muted" id="editErrorMessage">An error occurred.</p>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </div>
-                
-                <div class="tpl-builder-layout">
-                    <div class="tpl-builder-left">
-                        <div class="wizard-step-content" data-step="1">
-                            <div class="card mb-4">
-                                <div class="card-header" style="background-color: rgba(30, 58, 95, 0.05);">
-                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2" style="color: #1e3a5f;"></i>Template Information</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="alert alert-info small mb-3">
-                                        <i class="fas fa-user-shield me-2"></i>
-                                        <strong>Admin Edit Mode:</strong> You are editing this template on behalf of <strong id="editCustomerName">-</strong>. All changes will be applied to the customer's template.
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Template Name <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="editTemplateName" placeholder="e.g., Order Confirmation">
-                                            <div class="invalid-feedback">Please enter a template name</div>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Template ID</label>
-                                            <input type="text" class="form-control" id="editTemplateIdField" readonly style="background-color: #e9ecef;">
-                                            <small class="text-muted">Auto-generated, cannot be changed</small>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Trigger Type</label>
-                                        <div class="d-flex gap-3">
-                                            <div class="trigger-option-display p-3 border rounded text-center" id="editTriggerDisplay">
-                                                <i class="fas fa-code fa-2x mb-2"></i>
-                                                <div class="fw-medium">API</div>
-                                            </div>
-                                        </div>
-                                        <small class="text-muted mt-2 d-block">Trigger type cannot be changed after template creation</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="wizard-step-content d-none" data-step="2">
-                            <div class="card mb-4">
-                                <div class="card-header" style="background-color: rgba(30, 58, 95, 0.05);">
-                                    <h6 class="mb-0"><i class="fas fa-comment-alt me-2" style="color: #1e3a5f;"></i>Message Content</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="mb-3">
-                                        <label class="form-label">Channel</label>
-                                        <div class="d-flex gap-3 mb-3">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="editChannel" id="editChannelSMS" value="sms" checked>
-                                                <label class="form-check-label" for="editChannelSMS">SMS</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="editChannel" id="editChannelBasicRCS" value="basic_rcs">
-                                                <label class="form-check-label" for="editChannelBasicRCS">Basic RCS</label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="editChannel" id="editChannelRichRCS" value="rich_rcs">
-                                                <label class="form-check-label" for="editChannelRichRCS">Rich RCS</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div id="editTextEditorContainer">
-                                        <div class="mb-3">
-                                            <label class="form-label">Message Content <span class="text-danger">*</span></label>
-                                            <textarea class="form-control" id="editTemplateContent" rows="8" placeholder="Enter your message content..."></textarea>
-                                            <div class="d-flex justify-content-between mt-2">
-                                                <div>
-                                                    <span class="small text-muted">Characters: <span id="editCharCount">0</span></span>
-                                                    <span class="small text-muted ms-3">Parts: <span id="editPartCount">1</span></span>
-                                                    <span class="small text-muted ms-3">Encoding: <span id="editEncodingType">GSM-7</span></span>
-                                                </div>
-                                                <div class="btn-group">
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertPlaceholder('FirstName')">
-                                                        <i class="fas fa-tag me-1"></i>{FirstName}
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertPlaceholder('LastName')">
-                                                        {LastName}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div id="editRcsContentSection" class="d-none">
-                                        <div class="alert alert-info">
-                                            <i class="fas fa-info-circle me-2"></i>
-                                            Rich RCS content editing is available through the full RCS wizard. Changes here will update the basic configuration.
-                                        </div>
-                                        <div class="border rounded p-3 bg-light" id="editRcsPreview">
-                                            <p class="text-muted mb-0 text-center">Rich RCS content preview</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="wizard-step-content d-none" data-step="3">
-                            <div class="card mb-4">
-                                <div class="card-header" style="background-color: rgba(30, 58, 95, 0.05);">
-                                    <h6 class="mb-0"><i class="fas fa-check-circle me-2" style="color: #1e3a5f;"></i>Review & Save</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="alert alert-warning mb-4">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                        <strong>Admin Action:</strong> Saving will update the customer's template. This action will be logged in the audit trail.
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h6 class="text-muted small mb-2">TEMPLATE DETAILS</h6>
-                                            <table class="table table-sm table-borderless">
-                                                <tr>
-                                                    <td class="text-muted" style="width: 40%;">Name:</td>
-                                                    <td id="reviewName">-</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted">Template ID:</td>
-                                                    <td id="reviewTemplateId" class="font-monospace">-</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted">Channel:</td>
-                                                    <td id="reviewChannel">-</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted">Trigger:</td>
-                                                    <td id="reviewTrigger">-</td>
-                                                </tr>
-                                                <tr>
-                                                    <td class="text-muted">Account:</td>
-                                                    <td id="reviewAccount">-</td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h6 class="text-muted small mb-2">CONTENT PREVIEW</h6>
-                                            <div class="border rounded p-3 bg-light" id="reviewContentPreview" style="min-height: 100px;">
-                                                -
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3 mt-4">
-                                        <label class="form-label">Change Note (Optional)</label>
-                                        <textarea class="form-control" id="editChangeNote" rows="2" placeholder="Describe the changes made..."></textarea>
-                                        <small class="text-muted">This will be recorded in the version history</small>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="editSetLive">
-                                        <label class="form-check-label" for="editSetLive">
-                                            Publish as Live immediately
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="tpl-builder-right">
-                        <div class="card sticky-top" style="top: 20px;">
-                            <div class="card-header" style="background-color: rgba(30, 58, 95, 0.05);">
-                                <h6 class="mb-0"><i class="fas fa-mobile-alt me-2" style="color: #1e3a5f;"></i>Preview</h6>
-                            </div>
-                            <div class="card-body text-center">
-                                <div class="phone-preview-container" style="background: #1a1a1a; border-radius: 30px; padding: 10px; max-width: 280px; margin: 0 auto;">
-                                    <div class="phone-screen" style="background: #fff; border-radius: 22px; padding: 15px; min-height: 350px;">
-                                        <div class="preview-message p-3 rounded" style="background: #e3f2fd; text-align: left; font-size: 14px;" id="editPreviewMessage">
-                                            Your message preview will appear here...
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer flex-shrink-0" style="background: #fff; border-top: 1px solid #e9ecef;">
-                <div class="d-flex justify-content-between w-100">
-                    <button type="button" class="btn btn-outline-secondary" id="editPrevBtn" onclick="editWizardPrev()" style="display: none;">
-                        <i class="fas fa-arrow-left me-2"></i>Previous
-                    </button>
-                    <div class="ms-auto d-flex gap-2">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-admin-primary" id="editNextBtn" onclick="editWizardNext()">
-                            Next<i class="fas fa-arrow-right ms-2"></i>
-                        </button>
-                        <button type="button" class="btn btn-success" id="editSaveBtn" onclick="saveTemplateChanges()" style="display: none;">
-                            <i class="fas fa-save me-2"></i>Save Changes
-                        </button>
-                    </div>
-                </div>
-            </div>
+            @include('shared.partials.template-edit-wizard', [
+                'wizardMode' => 'admin',
+                'showRichRcs' => false,
+                'theme' => 'blue',
+                'sender_ids' => [],
+                'rcs_agents' => []
+            ])
         </div>
     </div>
 </div>
@@ -1947,69 +1727,47 @@ var editTenantContext = null;
 var editReadOnlyMode = false;
 
 async function editTemplate(accountId, templateId) {
-    var loadingOverlay = document.getElementById('editLoadingOverlay');
-    var errorOverlay = document.getElementById('editErrorOverlay');
+    var loadingOverlay = document.getElementById('wizardLoadingOverlay');
+    var errorOverlay = document.getElementById('wizardErrorOverlay');
     
-    loadingOverlay.classList.remove('d-none');
-    errorOverlay.classList.add('d-none');
+    if (loadingOverlay) loadingOverlay.classList.remove('d-none');
+    if (errorOverlay) errorOverlay.classList.add('d-none');
     
-    editWizardStep = 1;
     editTenantContext = { accountId: accountId, templateId: templateId };
     editReadOnlyMode = !AdminPermissions.canEdit();
     
-    updateEditWizardUI();
     new bootstrap.Modal(document.getElementById('editTemplateModal')).show();
     
     var result = await AdminTemplatesService.getTemplateDetails(accountId, templateId);
     
     if (!result.success) {
-        loadingOverlay.classList.add('d-none');
-        errorOverlay.classList.remove('d-none');
-        document.getElementById('editErrorMessage').textContent = result.error || 'Failed to load template details.';
+        if (loadingOverlay) loadingOverlay.classList.add('d-none');
+        if (errorOverlay) errorOverlay.classList.remove('d-none');
+        var errorMsg = document.getElementById('wizardErrorMessage');
+        if (errorMsg) errorMsg.textContent = result.error || 'Failed to load template details.';
         return;
     }
     
     editingTemplate = result.data;
     
     if (editingTemplate.status === 'archived') {
-        loadingOverlay.classList.add('d-none');
-        errorOverlay.classList.remove('d-none');
-        document.getElementById('editErrorMessage').textContent = 'Archived templates cannot be edited.';
+        if (loadingOverlay) loadingOverlay.classList.add('d-none');
+        if (errorOverlay) errorOverlay.classList.remove('d-none');
+        var errorMsg = document.getElementById('wizardErrorMessage');
+        if (errorMsg) errorMsg.textContent = 'Archived templates cannot be edited.';
         return;
     }
     
-    applyEditReadOnlyMode(editReadOnlyMode);
+    var tenantContext = {
+        accountId: accountId,
+        accountName: editingTemplate.accountName
+    };
     
-    document.getElementById('editAccountBadge').textContent = editingTemplate.accountName + ' (' + accountId + ')';
-    document.getElementById('editCustomerName').textContent = editingTemplate.accountName;
-    
-    document.getElementById('editTemplateName').value = editingTemplate.name;
-    document.getElementById('editTemplateIdField').value = editingTemplate.templateId;
-    document.getElementById('editTemplateContent').value = editingTemplate.content || '';
-    
-    var triggerIcon = editingTemplate.trigger === 'api' ? 'fa-code' : 
-                      editingTemplate.trigger === 'portal' ? 'fa-desktop' : 'fa-envelope';
-    var triggerLabel = getTriggerLabel(editingTemplate.trigger);
-    document.getElementById('editTriggerDisplay').innerHTML = '<i class="fas ' + triggerIcon + ' fa-2x mb-2"></i><div class="fw-medium">' + triggerLabel + '</div>';
-    
-    if (editingTemplate.channel === 'sms') {
-        document.getElementById('editChannelSMS').checked = true;
-        document.getElementById('editTextEditorContainer').classList.remove('d-none');
-        document.getElementById('editRcsContentSection').classList.add('d-none');
-    } else if (editingTemplate.channel === 'basic_rcs') {
-        document.getElementById('editChannelBasicRCS').checked = true;
-        document.getElementById('editTextEditorContainer').classList.remove('d-none');
-        document.getElementById('editRcsContentSection').classList.add('d-none');
-    } else if (editingTemplate.channel === 'rich_rcs') {
-        document.getElementById('editChannelRichRCS').checked = true;
-        document.getElementById('editTextEditorContainer').classList.add('d-none');
-        document.getElementById('editRcsContentSection').classList.remove('d-none');
+    if (typeof initSharedWizard === 'function') {
+        initSharedWizard(editingTemplate, tenantContext);
     }
     
-    updateEditCharCount();
-    updateEditPreview();
-    
-    loadingOverlay.classList.add('d-none');
+    if (loadingOverlay) loadingOverlay.classList.add('d-none');
     
     AdminControlPlane.logAccess({
         eventType: 'TEMPLATE_EDIT_STARTED',
@@ -2020,252 +1778,64 @@ async function editTemplate(accountId, templateId) {
     });
 }
 
-function updateEditWizardUI() {
-    document.querySelectorAll('#editTemplateModal .wizard-step').forEach(function(step) {
-        var stepNum = parseInt(step.getAttribute('data-step'));
-        step.classList.remove('active', 'completed');
-        if (stepNum === editWizardStep) {
-            step.classList.add('active');
-        } else if (stepNum < editWizardStep) {
-            step.classList.add('completed');
-        }
-    });
+function onWizardSave(updateData, template, tenantContext) {
+    if (!editTenantContext || !editingTemplate) return;
     
-    document.querySelectorAll('#editTemplateModal .wizard-step-content').forEach(function(content) {
-        var stepNum = parseInt(content.getAttribute('data-step'));
-        content.classList.toggle('d-none', stepNum !== editWizardStep);
-    });
-    
-    document.getElementById('editPrevBtn').style.display = editWizardStep > 1 ? 'inline-block' : 'none';
-    document.getElementById('editNextBtn').style.display = editWizardStep < 3 ? 'inline-block' : 'none';
-    
-    if (editReadOnlyMode) {
-        document.getElementById('editSaveBtn').style.display = 'none';
-    } else {
-        document.getElementById('editSaveBtn').style.display = editWizardStep === 3 ? 'inline-block' : 'none';
-    }
-}
-
-function applyEditReadOnlyMode(isReadOnly) {
-    var modalTitleIcon = document.querySelector('#editTemplateModal .modal-header .modal-title i');
-    var modalTitleText = document.querySelector('#editTemplateModal .modal-header .modal-title');
-    var readOnlyBadge = document.getElementById('editReadOnlyBadge');
-    
-    if (isReadOnly) {
-        if (modalTitleIcon) {
-            modalTitleIcon.className = 'fas fa-eye me-2';
-        }
-        
-        if (!readOnlyBadge && modalTitleText) {
-            var badge = document.createElement('span');
-            badge.id = 'editReadOnlyBadge';
-            badge.className = 'badge bg-secondary ms-2';
-            badge.textContent = 'Read Only';
-            badge.style.fontSize = '0.7rem';
-            badge.style.verticalAlign = 'middle';
-            modalTitleText.parentNode.insertBefore(badge, modalTitleText.nextSibling);
-        }
-    } else {
-        if (modalTitleIcon) {
-            modalTitleIcon.className = 'fas fa-edit me-2';
-        }
-        if (readOnlyBadge) {
-            readOnlyBadge.remove();
-        }
-    }
-    
-    document.getElementById('editTemplateName').readOnly = isReadOnly;
-    document.getElementById('editTemplateContent').readOnly = isReadOnly;
-    
-    document.querySelectorAll('input[name="editChannel"]').forEach(function(radio) {
-        radio.disabled = isReadOnly;
-    });
-    
-    document.querySelectorAll('#editTemplateModal .placeholder-btn').forEach(function(btn) {
-        btn.style.display = isReadOnly ? 'none' : 'inline-block';
-    });
-    
-    var setLiveCheckbox = document.getElementById('editSetLive');
-    var changeNoteTextarea = document.getElementById('editChangeNote');
-    if (setLiveCheckbox) setLiveCheckbox.disabled = isReadOnly;
-    if (changeNoteTextarea) changeNoteTextarea.readOnly = isReadOnly;
-}
-
-function editWizardNext() {
-    if (editWizardStep === 1) {
-        var name = document.getElementById('editTemplateName').value.trim();
-        if (!name) {
-            document.getElementById('editTemplateName').classList.add('is-invalid');
-            return;
-        }
-        document.getElementById('editTemplateName').classList.remove('is-invalid');
-    }
-    
-    if (editWizardStep === 2) {
-        var channel = document.querySelector('input[name="editChannel"]:checked').value;
-        if (channel !== 'rich_rcs') {
-            var content = document.getElementById('editTemplateContent').value.trim();
-            if (!content) {
-                showToast('Please enter message content', 'warning');
-                return;
-            }
-        }
-        
-        populateReviewStep();
-    }
-    
-    if (editWizardStep < 3) {
-        editWizardStep++;
-        updateEditWizardUI();
-    }
-}
-
-function editWizardPrev() {
-    if (editWizardStep > 1) {
-        editWizardStep--;
-        updateEditWizardUI();
-    }
-}
-
-function populateReviewStep() {
-    document.getElementById('reviewName').textContent = document.getElementById('editTemplateName').value;
-    document.getElementById('reviewTemplateId').textContent = document.getElementById('editTemplateIdField').value;
-    
-    var channel = document.querySelector('input[name="editChannel"]:checked').value;
-    document.getElementById('reviewChannel').textContent = getChannelLabel(channel);
-    document.getElementById('reviewTrigger').textContent = getTriggerLabel(editingTemplate.trigger);
-    document.getElementById('reviewAccount').textContent = editingTemplate.accountName + ' (' + editTenantContext.accountId + ')';
-    
-    var content = document.getElementById('editTemplateContent').value;
-    if (channel === 'rich_rcs') {
-        document.getElementById('reviewContentPreview').innerHTML = '<p class="text-muted mb-0 fst-italic">Rich RCS content</p>';
-    } else {
-        var highlightedContent = content.replace(/\{(\w+)\}/g, '<span class="badge bg-info text-dark">{$1}</span>');
-        document.getElementById('reviewContentPreview').innerHTML = highlightedContent || '-';
-    }
-}
-
-async function saveTemplateChanges() {
-    if (!editingTemplate || !editTenantContext) return;
-    
-    if (editReadOnlyMode) {
-        showToast('Cannot save changes in read-only mode', 'warning');
-        return;
-    }
-    
-    var saveBtn = document.getElementById('editSaveBtn');
-    var originalText = saveBtn.innerHTML;
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
-    
-    var updatedData = {
-        name: document.getElementById('editTemplateName').value.trim(),
-        channel: document.querySelector('input[name="editChannel"]:checked').value,
-        content: document.getElementById('editTemplateContent').value,
-        changeNote: document.getElementById('editChangeNote').value.trim() || 'Updated by Admin',
-        setLive: document.getElementById('editSetLive').checked
+    var auditData = {
+        eventType: 'TEMPLATE_UPDATED',
+        accountId: editTenantContext.accountId,
+        templateId: editingTemplate.templateId,
+        templateName: updateData.name,
+        changes: {
+            channel: updateData.channel,
+            content: updateData.content ? 'updated' : 'unchanged',
+            setLive: updateData.setLive
+        },
+        changeNote: updateData.changeNote || ''
     };
     
-    var result = await AdminTemplatesService.updateTemplate(
-        editTenantContext.accountId,
-        editTenantContext.templateId,
-        updatedData
-    );
+    AdminControlPlane.logAccess(auditData);
     
-    saveBtn.disabled = false;
-    saveBtn.innerHTML = originalText;
+    console.log('[Admin Templates] Saving template:', updateData);
     
-    if (result.success) {
-        logAdminAuditEvent('TEMPLATE_EDITED', {
-            accountId: editTenantContext.accountId,
-            templateId: editTenantContext.templateId,
-            templateName: updatedData.name,
-            changedFields: ['name', 'channel', 'content'],
-            beforeSnapshot: {
-                name: editingTemplate.name,
-                channel: editingTemplate.channel,
-                status: editingTemplate.status
-            },
-            afterSnapshot: {
-                name: updatedData.name,
-                channel: updatedData.channel,
-                status: updatedData.setLive ? 'live' : editingTemplate.status
-            }
-        });
-        
-        bootstrap.Modal.getInstance(document.getElementById('editTemplateModal')).hide();
-        showToast('Template updated successfully', 'success');
-        loadTemplates();
-    } else {
-        showToast('Failed to save template: ' + (result.error || 'Unknown error'), 'error');
+    var idx = mockTemplates.findIndex(function(t) {
+        return t.accountId === editTenantContext.accountId && t.templateId === editingTemplate.templateId;
+    });
+    
+    if (idx !== -1) {
+        mockTemplates[idx].name = updateData.name;
+        mockTemplates[idx].content = updateData.content;
+        mockTemplates[idx].channel = updateData.channel;
+        if (updateData.setLive) {
+            mockTemplates[idx].status = 'live';
+        }
+        mockTemplates[idx].lastUpdated = new Date().toISOString().split('T')[0];
     }
-}
-
-function updateEditCharCount() {
-    var content = document.getElementById('editTemplateContent').value;
-    var charCount = content.length;
     
-    document.getElementById('editCharCount').textContent = charCount;
+    bootstrap.Modal.getInstance(document.getElementById('editTemplateModal')).hide();
+    renderTemplates();
     
-    var hasUnicode = /[^\x00-\x7F\u00A0-\u00FF]/.test(content);
-    document.getElementById('editEncodingType').textContent = hasUnicode ? 'Unicode' : 'GSM-7';
-    
-    var maxCharsPerSegment = hasUnicode ? 70 : 160;
-    var segments = Math.ceil(charCount / maxCharsPerSegment) || 1;
-    document.getElementById('editPartCount').textContent = segments;
-    
-    updateEditPreview();
-}
-
-function updateEditPreview() {
-    var content = document.getElementById('editTemplateContent').value || 'Your message preview will appear here...';
-    var highlightedContent = content.replace(/\{(\w+)\}/g, '<span class="badge bg-info text-dark small">{$1}</span>');
-    document.getElementById('editPreviewMessage').innerHTML = highlightedContent;
-}
-
-function insertPlaceholder(placeholder) {
-    var textarea = document.getElementById('editTemplateContent');
-    var start = textarea.selectionStart;
-    var end = textarea.selectionEnd;
-    var text = textarea.value;
-    var tag = '{' + placeholder + '}';
-    
-    textarea.value = text.substring(0, start) + tag + text.substring(end);
-    textarea.setSelectionRange(start + tag.length, start + tag.length);
-    textarea.focus();
-    
-    updateEditCharCount();
+    showToast('Template updated successfully', 'success');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    var editContent = document.getElementById('editTemplateContent');
-    if (editContent) {
-        editContent.addEventListener('input', updateEditCharCount);
-    }
-    
-    document.querySelectorAll('input[name="editChannel"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            if (this.value === 'rich_rcs') {
-                document.getElementById('editTextEditorContainer').classList.add('d-none');
-                document.getElementById('editRcsContentSection').classList.remove('d-none');
-            } else {
-                document.getElementById('editTextEditorContainer').classList.remove('d-none');
-                document.getElementById('editRcsContentSection').classList.add('d-none');
-            }
+    var editModal = document.getElementById('editTemplateModal');
+    if (editModal) {
+        editModal.addEventListener('hidden.bs.modal', function() {
+            editingTemplate = null;
+            editTenantContext = null;
+            var wizardTemplateName = document.getElementById('wizardTemplateName');
+            var wizardTemplateIdField = document.getElementById('wizardTemplateIdField');
+            var wizardTemplateContent = document.getElementById('wizardTemplateContent');
+            var wizardChangeNote = document.getElementById('wizardChangeNote');
+            var wizardSetLive = document.getElementById('wizardSetLive');
+            if (wizardTemplateName) wizardTemplateName.value = '';
+            if (wizardTemplateIdField) wizardTemplateIdField.value = '';
+            if (wizardTemplateContent) wizardTemplateContent.value = '';
+            if (wizardChangeNote) wizardChangeNote.value = '';
+            if (wizardSetLive) wizardSetLive.checked = false;
         });
-    });
-    
-    document.getElementById('editTemplateModal').addEventListener('hidden.bs.modal', function() {
-        editingTemplate = null;
-        editTenantContext = null;
-        editWizardStep = 1;
-        document.getElementById('editTemplateName').value = '';
-        document.getElementById('editTemplateIdField').value = '';
-        document.getElementById('editTemplateContent').value = '';
-        document.getElementById('editChangeNote').value = '';
-        document.getElementById('editSetLive').checked = false;
-        updateEditWizardUI();
-    });
+    }
 });
 </script>
 @endpush
