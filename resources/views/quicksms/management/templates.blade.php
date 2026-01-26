@@ -1372,23 +1372,27 @@
                                             <div class="border rounded p-2" style="max-height: 220px; overflow-y: auto;">
                                                 <div class="form-check mb-2">
                                                     <input class="form-check-input wizard-role-check" type="checkbox" value="admin" id="wizardRoleAdmin" onchange="toggleWizardRole('admin')">
-                                                    <label class="form-check-label small" for="wizardRoleAdmin">Administrator</label>
+                                                    <label class="form-check-label small" for="wizardRoleAdmin"><i class="fas fa-user-shield me-1 text-warning"></i>Admin</label>
                                                 </div>
                                                 <div class="form-check mb-2">
-                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="manager" id="wizardRoleManager" onchange="toggleWizardRole('manager')">
-                                                    <label class="form-check-label small" for="wizardRoleManager">Manager</label>
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="messaging-manager" id="wizardRoleMessagingManager" onchange="toggleWizardRole('messaging-manager')">
+                                                    <label class="form-check-label small" for="wizardRoleMessagingManager"><i class="fas fa-envelope me-1 text-primary"></i>Messaging Manager</label>
                                                 </div>
                                                 <div class="form-check mb-2">
-                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="messaging" id="wizardRoleMessaging" onchange="toggleWizardRole('messaging')">
-                                                    <label class="form-check-label small" for="wizardRoleMessaging">Messaging User</label>
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="finance" id="wizardRoleFinance" onchange="toggleWizardRole('finance')">
+                                                    <label class="form-check-label small" for="wizardRoleFinance"><i class="fas fa-coins me-1 text-success"></i>Finance/Billing</label>
                                                 </div>
                                                 <div class="form-check mb-2">
-                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="viewer" id="wizardRoleViewer" onchange="toggleWizardRole('viewer')">
-                                                    <label class="form-check-label small" for="wizardRoleViewer">Viewer</label>
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="developer" id="wizardRoleDeveloper" onchange="toggleWizardRole('developer')">
+                                                    <label class="form-check-label small" for="wizardRoleDeveloper"><i class="fas fa-code me-1 text-dark"></i>Developer/API User</label>
                                                 </div>
                                                 <div class="form-check mb-2">
-                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="api" id="wizardRoleApi" onchange="toggleWizardRole('api')">
-                                                    <label class="form-check-label small" for="wizardRoleApi">API User</label>
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="read-only" id="wizardRoleReadOnly" onchange="toggleWizardRole('read-only')">
+                                                    <label class="form-check-label small" for="wizardRoleReadOnly"><i class="fas fa-eye me-1 text-secondary"></i>Read-Only/Auditor</label>
+                                                </div>
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input wizard-role-check" type="checkbox" value="campaign-approver" id="wizardRoleCampaignApprover" onchange="toggleWizardRole('campaign-approver')">
+                                                    <label class="form-check-label small" for="wizardRoleCampaignApprover"><i class="fas fa-check-double me-1 text-info"></i>Campaign Approver</label>
                                                 </div>
                                             </div>
                                         </div>
@@ -1813,31 +1817,37 @@
                                     <div class="form-check mb-2">
                                         <input class="form-check-input perm-role-check" type="checkbox" value="admin" id="permRoleAdmin" onchange="togglePermRole('admin')">
                                         <label class="form-check-label" for="permRoleAdmin">
-                                            <i class="fas fa-crown me-1 text-warning"></i>Administrator
+                                            <i class="fas fa-user-shield me-1 text-warning"></i>Admin
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input perm-role-check" type="checkbox" value="manager" id="permRoleManager" onchange="togglePermRole('manager')">
-                                        <label class="form-check-label" for="permRoleManager">
-                                            <i class="fas fa-user-tie me-1 text-info"></i>Manager
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="messaging-manager" id="permRoleMessagingManager" onchange="togglePermRole('messaging-manager')">
+                                        <label class="form-check-label" for="permRoleMessagingManager">
+                                            <i class="fas fa-envelope me-1 text-primary"></i>Messaging Manager
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input perm-role-check" type="checkbox" value="messaging" id="permRoleMessaging" onchange="togglePermRole('messaging')">
-                                        <label class="form-check-label" for="permRoleMessaging">
-                                            <i class="fas fa-envelope me-1 text-primary"></i>Messaging User
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="finance" id="permRoleFinance" onchange="togglePermRole('finance')">
+                                        <label class="form-check-label" for="permRoleFinance">
+                                            <i class="fas fa-coins me-1 text-success"></i>Finance/Billing
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input perm-role-check" type="checkbox" value="viewer" id="permRoleViewer" onchange="togglePermRole('viewer')">
-                                        <label class="form-check-label" for="permRoleViewer">
-                                            <i class="fas fa-eye me-1 text-secondary"></i>Viewer
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="developer" id="permRoleDeveloper" onchange="togglePermRole('developer')">
+                                        <label class="form-check-label" for="permRoleDeveloper">
+                                            <i class="fas fa-code me-1 text-dark"></i>Developer/API User
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input perm-role-check" type="checkbox" value="api" id="permRoleApi" onchange="togglePermRole('api')">
-                                        <label class="form-check-label" for="permRoleApi">
-                                            <i class="fas fa-code me-1 text-dark"></i>API User
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="read-only" id="permRoleReadOnly" onchange="togglePermRole('read-only')">
+                                        <label class="form-check-label" for="permRoleReadOnly">
+                                            <i class="fas fa-eye me-1 text-secondary"></i>Read-Only/Auditor
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input perm-role-check" type="checkbox" value="campaign-approver" id="permRoleCampaignApprover" onchange="togglePermRole('campaign-approver')">
+                                        <label class="form-check-label" for="permRoleCampaignApprover">
+                                            <i class="fas fa-check-double me-1 text-info"></i>Campaign Approver
                                         </label>
                                     </div>
                                 </div>
@@ -3642,11 +3652,12 @@ var subAccountLabels = {
 };
 
 var roleLabels = {
-    'admin': 'Administrator',
-    'manager': 'Manager',
-    'messaging': 'Messaging User',
-    'viewer': 'Viewer',
-    'api': 'API User'
+    'admin': 'Admin',
+    'messaging-manager': 'Messaging Manager',
+    'finance': 'Finance/Billing',
+    'developer': 'Developer/API User',
+    'read-only': 'Read-Only/Auditor',
+    'campaign-approver': 'Campaign Approver'
 };
 
 var userLabels = {
