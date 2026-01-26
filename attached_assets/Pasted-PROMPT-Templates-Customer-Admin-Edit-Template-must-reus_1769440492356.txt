@@ -1,0 +1,48 @@
+PROMPT — Templates (Customer + Admin) “Edit Template” must reuse “Create Template” shared wizard (no redesign)
+
+Scope:
+Fix Templates > Edit in BOTH customer portal and admin console.
+
+Hard rules:
+- “Edit Template” MUST use the exact same shared resource/components/flow as “Create Template”.
+- Do NOT create a new editor UI, do NOT add/remove steps, do NOT change layouts, labels, cards, toggles, preview, or validation.
+- Keep all Fillow design principles exactly as they already are.
+- Customer portal stays Fillow purple; Admin stays Admin blue. No other styling changes.
+
+UX requirement:
+- Edit is opened as a proper full-page wizard route (NOT a full-screen popup modal).
+- Use the exact same wizard pages/steps as Create Template.
+- Pre-populate the wizard with the existing template data.
+- User can navigate steps and only change what they want, then save.
+
+Functional requirements:
+- Entry points:
+  - Templates table (⋮) > Edit
+  - Template details view (if exists) > Edit
+- On open:
+  - Load template by id
+  - Map stored template fields into the same form state used by Create Template
+  - Ensure all shared Send Message / Rich RCS Wizard behaviour remains identical (agent dropdown, tracking/opt-out toggles, content labels for SMS/RCS Basic/Rich, message preview, etc.)
+- Save behaviour:
+  - “Save changes” writes updates to the existing template (no duplication)
+  - Success toast uses standard Fillow pattern
+  - Return to Templates library and refresh the row (status/updated timestamp)
+
+Admin-specific:
+- Admin edit must pass tenant context:
+  - accountId + templateId in routes and API calls
+  - Example route: /admin/management/templates/:accountId/:templateId/edit
+- Only difference vs customer edit is theme colour and Account context; editor UI is identical.
+
+Backend readiness:
+- If endpoints are not available, mock services but keep interface backend-ready:
+  - templatesService.getTemplate(templateId)
+  - templatesService.updateTemplate(templateId, payload)
+  - adminTemplatesService.getTemplate(accountId, templateId)
+  - adminTemplatesService.updateTemplate(accountId, templateId, payload)
+
+Acceptance criteria:
+- Clicking Edit opens the same Create Template wizard (route-based, full page).
+- All steps/cards/toggles/preview match Create Template exactly.
+- No missing shared logic compared to Send Message.
+- Saving updates the existing template and returns to library with updated data.

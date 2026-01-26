@@ -684,7 +684,7 @@
                 <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                     <i class="fas fa-filter me-1"></i>Filters
                 </button>
-                <a href="{{ route('management.templates.create.step1') }}" class="btn btn-primary btn-sm">
+                <a href="{{ route('management.templates.create') }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus me-1"></i>Create Template
                 </a>
             </div>
@@ -3568,7 +3568,7 @@ function renderTemplates() {
         html += '<ul class="dropdown-menu dropdown-menu-end">';
         
         if (!isArchived) {
-            html += '<li><a class="dropdown-item" href="#" onclick="editTemplate(' + template.id + '); return false;"><i class="fas fa-edit me-2"></i>Edit</a></li>';
+            html += '<li><a class="dropdown-item" href="/management/templates/' + template.templateId.replace('TPL-', '') + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         html += '<li><a class="dropdown-item" href="#" onclick="duplicateTemplate(' + template.id + '); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
         html += '<li><a class="dropdown-item" href="#" onclick="viewVersionHistory(' + template.id + '); return false;"><i class="fas fa-history me-2"></i>Version History</a></li>';
@@ -3593,109 +3593,11 @@ function renderTemplates() {
 }
 
 function editTemplate(id) {
-    var loadingOverlay = document.getElementById('wizardLoadingOverlay');
-    var errorOverlay = document.getElementById('wizardErrorOverlay');
-    
-    loadingOverlay.classList.remove('d-none');
-    errorOverlay.classList.add('d-none');
-    
-    isEditMode = true;
-    editingTemplateId = id;
-    currentWizardStep = 1;
-    
-    document.getElementById('wizardModalTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Edit Template';
-    new bootstrap.Modal(document.getElementById('createTemplateModal')).show();
-    
-    setTimeout(function() {
-        var template = mockTemplates.find(function(t) { return t.id === id; });
-        
-        if (!template) {
-            loadingOverlay.classList.add('d-none');
-            errorOverlay.classList.remove('d-none');
-            document.getElementById('wizardErrorMessage').textContent = 'Template not found. Please try again or contact support.';
-            return;
-        }
-        
-        if (template.status === 'archived') {
-            loadingOverlay.classList.add('d-none');
-            errorOverlay.classList.remove('d-none');
-            document.getElementById('wizardErrorMessage').textContent = 'Archived templates cannot be edited.';
-            return;
-        }
-        
-        wizardData = {
-            name: template.name,
-            templateId: template.templateId,
-            trigger: template.trigger,
-            channel: template.channel || 'sms',
-            content: template.content || '',
-            accessMode: template.subAccounts.includes('all') ? 'all' : 'restricted',
-            subAccounts: template.subAccounts || [],
-            roles: template.permissions ? template.permissions.roles || [] : [],
-            users: template.permissions ? template.permissions.users || [] : []
-        };
-        
-        templateRcsPayload = template.rcsPayload || null;
-        
-        document.getElementById('templateName').value = wizardData.name;
-        document.getElementById('templateIdField').value = wizardData.templateId;
-        document.getElementById('templateContent').value = wizardData.content;
-        document.getElementById('tplCharCount').textContent = wizardData.content.length;
-        
-        document.querySelectorAll('input[name="templateTrigger"]').forEach(function(radio) {
-            radio.checked = radio.value === wizardData.trigger;
-            radio.disabled = true;
-        });
-        document.querySelectorAll('.trigger-option').forEach(function(opt) {
-            var trigger = opt.getAttribute('data-trigger');
-            opt.classList.toggle('selected', trigger === wizardData.trigger);
-            opt.classList.add('disabled-trigger');
-            opt.style.pointerEvents = 'none';
-            opt.style.opacity = '0.7';
-        });
-        
-        if (wizardData.channel === 'sms') {
-            document.getElementById('tplChannelSMS').checked = true;
-            document.getElementById('tplRcsContentSection').classList.add('d-none');
-            document.getElementById('tplTextEditorContainer').classList.remove('d-none');
-        } else if (wizardData.channel === 'basic_rcs') {
-            document.getElementById('tplChannelBasicRCS').checked = true;
-            document.getElementById('tplRcsContentSection').classList.add('d-none');
-            document.getElementById('tplTextEditorContainer').classList.remove('d-none');
-        } else if (wizardData.channel === 'rich_rcs') {
-            document.getElementById('tplChannelRichRCS').checked = true;
-            document.getElementById('tplRcsContentSection').classList.remove('d-none');
-            document.getElementById('tplTextEditorContainer').classList.add('d-none');
-        }
-        
-        if (wizardData.accessMode === 'all') {
-            document.getElementById('wizardAccessAll').checked = true;
-            document.getElementById('wizardRestrictedSection').style.display = 'none';
-        } else {
-            document.getElementById('wizardAccessRestricted').checked = true;
-            document.getElementById('wizardRestrictedSection').style.display = 'block';
-        }
-        
-        document.querySelectorAll('.wizard-subaccount-check').forEach(function(cb) {
-            cb.checked = wizardData.subAccounts.includes(cb.value);
-        });
-        document.querySelectorAll('.wizard-role-check').forEach(function(cb) {
-            cb.checked = wizardData.roles.includes(cb.value);
-        });
-        document.querySelectorAll('.wizard-user-check').forEach(function(cb) {
-            cb.checked = wizardData.users.includes(cb.value);
-        });
-        
-        updateWizardPermissionCounts();
-        
-        document.getElementById('templateName').classList.remove('is-invalid');
-        document.getElementById('triggerError').style.display = 'none';
-        
-        loadingOverlay.classList.add('d-none');
-        updateWizardUI();
-        
-        showToast('Editing "' + template.name + '"', 'info');
-    }, 300);
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (template) {
+        var templateIdNum = template.templateId.replace('TPL-', '');
+        window.location.href = '/management/templates/' + templateIdNum + '/edit';
+    }
 }
 
 function duplicateTemplate(id) {

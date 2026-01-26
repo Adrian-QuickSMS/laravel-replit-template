@@ -297,10 +297,101 @@ class AdminController extends Controller
 
     public function managementTemplateEdit($accountId, $templateId)
     {
-        return view('admin.management.template-edit-wizard', [
+        $sender_ids = [
+            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
+            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
+            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
+        ];
+
+        $rcs_agents = [
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => '/images/rcs-agents/quicksms-brand.svg', 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => '/images/rcs-agents/promotions-agent.svg', 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
+        ];
+
+        // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
+        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $accountName = $this->getAccountName($accountId);
+
+        return view('shared.template-wizard', [
             'page_title' => 'Edit Template',
-            'account_id' => $accountId,
-            'template_id' => $templateId
+            'mode' => 'edit',
+            'isAdminMode' => true,
+            'isEditMode' => true,
+            'showRichRcs' => false,
+            'accountId' => $accountId,
+            'accountName' => $accountName,
+            'templateId' => $templateId,
+            'template' => $template,
+            'sender_ids' => $sender_ids,
+            'rcs_agents' => $rcs_agents
         ]);
+    }
+
+    private function getAdminMockTemplate($accountId, $templateId)
+    {
+        // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
+        $mockTemplates = [
+            'TPL-12345678' => [
+                'id' => 1,
+                'name' => 'Winter Sale 2026',
+                'templateId' => 'TPL-12345678',
+                'trigger' => 'portal',
+                'channel' => 'sms',
+                'content' => 'Hi {FirstName}! Our Winter Sale is here. Get 40% off all items. Shop now: {Link}',
+                'senderId' => '1',
+                'rcsAgent' => '',
+                'trackableLink' => true,
+                'optOut' => true
+            ],
+            'TPL-23456789' => [
+                'id' => 2,
+                'name' => 'Appointment Confirmation',
+                'templateId' => 'TPL-23456789',
+                'trigger' => 'api',
+                'channel' => 'sms',
+                'content' => 'Hi {FirstName}, your appointment is confirmed for {AppointmentDate} at {AppointmentTime}.',
+                'senderId' => '2',
+                'rcsAgent' => '',
+                'trackableLink' => false,
+                'optOut' => false
+            ],
+            'TPL-34567890' => [
+                'id' => 3,
+                'name' => 'Delivery Update',
+                'templateId' => 'TPL-34567890',
+                'trigger' => 'api',
+                'channel' => 'basic_rcs',
+                'content' => 'Your order #{OrderId} is on its way! Track here: {TrackingLink}',
+                'senderId' => '1',
+                'rcsAgent' => '1',
+                'trackableLink' => true,
+                'optOut' => false
+            ]
+        ];
+
+        return $mockTemplates[$templateId] ?? [
+            'id' => 999,
+            'name' => 'Template ' . $templateId,
+            'templateId' => $templateId,
+            'trigger' => 'api',
+            'channel' => 'sms',
+            'content' => 'Template content for ' . $templateId,
+            'senderId' => '1',
+            'rcsAgent' => '',
+            'trackableLink' => false,
+            'optOut' => false
+        ];
+    }
+
+    private function getAccountName($accountId)
+    {
+        // TODO: Replace with API call
+        $accounts = [
+            'ACC-001' => 'Acme Corporation',
+            'ACC-002' => 'TechStart Ltd',
+            'ACC-003' => 'GlobalRetail Inc'
+        ];
+
+        return $accounts[$accountId] ?? 'Account ' . $accountId;
     }
 }

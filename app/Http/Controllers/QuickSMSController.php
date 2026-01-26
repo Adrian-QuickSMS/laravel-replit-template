@@ -1726,15 +1726,7 @@ class QuickSMSController extends Controller
         ]);
     }
 
-    public function templateCreateStep1()
-    {
-        return view('quicksms.management.templates.create-step1', [
-            'page_title' => 'Create Template - Metadata',
-            'current_step' => 1
-        ]);
-    }
-
-    public function templateCreateStep2()
+    public function templateWizardCreate()
     {
         $sender_ids = [
             ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
@@ -1747,47 +1739,100 @@ class QuickSMSController extends Controller
             ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
         ];
 
-        $opt_out_lists = [
-            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847, 'is_default' => true],
-            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245, 'is_default' => false],
-            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
-        ];
-
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main Number'],
-            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
-        ];
-
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'qsms.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'optout.quicksms.com', 'is_default' => false],
-        ];
-
-        return view('quicksms.management.templates.create-step2', [
-            'page_title' => 'Create Template - Content',
-            'current_step' => 2,
+        return view('shared.template-wizard', [
+            'page_title' => 'Create Template',
+            'mode' => 'create',
+            'isAdminMode' => false,
+            'isEditMode' => false,
+            'showRichRcs' => true,
             'sender_ids' => $sender_ids,
-            'rcs_agents' => $rcs_agents,
-            'opt_out_lists' => $opt_out_lists,
-            'virtual_numbers' => $virtual_numbers,
-            'optout_domains' => $optout_domains
+            'rcs_agents' => $rcs_agents
         ]);
     }
 
-    public function templateCreateStep3()
+    public function templateWizardEdit($templateId)
     {
-        return view('quicksms.management.templates.create-step3', [
-            'page_title' => 'Create Template - Settings',
-            'current_step' => 3
+        $sender_ids = [
+            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
+            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
+            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
+        ];
+
+        $rcs_agents = [
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
+        ];
+
+        // TODO: Replace with API call - templatesService.getTemplate(templateId)
+        $template = $this->getMockTemplate($templateId);
+
+        return view('shared.template-wizard', [
+            'page_title' => 'Edit Template',
+            'mode' => 'edit',
+            'isAdminMode' => false,
+            'isEditMode' => true,
+            'showRichRcs' => true,
+            'templateId' => $templateId,
+            'template' => $template,
+            'sender_ids' => $sender_ids,
+            'rcs_agents' => $rcs_agents
         ]);
     }
 
-    public function templateCreateReview()
+    private function getMockTemplate($templateId)
     {
-        return view('quicksms.management.templates.create-review', [
-            'page_title' => 'Create Template - Review',
-            'current_step' => 4
-        ]);
+        // TODO: Replace with database query - GET /api/templates/{templateId}
+        $mockTemplates = [
+            '71829364' => [
+                'id' => 1,
+                'name' => 'Flash Sale Alert',
+                'templateId' => 'TPL-71829364',
+                'trigger' => 'portal',
+                'channel' => 'basic_rcs',
+                'content' => 'Flash Sale! 50% off all items today only. Shop now at {Link}',
+                'senderId' => '1',
+                'rcsAgent' => '1',
+                'trackableLink' => true,
+                'optOut' => false
+            ],
+            '38472615' => [
+                'id' => 2,
+                'name' => 'Product Showcase',
+                'templateId' => 'TPL-38472615',
+                'trigger' => 'portal',
+                'channel' => 'rich_rcs',
+                'content' => '',
+                'senderId' => '1',
+                'rcsAgent' => '2',
+                'trackableLink' => false,
+                'optOut' => false
+            ],
+            '10483726' => [
+                'id' => 3,
+                'name' => 'Welcome Message',
+                'templateId' => 'TPL-10483726',
+                'trigger' => 'api',
+                'channel' => 'sms',
+                'content' => 'Hi {FirstName}, welcome to QuickSMS! Your account is ready.',
+                'senderId' => '1',
+                'rcsAgent' => '',
+                'trackableLink' => false,
+                'optOut' => true
+            ]
+        ];
+
+        return $mockTemplates[$templateId] ?? [
+            'id' => 999,
+            'name' => 'Unknown Template',
+            'templateId' => 'TPL-' . $templateId,
+            'trigger' => 'api',
+            'channel' => 'sms',
+            'content' => 'Template content here',
+            'senderId' => '1',
+            'rcsAgent' => '',
+            'trackableLink' => false,
+            'optOut' => false
+        ];
     }
 
     public function apiConnections()
