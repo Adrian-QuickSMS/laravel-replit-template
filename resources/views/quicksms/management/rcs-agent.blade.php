@@ -307,10 +307,12 @@
     flex-wrap: wrap;
 }
 .action-menu .dropdown-menu {
-    z-index: 1050;
-    position: absolute;
-    inset: auto 0 auto auto !important;
-    transform: translate(0, 0) !important;
+    z-index: 9999 !important;
+}
+.action-menu .dropdown-menu.show {
+    position: fixed !important;
+    inset: auto !important;
+    transform: none !important;
 }
 .action-menu .dropdown-item {
     font-size: 0.85rem;
@@ -1931,6 +1933,17 @@ var currentUserId = @json($currentUserId ?? 1);
 function getCurrentUserId() {
     return currentUserId;
 }
+
+// Position dropdown menu with fixed positioning to escape table constraints
+$(document).on('shown.bs.dropdown', '.action-menu .dropdown', function() {
+    var $btn = $(this).find('.action-menu-btn');
+    var $menu = $(this).find('.dropdown-menu');
+    var btnRect = $btn[0].getBoundingClientRect();
+    $menu.css({
+        top: btnRect.bottom + 'px',
+        left: (btnRect.right - $menu.outerWidth()) + 'px'
+    });
+});
 
 var mockAgents = [
     {

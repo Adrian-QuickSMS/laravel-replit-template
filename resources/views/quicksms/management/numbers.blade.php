@@ -77,13 +77,15 @@
     z-index: 2000 !important;
 }
 .numbers-table .dropdown-menu {
-    z-index: 2050 !important;
-    position: absolute !important;
-    inset: auto 0 auto auto !important;
-    transform: translate(0, 0) !important;
+    z-index: 9999 !important;
+}
+.numbers-table .dropdown-menu.show {
+    position: fixed !important;
+    inset: auto !important;
+    transform: none !important;
 }
 .numbers-table .dropdown {
-    position: relative;
+    position: static;
 }
 .numbers-table-container:has(.dropdown.show),
 .numbers-table-container.has-dropdown-open {
@@ -1313,9 +1315,15 @@ $(document).ready(function() {
 
     var selectedNumbers = [];
 
-    // Add/remove dropdown-active class on parent td for z-index fix
-    // Also add has-dropdown-open class to container for overflow visibility (browser compatibility)
+    // Position dropdown menu with fixed positioning to escape sticky column constraints
     $(document).on('shown.bs.dropdown', '.numbers-table .dropdown', function() {
+        var $btn = $(this).find('.action-menu-btn');
+        var $menu = $(this).find('.dropdown-menu');
+        var btnRect = $btn[0].getBoundingClientRect();
+        $menu.css({
+            top: btnRect.bottom + 'px',
+            left: (btnRect.right - $menu.outerWidth()) + 'px'
+        });
         $(this).closest('td').addClass('dropdown-active');
         $('#numbersTableContainer').addClass('has-dropdown-open');
     });
