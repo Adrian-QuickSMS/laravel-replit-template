@@ -604,10 +604,40 @@
                     </div>
                     
                     <div id="ipAllowlistContainer">
-                        <div class="ip-list" id="ipAllowlist">
-                            <!-- IP entries rendered from service state -->
+                        <div class="d-flex align-items-center justify-content-between mb-3 mt-3" style="padding: 0.75rem; background: rgba(111, 66, 193, 0.08); border-radius: 0.375rem;">
+                            <div style="font-size: 0.85rem; color: #495057;">
+                                <i class="fas fa-info-circle me-1" style="color: #886cc0;"></i>
+                                Your current IP: <strong id="currentIPDisplay">192.168.1.100</strong>
+                            </div>
+                            <button type="button" class="btn btn-sm" id="addCurrentIPBtn" style="background: #886cc0; color: white; font-size: 0.8rem;">
+                                <i class="fas fa-plus me-1"></i>Add Current IP
+                            </button>
                         </div>
-                        <button type="button" class="add-ip-btn" data-bs-toggle="modal" data-bs-target="#addIPModal">
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="ipAllowlistTable">
+                                <thead>
+                                    <tr>
+                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Label</th>
+                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">IP / CIDR</th>
+                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Created by</th>
+                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Created date</th>
+                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef;">Status</th>
+                                        <th style="padding: 0.5rem 0.35rem; font-size: 0.75rem; font-weight: 600; background: #f8f9fa; border-bottom: 1px solid #e9ecef; width: 80px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ipAllowlistTableBody">
+                                    <!-- Entries rendered from service state -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="text-center py-3 d-none" id="ipAllowlistEmpty" style="color: #9ca3af; font-size: 0.85rem;">
+                            <i class="fas fa-shield-alt mb-2" style="font-size: 1.5rem;"></i>
+                            <div>No IP addresses in allowlist</div>
+                        </div>
+                        
+                        <button type="button" class="add-ip-btn mt-2" data-bs-toggle="modal" data-bs-target="#addIPModal">
                             <i class="fas fa-plus"></i>Add IP Address
                         </button>
                     </div>
@@ -772,12 +802,13 @@
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">IP Address or CIDR Range</label>
+                    <label class="form-label">IP Address or CIDR Range <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="newIPAddress" placeholder="e.g., 192.168.1.1 or 10.0.0.0/24">
-                    <div class="form-text">Enter a single IP address or CIDR range (e.g., 192.168.1.0/24)</div>
+                    <div class="form-text">IPv4 address or CIDR range (/8 to /32)</div>
+                    <div class="invalid-feedback" id="newIPAddressError">Please enter a valid IP address</div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Label (Optional)</label>
+                    <label class="form-label">Label</label>
                     <input type="text" class="form-control" id="newIPLabel" placeholder="e.g., Office Network, VPN Gateway">
                 </div>
                 <div class="alert" style="background: rgba(111, 66, 193, 0.08); border: none; font-size: 0.8rem; color: #495057;">
@@ -789,6 +820,67 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn" id="confirmAddIP" style="background: #886cc0; color: white;">
                     <i class="fas fa-plus me-1"></i>Add IP
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editIPModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit me-2" style="color: #886cc0;"></i>Edit IP Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editIPIndex">
+                <div class="mb-3">
+                    <label class="form-label">IP Address or CIDR Range <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="editIPAddress" placeholder="e.g., 192.168.1.1 or 10.0.0.0/24">
+                    <div class="form-text">IPv4 address or CIDR range (/8 to /32)</div>
+                    <div class="invalid-feedback" id="editIPAddressError">Please enter a valid IP address</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Label</label>
+                    <input type="text" class="form-control" id="editIPLabel" placeholder="e.g., Office Network, VPN Gateway">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="confirmEditIP" style="background: #886cc0; color: white;">
+                    <i class="fas fa-save me-1"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="removeIPModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-trash-alt me-2" style="color: #dc2626;"></i>Remove IP Entry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="removeIPIndex">
+                <p style="font-size: 0.9rem; color: #374151;">
+                    Are you sure you want to remove this IP entry?
+                </p>
+                <div class="p-2 mb-3" style="background: #f9fafb; border-radius: 0.375rem; font-family: monospace;">
+                    <span id="removeIPDisplay"></span>
+                    <span class="ms-2 text-muted" id="removeIPLabelDisplay"></span>
+                </div>
+                <div class="alert" style="background: #fef3c7; border: none; font-size: 0.8rem; color: #92400e;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    If this is your only IP entry and the allowlist is enabled, you may need to contact support to regain access.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveIP">
+                    <i class="fas fa-trash-alt me-1"></i>Remove
                 </button>
             </div>
         </div>
@@ -835,9 +927,10 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             ip_allowlist_enabled: false,
             ip_allowlist: [
-                { ip: '192.168.1.0/24', label: 'Office Network' },
-                { ip: '10.0.0.1', label: 'VPN Gateway' }
+                { ip: '192.168.1.0/24', label: 'Office Network', created_by: 'Sarah Mitchell', created_date: '15-01-2026', status: 'active' },
+                { ip: '10.0.0.1', label: 'VPN Gateway', created_by: 'John Smith', created_date: '10-01-2026', status: 'active' }
             ],
+            current_ip: '192.168.1.100',
             retention_days: 60,
             visibility_mobile: false,
             visibility_content: true,
@@ -985,16 +1078,144 @@ document.addEventListener('DOMContentLoaded', function() {
     var ipAllowlistWarning = document.getElementById('ipAllowlistWarning');
     var ipAllowlistEl = document.getElementById('ipAllowlist');
     
-    // Render IP list from service state
-    function renderIPList() {
-        if (!ipAllowlistEl) return;
-        ipAllowlistEl.innerHTML = '';
-        SecuritySettingsService.settings.ip_allowlist.forEach(function(item) {
-            var entry = document.createElement('div');
-            entry.className = 'ip-entry';
-            entry.innerHTML = '<div class="ip-entry-info"><span class="ip-address">' + item.ip + '</span><span class="ip-label">' + item.label + '</span></div><button type="button" class="remove-ip-btn" title="Remove"><i class="fas fa-trash-alt"></i></button>';
-            ipAllowlistEl.appendChild(entry);
+    // IP Validation Functions
+    function validateIPv4(ip) {
+        var parts = ip.split('.');
+        if (parts.length !== 4) return false;
+        for (var i = 0; i < 4; i++) {
+            var num = parseInt(parts[i], 10);
+            if (isNaN(num) || num < 0 || num > 255 || parts[i] !== String(num)) return false;
+        }
+        return true;
+    }
+    
+    function validateIPEntry(ipStr, excludeIndex) {
+        ipStr = ipStr.trim();
+        
+        // Check for 0.0.0.0/0 explicitly
+        if (ipStr === '0.0.0.0/0') {
+            return { valid: false, error: 'Cannot add 0.0.0.0/0 - this would allow all IPs' };
+        }
+        
+        var hasCidr = ipStr.includes('/');
+        var ip, prefix;
+        
+        if (hasCidr) {
+            var parts = ipStr.split('/');
+            if (parts.length !== 2) {
+                return { valid: false, error: 'Invalid CIDR format' };
+            }
+            ip = parts[0];
+            prefix = parseInt(parts[1], 10);
+            
+            // Validate prefix range /8 to /32
+            if (isNaN(prefix) || prefix < 8 || prefix > 32) {
+                return { valid: false, error: 'CIDR prefix must be between /8 and /32' };
+            }
+        } else {
+            ip = ipStr;
+        }
+        
+        // Validate IPv4
+        if (!validateIPv4(ip)) {
+            return { valid: false, error: 'Invalid IPv4 address' };
+        }
+        
+        // Check for duplicates
+        var isDuplicate = SecuritySettingsService.settings.ip_allowlist.some(function(item, idx) {
+            if (excludeIndex !== undefined && idx === excludeIndex) return false;
+            return item.ip === ipStr;
         });
+        
+        if (isDuplicate) {
+            return { valid: false, error: 'This IP address already exists in the allowlist' };
+        }
+        
+        return { valid: true };
+    }
+    
+    // Render IP list as table from service state
+    function renderIPList() {
+        var tableBody = document.getElementById('ipAllowlistTableBody');
+        var emptyState = document.getElementById('ipAllowlistEmpty');
+        var table = document.getElementById('ipAllowlistTable');
+        
+        if (!tableBody) return;
+        tableBody.innerHTML = '';
+        
+        var entries = SecuritySettingsService.settings.ip_allowlist;
+        
+        if (entries.length === 0) {
+            if (table) table.classList.add('d-none');
+            if (emptyState) emptyState.classList.remove('d-none');
+            return;
+        }
+        
+        if (table) table.classList.remove('d-none');
+        if (emptyState) emptyState.classList.add('d-none');
+        
+        entries.forEach(function(item, index) {
+            var row = document.createElement('tr');
+            row.innerHTML = 
+                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;">' + (item.label || '-') + '</td>' +
+                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5; font-family: monospace;">' + item.ip + '</td>' +
+                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;">' + (item.created_by || 'System') + '</td>' +
+                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;">' + (item.created_date || '-') + '</td>' +
+                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;"><span class="badge" style="background: #dcfce7; color: #166534; font-weight: 500;">Active</span></td>' +
+                '<td style="padding: 0.5rem 0.35rem; font-size: 0.8rem; border-bottom: 1px solid #f1f3f5;">' +
+                    '<button type="button" class="btn btn-sm p-1 edit-ip-btn" data-index="' + index + '" title="Edit" style="color: #6c757d;"><i class="fas fa-edit"></i></button>' +
+                    '<button type="button" class="btn btn-sm p-1 remove-ip-btn" data-index="' + index + '" title="Remove" style="color: #6c757d;"><i class="fas fa-trash-alt"></i></button>' +
+                '</td>';
+            tableBody.appendChild(row);
+        });
+        
+        // Bind edit/remove handlers
+        tableBody.querySelectorAll('.edit-ip-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var idx = parseInt(this.dataset.index, 10);
+                openEditIPModal(idx);
+            });
+        });
+        
+        tableBody.querySelectorAll('.remove-ip-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var idx = parseInt(this.dataset.index, 10);
+                openRemoveIPModal(idx);
+            });
+        });
+    }
+    
+    function openEditIPModal(index) {
+        var entry = SecuritySettingsService.settings.ip_allowlist[index];
+        if (!entry) return;
+        
+        document.getElementById('editIPIndex').value = index;
+        document.getElementById('editIPAddress').value = entry.ip;
+        document.getElementById('editIPLabel').value = entry.label || '';
+        document.getElementById('editIPAddress').classList.remove('is-invalid');
+        
+        var modal = new bootstrap.Modal(document.getElementById('editIPModal'));
+        modal.show();
+    }
+    
+    function openRemoveIPModal(index) {
+        var entry = SecuritySettingsService.settings.ip_allowlist[index];
+        if (!entry) return;
+        
+        document.getElementById('removeIPIndex').value = index;
+        document.getElementById('removeIPDisplay').textContent = entry.ip;
+        document.getElementById('removeIPLabelDisplay').textContent = entry.label ? '(' + entry.label + ')' : '';
+        
+        var modal = new bootstrap.Modal(document.getElementById('removeIPModal'));
+        modal.show();
+    }
+    
+    function getCurrentDate() {
+        var d = new Date();
+        var day = String(d.getDate()).padStart(2, '0');
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var year = d.getFullYear();
+        return day + '-' + month + '-' + year;
     }
     
     if (ipAllowlistToggle) {
@@ -1090,28 +1311,27 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     
-    // Add IP
-    var confirmAddIPBtn = document.getElementById('confirmAddIP');
-    if (confirmAddIPBtn) {
-        confirmAddIPBtn.addEventListener('click', function() {
-            var ipInput = document.getElementById('newIPAddress');
-            var labelInput = document.getElementById('newIPLabel');
-            var ip = ipInput.value.trim();
-            var label = labelInput.value.trim() || 'Custom';
+    // Add Current IP Button
+    var addCurrentIPBtn = document.getElementById('addCurrentIPBtn');
+    if (addCurrentIPBtn) {
+        addCurrentIPBtn.addEventListener('click', function() {
+            var currentIP = SecuritySettingsService.settings.current_ip;
+            var validation = validateIPEntry(currentIP);
             
-            if (!ip) {
-                alert('Please enter an IP address');
+            if (!validation.valid) {
+                alert(validation.error);
                 return;
             }
             
-            // Basic IP validation
-            var ipRegex = /^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/;
-            if (!ipRegex.test(ip)) {
-                alert('Please enter a valid IP address or CIDR range');
-                return;
-            }
+            var newEntry = {
+                ip: currentIP,
+                label: 'My Current IP',
+                created_by: 'Sarah Mitchell',
+                created_date: getCurrentDate(),
+                status: 'active'
+            };
             
-            SecuritySettingsService.settings.ip_allowlist.push({ ip: ip, label: label });
+            SecuritySettingsService.settings.ip_allowlist.push(newEntry);
             
             // Hide error message now that there's at least one IP
             var ipAllowlistError = document.getElementById('ipAllowlistError');
@@ -1119,15 +1339,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 ipAllowlistError.classList.add('d-none');
             }
             
-            var ipList = document.getElementById('ipAllowlist');
-            if (ipList) {
-                var newEntry = document.createElement('div');
-                newEntry.className = 'ip-entry';
-                newEntry.innerHTML = '<div class="ip-entry-info"><span class="ip-address">' + ip + '</span><span class="ip-label">' + label + '</span></div><button type="button" class="remove-ip-btn" title="Remove"><i class="fas fa-trash-alt"></i></button>';
-                ipList.appendChild(newEntry);
+            renderIPList();
+            
+            emitAuditEvent('IP_ALLOWLIST_ENTRY_ADDED', { 
+                ip: currentIP, 
+                label: newEntry.label,
+                actor: 'Sarah Mitchell',
+                timestamp: new Date().toISOString(),
+                source_ip: currentIP
+            }, 'ip');
+            showSaveIndicator();
+        });
+    }
+    
+    // Add IP
+    var confirmAddIPBtn = document.getElementById('confirmAddIP');
+    if (confirmAddIPBtn) {
+        confirmAddIPBtn.addEventListener('click', function() {
+            var ipInput = document.getElementById('newIPAddress');
+            var labelInput = document.getElementById('newIPLabel');
+            var errorEl = document.getElementById('newIPAddressError');
+            var ip = ipInput.value.trim();
+            var label = labelInput.value.trim() || 'Custom';
+            
+            if (!ip) {
+                ipInput.classList.add('is-invalid');
+                errorEl.textContent = 'Please enter an IP address';
+                return;
             }
             
-            emitAuditEvent('IP_ADDED', { ip: ip, label: label }, 'ip');
+            var validation = validateIPEntry(ip);
+            if (!validation.valid) {
+                ipInput.classList.add('is-invalid');
+                errorEl.textContent = validation.error;
+                return;
+            }
+            
+            ipInput.classList.remove('is-invalid');
+            
+            var newEntry = {
+                ip: ip,
+                label: label,
+                created_by: 'Sarah Mitchell',
+                created_date: getCurrentDate(),
+                status: 'active'
+            };
+            
+            SecuritySettingsService.settings.ip_allowlist.push(newEntry);
+            
+            // Hide error message now that there's at least one IP
+            var ipAllowlistError = document.getElementById('ipAllowlistError');
+            if (ipAllowlistError) {
+                ipAllowlistError.classList.add('d-none');
+            }
+            
+            renderIPList();
+            
+            emitAuditEvent('IP_ALLOWLIST_ENTRY_ADDED', { 
+                ip: ip, 
+                label: label,
+                actor: 'Sarah Mitchell',
+                timestamp: new Date().toISOString(),
+                source_ip: SecuritySettingsService.settings.current_ip
+            }, 'ip');
             showSaveIndicator();
             
             ipInput.value = '';
@@ -1137,21 +1411,84 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Remove IP (uses ipAllowlistEl declared earlier)
-    if (ipAllowlistEl) {
-        ipAllowlistEl.addEventListener('click', function(e) {
-            if (e.target.closest('.remove-ip-btn')) {
-                var entry = e.target.closest('.ip-entry');
-                var ip = entry.querySelector('.ip-address').textContent;
-                entry.remove();
-                
-                SecuritySettingsService.settings.ip_allowlist = SecuritySettingsService.settings.ip_allowlist.filter(function(item) {
-                    return item.ip !== ip;
-                });
-                
-                emitAuditEvent('IP_REMOVED', { ip: ip }, 'ip');
-                showSaveIndicator();
+    // Edit IP
+    var confirmEditIPBtn = document.getElementById('confirmEditIP');
+    if (confirmEditIPBtn) {
+        confirmEditIPBtn.addEventListener('click', function() {
+            var indexInput = document.getElementById('editIPIndex');
+            var ipInput = document.getElementById('editIPAddress');
+            var labelInput = document.getElementById('editIPLabel');
+            var errorEl = document.getElementById('editIPAddressError');
+            var index = parseInt(indexInput.value, 10);
+            var ip = ipInput.value.trim();
+            var label = labelInput.value.trim() || 'Custom';
+            
+            if (!ip) {
+                ipInput.classList.add('is-invalid');
+                errorEl.textContent = 'Please enter an IP address';
+                return;
             }
+            
+            var validation = validateIPEntry(ip, index);
+            if (!validation.valid) {
+                ipInput.classList.add('is-invalid');
+                errorEl.textContent = validation.error;
+                return;
+            }
+            
+            ipInput.classList.remove('is-invalid');
+            
+            var oldEntry = SecuritySettingsService.settings.ip_allowlist[index];
+            var oldIP = oldEntry.ip;
+            var oldLabel = oldEntry.label;
+            
+            SecuritySettingsService.settings.ip_allowlist[index].ip = ip;
+            SecuritySettingsService.settings.ip_allowlist[index].label = label;
+            
+            renderIPList();
+            
+            emitAuditEvent('IP_ALLOWLIST_ENTRY_EDITED', { 
+                old_ip: oldIP,
+                old_label: oldLabel,
+                new_ip: ip, 
+                new_label: label,
+                actor: 'Sarah Mitchell',
+                timestamp: new Date().toISOString(),
+                source_ip: SecuritySettingsService.settings.current_ip
+            }, 'ip');
+            showSaveIndicator();
+            
+            var modal = bootstrap.Modal.getInstance(document.getElementById('editIPModal'));
+            if (modal) modal.hide();
+        });
+    }
+    
+    // Remove IP
+    var confirmRemoveIPBtn = document.getElementById('confirmRemoveIP');
+    if (confirmRemoveIPBtn) {
+        confirmRemoveIPBtn.addEventListener('click', function() {
+            var indexInput = document.getElementById('removeIPIndex');
+            var index = parseInt(indexInput.value, 10);
+            
+            var entry = SecuritySettingsService.settings.ip_allowlist[index];
+            var removedIP = entry.ip;
+            var removedLabel = entry.label;
+            
+            SecuritySettingsService.settings.ip_allowlist.splice(index, 1);
+            
+            renderIPList();
+            
+            emitAuditEvent('IP_ALLOWLIST_ENTRY_REMOVED', { 
+                ip: removedIP, 
+                label: removedLabel,
+                actor: 'Sarah Mitchell',
+                timestamp: new Date().toISOString(),
+                source_ip: SecuritySettingsService.settings.current_ip
+            }, 'ip');
+            showSaveIndicator();
+            
+            var modal = bootstrap.Modal.getInstance(document.getElementById('removeIPModal'));
+            if (modal) modal.hide();
         });
     }
     
