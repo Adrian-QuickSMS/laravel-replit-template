@@ -596,12 +596,12 @@ body > .dropdown-menu.dropdown-menu-end {
                                     <table class="table api-table mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Name</th>
-                                                <th>Allowed Email Addresses</th>
-                                                <th>Type</th>
-                                                <th>Reporting Group</th>
-                                                <th>Status</th>
-                                                <th>Created</th>
+                                                <th data-sort="name" onclick="sortAddressesTable('name')">Name <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="emails" onclick="sortAddressesTable('emails')">Allowed Email Addresses <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="type" onclick="sortAddressesTable('type')">Type <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="reportingGroup" onclick="sortAddressesTable('reportingGroup')">Reporting Group <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="status" onclick="sortAddressesTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="created" onclick="sortAddressesTable('created')">Created <i class="fas fa-sort sort-icon"></i></th>
                                                 <th class="text-end">Actions</th>
                                             </tr>
                                         </thead>
@@ -701,11 +701,11 @@ body > .dropdown-menu.dropdown-menu-end {
                                             <table class="table api-table mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th>Name</th>
-                                                        <th>Originating Emails</th>
-                                                        <th>Target Lists</th>
-                                                        <th>Status</th>
-                                                        <th>Created</th>
+                                                        <th data-sort="name" onclick="sortContactListsTable('name')">Name <i class="fas fa-sort sort-icon"></i></th>
+                                                        <th data-sort="emails" onclick="sortContactListsTable('emails')">Originating Emails <i class="fas fa-sort sort-icon"></i></th>
+                                                        <th data-sort="targetLists" onclick="sortContactListsTable('targetLists')">Target Lists <i class="fas fa-sort sort-icon"></i></th>
+                                                        <th data-sort="status" onclick="sortContactListsTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
+                                                        <th data-sort="created" onclick="sortContactListsTable('created')">Created <i class="fas fa-sort sort-icon"></i></th>
                                                         <th class="text-center">Actions</th>
                                                     </tr>
                                                 </thead>
@@ -799,12 +799,12 @@ body > .dropdown-menu.dropdown-menu-end {
                                     <table class="table api-table mb-0">
                                         <thead>
                                             <tr>
-                                                <th>Group Name</th>
-                                                <th>Description</th>
-                                                <th>Linked Addresses</th>
-                                                <th>Messages Sent</th>
-                                                <th>Last Activity</th>
-                                                <th>Created</th>
+                                                <th data-sort="name" onclick="sortReportingGroupsTable('name')">Group Name <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="description" onclick="sortReportingGroupsTable('description')">Description <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="linkedAddresses" onclick="sortReportingGroupsTable('linkedAddresses')">Linked Addresses <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="messagesSent" onclick="sortReportingGroupsTable('messagesSent')">Messages Sent <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="lastActivity" onclick="sortReportingGroupsTable('lastActivity')">Last Activity <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="created" onclick="sortReportingGroupsTable('created')">Created <i class="fas fa-sort sort-icon"></i></th>
                                                 <th class="text-end">Actions</th>
                                             </tr>
                                         </thead>
@@ -896,11 +896,11 @@ body > .dropdown-menu.dropdown-menu-end {
                                     <table class="table api-table mb-0">
                                         <thead>
                                             <tr>
-                                                <th style="width: 18%;">Name</th>
-                                                <th style="width: 26%;">Originating Emails</th>
-                                                <th style="width: 12%;">Subaccount</th>
-                                                <th style="width: 10%;">Status</th>
-                                                <th style="width: 10%;">Created</th>
+                                                <th data-sort="name" onclick="sortStandardSmsTable('name')" style="width: 18%;">Name <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="emails" onclick="sortStandardSmsTable('emails')" style="width: 26%;">Originating Emails <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="subaccount" onclick="sortStandardSmsTable('subaccount')" style="width: 12%;">Subaccount <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="status" onclick="sortStandardSmsTable('status')" style="width: 10%;">Status <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="created" onclick="sortStandardSmsTable('created')" style="width: 10%;">Created <i class="fas fa-sort sort-icon"></i></th>
                                                 <th class="text-end" style="width: 14%;">Actions</th>
                                             </tr>
                                         </thead>
@@ -2086,6 +2086,16 @@ $(document).ready(function() {
     var overviewAddresses = [];
     var reportingGroups = [];
     
+    // Sorting state for each table
+    var addressesSortColumn = 'name';
+    var addressesSortDirection = 'asc';
+    var contactListsSortColumn = 'name';
+    var contactListsSortDirection = 'asc';
+    var reportingGroupsSortColumn = 'name';
+    var reportingGroupsSortDirection = 'asc';
+    var standardSmsSortColumn = 'name';
+    var standardSmsSortDirection = 'asc';
+    
     function loadOverviewData() {
         overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
         reportingGroups = EmailToSmsService.getMockReportingGroups();
@@ -2769,6 +2779,84 @@ $(document).ready(function() {
         
         $('#rgShowingCount').text(groups.length);
         $('#rgTotalCount').text(reportingGroups.length);
+    }
+    
+    // Sorting functions for Email-to-SMS tables
+    function updateSortIcons(tableSelector, sortColumn, sortDirection) {
+        $(tableSelector + ' thead th').each(function() {
+            $(this).removeClass('sorted');
+            var icon = $(this).find('.sort-icon');
+            if (icon.length) {
+                icon.removeClass('fa-sort-up fa-sort-down').addClass('fa-sort');
+            }
+        });
+        
+        var activeTh = $(tableSelector + ' thead th[data-sort="' + sortColumn + '"]');
+        if (activeTh.length) {
+            activeTh.addClass('sorted');
+            var icon = activeTh.find('.sort-icon');
+            if (icon.length) {
+                icon.removeClass('fa-sort').addClass(sortDirection === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+            }
+        }
+    }
+    
+    function sortData(data, column, direction) {
+        return data.slice().sort(function(a, b) {
+            var aVal = a[column] || '';
+            var bVal = b[column] || '';
+            if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+            if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+            if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+            if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+            return 0;
+        });
+    }
+    
+    function sortAddressesTable(column) {
+        if (addressesSortColumn === column) {
+            addressesSortDirection = addressesSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            addressesSortColumn = column;
+            addressesSortDirection = 'asc';
+        }
+        updateSortIcons('#addressesTableContainer table', addressesSortColumn, addressesSortDirection);
+        var sorted = sortData(overviewAddresses, addressesSortColumn, addressesSortDirection);
+        renderAddressesTable(sorted);
+    }
+    
+    function sortContactListsTable(column) {
+        if (contactListsSortColumn === column) {
+            contactListsSortDirection = contactListsSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            contactListsSortColumn = column;
+            contactListsSortDirection = 'asc';
+        }
+        updateSortIcons('#contactListsTableContainer table', contactListsSortColumn, contactListsSortDirection);
+        // TODO: Integrate with contact lists data when available
+    }
+    
+    function sortReportingGroupsTable(column) {
+        if (reportingGroupsSortColumn === column) {
+            reportingGroupsSortDirection = reportingGroupsSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            reportingGroupsSortColumn = column;
+            reportingGroupsSortDirection = 'asc';
+        }
+        updateSortIcons('#reportingGroupsTableContainer table', reportingGroupsSortColumn, reportingGroupsSortDirection);
+        var sorted = sortData(reportingGroups, reportingGroupsSortColumn, reportingGroupsSortDirection);
+        renderReportingGroups(sorted);
+    }
+    
+    function sortStandardSmsTable(column) {
+        if (standardSmsSortColumn === column) {
+            standardSmsSortDirection = standardSmsSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            standardSmsSortColumn = column;
+            standardSmsSortDirection = 'asc';
+        }
+        updateSortIcons('#standardSmsTableContainer table', standardSmsSortColumn, standardSmsSortDirection);
+        // TODO: Integrate with standard SMS data when available
     }
     
     function filterReportingGroups() {
