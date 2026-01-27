@@ -29,13 +29,12 @@
     overflow: visible !important;
 }
 .table-container .dropdown-menu {
-    z-index: 1050;
-    position: absolute;
+    z-index: 9999 !important;
+    position: absolute !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
-.table-container .dropdown {
-    position: static;
-}
-.table-container td:last-child .dropdown {
+.table-container td:last-child {
+    overflow: visible !important;
     position: relative;
 }
 .api-table {
@@ -685,8 +684,26 @@ function updateFilterChips() {
 
 function bindRowActions() {
     // Initialize Bootstrap dropdowns for dynamically created elements
-    document.querySelectorAll('.table-container .dropdown-toggle, .table-container [data-bs-toggle="dropdown"]').forEach(function(el) {
-        new bootstrap.Dropdown(el);
+    document.querySelectorAll('.table-container .action-menu-btn[data-bs-toggle="dropdown"]').forEach(function(el) {
+        // Create dropdown instance if not already created
+        if (!bootstrap.Dropdown.getInstance(el)) {
+            new bootstrap.Dropdown(el);
+        }
+        
+        // Close other dropdowns when this one is clicked
+        el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            // Close all other open dropdowns in the table
+            document.querySelectorAll('.table-container .dropdown-menu.show').forEach(function(menu) {
+                if (menu !== el.nextElementSibling) {
+                    var otherBtn = menu.previousElementSibling;
+                    var otherDropdown = bootstrap.Dropdown.getInstance(otherBtn);
+                    if (otherDropdown) {
+                        otherDropdown.hide();
+                    }
+                }
+            });
+        });
     });
 
     document.querySelectorAll('.view-config').forEach(function(btn) {
