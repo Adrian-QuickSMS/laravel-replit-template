@@ -100,11 +100,12 @@
 .search-filter-toolbar {
     background: #fff;
     padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-radius: 8px;
+    border: 1px solid #e0e6ed;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .search-filter-toolbar .input-group {
-    border: 1px solid #dee2e6;
+    border: none;
     border-radius: 0.375rem;
     overflow: hidden;
 }
@@ -112,6 +113,7 @@
 .search-filter-toolbar .input-group .form-control,
 .search-filter-toolbar .input-group .btn {
     border: none;
+    background: transparent;
 }
 .search-filter-toolbar .form-control:focus {
     box-shadow: none;
@@ -121,28 +123,28 @@
     align-items: center;
     gap: 0.5rem;
     background: transparent;
-    border: 1.5px solid #c5d3e0;
-    color: var(--admin-primary, #1e3a5f);
+    border: 1px solid #6f42c1;
+    color: #6f42c1;
     font-weight: 500;
     font-size: 0.875rem;
     padding: 0.5rem 1.25rem;
-    border-radius: 50px;
+    border-radius: 6px;
     transition: all 0.2s;
     cursor: pointer;
 }
 .filter-pill-btn:hover {
-    background: rgba(30, 58, 95, 0.05);
-    border-color: var(--admin-primary, #1e3a5f);
-    color: var(--admin-primary, #1e3a5f);
+    background: rgba(111, 66, 193, 0.08);
+    border-color: #6f42c1;
+    color: #6f42c1;
 }
 .filter-pill-btn.active {
-    background: rgba(30, 58, 95, 0.08);
-    border-color: var(--admin-primary, #1e3a5f);
-    color: var(--admin-primary, #1e3a5f);
+    background: rgba(111, 66, 193, 0.12);
+    border-color: #6f42c1;
+    color: #6f42c1;
 }
 .filter-pill-btn i {
     font-size: 0.8rem;
-    color: var(--admin-primary, #1e3a5f);
+    color: #6f42c1;
 }
 .filter-count-badge {
     display: inline-flex;

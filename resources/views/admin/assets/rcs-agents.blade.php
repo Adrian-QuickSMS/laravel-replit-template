@@ -364,17 +364,21 @@
         </div>
     </div>
 
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <div class="d-flex align-items-center gap-2 flex-grow-1">
-            <div class="input-group" style="width: 320px;">
-                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                <input type="text" class="form-control" id="quickSearchInput" placeholder="Search by agent name or account...">
+    <div class="card mb-3" style="border: 1px solid #e0e6ed; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                    <div class="input-group" style="width: 320px;">
+                        <span class="input-group-text bg-transparent border-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control border-0 ps-0" id="quickSearchInput" placeholder="Search by agent name or account...">
+                    </div>
+                    <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
+                </div>
+                <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border: 1px solid #6f42c1; color: #6f42c1; background: transparent;">
+                    <i class="fas fa-filter me-1"></i> Filters
+                </button>
             </div>
-            <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
         </div>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border-color: #1e3a5f; color: #1e3a5f;">
-            <i class="fas fa-filter me-1"></i> Filters
-        </button>
     </div>
 
     <div class="approval-bulk-bar" style="display: none;">
