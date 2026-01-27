@@ -76,6 +76,9 @@
                     <li><a href="{{ route('admin.security.country-controls') }}" class="{{ request()->routeIs('admin.security.country-controls') ? 'mm-active' : '' }}">Country Controls</a></li>
                     <li><a href="{{ route('admin.security.anti-spam') }}" class="{{ request()->routeIs('admin.security.anti-spam') ? 'mm-active' : '' }}">Anti-Spam Rules</a></li>
                     <li><a href="{{ route('admin.security.ip-allowlists') }}" class="{{ request()->routeIs('admin.security.ip-allowlists') ? 'mm-active' : '' }}">IP Allow Lists</a></li>
+                    @if(in_array(session('admin_role', 'super_admin'), ['super_admin', 'internal_support']))
+                    <li><a href="{{ route('admin.security.admin-users') }}" class="{{ request()->routeIs('admin.security.admin-users') ? 'mm-active' : '' }}">Admin Users</a></li>
+                    @endif
                 </ul>
             </li>
             

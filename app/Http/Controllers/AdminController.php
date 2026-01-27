@@ -267,6 +267,93 @@ class AdminController extends Controller
         ]);
     }
 
+    public function securityAdminUsers()
+    {
+        // INTERNAL ONLY - Gate access to Super Admin and Internal Support roles
+        // Hardcoded role check for v1 - TODO: Replace with proper RBAC
+        $allowedRoles = ['super_admin', 'internal_support'];
+        $currentRole = session('admin_role', 'super_admin'); // Default to super_admin for development
+        
+        if (!in_array($currentRole, $allowedRoles)) {
+            abort(403, 'Access denied. This module is restricted to Super Admin and Internal Support roles.');
+        }
+        
+        // Mock admin users data - Super Admin and Internal Support roles only
+        $adminUsers = [
+            [
+                'id' => 'ADM001',
+                'name' => 'Sarah Johnson',
+                'email' => 'sarah.johnson@quicksms.co.uk',
+                'role' => 'Super Admin',
+                'department' => 'Engineering',
+                'status' => 'Active',
+                'last_login' => '2026-01-27 09:15:00',
+                'mfa_enabled' => true,
+                'created_at' => '2024-03-15',
+            ],
+            [
+                'id' => 'ADM002',
+                'name' => 'James Mitchell',
+                'email' => 'james.mitchell@quicksms.co.uk',
+                'role' => 'Super Admin',
+                'department' => 'Operations',
+                'status' => 'Active',
+                'last_login' => '2026-01-27 08:45:00',
+                'mfa_enabled' => true,
+                'created_at' => '2024-06-20',
+            ],
+            [
+                'id' => 'ADM003',
+                'name' => 'Emily Chen',
+                'email' => 'emily.chen@quicksms.co.uk',
+                'role' => 'Internal Support',
+                'department' => 'Customer Success',
+                'status' => 'Active',
+                'last_login' => '2026-01-26 16:30:00',
+                'mfa_enabled' => true,
+                'created_at' => '2024-09-10',
+            ],
+            [
+                'id' => 'ADM004',
+                'name' => 'Michael Brown',
+                'email' => 'michael.brown@quicksms.co.uk',
+                'role' => 'Internal Support',
+                'department' => 'Customer Success',
+                'status' => 'Active',
+                'last_login' => '2026-01-25 14:20:00',
+                'mfa_enabled' => true,
+                'created_at' => '2025-01-05',
+            ],
+            [
+                'id' => 'ADM005',
+                'name' => 'Anna Williams',
+                'email' => 'anna.williams@quicksms.co.uk',
+                'role' => 'Internal Support',
+                'department' => 'Technical Support',
+                'status' => 'Suspended',
+                'last_login' => '2026-01-10 11:00:00',
+                'mfa_enabled' => true,
+                'created_at' => '2024-11-22',
+            ],
+            [
+                'id' => 'ADM006',
+                'name' => 'David Lee',
+                'email' => 'david.lee@quicksms.co.uk',
+                'role' => 'Super Admin',
+                'department' => 'Security',
+                'status' => 'Active',
+                'last_login' => '2026-01-27 10:00:00',
+                'mfa_enabled' => true,
+                'created_at' => '2023-08-01',
+            ],
+        ];
+
+        return view('admin.security.admin-users', [
+            'page_title' => 'Admin Users',
+            'adminUsers' => $adminUsers
+        ]);
+    }
+
     public function systemPricing()
     {
         return view('admin.system.pricing', [

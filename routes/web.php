@@ -168,6 +168,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/security/country-controls', 'securityCountryControls')->name('admin.security.country-controls');
             Route::get('/security/anti-spam', 'securityAntiSpam')->name('admin.security.anti-spam');
             Route::get('/security/ip-allowlists', 'securityIpAllowlists')->name('admin.security.ip-allowlists');
+            Route::get('/security/admin-users', 'securityAdminUsers')->name('admin.security.admin-users');
             
             Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
             Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');
