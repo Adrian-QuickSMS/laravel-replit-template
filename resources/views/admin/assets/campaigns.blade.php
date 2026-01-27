@@ -18,6 +18,10 @@
     --admin-accent: #4a90d9;
 }
 .admin-page { padding: 0; max-width: 100%; box-sizing: border-box; }
+.container-fluid {
+    max-width: 100%;
+    overflow: hidden;
+}
 
 /* =========================================
    Table Container Fixes
@@ -38,7 +42,15 @@
 .table-container .dropdown {
     position: static;
 }
-.card .table-responsive {
+.table-container {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e0e6ed;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-top: 0.75rem;
+}
+.table-container .table-responsive {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -46,14 +58,20 @@
 .api-table {
     width: 100%;
     margin: 0;
-    table-layout: auto;
+    table-layout: fixed;
 }
+.api-table thead th:first-child { width: 12%; }  /* Account */
+.api-table thead th:nth-child(2) { width: 24%; } /* Campaign */
+.api-table thead th:nth-child(3) { width: 12%; } /* Channel */
+.api-table thead th:nth-child(4) { width: 12%; } /* Status */
+.api-table thead th:nth-child(5) { width: 14%; } /* Recipients */
+.api-table thead th:nth-child(6) { width: 18%; } /* Send Date */
+.api-table thead th:last-child { width: 8%; text-align: center; } /* Actions */
 .api-table td,
 .api-table th {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 200px;
 }
 .api-table thead th {
     background: #f8f9fa;
@@ -735,9 +753,8 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     </div>
 
     <!-- Campaigns Table -->
-    <div class="card" style="border-radius: 12px; border: 1px solid #dde4ea; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden;">
-        <div class="card-body p-0">
-            <div class="table-responsive" id="campaignsTable">
+    <div class="table-container" id="campaignsTableContainer">
+        <div class="table-responsive" id="campaignsTable">
                 <table class="table api-table mb-0">
                 <thead>
                     <tr>
@@ -857,10 +874,10 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                         @endforelse
                     </tbody>
                 </table>
-            </div>
         </div>
+    </div>
         
-        <!-- No Results State -->
+    <!-- No Results State -->
         <div id="noResultsState" class="d-none text-center py-5">
             <div class="text-muted">
                 <i class="fas fa-search fa-3x mb-3 d-block"></i>
