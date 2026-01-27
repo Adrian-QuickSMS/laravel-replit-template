@@ -143,6 +143,63 @@
     border: 1px solid #e9ecef;
 }
 
+.admin-customer-search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.admin-customer-search-item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.875rem;
+}
+.admin-customer-search-item:hover {
+    background-color: rgba(30, 58, 95, 0.05);
+}
+.admin-customer-search-item:last-child {
+    border-bottom: none;
+}
+.admin-customer-search-item .customer-name {
+    font-weight: 500;
+}
+.admin-customer-search-item .customer-id {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.admin-selected-customer-badge {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(30, 58, 95, 0.1);
+    color: #1e3a5f;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+.admin-selected-customer-badge .clear-btn {
+    margin-left: 0.5rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.admin-selected-customer-badge .clear-btn:hover {
+    opacity: 1;
+}
+
+.high-risk-toggle .form-check-input:checked {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
 .admin-log-detail-section { 
     padding: 1rem; 
     background-color: #fafafa; 
@@ -300,41 +357,74 @@
                                 <input type="date" class="form-control form-control-sm" id="adminDateToFilter">
                             </div>
                             <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Event Type</label>
+                                <label class="form-label small fw-bold">Module</label>
+                                <select class="form-select form-select-sm" id="adminModuleFilter">
+                                    <option value="">All Modules</option>
+                                    <option value="admin_users">Admin Users</option>
+                                    <option value="security">Security</option>
+                                    <option value="impersonation">Impersonation</option>
+                                    <option value="billing">Billing</option>
+                                    <option value="approvals">Approvals</option>
+                                    <option value="numbers">Numbers</option>
+                                    <option value="accounts">Accounts</option>
+                                    <option value="data_access">Data Access</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold">Action</label>
                                 <select class="form-select form-select-sm" id="adminEventTypeFilter">
-                                    <option value="">All Event Types</option>
-                                    <optgroup label="User Lifecycle">
+                                    <option value="">All Actions</option>
+                                    <optgroup label="Admin User Lifecycle">
                                         <option value="ADMIN_USER_INVITED">User Invited</option>
-                                        <option value="ADMIN_USER_ACTIVATED">User Activated</option>
                                         <option value="ADMIN_USER_SUSPENDED">User Suspended</option>
                                         <option value="ADMIN_USER_REACTIVATED">User Reactivated</option>
-                                        <option value="ADMIN_USER_ARCHIVED">User Archived</option>
                                     </optgroup>
-                                    <optgroup label="Security">
+                                    <optgroup label="Security Actions">
                                         <option value="ADMIN_USER_PASSWORD_RESET">Password Reset</option>
                                         <option value="ADMIN_USER_MFA_RESET">MFA Reset</option>
-                                        <option value="ADMIN_USER_MFA_UPDATED">MFA Updated</option>
                                         <option value="ADMIN_USER_SESSIONS_REVOKED">Sessions Revoked</option>
                                         <option value="LOGIN_BLOCKED_BY_IP">Login Blocked by IP</option>
                                     </optgroup>
                                     <optgroup label="Impersonation">
                                         <option value="IMPERSONATION_STARTED">Impersonation Started</option>
                                         <option value="IMPERSONATION_ENDED">Impersonation Ended</option>
+                                        <option value="SUPPORT_MODE_ENABLED">Support Mode Enabled</option>
                                     </optgroup>
-                                    <optgroup label="Account">
-                                        <option value="ADMIN_USER_EMAIL_UPDATED">Email Updated</option>
-                                        <option value="ADMIN_USER_INVITE_RESENT">Invite Resent</option>
+                                    <optgroup label="Billing">
+                                        <option value="PRICING_EDITED">Pricing Edited</option>
+                                        <option value="BILLING_MODE_CHANGED">Billing Mode Changed</option>
+                                        <option value="CREDIT_LIMIT_CHANGED">Credit Limit Changed</option>
+                                        <option value="INVOICE_CREATED_BY_ADMIN">Invoice Created</option>
+                                    </optgroup>
+                                    <optgroup label="Approvals">
+                                        <option value="SENDERID_APPROVED">SenderID Approved</option>
+                                        <option value="SENDERID_REJECTED">SenderID Rejected</option>
+                                        <option value="RCS_AGENT_APPROVED">RCS Agent Approved</option>
+                                        <option value="CAMPAIGN_APPROVED_BY_ADMIN">Campaign Approved</option>
+                                        <option value="TEMPLATE_SUSPENDED">Template Suspended</option>
+                                    </optgroup>
+                                    <optgroup label="Numbers">
+                                        <option value="NUMBER_ASSIGNED">Number Assigned</option>
+                                        <option value="NUMBER_UNASSIGNED">Number Unassigned</option>
+                                    </optgroup>
+                                    <optgroup label="Account Actions">
+                                        <option value="ACCOUNT_SUSPENDED_BY_ADMIN">Account Suspended</option>
+                                        <option value="ACCOUNT_REACTIVATED_BY_ADMIN">Account Reactivated</option>
+                                    </optgroup>
+                                    <optgroup label="Data Access">
+                                        <option value="ADMIN_EXPORT_INITIATED">Export Initiated</option>
                                     </optgroup>
                                 </select>
                             </div>
                             <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Severity</label>
-                                <select class="form-select form-select-sm" id="adminSeverityFilter">
-                                    <option value="">All Severities</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                    <option value="critical">Critical</option>
+                                <label class="form-label small fw-bold">Admin User</label>
+                                <select class="form-select form-select-sm" id="adminActorFilter">
+                                    <option value="">All Admin Users</option>
+                                    <option value="sarah.johnson@quicksms.co.uk">Sarah Johnson</option>
+                                    <option value="james.mitchell@quicksms.co.uk">James Mitchell</option>
+                                    <option value="emily.chen@quicksms.co.uk">Emily Chen</option>
+                                    <option value="david.lee@quicksms.co.uk">David Lee</option>
+                                    <option value="anna.williams@quicksms.co.uk">Anna Williams</option>
                                 </select>
                             </div>
                             <div class="col-6 col-md-2">
@@ -345,12 +435,36 @@
                                     <option value="failure">Failure</option>
                                 </select>
                             </div>
-                            <div class="col-6 col-md-2 d-flex gap-2">
-                                <button type="button" class="btn btn-admin-primary btn-sm flex-grow-1" id="adminApplyFiltersBtn">
-                                    <i class="fas fa-check me-1"></i>Apply
+                        </div>
+
+                        <div class="row g-3 align-items-end mt-2">
+                            <div class="col-6 col-md-3 position-relative" id="adminCustomerImpactedContainer">
+                                <label class="form-label small fw-bold">Customer Impacted</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-white"><i class="fas fa-building"></i></span>
+                                    <input type="text" class="form-control" id="adminCustomerImpactedSearch" placeholder="Search customers..." autocomplete="off">
+                                </div>
+                                <div class="admin-customer-search-results" id="adminCustomerImpactedResults" style="display: none;"></div>
+                                <input type="hidden" id="adminCustomerImpactedId" value="">
+                            </div>
+                            <div class="col-6 col-md-2">
+                                <label class="form-label small fw-bold">IP Address</label>
+                                <input type="text" class="form-control form-control-sm" id="adminIpFilter" placeholder="e.g. 10.0.1.50">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="form-check form-switch mt-4">
+                                    <input class="form-check-input" type="checkbox" id="adminHighRiskOnlyFilter">
+                                    <label class="form-check-label small fw-bold" for="adminHighRiskOnlyFilter">
+                                        <i class="fas fa-exclamation-triangle text-danger me-1"></i>High-risk only
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-4 d-flex gap-2 justify-content-end">
+                                <button type="button" class="btn btn-admin-primary btn-sm" id="adminApplyFiltersBtn">
+                                    <i class="fas fa-check me-1"></i>Apply Filters
                                 </button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm" id="adminClearFiltersBtn">
-                                    <i class="fas fa-undo"></i>
+                                    <i class="fas fa-undo me-1"></i>Reset
                                 </button>
                             </div>
                         </div>
@@ -515,6 +629,7 @@ $(document).ready(function() {
         renderAdminLogs();
         updateAdminStats();
         bindCustomerSelectorEvents();
+        bindAdminFilterEvents();
         bindEvents();
     }
 
@@ -781,9 +896,7 @@ $(document).ready(function() {
     }
 
     function renderAdminLogs() {
-        var filteredLogs = adminLogs.filter(function(log) {
-            return log.isInternalOnly === true;
-        });
+        var filteredLogs = applyAdminFilters(adminLogs);
 
         var tbody = document.getElementById('adminAuditLogsTableBody');
         tbody.innerHTML = '';
@@ -1003,6 +1116,160 @@ $(document).ready(function() {
                 select.append('<option value="' + sa.id + '">' + sa.name + '</option>');
             });
         }
+    }
+
+    var adminFilterState = {
+        dateFrom: null,
+        dateTo: null,
+        module: '',
+        eventType: '',
+        actor: '',
+        customerImpacted: null,
+        result: '',
+        ip: '',
+        highRiskOnly: false
+    };
+
+    function bindAdminFilterEvents() {
+        var searchInput = $('#adminCustomerImpactedSearch');
+        var resultsContainer = $('#adminCustomerImpactedResults');
+        var hiddenInput = $('#adminCustomerImpactedId');
+
+        searchInput.on('focus', function() {
+            showAdminCustomerDropdown('');
+        });
+
+        searchInput.on('input', function() {
+            var query = $(this).val().toLowerCase();
+            showAdminCustomerDropdown(query);
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#adminCustomerImpactedContainer').length) {
+                resultsContainer.hide();
+            }
+        });
+
+        function showAdminCustomerDropdown(query) {
+            var html = '<div class="admin-customer-search-item" data-id="">' +
+                '<div class="customer-name" style="font-style: italic; color: #6c757d;">All Customers</div>' +
+                '</div>';
+
+            var filtered = allCustomers.filter(function(c) {
+                return c.name.toLowerCase().includes(query) || 
+                       c.account_number.toLowerCase().includes(query);
+            });
+
+            filtered.forEach(function(c) {
+                html += '<div class="admin-customer-search-item" data-id="' + c.id + '" data-name="' + c.name + '">' +
+                    '<div class="customer-name">' + c.name + '</div>' +
+                    '<div class="customer-id">' + c.account_number + '</div>' +
+                    '</div>';
+            });
+
+            resultsContainer.html(html).show();
+
+            resultsContainer.find('.admin-customer-search-item').on('click', function() {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+                if (id) {
+                    searchInput.val(name);
+                    hiddenInput.val(id);
+                    adminFilterState.customerImpacted = id;
+                } else {
+                    searchInput.val('');
+                    hiddenInput.val('');
+                    adminFilterState.customerImpacted = null;
+                }
+                resultsContainer.hide();
+            });
+        }
+
+        $('#adminApplyFiltersBtn').off('click').on('click', function() {
+            adminFilterState.dateFrom = $('#adminDateFromFilter').val() || null;
+            adminFilterState.dateTo = $('#adminDateToFilter').val() || null;
+            adminFilterState.module = $('#adminModuleFilter').val();
+            adminFilterState.eventType = $('#adminEventTypeFilter').val();
+            adminFilterState.actor = $('#adminActorFilter').val();
+            adminFilterState.result = $('#adminResultFilter').val();
+            adminFilterState.ip = $('#adminIpFilter').val().trim();
+            adminFilterState.highRiskOnly = $('#adminHighRiskOnlyFilter').is(':checked');
+
+            adminPage = 1;
+            renderAdminLogs();
+            showToast('Filters applied', 'info');
+        });
+
+        $('#adminClearFiltersBtn').off('click').on('click', function() {
+            $('#adminFiltersPanel').find('input, select').val('');
+            $('#adminHighRiskOnlyFilter').prop('checked', false);
+            adminFilterState = {
+                dateFrom: null,
+                dateTo: null,
+                module: '',
+                eventType: '',
+                actor: '',
+                customerImpacted: null,
+                result: '',
+                ip: '',
+                highRiskOnly: false
+            };
+            adminPage = 1;
+            renderAdminLogs();
+            showToast('Filters cleared', 'info');
+        });
+
+        $('#adminHighRiskOnlyFilter').on('change', function() {
+            adminFilterState.highRiskOnly = $(this).is(':checked');
+        });
+    }
+
+    function applyAdminFilters(logs) {
+        return logs.filter(function(log) {
+            if (!log.isInternalOnly) return false;
+
+            if (adminFilterState.dateFrom) {
+                var fromDate = new Date(adminFilterState.dateFrom);
+                if (new Date(log.timestamp) < fromDate) return false;
+            }
+
+            if (adminFilterState.dateTo) {
+                var toDate = new Date(adminFilterState.dateTo);
+                toDate.setHours(23, 59, 59, 999);
+                if (new Date(log.timestamp) > toDate) return false;
+            }
+
+            if (adminFilterState.module && log.category !== adminFilterState.module) {
+                return false;
+            }
+
+            if (adminFilterState.eventType && log.eventType !== adminFilterState.eventType) {
+                return false;
+            }
+
+            if (adminFilterState.actor && log.actor.email !== adminFilterState.actor) {
+                return false;
+            }
+
+            if (adminFilterState.customerImpacted) {
+                if (log.targetType !== 'customer') return false;
+                if (log.target.id !== adminFilterState.customerImpacted) return false;
+            }
+
+            if (adminFilterState.result && log.result !== adminFilterState.result) {
+                return false;
+            }
+
+            if (adminFilterState.ip && !log.ip.includes(adminFilterState.ip)) {
+                return false;
+            }
+
+            if (adminFilterState.highRiskOnly) {
+                if (log.severity !== 'high' && log.severity !== 'critical') return false;
+            }
+
+            return true;
+        });
     }
 
     function showLogDetail(log, type) {
