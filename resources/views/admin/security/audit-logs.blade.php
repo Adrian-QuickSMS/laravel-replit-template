@@ -490,9 +490,10 @@
                                 <th style="width: 140px;" class="admin-sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
                                 <th class="admin-sortable-header" data-sort="actor">Admin User <i class="fas fa-sort ms-1 sort-icon"></i></th>
                                 <th class="admin-sortable-header" data-sort="customer">Customer Impacted <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 120px;" class="admin-sortable-header" data-sort="module">Module <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th style="width: 110px;" class="admin-sortable-header" data-sort="module">Module <i class="fas fa-sort ms-1 sort-icon"></i></th>
                                 <th class="admin-sortable-header" data-sort="action">Action <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 90px;" class="admin-sortable-header" data-sort="result">Result <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th style="width: 80px;" class="admin-sortable-header" data-sort="result">Result <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th style="width: 85px;" class="admin-sortable-header" data-sort="risk">Risk <i class="fas fa-sort ms-1 sort-icon"></i></th>
                             </tr>
                         </thead>
                         <tbody id="adminAuditLogsTableBody">
@@ -912,6 +913,7 @@ $(document).ready(function() {
             var resultBadge = log.result === 'success' 
                 ? '<span class="badge" style="background-color: rgba(28, 187, 140, 0.15); color: #1cbb8c; font-size: 0.75rem;">Success</span>'
                 : '<span class="badge" style="background-color: rgba(220, 53, 69, 0.15); color: #dc3545; font-size: 0.75rem;">Failed</span>';
+            var riskBadge = formatRiskBadge(log.eventType);
             
             row.innerHTML = 
                 '<td>' + formatTimestamp(log.timestamp) + '</td>' +
@@ -919,7 +921,8 @@ $(document).ready(function() {
                 '<td>' + customerImpacted + '</td>' +
                 '<td>' + moduleBadge + '</td>' +
                 '<td>' + actionBadge + '</td>' +
-                '<td>' + resultBadge + '</td>';
+                '<td>' + resultBadge + '</td>' +
+                '<td>' + riskBadge + '</td>';
             row.onclick = function() { showLogDetail(log, 'admin'); };
             tbody.appendChild(row);
         });
@@ -995,6 +998,36 @@ $(document).ready(function() {
         }
         
         return '<span class="badge" style="background-color: ' + bgColor + '; color: ' + textColor + '; font-size: 0.75rem;">' + eventLabel + '</span>';
+    }
+
+    var HIGH_RISK_EVENT_TYPES = [
+        'ADMIN_EXPORT_INITIATED',
+        'DATA_EXPORTED',
+        'IMPERSONATION_STARTED',
+        'IMPERSONATION_ENDED',
+        'SUPPORT_MODE_ENABLED',
+        'PRICING_EDITED',
+        'BILLING_MODE_CHANGED',
+        'CREDIT_LIMIT_CHANGED',
+        'ADMIN_USER_MFA_RESET',
+        'MFA_RESET',
+        'IP_ALLOWLIST_ADDED',
+        'IP_ALLOWLIST_REMOVED',
+        'IP_ALLOWLIST_CHANGED',
+        'ACCOUNT_SUSPENDED_BY_ADMIN',
+        'LOGIN_BLOCKED_BY_IP'
+    ];
+
+    function isHighRiskEvent(eventType) {
+        return HIGH_RISK_EVENT_TYPES.indexOf(eventType) !== -1;
+    }
+
+    function formatRiskBadge(eventType) {
+        if (isHighRiskEvent(eventType)) {
+            return '<span class="badge" style="background-color: rgba(220, 53, 69, 0.2); color: #dc3545; font-size: 0.7rem; font-weight: 600;">' +
+                   '<i class="fas fa-exclamation-triangle me-1"></i>High Risk</span>';
+        }
+        return '<span class="text-muted small" style="font-size: 0.75rem;">Standard</span>';
     }
 
     function renderPagination(type, total, currentPage) {
@@ -1305,7 +1338,7 @@ $(document).ready(function() {
             }
 
             if (adminFilterState.highRiskOnly) {
-                if (log.severity !== 'high' && log.severity !== 'critical') return false;
+                if (!isHighRiskEvent(log.eventType)) return false;
             }
 
             return true;
