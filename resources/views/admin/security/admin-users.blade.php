@@ -715,6 +715,15 @@ function openUserDetail(userId) {
     
     var html = '';
     
+    html += '<div class="panel-user-header" style="display: flex; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e9ecef; margin-bottom: 1rem;">' +
+        '<div class="user-avatar" style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1e3a5f, #4a90d9); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; font-weight: 600;">' + getInitials(user.name) + '</div>' +
+        '<div class="user-header-info" style="flex: 1;">' +
+            '<h5 style="margin: 0; font-weight: 600; color: #343a40;">' + user.name + '</h5>' +
+            '<div style="font-size: 0.85rem; color: #6c757d;">' + user.email + '</div>' +
+            '<div style="margin-top: 0.35rem;"><span class="badge-pill ' + statusClass + '">' + user.status + '</span></div>' +
+        '</div>' +
+        '</div>';
+    
     if (inviteExpired) {
         html += '<div class="alert alert-warning d-flex align-items-center mb-3" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 0.75rem 1rem;">' +
             '<i class="fas fa-exclamation-triangle me-2 text-warning"></i>' +
@@ -723,35 +732,56 @@ function openUserDetail(userId) {
     }
     
     html += '<div class="detail-section">' +
-        '<h6>User Information</h6>' +
+        '<h6><i class="fas fa-id-card me-2" style="color: #1e3a5f;"></i>Identity</h6>' +
         '<div class="detail-row"><span class="label">User ID</span><span class="value">' + user.id + '</span></div>' +
-        '<div class="detail-row"><span class="label">Name</span><span class="value">' + user.name + '</span></div>' +
-        '<div class="detail-row"><span class="label">Email</span><span class="value">' + user.email + '</span></div>' +
-        '<div class="detail-row"><span class="label">Role</span><span class="value">' + user.role + '</span></div>' +
+        '<div class="detail-row"><span class="label">Created By</span><span class="value">' + (user.created_by || 'System') + '</span></div>' +
+        '<div class="detail-row"><span class="label">Created At</span><span class="value">' + formatDate(user.created_at) + '</span></div>' +
         '<div class="detail-row"><span class="label">Department</span><span class="value">' + user.department + '</span></div>' +
-        '<div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge-pill ' + statusClass + '">' + user.status + '</span></span></div>' +
         '</div>';
     
     if (user.status === 'Invited') {
         html += '<div class="detail-section">' +
-            '<h6>Invitation</h6>' +
+            '<h6><i class="fas fa-envelope me-2" style="color: #1e3a5f;"></i>Invitation</h6>' +
             '<div class="detail-row"><span class="label">Invite Sent</span><span class="value">' + (user.invite_sent_at ? formatDate(user.invite_sent_at) : formatDate(user.created_at)) + '</span></div>' +
-            (user.internal_note ? '<div class="detail-row"><span class="label">Internal Note</span><span class="value">' + user.internal_note + '</span></div>' : '') +
+            '<div class="detail-row"><span class="label">Expires</span><span class="value">' + (inviteExpired ? '<span class="text-danger">Expired</span>' : '7 days after sent') + '</span></div>' +
+            (user.internal_note ? '<div class="detail-row"><span class="label">Internal Note</span><span class="value" style="font-style: italic;">' + user.internal_note + '</span></div>' : '') +
             '</div>';
     }
     
     html += '<div class="detail-section">' +
-        '<h6>Security</h6>' +
-        '<div class="detail-row"><span class="label">MFA Status</span><span class="value"><span class="badge-pill ' + mfaClass + '">' + user.mfa_status + '</span></span></div>' +
-        '<div class="detail-row"><span class="label">MFA Method</span><span class="value">' + (user.mfa_method || 'N/A') + '</span></div>' +
-        '<div class="detail-row"><span class="label">Failed Logins (24h)</span><span class="value">' + (user.failed_logins_24h > 0 ? '<span class="failed-logins-warning">' + user.failed_logins_24h + '</span>' : '0') + '</span></div>' +
-        '</div>' +
-        '<div class="detail-section">' +
-        '<h6>Activity</h6>' +
+        '<h6><i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i>Access & Security</h6>' +
+        '<div class="detail-row"><span class="label">MFA Enrolled</span><span class="value"><span class="badge-pill ' + mfaClass + '">' + user.mfa_status + '</span></span></div>' +
+        '<div class="detail-row"><span class="label">MFA Method</span><span class="value">' + (user.mfa_method || 'Not configured') + '</span></div>' +
         '<div class="detail-row"><span class="label">Last Login</span><span class="value">' + (user.last_login ? formatDate(user.last_login) : 'Never') + '</span></div>' +
         '<div class="detail-row"><span class="label">Last Activity</span><span class="value">' + (user.last_activity ? formatDate(user.last_activity) : '-') + '</span></div>' +
-        '<div class="detail-row"><span class="label">Created</span><span class="value">' + formatDate(user.created_at) + '</span></div>' +
+        '<div class="detail-row"><span class="label">Active Sessions</span><span class="value">' + (user.active_sessions || 0) + (user.active_sessions > 0 ? ' <i class="fas fa-circle text-success" style="font-size: 0.5rem;"></i>' : '') + '</span></div>' +
+        '<div class="detail-row"><span class="label">Failed Logins (24h)</span><span class="value">' + (user.failed_logins_24h > 0 ? '<span class="failed-logins-warning">' + user.failed_logins_24h + ' <i class="fas fa-exclamation-circle"></i></span>' : '0') + '</span></div>' +
         '</div>';
+    
+    html += '<div class="detail-section">' +
+        '<h6><i class="fas fa-user-shield me-2" style="color: #1e3a5f;"></i>Permissions</h6>' +
+        '<div class="detail-row"><span class="label">Role</span><span class="value"><strong>' + user.role + '</strong></span></div>';
+    
+    if (user.role === 'Super Admin') {
+        html += '<div class="detail-row"><span class="label">Access Level</span><span class="value">Full administrative access</span></div>' +
+            '<div class="permissions-summary" style="background: #f8f9fa; border-radius: 6px; padding: 0.75rem; margin-top: 0.5rem; font-size: 0.8rem;">' +
+            '<div style="color: #495057; margin-bottom: 0.5rem;"><i class="fas fa-check-circle text-success me-1"></i> User Management</div>' +
+            '<div style="color: #495057; margin-bottom: 0.5rem;"><i class="fas fa-check-circle text-success me-1"></i> System Configuration</div>' +
+            '<div style="color: #495057; margin-bottom: 0.5rem;"><i class="fas fa-check-circle text-success me-1"></i> Security Settings</div>' +
+            '<div style="color: #495057; margin-bottom: 0.5rem;"><i class="fas fa-check-circle text-success me-1"></i> Audit Log Access</div>' +
+            '<div style="color: #495057;"><i class="fas fa-check-circle text-success me-1"></i> Impersonation (with audit)</div>' +
+            '</div>';
+    } else {
+        html += '<div class="detail-row"><span class="label">Access Level</span><span class="value">Support operations access</span></div>' +
+            '<div class="permissions-summary" style="background: #f8f9fa; border-radius: 6px; padding: 0.75rem; margin-top: 0.5rem; font-size: 0.8rem;">' +
+            '<div style="color: #495057; margin-bottom: 0.5rem;"><i class="fas fa-check-circle text-success me-1"></i> Customer Account View</div>' +
+            '<div style="color: #495057; margin-bottom: 0.5rem;"><i class="fas fa-check-circle text-success me-1"></i> Support Ticket Management</div>' +
+            '<div style="color: #495057; margin-bottom: 0.5rem;"><i class="fas fa-check-circle text-success me-1"></i> Campaign Review</div>' +
+            '<div style="color: #495057; margin-bottom: 0.5rem;"><i class="fas fa-times-circle text-muted me-1"></i> System Configuration</div>' +
+            '<div style="color: #495057;"><i class="fas fa-times-circle text-muted me-1"></i> Security Settings</div>' +
+            '</div>';
+    }
+    html += '</div>';
     
     document.getElementById('userDetailBody').innerHTML = html;
     
@@ -759,20 +789,44 @@ function openUserDetail(userId) {
     if (user.status === 'Invited') {
         actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="resendInvite(\'' + userId + '\')"><i class="fas fa-paper-plane me-1"></i>Resend Invite</button>';
         actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="revokeInvite(\'' + userId + '\'); closeUserDetail();"><i class="fas fa-times me-1"></i>Revoke</button>';
-    } else {
+    } else if (user.status === 'Active') {
         actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="editUser(\'' + userId + '\')"><i class="fas fa-edit me-1"></i>Edit</button>';
-        if (user.status === 'Active') {
-            actionsHtml += '<button class="btn btn-sm btn-outline-warning" onclick="suspendUser(\'' + userId + '\')"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
-        } else if (user.status === 'Suspended') {
-            actionsHtml += '<button class="btn btn-sm btn-outline-success" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-user-check me-1"></i>Reactivate</button>';
-        }
+        actionsHtml += '<button class="btn btn-sm btn-outline-warning" onclick="suspendUser(\'' + userId + '\')"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
         actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="resetMfa(\'' + userId + '\')"><i class="fas fa-key me-1"></i>Reset MFA</button>';
+        if (user.active_sessions > 0) {
+            actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="terminateSessions(\'' + userId + '\')"><i class="fas fa-sign-out-alt me-1"></i>End Sessions</button>';
+        }
+    } else if (user.status === 'Suspended') {
+        actionsHtml += '<button class="btn btn-sm btn-outline-success" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-user-check me-1"></i>Reactivate</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="archiveUser(\'' + userId + '\')"><i class="fas fa-archive me-1"></i>Archive</button>';
+    } else if (user.status === 'Archived') {
+        actionsHtml += '<button class="btn btn-sm btn-outline-primary" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-undo me-1"></i>Restore</button>';
     }
     
     document.getElementById('userDetailActions').innerHTML = actionsHtml;
     
     document.getElementById('panelOverlay').classList.add('show');
     document.getElementById('userDetailPanel').classList.add('open');
+}
+
+function getInitials(name) {
+    if (!name) return '?';
+    var parts = name.split(' ');
+    if (parts.length >= 2) {
+        return parts[0].charAt(0).toUpperCase() + parts[parts.length - 1].charAt(0).toUpperCase();
+    }
+    return parts[0].charAt(0).toUpperCase();
+}
+
+function terminateSessions(userId) {
+    if (!confirm('Terminate all active sessions for this user? They will be logged out immediately.')) return;
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (user) {
+        user.active_sessions = 0;
+        openUserDetail(userId);
+        showToast('All sessions terminated', 'warning');
+        console.log('[AdminUsers] Sessions terminated:', userId);
+    }
 }
 
 function closeUserDetail() {
