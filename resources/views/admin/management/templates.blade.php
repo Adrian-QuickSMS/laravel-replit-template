@@ -539,12 +539,18 @@
     <div class="row page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
-            <li class="breadcrumb-item"><a href="#">Management</a></li>
-            <li class="breadcrumb-item active"><a href="javascript:void(0)">Global Templates Library</a></li>
+            <li class="breadcrumb-item"><a href="#">Assets</a></li>
+            <li class="breadcrumb-item active">Global Templates Library</li>
         </ol>
     </div>
-</div>
-<div class="container-fluid">
+
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+            <h2 style="margin: 0; font-weight: 600; color: #1e3a5f;">Global Templates Library</h2>
+            <p style="margin: 0; color: #6c757d;">Manage message templates across all customer accounts</p>
+        </div>
+    </div>
+
     <div id="emptyState" class="empty-state" style="display: none;">
         <div class="empty-state-icon">
             <i class="fas fa-file-alt"></i>
@@ -553,29 +559,27 @@
         <p>No message templates exist in the system yet. Templates are created by customers through the Customer Portal.</p>
     </div>
 
-    <div class="card" id="templatesTableContainer">
-        <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
-            <h5 class="card-title mb-0" style="color: #1e3a5f;">Global Templates Library</h5>
-            <div class="d-flex align-items-center gap-2">
-                <div class="form-check form-switch mb-0">
-                    <input class="form-check-input" type="checkbox" id="showArchivedToggle">
-                    <label class="form-check-label small" for="showArchivedToggle">Show Archived</label>
-                </div>
-                <button type="button" class="btn btn-admin-outline btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
-                    <i class="fas fa-filter me-1"></i>Filters
-                </button>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-2 flex-grow-1">
+            <div class="input-group" style="width: 320px;">
+                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="quickSearchInput" placeholder="Search templates..." onkeyup="filterTemplates()">
+            </div>
+            <div class="form-check form-switch mb-0 ms-3">
+                <input class="form-check-input" type="checkbox" id="showArchivedToggle">
+                <label class="form-check-label small" for="showArchivedToggle">Show Archived</label>
             </div>
         </div>
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" class="form-control" id="templateSearch" placeholder="Search by name, ID or account...">
-                    </div>
-                </div>
-            </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border-color: #1e3a5f; color: #1e3a5f;">
+            <i class="fas fa-filter me-1"></i> Filters
+        </button>
+    </div>
 
+    <div class="card" id="templatesTableContainer">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="display: none !important;">
+            <h5 class="card-title mb-0" style="color: #1e3a5f;">Global Templates Library</h5>
+        </div>
+        <div class="card-body">
             <div class="collapse mb-3" id="filtersPanel">
                 <div class="card card-body border-0 rounded-3" style="background-color: rgba(30, 58, 95, 0.08);">
                 <div class="row g-3 align-items-end">
@@ -939,7 +943,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupEventListeners() {
-    document.getElementById('templateSearch').addEventListener('input', function() {
+    document.getElementById('quickSearchInput').addEventListener('input', function() {
         appliedFilters.search = this.value;
         currentPage = 1;
         loadTemplates();
@@ -1116,7 +1120,7 @@ function resetFilters() {
 
 function removeFilter(filterType, value) {
     if (filterType === 'search') {
-        document.getElementById('templateSearch').value = '';
+        document.getElementById('quickSearchInput').value = '';
         appliedFilters.search = '';
     } else if (filterType === 'account') {
         document.getElementById('accountSearchInput').value = 'All Accounts';

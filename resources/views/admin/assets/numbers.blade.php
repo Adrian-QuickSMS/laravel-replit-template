@@ -627,24 +627,19 @@ tr.selected-row:hover {
 @endpush
 
 @section('content')
-<div class="admin-page">
-    <div class="admin-breadcrumb">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <a href="#">Management</a>
-        <span class="separator">/</span>
-        <span>Numbers</span>
+<div class="container-fluid">
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="#">Assets</a></li>
+            <li class="breadcrumb-item active">Numbers</li>
+        </ol>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
         <div>
-            <h4 style="color: var(--admin-primary); font-weight: 600;">Global Numbers Library</h4>
-            <p class="text-muted mb-0">All numbers and keywords across the platform</p>
-        </div>
-        <div>
-            <button class="export-btn" onclick="exportNumbers()">
-                <i class="fas fa-download me-1"></i> Export
-            </button>
+            <h2 style="margin: 0; font-weight: 600; color: #1e3a5f;">Global Numbers Library</h2>
+            <p style="margin: 0; color: #6c757d;">All numbers and keywords across the platform</p>
         </div>
     </div>
 

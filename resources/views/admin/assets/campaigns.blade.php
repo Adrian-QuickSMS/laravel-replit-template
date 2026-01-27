@@ -546,26 +546,19 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
 @endphp
 
 @section('content')
-<div class="admin-page">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-3">
+<div class="container-fluid">
+    <div class="row page-titles">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}" class="text-decoration-none" style="color: #1e3a5f;">Admin</a></li>
-            <li class="breadcrumb-item"><a href="#" class="text-decoration-none" style="color: #1e3a5f;">Management</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="#">Assets</a></li>
             <li class="breadcrumb-item active">Campaign History</li>
         </ol>
-    </nav>
+    </div>
 
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
         <div>
-            <h4 class="mb-1" style="color: var(--admin-primary); font-weight: 600;">Campaign History</h4>
-            <p class="text-muted mb-0">View and manage all customer campaigns across the platform</p>
-        </div>
-        <div>
-            <button class="export-btn" onclick="exportCampaigns()">
-                <i class="fas fa-download me-1"></i> Export
-            </button>
+            <h2 style="margin: 0; font-weight: 600; color: #1e3a5f;">Campaign History</h2>
+            <p style="margin: 0; color: #6c757d;">View and manage all customer campaigns across the platform</p>
         </div>
     </div>
 

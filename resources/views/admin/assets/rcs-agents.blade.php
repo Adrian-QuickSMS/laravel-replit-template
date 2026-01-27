@@ -4,74 +4,144 @@
 
 @push('styles')
 <style>
-.admin-page { padding: 1.5rem; }
-
 .page-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     margin-bottom: 1.5rem;
 }
-
-.page-header h4 {
-    color: var(--admin-primary);
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
-
-.page-header p {
-    color: #64748b;
-    font-size: 0.875rem;
+.page-header h2 {
     margin: 0;
-}
-
-.filter-row {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-end;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.filter-group label {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    color: #64748b;
     font-weight: 600;
+    color: #1e3a5f;
 }
-
-.filter-group select,
-.filter-group input {
-    min-width: 150px;
+.page-header p {
+    margin: 0;
+    color: #6c757d;
+}
+.table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+.api-table {
+    width: 100%;
+    margin: 0;
+    table-layout: fixed;
+}
+.api-table thead th {
+    background: #f8f9fa;
+    padding: 0.75rem 0.5rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+}
+.api-table thead th:hover {
+    background: #e9ecef;
+}
+.api-table thead th i.sort-icon {
+    margin-left: 0.25rem;
+    opacity: 0.5;
+}
+.api-table thead th.sorted i.sort-icon {
+    opacity: 1;
+    color: #1e3a5f;
+}
+.api-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+}
+.api-table tbody tr:last-child {
+    border-bottom: none;
+}
+.api-table tbody tr:hover {
+    background: #f8f9fa;
+}
+.api-table tbody td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: middle;
     font-size: 0.85rem;
 }
-
-.card-header-actions {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
+.filter-panel {
+    background-color: rgba(30, 58, 95, 0.05);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
 }
-
-.export-btn {
-    padding: 0.35rem 0.75rem;
+.multiselect-dropdown .dropdown-menu {
+    max-height: 250px;
+    overflow-y: auto;
+}
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(30, 58, 95, 0.1);
+    color: #1e3a5f;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
     font-size: 0.75rem;
-    background: transparent;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    color: #64748b;
+}
+.filter-chip .remove-chip {
+    margin-left: 0.25rem;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.filter-chip .remove-chip:hover {
+    opacity: 1;
+}
+.account-link {
+    color: #1e3a5f;
+    text-decoration: none;
+    font-weight: 500;
+}
+.account-link:hover {
+    text-decoration: underline;
+}
+.action-menu-btn {
+    background: none;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    color: #6c757d;
     cursor: pointer;
 }
-
-.export-btn:hover {
-    background: #f8fafc;
-    border-color: var(--admin-accent);
-    color: var(--admin-primary);
+.action-menu-btn:hover {
+    color: #1e3a5f;
+}
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+}
+.empty-state-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(30, 58, 95, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+}
+.empty-state-icon i {
+    font-size: 2rem;
+    color: #1e3a5f;
+}
+.empty-state h4 {
+    margin-bottom: 0.5rem;
+    color: #343a40;
+}
+.empty-state p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .agent-name-cell {
@@ -188,28 +258,103 @@
 @endpush
 
 @section('content')
-<div class="admin-page">
-    <div class="admin-breadcrumb">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <a href="#">Management</a>
-        <span class="separator">/</span>
-        <span>RCS Agent Approvals</span>
+<div class="container-fluid">
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="#">Assets</a></li>
+            <li class="breadcrumb-item active">RCS Agent Approvals</li>
+        </ol>
     </div>
 
     <div class="page-header">
         <div>
-            <h4><i class="fas fa-robot me-2"></i>RCS Agent Approvals</h4>
-            <p>Review and approve RCS Business Messaging agent registrations</p>
-        </div>
-        <div class="card-header-actions">
-            <button class="export-btn" onclick="exportQueue('csv')">
-                <i class="fas fa-download me-1"></i> Export
-            </button>
+            <h2>RCS Agent Approvals</h2>
+            <p>Review and approve RCS Business Messaging agent registrations across all accounts</p>
         </div>
     </div>
 
-    <div class="approval-queue-stats">
+    <div class="collapse mb-3" id="filtersPanel">
+        <div class="filter-panel">
+            <div class="row g-3">
+                <div class="col-6 col-md-4 col-lg-2">
+                    <label class="form-label small fw-bold">Account</label>
+                    <select class="form-select form-select-sm" id="filterAccount">
+                        <option value="">All Accounts</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <label class="form-label small fw-bold">Status</label>
+                    <div class="dropdown multiselect-dropdown" data-filter="statuses">
+                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                            <span class="dropdown-label">All Statuses</span>
+                        </button>
+                        <div class="dropdown-menu w-100 p-2">
+                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                            </div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Submitted" id="statusSubmitted"><label class="form-check-label small" for="statusSubmitted">Submitted</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="In Review" id="statusInReview"><label class="form-check-label small" for="statusInReview">In Review</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Approved" id="statusApproved"><label class="form-check-label small" for="statusApproved">Approved</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Rejected" id="statusRejected"><label class="form-check-label small" for="statusRejected">Rejected</label></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <label class="form-label small fw-bold">Type</label>
+                    <div class="dropdown multiselect-dropdown" data-filter="types">
+                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
+                            <span class="dropdown-label">All Types</span>
+                        </button>
+                        <div class="dropdown-menu w-100 p-2">
+                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
+                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
+                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
+                            </div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Conversational" id="typeConversational"><label class="form-check-label small" for="typeConversational">Conversational</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Promotional" id="typePromotional"><label class="form-check-label small" for="typePromotional">Promotional</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Transactional" id="typeTransactional"><label class="form-check-label small" for="typeTransactional">Transactional</label></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <label class="form-label small fw-bold">Submitted From</label>
+                    <input type="date" class="form-control form-control-sm" id="filterDateFrom">
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <label class="form-label small fw-bold">Submitted To</label>
+                    <input type="date" class="form-control form-control-sm" id="filterDateTo">
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-12 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-sm" id="btnApplyFilters" style="background: #1e3a5f; color: white;">
+                        <i class="fas fa-check me-1"></i> Apply Filters
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btnResetFilters">
+                        <i class="fas fa-undo me-1"></i> Reset Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-2 flex-grow-1">
+            <div class="input-group" style="width: 320px;">
+                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="quickSearchInput" placeholder="Search by agent name or account...">
+            </div>
+            <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border-color: #1e3a5f; color: #1e3a5f;">
+            <i class="fas fa-filter me-1"></i> Filters
+        </button>
+    </div>
+
+    <div class="approval-queue-stats mb-3">
         <div class="approval-stat-card pending" data-status="submitted">
             <div class="stat-count" id="stat-submitted">4</div>
             <div class="stat-label">Submitted</div>
@@ -230,44 +375,6 @@
             <div class="stat-count" id="stat-total">254</div>
             <div class="stat-label">Total</div>
         </div>
-    </div>
-
-    <div class="filter-row">
-        <div class="filter-group">
-            <label>Status</label>
-            <select class="form-select form-select-sm" id="filterStatus">
-                <option value="awaiting-action" selected>Awaiting Action</option>
-                <option value="submitted">Submitted Only</option>
-                <option value="in-review">In Review Only</option>
-                <option value="all">All Statuses</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Agent Type</label>
-            <select class="form-select form-select-sm" id="filterType">
-                <option value="">All Types</option>
-                <option value="conversational">Conversational</option>
-                <option value="promotional">Promotional</option>
-                <option value="transactional">Transactional</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Account</label>
-            <select class="form-select form-select-sm" id="filterAccount">
-                <option value="">All Accounts</option>
-                <option value="ACC-1234">Acme Corporation</option>
-                <option value="ACC-5678">Finance Ltd</option>
-                <option value="ACC-3456">MedTech Solutions</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Search</label>
-            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Agent name...">
-        </div>
-        <button class="btn admin-btn-apply" onclick="applyFilters()">Apply</button>
-        <button class="btn btn-link text-muted" onclick="clearFilters()">Clear</button>
     </div>
 
     <div class="approval-bulk-bar" style="display: none;">
