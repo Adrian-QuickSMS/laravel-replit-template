@@ -684,6 +684,11 @@ function updateFilterChips() {
 }
 
 function bindRowActions() {
+    // Initialize Bootstrap dropdowns for dynamically created elements
+    document.querySelectorAll('.table-container .dropdown-toggle, .table-container [data-bs-toggle="dropdown"]').forEach(function(el) {
+        new bootstrap.Dropdown(el);
+    });
+
     document.querySelectorAll('.view-config').forEach(function(btn) {
         btn.addEventListener('click', function(e) {
             e.preventDefault();

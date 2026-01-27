@@ -34,8 +34,15 @@
     overflow: visible;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
+.table-container .table-responsive {
+    overflow: visible !important;
+}
 .table-container .dropdown-menu {
     z-index: 1050;
+    position: absolute !important;
+}
+.table-container td .dropdown {
+    position: static;
 }
 .api-table {
     width: 100%;
@@ -1124,7 +1131,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     renderPagination();
     showPage(1);
+    
+    // Initialize Bootstrap dropdowns for all action buttons
+    initializeDropdowns();
 });
+
+function initializeDropdowns() {
+    document.querySelectorAll('.table-container [data-bs-toggle="dropdown"]').forEach(function(el) {
+        if (!el._bsDropdown) {
+            new bootstrap.Dropdown(el);
+        }
+    });
+}
 
 function filterTable() {
     var searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -1547,6 +1565,9 @@ function addTableRow(user) {
         '</td>';
     
     tbody.insertBefore(tr, tbody.firstChild);
+    
+    // Initialize dropdown for the new row
+    initializeDropdowns();
 }
 
 function formatDateShort(dateStr) {
