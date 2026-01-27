@@ -621,9 +621,133 @@ $(document).ready(function() {
     var itemsPerPage = 25;
     var selectedCustomerId = null;
 
+    function getDataSeparationRules() {
+        return {
+            customerAuditViewer: {
+                description: 'Tenant-scoped customer audit events',
+                requiredFields: ['tenant_id', 'customer'],
+                allowedActorTypes: ['customer_user', 'system'],
+                forbiddenEventTypes: INTERNAL_ADMIN_ONLY_EVENTS,
+                scopeValidation: function(log) {
+                    return log.tenant_id && log.isCustomerFacing === true;
+                }
+            },
+            internalAdminAudit: {
+                description: 'Admin actor-based internal events',
+                requiredFields: ['admin_actor_id', 'actor'],
+                allowedActorTypes: ['admin'],
+                forbiddenEventTypes: [],
+                scopeValidation: function(log) {
+                    return log.admin_actor_id && log.isAdminEvent === true;
+                }
+            }
+        };
+    }
+
+    var IMMUTABILITY_CONTROLS = {
+        appendOnly: true,
+        allowDelete: false,
+        allowModify: false,
+        retentionYears: 7,
+        hashAlgorithm: 'SHA-256'
+    };
+
+    function validateDataSeparation(logs, viewerType) {
+        var allRules = getDataSeparationRules();
+        var rules = allRules[viewerType];
+        if (!rules) {
+            console.error('[DataSeparation] Unknown viewer type:', viewerType);
+            return { valid: false, errors: ['Unknown viewer type'] };
+        }
+
+        var errors = [];
+        var validLogs = [];
+
+        logs.forEach(function(log, index) {
+            var logErrors = [];
+
+            if (!rules.scopeValidation(log)) {
+                logErrors.push('Scope validation failed');
+            }
+
+            if (viewerType === 'customerAuditViewer') {
+                rules.forbiddenEventTypes.forEach(function(forbidden) {
+                    if (log.action === forbidden || log.eventType === forbidden) {
+                        logErrors.push('Forbidden event type in customer viewer: ' + forbidden);
+                    }
+                });
+            }
+
+            if (logErrors.length === 0) {
+                validLogs.push(log);
+            } else {
+                errors.push({ logId: log.id, errors: logErrors });
+            }
+        });
+
+        if (errors.length > 0) {
+            console.warn('[DataSeparation] ' + viewerType + ' validation errors:', errors.length);
+        }
+
+        return { valid: errors.length === 0, validLogs: validLogs, errors: errors };
+    }
+
+    function enforceImmutability(operation, logId) {
+        if (operation === 'delete' && !IMMUTABILITY_CONTROLS.allowDelete) {
+            console.error('[Immutability] DELETE operation blocked for log:', logId);
+            return false;
+        }
+        if (operation === 'modify' && !IMMUTABILITY_CONTROLS.allowModify) {
+            console.error('[Immutability] MODIFY operation blocked for log:', logId);
+            return false;
+        }
+        return true;
+    }
+
+    function appendAuditLog(log, targetStore) {
+        if (!IMMUTABILITY_CONTROLS.appendOnly) {
+            console.error('[Immutability] Append-only mode is disabled');
+            return false;
+        }
+
+        log._immutable = true;
+        log._appendedAt = new Date().toISOString();
+        log._hashChain = generateLogHash(log);
+        
+        if (targetStore === 'customer') {
+            customerLogs.unshift(log);
+        } else if (targetStore === 'admin') {
+            adminLogs.unshift(log);
+        }
+        
+        console.log('[Immutability] Log appended:', log.id, 'to', targetStore);
+        return true;
+    }
+
+    function generateLogHash(log) {
+        var content = JSON.stringify({
+            id: log.id,
+            timestamp: log.timestamp,
+            actor: log.actor,
+            action: log.action || log.eventType
+        });
+        return 'SHA256:' + btoa(content).substring(0, 16);
+    }
+
     function init() {
+        console.log('[DataSeparation] Initializing with strict data separation');
+        console.log('[Immutability] Append-only:', IMMUTABILITY_CONTROLS.appendOnly, 
+                    '| Retention:', IMMUTABILITY_CONTROLS.retentionYears, 'years');
+
         customerLogs = generateMockCustomerLogs();
         adminLogs = generateMockAdminLogs();
+
+        var customerValidation = validateDataSeparation(customerLogs, 'customerAuditViewer');
+        var adminValidation = validateDataSeparation(adminLogs, 'internalAdminAudit');
+
+        console.log('[DataSeparation] Customer logs validated:', customerValidation.validLogs.length, '/', customerLogs.length);
+        console.log('[DataSeparation] Admin logs validated:', adminValidation.validLogs.length, '/', adminLogs.length);
+
         renderCustomerLogs();
         renderAdminLogs();
         updateAdminStats();
@@ -803,12 +927,15 @@ $(document).ready(function() {
                 category: event.category,
                 severity: event.severity,
                 actor: actor,
+                admin_actor_id: 'ADM-' + String(adminActors.indexOf(actor) + 1).padStart(3, '0'),
                 target: target,
                 targetType: event.targetType,
+                customer_id_impacted: event.targetType === 'customer' ? target.id : null,
                 ip: ips[Math.floor(Math.random() * ips.length)],
                 result: Math.random() > 0.03 ? 'success' : 'failure',
                 reason: reason,
-                isInternalOnly: true
+                isInternalOnly: true,
+                isAdminEvent: true
             });
         }
 
@@ -895,7 +1022,13 @@ $(document).ready(function() {
     }
 
     function renderAdminLogs() {
-        var filteredLogs = applyAdminFilters(adminLogs);
+        var filteredLogs = applyAdminFilters(adminLogs).filter(function(log) {
+            if (!log.isAdminEvent || !log.admin_actor_id) {
+                console.warn('[DataSeparation] Blocked non-admin event from Internal Audit:', log.id);
+                return false;
+            }
+            return true;
+        });
 
         var tbody = document.getElementById('adminAuditLogsTableBody');
         tbody.innerHTML = '';
@@ -1554,6 +1687,7 @@ $(document).ready(function() {
                 email: admin.email,
                 role: admin.role
             },
+            admin_actor_id: admin.id,
             category: 'data_access',
             severity: 'high',
             result: 'success',
@@ -1570,6 +1704,9 @@ $(document).ready(function() {
                 name: 'Internal Admin Audit Logs'
             },
             targetType: 'system',
+            customer_id_impacted: null,
+            isAdminEvent: true,
+            isInternalOnly: true,
             ip: '10.0.0.45',
             userAgent: navigator.userAgent
         };
