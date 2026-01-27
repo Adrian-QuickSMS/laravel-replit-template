@@ -455,18 +455,39 @@ $invitedUsers = collect($adminUsers)->where('status', 'Invited')->count();
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                     <li><a class="dropdown-item" href="#" onclick="openUserDetail('{{ $user['id'] }}')"><i class="fas fa-eye me-2"></i>View Details</a></li>
+                                    @if($user['status'] !== 'Archived')
                                     <li><a class="dropdown-item" href="#" onclick="editUser('{{ $user['id'] }}')"><i class="fas fa-edit me-2"></i>Edit User</a></li>
+                                    @else
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-edit me-2"></i>Edit User</a></li>
+                                    @endif
                                     <li><hr class="dropdown-divider"></li>
                                     @if($user['status'] === 'Active')
                                     <li><a class="dropdown-item text-warning" href="#" onclick="suspendUser('{{ $user['id'] }}')"><i class="fas fa-user-slash me-2"></i>Suspend</a></li>
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Only suspended users can be reactivated"><i class="fas fa-user-check me-2"></i>Reactivate</a></li>
                                     @elseif($user['status'] === 'Suspended')
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="User is already suspended"><i class="fas fa-user-slash me-2"></i>Suspend</a></li>
                                     <li><a class="dropdown-item text-success" href="#" onclick="reactivateUser('{{ $user['id'] }}')"><i class="fas fa-user-check me-2"></i>Reactivate</a></li>
                                     @elseif($user['status'] === 'Invited')
                                     <li><a class="dropdown-item" href="#" onclick="resendInvite('{{ $user['id'] }}')"><i class="fas fa-paper-plane me-2"></i>Resend Invite</a></li>
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Cannot suspend invited users"><i class="fas fa-user-slash me-2"></i>Suspend</a></li>
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Cannot reactivate invited users"><i class="fas fa-user-check me-2"></i>Reactivate</a></li>
+                                    @elseif($user['status'] === 'Archived')
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-user-slash me-2"></i>Suspend</a></li>
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-user-check me-2"></i>Reactivate</a></li>
                                     @endif
+                                    @if($user['status'] !== 'Archived' && $user['status'] !== 'Invited')
                                     <li><a class="dropdown-item" href="#" onclick="resetMfa('{{ $user['id'] }}')"><i class="fas fa-key me-2"></i>Reset MFA</a></li>
+                                    @else
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-key me-2"></i>Reset MFA</a></li>
+                                    @endif
                                     <li><hr class="dropdown-divider"></li>
+                                    @if($user['status'] === 'Suspended')
                                     <li><a class="dropdown-item text-danger" href="#" onclick="archiveUser('{{ $user['id'] }}')"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                    @elseif($user['status'] === 'Archived')
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Already archived"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                    @else
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Only suspended users can be archived"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                    @endif
                                 </ul>
                             </div>
                         </td>
@@ -504,6 +525,99 @@ $invitedUsers = collect($adminUsers)->where('status', 'Invited')->count();
     <div class="panel-body" id="userDetailBody">
     </div>
     <div class="panel-actions" id="userDetailActions">
+    </div>
+</div>
+
+<div class="modal fade" id="suspendUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #fff3cd; border-bottom: 1px solid #ffc107;">
+                <h5 class="modal-title" style="color: #856404;"><i class="fas fa-user-slash me-2"></i>Suspend Admin User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning mb-3" style="background: #fff3cd; border: 1px solid #ffc107;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This will immediately revoke all active sessions for this user.
+                </div>
+                <p class="mb-3">You are about to suspend <strong id="suspendUserName"></strong>.</p>
+                <div class="mb-0">
+                    <label class="form-label">Reason for suspension <span class="text-muted small">(optional)</span></label>
+                    <textarea class="form-control" id="suspendReason" rows="3" placeholder="Enter reason for suspension..."></textarea>
+                </div>
+                <input type="hidden" id="suspendUserId">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmSuspendBtn" onclick="confirmSuspend()">
+                    <i class="fas fa-user-slash me-1"></i> Suspend User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reactivateUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #d4edda; border-bottom: 1px solid #28a745;">
+                <h5 class="modal-title" style="color: #155724;"><i class="fas fa-user-check me-2"></i>Reactivate Admin User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">You are about to reactivate <strong id="reactivateUserName"></strong>.</p>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="requireMfaReenrol" checked>
+                    <label class="form-check-label" for="requireMfaReenrol">
+                        Require MFA re-enrollment on next login
+                    </label>
+                    <div class="form-text">Recommended for security after suspension</div>
+                </div>
+                <input type="hidden" id="reactivateUserId">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmReactivateBtn" onclick="confirmReactivate()">
+                    <i class="fas fa-user-check me-1"></i> Reactivate User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="archiveUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f8d7da; border-bottom: 1px solid #dc3545;">
+                <h5 class="modal-title" style="color: #721c24;"><i class="fas fa-archive me-2"></i>Archive Admin User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger mb-3">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Permanent Action:</strong> Archived users cannot be reactivated. This action is final.
+                </div>
+                <p class="mb-3">You are about to archive <strong id="archiveUserName"></strong>.</p>
+                <div class="mb-3">
+                    <label class="form-label">Reason for archiving <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="archiveReason" rows="3" placeholder="Enter reason for archiving..." required></textarea>
+                    <div class="invalid-feedback">Reason is required for archiving</div>
+                </div>
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="confirmArchiveCheck" onchange="toggleArchiveBtn()">
+                    <label class="form-check-label" for="confirmArchiveCheck">
+                        I understand this action is permanent and cannot be undone
+                    </label>
+                </div>
+                <input type="hidden" id="archiveUserId">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmArchiveBtn" onclick="confirmArchive()" disabled>
+                    <i class="fas fa-archive me-1"></i> Archive Permanently
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -786,9 +900,14 @@ function openUserDetail(userId) {
     document.getElementById('userDetailBody').innerHTML = html;
     
     var actionsHtml = '';
+    var canDoSuspend = user.status === 'Active';
+    var canDoReactivate = user.status === 'Suspended';
+    var canDoArchive = user.status === 'Suspended';
+    
     if (user.status === 'Invited') {
         actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="resendInvite(\'' + userId + '\')"><i class="fas fa-paper-plane me-1"></i>Resend Invite</button>';
         actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="revokeInvite(\'' + userId + '\'); closeUserDetail();"><i class="fas fa-times me-1"></i>Revoke</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-warning" disabled title="Cannot suspend invited users"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
     } else if (user.status === 'Active') {
         actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="editUser(\'' + userId + '\')"><i class="fas fa-edit me-1"></i>Edit</button>';
         actionsHtml += '<button class="btn btn-sm btn-outline-warning" onclick="suspendUser(\'' + userId + '\')"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
@@ -796,11 +915,15 @@ function openUserDetail(userId) {
         if (user.active_sessions > 0) {
             actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="terminateSessions(\'' + userId + '\')"><i class="fas fa-sign-out-alt me-1"></i>End Sessions</button>';
         }
+        actionsHtml += '<button class="btn btn-sm btn-outline-success" disabled title="Only suspended users can be reactivated"><i class="fas fa-user-check me-1"></i>Reactivate</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-secondary" disabled title="Only suspended users can be archived"><i class="fas fa-archive me-1"></i>Archive</button>';
     } else if (user.status === 'Suspended') {
+        actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" disabled title="Cannot edit suspended users"><i class="fas fa-edit me-1"></i>Edit</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-warning" disabled title="User is already suspended"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
         actionsHtml += '<button class="btn btn-sm btn-outline-success" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-user-check me-1"></i>Reactivate</button>';
-        actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="archiveUser(\'' + userId + '\')"><i class="fas fa-archive me-1"></i>Archive</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="archiveUser(\'' + userId + '\')"><i class="fas fa-archive me-1"></i>Archive</button>';
     } else if (user.status === 'Archived') {
-        actionsHtml += '<button class="btn btn-sm btn-outline-primary" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-undo me-1"></i>Restore</button>';
+        actionsHtml += '<div class="text-center w-100"><span class="text-muted small"><i class="fas fa-lock me-1"></i>Archived users cannot be modified</span></div>';
     }
     
     document.getElementById('userDetailActions').innerHTML = actionsHtml;
@@ -1016,14 +1139,237 @@ function updateStats() {
     document.querySelectorAll('.stat-card .stat-content h3')[3].textContent = suspendedArchived;
 }
 
-function editUser(userId) { console.log('[AdminUsers] Edit:', userId); closeUserDetail(); }
-function suspendUser(userId) { if (confirm('Suspend this user?')) { showToast('User suspended', 'warning'); closeUserDetail(); } }
-function reactivateUser(userId) { showToast('User reactivated', 'success'); closeUserDetail(); }
-function resetMfa(userId) { if (confirm('Reset MFA for this user?')) { showToast('MFA reset email sent', 'info'); } }
+function editUser(userId) { 
+    console.log('[AdminUsers] Edit:', userId); 
+    closeUserDetail(); 
+    showToast('Edit functionality coming soon', 'info');
+}
+
+function suspendUser(userId) {
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user) {
+        showToast('User not found', 'error');
+        return;
+    }
+    if (user.status !== 'Active') {
+        showToast('Only active users can be suspended', 'error');
+        return;
+    }
+    
+    document.getElementById('suspendUserId').value = userId;
+    document.getElementById('suspendUserName').textContent = user.name;
+    document.getElementById('suspendReason').value = '';
+    closeUserDetail();
+    new bootstrap.Modal(document.getElementById('suspendUserModal')).show();
+}
+
+function confirmSuspend() {
+    var userId = document.getElementById('suspendUserId').value;
+    var reason = document.getElementById('suspendReason').value.trim();
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    
+    if (!user || user.status !== 'Active') {
+        showToast('Cannot suspend: Invalid user state', 'error');
+        bootstrap.Modal.getInstance(document.getElementById('suspendUserModal')).hide();
+        return;
+    }
+    
+    var btn = document.getElementById('confirmSuspendBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Suspending...';
+    
+    setTimeout(function() {
+        user.status = 'Suspended';
+        user.active_sessions = 0;
+        user.suspended_at = new Date().toISOString();
+        user.suspended_reason = reason || null;
+        
+        updateTableRowStatus(userId, 'Suspended');
+        updateStats();
+        
+        bootstrap.Modal.getInstance(document.getElementById('suspendUserModal')).hide();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-user-slash me-1"></i> Suspend User';
+        
+        showToast(user.name + ' has been suspended. All sessions revoked.', 'warning');
+        console.log('[AdminUsers] User suspended:', { userId: userId, reason: reason || 'none' });
+    }, 600);
+}
+
+function reactivateUser(userId) {
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user) {
+        showToast('User not found', 'error');
+        return;
+    }
+    if (user.status !== 'Suspended') {
+        showToast('Only suspended users can be reactivated', 'error');
+        return;
+    }
+    
+    document.getElementById('reactivateUserId').value = userId;
+    document.getElementById('reactivateUserName').textContent = user.name;
+    document.getElementById('requireMfaReenrol').checked = true;
+    closeUserDetail();
+    new bootstrap.Modal(document.getElementById('reactivateUserModal')).show();
+}
+
+function confirmReactivate() {
+    var userId = document.getElementById('reactivateUserId').value;
+    var requireMfa = document.getElementById('requireMfaReenrol').checked;
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    
+    if (!user || user.status !== 'Suspended') {
+        showToast('Cannot reactivate: Invalid user state', 'error');
+        bootstrap.Modal.getInstance(document.getElementById('reactivateUserModal')).hide();
+        return;
+    }
+    
+    var btn = document.getElementById('confirmReactivateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Reactivating...';
+    
+    setTimeout(function() {
+        user.status = 'Active';
+        user.reactivated_at = new Date().toISOString();
+        if (requireMfa) {
+            user.mfa_status = 'Not Enrolled';
+            user.mfa_method = null;
+            user.require_mfa_reenrol = true;
+        }
+        
+        updateTableRowStatus(userId, 'Active');
+        updateTableRowMfa(userId, requireMfa ? 'Not Enrolled' : user.mfa_status);
+        updateStats();
+        
+        bootstrap.Modal.getInstance(document.getElementById('reactivateUserModal')).hide();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-user-check me-1"></i> Reactivate User';
+        
+        var msg = user.name + ' has been reactivated.';
+        if (requireMfa) msg += ' MFA re-enrollment required on next login.';
+        showToast(msg, 'success');
+        console.log('[AdminUsers] User reactivated:', { userId: userId, requireMfa: requireMfa });
+    }, 600);
+}
+
+function archiveUser(userId) {
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user) {
+        showToast('User not found', 'error');
+        return;
+    }
+    if (user.status !== 'Suspended') {
+        showToast('Only suspended users can be archived', 'error');
+        return;
+    }
+    
+    document.getElementById('archiveUserId').value = userId;
+    document.getElementById('archiveUserName').textContent = user.name;
+    document.getElementById('archiveReason').value = '';
+    document.getElementById('archiveReason').classList.remove('is-invalid');
+    document.getElementById('confirmArchiveCheck').checked = false;
+    document.getElementById('confirmArchiveBtn').disabled = true;
+    closeUserDetail();
+    new bootstrap.Modal(document.getElementById('archiveUserModal')).show();
+}
+
+function toggleArchiveBtn() {
+    var checked = document.getElementById('confirmArchiveCheck').checked;
+    document.getElementById('confirmArchiveBtn').disabled = !checked;
+}
+
+function confirmArchive() {
+    var userId = document.getElementById('archiveUserId').value;
+    var reason = document.getElementById('archiveReason').value.trim();
+    var confirmed = document.getElementById('confirmArchiveCheck').checked;
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    
+    if (!reason) {
+        document.getElementById('archiveReason').classList.add('is-invalid');
+        return;
+    }
+    
+    if (!confirmed) {
+        showToast('Please confirm you understand this action is permanent', 'warning');
+        return;
+    }
+    
+    if (!user || user.status !== 'Suspended') {
+        showToast('Cannot archive: Only suspended users can be archived', 'error');
+        bootstrap.Modal.getInstance(document.getElementById('archiveUserModal')).hide();
+        return;
+    }
+    
+    var btn = document.getElementById('confirmArchiveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Archiving...';
+    
+    setTimeout(function() {
+        user.status = 'Archived';
+        user.archived_at = new Date().toISOString();
+        user.archived_reason = reason;
+        
+        updateTableRowStatus(userId, 'Archived');
+        updateStats();
+        
+        bootstrap.Modal.getInstance(document.getElementById('archiveUserModal')).hide();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-archive me-1"></i> Archive Permanently';
+        
+        showToast(user.name + ' has been permanently archived.', 'warning');
+        console.log('[AdminUsers] User archived:', { userId: userId, reason: reason });
+    }, 600);
+}
+
+function updateTableRowStatus(userId, newStatus) {
+    var row = document.querySelector('tr[data-id="' + userId + '"]');
+    if (!row) return;
+    
+    var statusCell = row.querySelector('td:nth-child(3)');
+    if (!statusCell) return;
+    
+    var statusClass = {
+        'Active': 'badge-active',
+        'Invited': 'badge-invited',
+        'Suspended': 'badge-suspended',
+        'Archived': 'badge-archived'
+    }[newStatus] || 'badge-archived';
+    
+    statusCell.innerHTML = '<span class="badge-pill ' + statusClass + '">' + newStatus + '</span>';
+    highlightRow(userId);
+}
+
+function updateTableRowMfa(userId, mfaStatus) {
+    var row = document.querySelector('tr[data-id="' + userId + '"]');
+    if (!row) return;
+    
+    var mfaCell = row.querySelector('td:nth-child(4)');
+    if (!mfaCell) return;
+    
+    var mfaClass = mfaStatus === 'Enrolled' ? 'badge-enrolled' : 'badge-not-enrolled';
+    mfaCell.innerHTML = '<span class="badge-pill ' + mfaClass + '">' + mfaStatus + '</span>';
+}
+
+function resetMfa(userId) { 
+    if (confirm('Reset MFA for this user? They will need to re-enroll on next login.')) { 
+        var user = allUsers.find(function(u) { return u.id === userId; });
+        if (user) {
+            user.mfa_status = 'Not Enrolled';
+            user.mfa_method = null;
+            updateTableRowMfa(userId, 'Not Enrolled');
+            openUserDetail(userId);
+        }
+        showToast('MFA reset email sent', 'info'); 
+    } 
+}
 
 function resendInvite(userId) {
     var user = allUsers.find(function(u) { return u.id === userId; });
-    if (!user || user.status !== 'Invited') return;
+    if (!user || user.status !== 'Invited') {
+        showToast('Cannot resend: User is not in invited state', 'error');
+        return;
+    }
     
     showToast('Resending invitation to ' + user.email + '...', 'info');
     setTimeout(function() {
@@ -1047,7 +1393,9 @@ function revokeInvite(userId) {
     }
 }
 
-function archiveUser(userId) { if (confirm('Archive this user? This action can be reversed.')) { showToast('User archived', 'warning'); } }
+function canSuspend(status) { return status === 'Active'; }
+function canReactivate(status) { return status === 'Suspended'; }
+function canArchive(status) { return status === 'Suspended'; }
 
 function showToast(message, type) {
     var toastContainer = document.getElementById('toastContainer');
