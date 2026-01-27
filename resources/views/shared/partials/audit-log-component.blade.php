@@ -464,9 +464,6 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                 <thead>
                     <tr>
                         <th style="width: 150px;" class="{{ $prefix }}-sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
-                        @if($showCustomerSelector)
-                        <th style="width: 140px;">Customer</th>
-                        @endif
                         <th style="width: 100px;">Event ID</th>
                         <th class="{{ $prefix }}-sortable-header" data-sort="action">Action <i class="fas fa-sort ms-1 sort-icon"></i></th>
                         <th style="width: 120px;" class="{{ $prefix }}-sortable-header" data-sort="category">Category <i class="fas fa-sort ms-1 sort-icon"></i></th>

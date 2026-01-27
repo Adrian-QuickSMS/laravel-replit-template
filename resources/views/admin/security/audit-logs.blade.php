@@ -518,43 +518,99 @@ $(document).ready(function() {
         bindEvents();
     }
 
+    var CUSTOMER_FACING_EVENT_TYPES = [
+        'USER_CREATED', 'USER_INVITED', 'USER_SUSPENDED', 'USER_REACTIVATED', 'USER_DELETED',
+        'LOGIN_SUCCESS', 'LOGIN_FAILED', 'PASSWORD_CHANGED', 'PASSWORD_RESET_REQUESTED',
+        'MFA_ENABLED', 'MFA_DISABLED', 'MFA_VERIFIED',
+        'ROLE_CHANGED', 'PERMISSION_GRANTED', 'PERMISSION_REVOKED',
+        'SUB_ACCOUNT_CREATED', 'SUB_ACCOUNT_UPDATED', 'SUB_ACCOUNT_DELETED',
+        'CAMPAIGN_CREATED', 'CAMPAIGN_SUBMITTED', 'CAMPAIGN_SENT', 'CAMPAIGN_CANCELLED',
+        'CONTACT_CREATED', 'CONTACT_UPDATED', 'CONTACT_DELETED', 'CONTACT_LIST_IMPORTED',
+        'PURCHASE_COMPLETED', 'CREDITS_ADDED', 'PAYMENT_PROCESSED',
+        'API_KEY_CREATED', 'API_KEY_REVOKED', 'WEBHOOK_CONFIGURED',
+        'DATA_EXPORTED', 'REPORT_GENERATED', 'REPORT_DOWNLOADED',
+        'SETTINGS_UPDATED', 'ACCOUNT_DETAILS_UPDATED'
+    ];
+
+    var INTERNAL_ADMIN_ONLY_EVENTS = [
+        'IMPERSONATION_STARTED', 'IMPERSONATION_ENDED', 'SUPPORT_MODE_ENABLED',
+        'PRICING_EDITED', 'BILLING_MODE_CHANGED', 'CREDIT_LIMIT_CHANGED',
+        'SENDERID_APPROVED', 'SENDERID_REJECTED', 'SENDERID_SUSPENDED',
+        'RCS_AGENT_APPROVED', 'RCS_AGENT_REJECTED', 'RCS_AGENT_SUSPENDED',
+        'CAMPAIGN_APPROVED_BY_ADMIN', 'CAMPAIGN_REJECTED_BY_ADMIN',
+        'TEMPLATE_APPROVED', 'TEMPLATE_REJECTED', 'TEMPLATE_SUSPENDED',
+        'NUMBER_ASSIGNED', 'NUMBER_UNASSIGNED', 'NUMBER_PORTED',
+        'ADMIN_USER_INVITED', 'ADMIN_USER_SUSPENDED', 'ADMIN_USER_REACTIVATED',
+        'ADMIN_USER_PASSWORD_RESET', 'ADMIN_USER_MFA_RESET', 'ADMIN_USER_SESSIONS_REVOKED',
+        'LOGIN_BLOCKED_BY_IP', 'ADMIN_EXPORT_INITIATED',
+        'ACCOUNT_SUSPENDED_BY_ADMIN', 'ACCOUNT_REACTIVATED_BY_ADMIN',
+        'INVOICE_CREATED_BY_ADMIN', 'CREDIT_NOTE_CREATED_BY_ADMIN'
+    ];
+
     function generateMockCustomerLogs() {
-        var actions = [
+        var customerFacingActions = [
             { type: 'USER_CREATED', category: 'user_management', severity: 'medium' },
             { type: 'USER_INVITED', category: 'user_management', severity: 'low' },
+            { type: 'USER_SUSPENDED', category: 'user_management', severity: 'high' },
             { type: 'LOGIN_SUCCESS', category: 'authentication', severity: 'low' },
             { type: 'LOGIN_FAILED', category: 'authentication', severity: 'medium' },
+            { type: 'PASSWORD_CHANGED', category: 'authentication', severity: 'medium' },
             { type: 'MFA_ENABLED', category: 'security', severity: 'medium' },
+            { type: 'MFA_DISABLED', category: 'security', severity: 'high' },
+            { type: 'ROLE_CHANGED', category: 'access_control', severity: 'high' },
+            { type: 'PERMISSION_GRANTED', category: 'access_control', severity: 'medium' },
+            { type: 'CAMPAIGN_CREATED', category: 'messaging', severity: 'low' },
             { type: 'CAMPAIGN_SUBMITTED', category: 'messaging', severity: 'low' },
-            { type: 'CAMPAIGN_APPROVED', category: 'messaging', severity: 'medium' },
+            { type: 'CAMPAIGN_SENT', category: 'messaging', severity: 'low' },
+            { type: 'CONTACT_LIST_IMPORTED', category: 'contacts', severity: 'low' },
             { type: 'PURCHASE_COMPLETED', category: 'financial', severity: 'medium' },
+            { type: 'CREDITS_ADDED', category: 'financial', severity: 'medium' },
+            { type: 'API_KEY_CREATED', category: 'api', severity: 'high' },
+            { type: 'API_KEY_REVOKED', category: 'api', severity: 'high' },
             { type: 'DATA_EXPORTED', category: 'data_access', severity: 'high' },
-            { type: 'ROLE_CHANGED', category: 'access_control', severity: 'high' }
+            { type: 'REPORT_GENERATED', category: 'reporting', severity: 'low' },
+            { type: 'SETTINGS_UPDATED', category: 'account', severity: 'medium' }
         ];
 
-        var actors = ['sarah@acmecorp.com', 'james@techstart.co.uk', 'emily@healthfirst.nhs.uk', 'michael@retailmax.com', 'lisa@servicepro.co.uk'];
-        var targets = ['New User', 'Campaign #1234', 'Sub-Account', 'Contact List', 'API Key'];
-        var ips = ['192.168.1.100', '10.0.0.45', '172.16.0.22', '203.45.67.89', '81.23.45.67'];
+        var actorsByCustomer = {
+            'acc-001': ['sarah@acmecorp.com', 'john@acmecorp.com', 'mike@acmecorp.com'],
+            'acc-002': ['james@techstart.co.uk', 'anna@techstart.co.uk'],
+            'acc-003': ['emily@healthfirst.nhs.uk', 'dr.jones@healthfirst.nhs.uk'],
+            'acc-004': ['michael@retailmax.com', 'sales@retailmax.com'],
+            'acc-005': ['lisa@servicepro.co.uk', 'support@servicepro.co.uk'],
+            'acc-006': ['mark@digitalagency.co', 'creative@digitalagency.co'],
+            'acc-007': ['finance@finsolutions.com', 'accounts@finsolutions.com'],
+            'acc-008': ['admin@healthcare.partners', 'ops@healthcare.partners'],
+            'acc-009': ['orders@ecommercehub.com', 'fulfillment@ecommercehub.com'],
+            'acc-010': ['campaigns@marketingexperts.com', 'analytics@marketingexperts.com']
+        };
+
+        var targets = ['New User', 'Campaign #1234', 'Sub-Account', 'Contact List', 'API Key', 'User Settings', 'Report Export', 'Webhook Config'];
+        var ips = ['192.168.1.100', '10.0.0.45', '172.16.0.22', '203.45.67.89', '81.23.45.67', '145.67.89.12', '87.123.45.67'];
         var logs = [];
         var now = new Date();
 
         for (var i = 0; i < 250; i++) {
-            var action = actions[Math.floor(Math.random() * actions.length)];
+            var action = customerFacingActions[Math.floor(Math.random() * customerFacingActions.length)];
             var customer = allCustomers[Math.floor(Math.random() * allCustomers.length)];
+            var customerActors = actorsByCustomer[customer.id] || ['user@customer.com'];
             var timestamp = new Date(now.getTime() - Math.random() * 30 * 24 * 60 * 60 * 1000);
 
             logs.push({
                 id: 'CLOG-' + String(i + 1).padStart(6, '0'),
                 timestamp: timestamp.toISOString(),
                 customer: customer,
+                tenant_id: customer.id,
                 action: action.type,
                 actionLabel: action.type.replace(/_/g, ' '),
                 category: action.category,
                 severity: action.severity,
-                actor: actors[Math.floor(Math.random() * actors.length)],
+                actor: customerActors[Math.floor(Math.random() * customerActors.length)],
+                actorType: 'customer_user',
                 target: targets[Math.floor(Math.random() * targets.length)],
                 ip: ips[Math.floor(Math.random() * ips.length)],
-                result: Math.random() > 0.1 ? 'success' : 'failure'
+                result: Math.random() > 0.1 ? 'success' : 'failure',
+                isCustomerFacing: true
             });
         }
 
@@ -563,53 +619,82 @@ $(document).ready(function() {
     }
 
     function generateMockAdminLogs() {
-        var eventTypes = [
-            { type: 'ADMIN_USER_INVITED', severity: 'medium' },
-            { type: 'ADMIN_USER_SUSPENDED', severity: 'high' },
-            { type: 'ADMIN_USER_REACTIVATED', severity: 'medium' },
-            { type: 'ADMIN_USER_PASSWORD_RESET', severity: 'high' },
-            { type: 'ADMIN_USER_MFA_RESET', severity: 'critical' },
-            { type: 'ADMIN_USER_SESSIONS_REVOKED', severity: 'high' },
-            { type: 'IMPERSONATION_STARTED', severity: 'critical' },
-            { type: 'IMPERSONATION_ENDED', severity: 'high' },
-            { type: 'LOGIN_BLOCKED_BY_IP', severity: 'critical' },
-            { type: 'ADMIN_USER_EMAIL_UPDATED', severity: 'high' }
+        var adminOnlyEventTypes = [
+            { type: 'ADMIN_USER_INVITED', category: 'admin_users', severity: 'medium', targetType: 'admin' },
+            { type: 'ADMIN_USER_SUSPENDED', category: 'admin_users', severity: 'high', targetType: 'admin' },
+            { type: 'ADMIN_USER_REACTIVATED', category: 'admin_users', severity: 'medium', targetType: 'admin' },
+            { type: 'ADMIN_USER_PASSWORD_RESET', category: 'security', severity: 'high', targetType: 'admin' },
+            { type: 'ADMIN_USER_MFA_RESET', category: 'security', severity: 'critical', targetType: 'admin' },
+            { type: 'ADMIN_USER_SESSIONS_REVOKED', category: 'security', severity: 'high', targetType: 'admin' },
+            { type: 'IMPERSONATION_STARTED', category: 'impersonation', severity: 'critical', targetType: 'customer' },
+            { type: 'IMPERSONATION_ENDED', category: 'impersonation', severity: 'high', targetType: 'customer' },
+            { type: 'SUPPORT_MODE_ENABLED', category: 'impersonation', severity: 'high', targetType: 'customer' },
+            { type: 'LOGIN_BLOCKED_BY_IP', category: 'security', severity: 'critical', targetType: 'admin' },
+            { type: 'PRICING_EDITED', category: 'billing', severity: 'high', targetType: 'customer' },
+            { type: 'BILLING_MODE_CHANGED', category: 'billing', severity: 'high', targetType: 'customer' },
+            { type: 'CREDIT_LIMIT_CHANGED', category: 'billing', severity: 'high', targetType: 'customer' },
+            { type: 'SENDERID_APPROVED', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'SENDERID_REJECTED', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'RCS_AGENT_APPROVED', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'CAMPAIGN_APPROVED_BY_ADMIN', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'TEMPLATE_SUSPENDED', category: 'approvals', severity: 'high', targetType: 'customer' },
+            { type: 'NUMBER_ASSIGNED', category: 'numbers', severity: 'medium', targetType: 'customer' },
+            { type: 'ACCOUNT_SUSPENDED_BY_ADMIN', category: 'accounts', severity: 'critical', targetType: 'customer' },
+            { type: 'INVOICE_CREATED_BY_ADMIN', category: 'billing', severity: 'medium', targetType: 'customer' },
+            { type: 'ADMIN_EXPORT_INITIATED', category: 'data_access', severity: 'high', targetType: 'system' }
         ];
 
-        var actors = [
-            { email: 'sarah.johnson@quicksms.co.uk', name: 'Sarah Johnson' },
-            { email: 'james.mitchell@quicksms.co.uk', name: 'James Mitchell' },
-            { email: 'emily.chen@quicksms.co.uk', name: 'Emily Chen' }
+        var adminActors = [
+            { email: 'sarah.johnson@quicksms.co.uk', name: 'Sarah Johnson', role: 'Super Admin' },
+            { email: 'james.mitchell@quicksms.co.uk', name: 'James Mitchell', role: 'Super Admin' },
+            { email: 'emily.chen@quicksms.co.uk', name: 'Emily Chen', role: 'Internal Support' },
+            { email: 'david.lee@quicksms.co.uk', name: 'David Lee', role: 'Internal Support' },
+            { email: 'anna.williams@quicksms.co.uk', name: 'Anna Williams', role: 'Super Admin' }
         ];
 
-        var targets = [
-            { email: 'michael.brown@quicksms.co.uk', name: 'Michael Brown' },
-            { email: 'anna.williams@quicksms.co.uk', name: 'Anna Williams' },
-            { email: 'david.lee@quicksms.co.uk', name: 'David Lee' },
-            { email: 'new.user@quicksms.co.uk', name: 'New User' }
+        var adminTargets = [
+            { email: 'michael.brown@quicksms.co.uk', name: 'Michael Brown', type: 'admin' },
+            { email: 'new.admin@quicksms.co.uk', name: 'New Admin User', type: 'admin' }
         ];
 
-        var ips = ['10.0.1.50', '10.0.1.51', '10.0.1.52', '192.168.100.1'];
+        var customerTargets = allCustomers.map(function(c) {
+            return { name: c.name, id: c.id, account_number: c.account_number, type: 'customer' };
+        });
+
+        var ips = ['10.0.1.50', '10.0.1.51', '10.0.1.52', '192.168.100.1', '10.0.1.100'];
         var logs = [];
         var now = new Date();
 
-        for (var i = 0; i < 100; i++) {
-            var event = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-            var actor = actors[Math.floor(Math.random() * actors.length)];
-            var target = targets[Math.floor(Math.random() * targets.length)];
+        for (var i = 0; i < 150; i++) {
+            var event = adminOnlyEventTypes[Math.floor(Math.random() * adminOnlyEventTypes.length)];
+            var actor = adminActors[Math.floor(Math.random() * adminActors.length)];
+            var target = event.targetType === 'admin' 
+                ? adminTargets[Math.floor(Math.random() * adminTargets.length)]
+                : event.targetType === 'customer'
+                    ? customerTargets[Math.floor(Math.random() * customerTargets.length)]
+                    : { name: 'System', type: 'system' };
             var timestamp = new Date(now.getTime() - Math.random() * 30 * 24 * 60 * 60 * 1000);
+
+            var reason = null;
+            if (event.type.includes('SUSPENDED') || event.type.includes('REJECTED') || event.type.includes('BLOCKED')) {
+                var reasons = ['Policy violation', 'Security concern', 'Compliance requirement', 'Customer request', 'Fraud prevention'];
+                reason = reasons[Math.floor(Math.random() * reasons.length)];
+            }
 
             logs.push({
                 id: 'ALOG-' + String(i + 1).padStart(6, '0'),
                 timestamp: timestamp.toISOString(),
                 eventType: event.type,
                 eventLabel: event.type.replace(/_/g, ' '),
+                category: event.category,
                 severity: event.severity,
                 actor: actor,
                 target: target,
+                targetType: event.targetType,
                 ip: ips[Math.floor(Math.random() * ips.length)],
-                result: Math.random() > 0.05 ? 'success' : 'failure',
-                reason: Math.random() > 0.6 ? 'Security policy enforcement' : null
+                result: Math.random() > 0.03 ? 'success' : 'failure',
+                reason: reason,
+                isInternalOnly: true
             });
         }
 
@@ -618,9 +703,17 @@ $(document).ready(function() {
     }
 
     function renderCustomerLogs() {
-        var filteredLogs = selectedCustomerId 
-            ? customerLogs.filter(function(l) { return l.customer.id === selectedCustomerId; })
-            : customerLogs;
+        var filteredLogs = customerLogs.filter(function(log) {
+            if (!log.isCustomerFacing) return false;
+            if (INTERNAL_ADMIN_ONLY_EVENTS.indexOf(log.action) !== -1) return false;
+            if (selectedCustomerId) {
+                return log.tenant_id === selectedCustomerId;
+            }
+            return true;
+        });
+
+        var showCustomerColumn = !selectedCustomerId;
+        updateCustomerColumnVisibility(showCustomerColumn);
 
         var tbody = document.getElementById('customerAuditLogsTableBody');
         tbody.innerHTML = '';
@@ -642,9 +735,14 @@ $(document).ready(function() {
         pageLogs.forEach(function(log) {
             var row = document.createElement('tr');
             row.className = 'customer-audit-log-row';
+            
+            var customerCell = showCustomerColumn 
+                ? '<td class="customer-col"><span class="badge bg-light text-dark" style="font-size: 0.7rem;">' + log.customer.name + '</span></td>' 
+                : '';
+            
             row.innerHTML = 
                 '<td>' + formatTimestamp(log.timestamp) + '</td>' +
-                '<td><span class="badge bg-light text-dark" style="font-size: 0.7rem;">' + log.customer.name + '</span></td>' +
+                customerCell +
                 '<td><code class="small">' + log.id + '</code></td>' +
                 '<td>' + log.actionLabel + '</td>' +
                 '<td><span class="badge customer-category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></td>' +
@@ -663,22 +761,49 @@ $(document).ready(function() {
         renderPagination('customer', filteredLogs.length, customerPage);
     }
 
+    function updateCustomerColumnVisibility(show) {
+        var table = document.getElementById('customerAuditLogsTable');
+        if (!table) return;
+        
+        var headerRow = table.querySelector('thead tr');
+        var existingCustomerHeader = headerRow.querySelector('.customer-col-header');
+        
+        if (show && !existingCustomerHeader) {
+            var th = document.createElement('th');
+            th.className = 'customer-col-header';
+            th.style.width = '140px';
+            th.textContent = 'Customer';
+            var timestampHeader = headerRow.querySelector('th:first-child');
+            timestampHeader.insertAdjacentElement('afterend', th);
+        } else if (!show && existingCustomerHeader) {
+            existingCustomerHeader.remove();
+        }
+    }
+
     function renderAdminLogs() {
+        var filteredLogs = adminLogs.filter(function(log) {
+            return log.isInternalOnly === true;
+        });
+
         var tbody = document.getElementById('adminAuditLogsTableBody');
         tbody.innerHTML = '';
 
         var start = (adminPage - 1) * itemsPerPage;
-        var end = Math.min(start + itemsPerPage, adminLogs.length);
-        var pageLogs = adminLogs.slice(start, end);
+        var end = Math.min(start + itemsPerPage, filteredLogs.length);
+        var pageLogs = filteredLogs.slice(start, end);
 
         pageLogs.forEach(function(log) {
             var row = document.createElement('tr');
+            
+            var targetDisplay = formatAdminTarget(log.target, log.targetType);
+            var categoryBadgeClass = getCategoryBadgeClass(log.category);
+            
             row.innerHTML = 
                 '<td>' + formatTimestamp(log.timestamp) + '</td>' +
                 '<td><code class="small">' + log.id + '</code></td>' +
-                '<td><span class="badge admin-category-badge-admin">' + log.eventLabel + '</span></td>' +
-                '<td>' + log.actor.email + '</td>' +
-                '<td>' + log.target.email + '</td>' +
+                '<td><span class="badge ' + categoryBadgeClass + '">' + log.eventLabel + '</span></td>' +
+                '<td><span class="small">' + log.actor.email + '</span><br><span class="text-muted" style="font-size: 0.7rem;">' + log.actor.role + '</span></td>' +
+                '<td>' + targetDisplay + '</td>' +
                 '<td><span class="badge admin-severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></td>' +
                 '<td><code class="small">' + log.ip + '</code></td>' +
                 '<td><button class="btn btn-link btn-sm p-0 text-muted" onclick="event.stopPropagation();"><i class="fas fa-ellipsis-v"></i></button></td>';
@@ -686,11 +811,37 @@ $(document).ready(function() {
             tbody.appendChild(row);
         });
 
-        $('#adminTotalFiltered').text(adminLogs.length);
-        $('#adminShowingStart').text(start + 1);
+        $('#adminTotalFiltered').text(filteredLogs.length);
+        $('#adminShowingStart').text(filteredLogs.length > 0 ? start + 1 : 0);
         $('#adminShowingEnd').text(end);
-        $('#adminPaginationTotal').text(adminLogs.length);
-        renderPagination('admin', adminLogs.length, adminPage);
+        $('#adminPaginationTotal').text(filteredLogs.length);
+        renderPagination('admin', filteredLogs.length, adminPage);
+    }
+
+    function formatAdminTarget(target, targetType) {
+        if (targetType === 'admin') {
+            return '<span class="small">' + (target.email || target.name) + '</span><br>' +
+                   '<span class="badge" style="font-size: 0.65rem; background-color: rgba(30, 58, 95, 0.1); color: #1e3a5f;">Admin User</span>';
+        } else if (targetType === 'customer') {
+            return '<span class="small">' + target.name + '</span><br>' +
+                   '<span class="badge" style="font-size: 0.65rem; background-color: rgba(28, 187, 140, 0.15); color: #1cbb8c;">Customer</span>';
+        } else {
+            return '<span class="small text-muted">' + (target.name || 'System') + '</span>';
+        }
+    }
+
+    function getCategoryBadgeClass(category) {
+        var categoryClasses = {
+            'admin_users': 'admin-category-badge-admin',
+            'security': 'admin-severity-badge-high',
+            'impersonation': 'admin-category-badge-impersonation',
+            'billing': 'admin-category-badge-admin',
+            'approvals': 'admin-category-badge-admin',
+            'numbers': 'admin-category-badge-admin',
+            'accounts': 'admin-category-badge-admin',
+            'data_access': 'admin-severity-badge-high'
+        };
+        return categoryClasses[category] || 'admin-category-badge-admin';
     }
 
     function renderPagination(type, total, currentPage) {
