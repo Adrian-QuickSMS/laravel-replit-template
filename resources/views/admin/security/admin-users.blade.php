@@ -291,8 +291,8 @@ $invitedUsers = collect($adminUsers)->where('status', 'Invited')->count();
             <h2>Admin Users</h2>
             <p>Manage internal QuickSMS administrator accounts</p>
         </div>
-        <button class="btn" style="background: #1e3a5f; color: white;" onclick="showAddUserModal()">
-            <i class="fas fa-plus me-1"></i> Add Admin User
+        <button class="btn" style="background: #1e3a5f; color: white;" onclick="showInviteModal()">
+            <i class="fas fa-envelope me-1"></i> Invite Admin User
         </button>
     </div>
 
@@ -507,49 +507,66 @@ $invitedUsers = collect($adminUsers)->where('status', 'Invited')->count();
     </div>
 </div>
 
-<div class="modal fade" id="addUserModal" tabindex="-1">
+<div class="modal fade" id="inviteUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Admin User</h5>
+            <div class="modal-header" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #1e3a5f;"><i class="fas fa-envelope me-2"></i>Invite Admin User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="addUserForm">
-                    <div class="mb-3">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" class="form-control" id="newUserName" required>
+                <form id="inviteUserForm" novalidate>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="inviteFirstName" required>
+                            <div class="invalid-feedback">First name is required</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="inviteLastName" required>
+                            <div class="invalid-feedback">Last name is required</div>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="newUserEmail" required>
+                        <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="inviteEmail" required>
+                        <div class="invalid-feedback" id="emailError">Valid email is required</div>
                         <div class="form-text">Must be a @quicksms.co.uk email address</div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Role</label>
-                        <select class="form-select" id="newUserRole" required>
-                            <option value="">Select Role</option>
-                            <option value="Super Admin">Super Admin</option>
-                            <option value="Internal Support">Internal Support</option>
-                        </select>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Role <span class="text-danger">*</span></label>
+                            <select class="form-select" id="inviteRole" required>
+                                <option value="">Select Role</option>
+                                <option value="Super Admin">Super Admin</option>
+                                <option value="Internal Support">Internal Support</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a role</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Department <span class="text-danger">*</span></label>
+                            <select class="form-select" id="inviteDepartment" required>
+                                <option value="">Select Department</option>
+                                <option value="Engineering">Engineering</option>
+                                <option value="Operations">Operations</option>
+                                <option value="Customer Success">Customer Success</option>
+                                <option value="Technical Support">Technical Support</option>
+                                <option value="Security">Security</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a department</div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Department</label>
-                        <select class="form-select" id="newUserDepartment" required>
-                            <option value="">Select Department</option>
-                            <option value="Engineering">Engineering</option>
-                            <option value="Operations">Operations</option>
-                            <option value="Customer Success">Customer Success</option>
-                            <option value="Technical Support">Technical Support</option>
-                            <option value="Security">Security</option>
-                        </select>
+                    <div class="mb-0">
+                        <label class="form-label">Internal Note <span class="text-muted small">(optional)</span></label>
+                        <textarea class="form-control" id="inviteNote" rows="2" placeholder="Add any notes about this user..."></textarea>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="background: #f8f9fa; border-top: 1px solid #e9ecef;">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn" style="background: #1e3a5f; color: white;" onclick="createUser()">
-                    <i class="fas fa-plus me-1"></i> Send Invite
+                <button type="button" class="btn" style="background: #1e3a5f; color: white;" id="sendInviteBtn" onclick="sendInvite()">
+                    <i class="fas fa-paper-plane me-1"></i> Send Invite
                 </button>
             </div>
         </div>
@@ -688,7 +705,24 @@ function openUserDetail(userId) {
     
     var mfaClass = user.mfa_status === 'Enrolled' ? 'badge-enrolled' : 'badge-not-enrolled';
     
-    var html = '<div class="detail-section">' +
+    var inviteExpired = false;
+    if (user.status === 'Invited' && user.invite_sent_at) {
+        var inviteDate = new Date(user.invite_sent_at);
+        var now = new Date();
+        var daysDiff = (now - inviteDate) / (1000 * 60 * 60 * 24);
+        if (daysDiff > 7) inviteExpired = true;
+    }
+    
+    var html = '';
+    
+    if (inviteExpired) {
+        html += '<div class="alert alert-warning d-flex align-items-center mb-3" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 0.75rem 1rem;">' +
+            '<i class="fas fa-exclamation-triangle me-2 text-warning"></i>' +
+            '<div><strong>Invite Expired</strong><br><small class="text-muted">This invitation was sent more than 7 days ago. Consider resending.</small></div>' +
+            '</div>';
+    }
+    
+    html += '<div class="detail-section">' +
         '<h6>User Information</h6>' +
         '<div class="detail-row"><span class="label">User ID</span><span class="value">' + user.id + '</span></div>' +
         '<div class="detail-row"><span class="label">Name</span><span class="value">' + user.name + '</span></div>' +
@@ -696,8 +730,17 @@ function openUserDetail(userId) {
         '<div class="detail-row"><span class="label">Role</span><span class="value">' + user.role + '</span></div>' +
         '<div class="detail-row"><span class="label">Department</span><span class="value">' + user.department + '</span></div>' +
         '<div class="detail-row"><span class="label">Status</span><span class="value"><span class="badge-pill ' + statusClass + '">' + user.status + '</span></span></div>' +
-        '</div>' +
-        '<div class="detail-section">' +
+        '</div>';
+    
+    if (user.status === 'Invited') {
+        html += '<div class="detail-section">' +
+            '<h6>Invitation</h6>' +
+            '<div class="detail-row"><span class="label">Invite Sent</span><span class="value">' + (user.invite_sent_at ? formatDate(user.invite_sent_at) : formatDate(user.created_at)) + '</span></div>' +
+            (user.internal_note ? '<div class="detail-row"><span class="label">Internal Note</span><span class="value">' + user.internal_note + '</span></div>' : '') +
+            '</div>';
+    }
+    
+    html += '<div class="detail-section">' +
         '<h6>Security</h6>' +
         '<div class="detail-row"><span class="label">MFA Status</span><span class="value"><span class="badge-pill ' + mfaClass + '">' + user.mfa_status + '</span></span></div>' +
         '<div class="detail-row"><span class="label">MFA Method</span><span class="value">' + (user.mfa_method || 'N/A') + '</span></div>' +
@@ -712,13 +755,19 @@ function openUserDetail(userId) {
     
     document.getElementById('userDetailBody').innerHTML = html;
     
-    var actionsHtml = '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="editUser(\'' + userId + '\')"><i class="fas fa-edit me-1"></i>Edit</button>';
-    if (user.status === 'Active') {
-        actionsHtml += '<button class="btn btn-sm btn-outline-warning" onclick="suspendUser(\'' + userId + '\')"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
-    } else if (user.status === 'Suspended') {
-        actionsHtml += '<button class="btn btn-sm btn-outline-success" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-user-check me-1"></i>Reactivate</button>';
+    var actionsHtml = '';
+    if (user.status === 'Invited') {
+        actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="resendInvite(\'' + userId + '\')"><i class="fas fa-paper-plane me-1"></i>Resend Invite</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="revokeInvite(\'' + userId + '\'); closeUserDetail();"><i class="fas fa-times me-1"></i>Revoke</button>';
+    } else {
+        actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="editUser(\'' + userId + '\')"><i class="fas fa-edit me-1"></i>Edit</button>';
+        if (user.status === 'Active') {
+            actionsHtml += '<button class="btn btn-sm btn-outline-warning" onclick="suspendUser(\'' + userId + '\')"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
+        } else if (user.status === 'Suspended') {
+            actionsHtml += '<button class="btn btn-sm btn-outline-success" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-user-check me-1"></i>Reactivate</button>';
+        }
+        actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="resetMfa(\'' + userId + '\')"><i class="fas fa-key me-1"></i>Reset MFA</button>';
     }
-    actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="resetMfa(\'' + userId + '\')"><i class="fas fa-key me-1"></i>Reset MFA</button>';
     
     document.getElementById('userDetailActions').innerHTML = actionsHtml;
     
@@ -737,24 +786,213 @@ function formatDate(dateStr) {
     return d.toLocaleDateString('en-GB') + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 }
 
-function showAddUserModal() {
-    new bootstrap.Modal(document.getElementById('addUserModal')).show();
+function showInviteModal() {
+    document.getElementById('inviteUserForm').reset();
+    document.getElementById('inviteUserForm').classList.remove('was-validated');
+    document.querySelectorAll('#inviteUserForm .is-invalid').forEach(function(el) {
+        el.classList.remove('is-invalid');
+    });
+    new bootstrap.Modal(document.getElementById('inviteUserModal')).show();
 }
 
-function createUser() {
-    var name = document.getElementById('newUserName').value;
-    var email = document.getElementById('newUserEmail').value;
-    if (!name || !email) { alert('Please fill in all fields'); return; }
-    if (!email.endsWith('@quicksms.co.uk')) { alert('Email must be a @quicksms.co.uk address'); return; }
-    bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
-    showToast('Invitation sent to ' + email, 'success');
+function validateInviteForm() {
+    var form = document.getElementById('inviteUserForm');
+    var firstName = document.getElementById('inviteFirstName').value.trim();
+    var lastName = document.getElementById('inviteLastName').value.trim();
+    var email = document.getElementById('inviteEmail').value.trim();
+    var role = document.getElementById('inviteRole').value;
+    var department = document.getElementById('inviteDepartment').value;
+    var isValid = true;
+    
+    document.querySelectorAll('#inviteUserForm .form-control, #inviteUserForm .form-select').forEach(function(el) {
+        el.classList.remove('is-invalid');
+    });
+    
+    if (!firstName) {
+        document.getElementById('inviteFirstName').classList.add('is-invalid');
+        isValid = false;
+    }
+    if (!lastName) {
+        document.getElementById('inviteLastName').classList.add('is-invalid');
+        isValid = false;
+    }
+    if (!email) {
+        document.getElementById('inviteEmail').classList.add('is-invalid');
+        document.getElementById('emailError').textContent = 'Email is required';
+        isValid = false;
+    } else if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        document.getElementById('inviteEmail').classList.add('is-invalid');
+        document.getElementById('emailError').textContent = 'Please enter a valid email address';
+        isValid = false;
+    } else if (!email.endsWith('@quicksms.co.uk')) {
+        document.getElementById('inviteEmail').classList.add('is-invalid');
+        document.getElementById('emailError').textContent = 'Email must be a @quicksms.co.uk address';
+        isValid = false;
+    } else if (allUsers.some(function(u) { return u.email.toLowerCase() === email.toLowerCase(); })) {
+        document.getElementById('inviteEmail').classList.add('is-invalid');
+        document.getElementById('emailError').textContent = 'This email address is already registered';
+        isValid = false;
+    }
+    if (!role) {
+        document.getElementById('inviteRole').classList.add('is-invalid');
+        isValid = false;
+    }
+    if (!department) {
+        document.getElementById('inviteDepartment').classList.add('is-invalid');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+function sendInvite() {
+    if (!validateInviteForm()) return;
+    
+    var firstName = document.getElementById('inviteFirstName').value.trim();
+    var lastName = document.getElementById('inviteLastName').value.trim();
+    var email = document.getElementById('inviteEmail').value.trim();
+    var role = document.getElementById('inviteRole').value;
+    var department = document.getElementById('inviteDepartment').value;
+    var note = document.getElementById('inviteNote').value.trim();
+    
+    var btn = document.getElementById('sendInviteBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending...';
+    
+    setTimeout(function() {
+        var newId = 'ADM' + String(allUsers.length + 1).padStart(3, '0');
+        var newUser = {
+            id: newId,
+            name: firstName + ' ' + lastName,
+            email: email,
+            role: role,
+            department: department,
+            status: 'Invited',
+            mfa_status: 'Not Enrolled',
+            mfa_method: null,
+            last_login: null,
+            last_activity: null,
+            failed_logins_24h: 0,
+            created_at: new Date().toISOString().split('T')[0],
+            internal_note: note,
+            invite_sent_at: new Date().toISOString()
+        };
+        
+        allUsers.unshift(newUser);
+        filteredUsers = [...allUsers];
+        
+        addTableRow(newUser);
+        updateStats();
+        filterTable();
+        highlightRow(newId);
+        
+        bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Invite';
+        
+        showToast('Invitation sent to ' + email, 'success');
+        console.log('[AdminUsers] Invite sent:', { email: email, role: role, note: note || 'none' });
+    }, 800);
+}
+
+function addTableRow(user) {
+    var tbody = document.getElementById('adminUsersTableBody');
+    var statusClass = 'badge-invited';
+    var mfaClass = 'badge-not-enrolled';
+    
+    var tr = document.createElement('tr');
+    tr.className = 'user-row';
+    tr.dataset.id = user.id;
+    tr.dataset.user = JSON.stringify(user);
+    tr.onclick = function() { openUserDetail(user.id); };
+    
+    tr.innerHTML = '<td><div class="user-name">' + user.name + '</div></td>' +
+        '<td title="' + user.email + '">' + user.email + '</td>' +
+        '<td><span class="badge-pill ' + statusClass + '">' + user.status + '</span></td>' +
+        '<td><span class="badge-pill ' + mfaClass + '">' + user.mfa_status + '</span></td>' +
+        '<td>-</td>' +
+        '<td><span class="text-muted">Never</span></td>' +
+        '<td><span class="text-muted">-</span></td>' +
+        '<td>0</td>' +
+        '<td>' + formatDateShort(user.created_at) + '</td>' +
+        '<td class="text-center" onclick="event.stopPropagation()">' +
+            '<div class="dropdown">' +
+                '<button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>' +
+                '<ul class="dropdown-menu dropdown-menu-end shadow-sm">' +
+                    '<li><a class="dropdown-item" href="#" onclick="openUserDetail(\'' + user.id + '\')"><i class="fas fa-eye me-2"></i>View Details</a></li>' +
+                    '<li><a class="dropdown-item" href="#" onclick="resendInvite(\'' + user.id + '\')"><i class="fas fa-paper-plane me-2"></i>Resend Invite</a></li>' +
+                    '<li><hr class="dropdown-divider"></li>' +
+                    '<li><a class="dropdown-item text-danger" href="#" onclick="revokeInvite(\'' + user.id + '\')"><i class="fas fa-times me-2"></i>Revoke Invite</a></li>' +
+                '</ul>' +
+            '</div>' +
+        '</td>';
+    
+    tbody.insertBefore(tr, tbody.firstChild);
+}
+
+function formatDateShort(dateStr) {
+    if (!dateStr) return '-';
+    var d = new Date(dateStr);
+    var day = String(d.getDate()).padStart(2, '0');
+    var month = String(d.getMonth() + 1).padStart(2, '0');
+    var year = d.getFullYear();
+    return day + '-' + month + '-' + year;
+}
+
+function highlightRow(userId) {
+    var row = document.querySelector('tr[data-id="' + userId + '"]');
+    if (row) {
+        row.style.backgroundColor = '#e8f4fd';
+        row.style.transition = 'background-color 0.3s ease';
+        setTimeout(function() {
+            row.style.backgroundColor = '';
+        }, 3000);
+    }
+}
+
+function updateStats() {
+    var total = allUsers.length;
+    var active = allUsers.filter(function(u) { return u.status === 'Active'; }).length;
+    var invited = allUsers.filter(function(u) { return u.status === 'Invited'; }).length;
+    var suspendedArchived = allUsers.filter(function(u) { return u.status === 'Suspended' || u.status === 'Archived'; }).length;
+    
+    document.querySelectorAll('.stat-card .stat-content h3')[0].textContent = total;
+    document.querySelectorAll('.stat-card .stat-content h3')[1].textContent = active;
+    document.querySelectorAll('.stat-card .stat-content h3')[2].textContent = invited;
+    document.querySelectorAll('.stat-card .stat-content h3')[3].textContent = suspendedArchived;
 }
 
 function editUser(userId) { console.log('[AdminUsers] Edit:', userId); closeUserDetail(); }
 function suspendUser(userId) { if (confirm('Suspend this user?')) { showToast('User suspended', 'warning'); closeUserDetail(); } }
 function reactivateUser(userId) { showToast('User reactivated', 'success'); closeUserDetail(); }
 function resetMfa(userId) { if (confirm('Reset MFA for this user?')) { showToast('MFA reset email sent', 'info'); } }
-function resendInvite(userId) { showToast('Invitation resent', 'success'); }
+
+function resendInvite(userId) {
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user || user.status !== 'Invited') return;
+    
+    showToast('Resending invitation to ' + user.email + '...', 'info');
+    setTimeout(function() {
+        user.invite_sent_at = new Date().toISOString();
+        showToast('Invitation resent to ' + user.email, 'success');
+        console.log('[AdminUsers] Invite resent:', userId);
+    }, 500);
+}
+
+function revokeInvite(userId) {
+    if (!confirm('Revoke this invitation? The user will no longer be able to accept it.')) return;
+    var idx = allUsers.findIndex(function(u) { return u.id === userId; });
+    if (idx > -1 && allUsers[idx].status === 'Invited') {
+        allUsers.splice(idx, 1);
+        filteredUsers = [...allUsers];
+        var row = document.querySelector('tr[data-id="' + userId + '"]');
+        if (row) row.remove();
+        updateStats();
+        filterTable();
+        showToast('Invitation revoked', 'warning');
+    }
+}
+
 function archiveUser(userId) { if (confirm('Archive this user? This action can be reversed.')) { showToast('User archived', 'warning'); } }
 
 function showToast(message, type) {
