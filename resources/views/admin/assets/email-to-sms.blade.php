@@ -25,8 +25,18 @@
     border: 1px solid #e9ecef;
     overflow: visible;
 }
+.table-container .table-responsive {
+    overflow: visible !important;
+}
 .table-container .dropdown-menu {
     z-index: 1050;
+    position: absolute;
+}
+.table-container .dropdown {
+    position: static;
+}
+.table-container td:last-child .dropdown {
+    position: relative;
 }
 .api-table {
     width: 100%;
