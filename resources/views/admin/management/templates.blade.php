@@ -129,36 +129,36 @@
     margin-left: auto;
     margin-right: auto;
 }
-.templates-table-container {
+.table-container {
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
-    overflow: visible;
+    overflow: hidden;
 }
-.templates-table-container .dropdown-menu {
+.table-container .dropdown-menu {
     z-index: 1050;
     position: absolute !important;
 }
-.templates-table-container .dropdown {
+.table-container .dropdown {
     position: static;
 }
-.templates-table tbody tr {
+.api-table tbody tr {
     position: relative;
 }
-.templates-table tbody td:last-child .dropdown-menu {
+.api-table tbody td:last-child .dropdown-menu {
     position: fixed !important;
     z-index: 1060;
 }
-.templates-table {
+.api-table {
     width: 100%;
     margin: 0;
     table-layout: fixed;
 }
-.templates-table thead th {
+.api-table thead th {
     background: #f8f9fa;
-    padding: 0.5rem 0.35rem;
+    padding: 0.75rem 0.5rem;
     font-weight: 600;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: #495057;
     border-bottom: 1px solid #e9ecef;
     cursor: pointer;
@@ -167,66 +167,44 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.templates-table thead th:first-child { width: 11%; }  /* Account */
-.templates-table thead th:nth-child(2) { width: 11%; } /* Name */
-.templates-table thead th:nth-child(3) { width: 9%; }  /* ID */
-.templates-table thead th:nth-child(4) { width: 4%; }  /* Ver */
-.templates-table thead th:nth-child(5) { width: 8%; }  /* Channel */
-.templates-table thead th:nth-child(6) { width: 7%; }  /* Trigger */
-.templates-table thead th:nth-child(7) { width: 14%; } /* Preview */
-.templates-table thead th:nth-child(8) { width: 10%; } /* Scope */
-.templates-table thead th:nth-child(9) { width: 7%; }  /* Status */
-.templates-table thead th:nth-child(10) { width: 9%; } /* Updated */
-.templates-table thead th:last-child { 
-    width: 10%; 
-    min-width: 60px;
-    position: sticky;
-    right: 0;
-    background: #f8f9fa;
-    z-index: 2;
-    cursor: default;
-    text-align: center;
-}
-.templates-table thead th:hover {
+.api-table thead th:hover {
     background: #e9ecef;
 }
-.templates-table thead th:last-child:hover {
+.api-table thead th:last-child:hover {
     background: #f8f9fa;
 }
-.templates-table thead th .sort-icon {
+.api-table thead th .sort-icon,
+.api-table thead th i.sort-icon {
     margin-left: 0.25rem;
-    opacity: 0.4;
+    opacity: 0.5;
 }
-.templates-table thead th.sorted .sort-icon {
+.api-table thead th.sorted .sort-icon,
+.api-table thead th.sorted i.sort-icon {
     opacity: 1;
     color: #1e3a5f;
 }
-.templates-table tbody td {
-    padding: 0.5rem 0.35rem;
+.api-table tbody td {
+    padding: 0.75rem 0.5rem;
     vertical-align: middle;
-    border-bottom: 1px solid #f1f3f5;
-    font-size: 0.8rem;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.85rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 0;
 }
-.templates-table tbody td:last-child {
-    position: sticky;
-    right: 0;
-    background: #fff;
-    z-index: 1;
-    box-shadow: -2px 0 4px rgba(0,0,0,0.05);
-    text-align: center;
-    min-width: 60px;
+.api-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
 }
-.templates-table tbody tr:last-child td {
+.api-table tbody tr:last-child {
     border-bottom: none;
 }
-.templates-table tbody tr:hover td {
+.api-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.api-table tbody tr:hover {
     background: #f8f9fa;
 }
-.templates-table tbody tr:hover td:last-child {
+.api-table tbody tr:hover td {
     background: #f8f9fa;
 }
 .template-name {
@@ -661,31 +639,33 @@
 
             <div class="active-filters mb-3" id="activeFilters"></div>
 
-            <div class="templates-table-container table-loading" id="tableContainer">
+            <div class="table-container table-loading" id="tableContainer">
                 <div class="loading-overlay d-none" id="tableLoadingOverlay">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
-                <table class="templates-table">
-                    <thead>
-                        <tr>
-                            <th data-sort="accountName" onclick="sortTable('accountName')">Account <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="name" onclick="sortTable('name')">Name <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="templateId" onclick="sortTable('templateId')">ID <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="version" onclick="sortTable('version')">Ver <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="channel" onclick="sortTable('channel')">Channel <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="trigger" onclick="sortTable('trigger')">Trigger <i class="fas fa-sort sort-icon"></i></th>
-                            <th>Preview</th>
-                            <th data-sort="accessScope" onclick="sortTable('accessScope')">Scope <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="status" onclick="sortTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="lastUpdated" onclick="sortTable('lastUpdated')">Updated <i class="fas fa-sort sort-icon"></i></th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody id="templatesBody">
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table api-table mb-0">
+                        <thead>
+                            <tr>
+                                <th data-sort="accountName">Account <i class="fas fa-sort sort-icon"></i></th>
+                                <th data-sort="name">Name <i class="fas fa-sort sort-icon"></i></th>
+                                <th data-sort="templateId">ID <i class="fas fa-sort sort-icon"></i></th>
+                                <th data-sort="version">Ver <i class="fas fa-sort sort-icon"></i></th>
+                                <th data-sort="channel">Channel <i class="fas fa-sort sort-icon"></i></th>
+                                <th data-sort="trigger">Trigger <i class="fas fa-sort sort-icon"></i></th>
+                                <th>Preview</th>
+                                <th data-sort="accessScope">Scope <i class="fas fa-sort sort-icon"></i></th>
+                                <th data-sort="status">Status <i class="fas fa-sort sort-icon"></i></th>
+                                <th data-sort="lastUpdated">Updated <i class="fas fa-sort sort-icon"></i></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="templatesBody">
+                        </tbody>
+                    </table>
+                </div>
                 
                 <div class="pagination-container" id="paginationContainer">
                     <div class="pagination-info" id="paginationInfo">
@@ -1374,7 +1354,7 @@ function sortTable(column) {
         sortDirection = 'asc';
     }
     
-    document.querySelectorAll('.templates-table thead th').forEach(function(th) {
+    document.querySelectorAll('.api-table thead th').forEach(function(th) {
         th.classList.remove('sorted');
         var icon = th.querySelector('.sort-icon');
         if (icon) {

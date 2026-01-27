@@ -257,9 +257,53 @@
     color: #495057;
 }
 
-#numbersTable tbody tr td { padding: 0.5rem 0.75rem; vertical-align: middle; }
-#numbersTable thead th { padding: 0.5rem 0.75rem; font-size: 0.8rem; font-weight: 600; color: #495057; background: #f8f9fa; }
-#numbersTable tbody tr:hover { background: #f8f9fa; }
+.table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+.api-table {
+    width: 100%;
+    margin: 0;
+    table-layout: fixed;
+}
+.api-table thead th {
+    background: #f8f9fa;
+    padding: 0.75rem 0.5rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+}
+.api-table thead th:hover {
+    background: #e9ecef;
+}
+.api-table thead th i.sort-icon {
+    margin-left: 0.25rem;
+    opacity: 0.5;
+}
+.api-table thead th.sorted i.sort-icon {
+    opacity: 1;
+    color: #1e3a5f;
+}
+.api-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+}
+.api-table tbody tr:last-child {
+    border-bottom: none;
+}
+.api-table tbody tr:hover {
+    background: #f8f9fa;
+}
+.api-table tbody td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
 
 .number-value { 
     font-weight: 600; 
@@ -274,19 +318,6 @@
     font-size: 0.75rem; 
     color: #6c757d; 
 }
-
-.sortable { cursor: pointer; user-select: none; position: relative; white-space: nowrap; }
-.sortable:hover { background: #e9ecef; }
-.sortable::after {
-    content: '\f0dc';
-    font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free';
-    font-weight: 900;
-    margin-left: 0.5rem;
-    color: #adb5bd;
-    font-size: 0.7rem;
-}
-.sortable.sort-asc::after { content: '\f0de'; color: var(--admin-primary); }
-.sortable.sort-desc::after { content: '\f0dd'; color: var(--admin-primary); }
 
 .badge-admin-active { background: rgba(30, 58, 95, 0.15); color: var(--admin-primary); }
 .badge-admin-suspended { background: rgba(30, 58, 95, 0.08); color: #6c757d; }
@@ -865,45 +896,41 @@ tr.selected-row:hover {
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0" id="numbersTable">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;" class="text-center">
-                                <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onchange="toggleSelectAll()">
-                            </th>
-                            <th class="sortable" data-sort="number">Number / Keyword</th>
-                            <th class="sortable" data-sort="country">Country</th>
-                            <th class="sortable" data-sort="type">Number Type</th>
-                            <th class="sortable" data-sort="status">Status</th>
-                            <th class="sortable" data-sort="account">Customer Account</th>
-                            <th class="sortable text-end" data-sort="cost">Monthly Cost</th>
-                            <th class="sortable" data-sort="supplier">Supplier</th>
-                            <th class="sortable" data-sort="created">Created Date</th>
-                            <th class="text-center" style="width: 50px;">Actions</th>
-                        </tr>
-                    </thead>
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table api-table mb-0" id="numbersTable">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;" class="text-center">
+                            <input type="checkbox" class="form-check-input" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                        </th>
+                        <th data-sort="number">Number / Keyword <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="country">Country <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="type">Number Type <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="status">Status <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="account">Customer Account <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="cost" class="text-end">Monthly Cost <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="supplier">Supplier <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="created">Created Date <i class="fas fa-sort sort-icon"></i></th>
+                        <th class="text-center" style="width: 50px;">Actions</th>
+                    </tr>
+                </thead>
                     <tbody id="numbersTableBody">
                         <!-- Dynamic content populated by JavaScript -->
                     </tbody>
                 </table>
-            </div>
-            <div class="table-footer">
-                <div class="pagination-info">
-                    Showing <span id="showingStart">1</span>-<span id="showingEnd">20</span> of <span id="totalCount">156</span> numbers
-                </div>
-                <nav>
-                    <ul class="pagination pagination-sm" id="tablePagination">
-                        <li class="page-item disabled"><a class="page-link" href="#"><i class="fas fa-chevron-left"></i></a></li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#"><i class="fas fa-chevron-right"></i></a></li>
-                    </ul>
-                </nav>
-            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-3 border-top">
+            <span class="text-muted small">Showing <span id="showingStart">1</span>-<span id="showingEnd">20</span> of <span id="totalCount">156</span> numbers</span>
+            <nav>
+                <ul class="pagination pagination-sm mb-0" id="tablePagination">
+                    <li class="page-item disabled"><a class="page-link" href="#"><i class="fas fa-chevron-left"></i></a></li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#"><i class="fas fa-chevron-right"></i></a></li>
+                </ul>
+            </nav>
         </div>
     </div>
 </div>
@@ -2002,11 +2029,11 @@ function updatePaginationInfo(pagination = null) {
 }
 
 function initializeSorting() {
-    document.querySelectorAll('#numbersTable th.sortable').forEach(th => {
+    document.querySelectorAll('#numbersTable th[data-sort]').forEach(th => {
         th.addEventListener('click', function() {
             const column = this.dataset.sort;
             
-            document.querySelectorAll('#numbersTable th.sortable').forEach(h => {
+            document.querySelectorAll('#numbersTable th[data-sort]').forEach(h => {
                 h.classList.remove('sort-asc', 'sort-desc');
             });
             

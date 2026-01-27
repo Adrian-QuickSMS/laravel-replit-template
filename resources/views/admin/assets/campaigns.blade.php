@@ -22,40 +22,52 @@
 /* =========================================
    Table Container Fixes
    ========================================= */
-.admin-page .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+.table-container {
+    background: #fff;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
 }
-.admin-page .table {
+.api-table {
     width: 100%;
-    margin-bottom: 0;
+    margin: 0;
+    table-layout: fixed;
 }
-.admin-page .card-body.p-0 {
-    padding: 0 !important;
-}
-.admin-page .table thead th {
-    padding: 0.5rem 0.35rem;
-    font-size: 0.75rem;
-    font-weight: 600;
+.api-table thead th {
     background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-    vertical-align: middle;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.admin-page .table tbody td {
-    padding: 0.5rem 0.35rem;
+    padding: 0.75rem 0.5rem;
+    font-weight: 600;
     font-size: 0.8rem;
-    border-bottom: 1px solid #f1f3f5;
-    vertical-align: middle;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+    cursor: pointer;
     white-space: nowrap;
+    user-select: none;
 }
-.admin-page .table .actions-cell {
-    text-align: center;
-    white-space: nowrap;
+.api-table thead th:hover {
+    background: #e9ecef;
+}
+.api-table thead th i.sort-icon {
+    margin-left: 0.25rem;
+    opacity: 0.5;
+}
+.api-table thead th.sorted i.sort-icon {
+    opacity: 1;
+    color: #1e3a5f;
+}
+.api-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+}
+.api-table tbody tr:last-child {
+    border-bottom: none;
+}
+.api-table tbody tr:hover {
+    background: #f8f9fa;
+}
+.api-table tbody td {
+    padding: 0.75rem 0.5rem;
+    vertical-align: middle;
+    font-size: 0.85rem;
 }
 
 /* =========================================
@@ -699,29 +711,20 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     </div>
 
     <!-- Campaigns Table -->
-    <div class="card" style="border: 1px solid #e9ecef; border-radius: 0.75rem;">
-        <div class="card-body p-0">
-            <div class="table-responsive" id="campaignsTable">
-                <table class="table table-hover mb-0 align-middle" style="width: 100%; table-layout: fixed;">
-                    <thead>
-                        <tr>
-                            <th class="sortable-header" data-sort="account" onclick="toggleSort('account')" style="width: 11%;">
-                                Account <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="sortable-header" data-sort="name" onclick="toggleSort('name')" style="width: 22%;">
-                                Campaign <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th style="width: 9%;">Channel</th>
-                            <th style="width: 10%;">Status</th>
-                            <th class="sortable-header" data-sort="recipients" onclick="toggleSort('recipients')" style="width: 14%;">
-                                Recipients <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="sortable-header" data-sort="date" onclick="toggleSort('date')" style="width: 14%;">
-                                Send Date <i class="fas fa-sort sort-icon"></i>
-                            </th>
-                            <th class="text-center" style="width: 6%; min-width: 50px;">Actions</th>
-                        </tr>
-                    </thead>
+    <div class="table-container" id="campaignsTableContainer">
+        <div class="table-responsive" id="campaignsTable">
+            <table class="table api-table mb-0">
+                <thead>
+                    <tr>
+                        <th data-sort="account">Account <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="name">Campaign <i class="fas fa-sort sort-icon"></i></th>
+                        <th>Channel</th>
+                        <th>Status</th>
+                        <th data-sort="recipients">Recipients <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="date">Send Date <i class="fas fa-sort sort-icon"></i></th>
+                        <th class="text-center" style="width: 50px;">Actions</th>
+                    </tr>
+                </thead>
                     <tbody id="campaignsTableBody">
                         @forelse($campaigns as $campaign)
                         <tr class="campaign-row" 
@@ -830,17 +833,17 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                     </tbody>
                 </table>
             </div>
-            
-            <!-- No Results State -->
-            <div id="noResultsState" class="d-none text-center py-5">
-                <div class="text-muted">
-                    <i class="fas fa-search fa-3x mb-3 d-block"></i>
-                    <h6>No matching campaigns</h6>
-                    <p class="mb-0 small">Try adjusting your search or filter criteria.</p>
-                    <button class="btn btn-outline-secondary btn-sm mt-3" onclick="window.resetFilters(); clearSearch();">
-                        <i class="fas fa-undo me-1"></i> Clear all filters
-                    </button>
-                </div>
+        </div>
+        
+        <!-- No Results State -->
+        <div id="noResultsState" class="d-none text-center py-5">
+            <div class="text-muted">
+                <i class="fas fa-search fa-3x mb-3 d-block"></i>
+                <h6>No matching campaigns</h6>
+                <p class="mb-0 small">Try adjusting your search or filter criteria.</p>
+                <button class="btn btn-outline-secondary btn-sm mt-3" onclick="window.resetFilters(); clearSearch();">
+                    <i class="fas fa-undo me-1"></i> Clear all filters
+                </button>
             </div>
         </div>
     </div>
@@ -1338,13 +1341,13 @@ function toggleSort(field) {
         currentSortDirection = 'asc';
     }
     
-    document.querySelectorAll('.sortable-header').forEach(function(th) {
+    document.querySelectorAll('.api-table thead th[data-sort]').forEach(function(th) {
         th.classList.remove('sort-asc', 'sort-desc');
         var icon = th.querySelector('.sort-icon');
         if (icon) icon.className = 'fas fa-sort sort-icon';
     });
     
-    var activeHeader = document.querySelector('.sortable-header[data-sort="' + field + '"]');
+    var activeHeader = document.querySelector('.api-table thead th[data-sort="' + field + '"]');
     if (activeHeader) {
         activeHeader.classList.add('sort-' + currentSortDirection);
         var icon = activeHeader.querySelector('.sort-icon');

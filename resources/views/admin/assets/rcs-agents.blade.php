@@ -390,19 +390,19 @@
         </div>
     </div>
 
-    <div class="admin-card">
-        <div class="card-body p-0">
-            <table class="table approval-queue-table mb-0">
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table api-table mb-0">
                 <thead>
                     <tr>
                         <th style="width: 40px;">
                             <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
                         </th>
-                        <th>Agent Name</th>
-                        <th>Type</th>
-                        <th>Account</th>
-                        <th>Submitted</th>
-                        <th>Status</th>
+                        <th data-sort="name">Agent Name <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="type">Type <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="account">Account <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="submitted">Submitted <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="status">Status <i class="fas fa-sort sort-icon"></i></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -1027,7 +1027,7 @@ function applyFilters() {
     var account = document.getElementById('filterAccount').value;
     var search = document.getElementById('searchInput').value.toLowerCase();
 
-    document.querySelectorAll('.approval-queue-table tbody tr').forEach(function(row) {
+    document.querySelectorAll('.api-table tbody tr').forEach(function(row) {
         var show = true;
         var rowStatus = row.dataset.status;
 
@@ -1076,7 +1076,7 @@ function clearFilters() {
 }
 
 function updateVisibleCount() {
-    var visible = document.querySelectorAll('.approval-queue-table tbody tr:not([style*="display: none"])').length;
+    var visible = document.querySelectorAll('.api-table tbody tr:not([style*="display: none"])').length;
     document.querySelector('.card-footer .text-muted').textContent = 'Showing 1-' + visible + ' of ' + visible + ' items';
 }
 
@@ -1084,7 +1084,7 @@ function toggleSelectAll() {
     var checked = document.getElementById('selectAllCheckbox').checked;
     selectedItems = [];
     
-    document.querySelectorAll('.approval-queue-table tbody tr:not([style*="display: none"]) .item-checkbox').forEach(function(checkbox) {
+    document.querySelectorAll('.api-table tbody tr:not([style*="display: none"]) .item-checkbox').forEach(function(checkbox) {
         checkbox.checked = checked;
         if (checked) {
             selectedItems.push(checkbox.closest('tr').dataset.itemId);
@@ -1220,7 +1220,7 @@ function updateRowStatus(itemId, newStatus) {
 
 function updateStatCounts() {
     var counts = { submitted: 0, 'in-review': 0, approved: 0, rejected: 0 };
-    document.querySelectorAll('.approval-queue-table tbody tr').forEach(function(row) {
+    document.querySelectorAll('.api-table tbody tr').forEach(function(row) {
         var status = row.dataset.status;
         if (counts.hasOwnProperty(status)) {
             counts[status]++;
@@ -1260,7 +1260,7 @@ function showBulkRejectModal() {
 function exportQueue(format) {
     AdminControlPlane.logAdminAction('EXPORT_INITIATED', 'rcs-agent-queue', {
         format: format,
-        count: document.querySelectorAll('.approval-queue-table tbody tr').length
+        count: document.querySelectorAll('.api-table tbody tr').length
     });
     showToast('Export started...', 'info');
 }
