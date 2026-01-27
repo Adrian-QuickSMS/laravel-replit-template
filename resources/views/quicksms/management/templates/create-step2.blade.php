@@ -1,4 +1,4 @@
-@extends('layouts.quicksms')
+@extends(isset($isAdminMode) && $isAdminMode ? 'layouts.admin' : 'layouts.quicksms')
 
 @section('title', 'Create Template - Content')
 
