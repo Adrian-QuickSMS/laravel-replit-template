@@ -31,8 +31,11 @@
     background: #fff;
     border-radius: 8px;
     border: 1px solid #e0e6ed;
-    overflow: hidden;
+    overflow: visible;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.table-container .dropdown-menu {
+    z-index: 1050;
 }
 .api-table {
     width: 100%;
