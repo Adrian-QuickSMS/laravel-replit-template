@@ -91,6 +91,7 @@
 
 .admin-audit-table-container { 
     max-height: 600px; 
+    overflow-x: hidden;
     overflow-y: auto; 
     background: #fff;
     border: 1px solid #e9ecef;
@@ -98,6 +99,9 @@
 }
 .admin-audit-logs-table {
     width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
     border-collapse: collapse;
 }
 .admin-audit-logs-table thead th {
@@ -116,6 +120,14 @@
     font-size: 0.8rem;
     border-bottom: 1px solid #f1f3f5;
     vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.admin-audit-logs-table thead th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 .admin-audit-logs-table tbody tr {
     cursor: pointer;
