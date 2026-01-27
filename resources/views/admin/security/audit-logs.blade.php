@@ -7,186 +7,6 @@
 .admin-blue { color: #1e3a5f; }
 .admin-blue-bg { background-color: #1e3a5f; }
 
-.severity-badge-low { background-color: rgba(108, 117, 125, 0.15); color: #6c757d; }
-.severity-badge-medium { background-color: rgba(30, 58, 95, 0.15); color: #1e3a5f; }
-.severity-badge-high { background-color: rgba(220, 53, 69, 0.15); color: #dc3545; }
-.severity-badge-critical { background-color: rgba(220, 53, 69, 0.25); color: #dc3545; font-weight: 600; }
-
-.category-badge-user_management { background-color: rgba(30, 58, 95, 0.15); color: #1e3a5f; }
-.category-badge-access_control { background-color: rgba(48, 101, 208, 0.15); color: #3065D0; }
-.category-badge-security { background-color: rgba(220, 53, 69, 0.15); color: #dc3545; }
-.category-badge-authentication { background-color: rgba(28, 187, 140, 0.15); color: #1cbb8c; }
-.category-badge-enforcement { background-color: rgba(214, 83, 193, 0.15); color: #D653C1; }
-.category-badge-data_access { background-color: rgba(255, 191, 0, 0.15); color: #cc9900; }
-.category-badge-account { background-color: rgba(30, 58, 95, 0.15); color: #1e3a5f; }
-.category-badge-messaging { background-color: rgba(48, 101, 208, 0.15); color: #3065D0; }
-.category-badge-financial { background-color: rgba(28, 187, 140, 0.15); color: #1cbb8c; }
-.category-badge-gdpr { background-color: rgba(214, 83, 193, 0.15); color: #D653C1; }
-.category-badge-compliance { background-color: rgba(30, 58, 95, 0.15); color: #1e3a5f; }
-.category-badge-admin { background-color: rgba(30, 58, 95, 0.2); color: #1e3a5f; }
-.category-badge-impersonation { background-color: rgba(220, 53, 69, 0.2); color: #dc3545; }
-
-.audit-log-row { cursor: pointer; }
-.audit-log-row:hover { background-color: rgba(30, 58, 95, 0.03); }
-
-.log-detail-section { padding: 1rem; background-color: #fafafa; border-radius: 0.5rem; margin-bottom: 1rem; }
-.log-detail-section h6 { color: #1e3a5f; margin-bottom: 0.75rem; font-size: 0.875rem; }
-.log-detail-row { display: flex; margin-bottom: 0.5rem; }
-.log-detail-label { width: 140px; font-weight: 500; color: #6c757d; font-size: 0.8125rem; }
-.log-detail-value { flex: 1; font-size: 0.8125rem; color: #212529; }
-
-.stats-card { border: none; background: #fff; border-radius: 0.5rem; }
-.stats-card .stat-value { font-size: 1.5rem; font-weight: 600; color: #1e3a5f; }
-.stats-card .stat-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; }
-
-.empty-state { padding: 4rem 2rem; text-align: center; }
-.empty-state i { font-size: 3rem; color: #dee2e6; margin-bottom: 1rem; }
-
-.retention-indicator { font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; }
-.retention-active { background-color: rgba(28, 187, 140, 0.15); color: #1cbb8c; }
-.retention-approaching { background-color: rgba(255, 191, 0, 0.15); color: #cc9900; }
-
-.integrity-badge { font-family: monospace; font-size: 0.7rem; background-color: rgba(108, 117, 125, 0.1); padding: 0.125rem 0.375rem; border-radius: 0.25rem; }
-
-.compliance-card { background: linear-gradient(135deg, rgba(30, 58, 95, 0.05) 0%, rgba(30, 58, 95, 0.02) 100%); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; }
-.compliance-card h6 { color: #1e3a5f; font-size: 0.875rem; margin-bottom: 0.5rem; }
-.compliance-card .compliance-stat { font-size: 1.25rem; font-weight: 600; color: #1e3a5f; }
-
-.quick-filter-btn { 
-    font-size: 0.75rem; 
-    padding: 0.375rem 0.875rem; 
-    border-radius: 1rem; 
-    margin-right: 0.5rem; 
-    margin-bottom: 0.5rem; 
-    background-color: #fff; 
-    border: 1px solid #dee2e6; 
-    color: #495057;
-    transition: all 0.15s ease;
-}
-.quick-filter-btn:hover { 
-    background-color: rgba(30, 58, 95, 0.08); 
-    border-color: #1e3a5f; 
-    color: #1e3a5f; 
-}
-.quick-filter-btn.active { 
-    background-color: #1e3a5f; 
-    color: #fff; 
-    border-color: #1e3a5f; 
-}
-
-.audit-table-container { 
-    max-height: 600px; 
-    overflow-y: auto; 
-    background: #fff;
-    border: 1px solid #e9ecef;
-    border-radius: 0.75rem;
-}
-.audit-table-container.infinite-scroll-enabled { max-height: none; }
-
-.audit-logs-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.audit-logs-table thead th {
-    padding: 0.5rem 0.35rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-    color: #495057;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
-.audit-logs-table tbody td {
-    padding: 0.5rem 0.35rem;
-    font-size: 0.8rem;
-    border-bottom: 1px solid #f1f3f5;
-    vertical-align: middle;
-}
-.audit-logs-table tbody tr:hover {
-    background-color: rgba(30, 58, 95, 0.03);
-}
-
-.sortable-header {
-    cursor: pointer;
-    user-select: none;
-    transition: background-color 0.15s ease;
-}
-.sortable-header:hover {
-    background-color: rgba(30, 58, 95, 0.08);
-}
-.sortable-header .sort-icon {
-    color: #ccc;
-    font-size: 0.7rem;
-}
-.sortable-header .sort-icon.active {
-    color: #1e3a5f;
-}
-
-.loading-more { 
-    text-align: center; 
-    padding: 1.5rem; 
-    color: #6c757d; 
-    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(30, 58, 95, 0.02) 100%);
-}
-.loading-more .spinner-border { width: 1.25rem; height: 1.25rem; border-width: 0.15em; color: #1e3a5f; }
-
-.load-more-btn {
-    background-color: #fff;
-    border: 1px solid #1e3a5f;
-    color: #1e3a5f;
-    padding: 0.5rem 1.5rem;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    transition: all 0.15s ease;
-}
-.load-more-btn:hover {
-    background-color: rgba(30, 58, 95, 0.08);
-    border-color: #1e3a5f;
-    color: #1e3a5f;
-}
-
-.view-mode-toggle { font-size: 0.75rem; }
-.view-mode-toggle .btn { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
-.view-mode-toggle .btn.active { background-color: #1e3a5f; color: #fff; border-color: #1e3a5f; }
-
-.end-of-list { 
-    text-align: center; 
-    padding: 1rem; 
-    color: #6c757d; 
-    font-size: 0.8125rem;
-    border-top: 1px dashed #dee2e6;
-}
-
-.filter-panel { 
-    background-color: rgba(30, 58, 95, 0.05) !important; 
-    border: 1px solid #e9ecef;
-}
-.filter-panel .form-label { margin-bottom: 0.25rem; }
-.filter-panel .form-control,
-.filter-panel .form-select { font-size: 0.875rem; }
-
-.active-filters-display .filter-tag {
-    display: inline-flex;
-    align-items: center;
-    background-color: rgba(30, 58, 95, 0.1);
-    color: #1e3a5f;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    margin-right: 0.5rem;
-    margin-bottom: 0.25rem;
-}
-.active-filters-display .filter-tag .remove-filter {
-    margin-left: 0.5rem;
-    cursor: pointer;
-    opacity: 0.7;
-}
-.active-filters-display .filter-tag .remove-filter:hover {
-    opacity: 1;
-}
-
 .top-level-tabs {
     border-bottom: 2px solid #dee2e6;
     margin-bottom: 1.5rem;
@@ -244,15 +64,110 @@
     color: #1e3a5f;
 }
 
-.account-selector {
-    max-width: 300px;
+.admin-compliance-card { 
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.05) 0%, rgba(30, 58, 95, 0.02) 100%); 
+    border-radius: 0.5rem; 
+    padding: 1rem; 
+    margin-bottom: 1rem; 
+}
+.admin-compliance-card h6 { 
+    color: #1e3a5f; 
+    font-size: 0.875rem; 
+    margin-bottom: 0.5rem; 
+}
+.admin-compliance-card .compliance-stat { 
+    font-size: 1.25rem; 
+    font-weight: 600; 
+    color: #1e3a5f; 
 }
 
-.admin-event-row {
-    background-color: rgba(30, 58, 95, 0.02);
+.admin-severity-badge-low { background-color: rgba(108, 117, 125, 0.15); color: #6c757d; }
+.admin-severity-badge-medium { background-color: rgba(30, 58, 95, 0.15); color: #1e3a5f; }
+.admin-severity-badge-high { background-color: rgba(220, 53, 69, 0.15); color: #dc3545; }
+.admin-severity-badge-critical { background-color: rgba(220, 53, 69, 0.25); color: #dc3545; font-weight: 600; }
+
+.admin-category-badge-admin { background-color: rgba(30, 58, 95, 0.2); color: #1e3a5f; }
+.admin-category-badge-impersonation { background-color: rgba(220, 53, 69, 0.2); color: #dc3545; }
+
+.admin-audit-table-container { 
+    max-height: 600px; 
+    overflow-y: auto; 
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 0.75rem;
 }
-.admin-event-row:hover {
-    background-color: rgba(30, 58, 95, 0.06);
+.admin-audit-logs-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.admin-audit-logs-table thead th {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.admin-audit-logs-table tbody td {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #f1f3f5;
+    vertical-align: middle;
+}
+.admin-audit-logs-table tbody tr {
+    cursor: pointer;
+}
+.admin-audit-logs-table tbody tr:hover {
+    background-color: rgba(30, 58, 95, 0.03);
+}
+.admin-sortable-header {
+    cursor: pointer;
+    user-select: none;
+}
+.admin-sortable-header:hover {
+    background-color: rgba(30, 58, 95, 0.08);
+}
+.admin-sortable-header .sort-icon {
+    color: #ccc;
+    font-size: 0.7rem;
+}
+.admin-sortable-header .sort-icon.active {
+    color: #1e3a5f;
+}
+
+.admin-filter-panel { 
+    background-color: rgba(30, 58, 95, 0.05) !important; 
+    border: 1px solid #e9ecef;
+}
+
+.admin-log-detail-section { 
+    padding: 1rem; 
+    background-color: #fafafa; 
+    border-radius: 0.5rem; 
+    margin-bottom: 1rem; 
+}
+.admin-log-detail-section h6 { 
+    color: #1e3a5f; 
+    margin-bottom: 0.75rem; 
+    font-size: 0.875rem; 
+}
+.admin-log-detail-row { 
+    display: flex; 
+    margin-bottom: 0.5rem; 
+}
+.admin-log-detail-label { 
+    width: 140px; 
+    font-weight: 500; 
+    color: #6c757d; 
+    font-size: 0.8125rem; 
+}
+.admin-log-detail-value { 
+    flex: 1; 
+    font-size: 0.8125rem; 
+    color: #212529; 
 }
 </style>
 @endpush
@@ -294,162 +209,17 @@
 
 <div class="tab-content" id="auditModeTabsContent">
     <div class="tab-pane fade show active" id="customerAuditPane" role="tabpanel">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title mb-0">Customer Activity Audit</h5>
-                    <small class="text-muted">View audit logs across all customer accounts</small>
-                </div>
-                <div class="d-flex gap-2 align-items-center">
-                    <select class="form-select form-select-sm account-selector" id="customerAccountFilter">
-                        <option value="">All Customer Accounts</option>
-                        <option value="acc-001">Acme Corp (ACC-001)</option>
-                        <option value="acc-002">TechStart Ltd (ACC-002)</option>
-                        <option value="acc-003">HealthFirst UK (ACC-003)</option>
-                        <option value="acc-004">RetailMax (ACC-004)</option>
-                        <option value="acc-005">ServicePro (ACC-005)</option>
-                    </select>
-                    <button type="button" class="btn btn-admin-outline btn-sm" data-bs-toggle="collapse" data-bs-target="#customerFiltersPanel">
-                        <i class="fas fa-filter me-1"></i>Filters
-                    </button>
-                    <div class="dropdown">
-                        <button class="btn btn-admin-outline btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-download me-1"></i>Export
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><h6 class="dropdown-header">Export Format</h6></li>
-                            <li><a class="dropdown-item" href="#" id="customerExportCsv"><i class="fas fa-file-csv me-2 text-success"></i>CSV (.csv)</a></li>
-                            <li><a class="dropdown-item" href="#" id="customerExportExcel"><i class="fas fa-file-excel me-2 text-success"></i>Excel (.xlsx)</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><span class="dropdown-item-text small text-muted"><i class="fas fa-info-circle me-1"></i>Exports current filtered view</span></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                        <input type="text" class="form-control" id="customerSearchInput" placeholder="Search by description, target ID, account name, or user...">
-                    </div>
-                </div>
-
-                <div class="collapse mb-3" id="customerFiltersPanel">
-                    <div class="card card-body border-0 rounded-3 filter-panel">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Date From</label>
-                                <input type="date" class="form-control form-control-sm" id="customerDateFromFilter">
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Date To</label>
-                                <input type="date" class="form-control form-control-sm" id="customerDateToFilter">
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Category</label>
-                                <select class="form-select form-select-sm" id="customerCategoryFilter">
-                                    <option value="">All Categories</option>
-                                    <option value="user_management">User Management</option>
-                                    <option value="access_control">Access Control</option>
-                                    <option value="authentication">Authentication</option>
-                                    <option value="security">Security</option>
-                                    <option value="messaging">Messaging</option>
-                                    <option value="financial">Financial</option>
-                                    <option value="compliance">Compliance</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Severity</label>
-                                <select class="form-select form-select-sm" id="customerSeverityFilter">
-                                    <option value="">All Severities</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
-                                    <option value="critical">Critical</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Result</label>
-                                <select class="form-select form-select-sm" id="customerResultFilter">
-                                    <option value="">All Results</option>
-                                    <option value="success">Success</option>
-                                    <option value="failure">Failure</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-2 d-flex gap-2">
-                                <button type="button" class="btn btn-admin-primary btn-sm flex-grow-1" id="customerApplyFiltersBtn">
-                                    <i class="fas fa-check me-1"></i>Apply
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="customerClearFiltersBtn">
-                                    <i class="fas fa-undo"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-muted small"><span id="customerTotalFiltered">0</span> events</span>
-                    <div class="view-mode-toggle btn-group" role="group">
-                        <button type="button" class="btn btn-outline-secondary active" id="customerPaginationModeBtn">
-                            <i class="fas fa-list"></i> Paginated
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" id="customerInfiniteScrollModeBtn">
-                            <i class="fas fa-stream"></i> Scroll
-                        </button>
-                    </div>
-                </div>
-
-                <div class="audit-table-container" id="customerAuditTableContainer">
-                    <table class="audit-logs-table" id="customerAuditLogsTable">
-                        <thead>
-                            <tr>
-                                <th style="width: 150px;" class="sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
-                                <th style="width: 120px;">Account</th>
-                                <th style="width: 100px;">Event ID</th>
-                                <th class="sortable-header" data-sort="action">Action <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 120px;" class="sortable-header" data-sort="category">Category <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 90px;" class="sortable-header" data-sort="severity">Severity <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th class="sortable-header" data-sort="actor">Actor <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 110px;">IP Address</th>
-                            </tr>
-                        </thead>
-                        <tbody id="customerAuditLogsTableBody">
-                        </tbody>
-                    </table>
-
-                    <div class="loading-more" id="customerLoadingMore" style="display: none;">
-                        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
-                        <span class="ms-2">Loading more events...</span>
-                    </div>
-
-                    <div class="text-center py-3" id="customerLoadMoreContainer" style="display: none;">
-                        <button type="button" class="load-more-btn" id="customerLoadMoreBtn">
-                            <i class="fas fa-plus-circle me-2"></i>Load More
-                        </button>
-                    </div>
-
-                    <div class="end-of-list" id="customerEndOfList" style="display: none;">
-                        <i class="fas fa-check-circle text-success me-2"></i>All events loaded
-                    </div>
-                </div>
-
-                <div class="empty-state" id="customerEmptyState" style="display: none;">
-                    <i class="fas fa-clipboard-list"></i>
-                    <h5 class="text-muted mb-2">No audit logs found</h5>
-                    <p class="text-muted small mb-0">Adjust your filters or check back later for new activity.</p>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mt-4" id="customerPaginationRow">
-                    <div class="text-muted small">
-                        Showing <span id="customerShowingStart">0</span>-<span id="customerShowingEnd">0</span> of <span id="customerPaginationTotal">0</span> events
-                    </div>
-                    <nav>
-                        <ul class="pagination pagination-sm mb-0" id="customerPaginationControls"></ul>
-                    </nav>
-                </div>
-            </div>
-        </div>
+        @include('shared.partials.audit-log-component', [
+            'themeColor' => '#1e3a5f',
+            'themeColorRgb' => '30, 58, 95',
+            'themeName' => 'admin',
+            'prefix' => 'customer',
+            'showCustomerSelector' => true,
+            'showSubAccountFilter' => true,
+            'isAdminContext' => true,
+            'cardTitle' => 'Customer Activity Audit',
+            'cardSubtitle' => 'View audit logs across all customer accounts'
+        ])
     </div>
 
     <div class="tab-pane fade" id="adminAuditPane" role="tabpanel">
@@ -486,25 +256,25 @@
             <div class="card-body">
                 <div class="row mb-4">
                     <div class="col-md-3">
-                        <div class="compliance-card">
+                        <div class="admin-compliance-card">
                             <h6><i class="fas fa-user-shield me-2"></i>Admin Actions (24h)</h6>
                             <div class="compliance-stat" id="adminActions24h">0</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="compliance-card">
+                        <div class="admin-compliance-card">
                             <h6><i class="fas fa-user-secret me-2"></i>Impersonations (7d)</h6>
                             <div class="compliance-stat" id="impersonations7d">0</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="compliance-card">
+                        <div class="admin-compliance-card">
                             <h6><i class="fas fa-exclamation-triangle me-2"></i>Security Events (24h)</h6>
                             <div class="compliance-stat text-danger" id="adminSecurityEvents">0</div>
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="compliance-card">
+                        <div class="admin-compliance-card">
                             <h6><i class="fas fa-ban me-2"></i>Blocked Logins (24h)</h6>
                             <div class="compliance-stat text-warning" id="adminBlockedLogins">0</div>
                         </div>
@@ -519,7 +289,7 @@
                 </div>
 
                 <div class="collapse mb-3" id="adminFiltersPanel">
-                    <div class="card card-body border-0 rounded-3 filter-panel">
+                    <div class="card card-body border-0 rounded-3 admin-filter-panel">
                         <div class="row g-3 align-items-end">
                             <div class="col-6 col-md-2">
                                 <label class="form-label small fw-bold">Date From</label>
@@ -589,26 +359,26 @@
 
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <span class="text-muted small"><span id="adminTotalFiltered">0</span> events</span>
-                    <div class="view-mode-toggle btn-group" role="group">
-                        <button type="button" class="btn btn-outline-secondary active" id="adminPaginationModeBtn">
+                    <div class="btn-group" role="group" style="font-size: 0.75rem;">
+                        <button type="button" class="btn btn-outline-secondary btn-sm active" id="adminPaginationModeBtn">
                             <i class="fas fa-list"></i> Paginated
                         </button>
-                        <button type="button" class="btn btn-outline-secondary" id="adminInfiniteScrollModeBtn">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="adminInfiniteScrollModeBtn">
                             <i class="fas fa-stream"></i> Scroll
                         </button>
                     </div>
                 </div>
 
-                <div class="audit-table-container" id="adminAuditTableContainer">
-                    <table class="audit-logs-table" id="adminAuditLogsTable">
+                <div class="admin-audit-table-container" id="adminAuditTableContainer">
+                    <table class="admin-audit-logs-table" id="adminAuditLogsTable">
                         <thead>
                             <tr>
-                                <th style="width: 150px;" class="sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
+                                <th style="width: 150px;" class="admin-sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
                                 <th style="width: 100px;">Event ID</th>
-                                <th class="sortable-header" data-sort="event_type">Event Type <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th class="sortable-header" data-sort="actor">Actor Admin <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th class="sortable-header" data-sort="target">Target <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 90px;" class="sortable-header" data-sort="severity">Severity <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th class="admin-sortable-header" data-sort="event_type">Event Type <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th class="admin-sortable-header" data-sort="actor">Actor Admin <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th class="admin-sortable-header" data-sort="target">Target <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th style="width: 90px;" class="admin-sortable-header" data-sort="severity">Severity <i class="fas fa-sort ms-1 sort-icon"></i></th>
                                 <th style="width: 110px;">IP Address</th>
                                 <th style="width: 60px;"></th>
                             </tr>
@@ -616,27 +386,6 @@
                         <tbody id="adminAuditLogsTableBody">
                         </tbody>
                     </table>
-
-                    <div class="loading-more" id="adminLoadingMore" style="display: none;">
-                        <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
-                        <span class="ms-2">Loading more events...</span>
-                    </div>
-
-                    <div class="text-center py-3" id="adminLoadMoreContainer" style="display: none;">
-                        <button type="button" class="load-more-btn" id="adminLoadMoreBtn">
-                            <i class="fas fa-plus-circle me-2"></i>Load More
-                        </button>
-                    </div>
-
-                    <div class="end-of-list" id="adminEndOfList" style="display: none;">
-                        <i class="fas fa-check-circle text-success me-2"></i>All events loaded
-                    </div>
-                </div>
-
-                <div class="empty-state" id="adminEmptyState" style="display: none;">
-                    <i class="fas fa-clipboard-list"></i>
-                    <h5 class="text-muted mb-2">No admin audit logs found</h5>
-                    <p class="text-muted small mb-0">Adjust your filters or check back later for new activity.</p>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mt-4" id="adminPaginationRow">
@@ -723,11 +472,41 @@
 $(document).ready(function() {
     console.log('[AdminAuditLogs] Module initialized');
 
+    var allCustomers = [
+        { id: 'acc-001', name: 'Acme Corp', account_number: 'ACC-001' },
+        { id: 'acc-002', name: 'TechStart Ltd', account_number: 'ACC-002' },
+        { id: 'acc-003', name: 'HealthFirst UK', account_number: 'ACC-003' },
+        { id: 'acc-004', name: 'RetailMax', account_number: 'ACC-004' },
+        { id: 'acc-005', name: 'ServicePro', account_number: 'ACC-005' },
+        { id: 'acc-006', name: 'Digital Agency Co', account_number: 'ACC-006' },
+        { id: 'acc-007', name: 'Finance Solutions Ltd', account_number: 'ACC-007' },
+        { id: 'acc-008', name: 'Healthcare Partners', account_number: 'ACC-008' },
+        { id: 'acc-009', name: 'E-Commerce Hub', account_number: 'ACC-009' },
+        { id: 'acc-010', name: 'Marketing Experts', account_number: 'ACC-010' }
+    ];
+
+    var subAccountsByCustomer = {
+        'acc-001': [
+            { id: 'sa-001-1', name: 'Marketing Department' },
+            { id: 'sa-001-2', name: 'Sales Team' },
+            { id: 'sa-001-3', name: 'Customer Support' }
+        ],
+        'acc-002': [
+            { id: 'sa-002-1', name: 'Development' },
+            { id: 'sa-002-2', name: 'Operations' }
+        ],
+        'acc-003': [
+            { id: 'sa-003-1', name: 'Patient Comms' },
+            { id: 'sa-003-2', name: 'Staff Notifications' }
+        ]
+    };
+
     var customerLogs = [];
     var adminLogs = [];
     var customerPage = 1;
     var adminPage = 1;
     var itemsPerPage = 25;
+    var selectedCustomerId = null;
 
     function init() {
         customerLogs = generateMockCustomerLogs();
@@ -735,18 +514,11 @@ $(document).ready(function() {
         renderCustomerLogs();
         renderAdminLogs();
         updateAdminStats();
+        bindCustomerSelectorEvents();
         bindEvents();
     }
 
     function generateMockCustomerLogs() {
-        var accounts = [
-            { id: 'acc-001', name: 'Acme Corp' },
-            { id: 'acc-002', name: 'TechStart Ltd' },
-            { id: 'acc-003', name: 'HealthFirst UK' },
-            { id: 'acc-004', name: 'RetailMax' },
-            { id: 'acc-005', name: 'ServicePro' }
-        ];
-
         var actions = [
             { type: 'USER_CREATED', category: 'user_management', severity: 'medium' },
             { type: 'USER_INVITED', category: 'user_management', severity: 'low' },
@@ -755,28 +527,32 @@ $(document).ready(function() {
             { type: 'MFA_ENABLED', category: 'security', severity: 'medium' },
             { type: 'CAMPAIGN_SUBMITTED', category: 'messaging', severity: 'low' },
             { type: 'CAMPAIGN_APPROVED', category: 'messaging', severity: 'medium' },
-            { type: 'PURCHASE_COMPLETED', category: 'financial', severity: 'medium' }
+            { type: 'PURCHASE_COMPLETED', category: 'financial', severity: 'medium' },
+            { type: 'DATA_EXPORTED', category: 'data_access', severity: 'high' },
+            { type: 'ROLE_CHANGED', category: 'access_control', severity: 'high' }
         ];
 
-        var actors = ['sarah@acmecorp.com', 'james@techstart.co.uk', 'emily@healthfirst.nhs.uk', 'michael@retailmax.com'];
-        var ips = ['192.168.1.100', '10.0.0.45', '172.16.0.22', '203.45.67.89'];
+        var actors = ['sarah@acmecorp.com', 'james@techstart.co.uk', 'emily@healthfirst.nhs.uk', 'michael@retailmax.com', 'lisa@servicepro.co.uk'];
+        var targets = ['New User', 'Campaign #1234', 'Sub-Account', 'Contact List', 'API Key'];
+        var ips = ['192.168.1.100', '10.0.0.45', '172.16.0.22', '203.45.67.89', '81.23.45.67'];
         var logs = [];
         var now = new Date();
 
-        for (var i = 0; i < 150; i++) {
+        for (var i = 0; i < 250; i++) {
             var action = actions[Math.floor(Math.random() * actions.length)];
-            var account = accounts[Math.floor(Math.random() * accounts.length)];
+            var customer = allCustomers[Math.floor(Math.random() * allCustomers.length)];
             var timestamp = new Date(now.getTime() - Math.random() * 30 * 24 * 60 * 60 * 1000);
 
             logs.push({
                 id: 'CLOG-' + String(i + 1).padStart(6, '0'),
                 timestamp: timestamp.toISOString(),
-                account: account,
+                customer: customer,
                 action: action.type,
                 actionLabel: action.type.replace(/_/g, ' '),
                 category: action.category,
                 severity: action.severity,
                 actor: actors[Math.floor(Math.random() * actors.length)],
+                target: targets[Math.floor(Math.random() * targets.length)],
                 ip: ips[Math.floor(Math.random() * ips.length)],
                 result: Math.random() > 0.1 ? 'success' : 'failure'
             });
@@ -842,34 +618,49 @@ $(document).ready(function() {
     }
 
     function renderCustomerLogs() {
+        var filteredLogs = selectedCustomerId 
+            ? customerLogs.filter(function(l) { return l.customer.id === selectedCustomerId; })
+            : customerLogs;
+
         var tbody = document.getElementById('customerAuditLogsTableBody');
         tbody.innerHTML = '';
 
         var start = (customerPage - 1) * itemsPerPage;
-        var end = Math.min(start + itemsPerPage, customerLogs.length);
-        var pageLogs = customerLogs.slice(start, end);
+        var end = Math.min(start + itemsPerPage, filteredLogs.length);
+        var pageLogs = filteredLogs.slice(start, end);
+
+        if (pageLogs.length === 0) {
+            $('#customerEmptyState').show();
+            $('#customerAuditTableContainer').hide();
+            $('#customerPaginationRow').hide();
+        } else {
+            $('#customerEmptyState').hide();
+            $('#customerAuditTableContainer').show();
+            $('#customerPaginationRow').show();
+        }
 
         pageLogs.forEach(function(log) {
             var row = document.createElement('tr');
-            row.className = 'audit-log-row';
+            row.className = 'customer-audit-log-row';
             row.innerHTML = 
                 '<td>' + formatTimestamp(log.timestamp) + '</td>' +
-                '<td><span class="badge bg-light text-dark">' + log.account.name + '</span></td>' +
+                '<td><span class="badge bg-light text-dark" style="font-size: 0.7rem;">' + log.customer.name + '</span></td>' +
                 '<td><code class="small">' + log.id + '</code></td>' +
                 '<td>' + log.actionLabel + '</td>' +
-                '<td><span class="badge category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></td>' +
-                '<td><span class="badge severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></td>' +
+                '<td><span class="badge customer-category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></td>' +
+                '<td><span class="badge customer-severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></td>' +
                 '<td>' + log.actor + '</td>' +
+                '<td>' + log.target + '</td>' +
                 '<td><code class="small">' + log.ip + '</code></td>';
             row.onclick = function() { showLogDetail(log, 'customer'); };
             tbody.appendChild(row);
         });
 
-        $('#customerTotalFiltered').text(customerLogs.length);
-        $('#customerShowingStart').text(start + 1);
+        $('#customerTotalFiltered').text(filteredLogs.length);
+        $('#customerShowingStart').text(filteredLogs.length > 0 ? start + 1 : 0);
         $('#customerShowingEnd').text(end);
-        $('#customerPaginationTotal').text(customerLogs.length);
-        renderPagination('customer', customerLogs.length, customerPage);
+        $('#customerPaginationTotal').text(filteredLogs.length);
+        renderPagination('customer', filteredLogs.length, customerPage);
     }
 
     function renderAdminLogs() {
@@ -882,14 +673,13 @@ $(document).ready(function() {
 
         pageLogs.forEach(function(log) {
             var row = document.createElement('tr');
-            row.className = 'audit-log-row admin-event-row';
             row.innerHTML = 
                 '<td>' + formatTimestamp(log.timestamp) + '</td>' +
                 '<td><code class="small">' + log.id + '</code></td>' +
-                '<td><span class="badge category-badge-admin">' + log.eventLabel + '</span></td>' +
+                '<td><span class="badge admin-category-badge-admin">' + log.eventLabel + '</span></td>' +
                 '<td>' + log.actor.email + '</td>' +
                 '<td>' + log.target.email + '</td>' +
-                '<td><span class="badge severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></td>' +
+                '<td><span class="badge admin-severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></td>' +
                 '<td><code class="small">' + log.ip + '</code></td>' +
                 '<td><button class="btn btn-link btn-sm p-0 text-muted" onclick="event.stopPropagation();"><i class="fas fa-ellipsis-v"></i></button></td>';
             row.onclick = function() { showLogDetail(log, 'admin'); };
@@ -916,7 +706,11 @@ $(document).ready(function() {
         prevLi.onclick = function(e) { e.preventDefault(); if (currentPage > 1) goToPage(type, currentPage - 1); };
         container.appendChild(prevLi);
 
-        for (var i = 1; i <= Math.min(totalPages, 5); i++) {
+        var startPage = Math.max(1, currentPage - 2);
+        var endPage = Math.min(totalPages, startPage + 4);
+        if (endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+
+        for (var i = startPage; i <= endPage; i++) {
             var li = document.createElement('li');
             li.className = 'page-item' + (i === currentPage ? ' active' : '');
             li.innerHTML = '<a class="page-link" href="#">' + i + '</a>';
@@ -965,40 +759,136 @@ $(document).ready(function() {
         $('#adminBlockedLogins').text(blockedLogins);
     }
 
+    function bindCustomerSelectorEvents() {
+        var searchInput = $('#customerCustomerSearch');
+        var resultsContainer = $('#customerCustomerSearchResults');
+        var selectorInput = $('#customerCustomerSelectorInput');
+        var selectedDisplay = $('#customerSelectedCustomerDisplay');
+        var dropdownBtn = $('#customerCustomerDropdownBtn');
+
+        searchInput.on('focus', function() {
+            showCustomerDropdown('');
+        });
+
+        searchInput.on('input', function() {
+            var query = $(this).val().toLowerCase();
+            showCustomerDropdown(query);
+        });
+
+        dropdownBtn.on('click', function() {
+            if (resultsContainer.is(':visible')) {
+                resultsContainer.hide();
+            } else {
+                showCustomerDropdown('');
+                searchInput.focus();
+            }
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#customerCustomerSelectorContainer').length) {
+                resultsContainer.hide();
+            }
+        });
+
+        $('#customerClearCustomer').on('click', function() {
+            selectedCustomerId = null;
+            selectorInput.show();
+            selectedDisplay.hide();
+            searchInput.val('');
+            updateSubAccountFilter(null);
+            customerPage = 1;
+            renderCustomerLogs();
+        });
+
+        function showCustomerDropdown(query) {
+            var html = '<div class="customer-customer-search-item" data-id="" style="font-style: italic; color: #6c757d;">' +
+                '<div class="customer-name">All Customers</div>' +
+                '<div class="customer-id">View logs from all customer accounts</div>' +
+                '</div>';
+
+            var filtered = allCustomers.filter(function(c) {
+                return c.name.toLowerCase().includes(query) || 
+                       c.account_number.toLowerCase().includes(query);
+            });
+
+            filtered.forEach(function(c) {
+                html += '<div class="customer-customer-search-item" data-id="' + c.id + '">' +
+                    '<div class="customer-name">' + c.name + '</div>' +
+                    '<div class="customer-id">' + c.account_number + '</div>' +
+                    '</div>';
+            });
+
+            resultsContainer.html(html).show();
+
+            resultsContainer.find('.customer-customer-search-item').on('click', function() {
+                var id = $(this).data('id');
+                if (id) {
+                    var customer = allCustomers.find(function(c) { return c.id === id; });
+                    selectedCustomerId = id;
+                    $('#customerSelectedCustomerName').text(customer.name + ' (' + customer.account_number + ')');
+                    selectorInput.hide();
+                    selectedDisplay.show();
+                    updateSubAccountFilter(id);
+                } else {
+                    selectedCustomerId = null;
+                    selectorInput.show();
+                    selectedDisplay.hide();
+                    searchInput.val('');
+                    updateSubAccountFilter(null);
+                }
+                resultsContainer.hide();
+                customerPage = 1;
+                renderCustomerLogs();
+            });
+        }
+    }
+
+    function updateSubAccountFilter(customerId) {
+        var select = $('#customerSubAccountFilter');
+        select.html('<option value="">All Sub-Accounts</option><option value="main">Main Account</option>');
+
+        if (customerId && subAccountsByCustomer[customerId]) {
+            subAccountsByCustomer[customerId].forEach(function(sa) {
+                select.append('<option value="' + sa.id + '">' + sa.name + '</option>');
+            });
+        }
+    }
+
     function showLogDetail(log, type) {
         var content = '';
         
         if (type === 'customer') {
-            content = '<div class="log-detail-section">' +
+            content = '<div class="admin-log-detail-section">' +
                 '<h6><i class="fas fa-info-circle me-2"></i>Event Information</h6>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Event ID</div><div class="log-detail-value"><code>' + log.id + '</code></div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Timestamp</div><div class="log-detail-value">' + log.timestamp + '</div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Action</div><div class="log-detail-value">' + log.actionLabel + '</div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Category</div><div class="log-detail-value"><span class="badge category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Severity</div><div class="log-detail-value"><span class="badge severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Event ID</div><div class="admin-log-detail-value"><code>' + log.id + '</code></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Timestamp</div><div class="admin-log-detail-value">' + log.timestamp + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Action</div><div class="admin-log-detail-value">' + log.actionLabel + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Category</div><div class="admin-log-detail-value"><span class="badge customer-category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Severity</div><div class="admin-log-detail-value"><span class="badge customer-severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></div></div>' +
                 '</div>' +
-                '<div class="log-detail-section">' +
+                '<div class="admin-log-detail-section">' +
                 '<h6><i class="fas fa-building me-2"></i>Account Context</h6>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Account</div><div class="log-detail-value">' + log.account.name + ' (' + log.account.id + ')</div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Actor</div><div class="log-detail-value">' + log.actor + '</div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">IP Address</div><div class="log-detail-value"><code>' + log.ip + '</code></div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Result</div><div class="log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success' : 'bg-danger') + '">' + capitalize(log.result) + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Customer</div><div class="admin-log-detail-value">' + log.customer.name + ' (' + log.customer.account_number + ')</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Actor</div><div class="admin-log-detail-value">' + log.actor + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Target</div><div class="admin-log-detail-value">' + log.target + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">IP Address</div><div class="admin-log-detail-value"><code>' + log.ip + '</code></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Result</div><div class="admin-log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success' : 'bg-danger') + '">' + capitalize(log.result) + '</span></div></div>' +
                 '</div>';
         } else {
-            content = '<div class="log-detail-section">' +
+            content = '<div class="admin-log-detail-section">' +
                 '<h6><i class="fas fa-user-shield me-2"></i>Admin Event Information</h6>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Event ID</div><div class="log-detail-value"><code>' + log.id + '</code></div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Timestamp</div><div class="log-detail-value">' + log.timestamp + '</div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Event Type</div><div class="log-detail-value"><span class="badge category-badge-admin">' + log.eventLabel + '</span></div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Severity</div><div class="log-detail-value"><span class="badge severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Event ID</div><div class="admin-log-detail-value"><code>' + log.id + '</code></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Timestamp</div><div class="admin-log-detail-value">' + log.timestamp + '</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Event Type</div><div class="admin-log-detail-value"><span class="badge admin-category-badge-admin">' + log.eventLabel + '</span></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Severity</div><div class="admin-log-detail-value"><span class="badge admin-severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></div></div>' +
                 '</div>' +
-                '<div class="log-detail-section">' +
+                '<div class="admin-log-detail-section">' +
                 '<h6><i class="fas fa-users me-2"></i>Participants</h6>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Actor Admin</div><div class="log-detail-value">' + log.actor.name + ' (' + log.actor.email + ')</div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Target</div><div class="log-detail-value">' + log.target.name + ' (' + log.target.email + ')</div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">IP Address</div><div class="log-detail-value"><code>' + log.ip + '</code></div></div>' +
-                '<div class="log-detail-row"><div class="log-detail-label">Result</div><div class="log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success' : 'bg-danger') + '">' + capitalize(log.result) + '</span></div></div>' +
-                (log.reason ? '<div class="log-detail-row"><div class="log-detail-label">Reason</div><div class="log-detail-value">' + log.reason + '</div></div>' : '') +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Actor Admin</div><div class="admin-log-detail-value">' + log.actor.name + ' (' + log.actor.email + ')</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Target</div><div class="admin-log-detail-value">' + log.target.name + ' (' + log.target.email + ')</div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">IP Address</div><div class="admin-log-detail-value"><code>' + log.ip + '</code></div></div>' +
+                '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Result</div><div class="admin-log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success' : 'bg-danger') + '">' + capitalize(log.result) + '</span></div></div>' +
+                (log.reason ? '<div class="admin-log-detail-row"><div class="admin-log-detail-label">Reason</div><div class="admin-log-detail-value">' + log.reason + '</div></div>' : '') +
                 '</div>';
         }
 
@@ -1040,13 +930,6 @@ $(document).ready(function() {
 
         $('#customerSearchInput').on('input', function() {
             var query = $(this).val().toLowerCase();
-            var filtered = customerLogs.filter(function(log) {
-                return log.actionLabel.toLowerCase().includes(query) ||
-                       log.account.name.toLowerCase().includes(query) ||
-                       log.actor.toLowerCase().includes(query) ||
-                       log.id.toLowerCase().includes(query);
-            });
-            customerLogs = filtered.length > 0 || query ? filtered : generateMockCustomerLogs();
             customerPage = 1;
             renderCustomerLogs();
         });
@@ -1077,13 +960,23 @@ $(document).ready(function() {
         });
 
         $('#customerClearFiltersBtn, #adminClearFiltersBtn').on('click', function() {
-            $(this).closest('.filter-panel').find('input, select').val('');
+            $(this).closest('.collapse').find('input, select').val('');
             showToast('Filters cleared', 'info');
+        });
+
+        $('#customerExportCsv, #customerExportExcel, #adminExportCsv, #adminExportExcel').on('click', function(e) {
+            e.preventDefault();
+            var format = $(this).attr('id').includes('Csv') ? 'CSV' : 'Excel';
+            showToast('Exporting to ' + format + '...', 'info');
+            setTimeout(function() {
+                showToast('Export completed successfully', 'success');
+            }, 1000);
         });
     }
 
     function showToast(message, type) {
-        var toastHtml = '<div class="toast align-items-center text-white bg-' + (type === 'success' ? 'success' : type === 'error' ? 'danger' : 'info') + ' border-0 position-fixed" style="top: 20px; right: 20px; z-index: 9999;" role="alert">' +
+        var bgClass = type === 'success' ? 'bg-success' : type === 'error' ? 'bg-danger' : 'bg-info';
+        var toastHtml = '<div class="toast align-items-center text-white ' + bgClass + ' border-0 position-fixed" style="top: 20px; right: 20px; z-index: 9999;" role="alert">' +
             '<div class="d-flex"><div class="toast-body">' + message + '</div>' +
             '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
         var $toast = $(toastHtml).appendTo('body');
