@@ -259,9 +259,11 @@
 
 .table-container {
     background: #fff;
-    border-radius: 0.75rem;
-    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    border: 1px solid #dde4ea;
     overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    margin-top: 0.5rem;
 }
 .api-table {
     width: 100%;
