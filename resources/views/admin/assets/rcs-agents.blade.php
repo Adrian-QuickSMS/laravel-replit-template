@@ -341,19 +341,6 @@
         </div>
     </div>
 
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <div class="d-flex align-items-center gap-2 flex-grow-1">
-            <div class="input-group" style="width: 320px;">
-                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                <input type="text" class="form-control" id="quickSearchInput" placeholder="Search by agent name or account...">
-            </div>
-            <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
-        </div>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border-color: #1e3a5f; color: #1e3a5f;">
-            <i class="fas fa-filter me-1"></i> Filters
-        </button>
-    </div>
-
     <div class="approval-queue-stats mb-3">
         <div class="approval-stat-card pending" data-status="submitted">
             <div class="stat-count" id="stat-submitted">4</div>
@@ -375,6 +362,19 @@
             <div class="stat-count" id="stat-total">254</div>
             <div class="stat-label">Total</div>
         </div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-2 flex-grow-1">
+            <div class="input-group" style="width: 320px;">
+                <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="quickSearchInput" placeholder="Search by agent name or account...">
+            </div>
+            <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border-color: #1e3a5f; color: #1e3a5f;">
+            <i class="fas fa-filter me-1"></i> Filters
+        </button>
     </div>
 
     <div class="approval-bulk-bar" style="display: none;">
