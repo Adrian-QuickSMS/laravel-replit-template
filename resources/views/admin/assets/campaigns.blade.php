@@ -40,23 +40,21 @@
 }
 .card .table-responsive {
     width: 100%;
-    max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 .api-table {
     width: 100%;
-    min-width: 100%;
-    max-width: 100%;
     margin: 0;
-    table-layout: fixed;
+    table-layout: auto;
 }
-.api-table th:nth-child(1) { width: 14%; } /* Account */
-.api-table th:nth-child(2) { width: 22%; } /* Campaign */
-.api-table th:nth-child(3) { width: 12%; } /* Channel */
-.api-table th:nth-child(4) { width: 12%; } /* Status */
-.api-table th:nth-child(5) { width: 14%; } /* Recipients */
-.api-table th:nth-child(6) { width: 16%; } /* Send Date */
-.api-table th:nth-child(7) { width: 10%; } /* Actions */
+.api-table td,
+.api-table th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
 .api-table thead th {
     background: #f8f9fa;
     padding: 0.75rem 0.5rem;

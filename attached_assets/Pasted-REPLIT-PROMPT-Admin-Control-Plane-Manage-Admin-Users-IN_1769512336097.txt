@@ -1,0 +1,195 @@
+REPLIT PROMPT — Admin Control Plane > Manage Admin Users (INTERNAL ONLY)
+
+Build/extend an INTERNAL-ONLY module: “Manage Admin Users”.
+Hard constraints:
+- Must never be accessible or visible in the customer portal.
+- Must use Fillow template/components exactly (admin console styling = blue accents only).
+- Reuse existing table, pill, modal, toast, confirmation patterns used elsewhere in Admin Console.
+- Every write action must be audit-logged (internal admin audit log; never customer audit logs).
+- All security changes apply immediately (optimistic UI only after success; otherwise show error toast).
+
+NAVIGATION
+- Admin Console → Security & Compliance → Admin Users (or “Manage Admin Users”).
+- Route must live under admin routing/auth boundary (separate from customer portal routes).
+- Access gated: Super Admin / Internal Support only (hardcode initially; future RBAC hooks ok).
+
+DATA MODEL (minimum)
+AdminUser:
+- id
+- firstName, lastName
+- email
+- status: Invited | Active | Suspended | Archived
+- mfaStatus: Enrolled | Not Enrolled
+- mfaMethod: Authenticator | SMS | Both (nullable if not enrolled)
+- lastLoginAt
+- lastActivityAt
+- failedLogins24h
+- createdAt
+- createdBy
+- activeSessionsCount
+
+AUDIT EVENT MODEL (minimum)
+AuditEvent:
+- id
+- eventType (string enum, see below)
+- module = "ADMIN_USERS"
+- actorAdminUserId
+- targetAdminUserId (nullable for list view actions)
+- timestampUtc
+- sourceIp
+- description
+- metadata JSON (old/new values, reason, etc)
+
+LIST VIEW (PRIMARY SCREEN)
+Create a Fillow table listing all admin users with columns in this order:
+1) User Name (First + Last)
+2) Email Address
+3) Status (pill: Invited / Active / Suspended / Archived)
+4) MFA Status (pill: Enrolled / Not Enrolled)
+5) MFA Method (Authenticator / SMS / Both)
+6) Last Login (date-time)
+7) Last Activity (date-time)
+8) Failed Logins (24h) (number)
+9) Created Date
+10) Actions (three dots menu)
+
+Behaviour:
+- Default sort: newest createdAt first (or lastActivityAt newest first if your admin pattern prefers).
+- Search box: matches name + email.
+- Filters: Status, MFA Status, MFA Method.
+- Pagination: at least 20 rows per page.
+- Row click opens “User Detail View” (side panel or modal; use existing pattern).
+
+GLOBAL CTA
+Top-right primary button: “Invite Admin User”.
+Opens a standard Fillow modal (not full-screen):
+Fields:
+- First Name (required)
+- Last Name (required)
+- Email Address (required, unique)
+- Optional note (internal)
+Validation inline.
+On submit:
+- Create user in status=Invited
+- Send invitation email
+- Show success toast
+- Table refresh and highlight the new row
+
+Invite rules:
+- Invite expiry configurable (default 7 days)
+- Provide “Resend invite” action while status=Invited
+- Show “Invite expired” as a system condition via audit history (status remains Invited unless you already model Expired; do NOT add a new status pill unless required. Prefer an inline banner on the user detail panel: “Invite expired — resend to reissue.”)
+
+USER DETAIL VIEW (SIDE PANEL OR MODAL)
+Header:
+- Full name + email
+- Status pill
+- Quick actions (contextual)
+Sections:
+A) Identity (read-only)
+- Full name, email, createdBy, createdAt
+B) Access & Security (read-only)
+- Status
+- MFA enrolled (Yes/No), MFA method(s)
+- Last login, last activity
+- Active sessions count
+C) Permissions (Read-only v1)
+- Role summary (text)
+- Feature access summary (text)
+(Editing permissions not implemented in v1 — but display placeholders)
+
+THREE DOT ACTIONS (CONTEXTUAL, DISABLE INVALID)
+Implement actions with confirmation modals + optional reason where specified:
+
+1) Suspend User (enabled if Active)
+- Confirmation text: “Suspending will immediately block access and revoke all active sessions.”
+- Optional reason input
+- On success: status -> Suspended; active sessions -> 0
+- Audit: ADMIN_USER_SUSPENDED
+
+2) Reactivate User (enabled if Suspended)
+- Confirmation text: “User will be able to log in again. MFA will be enforced on next login.”
+- On success: status -> Active; mark “forceMfaReenrol=true” if applicable
+- Audit: ADMIN_USER_REACTIVATED
+
+3) Archive User (enabled only if Suspended)
+- Confirmation text: “Archiving is permanent. This user cannot be reactivated.”
+- On success: status -> Archived
+- Audit: ADMIN_USER_ARCHIVED
+
+4) Reset Password (enabled if Active or Suspended)
+- Sends password reset email
+- Revokes all active sessions
+- Audit: ADMIN_USER_PASSWORD_RESET
+
+5) Reset MFA (enabled if Active or Suspended)
+- Modal with options:
+  a) Reset MFA device (forces re-enrolment on next login)
+  b) Force MFA re-enrolment on next login (same outcome; keep one if redundant)
+  c) Emergency: Temporarily disable MFA (ONLY show if current admin has super-admin flag; add strong warning)
+- Audit: ADMIN_USER_MFA_RESET or ADMIN_USER_MFA_TEMP_DISABLED
+
+6) Update MFA Details (enabled if Active or Suspended)
+- Update phone number (for SMS OTP) with validation
+- Change allowed MFA methods for this admin user (Authenticator/SMS/Both) BUT must respect global admin security policy if you have one; if not, store per-user.
+- Audit: ADMIN_USER_MFA_UPDATED
+
+7) Update Email Address (enabled if Active or Suspended)
+- Requires confirmation
+- Forces re-verification
+- Revokes sessions immediately
+- Audit: ADMIN_USER_EMAIL_UPDATED
+
+8) Force Logout / Revoke Sessions (enabled if Active or Suspended)
+- Immediate session invalidation
+- Audit: ADMIN_USER_SESSIONS_REVOKED
+
+9) Impersonate User (Support Mode) (enabled for super admins only)
+- Time-limited session (e.g., 15 minutes) with prominent banner “Support Mode”
+- Must NOT write to customer audit logs (internal admin audit only)
+- Must NOT allow access to PII (contacts, message content). Mask/disable those areas while impersonating.
+- Audit: ADMIN_IMPERSONATION_STARTED / ADMIN_IMPERSONATION_ENDED
+
+MFA ENFORCEMENT RULES (ADMIN USERS)
+- Default MFA required = ON for all admin users.
+- Allowed MFA methods: Authenticator, SMS/RCS OTP, Both (store per admin security policy or per-user).
+- Login UX must reflect allowed methods dynamically (reuse existing login MFA step UI; do not redesign).
+
+IP ACCESS RESTRICTIONS (ADMIN LOGIN)
+Add support for admin-only login IP allowlist:
+- Accept IPv4 single + CIDR
+- Enforce: even with correct password+MFA, block if IP not allowed
+- Log security event: ADMIN_LOGIN_BLOCKED_BY_IP
+
+This is configuration-driven; if you already have an Admin Security Settings module, wire into it; otherwise mock a policy service that returns allowlist + MFA policy.
+
+ERROR HANDLING
+- All actions fail gracefully:
+  - Show Fillow error alert in modal or toast
+  - Do not optimistically change UI unless backend confirms success
+- Mocks allowed but must be replaceable with real endpoints (service layer).
+
+AUDIT EVENT CATALOGUE (MINIMUM)
+Emit audit events for every action:
+- ADMIN_USER_INVITED
+- ADMIN_USER_INVITE_RESENT
+- ADMIN_USER_ACTIVATED (when invited user completes setup)
+- ADMIN_USER_SUSPENDED
+- ADMIN_USER_REACTIVATED
+- ADMIN_USER_ARCHIVED
+- ADMIN_USER_PASSWORD_RESET
+- ADMIN_USER_MFA_RESET
+- ADMIN_USER_MFA_UPDATED
+- ADMIN_USER_EMAIL_UPDATED
+- ADMIN_USER_SESSIONS_REVOKED
+- ADMIN_IMPERSONATION_STARTED
+- ADMIN_IMPERSONATION_ENDED
+- ADMIN_LOGIN_BLOCKED_BY_IP
+
+Audit fields must include actor admin, target admin, timestamp UTC, source IP, reason (if provided), before/after values in metadata.
+
+NON-GOALS
+- No role editor / role creation UI
+- No bulk actions
+- No password visibility ever
+- No customer exposure of this module
