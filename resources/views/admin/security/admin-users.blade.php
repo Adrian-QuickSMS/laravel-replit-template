@@ -1013,6 +1013,99 @@ var filteredUsers = [...allUsers];
 var currentPage = 1;
 var rowsPerPage = 20;
 
+var AdminUsersService = (function() {
+    var mockMode = true;
+    var baseUrl = '/admin/api/admin-users';
+    
+    function generateRefId() {
+        return 'ERR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+    }
+    
+    function makeRequest(endpoint, method, data) {
+        return new Promise(function(resolve, reject) {
+            if (mockMode) {
+                setTimeout(function() {
+                    if (Math.random() < 0.02) {
+                        reject({ success: false, error: 'Simulated server error', refId: generateRefId() });
+                    } else {
+                        resolve({ success: true, data: data, timestamp: new Date().toISOString() });
+                    }
+                }, 400 + Math.random() * 400);
+                return;
+            }
+            
+            fetch(baseUrl + endpoint, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    return response.json().then(function(err) {
+                        throw { success: false, error: err.message || 'Request failed', refId: generateRefId() };
+                    });
+                }
+                return response.json();
+            })
+            .then(resolve)
+            .catch(function(err) {
+                reject({ success: false, error: err.error || 'Network error', refId: err.refId || generateRefId() });
+            });
+        });
+    }
+    
+    return {
+        suspendUser: function(userId, reason) {
+            return makeRequest('/suspend', 'POST', { user_id: userId, reason: reason });
+        },
+        reactivateUser: function(userId, requireMfa) {
+            return makeRequest('/reactivate', 'POST', { user_id: userId, require_mfa: requireMfa });
+        },
+        archiveUser: function(userId, reason) {
+            return makeRequest('/archive', 'POST', { user_id: userId, reason: reason });
+        },
+        inviteUser: function(userData) {
+            return makeRequest('/invite', 'POST', userData);
+        },
+        resendInvite: function(userId) {
+            return makeRequest('/resend-invite', 'POST', { user_id: userId });
+        },
+        resetPassword: function(userId) {
+            return makeRequest('/reset-password', 'POST', { user_id: userId });
+        },
+        forceLogout: function(userId) {
+            return makeRequest('/force-logout', 'POST', { user_id: userId });
+        },
+        resetMfa: function(userId, tempDisable, reason) {
+            return makeRequest('/reset-mfa', 'POST', { user_id: userId, temp_disable: tempDisable, reason: reason });
+        },
+        updateMfa: function(userId, method, phone) {
+            return makeRequest('/update-mfa', 'POST', { user_id: userId, method: method, phone: phone });
+        },
+        updateEmail: function(userId, newEmail, reason) {
+            return makeRequest('/update-email', 'POST', { user_id: userId, new_email: newEmail, reason: reason });
+        },
+        startImpersonation: function(userId, duration, reason) {
+            return makeRequest('/impersonate', 'POST', { user_id: userId, duration: duration, reason: reason });
+        },
+        endImpersonation: function(sessionId) {
+            return makeRequest('/end-impersonation', 'POST', { session_id: sessionId });
+        }
+    };
+})();
+
+function showErrorToast(message, refId) {
+    var fullMessage = message;
+    if (refId) {
+        fullMessage += ' (Ref: ' + refId + ')';
+    }
+    showToast(fullMessage, 'error');
+    console.error('[AdminUsers] Error:', message, 'RefId:', refId);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[AdminUsers] Module initialized - Internal Only');
     
@@ -1363,45 +1456,59 @@ function sendInvite() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending...';
     
-    setTimeout(function() {
-        var newId = 'ADM' + String(allUsers.length + 1).padStart(3, '0');
-        var newUser = {
-            id: newId,
-            name: firstName + ' ' + lastName,
-            email: email,
-            role: role,
-            department: department,
-            status: 'Invited',
-            mfa_status: 'Not Enrolled',
-            mfa_method: null,
-            last_login: null,
-            last_activity: null,
-            failed_logins_24h: 0,
-            created_at: new Date().toISOString().split('T')[0],
-            internal_note: note,
-            invite_sent_at: new Date().toISOString()
-        };
-        
-        allUsers.unshift(newUser);
-        filteredUsers = [...allUsers];
-        
-        logAdminUserAudit('ADMIN_USER_INVITED', email, 
-            null, 
-            { status: 'Invited', role: role }
-        );
-        
-        addTableRow(newUser);
-        updateStats();
-        filterTable();
-        highlightRow(newId);
-        
-        bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Invite';
-        
-        showToast('Invitation sent to ' + email, 'success');
-        console.log('[AdminUsers] Invite sent:', { email: email, role: role, note: note || 'none' });
-    }, 800);
+    var userData = {
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        role: role,
+        department: department,
+        note: note
+    };
+    
+    AdminUsersService.inviteUser(userData)
+        .then(function(response) {
+            var newId = 'ADM' + String(allUsers.length + 1).padStart(3, '0');
+            var newUser = {
+                id: newId,
+                name: firstName + ' ' + lastName,
+                email: email,
+                role: role,
+                department: department,
+                status: 'Invited',
+                mfa_status: 'Not Enrolled',
+                mfa_method: null,
+                last_login: null,
+                last_activity: null,
+                failed_logins_24h: 0,
+                created_at: new Date().toISOString().split('T')[0],
+                internal_note: note,
+                invite_sent_at: new Date().toISOString()
+            };
+            
+            allUsers.unshift(newUser);
+            filteredUsers = [...allUsers];
+            
+            logAdminUserAudit('ADMIN_USER_INVITED', email, 
+                null, 
+                { status: 'Invited', role: role }
+            );
+            
+            addTableRow(newUser);
+            updateStats();
+            filterTable();
+            highlightRow(newId);
+            
+            bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
+            showToast('Invitation sent to ' + email, 'success');
+            console.log('[AdminUsers] Invite sent:', { email: email, role: role, note: note || 'none' });
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to send invitation: ' + err.error, err.refId);
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Invite';
+        });
 }
 
 function addTableRow(user) {
@@ -1507,32 +1614,37 @@ function confirmSuspend() {
     }
     
     var btn = document.getElementById('confirmSuspendBtn');
+    var previousStatus = user.status;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Suspending...';
     
-    setTimeout(function() {
-        var previousStatus = user.status;
-        user.status = 'Suspended';
-        user.active_sessions = 0;
-        user.suspended_at = new Date().toISOString();
-        user.suspended_reason = reason || null;
-        
-        logAdminUserAudit('ADMIN_USER_SUSPENDED', user.email, 
-            { status: previousStatus }, 
-            { status: 'Suspended' }, 
-            reason || 'No reason provided'
-        );
-        
-        updateTableRowStatus(userId, 'Suspended');
-        updateStats();
-        
-        bootstrap.Modal.getInstance(document.getElementById('suspendUserModal')).hide();
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-user-slash me-1"></i> Suspend User';
-        
-        showToast(user.name + ' has been suspended. All sessions revoked.', 'warning');
-        console.log('[AdminUsers] User suspended:', { userId: userId, reason: reason || 'none' });
-    }, 600);
+    AdminUsersService.suspendUser(userId, reason || 'No reason provided')
+        .then(function(response) {
+            user.status = 'Suspended';
+            user.active_sessions = 0;
+            user.suspended_at = new Date().toISOString();
+            user.suspended_reason = reason || null;
+            
+            logAdminUserAudit('ADMIN_USER_SUSPENDED', user.email, 
+                { status: previousStatus }, 
+                { status: 'Suspended' }, 
+                reason || 'No reason provided'
+            );
+            
+            updateTableRowStatus(userId, 'Suspended');
+            updateStats();
+            
+            bootstrap.Modal.getInstance(document.getElementById('suspendUserModal')).hide();
+            showToast(user.name + ' has been suspended. All sessions revoked.', 'warning');
+            console.log('[AdminUsers] User suspended:', { userId: userId, reason: reason || 'none' });
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to suspend user: ' + err.error, err.refId);
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-user-slash me-1"></i> Suspend User';
+        });
 }
 
 function reactivateUser(userId) {
@@ -1568,34 +1680,40 @@ function confirmReactivate() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Reactivating...';
     
-    setTimeout(function() {
-        user.status = 'Active';
-        user.reactivated_at = new Date().toISOString();
-        if (requireMfa) {
-            user.mfa_status = 'Not Enrolled';
-            user.mfa_method = null;
-            user.require_mfa_reenrol = true;
-        }
-        
-        logAdminUserAudit('ADMIN_USER_REACTIVATED', user.email, 
-            { status: 'Suspended' }, 
-            { status: 'Active', require_mfa_reenrol: requireMfa },
-            'User reactivated'
-        );
-        
-        updateTableRowStatus(userId, 'Active');
-        updateTableRowMfa(userId, requireMfa ? 'Not Enrolled' : user.mfa_status);
-        updateStats();
-        
-        bootstrap.Modal.getInstance(document.getElementById('reactivateUserModal')).hide();
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-user-check me-1"></i> Reactivate User';
-        
-        var msg = user.name + ' has been reactivated.';
-        if (requireMfa) msg += ' MFA re-enrollment required on next login.';
-        showToast(msg, 'success');
-        console.log('[AdminUsers] User reactivated:', { userId: userId, requireMfa: requireMfa });
-    }, 600);
+    AdminUsersService.reactivateUser(userId, requireMfa)
+        .then(function(response) {
+            user.status = 'Active';
+            user.reactivated_at = new Date().toISOString();
+            if (requireMfa) {
+                user.mfa_status = 'Not Enrolled';
+                user.mfa_method = null;
+                user.require_mfa_reenrol = true;
+            }
+            
+            logAdminUserAudit('ADMIN_USER_REACTIVATED', user.email, 
+                { status: 'Suspended' }, 
+                { status: 'Active', require_mfa_reenrol: requireMfa },
+                'User reactivated'
+            );
+            
+            updateTableRowStatus(userId, 'Active');
+            updateTableRowMfa(userId, requireMfa ? 'Not Enrolled' : user.mfa_status);
+            updateStats();
+            
+            bootstrap.Modal.getInstance(document.getElementById('reactivateUserModal')).hide();
+            
+            var msg = user.name + ' has been reactivated.';
+            if (requireMfa) msg += ' MFA re-enrollment required on next login.';
+            showToast(msg, 'success');
+            console.log('[AdminUsers] User reactivated:', { userId: userId, requireMfa: requireMfa });
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to reactivate user: ' + err.error, err.refId);
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-user-check me-1"></i> Reactivate User';
+        });
 }
 
 function archiveUser(userId) {
@@ -1647,31 +1765,36 @@ function confirmArchive() {
     }
     
     var btn = document.getElementById('confirmArchiveBtn');
+    var previousStatus = user.status;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Archiving...';
     
-    setTimeout(function() {
-        var previousStatus = user.status;
-        user.status = 'Archived';
-        user.archived_at = new Date().toISOString();
-        user.archived_reason = reason;
-        
-        logAdminUserAudit('ADMIN_USER_ARCHIVED', user.email, 
-            { status: previousStatus }, 
-            { status: 'Archived' },
-            reason
-        );
-        
-        updateTableRowStatus(userId, 'Archived');
-        updateStats();
-        
-        bootstrap.Modal.getInstance(document.getElementById('archiveUserModal')).hide();
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-archive me-1"></i> Archive Permanently';
-        
-        showToast(user.name + ' has been permanently archived.', 'warning');
-        console.log('[AdminUsers] User archived:', { userId: userId, reason: reason });
-    }, 600);
+    AdminUsersService.archiveUser(userId, reason)
+        .then(function(response) {
+            user.status = 'Archived';
+            user.archived_at = new Date().toISOString();
+            user.archived_reason = reason;
+            
+            logAdminUserAudit('ADMIN_USER_ARCHIVED', user.email, 
+                { status: previousStatus }, 
+                { status: 'Archived' },
+                reason
+            );
+            
+            updateTableRowStatus(userId, 'Archived');
+            updateStats();
+            
+            bootstrap.Modal.getInstance(document.getElementById('archiveUserModal')).hide();
+            showToast(user.name + ' has been permanently archived.', 'warning');
+            console.log('[AdminUsers] User archived:', { userId: userId, reason: reason });
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to archive user: ' + err.error, err.refId);
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-archive me-1"></i> Archive Permanently';
+        });
 }
 
 function updateTableRowStatus(userId, newStatus) {
@@ -1737,22 +1860,27 @@ function confirmResetPassword() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending...';
     
-    setTimeout(function() {
-        user.active_sessions = 0;
-        user.password_reset_sent = new Date().toISOString();
-        
-        logAdminUserAudit('ADMIN_USER_PASSWORD_RESET', user.email, 
-            null, 
-            { password_reset_sent: true }
-        );
-        
-        bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Reset Email';
-        
-        showToast('Password reset email sent to ' + user.email + '. All sessions revoked.', 'success');
-        console.log('[AdminUsers][Security] Password reset:', { userId: userId, email: user.email });
-    }, 800);
+    AdminUsersService.resetPassword(userId)
+        .then(function(response) {
+            user.active_sessions = 0;
+            user.password_reset_sent = new Date().toISOString();
+            
+            logAdminUserAudit('ADMIN_USER_PASSWORD_RESET', user.email, 
+                null, 
+                { password_reset_sent: true }
+            );
+            
+            bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
+            showToast('Password reset email sent to ' + user.email + '. All sessions revoked.', 'success');
+            console.log('[AdminUsers][Security] Password reset:', { userId: userId, email: user.email });
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to send password reset: ' + err.error, err.refId);
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Reset Email';
+        });
 }
 
 function forceLogout(userId) {
@@ -1792,21 +1920,26 @@ function confirmForceLogout() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Terminating...';
     
-    setTimeout(function() {
-        user.active_sessions = 0;
-        
-        logAdminUserAudit('ADMIN_USER_SESSIONS_REVOKED', user.email, 
-            null, 
-            { sessions_revoked: sessionCount }
-        );
-        
-        bootstrap.Modal.getInstance(document.getElementById('forceLogoutModal')).hide();
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-sign-out-alt me-1"></i> Force Logout';
-        
-        showToast(sessionCount + ' session(s) terminated for ' + user.name, 'warning');
-        console.log('[AdminUsers][Security] Force logout:', { userId: userId, sessionsTerminated: sessionCount });
-    }, 600);
+    AdminUsersService.forceLogout(userId)
+        .then(function(response) {
+            user.active_sessions = 0;
+            
+            logAdminUserAudit('ADMIN_USER_SESSIONS_REVOKED', user.email, 
+                null, 
+                { sessions_revoked: sessionCount }
+            );
+            
+            bootstrap.Modal.getInstance(document.getElementById('forceLogoutModal')).hide();
+            showToast(sessionCount + ' session(s) terminated for ' + user.name, 'warning');
+            console.log('[AdminUsers][Security] Force logout:', { userId: userId, sessionsTerminated: sessionCount });
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to terminate sessions: ' + err.error, err.refId);
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sign-out-alt me-1"></i> Force Logout';
+        });
 }
 
 function resetMfa(userId) {
@@ -1885,39 +2018,45 @@ function confirmResetMfa() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
     
-    setTimeout(function() {
-        user.mfa_status = 'Not Enrolled';
-        user.mfa_method = null;
-        if (isTempDisable) {
-            user.mfa_temp_disabled = true;
-            user.mfa_temp_disabled_reason = reason;
-            user.mfa_temp_disabled_at = new Date().toISOString();
-        } else {
-            user.mfa_temp_disabled = false;
-            user.require_mfa_reenrol = true;
-        }
-        
-        logAdminUserAudit('ADMIN_USER_MFA_RESET', user.email, 
-            { mfa_enrolled: true }, 
-            { mfa_reset: true, temporary_disable: isTempDisable, disable_hours: isTempDisable ? 24 : null }
-        );
-        
-        updateTableRowMfa(userId, 'Not Enrolled');
-        
-        bootstrap.Modal.getInstance(document.getElementById('resetMfaModal')).hide();
-        btn.disabled = false;
-        btn.style.background = '#1e3a5f';
-        btn.style.color = 'white';
-        btn.innerHTML = '<i class="fas fa-shield-alt me-1"></i> Reset MFA';
-        
-        if (isTempDisable) {
-            showToast('MFA temporarily disabled for ' + user.name + '. Action logged.', 'warning');
-            console.log('[AdminUsers][Security][CRITICAL] MFA temporarily disabled:', { userId: userId, reason: reason });
-        } else {
-            showToast('MFA reset. ' + user.name + ' must re-enroll on next login.', 'success');
-            console.log('[AdminUsers][Security] MFA reset:', { userId: userId });
-        }
-    }, 600);
+    AdminUsersService.resetMfa(userId, isTempDisable, reason)
+        .then(function(response) {
+            user.mfa_status = 'Not Enrolled';
+            user.mfa_method = null;
+            if (isTempDisable) {
+                user.mfa_temp_disabled = true;
+                user.mfa_temp_disabled_reason = reason;
+                user.mfa_temp_disabled_at = new Date().toISOString();
+            } else {
+                user.mfa_temp_disabled = false;
+                user.require_mfa_reenrol = true;
+            }
+            
+            logAdminUserAudit('ADMIN_USER_MFA_RESET', user.email, 
+                { mfa_enrolled: true }, 
+                { mfa_reset: true, temporary_disable: isTempDisable, disable_hours: isTempDisable ? 24 : null }
+            );
+            
+            updateTableRowMfa(userId, 'Not Enrolled');
+            
+            bootstrap.Modal.getInstance(document.getElementById('resetMfaModal')).hide();
+            
+            if (isTempDisable) {
+                showToast('MFA temporarily disabled for ' + user.name + '. Action logged.', 'warning');
+                console.log('[AdminUsers][Security][CRITICAL] MFA temporarily disabled:', { userId: userId, reason: reason });
+            } else {
+                showToast('MFA reset. ' + user.name + ' must re-enroll on next login.', 'success');
+                console.log('[AdminUsers][Security] MFA reset:', { userId: userId });
+            }
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to reset MFA: ' + err.error, err.refId);
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.style.background = '#1e3a5f';
+            btn.style.color = 'white';
+            btn.innerHTML = '<i class="fas fa-shield-alt me-1"></i> Reset MFA';
+        });
 }
 
 function updateMfaDetails(userId) {
@@ -1978,34 +2117,39 @@ function confirmUpdateMfa() {
     }
     
     var btn = document.getElementById('confirmUpdateMfaBtn');
+    var previousMethod = user.mfa_method;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
     
-    setTimeout(function() {
-        var previousMethod = user.mfa_method;
-        user.mfa_method = method;
-        if (method === 'SMS' || method === 'Both') {
-            user.mfa_phone = phone;
-        }
-        
-        logAdminUserAudit('ADMIN_USER_MFA_UPDATED', user.email, 
-            { mfa_method: previousMethod }, 
-            { mfa_method: method, mfa_phone: phone || null }
-        );
-        
-        var row = document.querySelector('tr[data-id="' + userId + '"]');
-        if (row) {
-            var methodCell = row.querySelector('td:nth-child(5)');
-            if (methodCell) methodCell.textContent = method;
-        }
-        
-        bootstrap.Modal.getInstance(document.getElementById('updateMfaModal')).hide();
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
-        
-        showToast('MFA settings updated for ' + user.name, 'success');
-        console.log('[AdminUsers][Security] MFA settings updated:', { userId: userId, method: method });
-    }, 600);
+    AdminUsersService.updateMfa(userId, method, phone)
+        .then(function(response) {
+            user.mfa_method = method;
+            if (method === 'SMS' || method === 'Both') {
+                user.mfa_phone = phone;
+            }
+            
+            logAdminUserAudit('ADMIN_USER_MFA_UPDATED', user.email, 
+                { mfa_method: previousMethod }, 
+                { mfa_method: method, mfa_phone: phone || null }
+            );
+            
+            var row = document.querySelector('tr[data-id="' + userId + '"]');
+            if (row) {
+                var methodCell = row.querySelector('td:nth-child(5)');
+                if (methodCell) methodCell.textContent = method;
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('updateMfaModal')).hide();
+            showToast('MFA settings updated for ' + user.name, 'success');
+            console.log('[AdminUsers][Security] MFA settings updated:', { userId: userId, method: method });
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to update MFA settings: ' + err.error, err.refId);
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
+        });
 }
 
 function updateEmail(userId) {
@@ -2072,36 +2216,41 @@ function confirmUpdateEmail() {
     }
     
     var btn = document.getElementById('confirmUpdateEmailBtn');
+    var oldEmail = user.email;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Updating...';
     
-    setTimeout(function() {
-        var oldEmail = user.email;
-        user.email = newEmail;
-        user.email_verified = false;
-        user.active_sessions = 0;
-        user.email_change_reason = reason;
-        user.email_changed_at = new Date().toISOString();
-        
-        logAdminUserAudit('ADMIN_USER_EMAIL_UPDATED', user.email, 
-            { email: oldEmail }, 
-            { email: newEmail },
-            reason
-        );
-        
-        var row = document.querySelector('tr[data-id="' + userId + '"]');
-        if (row) {
-            var emailCell = row.querySelector('td:nth-child(2)');
-            if (emailCell) emailCell.textContent = newEmail;
-        }
-        
-        bootstrap.Modal.getInstance(document.getElementById('updateEmailModal')).hide();
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-save me-1"></i> Update Email';
-        
-        showToast('Email updated. Verification email sent. All sessions revoked.', 'success');
-        console.log('[AdminUsers][Security] Email changed:', { userId: userId, from: oldEmail, to: newEmail, reason: reason });
-    }, 800);
+    AdminUsersService.updateEmail(userId, newEmail, reason)
+        .then(function(response) {
+            user.email = newEmail;
+            user.email_verified = false;
+            user.active_sessions = 0;
+            user.email_change_reason = reason;
+            user.email_changed_at = new Date().toISOString();
+            
+            logAdminUserAudit('ADMIN_USER_EMAIL_UPDATED', newEmail, 
+                { email: oldEmail }, 
+                { email: newEmail },
+                reason
+            );
+            
+            var row = document.querySelector('tr[data-id="' + userId + '"]');
+            if (row) {
+                var emailCell = row.querySelector('td:nth-child(2)');
+                if (emailCell) emailCell.textContent = newEmail;
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('updateEmailModal')).hide();
+            showToast('Email updated. Verification email sent. All sessions revoked.', 'success');
+            console.log('[AdminUsers][Security] Email changed:', { userId: userId, from: oldEmail, to: newEmail, reason: reason });
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to update email: ' + err.error, err.refId);
+        })
+        .finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save me-1"></i> Update Email';
+        });
 }
 
 function terminateSessions(userId) {
@@ -2116,14 +2265,19 @@ function resendInvite(userId) {
     }
     
     showToast('Resending invitation to ' + user.email + '...', 'info');
-    setTimeout(function() {
-        user.invite_sent_at = new Date().toISOString();
-        
-        logAdminUserAudit('ADMIN_USER_INVITE_RESENT', user.email, null, null);
-        
-        showToast('Invitation resent to ' + user.email, 'success');
-        console.log('[AdminUsers] Invite resent:', userId);
-    }, 500);
+    
+    AdminUsersService.resendInvite(userId)
+        .then(function(response) {
+            user.invite_sent_at = new Date().toISOString();
+            
+            logAdminUserAudit('ADMIN_USER_INVITE_RESENT', user.email, null, null);
+            
+            showToast('Invitation resent to ' + user.email, 'success');
+            console.log('[AdminUsers] Invite resent:', userId);
+        })
+        .catch(function(err) {
+            showErrorToast('Failed to resend invitation: ' + err.error, err.refId);
+        });
 }
 
 function revokeInvite(userId) {
