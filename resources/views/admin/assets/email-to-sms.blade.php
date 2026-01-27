@@ -23,7 +23,10 @@
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
-    overflow: hidden;
+    overflow: visible;
+}
+.table-container .dropdown-menu {
+    z-index: 1050;
 }
 .api-table {
     width: 100%;
