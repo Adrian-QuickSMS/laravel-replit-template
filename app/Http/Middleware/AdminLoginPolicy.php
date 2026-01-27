@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use App\Services\Admin\AdminLoginPolicyService;
-use Illuminate\Support\Facades\Log;
+use App\Services\Admin\AdminAuditService;
 
 class AdminLoginPolicy
 {
@@ -24,11 +24,7 @@ class AdminLoginPolicy
         $policyResult = $this->policyService->validateLoginPolicy($email, $ipAddress);
         
         if (!$policyResult['ip_allowed']) {
-            Log::warning('[AdminLoginPolicy] IP blocked login attempt', [
-                'email' => $email,
-                'ip' => $ipAddress,
-                'timestamp' => now()->toIso8601String(),
-            ]);
+            AdminAuditService::logLoginBlockedByIp($email, $ipAddress);
             
             return response()->json([
                 'error' => 'Access denied',

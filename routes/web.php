@@ -174,6 +174,7 @@ Route::prefix('admin')->group(function () {
             Route::post('/api/impersonation/end', 'endImpersonation')->name('admin.api.impersonation.end');
             Route::get('/api/impersonation/status', 'getImpersonationStatus')->name('admin.api.impersonation.status');
             Route::post('/api/login-policy/validate', 'validateLoginPolicy')->name('admin.api.login-policy.validate');
+            Route::post('/api/admin-users/audit', 'logAdminUserEvent')->name('admin.api.admin-users.audit');
             
             Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
             Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');

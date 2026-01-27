@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\Admin\ImpersonationService;
 use App\Services\Admin\AdminLoginPolicyService;
+use App\Services\Admin\AdminAuditService;
 use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
@@ -101,6 +102,83 @@ class AdminController extends Controller
             'mfa_required' => $result['mfa_required'],
             'allowed_mfa_methods' => $result['allowed_mfa_methods'],
         ]);
+    }
+    
+    public function logAdminUserEvent(Request $request)
+    {
+        $request->validate([
+            'event_type' => 'required|string',
+            'target_admin_email' => 'required|string',
+        ]);
+        
+        $actorAdmin = session('admin_email', 'admin@quicksms.co.uk');
+        $eventType = $request->input('event_type');
+        $targetEmail = $request->input('target_admin_email');
+        $beforeValues = $request->input('before_values');
+        $afterValues = $request->input('after_values');
+        $reason = $request->input('reason');
+        
+        switch ($eventType) {
+            case 'ADMIN_USER_INVITED':
+                $role = $afterValues['role'] ?? 'Internal Support';
+                AdminAuditService::logUserInvited($actorAdmin, $targetEmail, $role);
+                break;
+                
+            case 'ADMIN_USER_INVITE_RESENT':
+                AdminAuditService::logInviteResent($actorAdmin, $targetEmail);
+                break;
+                
+            case 'ADMIN_USER_ACTIVATED':
+                AdminAuditService::logUserActivated($actorAdmin, $targetEmail);
+                break;
+                
+            case 'ADMIN_USER_SUSPENDED':
+                $previousStatus = $beforeValues['status'] ?? 'Active';
+                AdminAuditService::logUserSuspended($actorAdmin, $targetEmail, $previousStatus, $reason ?? 'No reason provided');
+                break;
+                
+            case 'ADMIN_USER_REACTIVATED':
+                AdminAuditService::logUserReactivated($actorAdmin, $targetEmail, $reason ?? 'No reason provided');
+                break;
+                
+            case 'ADMIN_USER_ARCHIVED':
+                $previousStatus = $beforeValues['status'] ?? 'Unknown';
+                AdminAuditService::logUserArchived($actorAdmin, $targetEmail, $previousStatus, $reason ?? 'No reason provided');
+                break;
+                
+            case 'ADMIN_USER_PASSWORD_RESET':
+                AdminAuditService::logPasswordReset($actorAdmin, $targetEmail);
+                break;
+                
+            case 'ADMIN_USER_MFA_RESET':
+                $tempDisable = $afterValues['temporary_disable'] ?? false;
+                $disableHours = $afterValues['disable_hours'] ?? null;
+                AdminAuditService::logMfaReset($actorAdmin, $targetEmail, $tempDisable, $disableHours);
+                break;
+                
+            case 'ADMIN_USER_MFA_UPDATED':
+                $prevMethod = $beforeValues['mfa_method'] ?? 'Unknown';
+                $newMethod = $afterValues['mfa_method'] ?? 'Unknown';
+                $newPhone = $afterValues['mfa_phone'] ?? null;
+                AdminAuditService::logMfaUpdated($actorAdmin, $targetEmail, $prevMethod, $newMethod, $newPhone);
+                break;
+                
+            case 'ADMIN_USER_EMAIL_UPDATED':
+                $prevEmail = $beforeValues['email'] ?? '';
+                $newEmail = $afterValues['email'] ?? '';
+                AdminAuditService::logEmailUpdated($actorAdmin, $targetEmail, $prevEmail, $newEmail, $reason ?? 'No reason provided');
+                break;
+                
+            case 'ADMIN_USER_SESSIONS_REVOKED':
+                $sessionsRevoked = $afterValues['sessions_revoked'] ?? 1;
+                AdminAuditService::logSessionsRevoked($actorAdmin, $targetEmail, $sessionsRevoked);
+                break;
+                
+            default:
+                AdminAuditService::logAdminUserEvent($eventType, $actorAdmin, $targetEmail, $beforeValues, $afterValues, $reason);
+        }
+        
+        return response()->json(['success' => true, 'event_logged' => $eventType]);
     }
 
     public function dashboard()

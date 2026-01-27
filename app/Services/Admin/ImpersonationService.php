@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use App\Services\Admin\AdminAuditService;
 
 class ImpersonationService
 {
@@ -45,13 +46,13 @@ class ImpersonationService
         
         Session::put('impersonation_session', $sessionData);
         
-        $this->logAdminAuditEvent('IMPERSONATION_START', [
-            'session_id' => $sessionId,
-            'admin_email' => $adminEmail,
-            'target_user_id' => $targetUserId,
-            'duration_minutes' => $durationMinutes,
-            'reason' => $reason,
-        ]);
+        AdminAuditService::logImpersonationStarted(
+            $adminEmail,
+            $targetUserId,
+            $durationMinutes,
+            $sessionId,
+            $reason
+        );
         
         return [
             'success' => true,
@@ -72,13 +73,15 @@ class ImpersonationService
             ];
         }
         
-        $this->logAdminAuditEvent('IMPERSONATION_END', [
-            'session_id' => $sessionId,
-            'admin_email' => $sessionData['admin_email'],
-            'target_user_id' => $sessionData['target_user_id'],
-            'end_type' => $endType,
-            'duration_actual' => now()->diffInSeconds($sessionData['start_time']),
-        ]);
+        $durationSeconds = now()->diffInSeconds($sessionData['start_time']);
+        
+        AdminAuditService::logImpersonationEnded(
+            $sessionData['admin_email'],
+            $sessionData['target_user_id'],
+            $sessionId,
+            $endType,
+            $durationSeconds
+        );
         
         Session::forget('impersonation_session');
         

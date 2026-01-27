@@ -1385,6 +1385,11 @@ function sendInvite() {
         allUsers.unshift(newUser);
         filteredUsers = [...allUsers];
         
+        logAdminUserAudit('ADMIN_USER_INVITED', email, 
+            null, 
+            { status: 'Invited', role: role }
+        );
+        
         addTableRow(newUser);
         updateStats();
         filterTable();
@@ -1506,10 +1511,17 @@ function confirmSuspend() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Suspending...';
     
     setTimeout(function() {
+        var previousStatus = user.status;
         user.status = 'Suspended';
         user.active_sessions = 0;
         user.suspended_at = new Date().toISOString();
         user.suspended_reason = reason || null;
+        
+        logAdminUserAudit('ADMIN_USER_SUSPENDED', user.email, 
+            { status: previousStatus }, 
+            { status: 'Suspended' }, 
+            reason || 'No reason provided'
+        );
         
         updateTableRowStatus(userId, 'Suspended');
         updateStats();
@@ -1564,6 +1576,12 @@ function confirmReactivate() {
             user.mfa_method = null;
             user.require_mfa_reenrol = true;
         }
+        
+        logAdminUserAudit('ADMIN_USER_REACTIVATED', user.email, 
+            { status: 'Suspended' }, 
+            { status: 'Active', require_mfa_reenrol: requireMfa },
+            'User reactivated'
+        );
         
         updateTableRowStatus(userId, 'Active');
         updateTableRowMfa(userId, requireMfa ? 'Not Enrolled' : user.mfa_status);
@@ -1633,9 +1651,16 @@ function confirmArchive() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Archiving...';
     
     setTimeout(function() {
+        var previousStatus = user.status;
         user.status = 'Archived';
         user.archived_at = new Date().toISOString();
         user.archived_reason = reason;
+        
+        logAdminUserAudit('ADMIN_USER_ARCHIVED', user.email, 
+            { status: previousStatus }, 
+            { status: 'Archived' },
+            reason
+        );
         
         updateTableRowStatus(userId, 'Archived');
         updateStats();
@@ -1716,6 +1741,11 @@ function confirmResetPassword() {
         user.active_sessions = 0;
         user.password_reset_sent = new Date().toISOString();
         
+        logAdminUserAudit('ADMIN_USER_PASSWORD_RESET', user.email, 
+            null, 
+            { password_reset_sent: true }
+        );
+        
         bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Reset Email';
@@ -1764,6 +1794,11 @@ function confirmForceLogout() {
     
     setTimeout(function() {
         user.active_sessions = 0;
+        
+        logAdminUserAudit('ADMIN_USER_SESSIONS_REVOKED', user.email, 
+            null, 
+            { sessions_revoked: sessionCount }
+        );
         
         bootstrap.Modal.getInstance(document.getElementById('forceLogoutModal')).hide();
         btn.disabled = false;
@@ -1862,6 +1897,11 @@ function confirmResetMfa() {
             user.require_mfa_reenrol = true;
         }
         
+        logAdminUserAudit('ADMIN_USER_MFA_RESET', user.email, 
+            { mfa_enrolled: true }, 
+            { mfa_reset: true, temporary_disable: isTempDisable, disable_hours: isTempDisable ? 24 : null }
+        );
+        
         updateTableRowMfa(userId, 'Not Enrolled');
         
         bootstrap.Modal.getInstance(document.getElementById('resetMfaModal')).hide();
@@ -1942,10 +1982,16 @@ function confirmUpdateMfa() {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
     
     setTimeout(function() {
+        var previousMethod = user.mfa_method;
         user.mfa_method = method;
         if (method === 'SMS' || method === 'Both') {
             user.mfa_phone = phone;
         }
+        
+        logAdminUserAudit('ADMIN_USER_MFA_UPDATED', user.email, 
+            { mfa_method: previousMethod }, 
+            { mfa_method: method, mfa_phone: phone || null }
+        );
         
         var row = document.querySelector('tr[data-id="' + userId + '"]');
         if (row) {
@@ -2037,6 +2083,12 @@ function confirmUpdateEmail() {
         user.email_change_reason = reason;
         user.email_changed_at = new Date().toISOString();
         
+        logAdminUserAudit('ADMIN_USER_EMAIL_UPDATED', user.email, 
+            { email: oldEmail }, 
+            { email: newEmail },
+            reason
+        );
+        
         var row = document.querySelector('tr[data-id="' + userId + '"]');
         if (row) {
             var emailCell = row.querySelector('td:nth-child(2)');
@@ -2066,6 +2118,9 @@ function resendInvite(userId) {
     showToast('Resending invitation to ' + user.email + '...', 'info');
     setTimeout(function() {
         user.invite_sent_at = new Date().toISOString();
+        
+        logAdminUserAudit('ADMIN_USER_INVITE_RESENT', user.email, null, null);
+        
         showToast('Invitation resent to ' + user.email, 'success');
         console.log('[AdminUsers] Invite resent:', userId);
     }, 500);
@@ -2281,6 +2336,29 @@ function removePiiMasking() {
         el.classList.remove('pii-masked');
     });
     console.log('[AdminUsers][Impersonation] PII masking removed');
+}
+
+function logAdminUserAudit(eventType, targetEmail, beforeValues, afterValues, reason) {
+    fetch('/admin/api/admin-users/audit', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            event_type: eventType,
+            target_admin_email: targetEmail,
+            before_values: beforeValues || null,
+            after_values: afterValues || null,
+            reason: reason || null
+        })
+    }).then(function(response) {
+        return response.json();
+    }).then(function(data) {
+        console.log('[AdminAudit] Event logged:', eventType, data);
+    }).catch(function(error) {
+        console.error('[AdminAudit] Failed to log event:', eventType, error);
+    });
 }
 
 function showToast(message, type) {

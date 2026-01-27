@@ -31,10 +31,19 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
     - **Admin Accounts, Email-to-SMS, Campaign History, and Invoices Modules:** Global views and management capabilities across customer accounts.
     - **Admin Global Templates Library:** Cross-tenant template management with an impersonation-safe editing wizard, comprehensive template lifecycle actions (Suspend, Reactivate, Archive), and dedicated admin audit logging.
     - **Admin Account Billing Page:** Customer-scoped billing view with billing mode toggle, inline credit limit editing, and actions to create invoices/credit notes via a shared modal.
+    - **Admin Users Module:** Comprehensive admin user lifecycle management with:
+      - Status lifecycle (Invited → Active → Suspended ↔ Reactivated → Archived)
+      - Security actions: Password Reset, Force Logout, MFA Reset/Update, Email Update
+      - Impersonation/Support Mode with time-limited sessions and PII masking
+      - Server-side role enforcement via `AdminLoginPolicy` and `ImpersonationGuard` middleware
+    - **Admin Audit Logging:** Immutable audit trail via `AdminAuditService` with 7-year retention, covering:
+      - Event types: ADMIN_USER_INVITED, INVITE_RESENT, ACTIVATED, SUSPENDED, REACTIVATED, ARCHIVED, PASSWORD_RESET, MFA_RESET, MFA_UPDATED, EMAIL_UPDATED, SESSIONS_REVOKED, IMPERSONATION_STARTED, IMPERSONATION_ENDED, LOGIN_BLOCKED_BY_IP
+      - Required fields: actor admin, target admin, timestamp UTC, source IP, action type, before/after values, optional reason
+      - Sensitive data sanitization (passwords, tokens, secrets auto-redacted)
     - **Impersonation:** Enhanced security controls including reason requirement, session limits, read-only mode, and critical audit logging.
 
 **Service Layer Architecture:**
-- **Modular Service Layers:** `ContactTimelineService`, `NumbersAdminService`, and `BillingServices` provide backend-ready abstraction layers.
+- **Modular Service Layers:** `ContactTimelineService`, `NumbersAdminService`, `BillingServices`, `AdminAuditService`, `AdminLoginPolicyService`, and `ImpersonationService` provide backend-ready abstraction layers.
 - **BillingServices (Unified):** Encompasses `HubSpotBillingService` (source of truth for billing), `InternalBillingLedgerService` (internal balance tracking), `InvoicesService` (invoice/credit note management with Xero integration), and `AccountDetailsService`. Includes a `BillingFacade` for unified data loading and defensive error handling.
 - **Design Principles:** Typed JSDoc objects, mock data modes for development, clean separation of UI and API, and robust error handling.
 
