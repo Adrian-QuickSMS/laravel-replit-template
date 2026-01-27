@@ -461,32 +461,28 @@ $invitedUsers = collect($adminUsers)->where('status', 'Invited')->count();
                                     <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-edit me-2"></i>Edit User</a></li>
                                     @endif
                                     <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header" style="font-size: 0.7rem; color: #6c757d;">Account Status</li>
                                     @if($user['status'] === 'Active')
                                     <li><a class="dropdown-item text-warning" href="#" onclick="suspendUser('{{ $user['id'] }}')"><i class="fas fa-user-slash me-2"></i>Suspend</a></li>
-                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Only suspended users can be reactivated"><i class="fas fa-user-check me-2"></i>Reactivate</a></li>
                                     @elseif($user['status'] === 'Suspended')
-                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="User is already suspended"><i class="fas fa-user-slash me-2"></i>Suspend</a></li>
                                     <li><a class="dropdown-item text-success" href="#" onclick="reactivateUser('{{ $user['id'] }}')"><i class="fas fa-user-check me-2"></i>Reactivate</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="archiveUser('{{ $user['id'] }}')"><i class="fas fa-archive me-2"></i>Archive</a></li>
                                     @elseif($user['status'] === 'Invited')
                                     <li><a class="dropdown-item" href="#" onclick="resendInvite('{{ $user['id'] }}')"><i class="fas fa-paper-plane me-2"></i>Resend Invite</a></li>
-                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Cannot suspend invited users"><i class="fas fa-user-slash me-2"></i>Suspend</a></li>
-                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Cannot reactivate invited users"><i class="fas fa-user-check me-2"></i>Reactivate</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="revokeInvite('{{ $user['id'] }}')"><i class="fas fa-times me-2"></i>Revoke Invite</a></li>
                                     @elseif($user['status'] === 'Archived')
-                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-user-slash me-2"></i>Suspend</a></li>
-                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-user-check me-2"></i>Reactivate</a></li>
+                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-lock me-2"></i>No actions available</a></li>
                                     @endif
-                                    @if($user['status'] !== 'Archived' && $user['status'] !== 'Invited')
-                                    <li><a class="dropdown-item" href="#" onclick="resetMfa('{{ $user['id'] }}')"><i class="fas fa-key me-2"></i>Reset MFA</a></li>
-                                    @else
-                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-key me-2"></i>Reset MFA</a></li>
-                                    @endif
+                                    @if($user['status'] !== 'Invited' && $user['status'] !== 'Archived')
                                     <li><hr class="dropdown-divider"></li>
-                                    @if($user['status'] === 'Suspended')
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="archiveUser('{{ $user['id'] }}')"><i class="fas fa-archive me-2"></i>Archive</a></li>
-                                    @elseif($user['status'] === 'Archived')
-                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Already archived"><i class="fas fa-archive me-2"></i>Archive</a></li>
-                                    @else
-                                    <li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;" title="Only suspended users can be archived"><i class="fas fa-archive me-2"></i>Archive</a></li>
+                                    <li class="dropdown-header" style="font-size: 0.7rem; color: #6c757d;">Security</li>
+                                    <li><a class="dropdown-item" href="#" onclick="resetPassword('{{ $user['id'] }}')"><i class="fas fa-key me-2"></i>Reset Password</a></li>
+                                    @if($user['status'] === 'Active')
+                                    <li><a class="dropdown-item" href="#" onclick="forceLogout('{{ $user['id'] }}')"><i class="fas fa-sign-out-alt me-2"></i>Force Logout</a></li>
+                                    @endif
+                                    <li><a class="dropdown-item" href="#" onclick="resetMfa('{{ $user['id'] }}')"><i class="fas fa-shield-alt me-2"></i>Reset MFA</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateMfaDetails('{{ $user['id'] }}')"><i class="fas fa-mobile-alt me-2"></i>MFA Settings</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateEmail('{{ $user['id'] }}')"><i class="fas fa-envelope me-2"></i>Update Email</a></li>
                                     @endif
                                 </ul>
                             </div>
@@ -615,6 +611,186 @@ $invitedUsers = collect($adminUsers)->where('status', 'Invited')->count();
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmArchiveBtn" onclick="confirmArchive()" disabled>
                     <i class="fas fa-archive me-1"></i> Archive Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #e7f1ff; border-bottom: 1px solid #b6d4fe;">
+                <h5 class="modal-title" style="color: #1e3a5f;"><i class="fas fa-key me-2"></i>Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This will send a password reset email and revoke all active sessions.
+                </div>
+                <p class="mb-0">Send password reset email to <strong id="resetPasswordUserName"></strong>?</p>
+                <p class="text-muted small mb-0" id="resetPasswordEmail"></p>
+                <input type="hidden" id="resetPasswordUserId">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" style="background: #1e3a5f; color: white;" id="confirmResetPasswordBtn" onclick="confirmResetPassword()">
+                    <i class="fas fa-paper-plane me-1"></i> Send Reset Email
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="forceLogoutModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #fff3cd; border-bottom: 1px solid #ffc107;">
+                <h5 class="modal-title" style="color: #856404;"><i class="fas fa-sign-out-alt me-2"></i>Force Logout</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    This will immediately terminate all active sessions for this user.
+                </div>
+                <p class="mb-2">Force logout <strong id="forceLogoutUserName"></strong>?</p>
+                <p class="mb-0"><span class="badge bg-secondary" id="forceLogoutSessionCount">0</span> active session(s) will be terminated.</p>
+                <input type="hidden" id="forceLogoutUserId">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmForceLogoutBtn" onclick="confirmForceLogout()">
+                    <i class="fas fa-sign-out-alt me-1"></i> Force Logout
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="resetMfaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #e7f1ff; border-bottom: 1px solid #b6d4fe;">
+                <h5 class="modal-title" style="color: #1e3a5f;"><i class="fas fa-shield-alt me-2"></i>Reset MFA</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Reset MFA for <strong id="resetMfaUserName"></strong></p>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="mfaResetAction" id="mfaReenroll" value="reenroll" checked onchange="toggleTempDisableMfa()">
+                        <label class="form-check-label" for="mfaReenroll">
+                            <strong>Force MFA Re-enrollment</strong>
+                            <div class="form-text">User must set up MFA again on next login</div>
+                        </label>
+                    </div>
+                    <div class="form-check mt-2" id="tempDisableContainer">
+                        <input class="form-check-input" type="radio" name="mfaResetAction" id="mfaTempDisable" value="temp_disable" onchange="toggleTempDisableMfa()">
+                        <label class="form-check-label" for="mfaTempDisable">
+                            <strong>Temporarily Disable MFA</strong> <span class="badge bg-danger">Super Admin Only</span>
+                            <div class="form-text">Allows login without MFA until re-enrolled</div>
+                        </label>
+                    </div>
+                </div>
+                <div class="alert alert-danger mb-0 d-none" id="tempDisableWarning">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <strong>Security Warning:</strong> Temporarily disabling MFA significantly reduces account security. 
+                    This action is logged and requires justification. Only use for verified account recovery scenarios.
+                    <div class="mt-2">
+                        <label class="form-label">Justification <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="mfaDisableReason" rows="2" placeholder="Why is MFA being temporarily disabled?"></textarea>
+                    </div>
+                </div>
+                <input type="hidden" id="resetMfaUserId">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" style="background: #1e3a5f; color: white;" id="confirmResetMfaBtn" onclick="confirmResetMfa()">
+                    <i class="fas fa-shield-alt me-1"></i> Reset MFA
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="updateMfaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #e7f1ff; border-bottom: 1px solid #b6d4fe;">
+                <h5 class="modal-title" style="color: #1e3a5f;"><i class="fas fa-mobile-alt me-2"></i>Update MFA Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Update MFA settings for <strong id="updateMfaUserName"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label">Allowed MFA Methods <span class="text-danger">*</span></label>
+                    <select class="form-select" id="updateMfaMethod">
+                        <option value="Authenticator">Authenticator App Only</option>
+                        <option value="SMS">SMS OTP Only</option>
+                        <option value="Both">Both (Authenticator + SMS)</option>
+                    </select>
+                    <div class="form-text">Admin security policy may override individual settings</div>
+                </div>
+                <div class="mb-3" id="smsPhoneContainer">
+                    <label class="form-label">SMS Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                        <input type="tel" class="form-control" id="updateMfaPhone" placeholder="+44 7XXX XXXXXX">
+                    </div>
+                    <div class="form-text">Required if SMS OTP is enabled</div>
+                </div>
+                <div class="alert alert-secondary mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>Current MFA Status: <strong id="currentMfaStatus">-</strong></small>
+                </div>
+                <input type="hidden" id="updateMfaUserId">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" style="background: #1e3a5f; color: white;" id="confirmUpdateMfaBtn" onclick="confirmUpdateMfa()">
+                    <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="updateEmailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #fff3cd; border-bottom: 1px solid #ffc107;">
+                <h5 class="modal-title" style="color: #856404;"><i class="fas fa-envelope me-2"></i>Update Email Address</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Changing email will force re-verification and revoke all active sessions.
+                </div>
+                <p class="mb-3">Update email for <strong id="updateEmailUserName"></strong></p>
+                <div class="mb-3">
+                    <label class="form-label">Current Email</label>
+                    <input type="email" class="form-control" id="currentEmail" disabled>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">New Email Address <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" id="newEmail" placeholder="new.email@quicksms.co.uk">
+                    <div class="invalid-feedback" id="newEmailError">Must be a valid @quicksms.co.uk email</div>
+                    <div class="form-text">Must be a @quicksms.co.uk email address</div>
+                </div>
+                <div class="mb-0">
+                    <label class="form-label">Reason for Change <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="emailChangeReason" rows="2" placeholder="Why is the email being changed?"></textarea>
+                    <div class="invalid-feedback">Reason is required</div>
+                </div>
+                <input type="hidden" id="updateEmailUserId">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmUpdateEmailBtn" onclick="confirmUpdateEmail()">
+                    <i class="fas fa-save me-1"></i> Update Email
                 </button>
             </div>
         </div>
@@ -899,33 +1075,47 @@ function openUserDetail(userId) {
     
     document.getElementById('userDetailBody').innerHTML = html;
     
-    var actionsHtml = '';
-    var canDoSuspend = user.status === 'Active';
-    var canDoReactivate = user.status === 'Suspended';
-    var canDoArchive = user.status === 'Suspended';
+    var actionsHtml = '<div class="d-flex flex-column gap-2" style="padding: 0.5rem;">';
     
     if (user.status === 'Invited') {
+        actionsHtml += '<div class="d-flex flex-wrap gap-2">';
         actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="resendInvite(\'' + userId + '\')"><i class="fas fa-paper-plane me-1"></i>Resend Invite</button>';
         actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="revokeInvite(\'' + userId + '\'); closeUserDetail();"><i class="fas fa-times me-1"></i>Revoke</button>';
-        actionsHtml += '<button class="btn btn-sm btn-outline-warning" disabled title="Cannot suspend invited users"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
+        actionsHtml += '</div>';
     } else if (user.status === 'Active') {
+        actionsHtml += '<div class="mb-2"><small class="text-muted fw-bold">Account Actions</small></div>';
+        actionsHtml += '<div class="d-flex flex-wrap gap-2 mb-2">';
         actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="editUser(\'' + userId + '\')"><i class="fas fa-edit me-1"></i>Edit</button>';
         actionsHtml += '<button class="btn btn-sm btn-outline-warning" onclick="suspendUser(\'' + userId + '\')"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
-        actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="resetMfa(\'' + userId + '\')"><i class="fas fa-key me-1"></i>Reset MFA</button>';
+        actionsHtml += '</div>';
+        actionsHtml += '<div class="mb-2"><small class="text-muted fw-bold">Security Actions</small></div>';
+        actionsHtml += '<div class="d-flex flex-wrap gap-2">';
+        actionsHtml += '<button class="btn btn-sm btn-outline-primary" onclick="resetPassword(\'' + userId + '\')"><i class="fas fa-key me-1"></i>Reset Password</button>';
         if (user.active_sessions > 0) {
-            actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="terminateSessions(\'' + userId + '\')"><i class="fas fa-sign-out-alt me-1"></i>End Sessions</button>';
+            actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="forceLogout(\'' + userId + '\')"><i class="fas fa-sign-out-alt me-1"></i>Force Logout (' + user.active_sessions + ')</button>';
+        } else {
+            actionsHtml += '<button class="btn btn-sm btn-outline-secondary" disabled title="No active sessions"><i class="fas fa-sign-out-alt me-1"></i>Force Logout</button>';
         }
-        actionsHtml += '<button class="btn btn-sm btn-outline-success" disabled title="Only suspended users can be reactivated"><i class="fas fa-user-check me-1"></i>Reactivate</button>';
-        actionsHtml += '<button class="btn btn-sm btn-outline-secondary" disabled title="Only suspended users can be archived"><i class="fas fa-archive me-1"></i>Archive</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-info" onclick="resetMfa(\'' + userId + '\')"><i class="fas fa-shield-alt me-1"></i>Reset MFA</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="updateMfaDetails(\'' + userId + '\')"><i class="fas fa-mobile-alt me-1"></i>MFA Settings</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="updateEmail(\'' + userId + '\')"><i class="fas fa-envelope me-1"></i>Update Email</button>';
+        actionsHtml += '</div>';
     } else if (user.status === 'Suspended') {
-        actionsHtml += '<button class="btn btn-sm" style="background: #1e3a5f; color: white;" disabled title="Cannot edit suspended users"><i class="fas fa-edit me-1"></i>Edit</button>';
-        actionsHtml += '<button class="btn btn-sm btn-outline-warning" disabled title="User is already suspended"><i class="fas fa-user-slash me-1"></i>Suspend</button>';
-        actionsHtml += '<button class="btn btn-sm btn-outline-success" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-user-check me-1"></i>Reactivate</button>';
+        actionsHtml += '<div class="mb-2"><small class="text-muted fw-bold">Account Actions</small></div>';
+        actionsHtml += '<div class="d-flex flex-wrap gap-2 mb-2">';
+        actionsHtml += '<button class="btn btn-sm btn-success" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-user-check me-1"></i>Reactivate</button>';
         actionsHtml += '<button class="btn btn-sm btn-outline-danger" onclick="archiveUser(\'' + userId + '\')"><i class="fas fa-archive me-1"></i>Archive</button>';
+        actionsHtml += '</div>';
+        actionsHtml += '<div class="mb-2"><small class="text-muted fw-bold">Security Actions</small></div>';
+        actionsHtml += '<div class="d-flex flex-wrap gap-2">';
+        actionsHtml += '<button class="btn btn-sm btn-outline-primary" onclick="resetPassword(\'' + userId + '\')"><i class="fas fa-key me-1"></i>Reset Password</button>';
+        actionsHtml += '<button class="btn btn-sm btn-outline-info" onclick="resetMfa(\'' + userId + '\')"><i class="fas fa-shield-alt me-1"></i>Reset MFA</button>';
+        actionsHtml += '</div>';
     } else if (user.status === 'Archived') {
-        actionsHtml += '<div class="text-center w-100"><span class="text-muted small"><i class="fas fa-lock me-1"></i>Archived users cannot be modified</span></div>';
+        actionsHtml += '<div class="text-center py-2"><span class="text-muted small"><i class="fas fa-lock me-1"></i>Archived users cannot be modified</span></div>';
     }
     
+    actionsHtml += '</div>';
     document.getElementById('userDetailActions').innerHTML = actionsHtml;
     
     document.getElementById('panelOverlay').classList.add('show');
@@ -939,17 +1129,6 @@ function getInitials(name) {
         return parts[0].charAt(0).toUpperCase() + parts[parts.length - 1].charAt(0).toUpperCase();
     }
     return parts[0].charAt(0).toUpperCase();
-}
-
-function terminateSessions(userId) {
-    if (!confirm('Terminate all active sessions for this user? They will be logged out immediately.')) return;
-    var user = allUsers.find(function(u) { return u.id === userId; });
-    if (user) {
-        user.active_sessions = 0;
-        openUserDetail(userId);
-        showToast('All sessions terminated', 'warning');
-        console.log('[AdminUsers] Sessions terminated:', userId);
-    }
 }
 
 function closeUserDetail() {
@@ -1351,17 +1530,382 @@ function updateTableRowMfa(userId, mfaStatus) {
     mfaCell.innerHTML = '<span class="badge-pill ' + mfaClass + '">' + mfaStatus + '</span>';
 }
 
-function resetMfa(userId) { 
-    if (confirm('Reset MFA for this user? They will need to re-enroll on next login.')) { 
-        var user = allUsers.find(function(u) { return u.id === userId; });
-        if (user) {
-            user.mfa_status = 'Not Enrolled';
-            user.mfa_method = null;
-            updateTableRowMfa(userId, 'Not Enrolled');
-            openUserDetail(userId);
+var currentAdminRole = '{{ session("admin_role", "super_admin") }}';
+
+function resetPassword(userId) {
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user) {
+        showToast('User not found', 'error');
+        return;
+    }
+    if (user.status === 'Archived' || user.status === 'Invited') {
+        showToast('Cannot reset password for ' + user.status.toLowerCase() + ' users', 'error');
+        return;
+    }
+    
+    document.getElementById('resetPasswordUserId').value = userId;
+    document.getElementById('resetPasswordUserName').textContent = user.name;
+    document.getElementById('resetPasswordEmail').textContent = user.email;
+    closeUserDetail();
+    new bootstrap.Modal(document.getElementById('resetPasswordModal')).show();
+}
+
+function confirmResetPassword() {
+    var userId = document.getElementById('resetPasswordUserId').value;
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    
+    if (!user) {
+        showToast('User not found', 'error');
+        bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
+        return;
+    }
+    
+    var btn = document.getElementById('confirmResetPasswordBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending...';
+    
+    setTimeout(function() {
+        user.active_sessions = 0;
+        user.password_reset_sent = new Date().toISOString();
+        
+        bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send Reset Email';
+        
+        showToast('Password reset email sent to ' + user.email + '. All sessions revoked.', 'success');
+        console.log('[AdminUsers][Security] Password reset:', { userId: userId, email: user.email });
+    }, 800);
+}
+
+function forceLogout(userId) {
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user) {
+        showToast('User not found', 'error');
+        return;
+    }
+    if (user.status !== 'Active') {
+        showToast('Can only force logout active users', 'error');
+        return;
+    }
+    if (user.active_sessions === 0) {
+        showToast('User has no active sessions', 'info');
+        return;
+    }
+    
+    document.getElementById('forceLogoutUserId').value = userId;
+    document.getElementById('forceLogoutUserName').textContent = user.name;
+    document.getElementById('forceLogoutSessionCount').textContent = user.active_sessions || 0;
+    closeUserDetail();
+    new bootstrap.Modal(document.getElementById('forceLogoutModal')).show();
+}
+
+function confirmForceLogout() {
+    var userId = document.getElementById('forceLogoutUserId').value;
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    
+    if (!user) {
+        showToast('User not found', 'error');
+        bootstrap.Modal.getInstance(document.getElementById('forceLogoutModal')).hide();
+        return;
+    }
+    
+    var btn = document.getElementById('confirmForceLogoutBtn');
+    var sessionCount = user.active_sessions || 0;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Terminating...';
+    
+    setTimeout(function() {
+        user.active_sessions = 0;
+        
+        bootstrap.Modal.getInstance(document.getElementById('forceLogoutModal')).hide();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sign-out-alt me-1"></i> Force Logout';
+        
+        showToast(sessionCount + ' session(s) terminated for ' + user.name, 'warning');
+        console.log('[AdminUsers][Security] Force logout:', { userId: userId, sessionsTerminated: sessionCount });
+    }, 600);
+}
+
+function resetMfa(userId) {
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user) {
+        showToast('User not found', 'error');
+        return;
+    }
+    if (user.status === 'Archived' || user.status === 'Invited') {
+        showToast('Cannot reset MFA for ' + user.status.toLowerCase() + ' users', 'error');
+        return;
+    }
+    
+    document.getElementById('resetMfaUserId').value = userId;
+    document.getElementById('resetMfaUserName').textContent = user.name;
+    document.getElementById('mfaReenroll').checked = true;
+    document.getElementById('mfaDisableReason').value = '';
+    document.getElementById('tempDisableWarning').classList.add('d-none');
+    
+    var tempDisableContainer = document.getElementById('tempDisableContainer');
+    if (currentAdminRole !== 'super_admin') {
+        tempDisableContainer.style.display = 'none';
+    } else {
+        tempDisableContainer.style.display = 'block';
+    }
+    
+    closeUserDetail();
+    new bootstrap.Modal(document.getElementById('resetMfaModal')).show();
+}
+
+function toggleTempDisableMfa() {
+    var isTempDisable = document.getElementById('mfaTempDisable').checked;
+    var warningEl = document.getElementById('tempDisableWarning');
+    var btn = document.getElementById('confirmResetMfaBtn');
+    
+    if (isTempDisable) {
+        warningEl.classList.remove('d-none');
+        btn.classList.remove('btn');
+        btn.classList.add('btn', 'btn-danger');
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Disable MFA';
+    } else {
+        warningEl.classList.add('d-none');
+        btn.classList.remove('btn-danger');
+        btn.style.background = '#1e3a5f';
+        btn.style.color = 'white';
+        btn.innerHTML = '<i class="fas fa-shield-alt me-1"></i> Reset MFA';
+    }
+}
+
+function confirmResetMfa() {
+    var userId = document.getElementById('resetMfaUserId').value;
+    var isTempDisable = document.getElementById('mfaTempDisable').checked;
+    var reason = document.getElementById('mfaDisableReason').value.trim();
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    
+    if (!user) {
+        showToast('User not found', 'error');
+        bootstrap.Modal.getInstance(document.getElementById('resetMfaModal')).hide();
+        return;
+    }
+    
+    if (isTempDisable && !reason) {
+        document.getElementById('mfaDisableReason').classList.add('is-invalid');
+        showToast('Justification required for temporarily disabling MFA', 'error');
+        return;
+    }
+    
+    if (isTempDisable && currentAdminRole !== 'super_admin') {
+        showToast('Only Super Admins can temporarily disable MFA', 'error');
+        return;
+    }
+    
+    var btn = document.getElementById('confirmResetMfaBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
+    
+    setTimeout(function() {
+        user.mfa_status = 'Not Enrolled';
+        user.mfa_method = null;
+        if (isTempDisable) {
+            user.mfa_temp_disabled = true;
+            user.mfa_temp_disabled_reason = reason;
+            user.mfa_temp_disabled_at = new Date().toISOString();
+        } else {
+            user.mfa_temp_disabled = false;
+            user.require_mfa_reenrol = true;
         }
-        showToast('MFA reset email sent', 'info'); 
-    } 
+        
+        updateTableRowMfa(userId, 'Not Enrolled');
+        
+        bootstrap.Modal.getInstance(document.getElementById('resetMfaModal')).hide();
+        btn.disabled = false;
+        btn.style.background = '#1e3a5f';
+        btn.style.color = 'white';
+        btn.innerHTML = '<i class="fas fa-shield-alt me-1"></i> Reset MFA';
+        
+        if (isTempDisable) {
+            showToast('MFA temporarily disabled for ' + user.name + '. Action logged.', 'warning');
+            console.log('[AdminUsers][Security][CRITICAL] MFA temporarily disabled:', { userId: userId, reason: reason });
+        } else {
+            showToast('MFA reset. ' + user.name + ' must re-enroll on next login.', 'success');
+            console.log('[AdminUsers][Security] MFA reset:', { userId: userId });
+        }
+    }, 600);
+}
+
+function updateMfaDetails(userId) {
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user) {
+        showToast('User not found', 'error');
+        return;
+    }
+    if (user.status === 'Archived' || user.status === 'Invited') {
+        showToast('Cannot update MFA for ' + user.status.toLowerCase() + ' users', 'error');
+        return;
+    }
+    
+    document.getElementById('updateMfaUserId').value = userId;
+    document.getElementById('updateMfaUserName').textContent = user.name;
+    document.getElementById('updateMfaMethod').value = user.mfa_method || 'Authenticator';
+    document.getElementById('updateMfaPhone').value = user.mfa_phone || '';
+    document.getElementById('currentMfaStatus').textContent = user.mfa_status || 'Not Enrolled';
+    
+    toggleSmsPhoneField();
+    closeUserDetail();
+    new bootstrap.Modal(document.getElementById('updateMfaModal')).show();
+}
+
+function toggleSmsPhoneField() {
+    var method = document.getElementById('updateMfaMethod').value;
+    var phoneContainer = document.getElementById('smsPhoneContainer');
+    if (method === 'SMS' || method === 'Both') {
+        phoneContainer.style.display = 'block';
+    } else {
+        phoneContainer.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var methodSelect = document.getElementById('updateMfaMethod');
+    if (methodSelect) {
+        methodSelect.addEventListener('change', toggleSmsPhoneField);
+    }
+});
+
+function confirmUpdateMfa() {
+    var userId = document.getElementById('updateMfaUserId').value;
+    var method = document.getElementById('updateMfaMethod').value;
+    var phone = document.getElementById('updateMfaPhone').value.trim();
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    
+    if (!user) {
+        showToast('User not found', 'error');
+        bootstrap.Modal.getInstance(document.getElementById('updateMfaModal')).hide();
+        return;
+    }
+    
+    if ((method === 'SMS' || method === 'Both') && !phone) {
+        showToast('Phone number required for SMS OTP', 'error');
+        document.getElementById('updateMfaPhone').classList.add('is-invalid');
+        return;
+    }
+    
+    var btn = document.getElementById('confirmUpdateMfaBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    
+    setTimeout(function() {
+        user.mfa_method = method;
+        if (method === 'SMS' || method === 'Both') {
+            user.mfa_phone = phone;
+        }
+        
+        var row = document.querySelector('tr[data-id="' + userId + '"]');
+        if (row) {
+            var methodCell = row.querySelector('td:nth-child(5)');
+            if (methodCell) methodCell.textContent = method;
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('updateMfaModal')).hide();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
+        
+        showToast('MFA settings updated for ' + user.name, 'success');
+        console.log('[AdminUsers][Security] MFA settings updated:', { userId: userId, method: method });
+    }, 600);
+}
+
+function updateEmail(userId) {
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user) {
+        showToast('User not found', 'error');
+        return;
+    }
+    if (user.status === 'Archived') {
+        showToast('Cannot update email for archived users', 'error');
+        return;
+    }
+    
+    document.getElementById('updateEmailUserId').value = userId;
+    document.getElementById('updateEmailUserName').textContent = user.name;
+    document.getElementById('currentEmail').value = user.email;
+    document.getElementById('newEmail').value = '';
+    document.getElementById('newEmail').classList.remove('is-invalid');
+    document.getElementById('emailChangeReason').value = '';
+    document.getElementById('emailChangeReason').classList.remove('is-invalid');
+    
+    closeUserDetail();
+    new bootstrap.Modal(document.getElementById('updateEmailModal')).show();
+}
+
+function confirmUpdateEmail() {
+    var userId = document.getElementById('updateEmailUserId').value;
+    var newEmail = document.getElementById('newEmail').value.trim();
+    var reason = document.getElementById('emailChangeReason').value.trim();
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    
+    if (!user) {
+        showToast('User not found', 'error');
+        bootstrap.Modal.getInstance(document.getElementById('updateEmailModal')).hide();
+        return;
+    }
+    
+    var isValid = true;
+    
+    if (!newEmail || !newEmail.endsWith('@quicksms.co.uk')) {
+        document.getElementById('newEmail').classList.add('is-invalid');
+        isValid = false;
+    } else {
+        document.getElementById('newEmail').classList.remove('is-invalid');
+    }
+    
+    if (!reason) {
+        document.getElementById('emailChangeReason').classList.add('is-invalid');
+        isValid = false;
+    } else {
+        document.getElementById('emailChangeReason').classList.remove('is-invalid');
+    }
+    
+    if (!isValid) {
+        return;
+    }
+    
+    var existingUser = allUsers.find(function(u) { return u.email.toLowerCase() === newEmail.toLowerCase() && u.id !== userId; });
+    if (existingUser) {
+        document.getElementById('newEmail').classList.add('is-invalid');
+        document.getElementById('newEmailError').textContent = 'This email is already in use';
+        showToast('Email address already in use', 'error');
+        return;
+    }
+    
+    var btn = document.getElementById('confirmUpdateEmailBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Updating...';
+    
+    setTimeout(function() {
+        var oldEmail = user.email;
+        user.email = newEmail;
+        user.email_verified = false;
+        user.active_sessions = 0;
+        user.email_change_reason = reason;
+        user.email_changed_at = new Date().toISOString();
+        
+        var row = document.querySelector('tr[data-id="' + userId + '"]');
+        if (row) {
+            var emailCell = row.querySelector('td:nth-child(2)');
+            if (emailCell) emailCell.textContent = newEmail;
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('updateEmailModal')).hide();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-1"></i> Update Email';
+        
+        showToast('Email updated. Verification email sent. All sessions revoked.', 'success');
+        console.log('[AdminUsers][Security] Email changed:', { userId: userId, from: oldEmail, to: newEmail, reason: reason });
+    }, 800);
+}
+
+function terminateSessions(userId) {
+    forceLogout(userId);
 }
 
 function resendInvite(userId) {
