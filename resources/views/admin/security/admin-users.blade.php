@@ -218,6 +218,80 @@
 .panel-overlay.show {
     display: block;
 }
+.support-mode-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    z-index: 9999;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    box-shadow: 0 2px 10px rgba(220, 53, 69, 0.4);
+    animation: supportModePulse 2s ease-in-out infinite;
+}
+@keyframes supportModePulse {
+    0%, 100% { box-shadow: 0 2px 10px rgba(220, 53, 69, 0.4); }
+    50% { box-shadow: 0 2px 20px rgba(220, 53, 69, 0.6); }
+}
+.support-mode-content {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+.support-mode-timer {
+    background: rgba(0,0,0,0.2);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-family: monospace;
+}
+.support-mode-actions .btn {
+    font-size: 0.8rem;
+}
+body.support-mode-active {
+    padding-top: 48px !important;
+}
+body.support-mode-active .pii-masked {
+    filter: blur(4px);
+    pointer-events: none;
+    user-select: none;
+}
+body.support-mode-active .pii-masked::before {
+    content: 'PII Masked';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    z-index: 10;
+}
+.pii-overlay {
+    position: relative;
+}
+.pii-overlay::after {
+    content: 'PII Protected - Support Mode';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(45deg, rgba(220,53,69,0.1), rgba(220,53,69,0.1) 10px, rgba(220,53,69,0.05) 10px, rgba(220,53,69,0.05) 20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dc3545;
+    font-weight: 600;
+    font-size: 0.9rem;
+    z-index: 5;
+}
 .panel-header {
     display: flex;
     justify-content: space-between;
@@ -483,6 +557,11 @@ $invitedUsers = collect($adminUsers)->where('status', 'Invited')->count();
                                     <li><a class="dropdown-item" href="#" onclick="resetMfa('{{ $user['id'] }}')"><i class="fas fa-shield-alt me-2"></i>Reset MFA</a></li>
                                     <li><a class="dropdown-item" href="#" onclick="updateMfaDetails('{{ $user['id'] }}')"><i class="fas fa-mobile-alt me-2"></i>MFA Settings</a></li>
                                     <li><a class="dropdown-item" href="#" onclick="updateEmail('{{ $user['id'] }}')"><i class="fas fa-envelope me-2"></i>Update Email</a></li>
+                                    @if($user['status'] === 'Active')
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li class="dropdown-header" style="font-size: 0.7rem; color: #6c757d;">Support</li>
+                                    <li><a class="dropdown-item text-danger impersonate-action" href="#" onclick="impersonateUser('{{ $user['id'] }}')"><i class="fas fa-user-secret me-2"></i>Impersonate User</a></li>
+                                    @endif
                                     @endif
                                 </ul>
                             </div>
@@ -797,6 +876,69 @@ $invitedUsers = collect($adminUsers)->where('status', 'Invited')->count();
     </div>
 </div>
 
+<div class="modal fade" id="impersonateUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #dc3545; border-bottom: 1px solid #bd2130;">
+                <h5 class="modal-title text-white"><i class="fas fa-user-secret me-2"></i>Start Support Session</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Security Notice:</strong> This action will be logged and audited. You are entering a time-limited support session.
+                </div>
+                <p class="mb-3">Start support session as <strong id="impersonateUserName"></strong>?</p>
+                <div class="card bg-light mb-3">
+                    <div class="card-body py-2">
+                        <small class="text-muted d-block"><i class="fas fa-envelope me-2"></i><span id="impersonateUserEmail"></span></small>
+                        <small class="text-muted d-block"><i class="fas fa-user-tag me-2"></i><span id="impersonateUserRole"></span></small>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Session Duration <span class="text-danger">*</span></label>
+                    <select class="form-select" id="impersonateDuration">
+                        <option value="15">15 minutes</option>
+                        <option value="30" selected>30 minutes</option>
+                        <option value="60">1 hour</option>
+                        <option value="120">2 hours</option>
+                    </select>
+                    <div class="form-text">Session will automatically end after this time</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Reason for Support Session <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="impersonateReason" rows="2" placeholder="Describe the support issue being investigated..."></textarea>
+                    <div class="invalid-feedback">Reason is required for audit trail</div>
+                </div>
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="impersonateAcknowledge" onchange="toggleImpersonateBtn()">
+                    <label class="form-check-label small" for="impersonateAcknowledge">
+                        I acknowledge this session will be fully logged and PII areas will be masked
+                    </label>
+                </div>
+                <input type="hidden" id="impersonateUserId">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fa;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmImpersonateBtn" onclick="confirmImpersonate()" disabled>
+                    <i class="fas fa-user-secret me-1"></i> Start Support Session
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="supportModeBanner" class="support-mode-banner d-none">
+    <div class="support-mode-content">
+        <i class="fas fa-user-secret me-2"></i>
+        <span><strong>Support Mode Active</strong> — Viewing as <span id="supportModeUserName"></span></span>
+        <span class="support-mode-timer ms-3"><i class="fas fa-clock me-1"></i><span id="supportModeTimer">30:00</span> remaining</span>
+    </div>
+    <div class="support-mode-actions">
+        <button class="btn btn-sm btn-outline-light" onclick="endSupportSession()"><i class="fas fa-sign-out-alt me-1"></i>End Session</button>
+    </div>
+</div>
+
 <div class="modal fade" id="inviteUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -1100,6 +1242,12 @@ function openUserDetail(userId) {
         actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="updateMfaDetails(\'' + userId + '\')"><i class="fas fa-mobile-alt me-1"></i>MFA Settings</button>';
         actionsHtml += '<button class="btn btn-sm btn-outline-secondary" onclick="updateEmail(\'' + userId + '\')"><i class="fas fa-envelope me-1"></i>Update Email</button>';
         actionsHtml += '</div>';
+        if (currentAdminRole === 'super_admin') {
+            actionsHtml += '<div class="mb-2 mt-2"><small class="text-muted fw-bold">Support</small></div>';
+            actionsHtml += '<div class="d-flex flex-wrap gap-2">';
+            actionsHtml += '<button class="btn btn-sm btn-danger" onclick="impersonateUser(\'' + userId + '\')"><i class="fas fa-user-secret me-1"></i>Impersonate User</button>';
+            actionsHtml += '</div>';
+        }
     } else if (user.status === 'Suspended') {
         actionsHtml += '<div class="mb-2"><small class="text-muted fw-bold">Account Actions</small></div>';
         actionsHtml += '<div class="d-flex flex-wrap gap-2 mb-2">';
@@ -1940,6 +2088,200 @@ function revokeInvite(userId) {
 function canSuspend(status) { return status === 'Active'; }
 function canReactivate(status) { return status === 'Suspended'; }
 function canArchive(status) { return status === 'Suspended'; }
+
+var supportSession = {
+    active: false,
+    userId: null,
+    userName: null,
+    startTime: null,
+    duration: 0,
+    timer: null,
+    reason: null
+};
+
+function impersonateUser(userId) {
+    if (currentAdminRole !== 'super_admin') {
+        showToast('Only Super Admins can impersonate users', 'error');
+        return;
+    }
+    
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    if (!user) {
+        showToast('User not found', 'error');
+        return;
+    }
+    if (user.status !== 'Active') {
+        showToast('Can only impersonate active users', 'error');
+        return;
+    }
+    
+    document.getElementById('impersonateUserId').value = userId;
+    document.getElementById('impersonateUserName').textContent = user.name;
+    document.getElementById('impersonateUserEmail').textContent = user.email;
+    document.getElementById('impersonateUserRole').textContent = user.role + ' - ' + user.department;
+    document.getElementById('impersonateDuration').value = '30';
+    document.getElementById('impersonateReason').value = '';
+    document.getElementById('impersonateReason').classList.remove('is-invalid');
+    document.getElementById('impersonateAcknowledge').checked = false;
+    document.getElementById('confirmImpersonateBtn').disabled = true;
+    
+    closeUserDetail();
+    new bootstrap.Modal(document.getElementById('impersonateUserModal')).show();
+}
+
+function toggleImpersonateBtn() {
+    var checked = document.getElementById('impersonateAcknowledge').checked;
+    document.getElementById('confirmImpersonateBtn').disabled = !checked;
+}
+
+function confirmImpersonate() {
+    var userId = document.getElementById('impersonateUserId').value;
+    var duration = parseInt(document.getElementById('impersonateDuration').value);
+    var reason = document.getElementById('impersonateReason').value.trim();
+    var user = allUsers.find(function(u) { return u.id === userId; });
+    
+    if (!reason) {
+        document.getElementById('impersonateReason').classList.add('is-invalid');
+        showToast('Reason is required for audit trail', 'error');
+        return;
+    }
+    
+    if (currentAdminRole !== 'super_admin') {
+        showToast('Only Super Admins can impersonate users', 'error');
+        bootstrap.Modal.getInstance(document.getElementById('impersonateUserModal')).hide();
+        return;
+    }
+    
+    var btn = document.getElementById('confirmImpersonateBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Starting Session...';
+    
+    var sessionId = 'IMP-' + Date.now();
+    console.log('[AdminUsers][Impersonation][AUDIT] Session started:', {
+        sessionId: sessionId,
+        adminEmail: '{{ session("admin_email", "admin@quicksms.co.uk") }}',
+        targetUserId: userId,
+        targetUserEmail: user.email,
+        duration: duration + ' minutes',
+        reason: reason,
+        timestamp: new Date().toISOString(),
+        auditType: 'INTERNAL_ADMIN_ONLY'
+    });
+    
+    setTimeout(function() {
+        supportSession.active = true;
+        supportSession.userId = userId;
+        supportSession.userName = user.name;
+        supportSession.startTime = Date.now();
+        supportSession.duration = duration * 60;
+        supportSession.reason = reason;
+        supportSession.sessionId = sessionId;
+        
+        document.getElementById('supportModeUserName').textContent = user.name;
+        document.getElementById('supportModeBanner').classList.remove('d-none');
+        document.body.classList.add('support-mode-active');
+        
+        startSupportTimer();
+        applyPiiMasking();
+        
+        bootstrap.Modal.getInstance(document.getElementById('impersonateUserModal')).hide();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-user-secret me-1"></i> Start Support Session';
+        
+        showToast('Support session started for ' + user.name + '. PII areas are masked.', 'warning');
+    }, 800);
+}
+
+function startSupportTimer() {
+    updateSupportTimer();
+    supportSession.timer = setInterval(function() {
+        var elapsed = Math.floor((Date.now() - supportSession.startTime) / 1000);
+        var remaining = supportSession.duration - elapsed;
+        
+        if (remaining <= 0) {
+            endSupportSession(true);
+        } else {
+            updateSupportTimer();
+            if (remaining <= 300 && remaining % 60 === 0) {
+                showToast('Support session expires in ' + Math.floor(remaining / 60) + ' minutes', 'warning');
+            }
+        }
+    }, 1000);
+}
+
+function updateSupportTimer() {
+    var elapsed = Math.floor((Date.now() - supportSession.startTime) / 1000);
+    var remaining = Math.max(0, supportSession.duration - elapsed);
+    var minutes = Math.floor(remaining / 60);
+    var seconds = remaining % 60;
+    document.getElementById('supportModeTimer').textContent = 
+        String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+}
+
+function endSupportSession(expired) {
+    if (supportSession.timer) {
+        clearInterval(supportSession.timer);
+        supportSession.timer = null;
+    }
+    
+    console.log('[AdminUsers][Impersonation][AUDIT] Session ended:', {
+        sessionId: supportSession.sessionId,
+        targetUserId: supportSession.userId,
+        targetUserName: supportSession.userName,
+        reason: supportSession.reason,
+        endType: expired ? 'EXPIRED' : 'MANUAL',
+        duration: Math.floor((Date.now() - supportSession.startTime) / 1000) + ' seconds',
+        timestamp: new Date().toISOString(),
+        auditType: 'INTERNAL_ADMIN_ONLY'
+    });
+    
+    document.getElementById('supportModeBanner').classList.add('d-none');
+    document.body.classList.remove('support-mode-active');
+    removePiiMasking();
+    
+    var userName = supportSession.userName;
+    supportSession = {
+        active: false,
+        userId: null,
+        userName: null,
+        startTime: null,
+        duration: 0,
+        timer: null,
+        reason: null
+    };
+    
+    if (expired) {
+        showToast('Support session for ' + userName + ' has expired.', 'info');
+    } else {
+        showToast('Support session ended.', 'info');
+    }
+}
+
+function applyPiiMasking() {
+    var piiSelectors = [
+        '.contact-list',
+        '.message-content',
+        '.export-button',
+        '[data-pii="true"]',
+        '.phone-number',
+        '.customer-email'
+    ];
+    
+    piiSelectors.forEach(function(selector) {
+        document.querySelectorAll(selector).forEach(function(el) {
+            el.classList.add('pii-masked');
+        });
+    });
+    
+    console.log('[AdminUsers][Impersonation] PII masking applied');
+}
+
+function removePiiMasking() {
+    document.querySelectorAll('.pii-masked').forEach(function(el) {
+        el.classList.remove('pii-masked');
+    });
+    console.log('[AdminUsers][Impersonation] PII masking removed');
+}
 
 function showToast(message, type) {
     var toastContainer = document.getElementById('toastContainer');

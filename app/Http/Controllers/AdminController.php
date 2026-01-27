@@ -3,9 +3,106 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\Admin\ImpersonationService;
+use App\Services\Admin\AdminLoginPolicyService;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
+    protected ImpersonationService $impersonationService;
+    protected AdminLoginPolicyService $loginPolicyService;
+    
+    public function __construct(ImpersonationService $impersonationService, AdminLoginPolicyService $loginPolicyService)
+    {
+        $this->impersonationService = $impersonationService;
+        $this->loginPolicyService = $loginPolicyService;
+    }
+    
+    public function startImpersonation(Request $request)
+    {
+        $request->validate([
+            'target_user_id' => 'required|string',
+            'duration_minutes' => 'required|integer|in:15,30,60,120',
+            'reason' => 'required|string|min:10',
+        ]);
+        
+        $adminEmail = session('admin_email', 'admin@quicksms.co.uk');
+        
+        if (!$this->impersonationService->canImpersonate($adminEmail)) {
+            Log::warning('[AdminController] Unauthorized impersonation attempt', [
+                'admin_email' => $adminEmail,
+                'target_user_id' => $request->input('target_user_id'),
+            ]);
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+        
+        try {
+            $result = $this->impersonationService->startSession(
+                $adminEmail,
+                $request->input('target_user_id'),
+                $request->input('duration_minutes'),
+                $request->input('reason')
+            );
+            
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 403);
+        }
+    }
+    
+    public function endImpersonation(Request $request)
+    {
+        $sessionId = $request->input('session_id');
+        
+        if (!$sessionId) {
+            $session = $this->impersonationService->getCurrentSession();
+            $sessionId = $session ? $session['session_id'] : null;
+        }
+        
+        if (!$sessionId) {
+            return response()->json(['error' => 'No active session'], 400);
+        }
+        
+        $result = $this->impersonationService->endSession($sessionId, 'manual');
+        return response()->json($result);
+    }
+    
+    public function getImpersonationStatus()
+    {
+        $session = $this->impersonationService->getCurrentSession();
+        
+        if (!$session) {
+            return response()->json([
+                'active' => false,
+            ]);
+        }
+        
+        return response()->json([
+            'active' => true,
+            'session' => $session,
+            'remaining_seconds' => $this->impersonationService->getRemainingTime(),
+            'pii_masked' => $this->impersonationService->isPiiMasked(),
+        ]);
+    }
+    
+    public function validateLoginPolicy(Request $request)
+    {
+        $email = $request->input('email', '');
+        $ipAddress = $request->ip();
+        
+        $result = $this->loginPolicyService->validateLoginPolicy($email, $ipAddress);
+        
+        if (!$result['allowed']) {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+        
+        return response()->json([
+            'allowed' => true,
+            'mfa_required' => $result['mfa_required'],
+            'allowed_mfa_methods' => $result['allowed_mfa_methods'],
+        ]);
+    }
+
     public function dashboard()
     {
         return view('admin.dashboard', [

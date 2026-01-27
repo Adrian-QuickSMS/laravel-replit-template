@@ -170,6 +170,11 @@ Route::prefix('admin')->group(function () {
             Route::get('/security/ip-allowlists', 'securityIpAllowlists')->name('admin.security.ip-allowlists');
             Route::get('/security/admin-users', 'securityAdminUsers')->name('admin.security.admin-users');
             
+            Route::post('/api/impersonation/start', 'startImpersonation')->name('admin.api.impersonation.start');
+            Route::post('/api/impersonation/end', 'endImpersonation')->name('admin.api.impersonation.end');
+            Route::get('/api/impersonation/status', 'getImpersonationStatus')->name('admin.api.impersonation.status');
+            Route::post('/api/login-policy/validate', 'validateLoginPolicy')->name('admin.api.login-policy.validate');
+            
             Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
             Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');
             Route::get('/system/flags', 'systemFlags')->name('admin.system.flags');
