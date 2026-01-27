@@ -22,13 +22,21 @@
 /* =========================================
    Table Container Fixes
    ========================================= */
-.table-container {
+.table-container,
+#campaignsTableContainer {
     background: #fff;
     border-radius: 12px;
     border: 1px solid #dde4ea;
     overflow: hidden;
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     margin-top: 0.5rem;
+}
+.table-container .dropdown-menu {
+    z-index: 1050;
+    position: absolute !important;
+}
+.table-container .dropdown {
+    position: static;
 }
 .api-table {
     width: 100%;
@@ -713,9 +721,10 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
     </div>
 
     <!-- Campaigns Table -->
-    <div class="table-container" id="campaignsTableContainer">
-        <div class="table-responsive" id="campaignsTable">
-            <table class="table api-table mb-0">
+    <div class="card" style="border-radius: 12px; border: 1px solid #dde4ea; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden;">
+        <div class="card-body p-0">
+            <div class="table-responsive" id="campaignsTable">
+                <table class="table api-table mb-0">
                 <thead>
                     <tr>
                         <th data-sort="account">Account <i class="fas fa-sort sort-icon"></i></th>
@@ -849,6 +858,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <!-- Campaign Details Drawer -->

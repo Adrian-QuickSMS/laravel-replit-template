@@ -898,9 +898,10 @@ tr.selected-row:hover {
         </div>
     </div>
 
-    <div class="table-container">
-        <div class="table-responsive">
-            <table class="table api-table mb-0" id="numbersTable">
+    <div class="card" style="border-radius: 12px; border: 1px solid #dde4ea; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table api-table mb-0" id="numbersTable">
                 <thead>
                     <tr>
                         <th style="width: 40px;" class="text-center">
@@ -921,6 +922,7 @@ tr.selected-row:hover {
                         <!-- Dynamic content populated by JavaScript -->
                     </tbody>
                 </table>
+            </div>
         </div>
         <div class="d-flex justify-content-between align-items-center p-3 border-top">
             <span class="text-muted small">Showing <span id="showingStart">1</span>-<span id="showingEnd">20</span> of <span id="totalCount">156</span> numbers</span>
