@@ -487,14 +487,12 @@
                     <table class="admin-audit-logs-table" id="adminAuditLogsTable">
                         <thead>
                             <tr>
-                                <th style="width: 150px;" class="admin-sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
-                                <th style="width: 100px;">Event ID</th>
-                                <th class="admin-sortable-header" data-sort="event_type">Event Type <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th class="admin-sortable-header" data-sort="actor">Actor Admin <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th class="admin-sortable-header" data-sort="target">Target <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 90px;" class="admin-sortable-header" data-sort="severity">Severity <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 110px;">IP Address</th>
-                                <th style="width: 60px;"></th>
+                                <th style="width: 140px;" class="admin-sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
+                                <th class="admin-sortable-header" data-sort="actor">Admin User <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th class="admin-sortable-header" data-sort="customer">Customer Impacted <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th style="width: 120px;" class="admin-sortable-header" data-sort="module">Module <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th class="admin-sortable-header" data-sort="action">Action <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                                <th style="width: 90px;" class="admin-sortable-header" data-sort="result">Result <i class="fas fa-sort ms-1 sort-icon"></i></th>
                             </tr>
                         </thead>
                         <tbody id="adminAuditLogsTableBody">
@@ -908,18 +906,20 @@ $(document).ready(function() {
         pageLogs.forEach(function(log) {
             var row = document.createElement('tr');
             
-            var targetDisplay = formatAdminTarget(log.target, log.targetType);
-            var categoryBadgeClass = getCategoryBadgeClass(log.category);
+            var customerImpacted = formatCustomerImpacted(log.target, log.targetType);
+            var moduleBadge = formatModuleBadge(log.category);
+            var actionBadge = formatActionBadge(log.eventType, log.eventLabel, log.severity);
+            var resultBadge = log.result === 'success' 
+                ? '<span class="badge" style="background-color: rgba(28, 187, 140, 0.15); color: #1cbb8c; font-size: 0.75rem;">Success</span>'
+                : '<span class="badge" style="background-color: rgba(220, 53, 69, 0.15); color: #dc3545; font-size: 0.75rem;">Failed</span>';
             
             row.innerHTML = 
                 '<td>' + formatTimestamp(log.timestamp) + '</td>' +
-                '<td><code class="small">' + log.id + '</code></td>' +
-                '<td><span class="badge ' + categoryBadgeClass + '">' + log.eventLabel + '</span></td>' +
-                '<td><span class="small">' + log.actor.email + '</span><br><span class="text-muted" style="font-size: 0.7rem;">' + log.actor.role + '</span></td>' +
-                '<td>' + targetDisplay + '</td>' +
-                '<td><span class="badge admin-severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></td>' +
-                '<td><code class="small">' + log.ip + '</code></td>' +
-                '<td><button class="btn btn-link btn-sm p-0 text-muted" onclick="event.stopPropagation();"><i class="fas fa-ellipsis-v"></i></button></td>';
+                '<td>' + log.actor.email + '</td>' +
+                '<td>' + customerImpacted + '</td>' +
+                '<td>' + moduleBadge + '</td>' +
+                '<td>' + actionBadge + '</td>' +
+                '<td>' + resultBadge + '</td>';
             row.onclick = function() { showLogDetail(log, 'admin'); };
             tbody.appendChild(row);
         });
@@ -931,30 +931,70 @@ $(document).ready(function() {
         renderPagination('admin', filteredLogs.length, adminPage);
     }
 
-    function formatAdminTarget(target, targetType) {
-        if (targetType === 'admin') {
-            return '<span class="small">' + (target.email || target.name) + '</span><br>' +
-                   '<span class="badge" style="font-size: 0.65rem; background-color: rgba(30, 58, 95, 0.1); color: #1e3a5f;">Admin User</span>';
-        } else if (targetType === 'customer') {
-            return '<span class="small">' + target.name + '</span><br>' +
-                   '<span class="badge" style="font-size: 0.65rem; background-color: rgba(28, 187, 140, 0.15); color: #1cbb8c;">Customer</span>';
+    function formatCustomerImpacted(target, targetType) {
+        if (targetType === 'customer' && target) {
+            return '<span class="badge" style="background-color: rgba(30, 58, 95, 0.1); color: #1e3a5f; font-size: 0.75rem;">' + 
+                   target.name + '</span>';
+        } else if (targetType === 'admin' && target) {
+            return '<span class="text-muted small" style="font-style: italic;">N/A (Admin Target)</span>';
         } else {
-            return '<span class="small text-muted">' + (target.name || 'System') + '</span>';
+            return '<span class="text-muted small" style="font-style: italic;">N/A</span>';
         }
     }
 
-    function getCategoryBadgeClass(category) {
-        var categoryClasses = {
-            'admin_users': 'admin-category-badge-admin',
-            'security': 'admin-severity-badge-high',
-            'impersonation': 'admin-category-badge-impersonation',
-            'billing': 'admin-category-badge-admin',
-            'approvals': 'admin-category-badge-admin',
-            'numbers': 'admin-category-badge-admin',
-            'accounts': 'admin-category-badge-admin',
-            'data_access': 'admin-severity-badge-high'
+    function formatModuleBadge(category) {
+        var moduleLabels = {
+            'admin_users': 'Admin Users',
+            'security': 'Security',
+            'impersonation': 'Impersonation',
+            'billing': 'Billing',
+            'approvals': 'Approvals',
+            'numbers': 'Numbers',
+            'accounts': 'Accounts',
+            'data_access': 'Data Access'
         };
-        return categoryClasses[category] || 'admin-category-badge-admin';
+        var moduleColors = {
+            'admin_users': 'rgba(30, 58, 95, 0.15)',
+            'security': 'rgba(220, 53, 69, 0.15)',
+            'impersonation': 'rgba(220, 53, 69, 0.2)',
+            'billing': 'rgba(28, 187, 140, 0.15)',
+            'approvals': 'rgba(111, 66, 193, 0.15)',
+            'numbers': 'rgba(48, 101, 208, 0.15)',
+            'accounts': 'rgba(30, 58, 95, 0.15)',
+            'data_access': 'rgba(255, 191, 0, 0.15)'
+        };
+        var textColors = {
+            'admin_users': '#1e3a5f',
+            'security': '#dc3545',
+            'impersonation': '#dc3545',
+            'billing': '#1cbb8c',
+            'approvals': '#6f42c1',
+            'numbers': '#3065D0',
+            'accounts': '#1e3a5f',
+            'data_access': '#cc9900'
+        };
+        var label = moduleLabels[category] || formatCategory(category);
+        var bgColor = moduleColors[category] || 'rgba(30, 58, 95, 0.15)';
+        var textColor = textColors[category] || '#1e3a5f';
+        return '<span class="badge" style="background-color: ' + bgColor + '; color: ' + textColor + '; font-size: 0.75rem;">' + label + '</span>';
+    }
+
+    function formatActionBadge(eventType, eventLabel, severity) {
+        var bgColor = 'rgba(30, 58, 95, 0.1)';
+        var textColor = '#1e3a5f';
+        
+        if (severity === 'critical') {
+            bgColor = 'rgba(220, 53, 69, 0.2)';
+            textColor = '#dc3545';
+        } else if (severity === 'high') {
+            bgColor = 'rgba(220, 53, 69, 0.15)';
+            textColor = '#dc3545';
+        } else if (eventType.includes('IMPERSONATION')) {
+            bgColor = 'rgba(220, 53, 69, 0.2)';
+            textColor = '#dc3545';
+        }
+        
+        return '<span class="badge" style="background-color: ' + bgColor + '; color: ' + textColor + '; font-size: 0.75rem;">' + eventLabel + '</span>';
     }
 
     function renderPagination(type, total, currentPage) {
