@@ -1455,7 +1455,7 @@ $(document).ready(function() {
             showToast('Filters cleared', 'info');
         });
 
-        $('#customerExportCsv, #customerExportExcel, #adminExportCsv, #adminExportExcel').on('click', function(e) {
+        $('#customerExportCsv, #customerExportExcel').on('click', function(e) {
             e.preventDefault();
             var format = $(this).attr('id').includes('Csv') ? 'CSV' : 'Excel';
             showToast('Exporting to ' + format + '...', 'info');
@@ -1463,6 +1463,144 @@ $(document).ready(function() {
                 showToast('Export completed successfully', 'success');
             }, 1000);
         });
+
+        $('#adminExportCsv, #adminExportExcel').on('click', function(e) {
+            e.preventDefault();
+            performAdminAuditExport($(this).attr('id').includes('Csv') ? 'csv' : 'xlsx');
+        });
+    }
+
+    var EXPORT_AUTHORIZED_ROLES = ['super_admin', 'security_admin', 'compliance_officer'];
+
+    function performAdminAuditExport(format) {
+        var currentAdmin = {
+            email: 'admin@quicksms.co.uk',
+            role: 'super_admin',
+            id: 'ADM001'
+        };
+
+        if (EXPORT_AUTHORIZED_ROLES.indexOf(currentAdmin.role) === -1) {
+            showToast('Export not permitted. Your role (' + currentAdmin.role + ') is not authorized to export internal audit logs.', 'error');
+            logExportAttempt(currentAdmin, format, 'DENIED', 'Unauthorized role');
+            return;
+        }
+
+        var filteredData = applyAdminFilters();
+        var rowCount = filteredData.length;
+
+        if (rowCount === 0) {
+            showToast('No data to export with current filters', 'warning');
+            return;
+        }
+
+        var exportTimestamp = new Date().toISOString();
+        var fileReference = generateExportFileReference(format, exportTimestamp);
+
+        showToast('Authorizing export...', 'info');
+
+        setTimeout(function() {
+            logExportAuditEvent(currentAdmin, format, rowCount, exportTimestamp, fileReference, filteredData);
+            
+            showToast('Exporting ' + rowCount + ' records to ' + format.toUpperCase() + '...', 'info');
+            
+            setTimeout(function() {
+                showToast('Export completed: ' + fileReference, 'success');
+                console.log('[AdminAuditExport] Export completed:', {
+                    file: fileReference,
+                    records: rowCount,
+                    format: format.toUpperCase()
+                });
+            }, 1500);
+        }, 500);
+    }
+
+    function generateExportFileReference(format, timestamp) {
+        var dateStr = timestamp.replace(/[-:T]/g, '').substring(0, 14);
+        var randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
+        return 'AUDIT_EXPORT_' + dateStr + '_' + randomSuffix + '.' + format;
+    }
+
+    function logExportAttempt(admin, format, status, reason) {
+        console.log('[AdminAuditExport][SECURITY] Export attempt:', {
+            timestamp: new Date().toISOString(),
+            admin: admin.email,
+            role: admin.role,
+            format: format,
+            status: status,
+            reason: reason
+        });
+    }
+
+    function logExportAuditEvent(admin, format, rowCount, timestamp, fileReference, filteredData) {
+        var appliedFilters = {
+            dateFrom: adminFilterState.dateFrom || null,
+            dateTo: adminFilterState.dateTo || null,
+            module: adminFilterState.module || 'All',
+            action: adminFilterState.action || 'All',
+            adminUser: adminFilterState.admin || 'All',
+            customerImpacted: adminFilterState.customer || 'All',
+            ipAddress: adminFilterState.ip || null,
+            highRiskOnly: adminFilterState.highRiskOnly || false,
+            searchQuery: adminFilterState.search || null
+        };
+
+        var auditEvent = {
+            id: 'AEXP-' + Date.now(),
+            eventType: 'ADMIN_EXPORT_INITIATED',
+            eventLabel: 'Internal Audit Export',
+            timestamp: timestamp,
+            actor: {
+                id: admin.id,
+                email: admin.email,
+                role: admin.role
+            },
+            category: 'data_access',
+            severity: 'high',
+            result: 'success',
+            details: {
+                exportFormat: format.toUpperCase(),
+                rowCount: rowCount,
+                fileReference: fileReference,
+                filtersApplied: appliedFilters,
+                filterSummary: buildFilterSummary(appliedFilters),
+                exportScope: 'internal_admin_audit'
+            },
+            target: {
+                type: 'audit_data',
+                name: 'Internal Admin Audit Logs'
+            },
+            targetType: 'system',
+            ip: '10.0.0.45',
+            userAgent: navigator.userAgent
+        };
+
+        console.log('[AdminAuditExport][AUDIT_EVENT]', JSON.stringify(auditEvent, null, 2));
+
+        adminAuditLogs.unshift(auditEvent);
+
+        console.log('[AdminAuditExport] Audit event logged for export:', {
+            eventId: auditEvent.id,
+            admin: admin.email,
+            format: format.toUpperCase(),
+            rowCount: rowCount,
+            fileReference: fileReference,
+            filters: appliedFilters
+        });
+    }
+
+    function buildFilterSummary(filters) {
+        var parts = [];
+        if (filters.dateFrom || filters.dateTo) {
+            parts.push('Date: ' + (filters.dateFrom || '*') + ' to ' + (filters.dateTo || '*'));
+        }
+        if (filters.module !== 'All') parts.push('Module: ' + filters.module);
+        if (filters.action !== 'All') parts.push('Action: ' + filters.action);
+        if (filters.adminUser !== 'All') parts.push('Admin: ' + filters.adminUser);
+        if (filters.customerImpacted !== 'All') parts.push('Customer: ' + filters.customerImpacted);
+        if (filters.ipAddress) parts.push('IP: ' + filters.ipAddress);
+        if (filters.highRiskOnly) parts.push('High-Risk Only');
+        if (filters.searchQuery) parts.push('Search: "' + filters.searchQuery + '"');
+        return parts.length > 0 ? parts.join('; ') : 'No filters applied';
     }
 
     function showToast(message, type) {
