@@ -565,19 +565,71 @@ $(document).ready(function() {
     ];
 
     var INTERNAL_ADMIN_ONLY_EVENTS = [
-        'IMPERSONATION_STARTED', 'IMPERSONATION_ENDED', 'SUPPORT_MODE_ENABLED',
-        'PRICING_EDITED', 'BILLING_MODE_CHANGED', 'CREDIT_LIMIT_CHANGED',
-        'SENDERID_APPROVED', 'SENDERID_REJECTED', 'SENDERID_SUSPENDED',
-        'RCS_AGENT_APPROVED', 'RCS_AGENT_REJECTED', 'RCS_AGENT_SUSPENDED',
-        'CAMPAIGN_APPROVED_BY_ADMIN', 'CAMPAIGN_REJECTED_BY_ADMIN',
-        'TEMPLATE_APPROVED', 'TEMPLATE_REJECTED', 'TEMPLATE_SUSPENDED',
-        'NUMBER_ASSIGNED', 'NUMBER_UNASSIGNED', 'NUMBER_PORTED',
-        'ADMIN_USER_INVITED', 'ADMIN_USER_SUSPENDED', 'ADMIN_USER_REACTIVATED',
+        'IMPERSONATION_STARTED', 'IMPERSONATION_ENDED', 'SUPPORT_MODE_ENABLED', 'SUPPORT_MODE_DISABLED',
+        'PRICING_EDITED', 'BILLING_MODE_CHANGED', 'CREDIT_LIMIT_CHANGED', 'CREDIT_LIMIT_UPDATED',
+        'SENDERID_APPROVED', 'SENDERID_REJECTED', 'SENDERID_SUSPENDED', 'SENDERID_REACTIVATED',
+        'RCS_AGENT_APPROVED', 'RCS_AGENT_REJECTED', 'RCS_AGENT_SUSPENDED', 'RCS_AGENT_REACTIVATED',
+        'CAMPAIGN_APPROVED_BY_ADMIN', 'CAMPAIGN_REJECTED_BY_ADMIN', 'CAMPAIGN_SUSPENDED_BY_ADMIN',
+        'TEMPLATE_APPROVED', 'TEMPLATE_REJECTED', 'TEMPLATE_SUSPENDED', 'TEMPLATE_ARCHIVED',
+        'NUMBER_ASSIGNED', 'NUMBER_UNASSIGNED', 'NUMBER_PORTED', 'NUMBER_RESERVED',
+        'ADMIN_USER_INVITED', 'ADMIN_USER_SUSPENDED', 'ADMIN_USER_REACTIVATED', 'ADMIN_USER_ARCHIVED',
         'ADMIN_USER_PASSWORD_RESET', 'ADMIN_USER_MFA_RESET', 'ADMIN_USER_SESSIONS_REVOKED',
-        'LOGIN_BLOCKED_BY_IP', 'ADMIN_EXPORT_INITIATED',
-        'ACCOUNT_SUSPENDED_BY_ADMIN', 'ACCOUNT_REACTIVATED_BY_ADMIN',
-        'INVOICE_CREATED_BY_ADMIN', 'CREDIT_NOTE_CREATED_BY_ADMIN'
+        'ADMIN_USER_EMAIL_UPDATED', 'ADMIN_USER_FORCE_LOGOUT', 'ADMIN_USER_ACTIVATED',
+        'LOGIN_BLOCKED_BY_IP', 'ADMIN_EXPORT_INITIATED', 'ADMIN_LOGIN', 'ADMIN_LOGOUT',
+        'ACCOUNT_SUSPENDED_BY_ADMIN', 'ACCOUNT_REACTIVATED_BY_ADMIN', 'ACCOUNT_ARCHIVED_BY_ADMIN',
+        'INVOICE_CREATED_BY_ADMIN', 'CREDIT_NOTE_CREATED_BY_ADMIN', 'PAYMENT_APPLIED_BY_ADMIN',
+        'GLOBAL_TEMPLATE_CREATED', 'GLOBAL_TEMPLATE_UPDATED', 'GLOBAL_TEMPLATE_DELETED',
+        'COUNTRY_CONTROL_UPDATED', 'ANTI_SPAM_RULE_UPDATED', 'IP_ALLOWLIST_UPDATED',
+        'SYSTEM_SETTING_CHANGED', 'FEATURE_FLAG_TOGGLED', 'RATE_LIMIT_ADJUSTED'
     ];
+
+    var INTERNAL_ADMIN_ACTOR_DOMAINS = ['@quicksms.co.uk', '@quicksms.com', '@quicksms.internal'];
+
+    var ALLOWED_CUSTOMER_ACTOR_TYPES = ['customer_user', 'api_key', 'system', 'webhook'];
+
+    function isInternalAdminActor(actor) {
+        if (!actor || !actor.email) return false;
+        return INTERNAL_ADMIN_ACTOR_DOMAINS.some(function(domain) {
+            return actor.email.toLowerCase().endsWith(domain.toLowerCase());
+        });
+    }
+
+    function isCustomerFacingEvent(log) {
+        if (!log) return false;
+        if (log.isInternalOnly === true) return false;
+        if (log.isCustomerFacing === false) return false;
+        if (INTERNAL_ADMIN_ONLY_EVENTS.indexOf(log.action) !== -1) return false;
+        if (INTERNAL_ADMIN_ONLY_EVENTS.indexOf(log.eventType) !== -1) return false;
+        if (isInternalAdminActor(log.actor)) return false;
+        if (log.actorType && ALLOWED_CUSTOMER_ACTOR_TYPES.indexOf(log.actorType) === -1) return false;
+        if (!log.tenant_id && !log.customer_id) return false;
+        return true;
+    }
+
+    function filterCustomerAuditLogs(logs, customerId) {
+        var filtered = [];
+        var blockedCount = 0;
+
+        logs.forEach(function(log) {
+            if (!isCustomerFacingEvent(log)) {
+                blockedCount++;
+                return;
+            }
+
+            if (customerId) {
+                var logCustomerId = log.tenant_id || log.customer_id;
+                if (logCustomerId !== customerId) return;
+            }
+
+            filtered.push(log);
+        });
+
+        if (blockedCount > 0) {
+            console.log('[CustomerAuditViewer] Guardrail blocked', blockedCount, 'internal/admin events');
+        }
+
+        return filtered;
+    }
 
     function generateMockCustomerLogs() {
         var customerFacingActions = [
@@ -738,14 +790,7 @@ $(document).ready(function() {
     }
 
     function renderCustomerLogs() {
-        var filteredLogs = customerLogs.filter(function(log) {
-            if (!log.isCustomerFacing) return false;
-            if (INTERNAL_ADMIN_ONLY_EVENTS.indexOf(log.action) !== -1) return false;
-            if (selectedCustomerId) {
-                return log.tenant_id === selectedCustomerId;
-            }
-            return true;
-        });
+        var filteredLogs = filterCustomerAuditLogs(customerLogs, selectedCustomerId);
 
         var showCustomerColumn = !selectedCustomerId;
         updateCustomerColumnVisibility(showCustomerColumn);
