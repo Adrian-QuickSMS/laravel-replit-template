@@ -292,237 +292,19 @@
     </div>
 
     <div class="tab-pane fade" id="adminAuditPane" role="tabpanel">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 class="card-title mb-0">Internal Admin Audit Trail</h5>
-                    <small class="text-muted">All admin console actions with immutable logging</small>
-                </div>
-                <div class="d-flex gap-2 align-items-center">
-                    <select class="form-select form-select-sm" id="adminActorFilter" style="max-width: 200px;">
-                        <option value="">All Admin Users</option>
-                        <option value="admin-001">Sarah Johnson</option>
-                        <option value="admin-002">James Mitchell</option>
-                        <option value="admin-003">Emily Chen</option>
-                    </select>
-                    <button type="button" class="btn btn-admin-outline btn-sm" data-bs-toggle="collapse" data-bs-target="#adminFiltersPanel">
-                        <i class="fas fa-filter me-1"></i>Filters
-                    </button>
-                    <div class="dropdown">
-                        <button class="btn btn-admin-outline btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-download me-1"></i>Export
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><h6 class="dropdown-header">Export Format</h6></li>
-                            <li><a class="dropdown-item" href="#" id="adminExportCsv"><i class="fas fa-file-csv me-2 text-success"></i>CSV (.csv)</a></li>
-                            <li><a class="dropdown-item" href="#" id="adminExportExcel"><i class="fas fa-file-excel me-2 text-success"></i>Excel (.xlsx)</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><span class="dropdown-item-text small text-muted"><i class="fas fa-info-circle me-1"></i>Exports current filtered view</span></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="admin-compliance-card">
-                            <h6><i class="fas fa-user-shield me-2"></i>Admin Actions (24h)</h6>
-                            <div class="compliance-stat" id="adminActions24h">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="admin-compliance-card">
-                            <h6><i class="fas fa-user-secret me-2"></i>Impersonations (7d)</h6>
-                            <div class="compliance-stat" id="impersonations7d">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="admin-compliance-card">
-                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Security Events (24h)</h6>
-                            <div class="compliance-stat text-danger" id="adminSecurityEvents">0</div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="admin-compliance-card">
-                            <h6><i class="fas fa-ban me-2"></i>Blocked Logins (24h)</h6>
-                            <div class="compliance-stat text-warning" id="adminBlockedLogins">0</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                        <input type="text" class="form-control" id="adminSearchInput" placeholder="Search by admin email, event type, or target...">
-                    </div>
-                </div>
-
-                <div class="collapse mb-3" id="adminFiltersPanel">
-                    <div class="card card-body border-0 rounded-3 admin-filter-panel">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Date From</label>
-                                <input type="date" class="form-control form-control-sm" id="adminDateFromFilter">
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Date To</label>
-                                <input type="date" class="form-control form-control-sm" id="adminDateToFilter">
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Module</label>
-                                <select class="form-select form-select-sm" id="adminModuleFilter">
-                                    <option value="">All Modules</option>
-                                    <option value="admin_users">Admin Users</option>
-                                    <option value="security">Security</option>
-                                    <option value="impersonation">Impersonation</option>
-                                    <option value="billing">Billing</option>
-                                    <option value="approvals">Approvals</option>
-                                    <option value="numbers">Numbers</option>
-                                    <option value="accounts">Accounts</option>
-                                    <option value="data_access">Data Access</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Action</label>
-                                <select class="form-select form-select-sm" id="adminEventTypeFilter">
-                                    <option value="">All Actions</option>
-                                    <optgroup label="Admin User Lifecycle">
-                                        <option value="ADMIN_USER_INVITED">User Invited</option>
-                                        <option value="ADMIN_USER_SUSPENDED">User Suspended</option>
-                                        <option value="ADMIN_USER_REACTIVATED">User Reactivated</option>
-                                    </optgroup>
-                                    <optgroup label="Security Actions">
-                                        <option value="ADMIN_USER_PASSWORD_RESET">Password Reset</option>
-                                        <option value="ADMIN_USER_MFA_RESET">MFA Reset</option>
-                                        <option value="ADMIN_USER_SESSIONS_REVOKED">Sessions Revoked</option>
-                                        <option value="LOGIN_BLOCKED_BY_IP">Login Blocked by IP</option>
-                                    </optgroup>
-                                    <optgroup label="Impersonation">
-                                        <option value="IMPERSONATION_STARTED">Impersonation Started</option>
-                                        <option value="IMPERSONATION_ENDED">Impersonation Ended</option>
-                                        <option value="SUPPORT_MODE_ENABLED">Support Mode Enabled</option>
-                                    </optgroup>
-                                    <optgroup label="Billing">
-                                        <option value="PRICING_EDITED">Pricing Edited</option>
-                                        <option value="BILLING_MODE_CHANGED">Billing Mode Changed</option>
-                                        <option value="CREDIT_LIMIT_CHANGED">Credit Limit Changed</option>
-                                        <option value="INVOICE_CREATED_BY_ADMIN">Invoice Created</option>
-                                    </optgroup>
-                                    <optgroup label="Approvals">
-                                        <option value="SENDERID_APPROVED">SenderID Approved</option>
-                                        <option value="SENDERID_REJECTED">SenderID Rejected</option>
-                                        <option value="RCS_AGENT_APPROVED">RCS Agent Approved</option>
-                                        <option value="CAMPAIGN_APPROVED_BY_ADMIN">Campaign Approved</option>
-                                        <option value="TEMPLATE_SUSPENDED">Template Suspended</option>
-                                    </optgroup>
-                                    <optgroup label="Numbers">
-                                        <option value="NUMBER_ASSIGNED">Number Assigned</option>
-                                        <option value="NUMBER_UNASSIGNED">Number Unassigned</option>
-                                    </optgroup>
-                                    <optgroup label="Account Actions">
-                                        <option value="ACCOUNT_SUSPENDED_BY_ADMIN">Account Suspended</option>
-                                        <option value="ACCOUNT_REACTIVATED_BY_ADMIN">Account Reactivated</option>
-                                    </optgroup>
-                                    <optgroup label="Data Access">
-                                        <option value="ADMIN_EXPORT_INITIATED">Export Initiated</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Admin User</label>
-                                <select class="form-select form-select-sm" id="adminActorFilter">
-                                    <option value="">All Admin Users</option>
-                                    <option value="sarah.johnson@quicksms.co.uk">Sarah Johnson</option>
-                                    <option value="james.mitchell@quicksms.co.uk">James Mitchell</option>
-                                    <option value="emily.chen@quicksms.co.uk">Emily Chen</option>
-                                    <option value="david.lee@quicksms.co.uk">David Lee</option>
-                                    <option value="anna.williams@quicksms.co.uk">Anna Williams</option>
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">Result</label>
-                                <select class="form-select form-select-sm" id="adminResultFilter">
-                                    <option value="">All Results</option>
-                                    <option value="success">Success</option>
-                                    <option value="failure">Failure</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row g-3 align-items-end mt-2">
-                            <div class="col-6 col-md-3 position-relative" id="adminCustomerImpactedContainer">
-                                <label class="form-label small fw-bold">Customer Impacted</label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-white"><i class="fas fa-building"></i></span>
-                                    <input type="text" class="form-control" id="adminCustomerImpactedSearch" placeholder="Search customers..." autocomplete="off">
-                                </div>
-                                <div class="admin-customer-search-results" id="adminCustomerImpactedResults" style="display: none;"></div>
-                                <input type="hidden" id="adminCustomerImpactedId" value="">
-                            </div>
-                            <div class="col-6 col-md-2">
-                                <label class="form-label small fw-bold">IP Address</label>
-                                <input type="text" class="form-control form-control-sm" id="adminIpFilter" placeholder="e.g. 10.0.1.50">
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <div class="form-check form-switch mt-4">
-                                    <input class="form-check-input" type="checkbox" id="adminHighRiskOnlyFilter">
-                                    <label class="form-check-label small fw-bold" for="adminHighRiskOnlyFilter">
-                                        <i class="fas fa-exclamation-triangle text-danger me-1"></i>High-risk only
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-4 d-flex gap-2 justify-content-end">
-                                <button type="button" class="btn btn-admin-primary btn-sm" id="adminApplyFiltersBtn">
-                                    <i class="fas fa-check me-1"></i>Apply Filters
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="adminClearFiltersBtn">
-                                    <i class="fas fa-undo me-1"></i>Reset
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-muted small"><span id="adminTotalFiltered">0</span> events</span>
-                    <div class="btn-group" role="group" style="font-size: 0.75rem;">
-                        <button type="button" class="btn btn-outline-secondary btn-sm active" id="adminPaginationModeBtn">
-                            <i class="fas fa-list"></i> Paginated
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" id="adminInfiniteScrollModeBtn">
-                            <i class="fas fa-stream"></i> Scroll
-                        </button>
-                    </div>
-                </div>
-
-                <div class="admin-audit-table-container" id="adminAuditTableContainer">
-                    <table class="admin-audit-logs-table" id="adminAuditLogsTable">
-                        <thead>
-                            <tr>
-                                <th style="width: 140px;" class="admin-sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
-                                <th class="admin-sortable-header" data-sort="actor">Admin User <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th class="admin-sortable-header" data-sort="customer">Customer Impacted <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 110px;" class="admin-sortable-header" data-sort="module">Module <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th class="admin-sortable-header" data-sort="action">Action <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 80px;" class="admin-sortable-header" data-sort="result">Result <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                                <th style="width: 85px;" class="admin-sortable-header" data-sort="risk">Risk <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminAuditLogsTableBody">
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mt-4" id="adminPaginationRow">
-                    <div class="text-muted small">
-                        Showing <span id="adminShowingStart">0</span>-<span id="adminShowingEnd">0</span> of <span id="adminPaginationTotal">0</span> events
-                    </div>
-                    <nav>
-                        <ul class="pagination pagination-sm mb-0" id="adminPaginationControls"></ul>
-                    </nav>
-                </div>
-            </div>
-        </div>
+        @include('shared.partials.audit-log-component', [
+            'themeColor' => '#1e3a5f',
+            'themeColorRgb' => '30, 58, 95',
+            'themeName' => 'admin',
+            'prefix' => 'internal',
+            'showCustomerSelector' => false,
+            'showSubAccountFilter' => false,
+            'isAdminContext' => true,
+            'isInternalAdminMode' => true,
+            'showStatsCards' => true,
+            'cardTitle' => 'Internal Admin Audit Trail',
+            'cardSubtitle' => 'All admin console actions with immutable logging'
+        ])
     </div>
 </div>
 
@@ -1042,7 +824,11 @@ $(document).ready(function() {
             return true;
         });
 
-        var tbody = document.getElementById('adminAuditLogsTableBody');
+        var tbody = document.getElementById('internalAuditLogsTableBody');
+        if (!tbody) {
+            console.log('[AdminAuditLogs] Internal audit table not yet visible, skipping render');
+            return;
+        }
         tbody.innerHTML = '';
 
         var start = (adminPage - 1) * itemsPerPage;
@@ -1072,11 +858,11 @@ $(document).ready(function() {
             tbody.appendChild(row);
         });
 
-        $('#adminTotalFiltered').text(filteredLogs.length);
-        $('#adminShowingStart').text(filteredLogs.length > 0 ? start + 1 : 0);
-        $('#adminShowingEnd').text(end);
-        $('#adminPaginationTotal').text(filteredLogs.length);
-        renderPagination('admin', filteredLogs.length, adminPage);
+        $('#internalTotalFiltered').text(filteredLogs.length);
+        $('#internalShowingStart').text(filteredLogs.length > 0 ? start + 1 : 0);
+        $('#internalShowingEnd').text(end);
+        $('#internalPaginationTotal').text(filteredLogs.length);
+        renderPagination('internal', filteredLogs.length, adminPage);
     }
 
     function formatCustomerImpacted(target, targetType) {
@@ -1235,10 +1021,10 @@ $(document).ready(function() {
             return l.eventType === 'LOGIN_BLOCKED_BY_IP' && new Date(l.timestamp) >= last24h; 
         }).length;
 
-        $('#adminActions24h').text(actions24h);
-        $('#impersonations7d').text(impersonations);
-        $('#adminSecurityEvents').text(securityEvents);
-        $('#adminBlockedLogins').text(blockedLogins);
+        $('#internalActions24h').text(actions24h);
+        $('#internalImpersonations7d').text(impersonations);
+        $('#internalSecurityEvents').text(securityEvents);
+        $('#internalBlockedLogins').text(blockedLogins);
     }
 
     function bindCustomerSelectorEvents() {
@@ -1349,9 +1135,9 @@ $(document).ready(function() {
     };
 
     function bindAdminFilterEvents() {
-        var searchInput = $('#adminCustomerImpactedSearch');
-        var resultsContainer = $('#adminCustomerImpactedResults');
-        var hiddenInput = $('#adminCustomerImpactedId');
+        var searchInput = $('#internalCustomerImpactedSearch');
+        var resultsContainer = $('#internalCustomerImpactedResults');
+        var hiddenInput = $('#internalCustomerImpactedId');
 
         searchInput.on('focus', function() {
             showAdminCustomerDropdown('');
@@ -1363,13 +1149,13 @@ $(document).ready(function() {
         });
 
         $(document).on('click', function(e) {
-            if (!$(e.target).closest('#adminCustomerImpactedContainer').length) {
+            if (!$(e.target).closest('#internalCustomerImpactedContainer').length) {
                 resultsContainer.hide();
             }
         });
 
         function showAdminCustomerDropdown(query) {
-            var html = '<div class="admin-customer-search-item" data-id="">' +
+            var html = '<div class="internal-customer-search-item" data-id="">' +
                 '<div class="customer-name" style="font-style: italic; color: #6c757d;">All Customers</div>' +
                 '</div>';
 
@@ -1379,7 +1165,7 @@ $(document).ready(function() {
             });
 
             filtered.forEach(function(c) {
-                html += '<div class="admin-customer-search-item" data-id="' + c.id + '" data-name="' + c.name + '">' +
+                html += '<div class="internal-customer-search-item" data-id="' + c.id + '" data-name="' + c.name + '">' +
                     '<div class="customer-name">' + c.name + '</div>' +
                     '<div class="customer-id">' + c.account_number + '</div>' +
                     '</div>';
@@ -1387,7 +1173,7 @@ $(document).ready(function() {
 
             resultsContainer.html(html).show();
 
-            resultsContainer.find('.admin-customer-search-item').on('click', function() {
+            resultsContainer.find('.internal-customer-search-item').on('click', function() {
                 var id = $(this).data('id');
                 var name = $(this).data('name');
                 if (id) {
@@ -1403,24 +1189,24 @@ $(document).ready(function() {
             });
         }
 
-        $('#adminApplyFiltersBtn').off('click').on('click', function() {
-            adminFilterState.dateFrom = $('#adminDateFromFilter').val() || null;
-            adminFilterState.dateTo = $('#adminDateToFilter').val() || null;
-            adminFilterState.module = $('#adminModuleFilter').val();
-            adminFilterState.eventType = $('#adminEventTypeFilter').val();
-            adminFilterState.actor = $('#adminActorFilter').val();
-            adminFilterState.result = $('#adminResultFilter').val();
-            adminFilterState.ip = $('#adminIpFilter').val().trim();
-            adminFilterState.highRiskOnly = $('#adminHighRiskOnlyFilter').is(':checked');
+        $('#internalApplyFiltersBtn').off('click').on('click', function() {
+            adminFilterState.dateFrom = $('#internalDateFromFilter').val() || null;
+            adminFilterState.dateTo = $('#internalDateToFilter').val() || null;
+            adminFilterState.module = $('#internalModuleFilter').val();
+            adminFilterState.eventType = $('#internalEventTypeFilter').val();
+            adminFilterState.actor = $('#internalAdminUserFilter').val();
+            adminFilterState.result = $('#internalResultFilter').val();
+            adminFilterState.ip = $('#internalIpFilter').val().trim();
+            adminFilterState.highRiskOnly = $('#internalHighRiskOnlyFilter').is(':checked');
 
             adminPage = 1;
             renderAdminLogs();
             showToast('Filters applied', 'info');
         });
 
-        $('#adminClearFiltersBtn').off('click').on('click', function() {
-            $('#adminFiltersPanel').find('input, select').val('');
-            $('#adminHighRiskOnlyFilter').prop('checked', false);
+        $('#internalClearFiltersBtn').off('click').on('click', function() {
+            $('#internalFiltersPanel').find('input, select').val('');
+            $('#internalHighRiskOnlyFilter').prop('checked', false);
             adminFilterState = {
                 dateFrom: null,
                 dateTo: null,
@@ -1437,7 +1223,7 @@ $(document).ready(function() {
             showToast('Filters cleared', 'info');
         });
 
-        $('#adminHighRiskOnlyFilter').on('change', function() {
+        $('#internalHighRiskOnlyFilter').on('change', function() {
             adminFilterState.highRiskOnly = $(this).is(':checked');
         });
     }
@@ -1570,13 +1356,13 @@ $(document).ready(function() {
             renderCustomerLogs();
         });
 
-        $('#adminSearchInput').on('input', function() {
+        $('#internalSearchInput').on('input', function() {
             var query = $(this).val().toLowerCase();
             var allLogs = generateMockAdminLogs();
             var filtered = allLogs.filter(function(log) {
                 return log.eventLabel.toLowerCase().includes(query) ||
                        log.actor.email.toLowerCase().includes(query) ||
-                       log.target.email.toLowerCase().includes(query) ||
+                       (log.target && log.target.email && log.target.email.toLowerCase().includes(query)) ||
                        log.id.toLowerCase().includes(query);
             });
             adminLogs = filtered.length > 0 || query ? filtered : allLogs;
@@ -1591,11 +1377,11 @@ $(document).ready(function() {
             });
         });
 
-        $('#customerApplyFiltersBtn, #adminApplyFiltersBtn').on('click', function() {
+        $('#customerApplyFiltersBtn, #internalApplyFiltersBtn').on('click', function() {
             showToast('Filters applied', 'info');
         });
 
-        $('#customerClearFiltersBtn, #adminClearFiltersBtn').on('click', function() {
+        $('#customerClearFiltersBtn, #internalClearFiltersBtn').on('click', function() {
             $(this).closest('.collapse').find('input, select').val('');
             showToast('Filters cleared', 'info');
         });
@@ -1609,9 +1395,15 @@ $(document).ready(function() {
             }, 1000);
         });
 
-        $('#adminExportCsv, #adminExportExcel').on('click', function(e) {
+        $('#internalExportCsv, #internalExportExcel').on('click', function(e) {
             e.preventDefault();
             performAdminAuditExport($(this).attr('id').includes('Csv') ? 'csv' : 'xlsx');
+        });
+
+        $('button[data-bs-target="#adminAuditPane"]').on('shown.bs.tab', function() {
+            console.log('[AdminAuditLogs] Internal Admin Audit tab activated');
+            renderAdminLogs();
+            updateAdminStats();
         });
     }
 

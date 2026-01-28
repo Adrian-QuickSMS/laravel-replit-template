@@ -6,6 +6,8 @@ $prefix = $prefix ?? 'audit';
 $showCustomerSelector = $showCustomerSelector ?? false;
 $showSubAccountFilter = $showSubAccountFilter ?? true;
 $isAdminContext = $isAdminContext ?? false;
+$isInternalAdminMode = $isInternalAdminMode ?? false;
+$showStatsCards = $showStatsCards ?? false;
 $cardTitle = $cardTitle ?? 'Audit Trail';
 $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platform activity';
 @endphp
@@ -310,10 +312,39 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
         </div>
     </div>
     <div class="card-body">
+        @if($showStatsCards)
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="{{ $prefix }}-compliance-card">
+                    <h6><i class="fas fa-user-shield me-2"></i>Admin Actions (24h)</h6>
+                    <div class="compliance-stat" id="{{ $prefix }}Actions24h">47</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="{{ $prefix }}-compliance-card">
+                    <h6><i class="fas fa-user-secret me-2"></i>Impersonations (7d)</h6>
+                    <div class="compliance-stat" id="{{ $prefix }}Impersonations7d">12</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="{{ $prefix }}-compliance-card">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Security Events (24h)</h6>
+                    <div class="compliance-stat text-danger" id="{{ $prefix }}SecurityEvents">3</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="{{ $prefix }}-compliance-card">
+                    <h6><i class="fas fa-ban me-2"></i>Blocked Logins (24h)</h6>
+                    <div class="compliance-stat text-warning" id="{{ $prefix }}BlockedLogins">1</div>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="mb-3">
             <div class="input-group">
                 <span class="input-group-text bg-transparent"><i class="fas fa-search"></i></span>
-                <input type="text" class="form-control" id="{{ $prefix }}SearchInput" placeholder="Search by description, target ID, or user name...">
+                <input type="text" class="form-control" id="{{ $prefix }}SearchInput" placeholder="{{ $isInternalAdminMode ? 'Search by admin email, event type, or target...' : 'Search by description, target ID, or user name...' }}">
             </div>
         </div>
 
@@ -332,6 +363,16 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                         <label class="form-label small fw-bold">Module</label>
                         <select class="form-select form-select-sm" id="{{ $prefix }}ModuleFilter">
                             <option value="">All Modules</option>
+                            @if($isInternalAdminMode)
+                            <option value="admin_users">Admin Users</option>
+                            <option value="security">Security</option>
+                            <option value="impersonation">Impersonation</option>
+                            <option value="billing">Billing</option>
+                            <option value="approvals">Approvals</option>
+                            <option value="numbers">Numbers</option>
+                            <option value="accounts">Accounts</option>
+                            <option value="data_access">Data Access</option>
+                            @else
                             <option value="account">Account</option>
                             <option value="users">Users</option>
                             <option value="sub_accounts">Sub-Accounts</option>
@@ -346,12 +387,55 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                             <option value="compliance">Compliance</option>
                             <option value="api">API</option>
                             <option value="system">System</option>
+                            @endif
                         </select>
                     </div>
                     <div class="col-6 col-md-2">
-                        <label class="form-label small fw-bold">Event Type</label>
+                        <label class="form-label small fw-bold">{{ $isInternalAdminMode ? 'Action' : 'Event Type' }}</label>
                         <select class="form-select form-select-sm" id="{{ $prefix }}EventTypeFilter">
-                            <option value="">All Event Types</option>
+                            <option value="">All {{ $isInternalAdminMode ? 'Actions' : 'Event Types' }}</option>
+                            @if($isInternalAdminMode)
+                            <optgroup label="Admin User Lifecycle">
+                                <option value="ADMIN_USER_INVITED">User Invited</option>
+                                <option value="ADMIN_USER_SUSPENDED">User Suspended</option>
+                                <option value="ADMIN_USER_REACTIVATED">User Reactivated</option>
+                            </optgroup>
+                            <optgroup label="Security Actions">
+                                <option value="ADMIN_USER_PASSWORD_RESET">Password Reset</option>
+                                <option value="ADMIN_USER_MFA_RESET">MFA Reset</option>
+                                <option value="ADMIN_USER_SESSIONS_REVOKED">Sessions Revoked</option>
+                                <option value="LOGIN_BLOCKED_BY_IP">Login Blocked by IP</option>
+                            </optgroup>
+                            <optgroup label="Impersonation">
+                                <option value="IMPERSONATION_STARTED">Impersonation Started</option>
+                                <option value="IMPERSONATION_ENDED">Impersonation Ended</option>
+                                <option value="SUPPORT_MODE_ENABLED">Support Mode Enabled</option>
+                            </optgroup>
+                            <optgroup label="Billing">
+                                <option value="PRICING_EDITED">Pricing Edited</option>
+                                <option value="BILLING_MODE_CHANGED">Billing Mode Changed</option>
+                                <option value="CREDIT_LIMIT_CHANGED">Credit Limit Changed</option>
+                                <option value="INVOICE_CREATED_BY_ADMIN">Invoice Created</option>
+                            </optgroup>
+                            <optgroup label="Approvals">
+                                <option value="SENDERID_APPROVED">SenderID Approved</option>
+                                <option value="SENDERID_REJECTED">SenderID Rejected</option>
+                                <option value="RCS_AGENT_APPROVED">RCS Agent Approved</option>
+                                <option value="CAMPAIGN_APPROVED_BY_ADMIN">Campaign Approved</option>
+                                <option value="TEMPLATE_SUSPENDED">Template Suspended</option>
+                            </optgroup>
+                            <optgroup label="Numbers">
+                                <option value="NUMBER_ASSIGNED">Number Assigned</option>
+                                <option value="NUMBER_UNASSIGNED">Number Unassigned</option>
+                            </optgroup>
+                            <optgroup label="Account Actions">
+                                <option value="ACCOUNT_SUSPENDED_BY_ADMIN">Account Suspended</option>
+                                <option value="ACCOUNT_REACTIVATED_BY_ADMIN">Account Reactivated</option>
+                            </optgroup>
+                            <optgroup label="Data Access">
+                                <option value="ADMIN_EXPORT_INITIATED">Export Initiated</option>
+                            </optgroup>
+                            @else
                             <optgroup label="User Management">
                                 <option value="USER_CREATED">User Created</option>
                                 <option value="USER_INVITED">User Invited</option>
@@ -388,8 +472,30 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                                 <option value="PURCHASE_COMPLETED">Purchase Completed</option>
                                 <option value="INVOICE_GENERATED">Invoice Generated</option>
                             </optgroup>
+                            @endif
                         </select>
                     </div>
+                    @if($isInternalAdminMode)
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-bold">Admin User</label>
+                        <select class="form-select form-select-sm" id="{{ $prefix }}AdminUserFilter">
+                            <option value="">All Admin Users</option>
+                            <option value="sarah.johnson@quicksms.co.uk">Sarah Johnson</option>
+                            <option value="james.mitchell@quicksms.co.uk">James Mitchell</option>
+                            <option value="emily.chen@quicksms.co.uk">Emily Chen</option>
+                            <option value="david.lee@quicksms.co.uk">David Lee</option>
+                            <option value="anna.williams@quicksms.co.uk">Anna Williams</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-bold">Result</label>
+                        <select class="form-select form-select-sm" id="{{ $prefix }}ResultFilter">
+                            <option value="">All Results</option>
+                            <option value="success">Success</option>
+                            <option value="failure">Failure</option>
+                        </select>
+                    </div>
+                    @else
                     <div class="col-6 col-md-2">
                         <label class="form-label small fw-bold">Severity</label>
                         <select class="form-select form-select-sm" id="{{ $prefix }}SeverityFilter">
@@ -409,9 +515,41 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                             <option value="api">API</option>
                         </select>
                     </div>
+                    @endif
                 </div>
 
                 <div class="row g-3 align-items-end mt-2">
+                    @if($isInternalAdminMode)
+                    <div class="col-6 col-md-3 position-relative" id="{{ $prefix }}CustomerImpactedContainer">
+                        <label class="form-label small fw-bold">Customer Impacted</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white"><i class="fas fa-building"></i></span>
+                            <input type="text" class="form-control" id="{{ $prefix }}CustomerImpactedSearch" placeholder="Search customers..." autocomplete="off">
+                        </div>
+                        <div class="{{ $prefix }}-customer-search-results" id="{{ $prefix }}CustomerImpactedResults" style="display: none;"></div>
+                        <input type="hidden" id="{{ $prefix }}CustomerImpactedId" value="">
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="form-label small fw-bold">IP Address</label>
+                        <input type="text" class="form-control form-control-sm" id="{{ $prefix }}IpFilter" placeholder="e.g. 10.0.1.50">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="{{ $prefix }}HighRiskOnlyFilter">
+                            <label class="form-check-label small fw-bold" for="{{ $prefix }}HighRiskOnlyFilter">
+                                <i class="fas fa-exclamation-triangle text-danger me-1"></i>High-risk only
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-4 d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn {{ $prefix }}-btn-theme btn-sm" id="{{ $prefix }}ApplyFiltersBtn">
+                            <i class="fas fa-check me-1"></i>Apply Filters
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="{{ $prefix }}ClearFiltersBtn">
+                            <i class="fas fa-undo me-1"></i>Reset
+                        </button>
+                    </div>
+                    @else
                     @if($showSubAccountFilter)
                     <div class="col-6 col-md-3" id="{{ $prefix }}SubAccountFilterContainer">
                         <label class="form-label small fw-bold">Sub-Account</label>
@@ -443,6 +581,7 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                             <i class="fas fa-undo"></i>
                         </button>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -463,7 +602,19 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
             <table class="{{ $prefix }}-audit-logs-table" id="{{ $prefix }}AuditLogsTable">
                 <thead>
                     <tr>
+                        @if($isInternalAdminMode)
+                        <th style="width: 140px;" class="{{ $prefix }}-sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
+                        <th class="{{ $prefix }}-sortable-header" data-sort="actor">Admin User <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                        <th class="{{ $prefix }}-sortable-header" data-sort="customer">Customer Impacted <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                        <th style="width: 110px;" class="{{ $prefix }}-sortable-header" data-sort="module">Module <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                        <th class="{{ $prefix }}-sortable-header" data-sort="action">Action <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                        <th style="width: 80px;" class="{{ $prefix }}-sortable-header" data-sort="result">Result <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                        <th style="width: 85px;" class="{{ $prefix }}-sortable-header" data-sort="risk">Risk <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                        @else
                         <th style="width: 150px;" class="{{ $prefix }}-sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
+                        @if($showCustomerSelector)
+                        <th style="width: 120px;">Customer</th>
+                        @endif
                         <th style="width: 100px;">Event ID</th>
                         <th class="{{ $prefix }}-sortable-header" data-sort="action">Action <i class="fas fa-sort ms-1 sort-icon"></i></th>
                         <th style="width: 120px;" class="{{ $prefix }}-sortable-header" data-sort="category">Category <i class="fas fa-sort ms-1 sort-icon"></i></th>
@@ -471,6 +622,7 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                         <th class="{{ $prefix }}-sortable-header" data-sort="actor">Actor <i class="fas fa-sort ms-1 sort-icon"></i></th>
                         <th>Target</th>
                         <th style="width: 110px;">IP Address</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody id="{{ $prefix }}AuditLogsTableBody">
