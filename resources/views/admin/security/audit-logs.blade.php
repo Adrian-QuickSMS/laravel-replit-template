@@ -89,6 +89,12 @@
 .admin-category-badge-admin { background-color: rgba(30, 58, 95, 0.2); color: #1e3a5f; }
 .admin-category-badge-impersonation { background-color: rgba(220, 53, 69, 0.2); color: #dc3545; }
 
+.customer-log-detail-section { padding: 1rem; background-color: #fafafa; border-radius: 0.5rem; margin-bottom: 1rem; }
+.customer-log-detail-section h6 { color: #1e3a5f; margin-bottom: 0.75rem; font-size: 0.875rem; font-weight: 600; }
+.customer-log-detail-row { display: flex; margin-bottom: 0.5rem; }
+.customer-log-detail-label { width: 140px; font-weight: 500; color: #6c757d; font-size: 0.8125rem; }
+.customer-log-detail-value { flex: 1; font-size: 0.8125rem; color: #212529; }
+
 .admin-audit-table-container { 
     max-height: 600px; 
     overflow-x: hidden;
@@ -319,6 +325,25 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-admin-outline btn-sm" id="copyLogDetail">
+                    <i class="fas fa-copy me-1"></i>Copy to Clipboard
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="customerLogDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-file-alt me-2 admin-blue"></i>Customer Audit Event Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="customerLogDetailContent">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-admin-outline btn-sm" id="copyCustomerLogDetail">
                     <i class="fas fa-copy me-1"></i>Copy to Clipboard
                 </button>
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
@@ -820,17 +845,16 @@ $(document).ready(function() {
                 ? '<td class="customer-col"><span class="badge bg-light text-dark" style="font-size: 0.7rem;">' + log.customer.name + '</span></td>' 
                 : '';
             
+            var targetDetails = formatTargetDetails(log);
+            
             row.innerHTML = 
                 '<td>' + formatTimestamp(log.timestamp) + '</td>' +
                 customerCell +
-                '<td><code class="small">' + log.id + '</code></td>' +
-                '<td>' + log.actionLabel + '</td>' +
                 '<td><span class="badge customer-category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></td>' +
-                '<td><span class="badge customer-severity-badge-' + log.severity + '">' + capitalize(log.severity) + '</span></td>' +
+                '<td>' + log.actionLabel + '</td>' +
                 '<td>' + log.actor + '</td>' +
-                '<td>' + log.target + '</td>' +
-                '<td><code class="small">' + log.ip + '</code></td>';
-            row.onclick = function() { showLogDetail(log, 'customer'); };
+                '<td>' + targetDetails + '</td>';
+            row.onclick = function() { showCustomerLogDetail(log); };
             tbody.appendChild(row);
         });
 
@@ -858,6 +882,115 @@ $(document).ready(function() {
         } else if (!show && existingCustomerHeader) {
             existingCustomerHeader.remove();
         }
+    }
+
+    function formatTargetDetails(log) {
+        if (!log) return '<span class="text-muted">-</span>';
+        
+        var parts = [];
+        
+        if (log.target && typeof log.target === 'string') {
+            parts.push('<span class="text-dark">' + log.target + '</span>');
+        } else if (log.target && typeof log.target === 'object') {
+            if (log.target.userName) {
+                parts.push('<span class="text-dark">' + log.target.userName + '</span>');
+            }
+            if (log.target.resourceType) {
+                parts.push('<span class="badge bg-light text-muted" style="font-size: 0.7rem;">' + log.target.resourceType + '</span>');
+            }
+            if (log.target.resourceId) {
+                parts.push('<code class="small">' + log.target.resourceId + '</code>');
+            }
+        }
+        
+        if (log.details && Object.keys(log.details).length > 0) {
+            var detailKeys = Object.keys(log.details).slice(0, 2);
+            detailKeys.forEach(function(key) {
+                var val = log.details[key];
+                if (typeof val === 'string' && val.length < 50) {
+                    parts.push('<span class="text-muted small">' + formatCategory(key) + ': ' + val + '</span>');
+                }
+            });
+        }
+        
+        return parts.length > 0 ? parts.join(' ') : '<span class="text-muted">-</span>';
+    }
+
+    function showCustomerLogDetail(log) {
+        var content = $('#customerLogDetailContent');
+        var timestamp = new Date(log.timestamp);
+        
+        var html = '<div class="customer-log-detail-section">' +
+            '<h6><i class="fas fa-info-circle me-2"></i>Summary</h6>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">What</span><span class="customer-log-detail-value">' + log.actionLabel + ' <code class="ms-2">(' + log.action + ')</code></span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Who</span><span class="customer-log-detail-value">' + log.actor + '</span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">When</span><span class="customer-log-detail-value">' + timestamp.toISOString() + '</span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Module</span><span class="customer-log-detail-value"><span class="badge customer-category-badge-' + log.category + '">' + formatCategory(log.category) + '</span></span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Result</span><span class="customer-log-detail-value"><span class="badge ' + (log.result === 'success' ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger') + '">' + capitalize(log.result) + '</span></span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Customer</span><span class="customer-log-detail-value">' + (log.customer ? log.customer.name : '-') + '</span></div>' +
+        '</div>';
+
+        if (log.target) {
+            html += '<div class="customer-log-detail-section">' +
+                '<h6><i class="fas fa-bullseye me-2"></i>Target References</h6>';
+            if (typeof log.target === 'string') {
+                html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Target</span><span class="customer-log-detail-value">' + log.target + '</span></div>';
+            } else if (typeof log.target === 'object') {
+                if (log.target.userId) {
+                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">User ID</span><span class="customer-log-detail-value"><code>' + log.target.userId + '</code></span></div>';
+                }
+                if (log.target.userName) {
+                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">User Name</span><span class="customer-log-detail-value">' + log.target.userName + '</span></div>';
+                }
+                if (log.target.resourceType) {
+                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Resource Type</span><span class="customer-log-detail-value">' + formatCategory(log.target.resourceType) + '</span></div>';
+                }
+                if (log.target.resourceId) {
+                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Resource ID</span><span class="customer-log-detail-value"><code>' + log.target.resourceId + '</code></span></div>';
+                }
+                if (log.target.name) {
+                    html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Name</span><span class="customer-log-detail-value">' + log.target.name + '</span></div>';
+                }
+            }
+            html += '</div>';
+        }
+
+        if (log.before || log.after) {
+            html += '<div class="customer-log-detail-section">' +
+                '<h6><i class="fas fa-exchange-alt me-2"></i>Before / After</h6>';
+            if (log.before) {
+                html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Before</span><span class="customer-log-detail-value"><pre class="mb-0" style="font-size: 0.75rem; background: #f8f9fa; padding: 0.5rem; border-radius: 0.25rem; max-height: 100px; overflow: auto;">' + JSON.stringify(log.before, null, 2) + '</pre></span></div>';
+            }
+            if (log.after) {
+                html += '<div class="customer-log-detail-row"><span class="customer-log-detail-label">After</span><span class="customer-log-detail-value"><pre class="mb-0" style="font-size: 0.75rem; background: #f8f9fa; padding: 0.5rem; border-radius: 0.25rem; max-height: 100px; overflow: auto;">' + JSON.stringify(log.after, null, 2) + '</pre></span></div>';
+            }
+            html += '</div>';
+        }
+
+        html += '<div class="customer-log-detail-section">' +
+            '<h6><i class="fas fa-network-wired me-2"></i>Context</h6>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">IP Address</span><span class="customer-log-detail-value">' + (log.ip || log.context?.ipAddress || '-') + '</span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">User Agent</span><span class="customer-log-detail-value small">' + (log.userAgent || log.context?.userAgent || '-') + '</span></div>' +
+            '<div class="customer-log-detail-row"><span class="customer-log-detail-label">Log ID</span><span class="customer-log-detail-value"><code>' + log.id + '</code></span></div>' +
+        '</div>';
+
+        if (log.details && Object.keys(log.details).length > 0) {
+            html += '<div class="customer-log-detail-section">' +
+                '<h6><i class="fas fa-code me-2"></i>Metadata JSON</h6>' +
+                '<pre class="mb-0" style="font-size: 0.75rem; background: #f8f9fa; padding: 0.75rem; border-radius: 0.25rem; max-height: 200px; overflow: auto;">' + JSON.stringify(log.details, null, 2) + '</pre>' +
+            '</div>';
+        }
+
+        content.html(html);
+
+        $('#copyCustomerLogDetail').off('click').on('click', function() {
+            var logJson = JSON.stringify(log, null, 2);
+            navigator.clipboard.writeText(logJson).then(function() {
+                showToast('Log details copied to clipboard', 'success');
+            });
+        });
+
+        $('#customerLogDetailModal').modal('show');
     }
 
     function renderAdminLogs() {

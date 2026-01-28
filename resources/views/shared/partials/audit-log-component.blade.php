@@ -613,15 +613,12 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                         @else
                         <th style="width: 150px;" class="{{ $prefix }}-sortable-header" data-sort="timestamp">Timestamp <i class="fas fa-sort-down ms-1 sort-icon active"></i></th>
                         @if($showCustomerSelector)
-                        <th style="width: 120px;">Customer</th>
+                        <th style="width: 120px;" class="customer-col-header">Customer</th>
                         @endif
-                        <th style="width: 100px;">Event ID</th>
+                        <th style="width: 110px;" class="{{ $prefix }}-sortable-header" data-sort="category">Module <i class="fas fa-sort ms-1 sort-icon"></i></th>
                         <th class="{{ $prefix }}-sortable-header" data-sort="action">Action <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                        <th style="width: 120px;" class="{{ $prefix }}-sortable-header" data-sort="category">Category <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                        <th style="width: 90px;" class="{{ $prefix }}-sortable-header" data-sort="severity">Severity <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                        <th class="{{ $prefix }}-sortable-header" data-sort="actor">Actor <i class="fas fa-sort ms-1 sort-icon"></i></th>
-                        <th>Target</th>
-                        <th style="width: 110px;">IP Address</th>
+                        <th class="{{ $prefix }}-sortable-header" data-sort="actor">User <i class="fas fa-sort ms-1 sort-icon"></i></th>
+                        <th>Target / Details</th>
                         @endif
                     </tr>
                 </thead>
