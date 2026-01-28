@@ -1566,11 +1566,8 @@ $(document).ready(function() {
 
         $('#customerExportCsv, #customerExportExcel').on('click', function(e) {
             e.preventDefault();
-            var format = $(this).attr('id').includes('Csv') ? 'CSV' : 'Excel';
-            showToast('Exporting to ' + format + '...', 'info');
-            setTimeout(function() {
-                showToast('Export completed successfully', 'success');
-            }, 1000);
+            var format = $(this).attr('id').includes('Csv') ? 'csv' : 'xlsx';
+            performCustomerAuditExport(format);
         });
 
         $('#internalExportCsv, #internalExportExcel').on('click', function(e) {
@@ -1586,6 +1583,143 @@ $(document).ready(function() {
     }
 
     var EXPORT_AUTHORIZED_ROLES = ['super_admin', 'security_admin', 'compliance_officer'];
+    var isCustomerExporting = false;
+
+    function performCustomerAuditExport(format) {
+        if (isCustomerExporting) {
+            showToast('Export already in progress...', 'warning');
+            return;
+        }
+
+        var filteredData = filterCustomerAuditLogs(customerLogs, selectedCustomerId);
+        
+        if (filteredData.length === 0) {
+            showToast('No data to export with current filters', 'warning');
+            return;
+        }
+
+        isCustomerExporting = true;
+        var sanitizedData = sanitizeCustomerExportData(filteredData);
+        var rowCount = sanitizedData.length;
+        var exportTimestamp = new Date().toISOString();
+        var customerScope = selectedCustomerId ? getCustomerNameById(selectedCustomerId) : 'All Customers';
+        var fileReference = generateCustomerExportFileReference(format, exportTimestamp, customerScope);
+
+        console.log('[CustomerAuditExport] Export initiated:', {
+            customer: customerScope,
+            records: rowCount,
+            format: format.toUpperCase(),
+            filters: getActiveCustomerFilters()
+        });
+
+        showToast('Preparing export of ' + rowCount + ' records...', 'info');
+
+        setTimeout(function() {
+            if (rowCount > 500) {
+                exportLargeCustomerDataset(sanitizedData, format, fileReference, customerScope);
+            } else {
+                executeCustomerExport(sanitizedData, format, fileReference, customerScope);
+            }
+        }, 300);
+    }
+
+    function sanitizeCustomerExportData(data) {
+        return data.map(function(log) {
+            var sanitizedLog = JSON.parse(JSON.stringify(log));
+            
+            var sensitiveKeys = ['password', 'token', 'secret', 'apiKey', 'api_key', 'creditCard', 'cvv', 'pin', 'ssn'];
+            
+            if (sanitizedLog.details) {
+                Object.keys(sanitizedLog.details).forEach(function(key) {
+                    var lowerKey = key.toLowerCase();
+                    if (sensitiveKeys.some(function(s) { return lowerKey.includes(s.toLowerCase()); })) {
+                        sanitizedLog.details[key] = '[REDACTED]';
+                    }
+                });
+            }
+            
+            if (sanitizedLog.context && sanitizedLog.context.userAgent) {
+                sanitizedLog.context.userAgent = sanitizedLog.context.userAgent.substring(0, 50) + '...';
+            }
+            if (sanitizedLog.userAgent && sanitizedLog.userAgent.length > 50) {
+                sanitizedLog.userAgent = sanitizedLog.userAgent.substring(0, 50) + '...';
+            }
+            
+            return sanitizedLog;
+        });
+    }
+
+    function getCustomerNameById(customerId) {
+        var customer = allCustomers.find(function(c) { return c.id === customerId; });
+        return customer ? customer.name : customerId;
+    }
+
+    function getActiveCustomerFilters() {
+        return {
+            customer: selectedCustomerId ? getCustomerNameById(selectedCustomerId) : 'All',
+            searchQuery: $('#customerSearchInput').val() || null
+        };
+    }
+
+    function generateCustomerExportFileReference(format, timestamp, customerScope) {
+        var dateStr = timestamp.replace(/[-:T]/g, '').substring(0, 14);
+        var customerSlug = customerScope.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+        var randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+        return 'CUSTOMER_AUDIT_' + customerSlug + '_' + dateStr + '_' + randomSuffix + '.' + format;
+    }
+
+    function executeCustomerExport(data, format, fileReference, customerScope) {
+        var rows = data.map(function(log) {
+            return {
+                timestamp: formatTimestamp(log.timestamp),
+                customer: log.customer ? log.customer.name : '-',
+                module: formatCategory(log.category),
+                action: log.actionLabel,
+                action_code: log.action,
+                user: log.actor,
+                target: typeof log.target === 'string' ? log.target : (log.target && log.target.userName ? log.target.userName : '-'),
+                result: log.result || 'success',
+                ip_address: log.ip || '-',
+                log_id: log.id
+            };
+        });
+
+        console.log('[CustomerAuditExport] Export data prepared:', {
+            file: fileReference,
+            records: rows.length,
+            format: format.toUpperCase(),
+            scope: customerScope
+        });
+
+        isCustomerExporting = false;
+        showToast('Export completed: ' + rows.length + ' records exported to ' + format.toUpperCase(), 'success');
+        
+        console.log('[CustomerAuditExport] File ready for download:', fileReference);
+    }
+
+    function exportLargeCustomerDataset(data, format, fileReference, customerScope) {
+        var chunkSize = 100;
+        var processedChunks = 0;
+        var totalChunks = Math.ceil(data.length / chunkSize);
+        
+        function processNextChunk() {
+            if (processedChunks >= totalChunks) {
+                executeCustomerExport(data, format, fileReference, customerScope);
+                return;
+            }
+            
+            processedChunks++;
+            var progress = Math.round((processedChunks / totalChunks) * 100);
+            
+            if (processedChunks % 2 === 0) {
+                showToast('Processing... ' + progress + '%', 'info');
+            }
+            
+            setTimeout(processNextChunk, 50);
+        }
+        
+        processNextChunk();
+    }
 
     function performAdminAuditExport(format) {
         var currentAdmin = {
