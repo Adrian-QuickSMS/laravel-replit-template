@@ -1162,21 +1162,40 @@ $(document).ready(function() {
     }
 
     var HIGH_RISK_EVENT_TYPES = [
+        // Data Export
         'ADMIN_EXPORT_INITIATED',
         'DATA_EXPORTED',
+        'ADMIN_DATA_ACCESS',
+        // Impersonation Start/Stop
         'IMPERSONATION_STARTED',
         'IMPERSONATION_ENDED',
         'SUPPORT_MODE_ENABLED',
+        'SUPPORT_MODE_DISABLED',
+        // Billing & Credit Limit Changes
         'PRICING_EDITED',
         'BILLING_MODE_CHANGED',
         'CREDIT_LIMIT_CHANGED',
+        'CREDIT_LIMIT_UPDATED',
+        'PAYMENT_APPLIED_BY_ADMIN',
+        // MFA Reset
         'ADMIN_USER_MFA_RESET',
         'MFA_RESET',
+        // IP Allowlist Changes
         'IP_ALLOWLIST_ADDED',
         'IP_ALLOWLIST_REMOVED',
         'IP_ALLOWLIST_CHANGED',
+        'IP_ALLOWLIST_UPDATED',
+        // Critical Security Actions
+        'ADMIN_USER_SESSIONS_REVOKED',
+        'ADMIN_USER_PASSWORD_RESET',
+        'LOGIN_BLOCKED_BY_IP',
+        // Account Suspension/Archival
         'ACCOUNT_SUSPENDED_BY_ADMIN',
-        'LOGIN_BLOCKED_BY_IP'
+        'ACCOUNT_ARCHIVED_BY_ADMIN',
+        // System Security
+        'COUNTRY_CONTROL_UPDATED',
+        'ANTI_SPAM_RULE_UPDATED',
+        'SYSTEM_SETTING_CHANGED'
     ];
 
     function isHighRiskEvent(eventType) {
