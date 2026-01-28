@@ -440,24 +440,48 @@ $(document).ready(function() {
     var itemsPerPage = 25;
     var selectedCustomerId = null;
 
+    var INTERNAL_ADMIN_AUDIT_POLICY = {
+        accessLevel: 'INTERNAL_ONLY',
+        allowedRoles: ['super_admin', 'internal_support', 'security_admin', 'compliance_officer'],
+        neverExposeToCustomers: true,
+        dataClassification: 'CONFIDENTIAL',
+        retentionPolicy: '7_YEARS_IMMUTABLE',
+        auditAllAccess: true
+    };
+
+    function validateInternalAuditAccess() {
+        var isAdminContext = window.location.pathname.startsWith('/admin');
+        if (!isAdminContext) {
+            console.error('[SECURITY] BLOCKED: Attempted access to internal admin audit from non-admin context');
+            return false;
+        }
+        return true;
+    }
+
     function getDataSeparationRules() {
         return {
             customerAuditViewer: {
                 description: 'Tenant-scoped customer audit events',
                 requiredFields: ['tenant_id', 'customer'],
-                allowedActorTypes: ['customer_user', 'system'],
+                allowedActorTypes: ['customer_user', 'api_key', 'system', 'webhook'],
                 forbiddenEventTypes: INTERNAL_ADMIN_ONLY_EVENTS,
+                forbiddenActorDomains: INTERNAL_ADMIN_ACTOR_DOMAINS,
                 scopeValidation: function(log) {
+                    if (log.isInternalOnly === true) return false;
+                    if (log.isAdminEvent === true) return false;
+                    if (log.admin_actor_id) return false;
                     return log.tenant_id && log.isCustomerFacing === true;
                 }
             },
             internalAdminAudit: {
-                description: 'Admin actor-based internal events',
+                description: 'QuickSMS employee actions in Admin Console - NEVER expose to customers',
                 requiredFields: ['admin_actor_id', 'actor'],
                 allowedActorTypes: ['admin'],
                 forbiddenEventTypes: [],
+                accessPolicy: INTERNAL_ADMIN_AUDIT_POLICY,
                 scopeValidation: function(log) {
-                    return log.admin_actor_id && log.isAdminEvent === true;
+                    if (!validateInternalAuditAccess()) return false;
+                    return log.admin_actor_id && log.isAdminEvent === true && log.isInternalOnly === true;
                 }
             }
         };
@@ -730,27 +754,55 @@ $(document).ready(function() {
     function generateMockAdminLogs() {
         var adminOnlyEventTypes = [
             { type: 'ADMIN_USER_INVITED', category: 'admin_users', severity: 'medium', targetType: 'admin' },
+            { type: 'ADMIN_USER_ACTIVATED', category: 'admin_users', severity: 'medium', targetType: 'admin' },
             { type: 'ADMIN_USER_SUSPENDED', category: 'admin_users', severity: 'high', targetType: 'admin' },
             { type: 'ADMIN_USER_REACTIVATED', category: 'admin_users', severity: 'medium', targetType: 'admin' },
+            { type: 'ADMIN_USER_ARCHIVED', category: 'admin_users', severity: 'high', targetType: 'admin' },
             { type: 'ADMIN_USER_PASSWORD_RESET', category: 'security', severity: 'high', targetType: 'admin' },
             { type: 'ADMIN_USER_MFA_RESET', category: 'security', severity: 'critical', targetType: 'admin' },
+            { type: 'ADMIN_USER_MFA_UPDATED', category: 'security', severity: 'medium', targetType: 'admin' },
+            { type: 'ADMIN_USER_EMAIL_UPDATED', category: 'admin_users', severity: 'high', targetType: 'admin' },
             { type: 'ADMIN_USER_SESSIONS_REVOKED', category: 'security', severity: 'high', targetType: 'admin' },
+            { type: 'ADMIN_LOGIN', category: 'security', severity: 'low', targetType: 'admin' },
+            { type: 'ADMIN_LOGOUT', category: 'security', severity: 'low', targetType: 'admin' },
             { type: 'IMPERSONATION_STARTED', category: 'impersonation', severity: 'critical', targetType: 'customer' },
             { type: 'IMPERSONATION_ENDED', category: 'impersonation', severity: 'high', targetType: 'customer' },
             { type: 'SUPPORT_MODE_ENABLED', category: 'impersonation', severity: 'high', targetType: 'customer' },
+            { type: 'SUPPORT_MODE_DISABLED', category: 'impersonation', severity: 'medium', targetType: 'customer' },
             { type: 'LOGIN_BLOCKED_BY_IP', category: 'security', severity: 'critical', targetType: 'admin' },
             { type: 'PRICING_EDITED', category: 'billing', severity: 'high', targetType: 'customer' },
             { type: 'BILLING_MODE_CHANGED', category: 'billing', severity: 'high', targetType: 'customer' },
             { type: 'CREDIT_LIMIT_CHANGED', category: 'billing', severity: 'high', targetType: 'customer' },
+            { type: 'CREDIT_LIMIT_UPDATED', category: 'billing', severity: 'high', targetType: 'customer' },
+            { type: 'INVOICE_CREATED_BY_ADMIN', category: 'billing', severity: 'medium', targetType: 'customer' },
+            { type: 'CREDIT_NOTE_CREATED_BY_ADMIN', category: 'billing', severity: 'medium', targetType: 'customer' },
+            { type: 'PAYMENT_APPLIED_BY_ADMIN', category: 'billing', severity: 'medium', targetType: 'customer' },
             { type: 'SENDERID_APPROVED', category: 'approvals', severity: 'medium', targetType: 'customer' },
             { type: 'SENDERID_REJECTED', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'SENDERID_SUSPENDED', category: 'approvals', severity: 'high', targetType: 'customer' },
             { type: 'RCS_AGENT_APPROVED', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'RCS_AGENT_REJECTED', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'RCS_AGENT_SUSPENDED', category: 'approvals', severity: 'high', targetType: 'customer' },
             { type: 'CAMPAIGN_APPROVED_BY_ADMIN', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'CAMPAIGN_REJECTED_BY_ADMIN', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'TEMPLATE_APPROVED', category: 'approvals', severity: 'medium', targetType: 'customer' },
+            { type: 'TEMPLATE_REJECTED', category: 'approvals', severity: 'medium', targetType: 'customer' },
             { type: 'TEMPLATE_SUSPENDED', category: 'approvals', severity: 'high', targetType: 'customer' },
+            { type: 'GLOBAL_TEMPLATE_CREATED', category: 'approvals', severity: 'medium', targetType: 'system' },
+            { type: 'GLOBAL_TEMPLATE_UPDATED', category: 'approvals', severity: 'medium', targetType: 'system' },
             { type: 'NUMBER_ASSIGNED', category: 'numbers', severity: 'medium', targetType: 'customer' },
+            { type: 'NUMBER_UNASSIGNED', category: 'numbers', severity: 'medium', targetType: 'customer' },
+            { type: 'NUMBER_PORTED', category: 'numbers', severity: 'high', targetType: 'customer' },
+            { type: 'NUMBER_RESERVED', category: 'numbers', severity: 'low', targetType: 'customer' },
             { type: 'ACCOUNT_SUSPENDED_BY_ADMIN', category: 'accounts', severity: 'critical', targetType: 'customer' },
-            { type: 'INVOICE_CREATED_BY_ADMIN', category: 'billing', severity: 'medium', targetType: 'customer' },
-            { type: 'ADMIN_EXPORT_INITIATED', category: 'data_access', severity: 'high', targetType: 'system' }
+            { type: 'ACCOUNT_REACTIVATED_BY_ADMIN', category: 'accounts', severity: 'high', targetType: 'customer' },
+            { type: 'ACCOUNT_ARCHIVED_BY_ADMIN', category: 'accounts', severity: 'critical', targetType: 'customer' },
+            { type: 'COUNTRY_CONTROL_UPDATED', category: 'security', severity: 'high', targetType: 'system' },
+            { type: 'ANTI_SPAM_RULE_UPDATED', category: 'security', severity: 'high', targetType: 'system' },
+            { type: 'IP_ALLOWLIST_UPDATED', category: 'security', severity: 'high', targetType: 'system' },
+            { type: 'SYSTEM_SETTING_CHANGED', category: 'security', severity: 'high', targetType: 'system' },
+            { type: 'ADMIN_EXPORT_INITIATED', category: 'data_access', severity: 'high', targetType: 'system' },
+            { type: 'ADMIN_DATA_ACCESS', category: 'data_access', severity: 'medium', targetType: 'customer' }
         ];
 
         var adminActors = [
