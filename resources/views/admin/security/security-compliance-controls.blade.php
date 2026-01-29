@@ -241,6 +241,26 @@
     background: #e2e8f0;
     color: #4a5568;
 }
+.sec-status-badge.disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+.mapping-chip {
+    display: inline-block;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 1px 2px;
+    font-size: 0.75rem;
+}
+.mapping-chip code {
+    background: #e8f4fd;
+    padding: 1px 3px;
+    border-radius: 2px;
+    font-family: 'Courier New', monospace;
+    color: #1e3a5f;
+}
 .sec-filter-row {
     display: flex;
     gap: 1rem;
@@ -858,7 +878,19 @@
             <div class="tab-pane fade" id="normalisation-rules" role="tabpanel">
                 <div class="tab-description">
                     <h6><i class="fas fa-globe me-2"></i>Normalisation Rules (Global)</h6>
-                    <p>Configure global rules for phone number normalisation, character encoding, and message formatting across all accounts.</p>
+                    <p>Single source of truth for character equivalence ("bastardisation") rules. These rules define how visually similar characters are treated as equivalent during security checks.</p>
+                </div>
+
+                <div class="alert alert-info d-flex align-items-start mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f; border-radius: 6px;">
+                    <i class="fas fa-info-circle me-2 mt-1" style="color: #1e3a5f;"></i>
+                    <div>
+                        <strong>Consuming Engines:</strong> These normalisation rules are consumed by the enforcement engines below. Changes apply globally.
+                        <div class="d-flex gap-2 mt-2">
+                            <span class="badge" style="background: #d97706; color: white;"><i class="fas fa-id-badge me-1"></i>SenderID Matching</span>
+                            <span class="badge" style="background: #2563eb; color: white;"><i class="fas fa-comment-alt me-1"></i>Content Matching</span>
+                            <span class="badge" style="background: #7c3aed; color: white;" id="url-engine-badge"><i class="fas fa-link me-1"></i>URL Matching <small>(guarded)</small></span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="sec-stats">
@@ -871,8 +903,8 @@
                         <div class="sec-stat-label">Disabled</div>
                     </div>
                     <div class="sec-stat-card pending">
-                        <div class="sec-stat-value" id="norm-draft-count">0</div>
-                        <div class="sec-stat-label">Draft</div>
+                        <div class="sec-stat-value" id="norm-mappings-count">0</div>
+                        <div class="sec-stat-label">Total Mappings</div>
                     </div>
                     <div class="sec-stat-card total">
                         <div class="sec-stat-value" id="norm-total-count">0</div>
@@ -888,16 +920,26 @@
                                 <option value="">All Statuses</option>
                                 <option value="active">Active</option>
                                 <option value="disabled">Disabled</option>
-                                <option value="draft">Draft</option>
                             </select>
                         </div>
                         <div class="sec-filter-group">
-                            <label>Rule Type</label>
-                            <select id="norm-filter-type">
-                                <option value="">All Types</option>
-                                <option value="phone">Phone Number</option>
-                                <option value="encoding">Encoding</option>
-                                <option value="format">Format</option>
+                            <label>Rule Category</label>
+                            <select id="norm-filter-category">
+                                <option value="">All Categories</option>
+                                <option value="substitution">Character Substitution</option>
+                                <option value="homoglyph">Homoglyph Detection</option>
+                                <option value="unicode">Unicode Normalisation</option>
+                                <option value="case">Case Folding</option>
+                            </select>
+                        </div>
+                        <div class="sec-filter-group">
+                            <label>Scope</label>
+                            <select id="norm-filter-scope">
+                                <option value="">All Scopes</option>
+                                <option value="senderid">SenderID Only</option>
+                                <option value="content">Content Only</option>
+                                <option value="url">URL Only</option>
+                                <option value="all">All Engines</option>
                             </select>
                         </div>
                         <div class="sec-filter-actions">
@@ -910,17 +952,18 @@
                         </div>
                     </div>
                     <div class="sec-table-header">
-                        <h6>Normalisation Rules</h6>
+                        <h6>Character Equivalence Rules</h6>
                         <div class="sec-search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search rules..." id="norm-search">
+                            <input type="text" class="form-control" placeholder="Search rules or characters..." id="norm-search">
                         </div>
                     </div>
                     <table class="sec-table" id="norm-rules-table">
                         <thead>
                             <tr>
                                 <th>Rule Name <i class="fas fa-sort"></i></th>
-                                <th>Type <i class="fas fa-sort"></i></th>
+                                <th>Category <i class="fas fa-sort"></i></th>
+                                <th>Character Mappings</th>
                                 <th>Scope <i class="fas fa-sort"></i></th>
                                 <th>Priority <i class="fas fa-sort"></i></th>
                                 <th>Status <i class="fas fa-sort"></i></th>
@@ -933,7 +976,26 @@
                     <div class="sec-empty-state" id="norm-empty-state" style="display: none;">
                         <i class="fas fa-globe"></i>
                         <h6>No Normalisation Rules</h6>
-                        <p>Create global normalisation rules for consistent message handling.</p>
+                        <p>Create character equivalence rules for consistent security matching.</p>
+                    </div>
+                </div>
+
+                <div class="card mt-3" style="border: 1px solid #e9ecef; border-radius: 8px;">
+                    <div class="card-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white; border-radius: 8px 8px 0 0;">
+                        <h6 class="mb-0"><i class="fas fa-code me-2"></i>Quick Reference: Built-in Substitution Map</h6>
+                    </div>
+                    <div class="card-body" style="padding: 1rem;">
+                        <p class="text-muted mb-2" style="font-size: 0.85rem;">The following character equivalences are currently active across all engines:</p>
+                        <div class="row" id="substitution-map-display">
+                        </div>
+                        <div class="mt-2 text-end">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="exportSubstitutionMap()">
+                                <i class="fas fa-download me-1"></i>Export Map
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="testNormalisationRule()">
+                                <i class="fas fa-flask me-1"></i>Test Rule
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1960,9 +2022,143 @@ var SecurityComplianceControlsService = (function() {
         ];
 
         mockData.normalisationRules = [
-            { id: 1, name: 'UK Number Format', type: 'phone', scope: 'Global', priority: 1, status: 'active' },
-            { id: 2, name: 'UTF-8 Encoding', type: 'encoding', scope: 'Global', priority: 2, status: 'active' },
-            { id: 3, name: 'GSM Character Set', type: 'format', scope: 'Global', priority: 3, status: 'active' }
+            { 
+                id: 1, 
+                name: 'Numeric-Alpha Substitution', 
+                category: 'substitution',
+                description: 'Maps numeric digits to visually similar letters',
+                mappings: [
+                    { base: '0', equivalents: ['O', 'o', 'Ο', 'ο'] },
+                    { base: '1', equivalents: ['I', 'i', 'l', 'L', '|', 'Ι', 'ι'] },
+                    { base: '3', equivalents: ['E', 'e', 'Ε', 'ε'] },
+                    { base: '4', equivalents: ['A', 'a', 'Α', 'α'] },
+                    { base: '5', equivalents: ['S', 's', 'Ѕ', 'ѕ'] },
+                    { base: '8', equivalents: ['B', 'b', 'Β', 'β'] }
+                ],
+                scope: 'all',
+                scopeLabel: 'All Engines',
+                priority: 1, 
+                status: 'active',
+                createdAt: '15-01-2026',
+                updatedAt: '28-01-2026',
+                createdBy: 'admin@quicksms.co.uk'
+            },
+            { 
+                id: 2, 
+                name: 'Greek Homoglyphs', 
+                category: 'homoglyph',
+                description: 'Detects Greek letters that appear identical to Latin characters',
+                mappings: [
+                    { base: 'A', equivalents: ['Α', 'α', 'Ά'] },
+                    { base: 'B', equivalents: ['Β', 'β', 'ϐ'] },
+                    { base: 'E', equivalents: ['Ε', 'ε', 'Έ'] },
+                    { base: 'H', equivalents: ['Η', 'η', 'Ή'] },
+                    { base: 'I', equivalents: ['Ι', 'ι', 'Ί'] },
+                    { base: 'K', equivalents: ['Κ', 'κ'] },
+                    { base: 'M', equivalents: ['Μ', 'μ'] },
+                    { base: 'N', equivalents: ['Ν', 'ν'] },
+                    { base: 'O', equivalents: ['Ο', 'ο', 'Ό'] },
+                    { base: 'P', equivalents: ['Ρ', 'ρ'] },
+                    { base: 'T', equivalents: ['Τ', 'τ'] },
+                    { base: 'X', equivalents: ['Χ', 'χ'] },
+                    { base: 'Y', equivalents: ['Υ', 'υ', 'Ύ'] },
+                    { base: 'Z', equivalents: ['Ζ', 'ζ'] }
+                ],
+                scope: 'senderid',
+                scopeLabel: 'SenderID Only',
+                priority: 2, 
+                status: 'active',
+                createdAt: '10-01-2026',
+                updatedAt: '25-01-2026',
+                createdBy: 'admin@quicksms.co.uk'
+            },
+            { 
+                id: 3, 
+                name: 'Cyrillic Homoglyphs', 
+                category: 'homoglyph',
+                description: 'Detects Cyrillic letters that appear identical to Latin characters',
+                mappings: [
+                    { base: 'A', equivalents: ['А', 'а'] },
+                    { base: 'B', equivalents: ['В', 'в'] },
+                    { base: 'C', equivalents: ['С', 'с'] },
+                    { base: 'E', equivalents: ['Е', 'е', 'Ё', 'ё'] },
+                    { base: 'H', equivalents: ['Н', 'н'] },
+                    { base: 'K', equivalents: ['К', 'к'] },
+                    { base: 'M', equivalents: ['М', 'м'] },
+                    { base: 'O', equivalents: ['О', 'о'] },
+                    { base: 'P', equivalents: ['Р', 'р'] },
+                    { base: 'T', equivalents: ['Т', 'т'] },
+                    { base: 'X', equivalents: ['Х', 'х'] },
+                    { base: 'Y', equivalents: ['У', 'у'] }
+                ],
+                scope: 'all',
+                scopeLabel: 'All Engines',
+                priority: 3, 
+                status: 'active',
+                createdAt: '10-01-2026',
+                updatedAt: '25-01-2026',
+                createdBy: 'admin@quicksms.co.uk'
+            },
+            { 
+                id: 4, 
+                name: 'Case Folding (Standard)', 
+                category: 'case',
+                description: 'Normalises upper and lower case for comparison',
+                mappings: [
+                    { base: 'A-Z', equivalents: ['a-z'] }
+                ],
+                scope: 'all',
+                scopeLabel: 'All Engines',
+                priority: 0, 
+                status: 'active',
+                createdAt: '01-01-2026',
+                updatedAt: '01-01-2026',
+                createdBy: 'system'
+            },
+            { 
+                id: 5, 
+                name: 'Unicode Normalisation (NFKC)', 
+                category: 'unicode',
+                description: 'Applies NFKC normalisation to decompose and recompose characters',
+                mappings: [
+                    { base: 'fi', equivalents: ['ﬁ'] },
+                    { base: 'fl', equivalents: ['ﬂ'] },
+                    { base: 'ff', equivalents: ['ﬀ'] },
+                    { base: '1/2', equivalents: ['½'] },
+                    { base: '(c)', equivalents: ['©'] },
+                    { base: '(r)', equivalents: ['®'] },
+                    { base: 'TM', equivalents: ['™'] }
+                ],
+                scope: 'content',
+                scopeLabel: 'Content Only',
+                priority: 4, 
+                status: 'active',
+                createdAt: '05-01-2026',
+                updatedAt: '20-01-2026',
+                createdBy: 'admin@quicksms.co.uk'
+            },
+            { 
+                id: 6, 
+                name: 'URL Character Substitution', 
+                category: 'substitution',
+                description: 'Detects character substitutions commonly used in phishing URLs',
+                mappings: [
+                    { base: 'l', equivalents: ['1', 'I', '|'] },
+                    { base: 'o', equivalents: ['0', 'O'] },
+                    { base: 'a', equivalents: ['@', '4'] },
+                    { base: 's', equivalents: ['$', '5'] },
+                    { base: 'e', equivalents: ['3'] },
+                    { base: 'g', equivalents: ['9'] },
+                    { base: 't', equivalents: ['7'] }
+                ],
+                scope: 'url',
+                scopeLabel: 'URL Only',
+                priority: 5, 
+                status: 'disabled',
+                createdAt: '12-01-2026',
+                updatedAt: '28-01-2026',
+                createdBy: 'admin@quicksms.co.uk'
+            }
         ];
 
         mockData.quarantinedMessages = [
@@ -2893,10 +3089,37 @@ var SecurityComplianceControlsService = (function() {
         var emptyState = document.getElementById('norm-empty-state');
         var rules = mockData.normalisationRules;
 
+        var categoryLabels = {
+            'substitution': 'Character Substitution',
+            'homoglyph': 'Homoglyph Detection',
+            'unicode': 'Unicode Normalisation',
+            'case': 'Case Folding'
+        };
+
+        var categoryColors = {
+            'substitution': '#d97706',
+            'homoglyph': '#7c3aed',
+            'unicode': '#2563eb',
+            'case': '#059669'
+        };
+
+        var scopeIcons = {
+            'all': 'fa-globe',
+            'senderid': 'fa-id-badge',
+            'content': 'fa-comment-alt',
+            'url': 'fa-link'
+        };
+
+        var totalMappings = rules.reduce(function(sum, rule) {
+            return sum + (rule.mappings ? rule.mappings.length : 0);
+        }, 0);
+
         document.getElementById('norm-active-count').textContent = rules.filter(r => r.status === 'active').length;
         document.getElementById('norm-disabled-count').textContent = rules.filter(r => r.status === 'disabled').length;
-        document.getElementById('norm-draft-count').textContent = rules.filter(r => r.status === 'draft').length;
+        document.getElementById('norm-mappings-count').textContent = totalMappings;
         document.getElementById('norm-total-count').textContent = rules.length;
+
+        renderSubstitutionMapDisplay();
 
         if (rules.length === 0) {
             tbody.innerHTML = '';
@@ -2906,18 +3129,38 @@ var SecurityComplianceControlsService = (function() {
 
         emptyState.style.display = 'none';
         tbody.innerHTML = rules.map(function(rule) {
-            return '<tr>' +
-                '<td><strong>' + rule.name + '</strong></td>' +
-                '<td>' + rule.type.charAt(0).toUpperCase() + rule.type.slice(1) + '</td>' +
-                '<td>' + rule.scope + '</td>' +
-                '<td>' + rule.priority + '</td>' +
+            var categoryLabel = categoryLabels[rule.category] || rule.category;
+            var categoryColor = categoryColors[rule.category] || '#6c757d';
+            var scopeIcon = scopeIcons[rule.scope] || 'fa-globe';
+            
+            var mappingsPreview = '';
+            if (rule.mappings && rule.mappings.length > 0) {
+                var previewMappings = rule.mappings.slice(0, 3);
+                mappingsPreview = previewMappings.map(function(m) {
+                    return '<span class="mapping-chip">' + 
+                        '<code>' + m.base + '</code> → <code>' + m.equivalents.slice(0, 2).join(', ') + '</code>' +
+                        (m.equivalents.length > 2 ? '...' : '') +
+                    '</span>';
+                }).join(' ');
+                if (rule.mappings.length > 3) {
+                    mappingsPreview += '<span class="text-muted" style="font-size: 0.75rem;"> +' + (rule.mappings.length - 3) + ' more</span>';
+                }
+            }
+
+            return '<tr data-rule-id="' + rule.id + '">' +
+                '<td><strong>' + rule.name + '</strong><br><small class="text-muted">' + (rule.description || '') + '</small></td>' +
+                '<td><span class="badge" style="background: ' + categoryColor + '; color: white;">' + categoryLabel + '</span></td>' +
+                '<td style="max-width: 250px;">' + mappingsPreview + '</td>' +
+                '<td><i class="fas ' + scopeIcon + ' me-1" style="color: #1e3a5f;"></i>' + rule.scopeLabel + '</td>' +
+                '<td><span class="badge bg-light text-dark">' + rule.priority + '</span></td>' +
                 '<td><span class="sec-status-badge ' + rule.status + '">' + rule.status.charAt(0).toUpperCase() + rule.status.slice(1) + '</span></td>' +
                 '<td>' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
-                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewNormalisationRule(' + rule.id + ')"><i class="fas fa-eye me-2 text-muted"></i>View</a></li>' +
-                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editNormalisationRule(' + rule.id + ')"><i class="fas fa-edit me-2 text-muted"></i>Edit</a></li>' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewNormalisationRule(' + rule.id + ')"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editNormalisationRule(' + rule.id + ')"><i class="fas fa-edit me-2 text-muted"></i>Edit Rule</a></li>' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="testNormalisationRuleById(' + rule.id + ')"><i class="fas fa-flask me-2 text-muted"></i>Test Rule</a></li>' +
                             '<li><hr class="dropdown-divider"></li>' +
                             (rule.status === 'active' 
                                 ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleNormalisationRuleStatus(' + rule.id + ', \'disabled\')"><i class="fas fa-ban me-2 text-warning"></i>Disable</a></li>'
@@ -3582,8 +3825,439 @@ function toggleNormalisationRuleStatus(ruleId, newStatus) {
         newStatus: newStatus
     });
     // TODO: Implement API call to update status
+    var rule = mockData.normalisationRules.find(function(r) { return r.id === ruleId; });
+    if (rule) {
+        rule.status = newStatus;
+        MessageEnforcementService.hotReloadRules();
+    }
     SecurityComplianceControlsService.renderAllTabs();
 }
+
+function testNormalisationRuleById(ruleId) {
+    var rule = mockData.normalisationRules.find(function(r) { return r.id === ruleId; });
+    if (rule) {
+        showTestNormalisationModal(rule);
+    }
+}
+
+function renderSubstitutionMapDisplay() {
+    var container = document.getElementById('substitution-map-display');
+    if (!container) return;
+    
+    var activeRules = mockData.normalisationRules.filter(function(r) { return r.status === 'active'; });
+    var allMappings = {};
+    
+    activeRules.forEach(function(rule) {
+        if (rule.mappings) {
+            rule.mappings.forEach(function(m) {
+                if (!allMappings[m.base]) {
+                    allMappings[m.base] = { equivalents: [], sources: [] };
+                }
+                m.equivalents.forEach(function(eq) {
+                    if (allMappings[m.base].equivalents.indexOf(eq) === -1) {
+                        allMappings[m.base].equivalents.push(eq);
+                    }
+                });
+                if (allMappings[m.base].sources.indexOf(rule.name) === -1) {
+                    allMappings[m.base].sources.push(rule.name);
+                }
+            });
+        }
+    });
+    
+    var baseChars = Object.keys(allMappings).sort();
+    var html = '';
+    
+    baseChars.slice(0, 12).forEach(function(base) {
+        var mapping = allMappings[base];
+        html += '<div class="col-md-3 col-sm-4 col-6 mb-2">' +
+            '<div class="p-2 border rounded" style="background: #f8fafc; font-size: 0.8rem;">' +
+                '<code style="background: #1e3a5f; color: white; padding: 2px 6px; border-radius: 3px;">' + base + '</code>' +
+                ' <i class="fas fa-arrow-right text-muted mx-1" style="font-size: 0.7rem;"></i> ' +
+                '<span>' + mapping.equivalents.slice(0, 4).join(', ') + (mapping.equivalents.length > 4 ? '...' : '') + '</span>' +
+            '</div>' +
+        '</div>';
+    });
+    
+    if (baseChars.length > 12) {
+        html += '<div class="col-12 text-muted" style="font-size: 0.75rem;"><i class="fas fa-info-circle me-1"></i>' + (baseChars.length - 12) + ' more base characters configured</div>';
+    }
+    
+    container.innerHTML = html;
+}
+
+function exportSubstitutionMap() {
+    var activeRules = mockData.normalisationRules.filter(function(r) { return r.status === 'active'; });
+    var exportData = {
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        rules: activeRules.map(function(rule) {
+            return {
+                id: rule.id,
+                name: rule.name,
+                category: rule.category,
+                scope: rule.scope,
+                priority: rule.priority,
+                mappings: rule.mappings
+            };
+        })
+    };
+    
+    var blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'normalisation-rules-export-' + new Date().toISOString().split('T')[0] + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    logAuditEvent('NORMALISATION_RULES_EXPORTED', { ruleCount: activeRules.length });
+}
+
+function testNormalisationRule() {
+    showTestNormalisationModal(null);
+}
+
+function showTestNormalisationModal(rule) {
+    var modalHtml = '<div class="modal fade" id="testNormalisationModal" tabindex="-1">' +
+        '<div class="modal-dialog modal-lg">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-flask me-2"></i>Test Normalisation Rules</h5>' +
+                    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Input Text</label>' +
+                        '<input type="text" class="form-control" id="normTestInput" placeholder="Enter text to test normalisation..." value="' + (rule ? '' : 'BАNK0FENGLAND') + '">' +
+                        '<small class="text-muted">Try typing text with homoglyphs or substitutions (e.g., "BАNK0FENGLAND" with Cyrillic A and zero)</small>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Test Against</label>' +
+                        '<select class="form-control" id="normTestScope">' +
+                            '<option value="all"' + (!rule ? ' selected' : '') + '>All Active Rules</option>' +
+                            '<option value="senderid">SenderID Rules Only</option>' +
+                            '<option value="content">Content Rules Only</option>' +
+                            '<option value="url">URL Rules Only</option>' +
+                            (rule ? '<option value="single" selected>This Rule Only (' + rule.name + ')</option>' : '') +
+                        '</select>' +
+                    '</div>' +
+                    '<button class="btn btn-primary mb-3" onclick="runNormalisationTest(' + (rule ? rule.id : 'null') + ')" style="background: #1e3a5f; border-color: #1e3a5f;">' +
+                        '<i class="fas fa-play me-1"></i>Run Test' +
+                    '</button>' +
+                    '<div id="normTestResults" style="display: none;">' +
+                        '<hr>' +
+                        '<h6><i class="fas fa-chart-bar me-2"></i>Results</h6>' +
+                        '<div class="row">' +
+                            '<div class="col-md-6">' +
+                                '<div class="card border-0" style="background: #f8fafc;">' +
+                                    '<div class="card-body">' +
+                                        '<strong>Original:</strong><br>' +
+                                        '<code id="normTestOriginal" style="font-size: 1.1rem;"></code>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="col-md-6">' +
+                                '<div class="card border-0" style="background: #e8f4fd;">' +
+                                    '<div class="card-body">' +
+                                        '<strong>Normalised:</strong><br>' +
+                                        '<code id="normTestNormalised" style="font-size: 1.1rem; color: #1e3a5f;"></code>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="mt-3">' +
+                            '<strong>Transformations Applied:</strong>' +
+                            '<ul id="normTestTransformations" class="mt-2 mb-0" style="font-size: 0.85rem;"></ul>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<small class="text-muted me-auto"><i class="fas fa-info-circle me-1"></i>Tests run against the active normalisation library</small>' +
+                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('testNormalisationModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var modal = new bootstrap.Modal(document.getElementById('testNormalisationModal'));
+    modal.show();
+}
+
+function runNormalisationTest(specificRuleId) {
+    var input = document.getElementById('normTestInput').value;
+    var scope = document.getElementById('normTestScope').value;
+    
+    if (!input) {
+        alert('Please enter text to test');
+        return;
+    }
+    
+    var result = NormalisationLibrary.normalise(input, scope === 'single' ? { ruleId: specificRuleId } : { scope: scope });
+    
+    document.getElementById('normTestOriginal').textContent = input;
+    document.getElementById('normTestNormalised').textContent = result.normalised;
+    
+    var transformationsHtml = '';
+    if (result.transformations && result.transformations.length > 0) {
+        result.transformations.forEach(function(t) {
+            transformationsHtml += '<li><code>' + t.original + '</code> → <code>' + t.replacement + '</code> <span class="text-muted">(' + t.ruleName + ')</span></li>';
+        });
+    } else {
+        transformationsHtml = '<li class="text-muted">No transformations applied</li>';
+    }
+    document.getElementById('normTestTransformations').innerHTML = transformationsHtml;
+    
+    document.getElementById('normTestResults').style.display = 'block';
+    
+    logAuditEvent('NORMALISATION_TEST_RUN', { input: input, output: result.normalised, scope: scope });
+}
+
+function showAddNormRuleModal() {
+    var modalHtml = '<div class="modal fade" id="addNormRuleModal" tabindex="-1">' +
+        '<div class="modal-dialog modal-lg">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add Normalisation Rule</h5>' +
+                    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="row">' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label fw-bold">Rule Name <span class="text-danger">*</span></label>' +
+                            '<input type="text" class="form-control" id="newNormRuleName" placeholder="e.g., Custom Homoglyphs">' +
+                        '</div>' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label fw-bold">Category <span class="text-danger">*</span></label>' +
+                            '<select class="form-control" id="newNormRuleCategory">' +
+                                '<option value="">Select category...</option>' +
+                                '<option value="substitution">Character Substitution</option>' +
+                                '<option value="homoglyph">Homoglyph Detection</option>' +
+                                '<option value="unicode">Unicode Normalisation</option>' +
+                                '<option value="case">Case Folding</option>' +
+                            '</select>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Description</label>' +
+                        '<textarea class="form-control" id="newNormRuleDescription" rows="2" placeholder="Describe what this rule does..."></textarea>' +
+                    '</div>' +
+                    '<div class="row">' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label fw-bold">Scope <span class="text-danger">*</span></label>' +
+                            '<select class="form-control" id="newNormRuleScope">' +
+                                '<option value="all">All Engines</option>' +
+                                '<option value="senderid">SenderID Only</option>' +
+                                '<option value="content">Content Only</option>' +
+                                '<option value="url">URL Only (Guarded)</option>' +
+                            '</select>' +
+                        '</div>' +
+                        '<div class="col-md-6 mb-3">' +
+                            '<label class="form-label fw-bold">Priority</label>' +
+                            '<input type="number" class="form-control" id="newNormRulePriority" value="10" min="0" max="100">' +
+                            '<small class="text-muted">Lower = higher priority (0-100)</small>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Character Mappings <span class="text-danger">*</span></label>' +
+                        '<div id="normMappingsContainer">' +
+                            '<div class="mapping-row d-flex gap-2 mb-2">' +
+                                '<input type="text" class="form-control" placeholder="Base char" style="width: 100px;">' +
+                                '<span class="align-self-center">→</span>' +
+                                '<input type="text" class="form-control" placeholder="Equivalents (comma-separated)">' +
+                                '<button class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<button class="btn btn-outline-secondary btn-sm mt-1" onclick="addMappingRow()">' +
+                            '<i class="fas fa-plus me-1"></i>Add Mapping' +
+                        '</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<small class="text-muted me-auto"><i class="fas fa-shield-alt me-1"></i>Changes require admin approval</small>' +
+                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn btn-primary" onclick="saveNewNormRule()" style="background: #1e3a5f; border-color: #1e3a5f;">' +
+                        '<i class="fas fa-save me-1"></i>Save Rule' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('addNormRuleModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var modal = new bootstrap.Modal(document.getElementById('addNormRuleModal'));
+    modal.show();
+}
+
+function addMappingRow() {
+    var container = document.getElementById('normMappingsContainer');
+    var rowHtml = '<div class="mapping-row d-flex gap-2 mb-2">' +
+        '<input type="text" class="form-control" placeholder="Base char" style="width: 100px;">' +
+        '<span class="align-self-center">→</span>' +
+        '<input type="text" class="form-control" placeholder="Equivalents (comma-separated)">' +
+        '<button class="btn btn-outline-danger btn-sm" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>' +
+    '</div>';
+    container.insertAdjacentHTML('beforeend', rowHtml);
+}
+
+function saveNewNormRule() {
+    var name = document.getElementById('newNormRuleName').value.trim();
+    var category = document.getElementById('newNormRuleCategory').value;
+    var description = document.getElementById('newNormRuleDescription').value.trim();
+    var scope = document.getElementById('newNormRuleScope').value;
+    var priority = parseInt(document.getElementById('newNormRulePriority').value) || 10;
+    
+    if (!name || !category) {
+        alert('Please fill in required fields');
+        return;
+    }
+    
+    var mappings = [];
+    document.querySelectorAll('#normMappingsContainer .mapping-row').forEach(function(row) {
+        var inputs = row.querySelectorAll('input');
+        var base = inputs[0].value.trim();
+        var equivalentsStr = inputs[1].value.trim();
+        if (base && equivalentsStr) {
+            mappings.push({
+                base: base,
+                equivalents: equivalentsStr.split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; })
+            });
+        }
+    });
+    
+    if (mappings.length === 0) {
+        alert('Please add at least one character mapping');
+        return;
+    }
+    
+    var scopeLabels = {
+        'all': 'All Engines',
+        'senderid': 'SenderID Only',
+        'content': 'Content Only',
+        'url': 'URL Only'
+    };
+    
+    var newRule = {
+        id: mockData.normalisationRules.length + 1,
+        name: name,
+        category: category,
+        description: description,
+        mappings: mappings,
+        scope: scope,
+        scopeLabel: scopeLabels[scope] || scope,
+        priority: priority,
+        status: 'active',
+        createdAt: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
+        updatedAt: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
+        createdBy: 'admin@quicksms.co.uk'
+    };
+    
+    mockData.normalisationRules.push(newRule);
+    MessageEnforcementService.hotReloadRules();
+    
+    logAuditEvent('NORMALISATION_RULE_CREATED', { ruleId: newRule.id, ruleName: newRule.name });
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('addNormRuleModal'));
+    modal.hide();
+    
+    SecurityComplianceControlsService.renderAllTabs();
+}
+
+function resetNormFilters() {
+    document.getElementById('norm-filter-status').value = '';
+    document.getElementById('norm-filter-category').value = '';
+    document.getElementById('norm-filter-scope').value = '';
+    document.getElementById('norm-search').value = '';
+    SecurityComplianceControlsService.renderAllTabs();
+}
+
+var NormalisationLibrary = (function() {
+    function normalise(input, options) {
+        options = options || {};
+        var scope = options.scope || 'all';
+        var ruleId = options.ruleId || null;
+        
+        var rules = mockData.normalisationRules.filter(function(r) {
+            if (r.status !== 'active') return false;
+            if (ruleId !== null) return r.id === ruleId;
+            if (scope === 'all') return true;
+            return r.scope === scope || r.scope === 'all';
+        });
+        
+        rules.sort(function(a, b) {
+            return a.priority - b.priority;
+        });
+        
+        var result = input;
+        var transformations = [];
+        
+        rules.forEach(function(rule) {
+            if (rule.mappings) {
+                rule.mappings.forEach(function(mapping) {
+                    mapping.equivalents.forEach(function(eq) {
+                        if (result.indexOf(eq) !== -1) {
+                            var regex = new RegExp(escapeRegex(eq), 'g');
+                            var beforeLen = result.length;
+                            result = result.replace(regex, mapping.base);
+                            if (result.length !== beforeLen || result !== input) {
+                                transformations.push({
+                                    original: eq,
+                                    replacement: mapping.base,
+                                    ruleName: rule.name,
+                                    ruleId: rule.id
+                                });
+                            }
+                        }
+                    });
+                });
+            }
+        });
+        
+        return {
+            original: input,
+            normalised: result,
+            transformations: transformations,
+            rulesApplied: rules.map(function(r) { return r.id; })
+        };
+    }
+    
+    function escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    
+    function getActiveRules(scope) {
+        return mockData.normalisationRules.filter(function(r) {
+            if (r.status !== 'active') return false;
+            if (!scope || scope === 'all') return true;
+            return r.scope === scope || r.scope === 'all';
+        });
+    }
+    
+    function getMappingCount() {
+        return mockData.normalisationRules.reduce(function(sum, rule) {
+            return sum + (rule.mappings ? rule.mappings.length : 0);
+        }, 0);
+    }
+    
+    return {
+        normalise: normalise,
+        getActiveRules: getActiveRules,
+        getMappingCount: getMappingCount
+    };
+})();
 
 var SenderIdMatchingService = (function() {
     var SUBSTITUTION_MAP = {
