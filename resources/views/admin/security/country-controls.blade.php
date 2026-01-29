@@ -481,6 +481,160 @@
     color: #6c757d;
     font-size: 0.65rem;
 }
+.account-typeahead-wrapper {
+    position: relative;
+}
+.typeahead-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+.typeahead-results.show {
+    display: block;
+}
+.typeahead-item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f3f5;
+    transition: background 0.15s;
+}
+.typeahead-item:hover {
+    background: #f8f9fa;
+}
+.typeahead-item:last-child {
+    border-bottom: none;
+}
+.typeahead-item .account-name {
+    font-weight: 600;
+    color: #1e3a5f;
+}
+.typeahead-item .account-id {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-family: monospace;
+}
+.typeahead-item .account-status {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    margin-left: 0.5rem;
+}
+.typeahead-item .account-status.live {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.typeahead-item .account-status.test {
+    background: #fef3c7;
+    color: #d97706;
+}
+.typeahead-no-results {
+    padding: 0.75rem;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+.selected-account-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #e0f2fe;
+    border: 1px solid #7dd3fc;
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    margin-top: 0.5rem;
+}
+.selected-account-badge .account-info {
+    font-size: 0.8rem;
+    color: #1e3a5f;
+    font-weight: 500;
+}
+.selected-account-badge .clear-selection {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.1rem 0.25rem;
+    border-radius: 3px;
+    transition: all 0.15s;
+}
+.selected-account-badge .clear-selection:hover {
+    background: #dc2626;
+    color: white;
+}
+.override-type-radios {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.override-type-option {
+    display: block;
+    cursor: pointer;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.15s;
+}
+.override-type-option:hover {
+    border-color: #1e3a5f;
+}
+.override-type-option input[type="radio"] {
+    display: none;
+}
+.override-type-option.allowed input:checked ~ .option-content {
+    color: #16a34a;
+}
+.override-type-option.allowed input:checked ~ .option-content i {
+    color: #16a34a;
+}
+.override-type-option.blocked input:checked ~ .option-content {
+    color: #dc2626;
+}
+.override-type-option.blocked input:checked ~ .option-content i {
+    color: #dc2626;
+}
+.override-type-option input:checked ~ .option-content {
+    font-weight: 600;
+}
+.override-type-option.allowed:has(input:checked) {
+    border-color: #16a34a;
+    background: #f0fdf4;
+}
+.override-type-option.blocked:has(input:checked) {
+    border-color: #dc2626;
+    background: #fef2f2;
+}
+.option-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.option-content i {
+    font-size: 1.25rem;
+    color: #9ca3af;
+}
+.option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+.option-title {
+    font-size: 0.85rem;
+}
+.option-desc {
+    font-size: 0.7rem;
+    color: #6c757d;
+    font-weight: 400;
+}
 .risk-indicator {
     display: flex;
     align-items: center;
@@ -1629,31 +1783,61 @@
                     <div class="fw-bold" id="addOverrideCountryName"></div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Select Account <span class="text-danger">*</span></label>
-                    <select class="form-select" id="addOverrideAccount">
-                        <option value="">Choose an account...</option>
-                        <option value="ACC-10045">TechStart Ltd (ACC-10045)</option>
-                        <option value="ACC-10089">HealthFirst UK (ACC-10089)</option>
-                        <option value="ACC-10112">E-Commerce Hub (ACC-10112)</option>
-                        <option value="ACC-10156">MediCare Global (ACC-10156)</option>
-                        <option value="ACC-10034">RetailMax Corp (ACC-10034)</option>
+                    <label class="form-label fw-bold">Search Account <span class="text-danger">*</span></label>
+                    <div class="account-typeahead-wrapper">
+                        <input type="text" class="form-control" id="addOverrideAccountSearch" 
+                               placeholder="Type to search accounts..." autocomplete="off">
+                        <div class="typeahead-results" id="accountTypeaheadResults"></div>
+                        <input type="hidden" id="addOverrideAccountId">
+                        <input type="hidden" id="addOverrideAccountName">
+                    </div>
+                    <div id="selectedAccountDisplay" class="selected-account-badge" style="display: none;">
+                        <span class="account-info"></span>
+                        <button type="button" class="clear-selection" onclick="clearAccountSelection()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3" id="subAccountSection" style="display: none;">
+                    <label class="form-label fw-bold">Sub-Account <span class="text-muted fw-normal">(Optional)</span></label>
+                    <select class="form-select" id="addOverrideSubAccount">
+                        <option value="">Apply to entire account</option>
                     </select>
+                    <div class="form-text text-muted small">Leave blank to apply override at the account level.</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Override Type <span class="text-danger">*</span></label>
-                    <select class="form-select" id="addOverrideType">
-                        <option value="allowed">Allowed - Account can send to this country</option>
-                        <option value="blocked">Blocked - Account cannot send to this country</option>
-                    </select>
+                    <div class="override-type-radios">
+                        <label class="override-type-option allowed">
+                            <input type="radio" name="overrideType" value="allowed" checked>
+                            <div class="option-content">
+                                <i class="fas fa-check-circle"></i>
+                                <div class="option-text">
+                                    <span class="option-title">Allow this country</span>
+                                    <span class="option-desc">Account can send messages to this destination</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="override-type-option blocked">
+                            <input type="radio" name="overrideType" value="blocked">
+                            <div class="option-content">
+                                <i class="fas fa-ban"></i>
+                                <div class="option-text">
+                                    <span class="option-title">Block this country</span>
+                                    <span class="option-desc">Account cannot send messages to this destination</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
                 <div class="alert alert-info small mb-0">
                     <i class="fas fa-info-circle me-1"></i>
-                    Account overrides take precedence over the global default status.
+                    This override will apply immediately and take precedence over the global default status.
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn admin-btn-primary" onclick="confirmAddOverride()">
+                <button type="button" class="btn admin-btn-primary" id="confirmAddOverrideBtn" onclick="confirmAddOverride()" disabled>
                     <i class="fas fa-plus me-1"></i>Add Override
                 </button>
             </div>
@@ -1746,6 +1930,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     initCountryControls();
+    initAccountTypeahead();
 });
 
 var CountryControlsService = (function() {
@@ -2781,6 +2966,110 @@ function confirmDefaultStatusChange() {
     showAdminToast('Default status updated', country.name + ' is now ' + statusLabel + ' by default.', 'success');
 }
 
+var mockAccountsData = [
+    { id: 'ACC-10045', name: 'TechStart Ltd', status: 'live', subAccounts: [] },
+    { id: 'ACC-10089', name: 'HealthFirst UK', status: 'live', subAccounts: ['NHS Partnership', 'Private Clinics'] },
+    { id: 'ACC-10112', name: 'E-Commerce Hub', status: 'test', subAccounts: [] },
+    { id: 'ACC-10156', name: 'MediCare Global', status: 'live', subAccounts: ['UK Division', 'EU Division'] },
+    { id: 'ACC-10034', name: 'RetailMax Corp', status: 'live', subAccounts: ['APAC Operations', 'EMEA Operations'] },
+    { id: 'ACC-10078', name: 'Global Comms Inc', status: 'live', subAccounts: ['Marketing Division', 'Sales Division'] },
+    { id: 'ACC-10098', name: 'TravelWise Ltd', status: 'live', subAccounts: [] },
+    { id: 'ACC-10067', name: 'Logistics Pro', status: 'test', subAccounts: [] },
+    { id: 'ACC-10102', name: 'FinServe Solutions', status: 'live', subAccounts: ['Investments', 'Insurance'] },
+    { id: 'ACC-10199', name: 'Digital Media Co', status: 'live', subAccounts: [] }
+];
+
+function initAccountTypeahead() {
+    var searchInput = document.getElementById('addOverrideAccountSearch');
+    var resultsContainer = document.getElementById('accountTypeaheadResults');
+    
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        
+        if (query.length < 2) {
+            resultsContainer.classList.remove('show');
+            return;
+        }
+
+        var filtered = mockAccountsData.filter(function(account) {
+            return account.name.toLowerCase().includes(query) || 
+                   account.id.toLowerCase().includes(query);
+        });
+
+        if (filtered.length === 0) {
+            resultsContainer.innerHTML = '<div class="typeahead-no-results">No accounts found</div>';
+        } else {
+            resultsContainer.innerHTML = filtered.map(function(account) {
+                return '<div class="typeahead-item" onclick="selectAccount(\'' + account.id + '\')">' +
+                    '<div><span class="account-name">' + account.name + '</span>' +
+                    '<span class="account-status ' + account.status + '">' + account.status.toUpperCase() + '</span></div>' +
+                    '<div class="account-id">' + account.id + '</div>' +
+                '</div>';
+            }).join('');
+        }
+        
+        resultsContainer.classList.add('show');
+    });
+
+    searchInput.addEventListener('blur', function() {
+        setTimeout(function() {
+            resultsContainer.classList.remove('show');
+        }, 200);
+    });
+
+    searchInput.addEventListener('focus', function() {
+        if (this.value.length >= 2) {
+            resultsContainer.classList.add('show');
+        }
+    });
+}
+
+function selectAccount(accountId) {
+    var account = mockAccountsData.find(function(a) { return a.id === accountId; });
+    if (!account) return;
+
+    document.getElementById('addOverrideAccountId').value = account.id;
+    document.getElementById('addOverrideAccountName').value = account.name;
+    document.getElementById('addOverrideAccountSearch').value = '';
+    document.getElementById('accountTypeaheadResults').classList.remove('show');
+
+    var displayBadge = document.getElementById('selectedAccountDisplay');
+    displayBadge.querySelector('.account-info').textContent = account.name + ' (' + account.id + ')';
+    displayBadge.style.display = 'inline-flex';
+    
+    document.querySelector('.account-typeahead-wrapper').style.display = 'none';
+
+    var subAccountSection = document.getElementById('subAccountSection');
+    var subAccountSelect = document.getElementById('addOverrideSubAccount');
+    
+    if (account.subAccounts && account.subAccounts.length > 0) {
+        subAccountSelect.innerHTML = '<option value="">Apply to entire account</option>';
+        account.subAccounts.forEach(function(sub) {
+            var option = document.createElement('option');
+            option.value = sub;
+            option.textContent = sub;
+            subAccountSelect.appendChild(option);
+        });
+        subAccountSection.style.display = 'block';
+    } else {
+        subAccountSection.style.display = 'none';
+    }
+
+    document.getElementById('confirmAddOverrideBtn').disabled = false;
+}
+
+function clearAccountSelection() {
+    document.getElementById('addOverrideAccountId').value = '';
+    document.getElementById('addOverrideAccountName').value = '';
+    document.getElementById('selectedAccountDisplay').style.display = 'none';
+    document.querySelector('.account-typeahead-wrapper').style.display = 'block';
+    document.getElementById('addOverrideAccountSearch').value = '';
+    document.getElementById('subAccountSection').style.display = 'none';
+    document.getElementById('confirmAddOverrideBtn').disabled = true;
+}
+
 function openAddOverrideModal(countryCode) {
     var country = countries.find(function(c) { return c.code === countryCode; });
     if (!country) return;
@@ -2792,8 +3081,9 @@ function openAddOverrideModal(countryCode) {
     pendingAddOverride = { countryCode: countryCode };
     
     document.getElementById('addOverrideCountryName').textContent = country.name + ' (' + country.code + ')';
-    document.getElementById('addOverrideAccount').value = '';
-    document.getElementById('addOverrideType').value = 'allowed';
+    
+    clearAccountSelection();
+    document.querySelector('input[name="overrideType"][value="allowed"]').checked = true;
 
     var modal = new bootstrap.Modal(document.getElementById('addOverrideModal'));
     modal.show();
@@ -2801,8 +3091,10 @@ function openAddOverrideModal(countryCode) {
 
 function confirmAddOverride() {
     var countryCode = pendingAddOverride.countryCode;
-    var accountId = document.getElementById('addOverrideAccount').value;
-    var overrideType = document.getElementById('addOverrideType').value;
+    var accountId = document.getElementById('addOverrideAccountId').value;
+    var accountName = document.getElementById('addOverrideAccountName').value;
+    var subAccount = document.getElementById('addOverrideSubAccount').value || null;
+    var overrideType = document.querySelector('input[name="overrideType"]:checked').value;
 
     if (!accountId) {
         alert('Please select an account.');
@@ -2812,15 +3104,23 @@ function confirmAddOverride() {
     var country = countries.find(function(c) { return c.code === countryCode; });
     if (!country) return;
 
-    var accountName = document.getElementById('addOverrideAccount').options[document.getElementById('addOverrideAccount').selectedIndex].text;
-
     if (!mockOverridesData[countryCode]) {
         mockOverridesData[countryCode] = [];
     }
+    
+    var existingOverride = mockOverridesData[countryCode].find(function(o) {
+        return o.accountId === accountId && o.subAccount === subAccount;
+    });
+    
+    if (existingOverride) {
+        alert('An override already exists for this account' + (subAccount ? ' and sub-account' : '') + '.');
+        return;
+    }
+
     mockOverridesData[countryCode].push({
-        accountName: accountName.split(' (')[0],
+        accountName: accountName,
         accountId: accountId,
-        subAccount: null,
+        subAccount: subAccount,
         overrideType: overrideType,
         dateApplied: formatDateDDMMYYYY(new Date()),
         appliedBy: 'admin@quicksms.co.uk'
@@ -2831,6 +3131,8 @@ function confirmAddOverride() {
         countryIso: country.code,
         countryName: country.name,
         accountId: accountId,
+        accountName: accountName,
+        subAccount: subAccount,
         overrideType: overrideType,
         result: 'override_added'
     }, { emitToCustomerAudit: true });
@@ -2839,7 +3141,8 @@ function confirmAddOverride() {
     renderCountryTable();
     
     var typeLabel = overrideType === 'allowed' ? 'Allowed' : 'Blocked';
-    showAdminToast('Override added', accountName.split(' (')[0] + ' is now ' + typeLabel + ' for ' + country.name + '.', 'success');
+    var scopeText = subAccount ? accountName + ' / ' + subAccount : accountName;
+    showAdminToast('Override added', scopeText + ' is now ' + typeLabel + ' for ' + country.name + '.', 'success');
 }
 
 function openRemoveOverrideModal(countryCode) {
