@@ -1017,7 +1017,110 @@ var MessageEnforcementService = (function() {
         // Feature flag APIs (admin only)
         isEngineEnabled: isEngineEnabled,
         setFeatureFlag: setFeatureFlag,
-        getFeatureFlags: function() { return Object.assign({}, featureFlags); }
+        getFeatureFlags: function() { return Object.assign({}, featureFlags); },
+        /**
+         * Evaluate normalised text against SenderID/Content/URL rules
+         * Called by NormalisationEnforcementAPI after normalisation is applied
+         * Evaluation order: Normalise input → Apply scope rules to canonical string
+         * @param {string} normalisedText - The text after normalisation
+         * @param {string} scope - senderid|content|url|all
+         * @returns {Array} Array of matching rules
+         */
+        evaluateAgainstRules: function(normalisedText, scope) {
+            var matches = [];
+            var text = (normalisedText || '').toUpperCase();
+            
+            if (scope === 'senderid' || scope === 'all') {
+                activeRules.senderid.filter(function(r) { return r.status === 'active'; }).forEach(function(rule) {
+                    var matched = false;
+                    var matchedValue = '';
+                    
+                    if (rule.type === 'exact' && text === (rule.value || '').toUpperCase()) {
+                        matched = true;
+                        matchedValue = rule.value;
+                    } else if (rule.type === 'pattern' && rule.pattern) {
+                        var regex = new RegExp(rule.pattern, 'i');
+                        var match = text.match(regex);
+                        if (match) {
+                            matched = true;
+                            matchedValue = match[0];
+                        }
+                    } else if (rule.type === 'keyword' && rule.keywords) {
+                        for (var i = 0; i < rule.keywords.length; i++) {
+                            if (text.indexOf(rule.keywords[i].toUpperCase()) !== -1) {
+                                matched = true;
+                                matchedValue = rule.keywords[i];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (matched) {
+                        matches.push({
+                            type: 'senderid',
+                            ruleId: rule.id,
+                            ruleName: rule.name,
+                            pattern: matchedValue,
+                            action: rule.action,
+                            risk: rule.action === 'block' ? 'high' : 'medium'
+                        });
+                    }
+                });
+            }
+            
+            if (scope === 'content' || scope === 'all') {
+                activeRules.content.filter(function(r) { return r.status === 'active'; }).forEach(function(rule) {
+                    if (!rule.pattern) return;
+                    var regex = new RegExp(rule.pattern, 'i');
+                    var match = text.match(regex);
+                    if (match) {
+                        matches.push({
+                            type: 'content',
+                            ruleId: rule.id,
+                            ruleName: rule.name,
+                            pattern: match[0],
+                            category: rule.category,
+                            action: rule.action,
+                            risk: rule.action === 'block' ? 'high' : 'medium'
+                        });
+                    }
+                });
+            }
+            
+            if (scope === 'url' || scope === 'all') {
+                activeRules.url.filter(function(r) { return r.status === 'active'; }).forEach(function(rule) {
+                    var matched = false;
+                    var matchedValue = '';
+                    
+                    if (rule.type === 'blacklist' && rule.domain) {
+                        if (text.indexOf(rule.domain.toUpperCase()) !== -1) {
+                            matched = true;
+                            matchedValue = rule.domain;
+                        }
+                    } else if (rule.type === 'pattern_blacklist' && rule.pattern) {
+                        var regex = new RegExp(rule.pattern, 'i');
+                        var match = text.match(regex);
+                        if (match) {
+                            matched = true;
+                            matchedValue = match[0];
+                        }
+                    }
+                    
+                    if (matched) {
+                        matches.push({
+                            type: 'url',
+                            ruleId: rule.id,
+                            ruleName: rule.name,
+                            pattern: matchedValue,
+                            category: rule.category,
+                            risk: 'high'
+                        });
+                    }
+                });
+            }
+            
+            return matches;
+        }
     };
 })();
 

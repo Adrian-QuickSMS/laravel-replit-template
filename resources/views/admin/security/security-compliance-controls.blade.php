@@ -5151,6 +5151,11 @@ function executeSaveNormRule(changeData) {
     if (modal) modal.hide();
     
     MessageEnforcementService.hotReloadRules();
+    
+    if (window.NormalisationEnforcementAPI) {
+        NormalisationEnforcementAPI.invalidateCache();
+    }
+    
     SecurityComplianceControlsService.renderAllTabs();
     showToast('Updated normalisation rule for "' + changeData.base + '" (v' + version.version + ')', 'success');
 }
@@ -5361,6 +5366,11 @@ function executeRollback(base, targetVersion) {
     modal.hide();
     
     MessageEnforcementService.hotReloadRules();
+    
+    if (window.NormalisationEnforcementAPI) {
+        NormalisationEnforcementAPI.invalidateCache();
+    }
+    
     SecurityComplianceControlsService.renderAllTabs();
     showToast('Rolled back "' + base + '" to version ' + targetVersion + ' (now v' + version.version + ')', 'success');
 }
@@ -5911,78 +5921,161 @@ function runNormalisationTest() {
     });
 }
 
-function performNormalisation(input, scope) {
-    var normalised = '';
-    var substitutions = [];
-    var highlightedOriginal = '';
-    var highlightedNormalised = '';
+/**
+ * NormalisationEnforcementAPI - Internal API for normalisation rules
+ * All modules MUST use this service for normalisation.
+ * 
+ * Internal API: GET /internal/normalisation-rules?scope=senderid|content|url
+ * Cached with 60s TTL
+ * 
+ * Evaluation order:
+ * 1) Normalise input using equivalence library
+ * 2) Apply SenderID / Content / URL rules to canonical string
+ */
+var NormalisationEnforcementAPI = (function() {
+    var cache = {
+        rules: {},
+        lastFetch: {},
+        TTL_MS: 60000
+    };
     
-    var chars = Array.from(input);
+    function isCacheValid(scope) {
+        var lastFetch = cache.lastFetch[scope] || 0;
+        return (Date.now() - lastFetch) < cache.TTL_MS;
+    }
     
-    chars.forEach(function(char, idx) {
-        var found = false;
-        var baseChar = char;
+    function fetchRules(scope) {
+        if (isCacheValid(scope) && cache.rules[scope]) {
+            console.log('[NormalisationEnforcementAPI] Cache hit for scope: ' + scope);
+            return cache.rules[scope];
+        }
         
-        mockData.baseCharacterLibrary.forEach(function(rule) {
-            if (!rule.enabled) return;
-            if (rule.scope.indexOf(scope) === -1 && scope !== 'all') return;
+        console.log('[NormalisationEnforcementAPI] Fetching rules for scope: ' + scope);
+        
+        var rules = mockData.baseCharacterLibrary.filter(function(rule) {
+            if (!rule.enabled) return false;
+            if (scope === 'all') return true;
+            return rule.scope.indexOf(scope) !== -1;
+        }).map(function(rule) {
+            return {
+                base: rule.base,
+                equivalents: rule.equivalents.slice(),
+                scope: rule.scope.slice()
+            };
+        });
+        
+        cache.rules[scope] = rules;
+        cache.lastFetch[scope] = Date.now();
+        
+        console.log('[NormalisationEnforcementAPI] Cached ' + rules.length + ' rules for scope: ' + scope + ' (TTL: 60s)');
+        
+        return rules;
+    }
+    
+    function invalidateCache(scope) {
+        if (scope) {
+            delete cache.rules[scope];
+            delete cache.lastFetch[scope];
+        } else {
+            cache.rules = {};
+            cache.lastFetch = {};
+        }
+        console.log('[NormalisationEnforcementAPI] Cache invalidated' + (scope ? ' for scope: ' + scope : ' (all)'));
+    }
+    
+    function normalise(input, scope) {
+        var rules = fetchRules(scope);
+        
+        var equivMap = {};
+        rules.forEach(function(rule) {
+            rule.equivalents.forEach(function(equiv) {
+                equivMap[equiv] = rule.base;
+            });
+        });
+        
+        var normalised = '';
+        var substitutions = [];
+        var highlightedOriginal = '';
+        var highlightedNormalised = '';
+        
+        var chars = Array.from(input);
+        
+        chars.forEach(function(char, idx) {
+            var baseChar = equivMap[char] || char;
+            var found = baseChar !== char;
             
-            if (rule.equivalents.indexOf(char) !== -1) {
-                baseChar = rule.base;
-                found = true;
+            if (found) {
                 substitutions.push({
                     position: idx,
                     original: char,
-                    base: rule.base
+                    base: baseChar
                 });
+                highlightedOriginal += '<span class="norm-highlight-sub">' + char + '</span>';
+                highlightedNormalised += '<span class="norm-highlight-base">' + baseChar + '</span>';
+            } else {
+                highlightedOriginal += char;
+                highlightedNormalised += char;
             }
+            
+            normalised += baseChar;
         });
         
-        normalised += baseChar;
+        return {
+            normalised: normalised,
+            substitutions: substitutions,
+            highlightedOriginal: highlightedOriginal,
+            highlightedNormalised: highlightedNormalised,
+            cacheHit: isCacheValid(scope)
+        };
+    }
+    
+    function evaluate(input, scope) {
+        var normResult = normalise(input, scope);
         
-        if (found) {
-            highlightedOriginal += '<span class="norm-highlight-sub">' + char + '</span>';
-            highlightedNormalised += '<span class="norm-highlight-base">' + baseChar + '</span>';
-        } else {
-            highlightedOriginal += char;
-            highlightedNormalised += baseChar;
+        var ruleMatches = [];
+        
+        if (window.MessageEnforcementService) {
+            ruleMatches = MessageEnforcementService.evaluateAgainstRules(normResult.normalised, scope);
         }
-    });
+        
+        return {
+            original: input,
+            normalised: normResult.normalised,
+            substitutions: normResult.substitutions,
+            highlightedOriginal: normResult.highlightedOriginal,
+            highlightedNormalised: normResult.highlightedNormalised,
+            ruleMatches: ruleMatches
+        };
+    }
+    
+    function getCacheStats() {
+        return {
+            cachedScopes: Object.keys(cache.rules),
+            ttlMs: cache.TTL_MS,
+            lastFetch: cache.lastFetch
+        };
+    }
     
     return {
-        normalised: normalised,
-        substitutions: substitutions,
-        highlightedOriginal: highlightedOriginal,
-        highlightedNormalised: highlightedNormalised
+        fetchRules: fetchRules,
+        normalise: normalise,
+        evaluate: evaluate,
+        invalidateCache: invalidateCache,
+        getCacheStats: getCacheStats
     };
+})();
+
+window.NormalisationEnforcementAPI = NormalisationEnforcementAPI;
+
+function performNormalisation(input, scope) {
+    return NormalisationEnforcementAPI.normalise(input, scope);
 }
 
 function findMatchingRules(normalisedText, scope) {
-    var matches = [];
-    
-    var scopeRules = [];
-    if (scope === 'senderid' || scope === 'all') {
-        scopeRules = scopeRules.concat(mockData.senderidRules.filter(function(r) { return r.status === 'active'; }));
+    if (window.MessageEnforcementService) {
+        return MessageEnforcementService.evaluateAgainstRules(normalisedText, scope);
     }
-    if (scope === 'content' || scope === 'all') {
-        scopeRules = scopeRules.concat(mockData.contentRules.filter(function(r) { return r.status === 'active'; }));
-    }
-    if (scope === 'url' || scope === 'all') {
-        scopeRules = scopeRules.concat(mockData.urlRules.filter(function(r) { return r.status === 'active'; }));
-    }
-    
-    scopeRules.forEach(function(rule) {
-        var pattern = rule.pattern || rule.keyword || rule.matchValue || '';
-        if (pattern && normalisedText.toUpperCase().indexOf(pattern.toUpperCase()) !== -1) {
-            matches.push({
-                type: rule.type || scope,
-                pattern: pattern,
-                risk: 'medium'
-            });
-        }
-    });
-    
-    return matches;
+    return [];
 }
 
 function showAddNormRuleModal() {
@@ -6754,6 +6847,11 @@ function executeNormImport() {
     window.parsedImportRules = null;
     
     MessageEnforcementService.hotReloadRules();
+    
+    if (window.NormalisationEnforcementAPI) {
+        NormalisationEnforcementAPI.invalidateCache();
+    }
+    
     SecurityComplianceControlsService.renderAllTabs();
     
     showToast('Successfully imported ' + appliedCount + ' rules', 'success');
