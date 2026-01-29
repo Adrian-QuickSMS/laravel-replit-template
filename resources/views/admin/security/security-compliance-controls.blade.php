@@ -5140,11 +5140,16 @@ function executeSaveNormRule(changeData) {
     var version = createNormRuleVersion(changeData.base, beforeState, afterState, 'update');
     char.currentVersion = version.version;
     
-    logAuditEvent('BASE_CHARACTER_UPDATED', {
+    logAuditEvent('NORMALISATION_RULE_UPDATED', {
+        entityType: 'normalisation_rule',
+        ruleId: 'NORM-CHAR-' + changeData.base,
         base: changeData.base,
         version: version.version,
         before: beforeState,
-        after: afterState
+        after: afterState,
+        appliesToScope: afterState.scope,
+        riskLevel: afterState.risk,
+        changeType: beforeState.equivalents.length === 0 ? 'created' : 'updated'
     });
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('normRuleModal'));
@@ -5353,13 +5358,17 @@ function executeRollback(base, targetVersion) {
     var version = createNormRuleVersion(base, beforeState, afterState, 'rollback');
     char.currentVersion = version.version;
     
-    logAuditEvent('BASE_CHARACTER_ROLLBACK', {
+    logAuditEvent('NORMALISATION_RULE_ROLLBACK', {
+        entityType: 'normalisation_rule',
+        ruleId: 'NORM-CHAR-' + base,
         base: base,
         fromVersion: versions.length - 1,
         toVersion: targetVersion,
         newVersion: version.version,
         before: beforeState,
-        after: afterState
+        after: afterState,
+        appliesToScope: afterState.scope,
+        riskLevel: afterState.risk
     });
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('rollbackConfirmModal'));
@@ -5418,17 +5427,43 @@ function toggleBaseCharacterStatus(base, enabled) {
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (!char) return;
     
+    var beforeState = {
+        enabled: char.enabled,
+        equivalents: char.equivalents.slice(),
+        scope: char.scope.slice(),
+        risk: char.risk || 'none'
+    };
+    
     char.enabled = enabled;
-    char.updatedAt = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+    char.updated = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
     char.updatedBy = 'admin@quicksms.co.uk';
     
-    logAuditEvent('BASE_CHARACTER_STATUS_CHANGED', {
+    var afterState = {
+        enabled: char.enabled,
+        equivalents: char.equivalents.slice(),
+        scope: char.scope.slice(),
+        risk: char.risk || 'none'
+    };
+    
+    logAuditEvent('NORMALISATION_RULE_STATUS_CHANGED', {
+        entityType: 'normalisation_rule',
+        ruleId: 'NORM-CHAR-' + base,
         base: base,
-        enabled: enabled
+        before: beforeState,
+        after: afterState,
+        appliesToScope: char.scope,
+        riskLevel: char.risk || 'none',
+        statusChange: enabled ? 'enabled' : 'disabled'
     });
     
     MessageEnforcementService.hotReloadRules();
+    
+    if (window.NormalisationEnforcementAPI) {
+        NormalisationEnforcementAPI.invalidateCache();
+    }
+    
     SecurityComplianceControlsService.renderAllTabs();
+    showToast('Rule for "' + base + '" ' + (enabled ? 'enabled' : 'disabled'), 'success');
 }
 
 function exportBaseCharacterLibrary() {
@@ -5566,9 +5601,20 @@ function executeNormExport() {
     URL.revokeObjectURL(url);
     
     logAuditEvent('NORMALISATION_RULES_EXPORTED', {
+        entityType: 'normalisation_library',
         format: format,
         rulesExported: library.length,
-        filters: { includeEnabled: includeEnabled, includeDisabled: includeDisabled, includeEmpty: includeEmpty }
+        filters: { includeEnabled: includeEnabled, includeDisabled: includeDisabled, includeEmpty: includeEmpty },
+        exportedScopes: library.reduce(function(acc, r) {
+            (r.scope || []).forEach(function(s) { if (acc.indexOf(s) === -1) acc.push(s); });
+            return acc;
+        }, []),
+        before: null,
+        after: {
+            exportedAt: new Date().toISOString(),
+            rulesCount: library.length,
+            format: format
+        }
     });
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('exportNormModal'));
@@ -5912,12 +5958,16 @@ function runNormalisationTest() {
     
     document.getElementById('normTestResults').style.display = 'block';
     
-    logAuditEvent('NORMALISATION_TEST_RUN', { 
+    logAuditEvent('NORMALISATION_TEST_TOOL_USED', { 
+        entityType: 'normalisation_test',
         input: input, 
         output: result.normalised, 
-        scope: scope,
+        appliesToScope: scope,
         target: target || null,
-        matched: target ? (result.normalised.toUpperCase() === performNormalisation(target, scope).normalised.toUpperCase()) : null
+        matched: target ? (result.normalised.toUpperCase() === performNormalisation(target, scope).normalised.toUpperCase()) : null,
+        substitutionsCount: result.substitutions.length,
+        matchedRulesCount: matchedRules.length,
+        riskLevel: matchedRules.length > 0 ? (matchedRules.some(function(r) { return r.risk === 'high'; }) ? 'high' : 'medium') : 'none'
     });
 }
 
@@ -6833,11 +6883,22 @@ function executeNormImport() {
     });
     
     logAuditEvent('NORMALISATION_RULES_IMPORTED', {
+        entityType: 'normalisation_library',
         mode: data.mode,
-        newRules: data.newRules.length,
-        updatedRules: data.updatedRules.length,
-        conflicts: data.conflicts.length,
-        totalApplied: appliedCount
+        newRulesCount: data.newRules.length,
+        updatedRulesCount: data.updatedRules.length,
+        conflictsCount: data.conflicts.length,
+        totalApplied: appliedCount,
+        affectedCharacters: allChanges.map(function(c) { return c.rule.base_char; }),
+        before: {
+            totalRules: mockData.baseCharacterLibrary.length,
+            timestamp: new Date().toISOString()
+        },
+        after: {
+            totalRules: mockData.baseCharacterLibrary.length,
+            appliedChanges: appliedCount,
+            timestamp: new Date().toISOString()
+        }
     });
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('importNormModal'));
