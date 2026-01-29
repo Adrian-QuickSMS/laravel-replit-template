@@ -882,6 +882,7 @@
 @endsection
 
 @push('scripts')
+@include('shared.services.message-enforcement-service')
 <script>
 var currentAdmin = {
     id: 'admin-001',
