@@ -799,6 +799,28 @@
 .norm-import-mode-btn.active small {
     color: rgba(255,255,255,0.7) !important;
 }
+.norm-version-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.norm-version-item {
+    background: #fafbfc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 16px;
+}
+.norm-version-current {
+    background: #e8f4fd;
+    border-color: #1e3a5f;
+}
+.norm-version-snapshot {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
 .sec-filter-row {
     display: flex;
     gap: 1rem;
@@ -3774,6 +3796,7 @@ var SecurityComplianceControlsService = (function() {
                         '<ul class="dropdown-menu dropdown-menu-end">' +
                             '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editBaseCharacter(\'' + char.base + '\')"><i class="fas fa-edit me-2 text-muted"></i>Edit Equivalents</a></li>' +
                             '<li><a class="dropdown-item" href="javascript:void(0)" onclick="testBaseCharacter(\'' + char.base + '\')"><i class="fas fa-flask me-2 text-muted"></i>Test</a></li>' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="showNormRuleVersionHistory(\'' + char.base + '\')"><i class="fas fa-history me-2 text-muted"></i>Version History</a></li>' +
                             '<li><hr class="dropdown-divider"></li>' +
                             (char.enabled 
                                 ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleBaseCharacterStatus(\'' + char.base + '\', false)"><i class="fas fa-ban me-2 text-warning"></i>Disable</a></li>'
@@ -5056,6 +5079,37 @@ function cancelHighRiskChange() {
     window.pendingHighRiskChange = null;
 }
 
+window.normRuleVersionHistory = window.normRuleVersionHistory || {};
+
+function createNormRuleVersion(base, beforeState, afterState, action) {
+    if (!window.normRuleVersionHistory[base]) {
+        window.normRuleVersionHistory[base] = [];
+    }
+    
+    var version = {
+        id: 'v' + Date.now(),
+        version: window.normRuleVersionHistory[base].length + 1,
+        timestamp: new Date().toISOString(),
+        action: action || 'update',
+        actor: 'admin@quicksms.co.uk',
+        before: JSON.parse(JSON.stringify(beforeState)),
+        after: JSON.parse(JSON.stringify(afterState))
+    };
+    
+    window.normRuleVersionHistory[base].push(version);
+    
+    return version;
+}
+
+function getNormRuleVersions(base) {
+    return window.normRuleVersionHistory[base] || [];
+}
+
+function getLatestNormRuleVersion(base) {
+    var versions = getNormRuleVersions(base);
+    return versions.length > 0 ? versions[versions.length - 1] : null;
+}
+
 function executeSaveNormRule(changeData) {
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === changeData.base; });
     if (!char) return;
@@ -5064,7 +5118,8 @@ function executeSaveNormRule(changeData) {
         equivalents: char.equivalents.slice(),
         scope: char.scope.slice(),
         notes: char.notes,
-        enabled: char.enabled
+        enabled: char.enabled,
+        risk: char.risk || 'none'
     };
     
     char.equivalents = changeData.equivalents;
@@ -5072,19 +5127,24 @@ function executeSaveNormRule(changeData) {
     char.notes = changeData.notes;
     char.enabled = changeData.enabled;
     char.updated = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
-    
     char.risk = computeRisk(char);
+    
+    var afterState = {
+        equivalents: char.equivalents.slice(),
+        scope: char.scope.slice(),
+        notes: char.notes,
+        enabled: char.enabled,
+        risk: char.risk
+    };
+    
+    var version = createNormRuleVersion(changeData.base, beforeState, afterState, 'update');
+    char.currentVersion = version.version;
     
     logAuditEvent('BASE_CHARACTER_UPDATED', {
         base: changeData.base,
+        version: version.version,
         before: beforeState,
-        after: {
-            equivalents: char.equivalents,
-            scope: char.scope,
-            notes: char.notes,
-            enabled: char.enabled,
-            risk: char.risk
-        }
+        after: afterState
     });
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('normRuleModal'));
@@ -5092,7 +5152,217 @@ function executeSaveNormRule(changeData) {
     
     MessageEnforcementService.hotReloadRules();
     SecurityComplianceControlsService.renderAllTabs();
-    showToast((isEdit ? 'Updated' : 'Added') + ' normalisation rule for "' + base + '"', 'success');
+    showToast('Updated normalisation rule for "' + changeData.base + '" (v' + version.version + ')', 'success');
+}
+
+function showNormRuleVersionHistory(base) {
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+    if (!char) return;
+    
+    var versions = getNormRuleVersions(base);
+    
+    var versionsHtml = '';
+    if (versions.length === 0) {
+        versionsHtml = '<div class="text-center text-muted py-4"><i class="fas fa-history me-2"></i>No version history available</div>';
+    } else {
+        versions.slice().reverse().forEach(function(v, idx) {
+            var isLatest = idx === 0;
+            var actionBadge = v.action === 'rollback' 
+                ? '<span class="badge bg-warning text-dark">Rollback</span>'
+                : '<span class="badge bg-primary">Update</span>';
+            
+            var beforeEquivs = (v.before.equivalents || []).join(', ') || '—';
+            var afterEquivs = (v.after.equivalents || []).join(', ') || '—';
+            
+            versionsHtml += '<div class="norm-version-item' + (isLatest ? ' norm-version-current' : '') + '">' +
+                '<div class="d-flex justify-content-between align-items-start mb-2">' +
+                    '<div>' +
+                        '<strong>Version ' + v.version + '</strong> ' + actionBadge +
+                        (isLatest ? ' <span class="badge bg-success">Current</span>' : '') +
+                    '</div>' +
+                    '<small class="text-muted">' + new Date(v.timestamp).toLocaleString() + '</small>' +
+                '</div>' +
+                '<div class="row g-2 mb-2">' +
+                    '<div class="col-md-6">' +
+                        '<div class="small text-muted">Before:</div>' +
+                        '<div class="norm-version-snapshot">' +
+                            '<div><strong>Equivalents:</strong> ' + beforeEquivs + '</div>' +
+                            '<div><strong>Scope:</strong> ' + (v.before.scope || []).join(', ') + '</div>' +
+                            '<div><strong>Status:</strong> ' + (v.before.enabled ? 'Enabled' : 'Disabled') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-md-6">' +
+                        '<div class="small text-muted">After:</div>' +
+                        '<div class="norm-version-snapshot">' +
+                            '<div><strong>Equivalents:</strong> ' + afterEquivs + '</div>' +
+                            '<div><strong>Scope:</strong> ' + (v.after.scope || []).join(', ') + '</div>' +
+                            '<div><strong>Status:</strong> ' + (v.after.enabled ? 'Enabled' : 'Disabled') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="small text-muted">By: ' + v.actor + '</div>' +
+                (!isLatest ? '<button class="btn btn-sm btn-outline-warning mt-2" onclick="showRollbackConfirmModal(\'' + base + '\', ' + v.version + ')">' +
+                    '<i class="fas fa-undo me-1"></i>Rollback to this version</button>' : '') +
+            '</div>';
+        });
+    }
+    
+    var modalHtml = '<div class="modal fade" id="normVersionHistoryModal" tabindex="-1">' +
+        '<div class="modal-dialog modal-lg">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-history me-2"></i>Version History: <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">' + base + '</code></h5>' +
+                    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                '</div>' +
+                '<div class="modal-body" style="max-height: 500px; overflow-y: auto;">' +
+                    '<div class="alert alert-info mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f;">' +
+                        '<i class="fas fa-info-circle me-2" style="color: #1e3a5f;"></i>' +
+                        'Each save creates an immutable version. You can rollback to any previous version.' +
+                    '</div>' +
+                    '<div class="norm-version-list">' + versionsHtml + '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<small class="text-muted me-auto"><i class="fas fa-database me-1"></i>' + versions.length + ' version(s) stored</small>' +
+                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('normVersionHistoryModal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var modal = new bootstrap.Modal(document.getElementById('normVersionHistoryModal'));
+    modal.show();
+}
+
+function showRollbackConfirmModal(base, targetVersion) {
+    var versions = getNormRuleVersions(base);
+    var targetVersionData = versions.find(function(v) { return v.version === targetVersion; });
+    
+    if (!targetVersionData) {
+        showToast('Version not found', 'error');
+        return;
+    }
+    
+    var afterEquivs = (targetVersionData.after.equivalents || []).join(', ') || '—';
+    
+    var modalHtml = '<div class="modal fade" id="rollbackConfirmModal" tabindex="-1" data-bs-backdrop="static">' +
+        '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: #f59e0b; color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-undo me-2"></i>Confirm Rollback</h5>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="alert alert-warning" style="background: #fef3c7; border-color: #f59e0b;">' +
+                        '<i class="fas fa-exclamation-triangle me-2" style="color: #92400e;"></i>' +
+                        '<strong>Warning:</strong> This will revert the rule to a previous state. A new version will be created.' +
+                    '</div>' +
+                    '<p><strong>Base Character:</strong> <code style="font-size: 1.2rem;">' + base + '</code></p>' +
+                    '<p><strong>Rolling back to:</strong> Version ' + targetVersion + '</p>' +
+                    '<div class="card border-0 mb-3" style="background: #fafbfc;">' +
+                        '<div class="card-body">' +
+                            '<div class="small text-muted mb-1">State after rollback:</div>' +
+                            '<div><strong>Equivalents:</strong> ' + afterEquivs + '</div>' +
+                            '<div><strong>Scope:</strong> ' + (targetVersionData.after.scope || []).join(', ') + '</div>' +
+                            '<div><strong>Status:</strong> ' + (targetVersionData.after.enabled ? 'Enabled' : 'Disabled') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label">Type <code style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px;">ROLLBACK</code> to confirm:</label>' +
+                        '<input type="text" class="form-control" id="rollbackConfirmInput" placeholder="Type ROLLBACK here..." autocomplete="off">' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn btn-warning" id="rollbackConfirmBtn" onclick="executeRollback(\'' + base + '\', ' + targetVersion + ')" disabled>' +
+                        '<i class="fas fa-undo me-1"></i>Rollback' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('rollbackConfirmModal');
+    if (existingModal) existingModal.remove();
+    
+    var historyModal = bootstrap.Modal.getInstance(document.getElementById('normVersionHistoryModal'));
+    if (historyModal) historyModal.hide();
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    var confirmInput = document.getElementById('rollbackConfirmInput');
+    var confirmBtn = document.getElementById('rollbackConfirmBtn');
+    
+    confirmInput.addEventListener('input', function() {
+        confirmBtn.disabled = this.value.trim().toUpperCase() !== 'ROLLBACK';
+    });
+    
+    var modal = new bootstrap.Modal(document.getElementById('rollbackConfirmModal'));
+    modal.show();
+    
+    confirmInput.focus();
+}
+
+function executeRollback(base, targetVersion) {
+    var confirmInput = document.getElementById('rollbackConfirmInput');
+    if (confirmInput.value.trim().toUpperCase() !== 'ROLLBACK') {
+        return;
+    }
+    
+    var versions = getNormRuleVersions(base);
+    var targetVersionData = versions.find(function(v) { return v.version === targetVersion; });
+    
+    if (!targetVersionData) {
+        showToast('Version not found', 'error');
+        return;
+    }
+    
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+    if (!char) return;
+    
+    var beforeState = {
+        equivalents: char.equivalents.slice(),
+        scope: char.scope.slice(),
+        notes: char.notes,
+        enabled: char.enabled,
+        risk: char.risk || 'none'
+    };
+    
+    char.equivalents = targetVersionData.after.equivalents.slice();
+    char.scope = targetVersionData.after.scope.slice();
+    char.notes = targetVersionData.after.notes || '';
+    char.enabled = targetVersionData.after.enabled;
+    char.updated = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+    char.risk = computeRisk(char);
+    
+    var afterState = {
+        equivalents: char.equivalents.slice(),
+        scope: char.scope.slice(),
+        notes: char.notes,
+        enabled: char.enabled,
+        risk: char.risk
+    };
+    
+    var version = createNormRuleVersion(base, beforeState, afterState, 'rollback');
+    char.currentVersion = version.version;
+    
+    logAuditEvent('BASE_CHARACTER_ROLLBACK', {
+        base: base,
+        fromVersion: versions.length - 1,
+        toVersion: targetVersion,
+        newVersion: version.version,
+        before: beforeState,
+        after: afterState
+    });
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('rollbackConfirmModal'));
+    modal.hide();
+    
+    MessageEnforcementService.hotReloadRules();
+    SecurityComplianceControlsService.renderAllTabs();
+    showToast('Rolled back "' + base + '" to version ' + targetVersion + ' (now v' + version.version + ')', 'success');
 }
 
 function computeRisk(char) {
