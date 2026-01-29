@@ -2912,7 +2912,19 @@ var SecurityComplianceControlsService = (function() {
                 '<td>' + rule.scope + '</td>' +
                 '<td>' + rule.priority + '</td>' +
                 '<td><span class="sec-status-badge ' + rule.status + '">' + rule.status.charAt(0).toUpperCase() + rule.status.slice(1) + '</span></td>' +
-                '<td><button class="action-menu-btn"><i class="fas fa-ellipsis-v"></i></button></td>' +
+                '<td>' +
+                    '<div class="dropdown">' +
+                        '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
+                        '<ul class="dropdown-menu dropdown-menu-end">' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewNormalisationRule(' + rule.id + ')"><i class="fas fa-eye me-2 text-muted"></i>View</a></li>' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editNormalisationRule(' + rule.id + ')"><i class="fas fa-edit me-2 text-muted"></i>Edit</a></li>' +
+                            '<li><hr class="dropdown-divider"></li>' +
+                            (rule.status === 'active' 
+                                ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleNormalisationRuleStatus(' + rule.id + ', \'disabled\')"><i class="fas fa-ban me-2 text-warning"></i>Disable</a></li>'
+                                : '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleNormalisationRuleStatus(' + rule.id + ', \'active\')"><i class="fas fa-check me-2 text-success"></i>Enable</a></li>') +
+                        '</ul>' +
+                    '</div>' +
+                '</td>' +
                 '</tr>';
         }).join('');
     }
@@ -2994,13 +3006,22 @@ var SecurityComplianceControlsService = (function() {
             
             var actionButtons = '';
             if (msg.status === 'pending') {
-                actionButtons = '<div class="d-flex gap-1">' +
-                    '<button class="btn btn-sm btn-outline-success" onclick="releaseQuarantinedMessage(\'' + msg.id + '\')" title="Release"><i class="fas fa-check"></i></button>' +
-                    '<button class="btn btn-sm btn-outline-danger" onclick="blockQuarantinedMessage(\'' + msg.id + '\')" title="Block"><i class="fas fa-ban"></i></button>' +
-                    '<button class="btn btn-sm btn-outline-secondary" onclick="viewQuarantinedMessage(\'' + msg.id + '\')" title="View"><i class="fas fa-eye"></i></button>' +
+                actionButtons = '<div class="dropdown">' +
+                    '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
+                    '<ul class="dropdown-menu dropdown-menu-end">' +
+                        '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>' +
+                        '<li><hr class="dropdown-divider"></li>' +
+                        '<li><a class="dropdown-item text-success" href="javascript:void(0)" onclick="releaseQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-check-circle me-2"></i>Release Message</a></li>' +
+                        '<li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="blockQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-ban me-2"></i>Block Message</a></li>' +
+                    '</ul>' +
                 '</div>';
             } else {
-                actionButtons = '<button class="btn btn-sm btn-outline-secondary" onclick="viewQuarantinedMessage(\'' + msg.id + '\')" title="View Details"><i class="fas fa-eye"></i></button>';
+                actionButtons = '<div class="dropdown">' +
+                    '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
+                    '<ul class="dropdown-menu dropdown-menu-end">' +
+                        '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>' +
+                    '</ul>' +
+                '</div>';
             }
             
             return '<tr data-msg-id="' + msg.id + '">' +
@@ -3539,6 +3560,28 @@ var SecurityComplianceControlsService = (function() {
 
 function refreshAllControls() {
     console.log('[SecurityComplianceControls] Refreshing all controls...');
+    SecurityComplianceControlsService.renderAllTabs();
+}
+
+function viewNormalisationRule(ruleId) {
+    console.log('[NormalisationRules] View rule:', ruleId);
+    // TODO: Implement view normalisation rule modal
+    alert('View Normalisation Rule: ' + ruleId);
+}
+
+function editNormalisationRule(ruleId) {
+    console.log('[NormalisationRules] Edit rule:', ruleId);
+    // TODO: Implement edit normalisation rule modal
+    alert('Edit Normalisation Rule: ' + ruleId);
+}
+
+function toggleNormalisationRuleStatus(ruleId, newStatus) {
+    console.log('[NormalisationRules] Toggle rule status:', ruleId, '->', newStatus);
+    logAuditEvent('NORMALISATION_RULE_STATUS_CHANGED', {
+        ruleId: ruleId,
+        newStatus: newStatus
+    });
+    // TODO: Implement API call to update status
     SecurityComplianceControlsService.renderAllTabs();
 }
 
