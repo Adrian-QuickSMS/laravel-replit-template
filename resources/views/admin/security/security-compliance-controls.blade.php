@@ -921,9 +921,75 @@
             </div>
 
             <div class="tab-pane fade" id="normalisation-rules" role="tabpanel">
-                <div class="tab-description">
-                    <h6><i class="fas fa-globe me-2"></i>Normalisation Rules (Global)</h6>
-                    <p>Single source of truth for character equivalence ("bastardisation") rules. Fixed base character library with configurable equivalents per character.</p>
+                <div class="norm-page-header mb-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h5 class="mb-1" style="color: #1e3a5f; font-weight: 600;">
+                                <i class="fas fa-globe me-2"></i>Normalisation Rules
+                            </h5>
+                            <p class="text-muted mb-0" style="font-size: 0.9rem; max-width: 600px;">
+                                Define character equivalence rules used to detect sender/content bastardisation (e.g. O=0, I=1). Changes affect matching across the platform.
+                            </p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="showImportNormLibraryModal()">
+                                <i class="fas fa-upload me-1"></i>Import
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="exportBaseCharacterLibrary()">
+                                <i class="fas fa-download me-1"></i>Export
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="testNormalisationRule()">
+                                <i class="fas fa-flask me-1"></i>Test
+                            </button>
+                            <button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="showAddEquivalentModal()">
+                                <i class="fas fa-plus me-1"></i>Add Rule
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="norm-controls-bar p-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-muted mb-1">Search</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                                    <input type="text" class="form-control" id="norm-global-search" placeholder="Search base or equivalent character..." onkeyup="globalNormSearch()">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold text-muted mb-1">Applies To</label>
+                                <select class="form-select" id="norm-global-scope" onchange="globalNormFilter()">
+                                    <option value="">All Scopes</option>
+                                    <option value="senderid">SenderID</option>
+                                    <option value="content">Content</option>
+                                    <option value="url">URL</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold text-muted mb-1">Status</label>
+                                <select class="form-select" id="norm-global-status" onchange="globalNormFilter()">
+                                    <option value="">All Statuses</option>
+                                    <option value="enabled">Enabled</option>
+                                    <option value="disabled">Disabled</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-bold text-muted mb-1">Risk Level</label>
+                                <select class="form-select" id="norm-global-risk" onchange="globalNormFilter()">
+                                    <option value="">All Levels</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="resetGlobalNormFilters()">
+                                    <i class="fas fa-undo me-1"></i>Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="alert alert-info d-flex align-items-start mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f; border-radius: 6px;">
@@ -3335,7 +3401,13 @@ var SecurityComplianceControlsService = (function() {
                 '</span>';
             }).join('');
             
-            return '<tr data-base="' + char.base + '">' +
+            var dataAttrs = 'data-base="' + char.base + '" ' +
+                'data-equivalents="' + char.equivalents.join(',') + '" ' +
+                'data-scope="' + char.scope.join(',') + '" ' +
+                'data-status="' + (char.enabled ? 'enabled' : 'disabled') + '" ' +
+                'data-risk="' + char.risk + '"';
+            
+            return '<tr ' + dataAttrs + '>' +
                 '<td>' +
                     '<span class="base-char-display">' + char.base + '</span>' +
                     (char.notes ? '<i class="fas fa-sticky-note ms-2 text-muted" style="font-size: 0.7rem;" title="' + char.notes + '"></i>' : '') +
@@ -4589,6 +4661,236 @@ function applyBulkScope() {
     
     MessageEnforcementService.hotReloadRules();
     SecurityComplianceControlsService.renderAllTabs();
+}
+
+function globalNormSearch() {
+    var searchTerm = document.getElementById('norm-global-search').value.toLowerCase().trim();
+    applyGlobalNormFilters();
+}
+
+function globalNormFilter() {
+    applyGlobalNormFilters();
+}
+
+function resetGlobalNormFilters() {
+    document.getElementById('norm-global-search').value = '';
+    document.getElementById('norm-global-scope').value = '';
+    document.getElementById('norm-global-status').value = '';
+    document.getElementById('norm-global-risk').value = '';
+    applyGlobalNormFilters();
+}
+
+function applyGlobalNormFilters() {
+    var searchTerm = document.getElementById('norm-global-search').value.toLowerCase().trim();
+    var scopeFilter = document.getElementById('norm-global-scope').value;
+    var statusFilter = document.getElementById('norm-global-status').value;
+    var riskFilter = document.getElementById('norm-global-risk').value;
+    
+    var tables = ['norm-uppercase-body', 'norm-lowercase-body', 'norm-digits-body'];
+    
+    tables.forEach(function(tableId) {
+        var tbody = document.getElementById(tableId);
+        if (!tbody) return;
+        
+        var rows = tbody.querySelectorAll('tr');
+        rows.forEach(function(row) {
+            var baseChar = row.getAttribute('data-base') || '';
+            var equivalents = row.getAttribute('data-equivalents') || '';
+            var scope = row.getAttribute('data-scope') || '';
+            var status = row.getAttribute('data-status') || '';
+            var risk = row.getAttribute('data-risk') || '';
+            
+            var show = true;
+            
+            if (searchTerm) {
+                var matchBase = baseChar.toLowerCase().indexOf(searchTerm) !== -1;
+                var matchEquiv = equivalents.toLowerCase().indexOf(searchTerm) !== -1;
+                if (!matchBase && !matchEquiv) show = false;
+            }
+            
+            if (scopeFilter && show) {
+                if (scope.indexOf(scopeFilter) === -1) show = false;
+            }
+            
+            if (statusFilter && show) {
+                if (status !== statusFilter) show = false;
+            }
+            
+            if (riskFilter && show) {
+                if (risk !== riskFilter) show = false;
+            }
+            
+            row.style.display = show ? '' : 'none';
+        });
+    });
+}
+
+function showImportNormLibraryModal() {
+    var modalHtml = 
+    '<div class="modal fade" id="importNormModal" tabindex="-1">' +
+        '<div class="modal-dialog modal-lg">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: #1e3a5f; color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-upload me-2"></i>Import Normalisation Library</h5>' +
+                    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="alert alert-warning">' +
+                        '<i class="fas fa-exclamation-triangle me-2"></i>' +
+                        '<strong>Warning:</strong> Importing will merge or replace existing equivalents. This action will be logged.' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Import Mode</label>' +
+                        '<select class="form-control" id="importMode">' +
+                            '<option value="merge">Merge - Add new equivalents, keep existing</option>' +
+                            '<option value="replace">Replace - Overwrite all equivalents</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Upload JSON File</label>' +
+                        '<input type="file" class="form-control" id="importFile" accept=".json">' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Or Paste JSON</label>' +
+                        '<textarea class="form-control" id="importJsonText" rows="6" placeholder=\'{"A": {"equivalents": ["Α", "А"], "scope": ["senderid"]}...}\'></textarea>' +
+                    '</div>' +
+                    '<div id="importPreview" style="display: none;">' +
+                        '<label class="form-label fw-bold">Import Preview</label>' +
+                        '<div class="p-3 bg-light rounded" style="max-height: 200px; overflow-y: auto;">' +
+                            '<pre id="importPreviewText" style="margin: 0; font-size: 0.8rem;"></pre>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn btn-primary" onclick="executeNormImport()" style="background: #1e3a5f; border-color: #1e3a5f;">' +
+                        '<i class="fas fa-upload me-1"></i>Import' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('importNormModal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var modal = new bootstrap.Modal(document.getElementById('importNormModal'));
+    modal.show();
+}
+
+function executeNormImport() {
+    // TODO: Backend integration - parse and import JSON data
+    console.log('[NormalisationLibrary] Import executed');
+    
+    var importMode = document.getElementById('importMode').value;
+    logAuditEvent('NORMALISATION_LIBRARY_IMPORTED', { mode: importMode });
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('importNormModal'));
+    modal.hide();
+    
+    showToast('Import completed successfully', 'success');
+}
+
+function showAddEquivalentModal() {
+    var charOptions = mockData.baseCharacterLibrary.map(function(c) {
+        return '<option value="' + c.base + '">' + c.base + ' (' + c.type + ')</option>';
+    }).join('');
+    
+    var modalHtml = 
+    '<div class="modal fade" id="addEquivalentModal" tabindex="-1">' +
+        '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: #1e3a5f; color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add Equivalent Character</h5>' +
+                    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Base Character</label>' +
+                        '<select class="form-control" id="addEquivBase">' +
+                            charOptions +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">New Equivalent(s)</label>' +
+                        '<input type="text" class="form-control" id="addEquivChars" placeholder="Enter equivalent characters (comma-separated)">' +
+                        '<small class="text-muted">e.g., Α, А, Ａ (Greek, Cyrillic, Fullwidth)</small>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Apply To Scope</label>' +
+                        '<div class="d-flex gap-3">' +
+                            '<div class="form-check">' +
+                                '<input class="form-check-input" type="checkbox" id="addEquivSenderid" checked>' +
+                                '<label class="form-check-label" for="addEquivSenderid"><i class="fas fa-id-badge me-1" style="color: #d97706;"></i>SenderID</label>' +
+                            '</div>' +
+                            '<div class="form-check">' +
+                                '<input class="form-check-input" type="checkbox" id="addEquivContent">' +
+                                '<label class="form-check-label" for="addEquivContent"><i class="fas fa-comment-alt me-1" style="color: #2563eb;"></i>Content</label>' +
+                            '</div>' +
+                            '<div class="form-check">' +
+                                '<input class="form-check-input" type="checkbox" id="addEquivUrl">' +
+                                '<label class="form-check-label" for="addEquivUrl"><i class="fas fa-link me-1" style="color: #7c3aed;"></i>URL</label>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn btn-primary" onclick="executeAddEquivalent()" style="background: #1e3a5f; border-color: #1e3a5f;">' +
+                        '<i class="fas fa-plus me-1"></i>Add' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('addEquivalentModal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var modal = new bootstrap.Modal(document.getElementById('addEquivalentModal'));
+    modal.show();
+}
+
+function executeAddEquivalent() {
+    var baseChar = document.getElementById('addEquivBase').value;
+    var newEquivsRaw = document.getElementById('addEquivChars').value;
+    var scope = [];
+    if (document.getElementById('addEquivSenderid').checked) scope.push('senderid');
+    if (document.getElementById('addEquivContent').checked) scope.push('content');
+    if (document.getElementById('addEquivUrl').checked) scope.push('url');
+    
+    if (!newEquivsRaw.trim()) {
+        showToast('Please enter at least one equivalent character', 'error');
+        return;
+    }
+    
+    var newEquivs = newEquivsRaw.split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e.length > 0; });
+    
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === baseChar; });
+    if (char) {
+        var beforeEquivs = char.equivalents.slice();
+        newEquivs.forEach(function(eq) {
+            if (char.equivalents.indexOf(eq) === -1) {
+                char.equivalents.push(eq);
+            }
+        });
+        if (scope.length > 0) char.scope = scope;
+        
+        logAuditEvent('BASE_CHARACTER_UPDATED', {
+            base: baseChar,
+            before: { equivalents: beforeEquivs },
+            after: { equivalents: char.equivalents }
+        });
+    }
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('addEquivalentModal'));
+    modal.hide();
+    
+    MessageEnforcementService.hotReloadRules();
+    SecurityComplianceControlsService.renderAllTabs();
+    showToast('Equivalent character(s) added to ' + baseChar, 'success');
 }
 
 var NormalisationLibrary = (function() {
