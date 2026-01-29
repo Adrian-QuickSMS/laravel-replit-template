@@ -1458,6 +1458,70 @@ var currentAdmin = {
     role: 'super_admin'
 };
 
+function showEnforcementErrorBanner(result, isAdmin) {
+    if (!result || result.decision === 'ALLOW') return;
+    
+    var container = document.getElementById('enforcement-error-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'enforcement-error-container';
+        container.style.cssText = 'position: fixed; top: 80px; right: 20px; z-index: 9999; max-width: 400px;';
+        document.body.appendChild(container);
+    }
+    
+    var alertClass = result.decision === 'BLOCK' ? 'alert-danger' : 'alert-warning';
+    var iconClass = result.decision === 'BLOCK' ? 'fa-ban' : 'fa-exclamation-triangle';
+    
+    var explanation = result.explainability || {};
+    var adminDetail = explanation.adminDetail || {};
+    var customerSummary = explanation.customerSummary || {};
+    
+    var bannerHtml = '';
+    if (isAdmin) {
+        bannerHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert" style="border-left: 4px solid; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">' +
+            '<div class="d-flex align-items-start">' +
+                '<i class="fas ' + iconClass + ' me-3 mt-1" style="font-size: 1.2rem;"></i>' +
+                '<div class="flex-grow-1">' +
+                    '<h6 class="alert-heading mb-1" style="font-size: 0.95rem;">' + (adminDetail.summary || 'Message ' + result.decision.toLowerCase()) + '</h6>' +
+                    '<p class="mb-2" style="font-size: 0.85rem;">' + (adminDetail.fullReason || result.reason) + '</p>' +
+                    '<div class="d-flex flex-wrap gap-2" style="font-size: 0.75rem;">' +
+                        '<span class="badge bg-light text-dark"><i class="fas fa-cog me-1"></i>' + (adminDetail.engine || 'Policy') + '</span>' +
+                        (adminDetail.ruleId ? '<span class="badge bg-light text-dark"><i class="fas fa-hashtag me-1"></i>' + adminDetail.ruleId + '</span>' : '') +
+                        (adminDetail.ruleName ? '<span class="badge bg-light text-dark"><i class="fas fa-tag me-1"></i>' + adminDetail.ruleName + '</span>' : '') +
+                        (adminDetail.matchedToken ? '<span class="badge bg-light text-dark" title="Matched: ' + adminDetail.matchedToken + '"><i class="fas fa-search me-1"></i>Token matched</span>' : '') +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+        '</div>';
+    } else {
+        bannerHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert" style="border-left: 4px solid; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">' +
+            '<div class="d-flex align-items-start">' +
+                '<i class="fas ' + iconClass + ' me-3 mt-1" style="font-size: 1.2rem;"></i>' +
+                '<div class="flex-grow-1">' +
+                    '<h6 class="alert-heading mb-1" style="font-size: 0.95rem;">' + (customerSummary.headline || 'Message could not be sent') + '</h6>' +
+                    '<p class="mb-2" style="font-size: 0.85rem;">' + (customerSummary.reason || 'Your message was flagged by our security policy.') + '</p>' +
+                    '<p class="mb-0" style="font-size: 0.8rem; opacity: 0.9;">' + (customerSummary.actionRequired || '') + '</p>' +
+                    (customerSummary.supportCode ? '<small class="text-muted d-block mt-2">Reference: ' + customerSummary.supportCode + '</small>' : '') +
+                '</div>' +
+            '</div>' +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+        '</div>';
+    }
+    
+    container.innerHTML = bannerHtml;
+    
+    setTimeout(function() {
+        var alert = container.querySelector('.alert');
+        if (alert) {
+            alert.classList.remove('show');
+            setTimeout(function() { container.innerHTML = ''; }, 150);
+        }
+    }, 10000);
+}
+
+window.showEnforcementErrorBanner = showEnforcementErrorBanner;
+
 var auditConfig = {
     enableCustomerAudit: true,
     customerAuditEvents: [
@@ -2631,8 +2695,16 @@ var SecurityComplianceControlsService = (function() {
                 'senderid': '<span class="sec-status-badge" style="background: #fef3c7; color: #92400e;"><i class="fas fa-id-badge me-1"></i>SenderID</span>',
                 'content': '<span class="sec-status-badge" style="background: #dbeafe; color: #1e40af;"><i class="fas fa-comment me-1"></i>Content</span>',
                 'url': '<span class="sec-status-badge" style="background: #f3e8ff; color: #6b21a8;"><i class="fas fa-link me-1"></i>URL</span>',
-                'domain_age': '<span class="sec-status-badge" style="background: #fee2e2; color: #991b1b;"><i class="fas fa-clock me-1"></i>Domain Age</span>'
+                'domain_age': '<span class="sec-status-badge" style="background: #fee2e2; color: #991b1b;"><i class="fas fa-clock me-1"></i>Domain Age</span>',
+                'antispam': '<span class="sec-status-badge" style="background: #fce7f3; color: #9d174d;"><i class="fas fa-shield-virus me-1"></i>Anti-Spam</span>'
             };
+            
+            var ruleTriggeredHtml = (ruleTypeBadges[msg.ruleTriggered] || '<span class="sec-status-badge disabled">Unknown</span>') +
+                '<br><small class="text-muted" title="Rule: ' + msg.ruleId + '">' + msg.ruleName + '</small>';
+            
+            if (msg.triggeredRules && msg.triggeredRules.length > 1) {
+                ruleTriggeredHtml += '<br><small class="text-primary" style="cursor: pointer;" onclick="viewQuarantinedMessage(\'' + msg.id + '\')">+' + (msg.triggeredRules.length - 1) + ' more</small>';
+            }
             
             var statusBadges = {
                 'pending': '<span class="sec-status-badge pending"><i class="fas fa-clock me-1"></i>Pending</span>',
@@ -2675,7 +2747,7 @@ var SecurityComplianceControlsService = (function() {
                 '<td><code style="font-size: 0.8rem; background: #f8f9fa; padding: 0.15rem 0.35rem; border-radius: 3px;">' + msg.senderId + '</code></td>' +
                 '<td><span style="font-size: 0.8rem; max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="' + msg.messageSnippet + '">' + msg.messageSnippet + '</span></td>' +
                 '<td>' + urlBadge + '</td>' +
-                '<td>' + ruleTypeBadges[msg.ruleTriggered] + '<br><small class="text-muted" style="font-size: 0.7rem;">' + msg.ruleName + '</small></td>' +
+                '<td>' + ruleTriggeredHtml + '</td>' +
                 '<td>' + statusBadges[msg.status] + '</td>' +
                 '<td>' + reviewerDisplay + '</td>' +
                 '<td>' + decisionDisplay + '</td>' +

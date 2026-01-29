@@ -450,7 +450,7 @@ var MessageEnforcementService = (function() {
     }
 
     function buildResult(context) {
-        return {
+        var result = {
             decision: context.decision,
             reason: context.reason,
             triggeredRules: context.triggeredRules,
@@ -469,6 +469,123 @@ var MessageEnforcementService = (function() {
             timestamp: new Date().toISOString(),
             serviceVersion: '1.0.0'
         };
+        
+        if (context.decision !== DECISIONS.ALLOW) {
+            result.explainability = buildExplainability(context);
+        }
+        
+        return result;
+    }
+    
+    function buildExplainability(context) {
+        var primaryRule = context.triggeredRules.length > 0 ? context.triggeredRules[0] : null;
+        
+        var explainability = {
+            adminDetail: buildAdminExplanation(context, primaryRule),
+            customerSummary: buildCustomerExplanation(context, primaryRule),
+            ruleBreakdown: context.triggeredRules.map(function(rule) {
+                return {
+                    engine: mapEngineToDisplay(rule.engine),
+                    engineCode: rule.engine,
+                    ruleId: rule.ruleId,
+                    ruleName: rule.ruleName,
+                    category: rule.category || inferCategory(rule),
+                    matchedToken: sanitizeMatchedToken(rule.matchedValue || rule.before),
+                    action: rule.action
+                };
+            })
+        };
+        
+        return explainability;
+    }
+    
+    function buildAdminExplanation(context, primaryRule) {
+        if (!primaryRule) {
+            return {
+                summary: 'Message ' + context.decision.toLowerCase() + ' by enforcement policy.',
+                engine: 'Unknown',
+                ruleId: null,
+                ruleName: null,
+                category: null,
+                matchedToken: null,
+                fullReason: context.reason
+            };
+        }
+        
+        return {
+            summary: 'Message ' + context.decision.toLowerCase() + ' by ' + mapEngineToDisplay(primaryRule.engine) + ' rule.',
+            engine: mapEngineToDisplay(primaryRule.engine),
+            engineCode: primaryRule.engine,
+            ruleId: primaryRule.ruleId,
+            ruleName: primaryRule.ruleName,
+            category: primaryRule.category || inferCategory(primaryRule),
+            matchedToken: primaryRule.matchedValue || primaryRule.before || null,
+            fullReason: context.reason,
+            allTriggeredRules: context.triggeredRules.length
+        };
+    }
+    
+    function buildCustomerExplanation(context, primaryRule) {
+        var safeReasons = {
+            'senderid': 'This message was flagged because the sender ID does not meet our messaging guidelines.',
+            'content': 'This message was flagged because the content does not comply with our acceptable use policy.',
+            'url': 'This message was flagged because it contains a link that requires additional verification.',
+            'antispam': 'This message was flagged as a duplicate. Please wait before sending similar content to the same recipient.',
+            'domain_age': 'This message was flagged because it contains a link to a newly registered domain.'
+        };
+        
+        var engine = primaryRule ? primaryRule.engine : 'policy';
+        var baseReason = safeReasons[engine] || 'This message was flagged by our security policy.';
+        
+        var actionText = context.decision === DECISIONS.BLOCK 
+            ? 'Your message could not be sent.' 
+            : 'Your message has been held for review.';
+        
+        return {
+            headline: actionText,
+            reason: baseReason,
+            actionRequired: context.decision === DECISIONS.QUARANTINE 
+                ? 'Our team will review this message and you will be notified of the outcome.' 
+                : 'Please review your message content and try again, or contact support if you believe this is an error.',
+            supportCode: primaryRule ? ('REF-' + primaryRule.ruleId) : 'REF-POLICY',
+            showMatchedContent: false
+        };
+    }
+    
+    function mapEngineToDisplay(engine) {
+        var mapping = {
+            'senderid': 'SenderID Enforcement',
+            'content': 'Content Filter',
+            'url': 'URL Scanner',
+            'antispam': 'Anti-Spam Protection',
+            'domain_age': 'Domain Age Check',
+            'normalisation': 'Normalisation'
+        };
+        return mapping[engine] || engine;
+    }
+    
+    function inferCategory(rule) {
+        if (rule.ruleName) {
+            var name = rule.ruleName.toLowerCase();
+            if (name.indexOf('phishing') !== -1 || name.indexOf('scam') !== -1) return 'fraud';
+            if (name.indexOf('bank') !== -1 || name.indexOf('hmrc') !== -1 || name.indexOf('gov') !== -1) return 'impersonation';
+            if (name.indexOf('adult') !== -1) return 'adult';
+            if (name.indexOf('gambling') !== -1 || name.indexOf('casino') !== -1) return 'gambling';
+            if (name.indexOf('lottery') !== -1 || name.indexOf('prize') !== -1) return 'lottery';
+            if (name.indexOf('crypto') !== -1) return 'cryptocurrency';
+        }
+        return 'policy_violation';
+    }
+    
+    function sanitizeMatchedToken(token) {
+        if (!token) return null;
+        var sanitized = String(token);
+        if (sanitized.length > 50) {
+            sanitized = sanitized.substring(0, 47) + '...';
+        }
+        sanitized = sanitized.replace(/[+]?[0-9]{10,15}/g, '[PHONE]');
+        sanitized = sanitized.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL]');
+        return sanitized;
     }
 
     function updateRules(ruleType, rules) {
@@ -625,7 +742,12 @@ var MessageEnforcementService = (function() {
         testMessage: testMessage,
         updateAntiSpamSettings: updateAntiSpamSettings,
         getAntiSpamSettings: getAntiSpamSettings,
-        checkAntiSpamDuplicate: checkAntiSpamDuplicate
+        checkAntiSpamDuplicate: checkAntiSpamDuplicate,
+        buildExplainability: buildExplainability,
+        buildAdminExplanation: buildAdminExplanation,
+        buildCustomerExplanation: buildCustomerExplanation,
+        mapEngineToDisplay: mapEngineToDisplay,
+        sanitizeMatchedToken: sanitizeMatchedToken
     };
 })();
 
