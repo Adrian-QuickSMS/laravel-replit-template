@@ -8,7 +8,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 .country-controls-title h4 {
     margin: 0;
@@ -19,6 +19,50 @@
     margin: 0.25rem 0 0 0;
     font-size: 0.85rem;
     color: #6c757d;
+}
+.admin-tabs {
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 1.5rem;
+}
+.admin-tabs .nav-link {
+    color: #6c757d;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    padding: 0.75rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.15s;
+}
+.admin-tabs .nav-link:hover {
+    color: #1e3a5f;
+    border-bottom-color: rgba(30, 58, 95, 0.3);
+}
+.admin-tabs .nav-link.active {
+    color: #1e3a5f;
+    border-bottom-color: #1e3a5f;
+    background: transparent;
+}
+.admin-tabs .nav-link .badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.4rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+.admin-tabs .nav-link .badge.pending-badge {
+    background: #ecc94b;
+    color: #744210;
+}
+.admin-internal-badge {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.4rem;
+    background: rgba(30, 58, 95, 0.15);
+    color: #1e3a5f;
+    border-radius: 0.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 0.5rem;
 }
 .enforcement-banner {
     background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
@@ -304,6 +348,127 @@
     border-color: #2c5282;
     color: #fff;
 }
+.request-card {
+    background: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 1rem;
+    border-left: 3px solid #ecc94b;
+}
+.request-card.approved {
+    border-left-color: #48bb78;
+}
+.request-card.rejected {
+    border-left-color: #e53e3e;
+}
+.request-card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f1f3f5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.request-card-body {
+    padding: 1rem 1.25rem;
+}
+.request-customer {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.9rem;
+}
+.request-customer-id {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-left: 0.5rem;
+}
+.request-meta {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.request-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.request-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.request-detail-label {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.request-detail-value {
+    font-size: 0.85rem;
+    color: #374151;
+    font-weight: 500;
+}
+.request-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f1f3f5;
+}
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #9ca3af;
+}
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+.empty-state h6 {
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+.review-filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+.review-filters select {
+    font-size: 0.85rem;
+    min-width: 150px;
+}
+.review-stat-cards {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.review-stat-card {
+    flex: 1;
+    background: #fff;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    text-align: center;
+}
+.review-stat-card.pending {
+    border-top: 3px solid #ecc94b;
+}
+.review-stat-card.approved-today {
+    border-top: 3px solid #48bb78;
+}
+.review-stat-card.rejected-today {
+    border-top: 3px solid #e53e3e;
+}
+.review-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e3a5f;
+}
+.review-stat-label {
+    font-size: 0.7rem;
+    color: #6c757d;
+    text-transform: uppercase;
+}
 </style>
 @endpush
 
@@ -319,7 +484,7 @@
 
     <div class="country-controls-header">
         <div class="country-controls-title">
-            <h4><i class="fas fa-globe me-2"></i>Country Controls</h4>
+            <h4><i class="fas fa-globe me-2"></i>Country Controls<span class="admin-internal-badge">Admin Only</span></h4>
             <p>Manage allowed destination countries for SMS messaging across all customer accounts</p>
         </div>
         <div class="d-flex align-items-center gap-3">
@@ -333,83 +498,133 @@
         </div>
     </div>
 
-    <div class="enforcement-banner">
-        <h6><i class="fas fa-shield-alt"></i>Shared Enforcement Configuration</h6>
-        <p>Changes here immediately apply across all enforcement points. No restart required.</p>
-        <div class="enforcement-points">
-            <div class="enforcement-point">
-                <i class="fas fa-check-circle"></i>
-                <span>Customer Portal Security Settings</span>
-            </div>
-            <div class="enforcement-point">
-                <i class="fas fa-check-circle"></i>
-                <span>Send Message Validation</span>
-            </div>
-            <div class="enforcement-point">
-                <i class="fas fa-check-circle"></i>
-                <span>API Submission Validation</span>
-            </div>
-            <div class="enforcement-point">
-                <i class="fas fa-check-circle"></i>
-                <span>Bulk Campaign Processing</span>
-            </div>
-        </div>
-    </div>
+    <ul class="nav admin-tabs" id="countryControlsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="review-tab" data-bs-toggle="tab" data-bs-target="#reviewPane" type="button" role="tab">
+                <i class="fas fa-inbox me-1"></i>Review
+                <span class="badge pending-badge" id="pendingRequestsBadge">3</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="countries-tab" data-bs-toggle="tab" data-bs-target="#countriesPane" type="button" role="tab">
+                <i class="fas fa-globe-americas me-1"></i>Countries
+            </button>
+        </li>
+    </ul>
 
-    <div class="country-stats">
-        <div class="country-stat-card allowed">
-            <div class="country-stat-value" id="allowedCount">142</div>
-            <div class="country-stat-label">Allowed Countries</div>
-        </div>
-        <div class="country-stat-card blocked">
-            <div class="country-stat-value" id="blockedCount">23</div>
-            <div class="country-stat-label">Blocked Countries</div>
-        </div>
-        <div class="country-stat-card restricted">
-            <div class="country-stat-value" id="restrictedCount">12</div>
-            <div class="country-stat-label">Restricted (Approval Required)</div>
-        </div>
-        <div class="country-stat-card pending">
-            <div class="country-stat-value" id="pendingCount">5</div>
-            <div class="country-stat-label">Pending Review</div>
-        </div>
-    </div>
-
-    <div class="country-table-card">
-        <div class="country-table-header">
-            <div class="d-flex align-items-center gap-3">
-                <h6><i class="fas fa-list me-2"></i>Destination Countries</h6>
-                <div class="bulk-actions">
-                    <select class="form-select form-select-sm" id="bulkStatusFilter">
-                        <option value="">All Statuses</option>
-                        <option value="allowed">Allowed</option>
-                        <option value="blocked">Blocked</option>
-                        <option value="restricted">Restricted</option>
-                        <option value="pending">Pending</option>
-                    </select>
-                    <select class="form-select form-select-sm" id="bulkRiskFilter">
-                        <option value="">All Risk Levels</option>
-                        <option value="low">Low Risk</option>
-                        <option value="medium">Medium Risk</option>
-                        <option value="high">High Risk</option>
-                        <option value="critical">Critical Risk</option>
-                    </select>
+    <div class="tab-content" id="countryControlsTabContent">
+        <div class="tab-pane fade show active" id="reviewPane" role="tabpanel">
+            <div class="review-stat-cards">
+                <div class="review-stat-card pending">
+                    <div class="review-stat-value" id="reviewPendingCount">3</div>
+                    <div class="review-stat-label">Pending Requests</div>
+                </div>
+                <div class="review-stat-card approved-today">
+                    <div class="review-stat-value" id="reviewApprovedToday">5</div>
+                    <div class="review-stat-label">Approved Today</div>
+                </div>
+                <div class="review-stat-card rejected-today">
+                    <div class="review-stat-value" id="reviewRejectedToday">1</div>
+                    <div class="review-stat-label">Rejected Today</div>
                 </div>
             </div>
-            <div class="country-search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" class="form-control form-control-sm" id="countrySearch" placeholder="Search countries...">
+
+            <div class="review-filters">
+                <select class="form-select form-select-sm" id="reviewStatusFilter">
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="">All Requests</option>
+                </select>
+                <select class="form-select form-select-sm" id="reviewCustomerFilter">
+                    <option value="">All Customers</option>
+                </select>
+                <select class="form-select form-select-sm" id="reviewCountryFilter">
+                    <option value="">All Countries</option>
+                </select>
             </div>
+
+            <div id="requestsList"></div>
         </div>
-        <div class="table-responsive">
-            <table class="country-table" id="countryTable">
-                <thead>
-                    <tr>
-                        <th style="width: 30px;"><input type="checkbox" id="selectAllCountries"></th>
-                        <th>Country</th>
-                        <th>ISO Code</th>
-                        <th>Dial Code</th>
-                        <th>Status</th>
+
+        <div class="tab-pane fade" id="countriesPane" role="tabpanel">
+            <div class="enforcement-banner">
+                <h6><i class="fas fa-shield-alt"></i>Shared Enforcement Configuration</h6>
+                <p>Changes here immediately apply across all enforcement points. No restart required.</p>
+                <div class="enforcement-points">
+                    <div class="enforcement-point">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Customer Portal Security Settings</span>
+                    </div>
+                    <div class="enforcement-point">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Send Message Validation</span>
+                    </div>
+                    <div class="enforcement-point">
+                        <i class="fas fa-check-circle"></i>
+                        <span>API Submission Validation</span>
+                    </div>
+                    <div class="enforcement-point">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Bulk Campaign Processing</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="country-stats">
+                <div class="country-stat-card allowed">
+                    <div class="country-stat-value" id="allowedCount">142</div>
+                    <div class="country-stat-label">Allowed Countries</div>
+                </div>
+                <div class="country-stat-card blocked">
+                    <div class="country-stat-value" id="blockedCount">23</div>
+                    <div class="country-stat-label">Blocked Countries</div>
+                </div>
+                <div class="country-stat-card restricted">
+                    <div class="country-stat-value" id="restrictedCount">12</div>
+                    <div class="country-stat-label">Restricted (Approval Required)</div>
+                </div>
+                <div class="country-stat-card pending">
+                    <div class="country-stat-value" id="pendingCount">5</div>
+                    <div class="country-stat-label">Pending Review</div>
+                </div>
+            </div>
+
+            <div class="country-table-card">
+                <div class="country-table-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <h6><i class="fas fa-list me-2"></i>Global Policy & Overrides</h6>
+                        <div class="bulk-actions">
+                            <select class="form-select form-select-sm" id="bulkStatusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="allowed">Allowed</option>
+                                <option value="blocked">Blocked</option>
+                                <option value="restricted">Restricted</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                            <select class="form-select form-select-sm" id="bulkRiskFilter">
+                                <option value="">All Risk Levels</option>
+                                <option value="low">Low Risk</option>
+                                <option value="medium">Medium Risk</option>
+                                <option value="high">High Risk</option>
+                                <option value="critical">Critical Risk</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="country-search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-control form-control-sm" id="countrySearch" placeholder="Search countries...">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="country-table" id="countryTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;"><input type="checkbox" id="selectAllCountries"></th>
+                                <th>Country</th>
+                                <th>ISO Code</th>
+                                <th>Dial Code</th>
+                                <th>Status</th>
                         <th>Risk Level</th>
                         <th>Customer Overrides</th>
                         <th>Last Updated</th>
@@ -427,6 +642,8 @@
             <i class="fas fa-history"></i>Pending Audit Record (Preview)
         </div>
         <div class="audit-preview-content" id="auditPreviewContent"></div>
+    </div>
+        </div>
     </div>
 </div>
 
@@ -613,21 +830,248 @@ var CountryControlsService = (function() {
 window.CountryControlsService = CountryControlsService;
 
 var countries = [];
+var countryRequests = [];
 var currentAdmin = {
     id: 'ADM001',
     email: 'admin@quicksms.co.uk',
     role: 'super_admin'
 };
 var selectedCountry = null;
+var selectedRequest = null;
 
 function initCountryControls() {
     countries = generateMockCountries();
+    countryRequests = generateMockRequests();
     renderCountryTable();
+    renderRequestsList();
     bindEvents();
     updateStats();
+    updateReviewStats();
     
     console.log('[CountryControls] Initialized with shared enforcement service');
     console.log('[CountryControls] Config version:', CountryControlsService.getSharedConfig().version);
+}
+
+function generateMockRequests() {
+    return [
+        {
+            id: 'REQ-001',
+            customer: { id: 'CUST-001', name: 'TechStart Ltd', accountNumber: 'ACC-10045' },
+            country: { code: 'NG', name: 'Nigeria', dialCode: '+234' },
+            requestType: 'enable',
+            reason: 'We have legitimate business operations in Nigeria and need to send SMS to our local customers.',
+            submittedBy: 'james@techstart.co.uk',
+            submittedAt: '2026-01-28 14:30',
+            status: 'pending',
+            risk: 'high',
+            estimatedVolume: '5,000 messages/month'
+        },
+        {
+            id: 'REQ-002',
+            customer: { id: 'CUST-002', name: 'HealthFirst UK', accountNumber: 'ACC-10089' },
+            country: { code: 'IN', name: 'India', dialCode: '+91' },
+            requestType: 'enable',
+            reason: 'Need to send appointment reminders to patients in our Indian branch.',
+            submittedBy: 'dr.jones@healthfirst.nhs.uk',
+            submittedAt: '2026-01-28 10:15',
+            status: 'pending',
+            risk: 'medium',
+            estimatedVolume: '2,000 messages/month'
+        },
+        {
+            id: 'REQ-003',
+            customer: { id: 'CUST-003', name: 'E-Commerce Hub', accountNumber: 'ACC-10112' },
+            country: { code: 'PH', name: 'Philippines', dialCode: '+63' },
+            requestType: 'enable',
+            reason: 'Expanding e-commerce operations to Philippines, need order confirmation SMS.',
+            submittedBy: 'ops@ecommercehub.com',
+            submittedAt: '2026-01-27 16:45',
+            status: 'pending',
+            risk: 'high',
+            estimatedVolume: '10,000 messages/month'
+        },
+        {
+            id: 'REQ-004',
+            customer: { id: 'CUST-004', name: 'RetailMax', accountNumber: 'ACC-10078' },
+            country: { code: 'BR', name: 'Brazil', dialCode: '+55' },
+            requestType: 'enable',
+            reason: 'Opening new retail stores in Brazil.',
+            submittedBy: 'admin@retailmax.com',
+            submittedAt: '2026-01-27 09:00',
+            status: 'approved',
+            risk: 'medium',
+            estimatedVolume: '8,000 messages/month',
+            reviewedBy: 'sarah.johnson@quicksms.co.uk',
+            reviewedAt: '2026-01-27 11:30'
+        },
+        {
+            id: 'REQ-005',
+            customer: { id: 'CUST-005', name: 'Unknown Corp', accountNumber: 'ACC-10099' },
+            country: { code: 'RU', name: 'Russia', dialCode: '+7' },
+            requestType: 'enable',
+            reason: 'Business expansion.',
+            submittedBy: 'info@unknowncorp.com',
+            submittedAt: '2026-01-26 14:00',
+            status: 'rejected',
+            risk: 'critical',
+            estimatedVolume: '50,000 messages/month',
+            reviewedBy: 'emily.chen@quicksms.co.uk',
+            reviewedAt: '2026-01-26 15:30',
+            rejectionReason: 'Russia is on the blocked countries list due to regulatory compliance.'
+        }
+    ];
+}
+
+function renderRequestsList() {
+    var container = document.getElementById('requestsList');
+    var statusFilter = document.getElementById('reviewStatusFilter').value;
+    var customerFilter = document.getElementById('reviewCustomerFilter').value;
+    var countryFilter = document.getElementById('reviewCountryFilter').value;
+
+    var filtered = countryRequests.filter(function(r) {
+        var matchesStatus = !statusFilter || r.status === statusFilter;
+        var matchesCustomer = !customerFilter || r.customer.id === customerFilter;
+        var matchesCountry = !countryFilter || r.country.code === countryFilter;
+        return matchesStatus && matchesCustomer && matchesCountry;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = 
+            '<div class="empty-state">' +
+                '<i class="fas fa-inbox"></i>' +
+                '<h6>No requests found</h6>' +
+                '<p class="small">There are no country access requests matching your filters.</p>' +
+            '</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    filtered.forEach(function(request) {
+        var card = document.createElement('div');
+        card.className = 'request-card ' + request.status;
+        
+        var statusBadge = '<span class="status-badge ' + request.status + '">' + capitalize(request.status) + '</span>';
+        var riskBadge = '<span class="status-badge ' + request.risk + '" style="margin-left: 0.5rem;">' + 
+            capitalize(request.risk) + ' Risk</span>';
+
+        var actionsHtml = '';
+        if (request.status === 'pending') {
+            actionsHtml = 
+                '<div class="request-actions">' +
+                    '<button class="btn btn-sm" style="background: #48bb78; color: #fff;" onclick="approveRequest(\'' + request.id + '\')">' +
+                        '<i class="fas fa-check me-1"></i>Approve' +
+                    '</button>' +
+                    '<button class="btn btn-sm" style="background: #e53e3e; color: #fff;" onclick="rejectRequest(\'' + request.id + '\')">' +
+                        '<i class="fas fa-times me-1"></i>Reject' +
+                    '</button>' +
+                    '<button class="btn btn-sm btn-outline-secondary" onclick="viewRequestDetails(\'' + request.id + '\')">' +
+                        '<i class="fas fa-eye me-1"></i>Details' +
+                    '</button>' +
+                '</div>';
+        } else {
+            var reviewInfo = request.status === 'approved' ? 
+                '<span class="text-success small"><i class="fas fa-check-circle me-1"></i>Approved by ' + request.reviewedBy + ' on ' + request.reviewedAt + '</span>' :
+                '<span class="text-danger small"><i class="fas fa-times-circle me-1"></i>Rejected by ' + request.reviewedBy + ' on ' + request.reviewedAt + '</span>';
+            actionsHtml = '<div class="request-actions">' + reviewInfo + '</div>';
+        }
+
+        card.innerHTML = 
+            '<div class="request-card-header">' +
+                '<div>' +
+                    '<span class="request-customer">' + request.customer.name + '</span>' +
+                    '<span class="request-customer-id">' + request.customer.accountNumber + '</span>' +
+                '</div>' +
+                '<div class="request-meta">' +
+                    statusBadge + riskBadge +
+                '</div>' +
+            '</div>' +
+            '<div class="request-card-body">' +
+                '<div class="request-details">' +
+                    '<div class="request-detail-item">' +
+                        '<div class="request-detail-label">Country Requested</div>' +
+                        '<div class="request-detail-value">' + request.country.name + ' (' + request.country.dialCode + ')</div>' +
+                    '</div>' +
+                    '<div class="request-detail-item">' +
+                        '<div class="request-detail-label">Estimated Volume</div>' +
+                        '<div class="request-detail-value">' + request.estimatedVolume + '</div>' +
+                    '</div>' +
+                    '<div class="request-detail-item">' +
+                        '<div class="request-detail-label">Submitted By</div>' +
+                        '<div class="request-detail-value">' + request.submittedBy + '</div>' +
+                    '</div>' +
+                    '<div class="request-detail-item">' +
+                        '<div class="request-detail-label">Submitted</div>' +
+                        '<div class="request-detail-value">' + request.submittedAt + '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="mt-3 small text-muted">' +
+                    '<strong>Reason:</strong> ' + request.reason +
+                '</div>' +
+                actionsHtml +
+            '</div>';
+        container.appendChild(card);
+    });
+}
+
+function updateReviewStats() {
+    var pending = countryRequests.filter(function(r) { return r.status === 'pending'; }).length;
+    var approvedToday = countryRequests.filter(function(r) { 
+        return r.status === 'approved' && r.reviewedAt && r.reviewedAt.startsWith('2026-01-28'); 
+    }).length;
+    var rejectedToday = countryRequests.filter(function(r) { 
+        return r.status === 'rejected' && r.reviewedAt && r.reviewedAt.startsWith('2026-01-28'); 
+    }).length;
+
+    document.getElementById('reviewPendingCount').textContent = pending;
+    document.getElementById('reviewApprovedToday').textContent = approvedToday;
+    document.getElementById('reviewRejectedToday').textContent = rejectedToday;
+    document.getElementById('pendingRequestsBadge').textContent = pending;
+    
+    if (pending === 0) {
+        document.getElementById('pendingRequestsBadge').style.display = 'none';
+    } else {
+        document.getElementById('pendingRequestsBadge').style.display = 'inline';
+    }
+}
+
+function approveRequest(requestId) {
+    var request = countryRequests.find(function(r) { return r.id === requestId; });
+    if (!request) return;
+
+    if (!confirm('Approve country access for ' + request.customer.name + ' to ' + request.country.name + '?')) {
+        return;
+    }
+
+    request.status = 'approved';
+    request.reviewedBy = currentAdmin.email;
+    request.reviewedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    renderRequestsList();
+    updateReviewStats();
+    showToast('Request approved. ' + request.customer.name + ' can now send to ' + request.country.name + '.', 'success');
+}
+
+function rejectRequest(requestId) {
+    var request = countryRequests.find(function(r) { return r.id === requestId; });
+    if (!request) return;
+
+    var reason = prompt('Enter rejection reason:');
+    if (!reason) return;
+
+    request.status = 'rejected';
+    request.reviewedBy = currentAdmin.email;
+    request.reviewedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    request.rejectionReason = reason;
+
+    renderRequestsList();
+    updateReviewStats();
+    showToast('Request rejected.', 'info');
+}
+
+function viewRequestDetails(requestId) {
+    var request = countryRequests.find(function(r) { return r.id === requestId; });
+    if (!request) return;
+    alert('Request Details:\n\nCustomer: ' + request.customer.name + '\nCountry: ' + request.country.name + '\nReason: ' + request.reason);
 }
 
 function generateMockCountries() {
@@ -757,6 +1201,10 @@ function bindEvents() {
     document.getElementById('bulkStatusFilter').addEventListener('change', renderCountryTable);
     document.getElementById('bulkRiskFilter').addEventListener('change', renderCountryTable);
 
+    document.getElementById('reviewStatusFilter').addEventListener('change', renderRequestsList);
+    document.getElementById('reviewCustomerFilter').addEventListener('change', renderRequestsList);
+    document.getElementById('reviewCountryFilter').addEventListener('change', renderRequestsList);
+
     document.getElementById('confirmStatusChange').addEventListener('click', function() {
         applyStatusChange();
     });
@@ -766,6 +1214,11 @@ function bindEvents() {
         document.querySelectorAll('.country-checkbox').forEach(function(cb) {
             cb.checked = checked;
         });
+    });
+
+    $('button[data-bs-target="#countriesPane"]').on('shown.bs.tab', function() {
+        console.log('[CountryControls] Countries tab activated');
+        renderCountryTable();
     });
 }
 
