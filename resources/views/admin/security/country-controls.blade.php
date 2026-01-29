@@ -2307,6 +2307,374 @@ var CountryPrecedenceService = (function() {
 window.CountryPrecedenceService = CountryPrecedenceService;
 console.log('[CountryPrecedenceService] Initialized with rules:', CountryPrecedenceService.getPrecedenceExplanation().rules);
 
+var SharedPolicyStore = (function() {
+    var STORE_KEY = 'QUICKSMS_COUNTRY_POLICY_STORE';
+    var VERSION_KEY = 'QUICKSMS_POLICY_VERSION';
+    
+    var policyStore = {
+        version: 1,
+        lastUpdated: new Date().toISOString(),
+        globalDefaults: {},
+        accountOverrides: {},
+        pendingRequests: {}
+    };
+
+    function initialize() {
+        countries.forEach(function(country) {
+            policyStore.globalDefaults[country.code] = {
+                status: country.status,
+                lastUpdated: country.lastUpdated,
+                updatedBy: 'system'
+            };
+        });
+
+        Object.keys(mockOverridesData).forEach(function(countryCode) {
+            policyStore.accountOverrides[countryCode] = mockOverridesData[countryCode].map(function(override) {
+                return {
+                    accountId: override.accountId,
+                    accountName: override.accountName,
+                    subAccount: override.subAccount,
+                    overrideType: override.overrideType,
+                    appliedAt: override.dateApplied,
+                    appliedBy: override.appliedBy
+                };
+            });
+        });
+
+        mockReviewData.forEach(function(request) {
+            var key = request.accountId + ':' + request.countryCode;
+            policyStore.pendingRequests[key] = {
+                requestId: request.id,
+                accountId: request.accountId,
+                accountName: request.accountName,
+                subAccountId: request.subAccountId,
+                subAccountName: request.subAccountName,
+                countryCode: request.countryCode,
+                countryName: request.countryName,
+                status: request.status,
+                submittedAt: request.submittedAt,
+                reason: request.reason
+            };
+        });
+
+        console.log('[SharedPolicyStore] Initialized with', Object.keys(policyStore.globalDefaults).length, 'countries');
+    }
+
+    function getGlobalDefault(countryCode) {
+        return policyStore.globalDefaults[countryCode] || { status: 'blocked', lastUpdated: null };
+    }
+
+    function setGlobalDefault(countryCode, status, adminUser) {
+        var before = policyStore.globalDefaults[countryCode];
+        policyStore.globalDefaults[countryCode] = {
+            status: status,
+            lastUpdated: new Date().toISOString(),
+            updatedBy: adminUser.email
+        };
+        policyStore.version++;
+        policyStore.lastUpdated = new Date().toISOString();
+
+        broadcastUpdate('GLOBAL_DEFAULT_CHANGED', { countryCode: countryCode, before: before, after: policyStore.globalDefaults[countryCode] });
+        return policyStore.globalDefaults[countryCode];
+    }
+
+    function getAccountOverrides(countryCode, accountId) {
+        var countryOverrides = policyStore.accountOverrides[countryCode] || [];
+        if (accountId) {
+            return countryOverrides.filter(function(o) { return o.accountId === accountId; });
+        }
+        return countryOverrides;
+    }
+
+    function addAccountOverride(countryCode, override, adminUser) {
+        if (!policyStore.accountOverrides[countryCode]) {
+            policyStore.accountOverrides[countryCode] = [];
+        }
+        
+        var newOverride = {
+            accountId: override.accountId,
+            accountName: override.accountName,
+            subAccount: override.subAccount || null,
+            overrideType: override.overrideType,
+            appliedAt: new Date().toISOString(),
+            appliedBy: adminUser.email
+        };
+        
+        policyStore.accountOverrides[countryCode].push(newOverride);
+        policyStore.version++;
+        policyStore.lastUpdated = new Date().toISOString();
+
+        broadcastUpdate('ACCOUNT_OVERRIDE_ADDED', { countryCode: countryCode, override: newOverride });
+        return newOverride;
+    }
+
+    function removeAccountOverride(countryCode, accountId, subAccount, adminUser) {
+        var countryOverrides = policyStore.accountOverrides[countryCode] || [];
+        var index = countryOverrides.findIndex(function(o) {
+            return o.accountId === accountId && o.subAccount === subAccount;
+        });
+        
+        if (index !== -1) {
+            var removed = countryOverrides.splice(index, 1)[0];
+            policyStore.version++;
+            policyStore.lastUpdated = new Date().toISOString();
+            broadcastUpdate('ACCOUNT_OVERRIDE_REMOVED', { countryCode: countryCode, override: removed });
+            return removed;
+        }
+        return null;
+    }
+
+    function getPendingRequest(accountId, countryCode) {
+        var key = accountId + ':' + countryCode;
+        return policyStore.pendingRequests[key] || null;
+    }
+
+    function getPendingRequestsForAccount(accountId) {
+        return Object.values(policyStore.pendingRequests).filter(function(req) {
+            return req.accountId === accountId;
+        });
+    }
+
+    function addPendingRequest(request) {
+        var key = request.accountId + ':' + request.countryCode;
+        policyStore.pendingRequests[key] = request;
+        policyStore.version++;
+        broadcastUpdate('PENDING_REQUEST_ADDED', { request: request });
+    }
+
+    function updatePendingRequest(accountId, countryCode, updates) {
+        var key = accountId + ':' + countryCode;
+        if (policyStore.pendingRequests[key]) {
+            Object.assign(policyStore.pendingRequests[key], updates);
+            policyStore.version++;
+            broadcastUpdate('PENDING_REQUEST_UPDATED', { key: key, updates: updates });
+        }
+    }
+
+    function removePendingRequest(accountId, countryCode) {
+        var key = accountId + ':' + countryCode;
+        if (policyStore.pendingRequests[key]) {
+            var removed = policyStore.pendingRequests[key];
+            delete policyStore.pendingRequests[key];
+            policyStore.version++;
+            broadcastUpdate('PENDING_REQUEST_REMOVED', { request: removed });
+            return removed;
+        }
+        return null;
+    }
+
+    function getStoreVersion() {
+        return policyStore.version;
+    }
+
+    function broadcastUpdate(eventType, data) {
+        var event = new CustomEvent('policyStoreUpdate', {
+            detail: {
+                eventType: eventType,
+                data: data,
+                version: policyStore.version,
+                timestamp: new Date().toISOString()
+            }
+        });
+        window.dispatchEvent(event);
+        console.log('[SharedPolicyStore] Broadcast:', eventType, 'v' + policyStore.version);
+    }
+
+    return {
+        initialize: initialize,
+        getGlobalDefault: getGlobalDefault,
+        setGlobalDefault: setGlobalDefault,
+        getAccountOverrides: getAccountOverrides,
+        addAccountOverride: addAccountOverride,
+        removeAccountOverride: removeAccountOverride,
+        getPendingRequest: getPendingRequest,
+        getPendingRequestsForAccount: getPendingRequestsForAccount,
+        addPendingRequest: addPendingRequest,
+        updatePendingRequest: updatePendingRequest,
+        removePendingRequest: removePendingRequest,
+        getStoreVersion: getStoreVersion
+    };
+})();
+
+var CustomerPortalCountryService = (function() {
+    var VISIBILITY_RULES = {
+        canViewGlobalCatalogue: false,
+        canApproveOwnRequests: false,
+        canSeeOtherCustomers: false,
+        canViewOwnOverrides: true,
+        canSubmitAccessRequests: true,
+        canViewPendingRequests: true
+    };
+
+    function getAvailableCountriesForAccount(accountId, subAccountId) {
+        var result = [];
+        
+        countries.forEach(function(country) {
+            var globalDefault = SharedPolicyStore.getGlobalDefault(country.code);
+            var accountOverrides = SharedPolicyStore.getAccountOverrides(country.code, accountId);
+            var pendingRequest = SharedPolicyStore.getPendingRequest(accountId, country.code);
+
+            var effectiveOverride = null;
+            if (subAccountId) {
+                effectiveOverride = accountOverrides.find(function(o) {
+                    return o.subAccount === subAccountId;
+                });
+            }
+            if (!effectiveOverride) {
+                effectiveOverride = accountOverrides.find(function(o) {
+                    return !o.subAccount;
+                });
+            }
+
+            var effectiveStatus = effectiveOverride ? effectiveOverride.overrideType : globalDefault.status;
+            var statusSource = effectiveOverride ? 'ACCOUNT_OVERRIDE' : 'GLOBAL_DEFAULT';
+
+            var requestStatus = null;
+            if (pendingRequest) {
+                requestStatus = pendingRequest.status;
+            }
+
+            result.push({
+                countryCode: country.code,
+                countryName: country.name,
+                dialCode: country.dialCode,
+                effectiveStatus: effectiveStatus,
+                statusSource: statusSource,
+                hasOverride: !!effectiveOverride,
+                overrideDetails: effectiveOverride ? {
+                    type: effectiveOverride.overrideType,
+                    appliedAt: effectiveOverride.appliedAt,
+                    scope: effectiveOverride.subAccount ? 'sub-account' : 'account'
+                } : null,
+                pendingRequest: requestStatus ? {
+                    status: requestStatus,
+                    submittedAt: pendingRequest.submittedAt
+                } : null,
+                canSend: effectiveStatus === 'allowed',
+                canRequestAccess: effectiveStatus === 'blocked' && !pendingRequest
+            });
+        });
+
+        return result;
+    }
+
+    function getCountryStatusForCustomer(countryCode, accountId, subAccountId) {
+        var globalDefault = SharedPolicyStore.getGlobalDefault(countryCode);
+        var accountOverrides = SharedPolicyStore.getAccountOverrides(countryCode, accountId);
+        var pendingRequest = SharedPolicyStore.getPendingRequest(accountId, countryCode);
+
+        var effectiveOverride = null;
+        if (subAccountId) {
+            effectiveOverride = accountOverrides.find(function(o) {
+                return o.subAccount === subAccountId;
+            });
+        }
+        if (!effectiveOverride) {
+            effectiveOverride = accountOverrides.find(function(o) {
+                return !o.subAccount;
+            });
+        }
+
+        var effectiveStatus = effectiveOverride ? effectiveOverride.overrideType : globalDefault.status;
+
+        return {
+            countryCode: countryCode,
+            effectiveStatus: effectiveStatus,
+            canSend: effectiveStatus === 'allowed',
+            statusExplanation: buildCustomerExplanation(effectiveStatus, !!effectiveOverride, pendingRequest),
+            pendingRequest: pendingRequest ? {
+                status: pendingRequest.status,
+                submittedAt: pendingRequest.submittedAt
+            } : null
+        };
+    }
+
+    function buildCustomerExplanation(status, hasOverride, pendingRequest) {
+        if (pendingRequest && pendingRequest.status === 'pending') {
+            return 'Your access request is pending admin review.';
+        }
+        if (pendingRequest && pendingRequest.status === 'rejected') {
+            return 'Your access request was not approved. Contact support for more information.';
+        }
+        if (status === 'allowed') {
+            if (hasOverride) {
+                return 'You have been granted access to send to this country.';
+            }
+            return 'This country is available for messaging.';
+        }
+        return 'This country requires approval. Submit an access request to enable messaging.';
+    }
+
+    function submitAccessRequest(accountId, accountName, subAccountId, subAccountName, countryCode, reason) {
+        if (!VISIBILITY_RULES.canSubmitAccessRequests) {
+            return { success: false, error: 'Access requests are not enabled for your account.' };
+        }
+
+        var existingRequest = SharedPolicyStore.getPendingRequest(accountId, countryCode);
+        if (existingRequest && existingRequest.status === 'pending') {
+            return { success: false, error: 'A pending request already exists for this country.' };
+        }
+
+        var country = countries.find(function(c) { return c.code === countryCode; });
+        if (!country) {
+            return { success: false, error: 'Invalid country code.' };
+        }
+
+        var request = {
+            requestId: 'REQ-' + Date.now(),
+            accountId: accountId,
+            accountName: accountName,
+            subAccountId: subAccountId,
+            subAccountName: subAccountName,
+            countryCode: countryCode,
+            countryName: country.name,
+            status: 'pending',
+            submittedAt: new Date().toISOString(),
+            reason: reason
+        };
+
+        SharedPolicyStore.addPendingRequest(request);
+
+        CountryReviewAuditService.emit('COUNTRY_REQUEST_SUBMITTED', {
+            accountId: accountId,
+            countryIso: countryCode,
+            countryName: country.name,
+            reason: reason,
+            result: 'request_submitted'
+        }, { emitToCustomerAudit: true });
+
+        return { success: true, requestId: request.requestId };
+    }
+
+    function getVisibilityRules() {
+        return JSON.parse(JSON.stringify(VISIBILITY_RULES));
+    }
+
+    function validateCustomerAccess(accountId, requestedAccountId) {
+        if (accountId !== requestedAccountId) {
+            console.warn('[CustomerPortalCountryService] Access denied: Account', accountId, 'attempted to access', requestedAccountId);
+            return false;
+        }
+        return true;
+    }
+
+    return {
+        getAvailableCountriesForAccount: getAvailableCountriesForAccount,
+        getCountryStatusForCustomer: getCountryStatusForCustomer,
+        submitAccessRequest: submitAccessRequest,
+        getVisibilityRules: getVisibilityRules,
+        validateCustomerAccess: validateCustomerAccess,
+        VISIBILITY_RULES: VISIBILITY_RULES
+    };
+})();
+
+SharedPolicyStore.initialize();
+window.SharedPolicyStore = SharedPolicyStore;
+window.CustomerPortalCountryService = CustomerPortalCountryService;
+
+console.log('[CustomerPortalCountryService] Initialized with visibility rules:', CustomerPortalCountryService.getVisibilityRules());
+console.log('[SharedPolicyStore] Policy store version:', SharedPolicyStore.getStoreVersion());
+
 var countries = [];
 var countryRequests = [];
 var currentAdmin = {
