@@ -646,51 +646,96 @@
             <div class="tab-pane fade" id="url-controls" role="tabpanel">
                 <div class="tab-description">
                     <h6><i class="fas fa-link me-2"></i>URL Controls</h6>
-                    <p>Manage URL blacklists, whitelists, and link scanning policies for messages containing URLs.</p>
+                    <p>Manage URL domain/pattern rules, domain age controls, and per-account exceptions for link enforcement.</p>
                 </div>
 
                 <div class="sec-stats">
                     <div class="sec-stat-card active">
-                        <div class="sec-stat-value" id="url-whitelist-count">0</div>
-                        <div class="sec-stat-label">Whitelisted</div>
+                        <div class="sec-stat-value" id="url-active-count">0</div>
+                        <div class="sec-stat-label">Active Rules</div>
                     </div>
                     <div class="sec-stat-card blocked">
-                        <div class="sec-stat-value" id="url-blacklist-count">0</div>
-                        <div class="sec-stat-label">Blacklisted</div>
+                        <div class="sec-stat-value" id="url-block-count">0</div>
+                        <div class="sec-stat-label">Block Rules</div>
                     </div>
                     <div class="sec-stat-card pending">
-                        <div class="sec-stat-value" id="url-pending-count">0</div>
-                        <div class="sec-stat-label">Pending Scan</div>
+                        <div class="sec-stat-value" id="url-flag-count">0</div>
+                        <div class="sec-stat-label">Flag Rules</div>
                     </div>
                     <div class="sec-stat-card total">
                         <div class="sec-stat-value" id="url-total-count">0</div>
-                        <div class="sec-stat-label">Total URLs</div>
+                        <div class="sec-stat-label">Total Rules</div>
+                    </div>
+                </div>
+
+                <div class="sec-table-card" style="margin-bottom: 1.5rem;">
+                    <div class="sec-table-header" style="border-bottom: 1px solid #e9ecef; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                        <h6 style="margin: 0;"><i class="fas fa-clock me-2" style="color: #1e3a5f;"></i>Domain Age Control</h6>
+                    </div>
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="domain-age-enabled" style="width: 2.5rem; height: 1.25rem;">
+                                    <label class="form-check-label" for="domain-age-enabled" style="font-weight: 600; margin-left: 0.5rem;">
+                                        Enable Domain Age Check
+                                    </label>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-1">When enabled, newly registered domains will be blocked or flagged based on their age.</small>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Block domains younger than</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="domain-age-hours" value="72" min="1" max="8760" disabled>
+                                <span class="input-group-text">hours</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Action</label>
+                            <select class="form-select" id="domain-age-action" disabled>
+                                <option value="block">Block</option>
+                                <option value="flag">Flag (Quarantine)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveDomainAgeSettings()">
+                            <i class="fas fa-save me-1"></i> Save Settings
+                        </button>
                     </div>
                 </div>
 
                 <div class="sec-table-card">
                     <div class="sec-filter-row">
                         <div class="sec-filter-group">
-                            <label>List Type</label>
-                            <select id="url-filter-type">
-                                <option value="">All Types</option>
-                                <option value="whitelist">Whitelist</option>
-                                <option value="blacklist">Blacklist</option>
+                            <label>Status</label>
+                            <select id="url-filter-status">
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="disabled">Disabled</option>
                             </select>
                         </div>
                         <div class="sec-filter-group">
-                            <label>Category</label>
-                            <select id="url-filter-category">
-                                <option value="">All Categories</option>
-                                <option value="phishing">Phishing</option>
-                                <option value="malware">Malware</option>
-                                <option value="spam">Spam</option>
-                                <option value="trusted">Trusted</option>
+                            <label>Match Type</label>
+                            <select id="url-filter-matchtype">
+                                <option value="">All Types</option>
+                                <option value="exact">Exact Domain</option>
+                                <option value="wildcard">Wildcard</option>
+                                <option value="regex">Regex</option>
+                            </select>
+                        </div>
+                        <div class="sec-filter-group">
+                            <label>Rule Type</label>
+                            <select id="url-filter-ruletype">
+                                <option value="">All Types</option>
+                                <option value="block">Block</option>
+                                <option value="flag">Flag</option>
                             </select>
                         </div>
                         <div class="sec-filter-actions">
                             <button class="sec-btn-primary" onclick="showAddUrlRuleModal()">
-                                <i class="fas fa-plus"></i> Add URL
+                                <i class="fas fa-plus"></i> Add Rule
                             </button>
                             <button class="sec-btn-outline" onclick="resetUrlFilters()">
                                 <i class="fas fa-undo"></i> Reset
@@ -698,30 +743,66 @@
                         </div>
                     </div>
                     <div class="sec-table-header">
-                        <h6>URL Rules</h6>
+                        <h6>URL Rule Library</h6>
                         <div class="sec-search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search URLs..." id="url-search">
+                            <input type="text" class="form-control" placeholder="Search domains/patterns..." id="url-search">
                         </div>
                     </div>
-                    <table class="sec-table" id="url-rules-table">
-                        <thead>
-                            <tr>
-                                <th>Domain / URL <i class="fas fa-sort"></i></th>
-                                <th>List Type <i class="fas fa-sort"></i></th>
-                                <th>Category <i class="fas fa-sort"></i></th>
-                                <th>Added By <i class="fas fa-sort"></i></th>
-                                <th>Added On <i class="fas fa-sort"></i></th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="url-rules-body">
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="sec-table" id="url-rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Domain/Pattern <i class="fas fa-sort"></i></th>
+                                    <th>Match Type <i class="fas fa-sort"></i></th>
+                                    <th>Rule Type <i class="fas fa-sort"></i></th>
+                                    <th>Domain Age <i class="fas fa-sort"></i></th>
+                                    <th>Status <i class="fas fa-sort"></i></th>
+                                    <th>Last Updated <i class="fas fa-sort"></i></th>
+                                    <th style="width: 80px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="url-rules-body">
+                            </tbody>
+                        </table>
+                    </div>
                     <div class="sec-empty-state" id="url-empty-state" style="display: none;">
                         <i class="fas fa-link"></i>
                         <h6>No URL Rules</h6>
-                        <p>Add URLs to the whitelist or blacklist to control link usage.</p>
+                        <p>Add domain/pattern rules to control URL usage in messages.</p>
+                    </div>
+                </div>
+
+                <div class="sec-table-card" style="margin-top: 1.5rem;">
+                    <div class="sec-table-header" style="border-bottom: 1px solid #e9ecef; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                        <h6 style="margin: 0;"><i class="fas fa-user-shield me-2" style="color: #1e3a5f;"></i>Per-Account Domain Age Exceptions</h6>
+                        <button class="sec-btn-primary" onclick="showAddDomainAgeExceptionModal()">
+                            <i class="fas fa-plus"></i> Add Exception
+                        </button>
+                    </div>
+                    <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
+                        Accounts listed below are exempt from domain age checks. All exceptions are logged in the audit trail.
+                    </p>
+                    <div class="table-responsive">
+                        <table class="sec-table" id="domain-age-exceptions-table">
+                            <thead>
+                                <tr>
+                                    <th>Account ID <i class="fas fa-sort"></i></th>
+                                    <th>Account Name <i class="fas fa-sort"></i></th>
+                                    <th>Reason <i class="fas fa-sort"></i></th>
+                                    <th>Added By <i class="fas fa-sort"></i></th>
+                                    <th>Added On <i class="fas fa-sort"></i></th>
+                                    <th style="width: 80px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="domain-age-exceptions-body">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="sec-empty-state" id="domain-exceptions-empty-state" style="display: none;">
+                        <i class="fas fa-user-check"></i>
+                        <h6>No Exceptions</h6>
+                        <p>All accounts are subject to domain age checks when enabled.</p>
                     </div>
                 </div>
             </div>
@@ -1097,6 +1178,105 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="urlRuleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
+                <h5 class="modal-title text-white" id="url-rule-modal-title">
+                    <i class="fas fa-link me-2"></i>Add URL Rule
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <form id="url-rule-form">
+                    <input type="hidden" id="url-rule-id" value="">
+                    
+                    <div class="mb-3">
+                        <label for="url-match-type" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Match Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="url-match-type" onchange="updateUrlPatternLabel()">
+                            <option value="exact">Exact Domain</option>
+                            <option value="wildcard">Wildcard Pattern</option>
+                            <option value="regex">Regex Pattern</option>
+                        </select>
+                        <small class="text-muted">Choose how the domain/URL pattern should be matched.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="url-pattern" class="form-label" style="font-weight: 600; font-size: 0.85rem;" id="url-pattern-label">Domain <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="url-pattern" placeholder="example.com" required>
+                        <small class="text-muted" id="url-pattern-help">Enter the exact domain to match (e.g., example.com)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="url-rule-type" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Rule Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="url-rule-type">
+                            <option value="block">Block (Immediate Rejection)</option>
+                            <option value="flag">Flag (Quarantine for Review)</option>
+                        </select>
+                        <small class="text-muted">Block immediately rejects messages containing this URL. Flag sends them to quarantine.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="url-apply-domain-age" checked style="width: 2.5rem; height: 1.25rem;">
+                            <label class="form-check-label" for="url-apply-domain-age" style="font-weight: 600; font-size: 0.85rem; margin-left: 0.5rem;">
+                                Apply Domain Age Check
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">When enabled, the global domain age rule will also apply to URLs matching this pattern.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveUrlRule()">
+                    <i class="fas fa-save me-1"></i> Save Rule
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="domainAgeExceptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-user-shield me-2"></i>Add Domain Age Exception
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <form id="exception-form">
+                    <div class="mb-3">
+                        <label for="exception-account-id" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Account ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="exception-account-id" placeholder="ACC-XXXXX" required>
+                        <small class="text-muted">Enter the account ID to exempt from domain age checks.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="exception-account-name" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Account Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="exception-account-name" placeholder="Company Name" required>
+                        <small class="text-muted">Enter the account/company name for reference.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="exception-reason" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Reason for Exception <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="exception-reason" rows="3" placeholder="Explain why this account needs an exception..." required></textarea>
+                        <small class="text-muted">This will be recorded in the audit trail.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveException()">
+                    <i class="fas fa-save me-1"></i> Add Exception
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1142,9 +1322,22 @@ var SecurityComplianceControlsService = (function() {
         ];
 
         mockData.urlRules = [
-            { id: 1, domain: 'bit.ly', type: 'whitelist', category: 'trusted', addedBy: 'admin@quicksms.co.uk', addedOn: '01-01-2026' },
-            { id: 2, domain: 'malicious-site.com', type: 'blacklist', category: 'phishing', addedBy: 'admin@quicksms.co.uk', addedOn: '10-01-2026' },
-            { id: 3, domain: 'tinyurl.com', type: 'whitelist', category: 'trusted', addedBy: 'admin@quicksms.co.uk', addedOn: '01-01-2026' }
+            { id: 'URL-001', pattern: 'bit.ly', matchType: 'exact', ruleType: 'flag', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
+            { id: 'URL-002', pattern: 'malicious-site.com', matchType: 'exact', ruleType: 'block', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 14:00', updatedAt: '20-01-2026 11:45' },
+            { id: 'URL-003', pattern: '*.tinyurl.com', matchType: 'wildcard', ruleType: 'flag', applyDomainAge: false, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '08-01-2026 10:20', updatedAt: '25-01-2026 16:30' },
+            { id: 'URL-004', pattern: 'phish\\d+\\.com', matchType: 'regex', ruleType: 'block', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 08:45', updatedAt: '05-01-2026 08:45' },
+            { id: 'URL-005', pattern: 'suspicious-domain.net', matchType: 'exact', ruleType: 'block', applyDomainAge: true, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '01-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
+        ];
+        
+        mockData.domainAgeSettings = {
+            enabled: false,
+            minAgeHours: 72,
+            action: 'block'
+        };
+        
+        mockData.domainAgeExceptions = [
+            { id: 'EXC-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', reason: 'Approved marketing partner - verified shortlinks', addedBy: 'admin@quicksms.co.uk', addedAt: '15-01-2026 10:30' },
+            { id: 'EXC-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', reason: 'Enterprise customer - internal domain rotation', addedBy: 'compliance@quicksms.co.uk', addedAt: '20-01-2026 14:15' }
         ];
 
         mockData.normalisationRules = [
@@ -1517,31 +1710,424 @@ var SecurityComplianceControlsService = (function() {
     function renderUrlTab() {
         var tbody = document.getElementById('url-rules-body');
         var emptyState = document.getElementById('url-empty-state');
-        var rules = mockData.urlRules;
+        
+        var statusFilter = document.getElementById('url-filter-status').value;
+        var matchTypeFilter = document.getElementById('url-filter-matchtype').value;
+        var ruleTypeFilter = document.getElementById('url-filter-ruletype').value;
+        var searchTerm = document.getElementById('url-search').value.toLowerCase();
+        
+        var rules = mockData.urlRules.filter(function(rule) {
+            if (statusFilter && rule.status !== statusFilter) return false;
+            if (matchTypeFilter && rule.matchType !== matchTypeFilter) return false;
+            if (ruleTypeFilter && rule.ruleType !== ruleTypeFilter) return false;
+            if (searchTerm && rule.pattern.toLowerCase().indexOf(searchTerm) === -1) return false;
+            return true;
+        });
 
-        document.getElementById('url-whitelist-count').textContent = rules.filter(r => r.type === 'whitelist').length;
-        document.getElementById('url-blacklist-count').textContent = rules.filter(r => r.type === 'blacklist').length;
-        document.getElementById('url-pending-count').textContent = 0;
-        document.getElementById('url-total-count').textContent = rules.length;
+        document.getElementById('url-active-count').textContent = mockData.urlRules.filter(r => r.status === 'active').length;
+        document.getElementById('url-block-count').textContent = mockData.urlRules.filter(r => r.ruleType === 'block').length;
+        document.getElementById('url-flag-count').textContent = mockData.urlRules.filter(r => r.ruleType === 'flag').length;
+        document.getElementById('url-total-count').textContent = mockData.urlRules.length;
+        
+        document.getElementById('domain-age-enabled').checked = mockData.domainAgeSettings.enabled;
+        document.getElementById('domain-age-hours').value = mockData.domainAgeSettings.minAgeHours;
+        document.getElementById('domain-age-hours').disabled = !mockData.domainAgeSettings.enabled;
+        document.getElementById('domain-age-action').value = mockData.domainAgeSettings.action;
+        document.getElementById('domain-age-action').disabled = !mockData.domainAgeSettings.enabled;
 
         if (rules.length === 0) {
             tbody.innerHTML = '';
             emptyState.style.display = 'block';
+        } else {
+            emptyState.style.display = 'none';
+            tbody.innerHTML = rules.map(function(rule) {
+                var matchTypeBadges = {
+                    'exact': '<span class="sec-status-badge" style="background: #dbeafe; color: #1e40af;"><i class="fas fa-bullseye me-1"></i>Exact</span>',
+                    'wildcard': '<span class="sec-status-badge" style="background: #fef3c7; color: #92400e;"><i class="fas fa-asterisk me-1"></i>Wildcard</span>',
+                    'regex': '<span class="sec-status-badge" style="background: #f3e8ff; color: #6b21a8;"><i class="fas fa-code me-1"></i>Regex</span>'
+                };
+                
+                var ruleTypeBadge = rule.ruleType === 'block'
+                    ? '<span class="sec-status-badge blocked"><i class="fas fa-ban me-1"></i>Block</span>'
+                    : '<span class="sec-status-badge pending"><i class="fas fa-flag me-1"></i>Flag</span>';
+                
+                var domainAgeBadge = rule.applyDomainAge
+                    ? '<span class="sec-status-badge active"><i class="fas fa-check me-1"></i>Yes</span>'
+                    : '<span class="sec-status-badge disabled"><i class="fas fa-times me-1"></i>No</span>';
+                
+                var statusBadge = '<span class="sec-status-badge ' + rule.status + '">' + 
+                    (rule.status === 'active' ? '<i class="fas fa-check-circle me-1"></i>' : '<i class="fas fa-pause-circle me-1"></i>') +
+                    rule.status.charAt(0).toUpperCase() + rule.status.slice(1) + '</span>';
+                
+                var dateOnly = rule.updatedAt.split(' ')[0];
+                
+                return '<tr data-rule-id="' + rule.id + '">' +
+                    '<td><code style="background: #f8f9fa; padding: 0.25rem 0.5rem; border-radius: 4px;">' + rule.pattern + '</code><br><small class="text-muted" style="font-size: 0.7rem;">' + rule.id + '</small></td>' +
+                    '<td>' + matchTypeBadges[rule.matchType] + '</td>' +
+                    '<td>' + ruleTypeBadge + '</td>' +
+                    '<td>' + domainAgeBadge + '</td>' +
+                    '<td>' + statusBadge + '</td>' +
+                    '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
+                    '<td>' +
+                        '<div class="action-menu-container">' +
+                            '<button class="action-menu-btn" onclick="toggleUrlActionMenu(this, \'' + rule.id + '\')"><i class="fas fa-ellipsis-v"></i></button>' +
+                            '<div class="action-menu-dropdown" id="url-menu-' + rule.id + '">' +
+                                '<a href="#" onclick="viewUrlRule(\'' + rule.id + '\'); return false;"><i class="fas fa-eye"></i> View Details</a>' +
+                                '<a href="#" onclick="editUrlRule(\'' + rule.id + '\'); return false;"><i class="fas fa-edit"></i> Edit Rule</a>' +
+                                '<a href="#" onclick="toggleUrlRuleStatus(\'' + rule.id + '\'); return false;"><i class="fas fa-toggle-on"></i> ' + (rule.status === 'active' ? 'Disable' : 'Enable') + '</a>' +
+                                '<div class="dropdown-divider"></div>' +
+                                '<a href="#" class="text-danger" onclick="deleteUrlRule(\'' + rule.id + '\'); return false;"><i class="fas fa-trash"></i> Delete</a>' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+        
+        renderDomainAgeExceptions();
+    }
+    
+    function renderDomainAgeExceptions() {
+        var tbody = document.getElementById('domain-age-exceptions-body');
+        var emptyState = document.getElementById('domain-exceptions-empty-state');
+        var exceptions = mockData.domainAgeExceptions;
+        
+        if (exceptions.length === 0) {
+            tbody.innerHTML = '';
+            emptyState.style.display = 'block';
             return;
         }
-
+        
         emptyState.style.display = 'none';
-        tbody.innerHTML = rules.map(function(rule) {
-            var typeClass = rule.type === 'whitelist' ? 'active' : 'blocked';
-            return '<tr>' +
-                '<td><code>' + rule.domain + '</code></td>' +
-                '<td><span class="sec-status-badge ' + typeClass + '">' + rule.type.charAt(0).toUpperCase() + rule.type.slice(1) + '</span></td>' +
-                '<td>' + rule.category.charAt(0).toUpperCase() + rule.category.slice(1) + '</td>' +
-                '<td>' + rule.addedBy + '</td>' +
-                '<td>' + rule.addedOn + '</td>' +
-                '<td><button class="action-menu-btn"><i class="fas fa-ellipsis-v"></i></button></td>' +
+        tbody.innerHTML = exceptions.map(function(exc) {
+            var dateOnly = exc.addedAt.split(' ')[0];
+            return '<tr data-exception-id="' + exc.id + '">' +
+                '<td><code>' + exc.accountId + '</code></td>' +
+                '<td><strong>' + exc.accountName + '</strong></td>' +
+                '<td><span style="font-size: 0.85rem;">' + exc.reason + '</span></td>' +
+                '<td><span style="font-size: 0.8rem;">' + exc.addedBy + '</span></td>' +
+                '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
+                '<td>' +
+                    '<button class="action-menu-btn text-danger" onclick="removeDomainAgeException(\'' + exc.id + '\')" title="Remove Exception">' +
+                        '<i class="fas fa-trash"></i>' +
+                    '</button>' +
+                '</td>' +
                 '</tr>';
         }).join('');
+    }
+    
+    function toggleUrlActionMenu(btn, ruleId) {
+        document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
+            if (menu.id !== 'url-menu-' + ruleId) {
+                menu.classList.remove('show');
+            }
+        });
+        var menu = document.getElementById('url-menu-' + ruleId);
+        menu.classList.toggle('show');
+    }
+    
+    function showAddUrlRuleModal() {
+        document.getElementById('url-rule-modal-title').textContent = 'Add URL Rule';
+        document.getElementById('url-rule-form').reset();
+        document.getElementById('url-rule-id').value = '';
+        document.getElementById('url-match-type').value = 'exact';
+        document.getElementById('url-apply-domain-age').checked = true;
+        updateUrlPatternLabel();
+        clearUrlRuleErrors();
+        var modal = new bootstrap.Modal(document.getElementById('urlRuleModal'));
+        modal.show();
+    }
+    
+    function editUrlRule(ruleId) {
+        var rule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
+        if (!rule) return;
+        
+        document.getElementById('url-rule-modal-title').textContent = 'Edit URL Rule';
+        document.getElementById('url-rule-id').value = rule.id;
+        document.getElementById('url-pattern').value = rule.pattern;
+        document.getElementById('url-match-type').value = rule.matchType;
+        document.getElementById('url-rule-type').value = rule.ruleType;
+        document.getElementById('url-apply-domain-age').checked = rule.applyDomainAge;
+        updateUrlPatternLabel();
+        clearUrlRuleErrors();
+        
+        closeAllUrlMenus();
+        var modal = new bootstrap.Modal(document.getElementById('urlRuleModal'));
+        modal.show();
+    }
+    
+    function viewUrlRule(ruleId) {
+        editUrlRule(ruleId);
+    }
+    
+    function updateUrlPatternLabel() {
+        var matchType = document.getElementById('url-match-type').value;
+        var label = document.getElementById('url-pattern-label');
+        var input = document.getElementById('url-pattern');
+        var helpText = document.getElementById('url-pattern-help');
+        
+        var config = {
+            'exact': { label: 'Domain', placeholder: 'example.com', help: 'Enter the exact domain to match (e.g., example.com)' },
+            'wildcard': { label: 'Wildcard Pattern', placeholder: '*.example.com', help: 'Use * for wildcard matching (e.g., *.example.com matches all subdomains)' },
+            'regex': { label: 'Regex Pattern', placeholder: 'phish\\d+\\.com', help: 'Enter a valid regular expression pattern' }
+        };
+        
+        label.textContent = config[matchType].label;
+        input.placeholder = config[matchType].placeholder;
+        helpText.textContent = config[matchType].help;
+    }
+    
+    function validateUrlRuleForm() {
+        clearUrlRuleErrors();
+        var isValid = true;
+        
+        var pattern = document.getElementById('url-pattern').value.trim();
+        if (!pattern) {
+            showUrlFieldError('url-pattern', 'Domain/pattern is required');
+            isValid = false;
+        }
+        
+        var matchType = document.getElementById('url-match-type').value;
+        if (matchType === 'regex' && pattern) {
+            try {
+                new RegExp(pattern);
+            } catch (e) {
+                showUrlFieldError('url-pattern', 'Invalid regex: ' + e.message.replace('Invalid regular expression: ', ''));
+                isValid = false;
+            }
+        }
+        
+        return isValid;
+    }
+    
+    function showUrlFieldError(fieldId, message) {
+        var field = document.getElementById(fieldId);
+        field.classList.add('is-invalid');
+        var errorDiv = document.createElement('div');
+        errorDiv.className = 'invalid-feedback';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+    
+    function clearUrlRuleErrors() {
+        document.querySelectorAll('#url-rule-form .is-invalid').forEach(function(el) {
+            el.classList.remove('is-invalid');
+        });
+        document.querySelectorAll('#url-rule-form .invalid-feedback').forEach(function(el) {
+            el.remove();
+        });
+    }
+    
+    function saveUrlRule() {
+        if (!validateUrlRuleForm()) return;
+        
+        var ruleId = document.getElementById('url-rule-id').value;
+        var ruleData = {
+            pattern: document.getElementById('url-pattern').value.trim(),
+            matchType: document.getElementById('url-match-type').value,
+            ruleType: document.getElementById('url-rule-type').value,
+            applyDomainAge: document.getElementById('url-apply-domain-age').checked,
+            status: 'active',
+            updatedAt: formatDateTime(new Date())
+        };
+        
+        var eventType, beforeState = null;
+        
+        if (ruleId) {
+            var existingRule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
+            if (existingRule) {
+                beforeState = JSON.parse(JSON.stringify(existingRule));
+                Object.assign(existingRule, ruleData);
+                eventType = 'URL_RULE_UPDATED';
+            }
+        } else {
+            ruleData.id = 'URL-' + String(mockData.urlRules.length + 1).padStart(3, '0');
+            ruleData.createdBy = currentAdmin.email;
+            ruleData.createdAt = ruleData.updatedAt;
+            mockData.urlRules.push(ruleData);
+            eventType = 'URL_RULE_CREATED';
+        }
+        
+        logAuditEvent(eventType, {
+            ruleId: ruleId || ruleData.id,
+            pattern: ruleData.pattern,
+            matchType: ruleData.matchType,
+            ruleType: ruleData.ruleType,
+            before: beforeState,
+            after: ruleData
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('urlRuleModal')).hide();
+        renderUrlTab();
+        showToast(ruleId ? 'URL rule updated successfully' : 'URL rule created successfully', 'success');
+    }
+    
+    function toggleUrlRuleStatus(ruleId) {
+        var rule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
+        if (!rule) return;
+        
+        var beforeStatus = rule.status;
+        rule.status = rule.status === 'active' ? 'disabled' : 'active';
+        rule.updatedAt = formatDateTime(new Date());
+        
+        logAuditEvent('URL_RULE_STATUS_CHANGED', {
+            ruleId: ruleId,
+            pattern: rule.pattern,
+            beforeStatus: beforeStatus,
+            afterStatus: rule.status
+        });
+        
+        closeAllUrlMenus();
+        renderUrlTab();
+        showToast('URL rule ' + (rule.status === 'active' ? 'enabled' : 'disabled'), 'success');
+    }
+    
+    function deleteUrlRule(ruleId) {
+        var rule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
+        if (!rule) return;
+        
+        document.getElementById('confirm-delete-message').textContent = 'Are you sure you want to delete the URL rule "' + rule.pattern + '"?';
+        document.getElementById('delete-rule-id').value = ruleId;
+        document.getElementById('delete-rule-type').value = 'url';
+        
+        closeAllUrlMenus();
+        var modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        modal.show();
+    }
+    
+    function deleteUrlRuleById(ruleId) {
+        var ruleIndex = mockData.urlRules.findIndex(function(r) { return r.id === ruleId; });
+        if (ruleIndex === -1) return;
+        
+        var deletedRule = mockData.urlRules[ruleIndex];
+        mockData.urlRules.splice(ruleIndex, 1);
+        
+        logAuditEvent('URL_RULE_DELETED', {
+            ruleId: ruleId,
+            pattern: deletedRule.pattern,
+            deletedRule: deletedRule
+        });
+        
+        showToast('URL rule deleted successfully', 'success');
+    }
+    
+    function closeAllUrlMenus() {
+        document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
+            menu.classList.remove('show');
+        });
+    }
+    
+    function resetUrlFilters() {
+        document.getElementById('url-filter-status').value = '';
+        document.getElementById('url-filter-matchtype').value = '';
+        document.getElementById('url-filter-ruletype').value = '';
+        document.getElementById('url-search').value = '';
+        renderUrlTab();
+    }
+    
+    function saveDomainAgeSettings() {
+        var enabled = document.getElementById('domain-age-enabled').checked;
+        var hours = parseInt(document.getElementById('domain-age-hours').value) || 72;
+        var action = document.getElementById('domain-age-action').value;
+        
+        var beforeSettings = JSON.parse(JSON.stringify(mockData.domainAgeSettings));
+        mockData.domainAgeSettings.enabled = enabled;
+        mockData.domainAgeSettings.minAgeHours = hours;
+        mockData.domainAgeSettings.action = action;
+        
+        logAuditEvent('DOMAIN_AGE_SETTINGS_UPDATED', {
+            before: beforeSettings,
+            after: mockData.domainAgeSettings
+        });
+        
+        showToast('Domain age settings saved successfully', 'success');
+    }
+    
+    function showAddDomainAgeExceptionModal() {
+        document.getElementById('exception-form').reset();
+        clearExceptionErrors();
+        var modal = new bootstrap.Modal(document.getElementById('domainAgeExceptionModal'));
+        modal.show();
+    }
+    
+    function saveException() {
+        clearExceptionErrors();
+        var accountId = document.getElementById('exception-account-id').value.trim();
+        var accountName = document.getElementById('exception-account-name').value.trim();
+        var reason = document.getElementById('exception-reason').value.trim();
+        
+        var isValid = true;
+        if (!accountId) {
+            document.getElementById('exception-account-id').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!accountName) {
+            document.getElementById('exception-account-name').classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!reason) {
+            document.getElementById('exception-reason').classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        if (!isValid) return;
+        
+        var exception = {
+            id: 'EXC-' + String(mockData.domainAgeExceptions.length + 1).padStart(3, '0'),
+            accountId: accountId,
+            accountName: accountName,
+            reason: reason,
+            addedBy: currentAdmin.email,
+            addedAt: formatDateTime(new Date())
+        };
+        
+        mockData.domainAgeExceptions.push(exception);
+        
+        logAuditEvent('DOMAIN_AGE_EXCEPTION_ADDED', {
+            exceptionId: exception.id,
+            accountId: accountId,
+            accountName: accountName,
+            reason: reason
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('domainAgeExceptionModal')).hide();
+        renderDomainAgeExceptions();
+        showToast('Domain age exception added successfully', 'success');
+    }
+    
+    function removeDomainAgeException(exceptionId) {
+        var excIndex = mockData.domainAgeExceptions.findIndex(function(e) { return e.id === exceptionId; });
+        if (excIndex === -1) return;
+        
+        var removedExc = mockData.domainAgeExceptions[excIndex];
+        mockData.domainAgeExceptions.splice(excIndex, 1);
+        
+        logAuditEvent('DOMAIN_AGE_EXCEPTION_REMOVED', {
+            exceptionId: exceptionId,
+            accountId: removedExc.accountId,
+            accountName: removedExc.accountName
+        });
+        
+        renderDomainAgeExceptions();
+        showToast('Exception removed successfully', 'success');
+    }
+    
+    function clearExceptionErrors() {
+        document.querySelectorAll('#exception-form .is-invalid').forEach(function(el) {
+            el.classList.remove('is-invalid');
+        });
+    }
+    
+    function setupUrlTabListeners() {
+        document.getElementById('url-filter-status').addEventListener('change', renderUrlTab);
+        document.getElementById('url-filter-matchtype').addEventListener('change', renderUrlTab);
+        document.getElementById('url-filter-ruletype').addEventListener('change', renderUrlTab);
+        document.getElementById('url-search').addEventListener('input', renderUrlTab);
+        
+        document.getElementById('domain-age-enabled').addEventListener('change', function() {
+            document.getElementById('domain-age-hours').disabled = !this.checked;
+            document.getElementById('domain-age-action').disabled = !this.checked;
+        });
     }
 
     function renderNormTab() {
@@ -1616,6 +2202,7 @@ var SecurityComplianceControlsService = (function() {
         });
         
         setupContentTabListeners();
+        setupUrlTabListeners();
         
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.action-menu-container')) {
@@ -1662,7 +2249,22 @@ var SecurityComplianceControlsService = (function() {
         updateContentMatchInputLabel: updateContentMatchInputLabel,
         resetContentFilters: resetContentFilters,
         toggleContentActionMenu: toggleContentActionMenu,
-        setupContentTabListeners: setupContentTabListeners
+        setupContentTabListeners: setupContentTabListeners,
+        showAddUrlRuleModal: showAddUrlRuleModal,
+        editUrlRule: editUrlRule,
+        viewUrlRule: viewUrlRule,
+        toggleUrlRuleStatus: toggleUrlRuleStatus,
+        deleteUrlRule: deleteUrlRule,
+        deleteUrlRuleById: deleteUrlRuleById,
+        saveUrlRule: saveUrlRule,
+        updateUrlPatternLabel: updateUrlPatternLabel,
+        resetUrlFilters: resetUrlFilters,
+        toggleUrlActionMenu: toggleUrlActionMenu,
+        setupUrlTabListeners: setupUrlTabListeners,
+        saveDomainAgeSettings: saveDomainAgeSettings,
+        showAddDomainAgeExceptionModal: showAddDomainAgeExceptionModal,
+        saveException: saveException,
+        removeDomainAgeException: removeDomainAgeException
     };
 })();
 
@@ -2017,6 +2619,8 @@ function confirmDeleteRule() {
         }));
     } else if (ruleType === 'content') {
         SecurityComplianceControlsService.deleteContentRuleById(ruleId);
+    } else if (ruleType === 'url') {
+        SecurityComplianceControlsService.deleteUrlRuleById(ruleId);
     }
     
     bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
@@ -2060,8 +2664,55 @@ function toggleContentActionMenu(btn, ruleId) {
 }
 
 function showAddUrlRuleModal() {
-    console.log('[SecurityComplianceControls] TODO: Implement Add URL Rule modal');
-    alert('Add URL Rule - Coming Soon');
+    SecurityComplianceControlsService.showAddUrlRuleModal();
+}
+
+function editUrlRule(ruleId) {
+    SecurityComplianceControlsService.editUrlRule(ruleId);
+}
+
+function viewUrlRule(ruleId) {
+    SecurityComplianceControlsService.viewUrlRule(ruleId);
+}
+
+function toggleUrlRuleStatus(ruleId) {
+    SecurityComplianceControlsService.toggleUrlRuleStatus(ruleId);
+}
+
+function deleteUrlRule(ruleId) {
+    SecurityComplianceControlsService.deleteUrlRule(ruleId);
+}
+
+function saveUrlRule() {
+    SecurityComplianceControlsService.saveUrlRule();
+}
+
+function updateUrlPatternLabel() {
+    SecurityComplianceControlsService.updateUrlPatternLabel();
+}
+
+function resetUrlFilters() {
+    SecurityComplianceControlsService.resetUrlFilters();
+}
+
+function toggleUrlActionMenu(btn, ruleId) {
+    SecurityComplianceControlsService.toggleUrlActionMenu(btn, ruleId);
+}
+
+function saveDomainAgeSettings() {
+    SecurityComplianceControlsService.saveDomainAgeSettings();
+}
+
+function showAddDomainAgeExceptionModal() {
+    SecurityComplianceControlsService.showAddDomainAgeExceptionModal();
+}
+
+function saveException() {
+    SecurityComplianceControlsService.saveException();
+}
+
+function removeDomainAgeException(exceptionId) {
+    SecurityComplianceControlsService.removeDomainAgeException(exceptionId);
 }
 
 function showAddNormRuleModal() {
