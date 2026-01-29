@@ -3306,6 +3306,9 @@ var CountryReviewAuditService = {
         'COUNTRY_REQUEST_VIEWED',
         'COUNTRY_REQUEST_ESCALATED',
         'COUNTRY_DEFAULT_STATUS_CHANGED',
+        'COUNTRY_ACCOUNT_OVERRIDE_ADDED',
+        'COUNTRY_ACCOUNT_OVERRIDE_REMOVED',
+        'COUNTRY_REQUEST_REVIEWED',
         'COUNTRY_OVERRIDE_ADDED',
         'COUNTRY_OVERRIDE_REMOVED'
     ],
@@ -3313,8 +3316,11 @@ var CountryReviewAuditService = {
     PII_SAFE_FIELDS: [
         'adminId', 'adminEmail', 'timestamp', 'accountId', 'subAccountId',
         'countryIso', 'countryName', 'result', 'reason', 'rejectionCategory',
-        'requestId', 'eventType', 'source', 'ipAddress', 'userAgent'
+        'requestId', 'eventType', 'source', 'ipAddress', 'userAgent',
+        'beforeStatus', 'afterStatus', 'overrideType', 'accountName', 'subAccountName'
     ],
+
+    RETENTION_YEARS: 7,
 
     sanitizePayload: function(payload) {
         var sanitized = {};
@@ -3341,6 +3347,61 @@ var CountryReviewAuditService = {
         return maskedLocal + '@' + domain;
     },
 
+    buildAuditRecord: function(eventType, payload, timestamp) {
+        var record = {
+            id: 'CCAUDIT-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            eventType: eventType,
+            eventLabel: this.getEventLabel(eventType),
+            timestamp: timestamp,
+            timestampUTC: timestamp,
+            adminActor: {
+                id: currentAdmin.id,
+                email: currentAdmin.email,
+                role: currentAdmin.role || 'super_admin'
+            },
+            source: 'country_controls',
+            sourceIP: '10.0.0.1',
+            userAgent: navigator.userAgent,
+            countryIso: payload.countryIso || null,
+            countryName: payload.countryName || null,
+            impactedAccount: payload.accountId ? {
+                id: payload.accountId,
+                name: payload.accountName || null,
+                subAccountId: payload.subAccountId || null,
+                subAccountName: payload.subAccountName || null
+            } : null,
+            beforeState: payload.beforeStatus || payload.oldStatus || null,
+            afterState: payload.afterStatus || payload.newStatus || null,
+            reason: payload.reason || null,
+            requestId: payload.requestId || null,
+            result: payload.result || null,
+            retentionExpiry: this.calculateRetentionExpiry(),
+            payload: this.sanitizePayload(payload)
+        };
+        return record;
+    },
+
+    getEventLabel: function(eventType) {
+        var labels = {
+            'COUNTRY_DEFAULT_STATUS_CHANGED': 'Country Default Status Changed',
+            'COUNTRY_ACCOUNT_OVERRIDE_ADDED': 'Account Override Added',
+            'COUNTRY_ACCOUNT_OVERRIDE_REMOVED': 'Account Override Removed',
+            'COUNTRY_REQUEST_REVIEWED': 'Country Request Reviewed',
+            'COUNTRY_REQUEST_APPROVED': 'Country Request Approved',
+            'COUNTRY_REQUEST_REJECTED': 'Country Request Rejected',
+            'COUNTRY_REQUEST_SUBMITTED': 'Country Request Submitted',
+            'COUNTRY_OVERRIDE_ADDED': 'Country Override Added',
+            'COUNTRY_OVERRIDE_REMOVED': 'Country Override Removed'
+        };
+        return labels[eventType] || eventType;
+    },
+
+    calculateRetentionExpiry: function() {
+        var expiry = new Date();
+        expiry.setFullYear(expiry.getFullYear() + this.RETENTION_YEARS);
+        return expiry.toISOString();
+    },
+
     emit: function(eventType, payload, options) {
         options = options || {};
         
@@ -3350,24 +3411,167 @@ var CountryReviewAuditService = {
         }
 
         var timestamp = new Date().toISOString();
-        var sanitizedPayload = this.sanitizePayload(payload);
-        
-        var auditRecord = {
-            eventType: eventType,
-            timestamp: timestamp,
-            adminId: currentAdmin.id,
-            adminEmail: currentAdmin.email,
-            source: 'country_controls_review',
-            payload: sanitizedPayload
-        };
+        var auditRecord = this.buildAuditRecord(eventType, payload, timestamp);
 
-        console.log('[InternalAdminAudit]', JSON.stringify(auditRecord));
+        this.emitToInternalAdminAudit(auditRecord);
 
         if (options.emitToCustomerAudit && payload.accountId) {
-            this.emitCustomerAudit(eventType, payload, timestamp);
+            this.emitToCustomerAudit(eventType, payload, timestamp, auditRecord.id);
         }
 
         return auditRecord;
+    },
+
+    emitToInternalAdminAudit: function(auditRecord) {
+        console.log('[InternalAdminAudit][' + auditRecord.eventType + ']', JSON.stringify({
+            id: auditRecord.id,
+            eventType: auditRecord.eventType,
+            eventLabel: auditRecord.eventLabel,
+            timestamp: auditRecord.timestamp,
+            adminActor: auditRecord.adminActor,
+            countryIso: auditRecord.countryIso,
+            countryName: auditRecord.countryName,
+            impactedAccount: auditRecord.impactedAccount,
+            beforeState: auditRecord.beforeState,
+            afterState: auditRecord.afterState,
+            reason: auditRecord.reason,
+            requestId: auditRecord.requestId,
+            result: auditRecord.result,
+            retentionExpiry: auditRecord.retentionExpiry
+        }));
+
+        if (window.AdminAuditLogger) {
+            window.AdminAuditLogger.log(auditRecord);
+        }
+    },
+
+    emitToCustomerAudit: function(eventType, payload, timestamp, parentAuditId) {
+        var customerEventMap = {
+            'COUNTRY_REQUEST_APPROVED': 'COUNTRY_ACCESS_GRANTED',
+            'COUNTRY_REQUEST_REJECTED': 'COUNTRY_ACCESS_DENIED',
+            'COUNTRY_REQUEST_SUBMITTED': 'COUNTRY_ACCESS_REQUESTED',
+            'COUNTRY_ACCOUNT_OVERRIDE_ADDED': 'COUNTRY_ACCESS_UPDATED',
+            'COUNTRY_ACCOUNT_OVERRIDE_REMOVED': 'COUNTRY_ACCESS_UPDATED',
+            'COUNTRY_OVERRIDE_ADDED': 'COUNTRY_ACCESS_UPDATED',
+            'COUNTRY_OVERRIDE_REMOVED': 'COUNTRY_ACCESS_UPDATED'
+        };
+
+        var customerEventType = customerEventMap[eventType];
+        if (!customerEventType) return;
+
+        var customerRecord = {
+            id: 'CUSTAUDIT-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+            parentAuditId: parentAuditId,
+            eventType: customerEventType,
+            eventLabel: this.getCustomerEventLabel(customerEventType),
+            timestamp: timestamp,
+            accountId: payload.accountId,
+            subAccountId: payload.subAccountId || null,
+            countryIso: payload.countryIso,
+            countryName: payload.countryName,
+            status: this.getCustomerFacingStatus(eventType, payload),
+            message: this.getCustomerFacingMessage(eventType, payload),
+            requestId: payload.requestId || null,
+            visibleToCustomer: true
+        };
+
+        console.log('[CustomerAudit][' + payload.accountId + ']', JSON.stringify(customerRecord));
+
+        if (window.CustomerAuditLogger) {
+            window.CustomerAuditLogger.log(payload.accountId, customerRecord);
+        }
+    },
+
+    getCustomerEventLabel: function(eventType) {
+        var labels = {
+            'COUNTRY_ACCESS_GRANTED': 'Country Access Granted',
+            'COUNTRY_ACCESS_DENIED': 'Country Access Request Declined',
+            'COUNTRY_ACCESS_REQUESTED': 'Country Access Requested',
+            'COUNTRY_ACCESS_UPDATED': 'Country Access Updated'
+        };
+        return labels[eventType] || eventType;
+    },
+
+    getCustomerFacingStatus: function(eventType, payload) {
+        if (eventType === 'COUNTRY_REQUEST_APPROVED' || 
+            (eventType.includes('OVERRIDE') && payload.overrideType === 'allowed')) {
+            return 'allowed';
+        }
+        if (eventType === 'COUNTRY_REQUEST_REJECTED' ||
+            (eventType.includes('OVERRIDE') && payload.overrideType === 'blocked')) {
+            return 'blocked';
+        }
+        if (eventType === 'COUNTRY_REQUEST_SUBMITTED') {
+            return 'pending';
+        }
+        return 'updated';
+    },
+
+    getCustomerFacingMessage: function(eventType, payload) {
+        var messages = {
+            'COUNTRY_REQUEST_APPROVED': 'Your request to send messages to ' + payload.countryName + ' has been approved.',
+            'COUNTRY_REQUEST_REJECTED': 'Your request to send messages to ' + payload.countryName + ' was not approved.',
+            'COUNTRY_REQUEST_SUBMITTED': 'Your request to access ' + payload.countryName + ' has been submitted for review.',
+            'COUNTRY_ACCOUNT_OVERRIDE_ADDED': 'Your access to ' + payload.countryName + ' has been updated.',
+            'COUNTRY_ACCOUNT_OVERRIDE_REMOVED': 'Your access settings for ' + payload.countryName + ' have been updated.',
+            'COUNTRY_OVERRIDE_ADDED': 'Your access to ' + payload.countryName + ' has been updated.',
+            'COUNTRY_OVERRIDE_REMOVED': 'Your access settings for ' + payload.countryName + ' have been updated.'
+        };
+        return messages[eventType] || 'Country access settings updated.';
+    },
+
+    emitDefaultStatusChanged: function(countryCode, countryName, beforeStatus, afterStatus, reason) {
+        return this.emit('COUNTRY_DEFAULT_STATUS_CHANGED', {
+            countryIso: countryCode,
+            countryName: countryName,
+            beforeStatus: beforeStatus,
+            afterStatus: afterStatus,
+            oldStatus: beforeStatus,
+            newStatus: afterStatus,
+            reason: reason || null,
+            result: 'status_changed'
+        }, { emitToCustomerAudit: false });
+    },
+
+    emitOverrideAdded: function(countryCode, countryName, accountId, accountName, subAccountId, subAccountName, overrideType) {
+        return this.emit('COUNTRY_ACCOUNT_OVERRIDE_ADDED', {
+            countryIso: countryCode,
+            countryName: countryName,
+            accountId: accountId,
+            accountName: accountName,
+            subAccountId: subAccountId,
+            subAccountName: subAccountName,
+            overrideType: overrideType,
+            afterStatus: overrideType,
+            result: 'override_added'
+        }, { emitToCustomerAudit: true });
+    },
+
+    emitOverrideRemoved: function(countryCode, countryName, accountId, accountName, subAccountId, subAccountName, previousOverrideType) {
+        return this.emit('COUNTRY_ACCOUNT_OVERRIDE_REMOVED', {
+            countryIso: countryCode,
+            countryName: countryName,
+            accountId: accountId,
+            accountName: accountName,
+            subAccountId: subAccountId,
+            subAccountName: subAccountName,
+            beforeStatus: previousOverrideType,
+            overrideType: previousOverrideType,
+            result: 'override_removed'
+        }, { emitToCustomerAudit: true });
+    },
+
+    emitRequestReviewed: function(requestId, countryCode, countryName, accountId, accountName, decision, reason) {
+        return this.emit('COUNTRY_REQUEST_REVIEWED', {
+            requestId: requestId,
+            countryIso: countryCode,
+            countryName: countryName,
+            accountId: accountId,
+            accountName: accountName,
+            afterStatus: decision,
+            reason: reason || null,
+            result: decision === 'approved' ? 'request_approved' : 'request_rejected'
+        }, { emitToCustomerAudit: true });
     },
 
     emitCustomerAudit: function(eventType, payload, timestamp) {
