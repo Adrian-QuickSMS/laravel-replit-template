@@ -2076,6 +2076,237 @@ var CountryControlsService = (function() {
 
 window.CountryControlsService = CountryControlsService;
 
+var CountryPrecedenceService = (function() {
+    var PRECEDENCE_RULES = {
+        ACCOUNT_OVERRIDE_TAKES_PRECEDENCE: true,
+        GLOBAL_DEFAULT_IS_FALLBACK: true,
+        NO_SILENT_MUTATIONS: true
+    };
+
+    var MUTATION_TYPES = {
+        GLOBAL_DEFAULT_CHANGE: 'GLOBAL_DEFAULT_CHANGE',
+        ACCOUNT_OVERRIDE_ADD: 'ACCOUNT_OVERRIDE_ADD',
+        ACCOUNT_OVERRIDE_REMOVE: 'ACCOUNT_OVERRIDE_REMOVE',
+        ACCOUNT_OVERRIDE_UPDATE: 'ACCOUNT_OVERRIDE_UPDATE'
+    };
+
+    function getEffectiveStatus(countryCode, accountId, subAccountId) {
+        var globalDefault = getGlobalDefault(countryCode);
+        var accountOverride = getAccountOverride(countryCode, accountId, subAccountId);
+
+        if (accountOverride !== null) {
+            return {
+                status: accountOverride.overrideType,
+                source: 'ACCOUNT_OVERRIDE',
+                precedence: 1,
+                details: {
+                    accountId: accountId,
+                    subAccountId: subAccountId,
+                    appliedBy: accountOverride.appliedBy,
+                    appliedAt: accountOverride.dateApplied
+                }
+            };
+        }
+
+        return {
+            status: globalDefault,
+            source: 'GLOBAL_DEFAULT',
+            precedence: 2,
+            details: null
+        };
+    }
+
+    function getGlobalDefault(countryCode) {
+        var country = countries.find(function(c) { return c.code === countryCode; });
+        return country ? country.status : 'blocked';
+    }
+
+    function getAccountOverride(countryCode, accountId, subAccountId) {
+        var overrides = mockOverridesData[countryCode] || [];
+        
+        if (subAccountId) {
+            var subOverride = overrides.find(function(o) {
+                return o.accountId === accountId && o.subAccount === subAccountId;
+            });
+            if (subOverride) return subOverride;
+        }
+
+        var accountOverride = overrides.find(function(o) {
+            return o.accountId === accountId && !o.subAccount;
+        });
+        
+        return accountOverride || null;
+    }
+
+    function canSendToCountry(countryCode, accountId, subAccountId) {
+        var effective = getEffectiveStatus(countryCode, accountId, subAccountId);
+        return {
+            allowed: effective.status === 'allowed',
+            effectiveStatus: effective.status,
+            source: effective.source,
+            reason: buildReason(effective)
+        };
+    }
+
+    function buildReason(effective) {
+        if (effective.source === 'ACCOUNT_OVERRIDE') {
+            if (effective.status === 'allowed') {
+                return 'Allowed via account-level override (takes precedence over global default)';
+            } else {
+                return 'Blocked via account-level override (takes precedence over global default)';
+            }
+        } else {
+            if (effective.status === 'allowed') {
+                return 'Allowed by global default (no account override exists)';
+            } else {
+                return 'Blocked by global default (no account override exists)';
+            }
+        }
+    }
+
+    function validateMutation(mutationType, data, callback) {
+        if (!PRECEDENCE_RULES.NO_SILENT_MUTATIONS) {
+            callback(null);
+            return;
+        }
+
+        var confirmationRequired = true;
+        var confirmationMessage = '';
+        var auditEventType = '';
+
+        switch (mutationType) {
+            case MUTATION_TYPES.GLOBAL_DEFAULT_CHANGE:
+                confirmationMessage = buildGlobalChangeConfirmation(data);
+                auditEventType = 'COUNTRY_DEFAULT_STATUS_CHANGED';
+                break;
+            case MUTATION_TYPES.ACCOUNT_OVERRIDE_ADD:
+                confirmationMessage = buildAddOverrideConfirmation(data);
+                auditEventType = 'COUNTRY_OVERRIDE_ADDED';
+                break;
+            case MUTATION_TYPES.ACCOUNT_OVERRIDE_REMOVE:
+                confirmationMessage = buildRemoveOverrideConfirmation(data);
+                auditEventType = 'COUNTRY_OVERRIDE_REMOVED';
+                break;
+            default:
+                confirmationRequired = false;
+        }
+
+        if (!confirmationRequired) {
+            callback(null);
+            return;
+        }
+
+        return {
+            requiresConfirmation: true,
+            confirmationMessage: confirmationMessage,
+            auditEventType: auditEventType,
+            proceed: function() {
+                callback({
+                    auditEventType: auditEventType,
+                    timestamp: new Date().toISOString(),
+                    mutationType: mutationType,
+                    data: data
+                });
+            }
+        };
+    }
+
+    function buildGlobalChangeConfirmation(data) {
+        var overrideCount = (mockOverridesData[data.countryCode] || []).length;
+        var msg = 'Change global default for ' + data.countryName + ' to ' + 
+                  (data.newStatus === 'allowed' ? 'ALLOWED' : 'BLOCKED') + '?\n\n';
+        
+        if (data.newStatus === 'allowed') {
+            msg += 'Effect: All customers can send to this country without needing approval.';
+        } else {
+            msg += 'Effect: No customer can send to this country unless they have an explicit account override.';
+        }
+
+        if (overrideCount > 0) {
+            msg += '\n\nNote: ' + overrideCount + ' account override(s) exist. ';
+            msg += 'These overrides will CONTINUE to take precedence over this global default.';
+        }
+
+        return msg;
+    }
+
+    function buildAddOverrideConfirmation(data) {
+        var country = countries.find(function(c) { return c.code === data.countryCode; });
+        var globalDefault = country ? country.status : 'blocked';
+        
+        var msg = 'Add override for ' + data.accountName + '?\n\n';
+        msg += 'Override Type: ' + (data.overrideType === 'allowed' ? 'ALLOWED' : 'BLOCKED') + '\n';
+        msg += 'Country: ' + data.countryName + '\n\n';
+        
+        if (data.overrideType !== globalDefault) {
+            msg += 'This override DIFFERS from the global default (' + globalDefault.toUpperCase() + '). ';
+            msg += 'The account override will take precedence.';
+        } else {
+            msg += 'This override MATCHES the global default. ';
+            msg += 'It provides explicit protection if the global default changes.';
+        }
+
+        return msg;
+    }
+
+    function buildRemoveOverrideConfirmation(data) {
+        var country = countries.find(function(c) { return c.code === data.countryCode; });
+        var globalDefault = country ? country.status : 'blocked';
+        
+        var msg = 'Remove override for ' + data.accountName + '?\n\n';
+        msg += 'Current Override: ' + (data.currentOverrideType === 'allowed' ? 'ALLOWED' : 'BLOCKED') + '\n\n';
+        msg += 'After removal, this account will follow the GLOBAL DEFAULT:\n';
+        msg += '→ ' + data.countryName + ' is currently ' + globalDefault.toUpperCase() + ' by default.\n\n';
+        
+        if (data.currentOverrideType !== globalDefault) {
+            msg += '⚠️ WARNING: This will change the effective status for this account!';
+        }
+
+        return msg;
+    }
+
+    function logPrecedenceDecision(countryCode, accountId, decision) {
+        console.log('[CountryPrecedence] Decision:', {
+            countryCode: countryCode,
+            accountId: accountId,
+            effectiveStatus: decision.effectiveStatus,
+            source: decision.source,
+            reason: decision.reason,
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    function getPrecedenceExplanation() {
+        return {
+            rules: [
+                '1. Account-level overrides ALWAYS take precedence over global defaults.',
+                '2. Sub-account overrides take precedence over account-level overrides.',
+                '3. If no override exists, the global default applies.',
+                '4. A country can be BLOCKED globally but ALLOWED for specific accounts.',
+                '5. A country can be ALLOWED globally but BLOCKED for specific accounts.',
+                '6. All state changes require confirmation and generate audit events.'
+            ],
+            hierarchy: [
+                { level: 1, name: 'Sub-Account Override', description: 'Most specific - applies to single sub-account' },
+                { level: 2, name: 'Account Override', description: 'Applies to entire account and all sub-accounts (unless sub-account override exists)' },
+                { level: 3, name: 'Global Default', description: 'Fallback - applies when no overrides exist' }
+            ]
+        };
+    }
+
+    return {
+        MUTATION_TYPES: MUTATION_TYPES,
+        getEffectiveStatus: getEffectiveStatus,
+        canSendToCountry: canSendToCountry,
+        validateMutation: validateMutation,
+        getPrecedenceExplanation: getPrecedenceExplanation,
+        logPrecedenceDecision: logPrecedenceDecision
+    };
+})();
+
+window.CountryPrecedenceService = CountryPrecedenceService;
+console.log('[CountryPrecedenceService] Initialized with rules:', CountryPrecedenceService.getPrecedenceExplanation().rules);
+
 var countries = [];
 var countryRequests = [];
 var currentAdmin = {
