@@ -2494,7 +2494,23 @@ function getClientIP() {
     return '192.168.1.' + Math.floor(Math.random() * 255);
 }
 
+function hashForAudit(value) {
+    if (!value) return null;
+    var hash = 0;
+    for (var i = 0; i < value.length; i++) {
+        var char = value.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return 'H' + Math.abs(hash).toString(16).toUpperCase().padStart(8, '0');
+}
+
 function logAuditEvent(eventType, details) {
+    var sanitizedDetails = sanitizeAuditDetails(details);
+    if (typeof NormalisationRulesConfig !== 'undefined') {
+        sanitizedDetails = NormalisationRulesConfig.sanitizePII(sanitizedDetails);
+    }
+    
     var auditEntry = {
         eventId: 'AUD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
         eventType: eventType,
@@ -2502,17 +2518,18 @@ function logAuditEvent(eventType, details) {
         timestampUtc: new Date().toUTCString(),
         actor: {
             adminId: currentAdmin.id,
-            adminEmail: currentAdmin.email,
+            adminEmail: '[REDACTED]',
             adminRole: currentAdmin.role
         },
-        sourceIp: getClientIP(),
+        sourceIp: '[REDACTED]',
+        sourceIpHash: hashForAudit(getClientIP()),
         affectedEntities: details.affectedEntities || [],
         entityId: details.ruleId || details.messageId || details.accountId || null,
         entityType: details.entityType || inferEntityType(eventType),
         action: eventType,
         before: details.before || details.beforeStatus || null,
         after: details.after || details.afterStatus || null,
-        details: sanitizeAuditDetails(details),
+        details: sanitizedDetails,
         module: 'security_compliance_controls',
         retentionExpiry: new Date(Date.now() + (auditConfig.retentionYears * 365 * 24 * 60 * 60 * 1000)).toISOString()
     };
@@ -5122,7 +5139,7 @@ function executeSaveNormRule(changeData) {
         risk: char.risk || 'none'
     };
     
-    char.equivalents = changeData.equivalents;
+    char.equivalents = NormalisationRulesConfig.deduplicateEquivalents(changeData.equivalents);
     char.scope = changeData.scope;
     char.notes = changeData.notes;
     char.enabled = changeData.enabled;
@@ -5972,6 +5989,125 @@ function runNormalisationTest() {
 }
 
 /**
+ * NormalisationRulesConfig - Configuration and safety utilities
+ * Requirements:
+ * - UTF-8 safe (full Unicode)
+ * - Deterministic deduplication
+ * - No PII stored
+ * - Fast rendering for 62+ base rows
+ * - Feature-flag ready
+ * - Admin-only access enforced at API + UI
+ */
+var NormalisationRulesConfig = {
+    FEATURE_FLAGS: {
+        normalisation_enabled: true,
+        senderid_scope_enabled: true,
+        content_scope_enabled: true,
+        url_scope_enabled: true,
+        audit_logging_enabled: true,
+        test_tool_enabled: true
+    },
+    
+    MAX_EQUIVALENTS_PER_CHAR: 25,
+    MAX_BASE_CHARACTERS: 62,
+    CACHE_TTL_MS: 60000,
+    
+    isFeatureEnabled: function(flag) {
+        return this.FEATURE_FLAGS[flag] !== false;
+    },
+    
+    setFeatureFlag: function(flag, value, adminContext) {
+        if (!adminContext || !adminContext.isAdmin) {
+            console.error('[NormalisationRulesConfig] Feature flag update requires admin context');
+            return false;
+        }
+        if (this.FEATURE_FLAGS.hasOwnProperty(flag)) {
+            this.FEATURE_FLAGS[flag] = !!value;
+            console.log('[NormalisationRulesConfig] Feature flag updated:', flag, '=', value);
+            return true;
+        }
+        return false;
+    },
+    
+    isUTF8Safe: function(char) {
+        if (!char || typeof char !== 'string') return false;
+        try {
+            var codePoint = char.codePointAt(0);
+            return codePoint !== undefined && codePoint >= 0 && codePoint <= 0x10FFFF;
+        } catch (e) {
+            return false;
+        }
+    },
+    
+    normalizeUnicode: function(str) {
+        if (typeof str !== 'string') return '';
+        try {
+            return str.normalize('NFC');
+        } catch (e) {
+            return str;
+        }
+    },
+    
+    deduplicateEquivalents: function(equivalents) {
+        if (!Array.isArray(equivalents)) return [];
+        var seen = {};
+        var result = [];
+        equivalents.forEach(function(eq) {
+            if (!eq || typeof eq !== 'string') return;
+            var normalized = NormalisationRulesConfig.normalizeUnicode(eq);
+            var key = normalized.codePointAt(0);
+            if (key && !seen[key]) {
+                seen[key] = true;
+                result.push(normalized);
+            }
+        });
+        result.sort(function(a, b) {
+            return a.codePointAt(0) - b.codePointAt(0);
+        });
+        return result;
+    },
+    
+    sanitizePII: function(data) {
+        if (!data) return data;
+        var piiFields = ['email', 'phone', 'name', 'address', 'ip', 'password', 'token', 'secret'];
+        var sanitized = JSON.parse(JSON.stringify(data));
+        
+        function redactRecursive(obj) {
+            if (typeof obj !== 'object' || obj === null) return;
+            Object.keys(obj).forEach(function(key) {
+                var lowerKey = key.toLowerCase();
+                if (piiFields.some(function(f) { return lowerKey.indexOf(f) !== -1; })) {
+                    if (typeof obj[key] === 'string') {
+                        obj[key] = '[REDACTED]';
+                    }
+                }
+                if (typeof obj[key] === 'object') {
+                    redactRecursive(obj[key]);
+                }
+            });
+        }
+        
+        redactRecursive(sanitized);
+        return sanitized;
+    },
+    
+    validateAdminAccess: function() {
+        if (typeof AdminAccessControl === 'undefined') return false;
+        return AdminAccessControl.currentAdmin && AdminAccessControl.currentAdmin.isAdmin === true;
+    },
+    
+    enforceAdminOnly: function(operation) {
+        if (!this.validateAdminAccess()) {
+            console.error('[NormalisationRulesConfig] Admin-only operation blocked:', operation);
+            throw new Error('ADMIN_ACCESS_REQUIRED');
+        }
+        return true;
+    }
+};
+
+window.NormalisationRulesConfig = NormalisationRulesConfig;
+
+/**
  * NormalisationEnforcementAPI - Internal API for normalisation rules
  * All modules MUST use this service for normalisation.
  * 
@@ -5986,7 +6122,8 @@ var NormalisationEnforcementAPI = (function() {
     var cache = {
         rules: {},
         lastFetch: {},
-        TTL_MS: 60000
+        equivIndex: {},
+        TTL_MS: NormalisationRulesConfig.CACHE_TTL_MS
     };
     
     function isCacheValid(scope) {
@@ -6026,22 +6163,47 @@ var NormalisationEnforcementAPI = (function() {
         if (scope) {
             delete cache.rules[scope];
             delete cache.lastFetch[scope];
+            delete cache.equivIndex[scope];
         } else {
             cache.rules = {};
             cache.lastFetch = {};
+            cache.equivIndex = {};
         }
         console.log('[NormalisationEnforcementAPI] Cache invalidated' + (scope ? ' for scope: ' + scope : ' (all)'));
     }
     
-    function normalise(input, scope) {
-        var rules = fetchRules(scope);
+    function buildEquivIndex(scope) {
+        if (cache.equivIndex[scope] && isCacheValid(scope)) {
+            return cache.equivIndex[scope];
+        }
         
-        var equivMap = {};
+        var rules = fetchRules(scope);
+        var index = {};
+        
         rules.forEach(function(rule) {
             rule.equivalents.forEach(function(equiv) {
-                equivMap[equiv] = rule.base;
+                var normalized = NormalisationRulesConfig.normalizeUnicode(equiv);
+                index[normalized] = rule.base;
             });
         });
+        
+        cache.equivIndex[scope] = index;
+        console.log('[NormalisationEnforcementAPI] Built equiv index for scope: ' + scope + ' (' + Object.keys(index).length + ' mappings)');
+        return index;
+    }
+    
+    function normalise(input, scope) {
+        if (!NormalisationRulesConfig.isFeatureEnabled('normalisation_enabled')) {
+            return {
+                normalised: input,
+                substitutions: [],
+                highlightedOriginal: input,
+                highlightedNormalised: input,
+                featureDisabled: true
+            };
+        }
+        
+        var equivMap = buildEquivIndex(scope);
         
         var normalised = '';
         var substitutions = [];
