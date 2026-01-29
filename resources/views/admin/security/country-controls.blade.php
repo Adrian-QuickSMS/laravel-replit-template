@@ -605,6 +605,46 @@
     background: #fecaca;
     color: #7f1d1d;
 }
+.status-pill.account-live {
+    background: #d1fae5;
+    color: #065f46;
+}
+.status-pill.account-test {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.status-pill.account-suspended {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.btn-review {
+    background: #1e3a5f;
+    color: #fff;
+    border: none;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-review:hover {
+    background: #2d5a87;
+    color: #fff;
+}
+.account-link {
+    color: #1e3a5f;
+    text-decoration: none;
+    font-weight: 500;
+}
+.account-link:hover {
+    text-decoration: underline;
+    color: #2d5a87;
+}
+.account-id {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
 .risk-pill {
     padding: 0.125rem 0.5rem;
     border-radius: 50px;
@@ -797,14 +837,13 @@
                 <table class="queue-table">
                     <thead>
                         <tr>
-                            <th>Type</th>
-                            <th>Account</th>
+                            <th>Account Name</th>
+                            <th>Sub Account</th>
                             <th>Country</th>
-                            <th>Status</th>
-                            <th>Risk</th>
                             <th>Submitted</th>
-                            <th>Volume</th>
-                            <th style="width: 80px;">Actions</th>
+                            <th>Account Status</th>
+                            <th>Review Status</th>
+                            <th style="width: 100px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="reviewTableBody"></tbody>
@@ -1199,7 +1238,7 @@ function generateMockRequests() {
     return [
         {
             id: 'REQ-001',
-            customer: { id: 'CUST-001', name: 'TechStart Ltd', accountNumber: 'ACC-10045' },
+            customer: { id: 'CUST-001', name: 'TechStart Ltd', accountNumber: 'ACC-10045', accountStatus: 'live', subAccount: null },
             country: { code: 'NG', name: 'Nigeria', dialCode: '+234' },
             requestType: 'enable',
             reason: 'We have legitimate business operations in Nigeria and need to send SMS to our local customers.',
@@ -1213,7 +1252,7 @@ function generateMockRequests() {
         },
         {
             id: 'REQ-002',
-            customer: { id: 'CUST-002', name: 'HealthFirst UK', accountNumber: 'ACC-10089' },
+            customer: { id: 'CUST-002', name: 'HealthFirst UK', accountNumber: 'ACC-10089', accountStatus: 'live', subAccount: 'NHS Partnership' },
             country: { code: 'IN', name: 'India', dialCode: '+91' },
             requestType: 'enable',
             reason: 'Need to send appointment reminders to patients in our Indian branch.',
@@ -1227,7 +1266,7 @@ function generateMockRequests() {
         },
         {
             id: 'REQ-003',
-            customer: { id: 'CUST-003', name: 'E-Commerce Hub', accountNumber: 'ACC-10112' },
+            customer: { id: 'CUST-003', name: 'E-Commerce Hub', accountNumber: 'ACC-10112', accountStatus: 'test', subAccount: null },
             country: { code: 'PH', name: 'Philippines', dialCode: '+63' },
             requestType: 'enable',
             reason: 'Expanding e-commerce operations to Philippines, need order confirmation SMS.',
@@ -1241,7 +1280,7 @@ function generateMockRequests() {
         },
         {
             id: 'REQ-004',
-            customer: { id: 'CUST-004', name: 'RetailMax', accountNumber: 'ACC-10078' },
+            customer: { id: 'CUST-004', name: 'RetailMax', accountNumber: 'ACC-10078', accountStatus: 'live', subAccount: 'LATAM Division' },
             country: { code: 'BR', name: 'Brazil', dialCode: '+55' },
             requestType: 'enable',
             reason: 'Opening new retail stores in Brazil.',
@@ -1255,7 +1294,7 @@ function generateMockRequests() {
         },
         {
             id: 'REQ-005',
-            customer: { id: 'CUST-005', name: 'Unknown Corp', accountNumber: 'ACC-10099' },
+            customer: { id: 'CUST-005', name: 'Unknown Corp', accountNumber: 'ACC-10099', accountStatus: 'suspended', subAccount: null },
             country: { code: 'RU', name: 'Russia', dialCode: '+7' },
             requestType: 'enable',
             reason: 'Business expansion.',
@@ -1268,6 +1307,11 @@ function generateMockRequests() {
             reviewedAt: '26-01-2026 15:30'
         }
     ];
+}
+
+function viewAccount(customerId) {
+    console.log('[CountryControls] Navigate to account:', customerId);
+    window.location.href = '/admin/accounts/' + customerId;
 }
 
 function renderRequestsList() {
@@ -1299,52 +1343,34 @@ function renderRequestsList() {
 
     filtered.forEach(function(request) {
         var row = document.createElement('tr');
-        row.className = (request.risk === 'high' || request.risk === 'critical') ? 'high-risk' : '';
         row.onclick = function(e) { 
-            if (!e.target.closest('.action-menu')) {
+            if (!e.target.closest('.btn-review')) {
                 openReviewModal(request.id);
             }
         };
 
-        var typeBadge = request.requestType === 'enable' ?
-            '<span class="type-badge country-enable"><i class="fas fa-plus-circle"></i>Enable</span>' :
-            '<span class="type-badge country-disable"><i class="fas fa-minus-circle"></i>Disable</span>';
+        var accountStatusClass = request.customer.accountStatus === 'live' ? 'live' : 
+                                 request.customer.accountStatus === 'test' ? 'test' : 'suspended';
+        var accountStatusPill = '<span class="status-pill account-' + accountStatusClass + '">' + 
+            capitalize(request.customer.accountStatus) + '</span>';
 
-        var statusPill = '<span class="status-pill ' + request.status + '">' + 
+        var reviewStatusPill = '<span class="status-pill ' + request.status + '">' + 
             (request.status === 'pending' ? '<i class="fas fa-clock"></i>' : 
              request.status === 'approved' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>') + 
             ' ' + capitalize(request.status) + '</span>';
 
-        var riskPill = '<span class="risk-pill ' + request.risk + '">' + request.risk.toUpperCase() + '</span>';
-
-        var actionMenu = '<div class="action-menu">' +
-            '<button class="action-menu-btn" onclick="toggleActionMenu(event, \'' + request.id + '\')">' +
-                '<i class="fas fa-ellipsis-v"></i>' +
-            '</button>' +
-            '<div class="action-dropdown" id="actionMenu-' + request.id + '">' +
-                '<div class="action-dropdown-item view" onclick="openReviewModal(\'' + request.id + '\')">' +
-                    '<i class="fas fa-eye"></i>View Details' +
-                '</div>' +
-                (request.status === 'pending' ? 
-                    '<div class="action-dropdown-item approve" onclick="approveRequest(\'' + request.id + '\')">' +
-                        '<i class="fas fa-check-circle"></i>Approve' +
-                    '</div>' +
-                    '<div class="action-dropdown-item reject" onclick="rejectRequest(\'' + request.id + '\')">' +
-                        '<i class="fas fa-times-circle"></i>Reject' +
-                    '</div>' : '') +
-            '</div>' +
-        '</div>';
+        var reviewBtn = '<button class="btn btn-sm btn-review" onclick="openReviewModal(\'' + request.id + '\')">' +
+            '<i class="fas fa-eye me-1"></i>Review</button>';
 
         row.innerHTML = 
-            '<td>' + typeBadge + '</td>' +
-            '<td><div class="account-cell"><span class="account-name">' + request.customer.name + '</span>' +
-                '<span class="account-id">' + request.customer.accountNumber + '</span></div></td>' +
+            '<td><a href="#" class="account-link" onclick="viewAccount(\'' + request.customer.id + '\'); return false;">' + 
+                request.customer.name + '</a><div class="account-id">' + request.customer.accountNumber + '</div></td>' +
+            '<td>' + (request.customer.subAccount ? '<span class="text-muted">' + request.customer.subAccount + '</span>' : '<span class="text-muted">—</span>') + '</td>' +
             '<td><strong>' + request.country.name + '</strong> <span class="text-muted">(' + request.country.dialCode + ')</span></td>' +
-            '<td>' + statusPill + '</td>' +
-            '<td>' + riskPill + '</td>' +
-            '<td><span class="text-muted small">' + request.submittedAt + '</span></td>' +
-            '<td><span class="small">' + request.estimatedVolume + '</span></td>' +
-            '<td>' + actionMenu + '</td>';
+            '<td><span class="small">' + request.submittedAt + '</span></td>' +
+            '<td>' + accountStatusPill + '</td>' +
+            '<td>' + reviewStatusPill + '</td>' +
+            '<td>' + reviewBtn + '</td>';
 
         tbody.appendChild(row);
     });
