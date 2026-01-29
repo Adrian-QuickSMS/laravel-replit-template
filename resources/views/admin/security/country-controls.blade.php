@@ -137,8 +137,9 @@
 .country-table-card {
     background: #fff;
     border-radius: 0.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e5e9f2;
     margin-bottom: 1.5rem;
+    overflow: hidden;
 }
 .country-table-header {
     padding: 1rem 1.25rem;
@@ -146,11 +147,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background: #f8f9fc;
 }
 .country-table-header h6 {
     margin: 0;
     font-weight: 600;
-    color: #374151;
+    color: #1e3a5f;
 }
 .country-search-box {
     position: relative;
@@ -159,6 +161,12 @@
 .country-search-box input {
     padding-left: 2.25rem;
     font-size: 0.85rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+}
+.country-search-box input:focus {
+    border-color: #1e3a5f;
+    box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1);
 }
 .country-search-box i {
     position: absolute;
@@ -170,25 +178,49 @@
 .country-table {
     width: 100%;
     margin: 0;
+    border-collapse: collapse;
+}
+.country-table thead {
+    background: #f8f9fc;
+    border-bottom: 2px solid #e5e9f2;
 }
 .country-table th {
-    padding: 0.5rem 0.75rem;
+    padding: 0.875rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 600;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #6c757d;
+    color: #1e3a5f;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.country-table th:hover {
+    background: #e9ecef;
+}
+.country-table th i.sort-icon {
+    margin-left: 0.25rem;
+    opacity: 0.5;
+}
+.country-table th.sorted i.sort-icon {
+    opacity: 1;
+    color: #1e3a5f;
 }
 .country-table td {
-    padding: 0.65rem 0.75rem;
+    padding: 0.75rem;
     font-size: 0.85rem;
-    border-bottom: 1px solid #f1f3f5;
+    border-bottom: 1px solid #f0f0f0;
     vertical-align: middle;
 }
-.country-table tr:hover {
-    background: #f8fafc;
+.country-table tbody tr {
+    transition: background 0.15s, box-shadow 0.15s;
+}
+.country-table tbody tr:hover {
+    background: #f8f9fc;
+    box-shadow: inset 3px 0 0 #1e3a5f;
+}
+.country-table tbody tr:last-child td {
+    border-bottom: none;
 }
 .country-flag {
     width: 24px;
@@ -200,34 +232,100 @@
 }
 .country-name {
     font-weight: 500;
-    color: #374151;
+    color: #1e3a5f;
 }
 .country-code {
     font-size: 0.75rem;
-    color: #9ca3af;
-    margin-left: 0.5rem;
+    color: #6c757d;
+    font-family: monospace;
+}
+.dial-code {
+    font-size: 0.85rem;
+    color: #495057;
+    font-family: monospace;
 }
 .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
     font-size: 0.7rem;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 50px;
     font-weight: 600;
 }
 .status-badge.allowed {
-    background: rgba(72, 187, 120, 0.15);
-    color: #22543d;
+    background: #d1fae5;
+    color: #065f46;
 }
 .status-badge.blocked {
-    background: rgba(229, 62, 62, 0.15);
-    color: #c53030;
+    background: #fee2e2;
+    color: #991b1b;
 }
 .status-badge.restricted {
-    background: rgba(237, 137, 54, 0.15);
-    color: #c05621;
+    background: #fef3c7;
+    color: #92400e;
 }
 .status-badge.pending {
-    background: rgba(236, 201, 75, 0.15);
-    color: #975a16;
+    background: #fef3c7;
+    color: #92400e;
+}
+.source-of-truth-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, rgba(30, 58, 95, 0.08) 0%, rgba(30, 58, 95, 0.03) 100%);
+    border: 1px solid rgba(30, 58, 95, 0.2);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+.source-of-truth-banner .sot-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: #1e3a5f;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.source-of-truth-banner .sot-content h6 {
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    color: #1e3a5f;
+    font-size: 0.95rem;
+}
+.source-of-truth-banner .sot-content p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #495057;
+    line-height: 1.4;
+}
+.overrides-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    background: rgba(30, 58, 95, 0.1);
+    color: #1e3a5f;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.overrides-badge:hover {
+    background: rgba(30, 58, 95, 0.2);
+}
+.overrides-badge.none {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: default;
+}
+.overrides-badge i {
+    font-size: 0.65rem;
 }
 .risk-indicator {
     display: flex;
@@ -994,6 +1092,13 @@
         </div>
 
         <div class="tab-pane fade" id="countriesPane" role="tabpanel">
+            <div class="source-of-truth-banner">
+                <div class="sot-icon"><i class="fas fa-database"></i></div>
+                <div class="sot-content">
+                    <h6>Global Country Catalogue — Source of Truth</h6>
+                    <p>This catalogue defines default destination availability for all accounts. Per-account overrides are managed separately and shown in the "Overrides" column.</p>
+                </div>
+            </div>
             <div class="enforcement-banner">
                 <h6><i class="fas fa-shield-alt"></i>Shared Enforcement Configuration</h6>
                 <p>Changes here immediately apply across all enforcement points. No restart required.</p>
@@ -1903,8 +2008,173 @@ function sendCustomerNotification(customerId, notificationType, data) {
     });
 }
 
+var CountryReviewAuditService = {
+    ALLOWED_EVENTS: [
+        'COUNTRY_REQUEST_SUBMITTED',
+        'COUNTRY_REQUEST_APPROVED',
+        'COUNTRY_REQUEST_REJECTED',
+        'COUNTRY_REQUEST_ADMIN_NOTE_ADDED',
+        'COUNTRY_REQUEST_VIEWED',
+        'COUNTRY_REQUEST_ESCALATED'
+    ],
+    
+    PII_SAFE_FIELDS: [
+        'adminId', 'adminEmail', 'timestamp', 'accountId', 'subAccountId',
+        'countryIso', 'countryName', 'result', 'reason', 'rejectionCategory',
+        'requestId', 'eventType', 'source', 'ipAddress', 'userAgent'
+    ],
+
+    sanitizePayload: function(payload) {
+        var sanitized = {};
+        var self = this;
+        Object.keys(payload).forEach(function(key) {
+            if (self.PII_SAFE_FIELDS.indexOf(key) !== -1) {
+                sanitized[key] = payload[key];
+            } else if (key === 'submitterEmail') {
+                sanitized[key] = self.maskEmail(payload[key]);
+            } else if (key === 'customerName') {
+                sanitized[key] = payload[key];
+            }
+        });
+        return sanitized;
+    },
+
+    maskEmail: function(email) {
+        if (!email) return null;
+        var parts = email.split('@');
+        if (parts.length !== 2) return '***@***.***';
+        var local = parts[0];
+        var domain = parts[1];
+        var maskedLocal = local.length > 2 ? local.substring(0, 2) + '***' : '***';
+        return maskedLocal + '@' + domain;
+    },
+
+    emit: function(eventType, payload, options) {
+        options = options || {};
+        
+        if (this.ALLOWED_EVENTS.indexOf(eventType) === -1) {
+            console.error('[CountryReviewAudit] Invalid event type:', eventType);
+            return;
+        }
+
+        var timestamp = new Date().toISOString();
+        var sanitizedPayload = this.sanitizePayload(payload);
+        
+        var auditRecord = {
+            eventType: eventType,
+            timestamp: timestamp,
+            adminId: currentAdmin.id,
+            adminEmail: currentAdmin.email,
+            source: 'country_controls_review',
+            payload: sanitizedPayload
+        };
+
+        console.log('[InternalAdminAudit]', JSON.stringify(auditRecord));
+
+        if (options.emitToCustomerAudit && payload.accountId) {
+            this.emitCustomerAudit(eventType, payload, timestamp);
+        }
+
+        return auditRecord;
+    },
+
+    emitCustomerAudit: function(eventType, payload, timestamp) {
+        var customerEventMap = {
+            'COUNTRY_REQUEST_APPROVED': 'COUNTRY_ACCESS_GRANTED',
+            'COUNTRY_REQUEST_REJECTED': 'COUNTRY_ACCESS_DENIED',
+            'COUNTRY_REQUEST_SUBMITTED': 'COUNTRY_ACCESS_REQUESTED'
+        };
+
+        var customerEventType = customerEventMap[eventType];
+        if (!customerEventType) return;
+
+        var customerAuditRecord = {
+            eventType: customerEventType,
+            timestamp: timestamp,
+            accountId: payload.accountId,
+            subAccountId: payload.subAccountId || null,
+            countryIso: payload.countryIso,
+            countryName: payload.countryName,
+            result: payload.result || (eventType.indexOf('APPROVED') !== -1 ? 'approved' : 'rejected'),
+            reason: payload.reason || null,
+            source: 'admin_review'
+        };
+
+        console.log('[CustomerAudit]', JSON.stringify(customerAuditRecord));
+
+        return customerAuditRecord;
+    },
+
+    logRequestSubmitted: function(request) {
+        return this.emit('COUNTRY_REQUEST_SUBMITTED', {
+            requestId: request.id,
+            accountId: request.customer.id,
+            accountName: request.customer.name,
+            subAccountId: request.customer.subAccount ? request.customer.subAccountId : null,
+            countryIso: request.country.code,
+            countryName: request.country.name,
+            submitterEmail: request.submittedBy,
+            estimatedVolume: request.estimatedVolume,
+            result: 'submitted'
+        }, { emitToCustomerAudit: true });
+    },
+
+    logRequestApproved: function(request, adminNotes) {
+        return this.emit('COUNTRY_REQUEST_APPROVED', {
+            requestId: request.id,
+            accountId: request.customer.id,
+            accountName: request.customer.name,
+            subAccountId: request.customer.subAccount ? request.customer.subAccountId : null,
+            countryIso: request.country.code,
+            countryName: request.country.name,
+            result: 'approved',
+            overrideType: 'account-level',
+            globalPolicyChanged: false,
+            adminNotes: adminNotes || null
+        }, { emitToCustomerAudit: true });
+    },
+
+    logRequestRejected: function(request, rejectionCategory, rejectionReason) {
+        return this.emit('COUNTRY_REQUEST_REJECTED', {
+            requestId: request.id,
+            accountId: request.customer.id,
+            accountName: request.customer.name,
+            subAccountId: request.customer.subAccount ? request.customer.subAccountId : null,
+            countryIso: request.country.code,
+            countryName: request.country.name,
+            result: 'rejected',
+            rejectionCategory: rejectionCategory,
+            reason: rejectionReason
+        }, { emitToCustomerAudit: true });
+    },
+
+    logAdminNoteAdded: function(request, noteContent) {
+        return this.emit('COUNTRY_REQUEST_ADMIN_NOTE_ADDED', {
+            requestId: request.id,
+            accountId: request.customer.id,
+            countryIso: request.country.code,
+            noteLength: noteContent ? noteContent.length : 0,
+            result: 'note_added'
+        }, { emitToCustomerAudit: false });
+    }
+};
+
 function logAuditEvent(eventType, details) {
-    console.log('[AuditLog] Event:', eventType, details);
+    var payload = {
+        requestId: details.requestId,
+        accountId: details.customerId,
+        accountName: details.customerName,
+        countryIso: details.countryCode,
+        countryName: details.countryName,
+        result: eventType.indexOf('APPROVED') !== -1 ? 'approved' : 
+                eventType.indexOf('REJECTED') !== -1 ? 'rejected' : 'action',
+        reason: details.rejectionReason || null,
+        rejectionCategory: details.rejectionCategory || null,
+        overrideType: details.overrideType || null,
+        globalPolicyChanged: details.globalPolicyChanged || false
+    };
+
+    CountryReviewAuditService.emit(eventType, payload, { emitToCustomerAudit: true });
 }
 
 function showAdminToast(title, message, type) {
