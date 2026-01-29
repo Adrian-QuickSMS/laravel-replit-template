@@ -1235,6 +1235,50 @@
     </div>
 </div>
 
+<div class="modal fade" id="rejectionReasonModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #dc2626; color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Reject Request</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-light border mb-3">
+                    <div class="small text-muted">Rejecting request for:</div>
+                    <div><strong id="rejectionCustomerName"></strong> &rarr; <strong id="rejectionCountryName"></strong></div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Rejection Reason <span class="text-danger">*</span></label>
+                    <select class="form-select" id="rejectionReasonCategory" onchange="validateRejectionForm()">
+                        <option value="">Select a reason...</option>
+                        <option value="Country blocked by policy">Country blocked by policy</option>
+                        <option value="Insufficient business justification">Insufficient business justification</option>
+                        <option value="Account not eligible">Account not eligible (Test/Suspended status)</option>
+                        <option value="Regulatory compliance">Regulatory compliance concerns</option>
+                        <option value="High fraud risk">High fraud risk destination</option>
+                        <option value="Volume exceeds limits">Requested volume exceeds account limits</option>
+                        <option value="Missing documentation">Missing required documentation</option>
+                        <option value="Other">Other (specify below)</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Additional Details <span class="text-muted fw-normal">(Optional)</span></label>
+                    <textarea class="form-control" id="rejectionReasonText" rows="3" placeholder="Provide additional context for the customer..."></textarea>
+                    <div class="form-text">This message will be visible to the customer in their portal notification.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRejectBtn" onclick="confirmRejection()" disabled>
+                    <i class="fas fa-times-circle me-1"></i>Confirm Rejection
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="countryActionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -1740,41 +1784,173 @@ function approveRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) return;
 
-    if (!confirm('Approve country access for ' + request.customer.name + ' to ' + request.country.name + '?')) {
+    if (!confirm('Approve country access for ' + request.customer.name + ' to ' + request.country.name + '?\n\nThis will add an account-level override allowing this customer to send to ' + request.country.name + '. Global country policy will NOT be changed.')) {
         return;
     }
 
+    var now = new Date();
+    var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
+
     request.status = 'approved';
     request.reviewedBy = currentAdmin.email;
-    request.reviewedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
+    request.reviewedAt = formattedDate;
+
+    addAccountOverride(request.customer.id, request.country.code, 'allow');
+
+    logAuditEvent('COUNTRY_REQUEST_APPROVED', {
+        requestId: request.id,
+        customerId: request.customer.id,
+        customerName: request.customer.name,
+        countryCode: request.country.code,
+        countryName: request.country.name,
+        adminEmail: currentAdmin.email,
+        overrideType: 'account-level',
+        globalPolicyChanged: false
+    });
+
+    sendCustomerNotification(request.customer.id, 'country_request_approved', {
+        countryName: request.country.name,
+        countryCode: request.country.code
+    });
 
     renderRequestsList();
     updateReviewStats();
-    showToast('Request approved. ' + request.customer.name + ' can now send to ' + request.country.name + '.', 'success');
+    showAdminToast('Country access approved', request.customer.name + ' can now send SMS to ' + request.country.name + '. Account-level override has been added.', 'success');
 }
 
 function rejectRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) return;
 
-    var reason = prompt('Enter rejection reason:');
-    if (!reason) return;
+    pendingRejectionRequest = request;
+    document.getElementById('rejectionCustomerName').textContent = request.customer.name;
+    document.getElementById('rejectionCountryName').textContent = request.country.name;
+    document.getElementById('rejectionReasonCategory').value = '';
+    document.getElementById('rejectionReasonText').value = '';
+    document.getElementById('confirmRejectBtn').disabled = true;
+    
+    var modal = new bootstrap.Modal(document.getElementById('rejectionReasonModal'));
+    modal.show();
+}
+
+function confirmRejection() {
+    var request = pendingRejectionRequest;
+    if (!request) return;
+
+    var category = document.getElementById('rejectionReasonCategory').value;
+    var additionalText = document.getElementById('rejectionReasonText').value.trim();
+    
+    if (!category) {
+        alert('Please select a rejection reason.');
+        return;
+    }
+
+    var now = new Date();
+    var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
 
     request.status = 'rejected';
     request.reviewedBy = currentAdmin.email;
-    request.reviewedAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    request.rejectionReason = reason;
+    request.reviewedAt = formattedDate;
+    request.rejectionReason = category + (additionalText ? ': ' + additionalText : '');
+    request.rejectionCategory = category;
+
+    logAuditEvent('COUNTRY_REQUEST_REJECTED', {
+        requestId: request.id,
+        customerId: request.customer.id,
+        customerName: request.customer.name,
+        countryCode: request.country.code,
+        countryName: request.country.name,
+        adminEmail: currentAdmin.email,
+        rejectionCategory: category,
+        rejectionReason: request.rejectionReason
+    });
+
+    sendCustomerNotification(request.customer.id, 'country_request_rejected', {
+        countryName: request.country.name,
+        countryCode: request.country.code,
+        reason: request.rejectionReason
+    });
+
+    bootstrap.Modal.getInstance(document.getElementById('rejectionReasonModal')).hide();
+    pendingRejectionRequest = null;
 
     renderRequestsList();
     updateReviewStats();
-    showToast('Request rejected.', 'info');
+    showAdminToast('Request rejected', 'The customer has been notified of the decision.', 'info');
 }
 
-function viewRequestDetails(requestId) {
-    var request = countryRequests.find(function(r) { return r.id === requestId; });
-    if (!request) return;
-    alert('Request Details:\n\nCustomer: ' + request.customer.name + '\nCountry: ' + request.country.name + '\nReason: ' + request.reason);
+function validateRejectionForm() {
+    var category = document.getElementById('rejectionReasonCategory').value;
+    document.getElementById('confirmRejectBtn').disabled = !category;
 }
+
+function addAccountOverride(customerId, countryCode, action) {
+    console.log('[CountryControls] Adding account override:', {
+        customerId: customerId,
+        countryCode: countryCode,
+        action: action,
+        timestamp: new Date().toISOString()
+    });
+}
+
+function sendCustomerNotification(customerId, notificationType, data) {
+    console.log('[CustomerNotification] Sending notification:', {
+        customerId: customerId,
+        type: notificationType,
+        data: data,
+        channel: 'portal_notification',
+        timestamp: new Date().toISOString()
+    });
+}
+
+function logAuditEvent(eventType, details) {
+    console.log('[AuditLog] Event:', eventType, details);
+}
+
+function showAdminToast(title, message, type) {
+    var toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '1100';
+        document.body.appendChild(toastContainer);
+    }
+
+    var iconClass = type === 'success' ? 'fa-check-circle text-success' : 
+                    type === 'error' ? 'fa-exclamation-circle text-danger' : 'fa-info-circle text-primary';
+    
+    var toastId = 'toast-' + Date.now();
+    var toastHtml = 
+        '<div id="' + toastId + '" class="toast align-items-center border-0" role="alert">' +
+            '<div class="toast-header">' +
+                '<i class="fas ' + iconClass + ' me-2"></i>' +
+                '<strong class="me-auto">' + title + '</strong>' +
+                '<small class="text-muted">Just now</small>' +
+                '<button type="button" class="btn-close" data-bs-dismiss="toast"></button>' +
+            '</div>' +
+            '<div class="toast-body">' + message + '</div>' +
+        '</div>';
+
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    var toastElement = document.getElementById(toastId);
+    var toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+    toast.show();
+
+    toastElement.addEventListener('hidden.bs.toast', function() {
+        toastElement.remove();
+    });
+}
+
+function formatDateDDMMYYYY(date) {
+    return padZero(date.getDate()) + '-' + padZero(date.getMonth() + 1) + '-' + date.getFullYear();
+}
+
+function padZero(n) {
+    return n < 10 ? '0' + n : n;
+}
+
+var pendingRejectionRequest = null;
 
 function generateMockCountries() {
     var countryData = [
