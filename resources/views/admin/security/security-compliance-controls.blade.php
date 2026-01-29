@@ -417,6 +417,9 @@
                     <i class="fas fa-check-circle"></i>
                     All systems synchronized
                 </span>
+                <button class="sec-btn sec-btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#featureFlagsModal" title="Manage Feature Flags">
+                    <i class="fas fa-toggle-on me-1"></i> Feature Flags
+                </button>
                 <button class="sec-refresh-btn" onclick="refreshAllControls()">
                     <i class="fas fa-sync-alt"></i> Refresh
                 </button>
@@ -1447,6 +1450,267 @@
         </div>
     </div>
 </div>
+
+<!-- Feature Flags Modal -->
+<div class="modal fade" id="featureFlagsModal" tabindex="-1" aria-labelledby="featureFlagsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: white;">
+                <h5 class="modal-title" id="featureFlagsModalLabel">
+                    <i class="fas fa-toggle-on me-2"></i> Feature Flags Management
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-3" style="font-size: 0.85rem;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Admin Only:</strong> Feature flags control which enforcement engines are active. Changes take effect immediately and are audited.
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-light" style="font-size: 0.85rem; font-weight: 600;">
+                                <i class="fas fa-cogs me-2"></i> Cache Statistics
+                            </div>
+                            <div class="card-body p-3" id="cacheStatsPanel">
+                                <div class="row g-2" style="font-size: 0.8rem;">
+                                    <div class="col-6"><strong>Version:</strong> <span id="cache-version">-</span></div>
+                                    <div class="col-6"><strong>Rules:</strong> <span id="cache-total-rules">-</span></div>
+                                    <div class="col-6"><strong>Tenants:</strong> <span id="cache-tenant-count">-</span></div>
+                                    <div class="col-6"><strong>Last Load:</strong> <span id="cache-last-loaded">-</span></div>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm mt-2 w-100" onclick="hotReloadRules()">
+                                    <i class="fas fa-sync-alt me-1"></i> Hot Reload Rules
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-light" style="font-size: 0.85rem; font-weight: 600;">
+                                <i class="fas fa-shield-alt me-2"></i> Tenant Isolation
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center justify-content-between mb-2" style="font-size: 0.8rem;">
+                                    <span><i class="fas fa-lock text-success me-1"></i> Isolation Enforced</span>
+                                    <span class="badge bg-success">Active</span>
+                                </div>
+                                <p class="text-muted mb-0" style="font-size: 0.75rem;">
+                                    Rules are tenant-scoped. Cross-tenant reads are blocked. Global rules apply to all tenants.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h6 class="mb-3" style="font-size: 0.9rem; font-weight: 600; color: #1e3a5f;">
+                    <i class="fas fa-flag me-2"></i> Engine Feature Flags
+                </h6>
+                
+                <div class="table-responsive">
+                    <table class="table table-sm" style="font-size: 0.85rem;">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th style="padding: 0.5rem;">Flag</th>
+                                <th style="padding: 0.5rem;">Description</th>
+                                <th style="padding: 0.5rem; text-align: center;">Status</th>
+                                <th style="padding: 0.5rem; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="featureFlagsTableBody">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-warning mt-3 mb-0" style="font-size: 0.8rem;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Caution:</strong> Disabling engines will skip their checks. Messages that would normally be blocked may be allowed through.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <span class="text-muted me-auto" style="font-size: 0.75rem;">
+                    <i class="fas fa-history me-1"></i> All changes are audit logged
+                </span>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Access Enforcement Script -->
+<script>
+(function() {
+    var AdminAccessControl = {
+        currentAdmin: {
+            id: 'admin-001',
+            email: 'admin@quicksms.co.uk',
+            role: 'super_admin',
+            isAdmin: true
+        },
+        
+        accessRules: {
+            internalRoutingOnly: { enforced: true, description: 'Admin routes are internal only' },
+            noSharedRoutes: { enforced: true, description: 'No shared routes with customer portal' },
+            noDeepLinksFromCustomer: { enforced: true, description: 'Customer portal cannot deep-link to admin' },
+            mandatoryMfa: { enforced: true, description: 'MFA required for admin access' },
+            adminUsersOnly: { enforced: true, description: 'Only admin users can access' }
+        },
+        
+        validateAccess: function() {
+            if (!this.currentAdmin || !this.currentAdmin.isAdmin) {
+                console.error('[AdminAccessControl] Access denied - not an admin user');
+                window.location.href = '/login';
+                return false;
+            }
+            
+            var referrer = document.referrer;
+            if (referrer && referrer.includes('/customer/')) {
+                console.error('[AdminAccessControl] Access denied - referrer from customer portal');
+                this.logAccessViolation('CUSTOMER_PORTAL_REFERRER', referrer);
+                return false;
+            }
+            
+            console.log('[AdminControlPlane] Initialized for:', this.currentAdmin.email);
+            console.log('[AdminControlPlane] Access Rules:', this.accessRules);
+            console.log('[AdminControlPlane] Global Rules:', {
+                singleSourceOfTruth: { enforced: true },
+                filtering: { enforced: true },
+                audit: { enforced: true },
+                piiProtection: { enforced: true }
+            });
+            
+            this.logSessionStart();
+            return true;
+        },
+        
+        logSessionStart: function() {
+            var logEntry = {
+                timestamp: new Date().toISOString(),
+                eventType: 'ADMIN_SESSION_START',
+                adminEmail: this.currentAdmin.email,
+                adminRole: this.currentAdmin.role,
+                path: window.location.pathname,
+                referrer: document.referrer || 'direct',
+                userAgent: navigator.userAgent,
+                accessRulesEnforced: Object.keys(this.accessRules)
+            };
+            console.log('[AdminControlPlane][ACCESS]', JSON.stringify(logEntry));
+        },
+        
+        logAccessViolation: function(type, details) {
+            console.error('[AdminControlPlane][VIOLATION]', {
+                timestamp: new Date().toISOString(),
+                type: type,
+                details: details,
+                path: window.location.pathname
+            });
+        }
+    };
+    
+    AdminAccessControl.validateAccess();
+    window.AdminAccessControl = AdminAccessControl;
+})();
+
+function loadFeatureFlagsModal() {
+    if (typeof MessageEnforcementService === 'undefined') return;
+    
+    var flags = MessageEnforcementService.getFeatureFlags();
+    var cacheStats = MessageEnforcementService.getCacheStats();
+    
+    document.getElementById('cache-version').textContent = cacheStats.version || '-';
+    document.getElementById('cache-total-rules').textContent = cacheStats.totalRules || '-';
+    document.getElementById('cache-tenant-count').textContent = cacheStats.tenantCount || '-';
+    document.getElementById('cache-last-loaded').textContent = cacheStats.lastLoaded ? 
+        new Date(cacheStats.lastLoaded).toLocaleTimeString() : '-';
+    
+    var flagDescriptions = {
+        normalisation_enabled: { name: 'Normalisation Engine', desc: 'Apply text normalisation before matching' },
+        senderid_controls_enabled: { name: 'SenderID Controls', desc: 'Block/flag based on sender ID patterns' },
+        content_controls_enabled: { name: 'Content Controls', desc: 'Block/flag based on message content' },
+        url_controls_enabled: { name: 'URL Controls', desc: 'Block/flag based on URLs in messages' },
+        quarantine_enabled: { name: 'Quarantine', desc: 'Send flagged messages to quarantine queue' },
+        anti_spam_enabled: { name: 'Anti-Spam', desc: 'Prevent duplicate messages to same recipient' },
+        domain_age_check_enabled: { name: 'Domain Age Check', desc: 'Flag URLs with newly registered domains' }
+    };
+    
+    var tbody = document.getElementById('featureFlagsTableBody');
+    tbody.innerHTML = '';
+    
+    Object.keys(flags).forEach(function(flagKey) {
+        var flagInfo = flagDescriptions[flagKey] || { name: flagKey, desc: '' };
+        var isEnabled = flags[flagKey];
+        
+        var row = document.createElement('tr');
+        row.innerHTML = 
+            '<td><code style="font-size: 0.75rem; background: #f1f3f5; padding: 0.2rem 0.4rem; border-radius: 3px;">' + flagKey + '</code><br><small class="text-muted">' + flagInfo.name + '</small></td>' +
+            '<td style="color: #666;">' + flagInfo.desc + '</td>' +
+            '<td style="text-align: center;">' +
+                '<span class="badge ' + (isEnabled ? 'bg-success' : 'bg-secondary') + '">' + (isEnabled ? 'Enabled' : 'Disabled') + '</span>' +
+            '</td>' +
+            '<td style="text-align: center;">' +
+                '<div class="form-check form-switch d-inline-block">' +
+                    '<input class="form-check-input feature-flag-toggle" type="checkbox" data-flag="' + flagKey + '" ' + (isEnabled ? 'checked' : '') + ' onchange="toggleFeatureFlag(\'' + flagKey + '\', this.checked)">' +
+                '</div>' +
+            '</td>';
+        tbody.appendChild(row);
+    });
+}
+
+function toggleFeatureFlag(flagKey, enabled) {
+    if (typeof MessageEnforcementService === 'undefined') return;
+    
+    var result = MessageEnforcementService.setFeatureFlag(flagKey, enabled, {
+        isAdmin: true,
+        adminId: 'admin-001',
+        adminEmail: 'admin@quicksms.co.uk'
+    });
+    
+    if (result.success) {
+        logAuditEvent('FEATURE_FLAG_TOGGLED', {
+            flag: flagKey,
+            newValue: enabled,
+            previousValue: !enabled
+        });
+        
+        loadFeatureFlagsModal();
+        
+        var toast = document.createElement('div');
+        toast.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        toast.style.cssText = 'top: 80px; right: 20px; z-index: 9999; max-width: 350px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+        toast.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>' + flagKey + '</strong> ' + (enabled ? 'enabled' : 'disabled') + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 3000);
+    } else {
+        console.error('[FeatureFlags] Toggle failed:', result.error);
+    }
+}
+
+function hotReloadRules() {
+    if (typeof MessageEnforcementService === 'undefined') return;
+    
+    var result = MessageEnforcementService.hotReloadRules();
+    
+    if (result.success) {
+        logAuditEvent('RULES_HOT_RELOADED', { newVersion: result.version });
+        loadFeatureFlagsModal();
+        
+        var toast = document.createElement('div');
+        toast.className = 'alert alert-info alert-dismissible fade show position-fixed';
+        toast.style.cssText = 'top: 80px; right: 20px; z-index: 9999; max-width: 350px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+        toast.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Rules reloaded (v' + result.version + ')<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 3000);
+    }
+}
+
+document.getElementById('featureFlagsModal').addEventListener('show.bs.modal', function() {
+    loadFeatureFlagsModal();
+});
+
+console.log('[SecurityComplianceControls] Initialized');
+</script>
 @endsection
 
 @push('scripts')

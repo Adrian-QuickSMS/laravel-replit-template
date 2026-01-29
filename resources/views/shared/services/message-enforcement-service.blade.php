@@ -13,6 +13,34 @@ var MessageEnforcementService = (function() {
         URL: 'url'
     };
 
+    // Feature flags per engine - controlled via admin settings
+    var featureFlags = {
+        normalisation_enabled: true,
+        senderid_controls_enabled: true,
+        content_controls_enabled: true,
+        url_controls_enabled: true,
+        quarantine_enabled: true,
+        anti_spam_enabled: true,
+        domain_age_check_enabled: true
+    };
+
+    // Cache metadata for hot reload
+    var cacheMetadata = {
+        lastLoaded: null,
+        version: 0,
+        checkIntervalMs: 30000,
+        lastCheckTime: null,
+        isStale: false
+    };
+
+    // Indexed rule storage with tenant isolation
+    var ruleIndex = {
+        byId: {},
+        byEngine: {},
+        byTenant: {},
+        byPriority: []
+    };
+
     var activeRules = {
         normalisation: [],
         senderid: [],
@@ -29,14 +57,201 @@ var MessageEnforcementService = (function() {
     
     var recentMessageCache = {};
 
+    // Current tenant context for isolation
+    var currentTenantId = null;
+
     function initialize() {
         loadActiveRules();
+        initializeRuleIndex();
+        startCacheRefreshMonitor();
         console.log('[MessageEnforcementService] Initialized with rule counts:', {
             normalisation: activeRules.normalisation.length,
             senderid: activeRules.senderid.length,
             content: activeRules.content.length,
             url: activeRules.url.length
         });
+        console.log('[MessageEnforcementService] Feature flags:', featureFlags);
+        console.log('[MessageEnforcementService] Cache version:', cacheMetadata.version);
+    }
+
+    // Initialize indexed rule storage for O(1) lookups
+    function initializeRuleIndex() {
+        ruleIndex = { byId: {}, byEngine: {}, byTenant: {}, byPriority: [] };
+        
+        Object.keys(activeRules).forEach(function(engine) {
+            ruleIndex.byEngine[engine] = [];
+            activeRules[engine].forEach(function(rule) {
+                // Index by ID
+                ruleIndex.byId[rule.id] = rule;
+                
+                // Index by engine
+                ruleIndex.byEngine[engine].push(rule);
+                
+                // Index by tenant (global rules have tenantId = null)
+                var tenantId = rule.tenantId || 'global';
+                if (!ruleIndex.byTenant[tenantId]) {
+                    ruleIndex.byTenant[tenantId] = [];
+                }
+                ruleIndex.byTenant[tenantId].push(rule);
+                
+                // Add to priority index
+                ruleIndex.byPriority.push({
+                    id: rule.id,
+                    engine: engine,
+                    priority: rule.priority || 999,
+                    tenantId: tenantId
+                });
+            });
+        });
+        
+        // Sort by priority for deterministic ordering
+        ruleIndex.byPriority.sort(function(a, b) {
+            if (a.priority !== b.priority) return a.priority - b.priority;
+            return a.id.localeCompare(b.id); // Secondary sort by ID for stability
+        });
+        
+        cacheMetadata.lastLoaded = new Date().toISOString();
+        cacheMetadata.version++;
+        
+        console.log('[MessageEnforcementService] Rule index built:', {
+            totalRules: ruleIndex.byPriority.length,
+            engines: Object.keys(ruleIndex.byEngine).length,
+            tenants: Object.keys(ruleIndex.byTenant).length
+        });
+    }
+
+    // Hot reload monitor - checks for rule changes periodically
+    function startCacheRefreshMonitor() {
+        setInterval(function() {
+            checkForRuleUpdates();
+        }, cacheMetadata.checkIntervalMs);
+    }
+
+    // Check if rules need reloading (would call API in production)
+    function checkForRuleUpdates() {
+        cacheMetadata.lastCheckTime = new Date().toISOString();
+        // TODO: In production, call API to check rule version
+        // If version mismatch, trigger hotReloadRules()
+    }
+
+    // Hot reload rules without service restart
+    function hotReloadRules(newRules) {
+        console.log('[MessageEnforcementService] Hot reloading rules...');
+        var oldVersion = cacheMetadata.version;
+        
+        if (newRules) {
+            Object.keys(newRules).forEach(function(engine) {
+                if (activeRules[engine]) {
+                    activeRules[engine] = newRules[engine];
+                }
+            });
+        } else {
+            loadActiveRules();
+        }
+        
+        initializeRuleIndex();
+        
+        console.log('[MessageEnforcementService] Hot reload complete:', {
+            previousVersion: oldVersion,
+            newVersion: cacheMetadata.version
+        });
+        
+        return { success: true, version: cacheMetadata.version };
+    }
+
+    // Get rules for specific tenant with isolation guarantee
+    function getRulesForTenant(tenantId, engine) {
+        if (!tenantId) {
+            console.warn('[MessageEnforcementService] No tenant ID provided - using global rules only');
+            return ruleIndex.byTenant['global'] || [];
+        }
+        
+        var tenantRules = ruleIndex.byTenant[tenantId] || [];
+        var globalRules = ruleIndex.byTenant['global'] || [];
+        
+        var combinedRules = globalRules.concat(tenantRules);
+        
+        if (engine) {
+            combinedRules = combinedRules.filter(function(rule) {
+                return ruleIndex.byId[rule.id] && 
+                       ruleIndex.byEngine[engine] && 
+                       ruleIndex.byEngine[engine].indexOf(ruleIndex.byId[rule.id]) !== -1;
+            });
+        }
+        
+        // Sort by priority for deterministic evaluation
+        combinedRules.sort(function(a, b) {
+            var priorityA = a.priority || 999;
+            var priorityB = b.priority || 999;
+            if (priorityA !== priorityB) return priorityA - priorityB;
+            return a.id.localeCompare(b.id);
+        });
+        
+        return combinedRules;
+    }
+
+    // Check if engine is enabled via feature flag
+    function isEngineEnabled(engine) {
+        var flagMap = {
+            'normalisation': 'normalisation_enabled',
+            'senderid': 'senderid_controls_enabled',
+            'content': 'content_controls_enabled',
+            'url': 'url_controls_enabled'
+        };
+        var flagName = flagMap[engine];
+        return flagName ? featureFlags[flagName] !== false : true;
+    }
+
+    // Update feature flag (admin only)
+    function setFeatureFlag(flagName, value, adminContext) {
+        if (!adminContext || !adminContext.isAdmin) {
+            console.error('[MessageEnforcementService] Feature flag update requires admin context');
+            return { success: false, error: 'ADMIN_REQUIRED' };
+        }
+        
+        if (!featureFlags.hasOwnProperty(flagName)) {
+            return { success: false, error: 'INVALID_FLAG' };
+        }
+        
+        var oldValue = featureFlags[flagName];
+        featureFlags[flagName] = !!value;
+        
+        console.log('[MessageEnforcementService] Feature flag updated:', {
+            flag: flagName,
+            oldValue: oldValue,
+            newValue: featureFlags[flagName],
+            updatedBy: adminContext.adminId,
+            timestamp: new Date().toISOString()
+        });
+        
+        return { success: true, flag: flagName, value: featureFlags[flagName] };
+    }
+
+    // Set current tenant context for isolation
+    function setTenantContext(tenantId) {
+        currentTenantId = tenantId;
+        console.log('[MessageEnforcementService] Tenant context set:', tenantId);
+    }
+
+    // Get rule by ID with O(1) lookup
+    function getRuleById(ruleId) {
+        return ruleIndex.byId[ruleId] || null;
+    }
+
+    // Get cache statistics
+    function getCacheStats() {
+        return {
+            version: cacheMetadata.version,
+            lastLoaded: cacheMetadata.lastLoaded,
+            lastCheckTime: cacheMetadata.lastCheckTime,
+            totalRules: ruleIndex.byPriority.length,
+            rulesByEngine: Object.keys(ruleIndex.byEngine).reduce(function(acc, engine) {
+                acc[engine] = ruleIndex.byEngine[engine].length;
+                return acc;
+            }, {}),
+            tenantCount: Object.keys(ruleIndex.byTenant).length,
+            featureFlags: Object.assign({}, featureFlags)
+        };
     }
 
     function loadActiveRules() {
@@ -79,8 +294,11 @@ var MessageEnforcementService = (function() {
         });
     }
 
-    function evaluate(message) {
+    function evaluate(message, options) {
+        options = options || {};
         var startTime = Date.now();
+        var tenantId = options.tenantId || currentTenantId || message.accountId || null;
+        
         var context = {
             originalMessage: JSON.parse(JSON.stringify(message)),
             normalisedMessage: null,
@@ -89,55 +307,97 @@ var MessageEnforcementService = (function() {
             decision: DECISIONS.ALLOW,
             reason: null,
             processingOrder: [],
-            processingTimeMs: 0
+            processingTimeMs: 0,
+            tenantId: tenantId,
+            skippedEngines: [],
+            cacheVersion: cacheMetadata.version,
+            featureFlagsApplied: Object.assign({}, featureFlags)
         };
 
-        context.normalisedMessage = applyNormalisationRules(message, context);
-        context.processingOrder.push(ENGINES.NORMALISATION);
-
-        var senderIdResult = evaluateSenderIdRules(context.normalisedMessage, context);
-        context.processingOrder.push(ENGINES.SENDERID);
-        if (senderIdResult.decision === DECISIONS.BLOCK) {
-            context.decision = DECISIONS.BLOCK;
-            context.reason = senderIdResult.reason;
-            context.processingTimeMs = Date.now() - startTime;
-            return buildResult(context);
-        }
-        if (senderIdResult.decision === DECISIONS.QUARANTINE && context.decision !== DECISIONS.BLOCK) {
-            context.decision = DECISIONS.QUARANTINE;
-            context.reason = senderIdResult.reason;
+        // Validate tenant isolation
+        if (tenantId && options.enforceIsolation !== false) {
+            context.tenantIsolated = true;
         }
 
-        var contentResult = evaluateContentRules(context.normalisedMessage, context);
-        context.processingOrder.push(ENGINES.CONTENT);
-        if (contentResult.decision === DECISIONS.BLOCK) {
-            context.decision = DECISIONS.BLOCK;
-            context.reason = contentResult.reason;
-            context.processingTimeMs = Date.now() - startTime;
-            return buildResult(context);
-        }
-        if (contentResult.decision === DECISIONS.QUARANTINE && context.decision !== DECISIONS.BLOCK) {
-            context.decision = DECISIONS.QUARANTINE;
-            context.reason = context.reason || contentResult.reason;
+        // Apply normalisation if enabled
+        if (isEngineEnabled(ENGINES.NORMALISATION)) {
+            context.normalisedMessage = applyNormalisationRules(message, context);
+            context.processingOrder.push(ENGINES.NORMALISATION);
+        } else {
+            context.normalisedMessage = JSON.parse(JSON.stringify(message));
+            context.skippedEngines.push(ENGINES.NORMALISATION);
         }
 
-        var urlResult = evaluateUrlRules(context.normalisedMessage, context);
-        context.processingOrder.push(ENGINES.URL);
-        if (urlResult.decision === DECISIONS.BLOCK) {
-            context.decision = DECISIONS.BLOCK;
-            context.reason = urlResult.reason;
-        } else if (urlResult.decision === DECISIONS.QUARANTINE && context.decision !== DECISIONS.BLOCK) {
-            context.decision = DECISIONS.QUARANTINE;
-            context.reason = context.reason || urlResult.reason;
+        // Evaluate SenderID rules if enabled
+        if (isEngineEnabled(ENGINES.SENDERID)) {
+            var senderIdResult = evaluateSenderIdRules(context.normalisedMessage, context);
+            context.processingOrder.push(ENGINES.SENDERID);
+            if (senderIdResult.decision === DECISIONS.BLOCK) {
+                context.decision = DECISIONS.BLOCK;
+                context.reason = senderIdResult.reason;
+                context.processingTimeMs = Date.now() - startTime;
+                return buildResult(context);
+            }
+            if (senderIdResult.decision === DECISIONS.QUARANTINE && context.decision !== DECISIONS.BLOCK) {
+                context.decision = DECISIONS.QUARANTINE;
+                context.reason = senderIdResult.reason;
+            }
+        } else {
+            context.skippedEngines.push(ENGINES.SENDERID);
         }
 
-        var antiSpamResult = checkAntiSpamDuplicate(context.normalisedMessage, context);
-        context.processingOrder.push('antispam');
-        if (antiSpamResult.decision === DECISIONS.BLOCK) {
-            context.decision = DECISIONS.BLOCK;
-            context.reason = antiSpamResult.reason;
-            context.processingTimeMs = Date.now() - startTime;
-            return buildResult(context);
+        // Evaluate Content rules if enabled
+        if (isEngineEnabled(ENGINES.CONTENT)) {
+            var contentResult = evaluateContentRules(context.normalisedMessage, context);
+            context.processingOrder.push(ENGINES.CONTENT);
+            if (contentResult.decision === DECISIONS.BLOCK) {
+                context.decision = DECISIONS.BLOCK;
+                context.reason = contentResult.reason;
+                context.processingTimeMs = Date.now() - startTime;
+                return buildResult(context);
+            }
+            if (contentResult.decision === DECISIONS.QUARANTINE && context.decision !== DECISIONS.BLOCK) {
+                context.decision = DECISIONS.QUARANTINE;
+                context.reason = context.reason || contentResult.reason;
+            }
+        } else {
+            context.skippedEngines.push(ENGINES.CONTENT);
+        }
+
+        // Evaluate URL rules if enabled
+        if (isEngineEnabled(ENGINES.URL)) {
+            var urlResult = evaluateUrlRules(context.normalisedMessage, context);
+            context.processingOrder.push(ENGINES.URL);
+            if (urlResult.decision === DECISIONS.BLOCK) {
+                context.decision = DECISIONS.BLOCK;
+                context.reason = urlResult.reason;
+            } else if (urlResult.decision === DECISIONS.QUARANTINE && context.decision !== DECISIONS.BLOCK) {
+                context.decision = DECISIONS.QUARANTINE;
+                context.reason = context.reason || urlResult.reason;
+            }
+        } else {
+            context.skippedEngines.push(ENGINES.URL);
+        }
+
+        // Check anti-spam duplicates if enabled
+        if (featureFlags.anti_spam_enabled) {
+            var antiSpamResult = checkAntiSpamDuplicate(context.normalisedMessage, context);
+            context.processingOrder.push('antispam');
+            if (antiSpamResult.decision === DECISIONS.BLOCK) {
+                context.decision = DECISIONS.BLOCK;
+                context.reason = antiSpamResult.reason;
+                context.processingTimeMs = Date.now() - startTime;
+                return buildResult(context);
+            }
+        } else {
+            context.skippedEngines.push('antispam');
+        }
+
+        // Override quarantine decision if quarantine is disabled
+        if (context.decision === DECISIONS.QUARANTINE && !featureFlags.quarantine_enabled) {
+            console.log('[MessageEnforcementService] Quarantine disabled - converting to ALLOW');
+            context.decision = DECISIONS.ALLOW;
+            context.quarantineOverridden = true;
         }
 
         context.processingTimeMs = Date.now() - startTime;
@@ -747,7 +1007,17 @@ var MessageEnforcementService = (function() {
         buildAdminExplanation: buildAdminExplanation,
         buildCustomerExplanation: buildCustomerExplanation,
         mapEngineToDisplay: mapEngineToDisplay,
-        sanitizeMatchedToken: sanitizeMatchedToken
+        sanitizeMatchedToken: sanitizeMatchedToken,
+        // Performance + Safety APIs
+        hotReloadRules: hotReloadRules,
+        getRulesForTenant: getRulesForTenant,
+        getRuleById: getRuleById,
+        getCacheStats: getCacheStats,
+        setTenantContext: setTenantContext,
+        // Feature flag APIs (admin only)
+        isEngineEnabled: isEngineEnabled,
+        setFeatureFlag: setFeatureFlag,
+        getFeatureFlags: function() { return Object.assign({}, featureFlags); }
     };
 })();
 

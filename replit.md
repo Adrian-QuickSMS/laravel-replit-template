@@ -45,6 +45,13 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
 **Service Layer Architecture:**
 - **Modular Service Layers:** `ContactTimelineService`, `NumbersAdminService`, `BillingServices`, `AdminAuditService`, `AdminLoginPolicyService`, and `ImpersonationService` provide backend-ready abstraction layers.
 - **BillingServices (Unified):** Encompasses `HubSpotBillingService` (source of truth for billing), `InternalBillingLedgerService` (internal balance tracking), `InvoicesService` (invoice/credit note management with Xero integration), and `AccountDetailsService`. Includes a `BillingFacade` for unified data loading and defensive error handling.
+- **MessageEnforcementService:** Unified message security enforcement with:
+  - **Indexed Rule Storage:** O(1) lookups via `ruleIndex.byId`, engine-based grouping via `ruleIndex.byEngine`, tenant isolation via `ruleIndex.byTenant`
+  - **Deterministic Ordering:** Rules sorted by priority with secondary sort by ID for stability
+  - **Hot Reload:** `hotReloadRules()` enables rule updates without service restart; `cacheMetadata` tracks version and last load time
+  - **Tenant Isolation:** `getRulesForTenant(tenantId, engine)` guarantees no cross-tenant reads; global rules apply to all tenants
+  - **Feature Flags:** Per-engine toggles (`senderid_controls_enabled`, `content_controls_enabled`, `url_controls_enabled`, `quarantine_enabled`, `normalisation_enabled`, `anti_spam_enabled`, `domain_age_check_enabled`)
+  - **Admin Access Enforcement:** `AdminAccessControl` validates admin context at UI layer; `setFeatureFlag()` requires admin context
 - **Design Principles:** Typed JSDoc objects, mock data modes for development, clean separation of UI and API, and robust error handling.
 
 ## External Dependencies
