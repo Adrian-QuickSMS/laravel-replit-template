@@ -692,6 +692,88 @@
     border-color: #1e3a5f;
     transform: scale(1.1);
 }
+.norm-test-mode-btn {
+    padding: 0.5rem 1.25rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    color: #6b7280;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+.norm-test-mode-btn:hover {
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.norm-test-mode-btn.active {
+    background: #1e3a5f;
+    border-color: #1e3a5f;
+    color: white;
+}
+.norm-highlight-sub {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+.norm-highlight-base {
+    background: #d1fae5;
+    color: #065f46;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+.norm-sub-chip {
+    display: inline-flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'Courier New', monospace;
+}
+.norm-sub-original {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #991b1b;
+    background: #fee2e2;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.norm-sub-base {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #065f46;
+    background: #d1fae5;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.norm-sub-info {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-left: 8px;
+}
+.norm-matched-rule {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+.norm-matched-rule-name {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.norm-matched-rule-pattern {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #1e3a5f;
+}
 .sec-filter-row {
     display: flex;
     gap: 1rem;
@@ -5218,57 +5300,92 @@ function showTestNormalisationModal(rule) {
         '<div class="modal-dialog modal-lg">' +
             '<div class="modal-content">' +
                 '<div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white;">' +
-                    '<h5 class="modal-title"><i class="fas fa-flask me-2"></i>Test Normalisation Rules</h5>' +
+                    '<h5 class="modal-title"><i class="fas fa-flask me-2"></i>Test Normalisation</h5>' +
                     '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
                 '</div>' +
                 '<div class="modal-body">' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Input Text</label>' +
-                        '<input type="text" class="form-control" id="normTestInput" placeholder="Enter text to test normalisation..." value="' + (rule ? '' : 'BАNK0FENGLAND') + '">' +
-                        '<small class="text-muted">Try typing text with homoglyphs or substitutions (e.g., "BАNK0FENGLAND" with Cyrillic A and zero)</small>' +
+                    '<div class="alert alert-info mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f; border-radius: 8px;">' +
+                        '<i class="fas fa-info-circle me-2" style="color: #1e3a5f;"></i>' +
+                        '<strong>Simulation Only:</strong> This tool tests normalisation rules without sending any messages.' +
                     '</div>' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Test Against</label>' +
-                        '<select class="form-control" id="normTestScope">' +
-                            '<option value="all"' + (!rule ? ' selected' : '') + '>All Active Rules</option>' +
-                            '<option value="senderid">SenderID Rules Only</option>' +
-                            '<option value="content">Content Rules Only</option>' +
-                            '<option value="url">URL Rules Only</option>' +
-                            (rule ? '<option value="single" selected>This Rule Only (' + rule.name + ')</option>' : '') +
-                        '</select>' +
+                    
+                    '<div class="mb-4">' +
+                        '<label class="form-label fw-bold"><i class="fas fa-keyboard me-2 text-muted"></i>Test String</label>' +
+                        '<input type="text" class="form-control form-control-lg" id="normTestInput" placeholder="Enter text to test..." value="' + (rule && rule.base ? rule.base : 'LL0YDS') + '" style="font-family: monospace; font-size: 1.2rem;">' +
+                        '<small class="text-muted">Enter text with potential homoglyphs or character substitutions (e.g., "LL0YDS" with zero instead of O)</small>' +
                     '</div>' +
-                    '<button class="btn btn-primary mb-3" onclick="runNormalisationTest(' + (rule ? rule.id : 'null') + ')" style="background: #1e3a5f; border-color: #1e3a5f;">' +
+                    
+                    '<div class="mb-4">' +
+                        '<label class="form-label fw-bold"><i class="fas fa-bullseye me-2 text-muted"></i>Mode</label>' +
+                        '<div class="d-flex gap-2">' +
+                            '<button type="button" class="btn norm-test-mode-btn active" data-mode="senderid" onclick="selectNormTestMode(this)">' +
+                                '<i class="fas fa-id-badge me-1"></i>SenderID' +
+                            '</button>' +
+                            '<button type="button" class="btn norm-test-mode-btn" data-mode="content" onclick="selectNormTestMode(this)">' +
+                                '<i class="fas fa-comment-alt me-1"></i>Content' +
+                            '</button>' +
+                            '<button type="button" class="btn norm-test-mode-btn" data-mode="url" onclick="selectNormTestMode(this)">' +
+                                '<i class="fas fa-link me-1"></i>URL' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                    
+                    '<div class="mb-4">' +
+                        '<label class="form-label fw-bold"><i class="fas fa-crosshairs me-2 text-muted"></i>Compare Against <span class="text-muted fw-normal">(optional)</span></label>' +
+                        '<input type="text" class="form-control" id="normTestTarget" placeholder="Enter target to match (e.g., LLOYDS)" value="LLOYDS" style="font-family: monospace;">' +
+                        '<small class="text-muted">If provided, we\'ll check if the normalised input matches this target</small>' +
+                    '</div>' +
+                    
+                    '<button class="btn btn-lg" onclick="runNormalisationTest()" style="background: #1e3a5f; border-color: #1e3a5f; color: white;">' +
                         '<i class="fas fa-play me-1"></i>Run Test' +
                     '</button>' +
-                    '<div id="normTestResults" style="display: none;">' +
+                    
+                    '<div id="normTestResults" style="display: none; margin-top: 1.5rem;">' +
                         '<hr>' +
-                        '<h6><i class="fas fa-chart-bar me-2"></i>Results</h6>' +
-                        '<div class="row">' +
+                        '<h6 class="mb-3"><i class="fas fa-chart-bar me-2"></i>Results</h6>' +
+                        
+                        '<div class="row g-3 mb-4">' +
                             '<div class="col-md-6">' +
-                                '<div class="card border-0" style="background: #f8fafc;">' +
+                                '<div class="card border-0 h-100" style="background: #f8fafc;">' +
                                     '<div class="card-body">' +
-                                        '<strong>Original:</strong><br>' +
-                                        '<code id="normTestOriginal" style="font-size: 1.1rem;"></code>' +
+                                        '<div class="text-muted small mb-1">Original Input</div>' +
+                                        '<div id="normTestOriginal" style="font-family: monospace; font-size: 1.3rem; letter-spacing: 2px;"></div>' +
                                     '</div>' +
                                 '</div>' +
                             '</div>' +
                             '<div class="col-md-6">' +
-                                '<div class="card border-0" style="background: #e8f4fd;">' +
+                                '<div class="card border-0 h-100" style="background: #e8f4fd;">' +
                                     '<div class="card-body">' +
-                                        '<strong>Normalised:</strong><br>' +
-                                        '<code id="normTestNormalised" style="font-size: 1.1rem; color: #1e3a5f;"></code>' +
+                                        '<div class="text-muted small mb-1">Normalised (Canonical)</div>' +
+                                        '<div id="normTestNormalised" style="font-family: monospace; font-size: 1.3rem; letter-spacing: 2px; color: #1e3a5f;"></div>' +
                                     '</div>' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
-                        '<div class="mt-3">' +
-                            '<strong>Transformations Applied:</strong>' +
-                            '<ul id="normTestTransformations" class="mt-2 mb-0" style="font-size: 0.85rem;"></ul>' +
+                        
+                        '<div id="normTestMatchResult" class="mb-4" style="display: none;"></div>' +
+                        
+                        '<div class="card border-0 mb-4" style="background: #fafbfc;">' +
+                            '<div class="card-header bg-transparent border-bottom" style="font-weight: 600;">' +
+                                '<i class="fas fa-exchange-alt me-2 text-muted"></i>Character Substitutions' +
+                            '</div>' +
+                            '<div class="card-body">' +
+                                '<div id="normTestSubstitutions"></div>' +
+                            '</div>' +
+                        '</div>' +
+                        
+                        '<div class="card border-0" style="background: #fafbfc;">' +
+                            '<div class="card-header bg-transparent border-bottom" style="font-weight: 600;">' +
+                                '<i class="fas fa-shield-alt me-2 text-muted"></i>Would Match Rules For' +
+                            '</div>' +
+                            '<div class="card-body">' +
+                                '<div id="normTestMatchedRules"></div>' +
+                            '</div>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="modal-footer">' +
-                    '<small class="text-muted me-auto"><i class="fas fa-info-circle me-1"></i>Tests run against the active normalisation library</small>' +
+                    '<small class="text-muted me-auto"><i class="fas fa-lock me-1"></i>No messages are sent during testing</small>' +
                     '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>' +
                 '</div>' +
             '</div>' +
@@ -5276,42 +5393,183 @@ function showTestNormalisationModal(rule) {
     '</div>';
     
     var existingModal = document.getElementById('testNormalisationModal');
-    if (existingModal) {
-        existingModal.remove();
-    }
+    if (existingModal) existingModal.remove();
     
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     var modal = new bootstrap.Modal(document.getElementById('testNormalisationModal'));
     modal.show();
+    
+    document.getElementById('normTestInput').focus();
 }
 
-function runNormalisationTest(specificRuleId) {
+function selectNormTestMode(btn) {
+    document.querySelectorAll('.norm-test-mode-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    btn.classList.add('active');
+}
+
+function runNormalisationTest() {
     var input = document.getElementById('normTestInput').value;
-    var scope = document.getElementById('normTestScope').value;
+    var target = document.getElementById('normTestTarget').value.trim();
+    var modeBtn = document.querySelector('.norm-test-mode-btn.active');
+    var scope = modeBtn ? modeBtn.getAttribute('data-mode') : 'senderid';
     
     if (!input) {
-        alert('Please enter text to test');
+        showToast('Please enter text to test', 'warning');
         return;
     }
     
-    var result = NormalisationLibrary.normalise(input, scope === 'single' ? { ruleId: specificRuleId } : { scope: scope });
+    var result = performNormalisation(input, scope);
     
-    document.getElementById('normTestOriginal').textContent = input;
-    document.getElementById('normTestNormalised').textContent = result.normalised;
+    document.getElementById('normTestOriginal').innerHTML = result.highlightedOriginal;
+    document.getElementById('normTestNormalised').innerHTML = result.highlightedNormalised;
     
-    var transformationsHtml = '';
-    if (result.transformations && result.transformations.length > 0) {
-        result.transformations.forEach(function(t) {
-            transformationsHtml += '<li><code>' + t.original + '</code> → <code>' + t.replacement + '</code> <span class="text-muted">(' + t.ruleName + ')</span></li>';
-        });
+    if (target) {
+        var targetResult = performNormalisation(target, scope);
+        var isMatch = result.normalised.toUpperCase() === targetResult.normalised.toUpperCase();
+        
+        var matchHtml = isMatch 
+            ? '<div class="alert alert-success" style="background: #d1fae5; border-color: #10b981;">' +
+                '<i class="fas fa-check-circle me-2" style="color: #065f46;"></i>' +
+                '<strong style="color: #065f46;">MATCH</strong> - ' +
+                '<span style="font-family: monospace;">' + input + '</span> normalises to match ' +
+                '<span style="font-family: monospace;">' + target + '</span>' +
+                (result.substitutions.length > 0 ? ' via ' + result.substitutions.map(function(s) { return s.base + '≈' + s.original; }).join(', ') : '') +
+              '</div>'
+            : '<div class="alert alert-warning" style="background: #fef3c7; border-color: #f59e0b;">' +
+                '<i class="fas fa-times-circle me-2" style="color: #92400e;"></i>' +
+                '<strong style="color: #92400e;">NO MATCH</strong> - ' +
+                '<span style="font-family: monospace;">' + result.normalised + '</span> does not match ' +
+                '<span style="font-family: monospace;">' + targetResult.normalised + '</span>' +
+              '</div>';
+        
+        document.getElementById('normTestMatchResult').innerHTML = matchHtml;
+        document.getElementById('normTestMatchResult').style.display = 'block';
     } else {
-        transformationsHtml = '<li class="text-muted">No transformations applied</li>';
+        document.getElementById('normTestMatchResult').style.display = 'none';
     }
-    document.getElementById('normTestTransformations').innerHTML = transformationsHtml;
+    
+    var subsHtml = '';
+    if (result.substitutions.length > 0) {
+        subsHtml = '<div class="d-flex flex-wrap gap-2">';
+        result.substitutions.forEach(function(s) {
+            var encoding = getCharEncoding(s.original);
+            var codepoint = s.original.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+            subsHtml += '<div class="norm-sub-chip">' +
+                '<span class="norm-sub-original">' + s.original + '</span>' +
+                '<i class="fas fa-arrow-right mx-2 text-muted"></i>' +
+                '<span class="norm-sub-base">' + s.base + '</span>' +
+                '<span class="norm-sub-info">U+' + codepoint + ' · ' + encoding + '</span>' +
+            '</div>';
+        });
+        subsHtml += '</div>';
+    } else {
+        subsHtml = '<div class="text-muted"><i class="fas fa-check-circle me-1"></i>No character substitutions - input already canonical</div>';
+    }
+    document.getElementById('normTestSubstitutions').innerHTML = subsHtml;
+    
+    var rulesHtml = '';
+    var matchedRules = findMatchingRules(result.normalised, scope);
+    if (matchedRules.length > 0) {
+        rulesHtml = '<div class="d-flex flex-wrap gap-2">';
+        matchedRules.forEach(function(r) {
+            var riskBadge = getRiskBadgeHtml(r.risk);
+            rulesHtml += '<div class="norm-matched-rule">' +
+                '<span class="norm-matched-rule-name">' + r.type + '</span>' +
+                '<span class="norm-matched-rule-pattern">' + r.pattern + '</span>' +
+                riskBadge +
+            '</div>';
+        });
+        rulesHtml += '</div>';
+    } else {
+        rulesHtml = '<div class="text-muted"><i class="fas fa-shield-alt me-1"></i>No specific blocking rules would match this normalised content</div>';
+    }
+    document.getElementById('normTestMatchedRules').innerHTML = rulesHtml;
     
     document.getElementById('normTestResults').style.display = 'block';
     
-    logAuditEvent('NORMALISATION_TEST_RUN', { input: input, output: result.normalised, scope: scope });
+    logAuditEvent('NORMALISATION_TEST_RUN', { 
+        input: input, 
+        output: result.normalised, 
+        scope: scope,
+        target: target || null,
+        matched: target ? (result.normalised.toUpperCase() === performNormalisation(target, scope).normalised.toUpperCase()) : null
+    });
+}
+
+function performNormalisation(input, scope) {
+    var normalised = '';
+    var substitutions = [];
+    var highlightedOriginal = '';
+    var highlightedNormalised = '';
+    
+    var chars = Array.from(input);
+    
+    chars.forEach(function(char, idx) {
+        var found = false;
+        var baseChar = char;
+        
+        mockData.baseCharacterLibrary.forEach(function(rule) {
+            if (!rule.enabled) return;
+            if (rule.scope.indexOf(scope) === -1 && scope !== 'all') return;
+            
+            if (rule.equivalents.indexOf(char) !== -1) {
+                baseChar = rule.base;
+                found = true;
+                substitutions.push({
+                    position: idx,
+                    original: char,
+                    base: rule.base
+                });
+            }
+        });
+        
+        normalised += baseChar;
+        
+        if (found) {
+            highlightedOriginal += '<span class="norm-highlight-sub">' + char + '</span>';
+            highlightedNormalised += '<span class="norm-highlight-base">' + baseChar + '</span>';
+        } else {
+            highlightedOriginal += char;
+            highlightedNormalised += baseChar;
+        }
+    });
+    
+    return {
+        normalised: normalised,
+        substitutions: substitutions,
+        highlightedOriginal: highlightedOriginal,
+        highlightedNormalised: highlightedNormalised
+    };
+}
+
+function findMatchingRules(normalisedText, scope) {
+    var matches = [];
+    
+    var scopeRules = [];
+    if (scope === 'senderid' || scope === 'all') {
+        scopeRules = scopeRules.concat(mockData.senderidRules.filter(function(r) { return r.status === 'active'; }));
+    }
+    if (scope === 'content' || scope === 'all') {
+        scopeRules = scopeRules.concat(mockData.contentRules.filter(function(r) { return r.status === 'active'; }));
+    }
+    if (scope === 'url' || scope === 'all') {
+        scopeRules = scopeRules.concat(mockData.urlRules.filter(function(r) { return r.status === 'active'; }));
+    }
+    
+    scopeRules.forEach(function(rule) {
+        var pattern = rule.pattern || rule.keyword || rule.matchValue || '';
+        if (pattern && normalisedText.toUpperCase().indexOf(pattern.toUpperCase()) !== -1) {
+            matches.push({
+                type: rule.type || scope,
+                pattern: pattern,
+                risk: 'medium'
+            });
+        }
+    });
+    
+    return matches;
 }
 
 function showAddNormRuleModal() {
