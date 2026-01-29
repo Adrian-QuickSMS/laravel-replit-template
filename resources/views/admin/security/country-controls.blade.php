@@ -641,9 +641,146 @@
     text-decoration: underline;
     color: #2d5a87;
 }
-.account-id {
-    font-size: 0.75rem;
+.review-panel-content {
+    padding: 0;
+}
+.review-section {
+    border-bottom: 1px solid #e5e9f2;
+}
+.review-section:last-child {
+    border-bottom: none;
+}
+.review-section-header {
+    background: #f8f9fc;
+    padding: 0.875rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1e3a5f;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid #e5e9f2;
+}
+.review-section-header i {
+    color: #1e3a5f;
+    font-size: 0.85rem;
+}
+.review-section-body {
+    padding: 1.25rem;
+}
+.review-field {
+    margin-bottom: 0;
+}
+.review-field label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
     color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+.review-field-value {
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+.allowed-countries-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+}
+.country-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: #e2e8f0;
+    color: #475569;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.country-chip.default {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.country-chip.override {
+    background: #d1fae5;
+    color: #065f46;
+}
+.activity-placeholder {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 6px;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+.activity-placeholder i {
+    font-size: 1rem;
+}
+.reason-box {
+    padding: 0.875rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    color: #1e293b;
+    line-height: 1.5;
+}
+.admin-actions-container {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.admin-actions-container .btn {
+    padding: 0.625rem 1.25rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.admin-actions-container .btn-approve {
+    background: #059669;
+    color: #fff;
+    border: none;
+}
+.admin-actions-container .btn-approve:hover {
+    background: #047857;
+    color: #fff;
+}
+.admin-actions-container .btn-reject {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+}
+.admin-actions-container .btn-reject:hover {
+    background: #b91c1c;
+    color: #fff;
+}
+.reviewed-info {
+    padding: 0.875rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #64748b;
+}
+.reviewed-info i {
+    margin-right: 0.375rem;
+}
+.reviewed-info.approved {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #166534;
+}
+.reviewed-info.rejected {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
 }
 .risk-pill {
     padding: 0.125rem 0.5rem;
@@ -957,73 +1094,142 @@
 </div>
 
 <div class="modal fade" id="reviewDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header" style="background: #1e3a5f; color: #fff;">
-                <h5 class="modal-title"><i class="fas fa-globe-americas me-2"></i>Country Access Request</h5>
+                <h5 class="modal-title"><i class="fas fa-clipboard-check me-2"></i>Country Access Review</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">REQUEST ID</label>
-                            <div id="modalRequestId" class="fw-medium"></div>
+            <div class="modal-body p-0">
+                <div class="review-panel-content">
+                    <div class="review-section">
+                        <div class="review-section-header">
+                            <i class="fas fa-building"></i>
+                            <span>Account Context</span>
+                        </div>
+                        <div class="review-section-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="review-field">
+                                        <label>Account Name</label>
+                                        <div id="modalAccountName" class="review-field-value"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="review-field">
+                                        <label>Account Number</label>
+                                        <div id="modalAccountNumber" class="review-field-value"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="review-field">
+                                        <label>Account State</label>
+                                        <div id="modalAccountState"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="review-field">
+                                        <label>Sub Account</label>
+                                        <div id="modalSubAccount" class="review-field-value"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="review-field">
+                                        <label>Risk Level</label>
+                                        <div id="modalRiskLevel"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="review-field">
+                                        <label>Current Allowed Countries</label>
+                                        <div id="modalAllowedCountries" class="allowed-countries-list"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="review-field">
+                                        <label>Recent Messaging Activity</label>
+                                        <div class="activity-placeholder">
+                                            <i class="fas fa-chart-line"></i>
+                                            <span>Activity summary will be available in a future release</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">STATUS</label>
-                            <div id="modalRequestStatus"></div>
+
+                    <div class="review-section">
+                        <div class="review-section-header">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Request Details</span>
+                        </div>
+                        <div class="review-section-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="review-field">
+                                        <label>Request ID</label>
+                                        <div id="modalRequestId" class="review-field-value font-monospace"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="review-field">
+                                        <label>Current Status</label>
+                                        <div id="modalRequestStatus"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="review-field">
+                                        <label>Requested Country</label>
+                                        <div id="modalRequestCountry" class="review-field-value fw-medium"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="review-field">
+                                        <label>Estimated Volume</label>
+                                        <div id="modalRequestVolume" class="review-field-value"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="review-field">
+                                        <label>Submitted By</label>
+                                        <div id="modalRequestSubmittedBy" class="review-field-value">
+                                            <i class="fas fa-envelope text-muted me-1"></i>
+                                            <span id="modalSubmitterEmail"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="review-field">
+                                        <label>Submitted Date</label>
+                                        <div id="modalRequestSubmittedAt" class="review-field-value"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="review-field">
+                                        <label>Business Justification</label>
+                                        <div id="modalRequestReason" class="reason-box"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">CUSTOMER</label>
-                            <div id="modalRequestCustomer" class="fw-medium"></div>
+
+                    <div class="review-section" id="adminActionsSection">
+                        <div class="review-section-header">
+                            <i class="fas fa-user-shield"></i>
+                            <span>Admin Actions</span>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">RISK LEVEL</label>
-                            <div id="modalRequestRisk"></div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">COUNTRY REQUESTED</label>
-                            <div id="modalRequestCountry" class="fw-medium"></div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">ESTIMATED VOLUME</label>
-                            <div id="modalRequestVolume"></div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">SUBMITTED BY</label>
-                            <div id="modalRequestSubmittedBy"></div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">SUBMITTED AT</label>
-                            <div id="modalRequestSubmittedAt"></div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted fw-bold">BUSINESS JUSTIFICATION</label>
-                            <div id="modalRequestReason" class="p-3 bg-light rounded"></div>
+                        <div class="review-section-body">
+                            <div id="modalRequestActions" class="admin-actions-container"></div>
+                            <div id="modalReviewedInfo" class="reviewed-info" style="display: none;"></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer justify-content-between">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                <div id="modalRequestActions" class="d-flex gap-2"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Close
+                </button>
             </div>
         </div>
     </div>
@@ -1424,31 +1630,91 @@ function openReviewModal(requestId) {
     if (!request) return;
     selectedRequest = request;
     
+    document.getElementById('modalAccountName').textContent = request.customer.name;
+    document.getElementById('modalAccountNumber').textContent = request.customer.accountNumber;
+    
+    var accountStatusClass = request.customer.accountStatus === 'live' ? 'account-live' : 
+                             request.customer.accountStatus === 'test' ? 'account-test' : 'account-suspended';
+    document.getElementById('modalAccountState').innerHTML = 
+        '<span class="status-pill ' + accountStatusClass + '">' + capitalize(request.customer.accountStatus) + '</span>';
+    
+    document.getElementById('modalSubAccount').textContent = request.customer.subAccount || '—';
+    document.getElementById('modalRiskLevel').innerHTML = 
+        '<span class="risk-pill ' + request.risk + '">' + request.risk.toUpperCase() + '</span>';
+    
+    var allowedCountriesHtml = getAccountAllowedCountries(request.customer.id);
+    document.getElementById('modalAllowedCountries').innerHTML = allowedCountriesHtml;
+    
     document.getElementById('modalRequestId').textContent = request.id;
-    document.getElementById('modalRequestCustomer').textContent = request.customer.name + ' (' + request.customer.accountNumber + ')';
-    document.getElementById('modalRequestCountry').textContent = request.country.name + ' (' + request.country.dialCode + ')';
-    document.getElementById('modalRequestVolume').textContent = request.estimatedVolume;
-    document.getElementById('modalRequestSubmittedBy').textContent = request.submittedBy;
+    
+    var statusIcon = request.status === 'pending' ? 'fa-clock' : 
+                     request.status === 'approved' ? 'fa-check' : 'fa-times';
+    document.getElementById('modalRequestStatus').innerHTML = 
+        '<span class="status-pill ' + request.status + '"><i class="fas ' + statusIcon + '"></i> ' + capitalize(request.status) + '</span>';
+    
+    document.getElementById('modalRequestCountry').innerHTML = 
+        '<i class="fas fa-globe-americas text-muted me-1"></i>' + request.country.name + ' <span class="text-muted">(' + request.country.dialCode + ')</span>';
+    document.getElementById('modalRequestVolume').textContent = request.estimatedVolume || '—';
+    document.getElementById('modalSubmitterEmail').textContent = request.submittedBy;
     document.getElementById('modalRequestSubmittedAt').textContent = request.submittedAt;
-    document.getElementById('modalRequestReason').textContent = request.reason;
-    document.getElementById('modalRequestRisk').innerHTML = '<span class="risk-pill ' + request.risk + '">' + request.risk.toUpperCase() + '</span>';
-    document.getElementById('modalRequestStatus').innerHTML = '<span class="status-pill ' + request.status + '">' + capitalize(request.status) + '</span>';
+    document.getElementById('modalRequestReason').textContent = request.reason || 'No reason provided';
     
     var actionsDiv = document.getElementById('modalRequestActions');
+    var reviewedInfoDiv = document.getElementById('modalReviewedInfo');
+    
     if (request.status === 'pending') {
+        actionsDiv.style.display = 'flex';
+        reviewedInfoDiv.style.display = 'none';
         actionsDiv.innerHTML = 
-            '<button class="btn" style="background: #059669; color: #fff;" onclick="approveRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
-                '<i class="fas fa-check-circle me-1"></i>Approve Request' +
+            '<button class="btn btn-approve" onclick="approveRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
+                '<i class="fas fa-check-circle"></i>Approve Request' +
             '</button>' +
-            '<button class="btn" style="background: #dc2626; color: #fff;" onclick="rejectRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
-                '<i class="fas fa-times-circle me-1"></i>Reject Request' +
+            '<button class="btn btn-reject" onclick="rejectRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
+                '<i class="fas fa-times-circle"></i>Reject Request' +
             '</button>';
     } else {
-        actionsDiv.innerHTML = '<span class="text-muted">This request has already been ' + request.status + '.</span>';
+        actionsDiv.style.display = 'none';
+        reviewedInfoDiv.style.display = 'block';
+        reviewedInfoDiv.className = 'reviewed-info ' + request.status;
+        
+        var icon = request.status === 'approved' ? 'fa-check-circle' : 'fa-times-circle';
+        reviewedInfoDiv.innerHTML = 
+            '<i class="fas ' + icon + '"></i>' +
+            '<strong>' + capitalize(request.status) + '</strong> by ' + request.reviewedBy + 
+            ' on ' + request.reviewedAt;
     }
     
     var modal = new bootstrap.Modal(document.getElementById('reviewDetailModal'));
     modal.show();
+}
+
+function getAccountAllowedCountries(customerId) {
+    var defaultCountries = [
+        { code: 'GB', name: 'United Kingdom' },
+        { code: 'IE', name: 'Ireland' },
+        { code: 'FR', name: 'France' },
+        { code: 'DE', name: 'Germany' }
+    ];
+    
+    var overrides = {
+        'CUST-001': [{ code: 'US', name: 'United States' }],
+        'CUST-002': [{ code: 'AE', name: 'UAE' }, { code: 'SG', name: 'Singapore' }],
+        'CUST-004': [{ code: 'ES', name: 'Spain' }, { code: 'PT', name: 'Portugal' }]
+    };
+    
+    var html = '';
+    
+    defaultCountries.forEach(function(c) {
+        html += '<span class="country-chip default"><i class="fas fa-globe"></i>' + c.code + '</span>';
+    });
+    
+    if (overrides[customerId]) {
+        overrides[customerId].forEach(function(c) {
+            html += '<span class="country-chip override"><i class="fas fa-plus-circle"></i>' + c.code + '</span>';
+        });
+    }
+    
+    return html;
 }
 
 function updateReviewStats() {
