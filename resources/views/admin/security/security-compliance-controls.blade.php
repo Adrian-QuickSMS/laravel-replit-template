@@ -1458,6 +1458,127 @@ var currentAdmin = {
     role: 'super_admin'
 };
 
+var auditConfig = {
+    enableCustomerAudit: true,
+    customerAuditEvents: [
+        'MESSAGE_BLOCKED_BY_POLICY',
+        'MESSAGE_QUARANTINED_BY_POLICY',
+        'MESSAGE_RELEASED_FROM_QUARANTINE'
+    ],
+    internalOnlyEvents: [
+        'SENDERID_RULE_CREATED', 'SENDERID_RULE_UPDATED', 'SENDERID_RULE_DELETED', 'SENDERID_RULE_STATUS_CHANGED',
+        'CONTENT_RULE_CREATED', 'CONTENT_RULE_UPDATED', 'CONTENT_RULE_DELETED', 'CONTENT_RULE_STATUS_CHANGED',
+        'URL_RULE_CREATED', 'URL_RULE_UPDATED', 'URL_RULE_DELETED', 'URL_RULE_STATUS_CHANGED',
+        'NORMALISATION_RULE_CHANGED',
+        'DOMAIN_AGE_SETTINGS_UPDATED', 'DOMAIN_AGE_EXCEPTION_ADDED', 'DOMAIN_AGE_EXCEPTION_REMOVED',
+        'QUARANTINE_NOTE_ADDED', 'QUARANTINE_EXCEPTION_STARTED', 'QUARANTINE_RULE_CREATE_STARTED',
+        'ANTISPAM_REPEAT_CONTENT_TOGGLED', 'ANTISPAM_WINDOW_UPDATED',
+        'OVERRIDE_APPLIED'
+    ],
+    retentionYears: 7
+};
+
+function getClientIP() {
+    return '192.168.1.' + Math.floor(Math.random() * 255);
+}
+
+function logAuditEvent(eventType, details) {
+    var auditEntry = {
+        eventId: 'AUD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),
+        eventType: eventType,
+        timestamp: new Date().toISOString(),
+        timestampUtc: new Date().toUTCString(),
+        actor: {
+            adminId: currentAdmin.id,
+            adminEmail: currentAdmin.email,
+            adminRole: currentAdmin.role
+        },
+        sourceIp: getClientIP(),
+        affectedEntities: details.affectedEntities || [],
+        entityId: details.ruleId || details.messageId || details.accountId || null,
+        entityType: details.entityType || inferEntityType(eventType),
+        action: eventType,
+        before: details.before || details.beforeStatus || null,
+        after: details.after || details.afterStatus || null,
+        details: sanitizeAuditDetails(details),
+        module: 'security_compliance_controls',
+        retentionExpiry: new Date(Date.now() + (auditConfig.retentionYears * 365 * 24 * 60 * 60 * 1000)).toISOString()
+    };
+    
+    console.log('[SecurityComplianceAudit][INTERNAL]', JSON.stringify(auditEntry));
+    
+    if (auditConfig.enableCustomerAudit && shouldLogToCustomerAudit(eventType, details)) {
+        var customerAuditEntry = buildCustomerAuditEntry(eventType, details, auditEntry);
+        console.log('[SecurityComplianceAudit][CUSTOMER]', JSON.stringify(customerAuditEntry));
+    }
+    
+    return auditEntry;
+}
+
+function inferEntityType(eventType) {
+    if (eventType.indexOf('SENDERID') !== -1) return 'senderid_rule';
+    if (eventType.indexOf('CONTENT') !== -1) return 'content_rule';
+    if (eventType.indexOf('URL') !== -1) return 'url_rule';
+    if (eventType.indexOf('DOMAIN_AGE') !== -1) return 'domain_age_setting';
+    if (eventType.indexOf('QUARANTINE') !== -1) return 'quarantine_message';
+    if (eventType.indexOf('ANTISPAM') !== -1) return 'antispam_setting';
+    if (eventType.indexOf('NORMALISATION') !== -1) return 'normalisation_rule';
+    return 'unknown';
+}
+
+function sanitizeAuditDetails(details) {
+    var sanitized = JSON.parse(JSON.stringify(details));
+    var sensitiveFields = ['password', 'token', 'secret', 'apiKey', 'recipientFull'];
+    sensitiveFields.forEach(function(field) {
+        if (sanitized[field]) {
+            sanitized[field] = '[REDACTED]';
+        }
+    });
+    return sanitized;
+}
+
+function shouldLogToCustomerAudit(eventType, details) {
+    if (auditConfig.customerAuditEvents.indexOf(eventType) !== -1) {
+        return true;
+    }
+    if (eventType === 'QUARANTINE_MESSAGE_RELEASED' || eventType === 'QUARANTINE_MESSAGE_BLOCKED') {
+        return true;
+    }
+    return false;
+}
+
+function buildCustomerAuditEntry(eventType, details, internalEntry) {
+    var customerEvent = {
+        eventId: internalEntry.eventId,
+        timestamp: internalEntry.timestamp,
+        accountId: details.accountId || null,
+        accountName: details.accountName || null,
+        eventType: mapToCustomerEventType(eventType),
+        summary: buildCustomerSummary(eventType, details),
+        affectedMessageId: details.messageId || null
+    };
+    return customerEvent;
+}
+
+function mapToCustomerEventType(internalEventType) {
+    var mapping = {
+        'QUARANTINE_MESSAGE_RELEASED': 'MESSAGE_RELEASED_FROM_QUARANTINE',
+        'QUARANTINE_MESSAGE_BLOCKED': 'MESSAGE_BLOCKED_BY_POLICY',
+        'MESSAGE_QUARANTINED': 'MESSAGE_QUARANTINED_BY_POLICY'
+    };
+    return mapping[internalEventType] || 'POLICY_ACTION';
+}
+
+function buildCustomerSummary(eventType, details) {
+    if (eventType === 'QUARANTINE_MESSAGE_RELEASED') {
+        return 'A message to ' + (details.recipient || 'recipient') + ' was reviewed and released for delivery.';
+    }
+    if (eventType === 'QUARANTINE_MESSAGE_BLOCKED') {
+        return 'A message to ' + (details.recipient || 'recipient') + ' was reviewed and blocked due to policy violation.';
+    }
+    return 'A policy action was applied to your message.';
+}
+
 var SecurityComplianceControlsService = (function() {
     var mockData = {
         senderIdRules: [],
@@ -3351,15 +3472,17 @@ function saveSenderIdRule() {
     
     localStorage.setItem('senderIdRules', JSON.stringify(rules));
     
-    var auditEvent = {
-        eventType: isEdit ? 'SENDERID_RULE_UPDATED' : 'SENDERID_RULE_CREATED',
-        timestamp: new Date().toISOString(),
-        adminActor: { id: currentAdmin.id, email: currentAdmin.email, role: currentAdmin.role },
+    logAuditEvent(isEdit ? 'SENDERID_RULE_UPDATED' : 'SENDERID_RULE_CREATED', {
         ruleId: ruleId,
-        beforeState: beforeState,
-        afterState: { name, baseSenderId, ruleType, category, applyNormalisation }
-    };
-    console.log('[SecurityComplianceAudit]', JSON.stringify(auditEvent));
+        ruleName: name,
+        baseSenderId: baseSenderId,
+        ruleType: ruleType,
+        category: category,
+        applyNormalisation: applyNormalisation,
+        before: beforeState,
+        after: { name: name, baseSenderId: baseSenderId, ruleType: ruleType, category: category, applyNormalisation: applyNormalisation },
+        entityType: 'senderid_rule'
+    });
     
     bootstrap.Modal.getInstance(document.getElementById('senderIdRuleModal')).hide();
     SecurityComplianceControlsService.renderAllTabs();
@@ -3386,14 +3509,13 @@ function toggleSenderIdRuleStatus(ruleId, newStatus) {
         rules[ruleIndex].updatedAt = new Date().toLocaleDateString('en-GB').replace(/\//g, '-') + ' ' + new Date().toTimeString().slice(0, 5);
         localStorage.setItem('senderIdRules', JSON.stringify(rules));
         
-        console.log('[SecurityComplianceAudit]', JSON.stringify({
-            eventType: 'SENDERID_RULE_STATUS_CHANGED',
-            timestamp: new Date().toISOString(),
-            adminActor: { id: currentAdmin.id, email: currentAdmin.email },
+        logAuditEvent('SENDERID_RULE_STATUS_CHANGED', {
             ruleId: ruleId,
+            ruleName: rules[ruleIndex].name,
             beforeStatus: beforeStatus,
-            afterStatus: newStatus
-        }));
+            afterStatus: newStatus,
+            entityType: 'senderid_rule'
+        });
         
         SecurityComplianceControlsService.renderAllTabs();
     }
@@ -3422,13 +3544,13 @@ function confirmDeleteRule() {
         rules = rules.filter(r => r.id !== ruleId);
         localStorage.setItem('senderIdRules', JSON.stringify(rules));
         
-        console.log('[SecurityComplianceAudit]', JSON.stringify({
-            eventType: 'SENDERID_RULE_DELETED',
-            timestamp: new Date().toISOString(),
-            adminActor: { id: currentAdmin.id, email: currentAdmin.email, role: currentAdmin.role },
+        logAuditEvent('SENDERID_RULE_DELETED', {
             ruleId: ruleId,
-            deletedRule: deletedRule
-        }));
+            ruleName: deletedRule ? deletedRule.name : null,
+            before: deletedRule,
+            after: null,
+            entityType: 'senderid_rule'
+        });
     } else if (ruleType === 'content') {
         SecurityComplianceControlsService.deleteContentRuleById(ruleId);
     } else if (ruleType === 'url') {
