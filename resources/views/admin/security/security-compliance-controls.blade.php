@@ -306,6 +306,113 @@
     font-size: 0.75rem;
     font-weight: 500;
 }
+.norm-admin-table {
+    margin-bottom: 0;
+}
+.norm-admin-table thead th {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    color: #495057;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+.norm-admin-table thead th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+.norm-admin-table thead th.sortable:hover {
+    background: #e9ecef;
+}
+.norm-admin-table thead th .sort-icon {
+    color: #adb5bd;
+    margin-left: 4px;
+    font-size: 0.65rem;
+}
+.norm-admin-table thead th.sort-asc .sort-icon,
+.norm-admin-table thead th.sort-desc .sort-icon {
+    color: #1e3a5f;
+}
+.norm-admin-table tbody td {
+    padding: 0.5rem 0.35rem;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #f1f3f5;
+    vertical-align: middle;
+}
+.norm-admin-table tbody tr:hover {
+    background: #f8fafc;
+}
+.norm-status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.norm-status-pill.enabled {
+    background: #d1fae5;
+    color: #065f46;
+}
+.norm-status-pill.disabled {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+.norm-risk-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.norm-risk-pill.high {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.norm-risk-pill.medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+.norm-risk-pill.low {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.norm-risk-pill.none {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+.norm-scope-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    margin-right: 3px;
+}
+.norm-scope-pill.senderid {
+    background: #d9770620;
+    color: #d97706;
+    border: 1px solid #d9770640;
+}
+.norm-scope-pill.content {
+    background: #2563eb20;
+    color: #2563eb;
+    border: 1px solid #2563eb40;
+}
+.norm-scope-pill.url {
+    background: #7c3aed20;
+    color: #7c3aed;
+    border: 1px solid #7c3aed40;
+}
+.norm-updated-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
 .sec-filter-row {
     display: flex;
     gap: 1rem;
@@ -1044,222 +1151,64 @@
                 <div class="tab-content" id="normCharTabsContent">
                     <div class="tab-pane fade show active" id="norm-uppercase" role="tabpanel">
                         <div class="sec-table-card">
-                            <div class="sec-filter-row">
-                                <div class="sec-filter-group">
-                                    <label>Status</label>
-                                    <select id="norm-filter-status-upper" onchange="filterBaseCharacters('uppercase')">
-                                        <option value="">All</option>
-                                        <option value="enabled">Enabled</option>
-                                        <option value="disabled">Disabled</option>
-                                    </select>
-                                </div>
-                                <div class="sec-filter-group">
-                                    <label>Scope</label>
-                                    <select id="norm-filter-scope-upper" onchange="filterBaseCharacters('uppercase')">
-                                        <option value="">All Scopes</option>
-                                        <option value="senderid">SenderID</option>
-                                        <option value="content">Content</option>
-                                        <option value="url">URL</option>
-                                    </select>
-                                </div>
-                                <div class="sec-filter-group">
-                                    <label>Risk</label>
-                                    <select id="norm-filter-risk-upper" onchange="filterBaseCharacters('uppercase')">
-                                        <option value="">All Risks</option>
-                                        <option value="high">High</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="low">Low</option>
-                                        <option value="none">None</option>
-                                    </select>
-                                </div>
-                                <div class="sec-filter-actions">
-                                    <button class="sec-btn-outline" onclick="resetNormFilters('uppercase')">
-                                        <i class="fas fa-undo"></i> Reset
-                                    </button>
-                                </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover norm-admin-table" id="norm-uppercase-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="sortable" data-sort="base" style="width: 100px;">Base Char <i class="fas fa-sort sort-icon"></i></th>
+                                            <th style="min-width: 200px;">Equivalents</th>
+                                            <th class="sortable" data-sort="scope" style="width: 160px;">Applies To <i class="fas fa-sort sort-icon"></i></th>
+                                            <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
+                                            <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
+                                            <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
+                                            <th style="width: 70px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="norm-uppercase-body"></tbody>
+                                </table>
                             </div>
-                            <div class="sec-table-header">
-                                <h6>Uppercase Letters (A–Z)</h6>
-                                <div class="sec-search-box">
-                                    <i class="fas fa-search"></i>
-                                    <input type="text" class="form-control" placeholder="Search base character..." id="norm-search-upper" onkeyup="filterBaseCharacters('uppercase')">
-                                </div>
-                            </div>
-                            <table class="sec-table" id="norm-uppercase-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 80px;">Base <i class="fas fa-sort"></i></th>
-                                        <th>Equivalents</th>
-                                        <th style="width: 120px;">Scope <i class="fas fa-sort"></i></th>
-                                        <th style="width: 100px;">Risk <i class="fas fa-sort"></i></th>
-                                        <th style="width: 90px;">Status <i class="fas fa-sort"></i></th>
-                                        <th style="width: 70px;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="norm-uppercase-body"></tbody>
-                            </table>
                         </div>
                     </div>
 
                     <div class="tab-pane fade" id="norm-lowercase" role="tabpanel">
                         <div class="sec-table-card">
-                            <div class="sec-filter-row">
-                                <div class="sec-filter-group">
-                                    <label>Status</label>
-                                    <select id="norm-filter-status-lower" onchange="filterBaseCharacters('lowercase')">
-                                        <option value="">All</option>
-                                        <option value="enabled">Enabled</option>
-                                        <option value="disabled">Disabled</option>
-                                    </select>
-                                </div>
-                                <div class="sec-filter-group">
-                                    <label>Scope</label>
-                                    <select id="norm-filter-scope-lower" onchange="filterBaseCharacters('lowercase')">
-                                        <option value="">All Scopes</option>
-                                        <option value="senderid">SenderID</option>
-                                        <option value="content">Content</option>
-                                        <option value="url">URL</option>
-                                    </select>
-                                </div>
-                                <div class="sec-filter-group">
-                                    <label>Risk</label>
-                                    <select id="norm-filter-risk-lower" onchange="filterBaseCharacters('lowercase')">
-                                        <option value="">All Risks</option>
-                                        <option value="high">High</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="low">Low</option>
-                                        <option value="none">None</option>
-                                    </select>
-                                </div>
-                                <div class="sec-filter-actions">
-                                    <button class="sec-btn-outline" onclick="resetNormFilters('lowercase')">
-                                        <i class="fas fa-undo"></i> Reset
-                                    </button>
-                                </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover norm-admin-table" id="norm-lowercase-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="sortable" data-sort="base" style="width: 100px;">Base Char <i class="fas fa-sort sort-icon"></i></th>
+                                            <th style="min-width: 200px;">Equivalents</th>
+                                            <th class="sortable" data-sort="scope" style="width: 160px;">Applies To <i class="fas fa-sort sort-icon"></i></th>
+                                            <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
+                                            <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
+                                            <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
+                                            <th style="width: 70px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="norm-lowercase-body"></tbody>
+                                </table>
                             </div>
-                            <div class="sec-table-header">
-                                <h6>Lowercase Letters (a–z)</h6>
-                                <div class="sec-search-box">
-                                    <i class="fas fa-search"></i>
-                                    <input type="text" class="form-control" placeholder="Search base character..." id="norm-search-lower" onkeyup="filterBaseCharacters('lowercase')">
-                                </div>
-                            </div>
-                            <table class="sec-table" id="norm-lowercase-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 80px;">Base <i class="fas fa-sort"></i></th>
-                                        <th>Equivalents</th>
-                                        <th style="width: 120px;">Scope <i class="fas fa-sort"></i></th>
-                                        <th style="width: 100px;">Risk <i class="fas fa-sort"></i></th>
-                                        <th style="width: 90px;">Status <i class="fas fa-sort"></i></th>
-                                        <th style="width: 70px;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="norm-lowercase-body"></tbody>
-                            </table>
                         </div>
                     </div>
 
                     <div class="tab-pane fade" id="norm-digits" role="tabpanel">
                         <div class="sec-table-card">
-                            <div class="sec-filter-row">
-                                <div class="sec-filter-group">
-                                    <label>Status</label>
-                                    <select id="norm-filter-status-digits" onchange="filterBaseCharacters('digits')">
-                                        <option value="">All</option>
-                                        <option value="enabled">Enabled</option>
-                                        <option value="disabled">Disabled</option>
-                                    </select>
-                                </div>
-                                <div class="sec-filter-group">
-                                    <label>Scope</label>
-                                    <select id="norm-filter-scope-digits" onchange="filterBaseCharacters('digits')">
-                                        <option value="">All Scopes</option>
-                                        <option value="senderid">SenderID</option>
-                                        <option value="content">Content</option>
-                                        <option value="url">URL</option>
-                                    </select>
-                                </div>
-                                <div class="sec-filter-group">
-                                    <label>Risk</label>
-                                    <select id="norm-filter-risk-digits" onchange="filterBaseCharacters('digits')">
-                                        <option value="">All Risks</option>
-                                        <option value="high">High</option>
-                                        <option value="medium">Medium</option>
-                                        <option value="low">Low</option>
-                                        <option value="none">None</option>
-                                    </select>
-                                </div>
-                                <div class="sec-filter-actions">
-                                    <button class="sec-btn-outline" onclick="resetNormFilters('digits')">
-                                        <i class="fas fa-undo"></i> Reset
-                                    </button>
-                                </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover norm-admin-table" id="norm-digits-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="sortable" data-sort="base" style="width: 100px;">Base Char <i class="fas fa-sort sort-icon"></i></th>
+                                            <th style="min-width: 200px;">Equivalents</th>
+                                            <th class="sortable" data-sort="scope" style="width: 160px;">Applies To <i class="fas fa-sort sort-icon"></i></th>
+                                            <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
+                                            <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
+                                            <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
+                                            <th style="width: 70px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="norm-digits-body"></tbody>
+                                </table>
                             </div>
-                            <div class="sec-table-header">
-                                <h6>Digits (0–9)</h6>
-                                <div class="sec-search-box">
-                                    <i class="fas fa-search"></i>
-                                    <input type="text" class="form-control" placeholder="Search base character..." id="norm-search-digits" onkeyup="filterBaseCharacters('digits')">
-                                </div>
-                            </div>
-                            <table class="sec-table" id="norm-digits-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 80px;">Base <i class="fas fa-sort"></i></th>
-                                        <th>Equivalents</th>
-                                        <th style="width: 120px;">Scope <i class="fas fa-sort"></i></th>
-                                        <th style="width: 100px;">Risk <i class="fas fa-sort"></i></th>
-                                        <th style="width: 90px;">Status <i class="fas fa-sort"></i></th>
-                                        <th style="width: 70px;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="norm-digits-body"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mt-3" style="border: 1px solid #e9ecef; border-radius: 8px;">
-                    <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white; border-radius: 8px 8px 0 0;">
-                        <h6 class="mb-0"><i class="fas fa-lock me-2"></i>Fixed Base Character Library</h6>
-                        <span class="badge bg-light text-dark">62 characters (immutable)</span>
-                    </div>
-                    <div class="card-body" style="padding: 1rem;">
-                        <p class="text-muted mb-2" style="font-size: 0.85rem;">Base characters (A–Z, a–z, 0–9) are fixed and cannot be deleted. Configure equivalents for each character to define normalisation rules.</p>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="exportBaseCharacterLibrary()">
-                                <i class="fas fa-download me-1"></i>Export Library
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="testNormalisationRule()">
-                                <i class="fas fa-flask me-1"></i>Test Normalisation
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="showBulkEditModal()">
-                                <i class="fas fa-edit me-1"></i>Bulk Edit Scope
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                        <p>Create character equivalence rules for consistent security matching.</p>
-                    </div>
-                </div>
-
-                <div class="card mt-3" style="border: 1px solid #e9ecef; border-radius: 8px;">
-                    <div class="card-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white; border-radius: 8px 8px 0 0;">
-                        <h6 class="mb-0"><i class="fas fa-code me-2"></i>Quick Reference: Built-in Substitution Map</h6>
-                    </div>
-                    <div class="card-body" style="padding: 1rem;">
-                        <p class="text-muted mb-2" style="font-size: 0.85rem;">The following character equivalences are currently active across all engines:</p>
-                        <div class="row" id="substitution-map-display">
-                        </div>
-                        <div class="mt-2 text-end">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="exportSubstitutionMap()">
-                                <i class="fas fa-download me-1"></i>Export Map
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="testNormalisationRule()">
-                                <i class="fas fa-flask me-1"></i>Test Rule
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -3380,32 +3329,34 @@ var SecurityComplianceControlsService = (function() {
         if (!tbody) return;
         
         tbody.innerHTML = characters.map(function(char) {
-            var riskStyle = riskColors[char.risk] || riskColors['none'];
-            
             var equivalentsHtml = '';
             if (char.equivalents.length > 0) {
-                equivalentsHtml = char.equivalents.slice(0, 6).map(function(eq) {
+                equivalentsHtml = char.equivalents.slice(0, 5).map(function(eq) {
                     return '<span class="equiv-chip">' + eq + '</span>';
                 }).join('');
-                if (char.equivalents.length > 6) {
-                    equivalentsHtml += '<span class="text-muted ms-1" style="font-size: 0.7rem;">+' + (char.equivalents.length - 6) + '</span>';
+                if (char.equivalents.length > 5) {
+                    equivalentsHtml += '<span class="text-muted ms-1" style="font-size: 0.7rem; cursor: pointer;" onclick="editBaseCharacter(\'' + char.base + '\')">+' + (char.equivalents.length - 5) + ' more</span>';
                 }
             } else {
                 equivalentsHtml = '<span class="text-muted" style="font-size: 0.75rem;">No equivalents</span>';
             }
             
-            var scopeHtml = char.scope.map(function(s) {
-                var si = scopeIcons[s] || { icon: 'fa-globe', color: '#6c757d', label: s };
-                return '<span class="scope-badge" style="background: ' + si.color + '20; color: ' + si.color + '; border: 1px solid ' + si.color + '40;" title="' + si.label + '">' +
-                    '<i class="fas ' + si.icon + '"></i>' +
-                '</span>';
+            var scopePillsHtml = char.scope.map(function(s) {
+                var labels = { senderid: 'SenderID', content: 'Content', url: 'URL' };
+                return '<span class="norm-scope-pill ' + s + '">' + (labels[s] || s) + '</span>';
             }).join('');
+            if (char.scope.length === 0) {
+                scopePillsHtml = '<span class="text-muted" style="font-size: 0.7rem;">None</span>';
+            }
+            
+            var updatedDate = char.updated || '28-01-2026';
             
             var dataAttrs = 'data-base="' + char.base + '" ' +
                 'data-equivalents="' + char.equivalents.join(',') + '" ' +
                 'data-scope="' + char.scope.join(',') + '" ' +
                 'data-status="' + (char.enabled ? 'enabled' : 'disabled') + '" ' +
-                'data-risk="' + char.risk + '"';
+                'data-risk="' + char.risk + '" ' +
+                'data-updated="' + updatedDate + '"';
             
             return '<tr ' + dataAttrs + '>' +
                 '<td>' +
@@ -3413,17 +3364,18 @@ var SecurityComplianceControlsService = (function() {
                     (char.notes ? '<i class="fas fa-sticky-note ms-2 text-muted" style="font-size: 0.7rem;" title="' + char.notes + '"></i>' : '') +
                 '</td>' +
                 '<td>' + equivalentsHtml + '</td>' +
-                '<td>' + scopeHtml + '</td>' +
+                '<td>' + scopePillsHtml + '</td>' +
                 '<td>' +
-                    '<span class="risk-badge" style="background: ' + riskStyle.bg + '; color: ' + riskStyle.color + ';">' +
-                        '<i class="fas ' + riskStyle.icon + ' me-1"></i>' + char.risk.charAt(0).toUpperCase() + char.risk.slice(1) +
-                    '</span>' +
-                '</td>' +
-                '<td>' +
-                    '<span class="sec-status-badge ' + (char.enabled ? 'active' : 'disabled') + '">' +
+                    '<span class="norm-status-pill ' + (char.enabled ? 'enabled' : 'disabled') + '">' +
                         (char.enabled ? 'Enabled' : 'Disabled') +
                     '</span>' +
                 '</td>' +
+                '<td>' +
+                    '<span class="norm-risk-pill ' + char.risk + '">' + 
+                        char.risk.charAt(0).toUpperCase() + char.risk.slice(1) +
+                    '</span>' +
+                '</td>' +
+                '<td><span class="norm-updated-text">' + updatedDate + '</span></td>' +
                 '<td>' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
@@ -3966,6 +3918,7 @@ var SecurityComplianceControlsService = (function() {
         setupContentTabListeners();
         setupUrlTabListeners();
         setupQuarantineTabListeners();
+        setupNormTableSorting();
         
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.action-menu-container')) {
@@ -3973,6 +3926,90 @@ var SecurityComplianceControlsService = (function() {
                     menu.classList.remove('show');
                 });
             }
+        });
+    }
+    
+    function setupNormTableSorting() {
+        var tables = ['norm-uppercase-table', 'norm-lowercase-table', 'norm-digits-table'];
+        tables.forEach(function(tableId) {
+            var table = document.getElementById(tableId);
+            if (!table) return;
+            
+            var headers = table.querySelectorAll('thead th.sortable');
+            headers.forEach(function(th) {
+                th.addEventListener('click', function() {
+                    var sortKey = th.getAttribute('data-sort');
+                    var currentDir = th.classList.contains('sort-asc') ? 'asc' : 
+                                     th.classList.contains('sort-desc') ? 'desc' : null;
+                    
+                    table.querySelectorAll('thead th').forEach(function(h) {
+                        h.classList.remove('sort-asc', 'sort-desc');
+                        var icon = h.querySelector('.sort-icon');
+                        if (icon) {
+                            icon.classList.remove('fa-sort-up', 'fa-sort-down');
+                            icon.classList.add('fa-sort');
+                        }
+                    });
+                    
+                    var newDir = currentDir === 'asc' ? 'desc' : 'asc';
+                    th.classList.add('sort-' + newDir);
+                    var icon = th.querySelector('.sort-icon');
+                    if (icon) {
+                        icon.classList.remove('fa-sort');
+                        icon.classList.add(newDir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+                    }
+                    
+                    sortNormTable(tableId, sortKey, newDir);
+                });
+            });
+        });
+    }
+    
+    function sortNormTable(tableId, sortKey, direction) {
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        
+        var tbody = table.querySelector('tbody');
+        var rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        rows.sort(function(a, b) {
+            var aVal, bVal;
+            
+            switch (sortKey) {
+                case 'base':
+                    aVal = a.getAttribute('data-base') || '';
+                    bVal = b.getAttribute('data-base') || '';
+                    break;
+                case 'scope':
+                    aVal = (a.getAttribute('data-scope') || '').split(',').length;
+                    bVal = (b.getAttribute('data-scope') || '').split(',').length;
+                    return direction === 'asc' ? aVal - bVal : bVal - aVal;
+                case 'status':
+                    aVal = a.getAttribute('data-status') || '';
+                    bVal = b.getAttribute('data-status') || '';
+                    break;
+                case 'risk':
+                    var riskOrder = { 'high': 3, 'medium': 2, 'low': 1, 'none': 0 };
+                    aVal = riskOrder[a.getAttribute('data-risk')] || 0;
+                    bVal = riskOrder[b.getAttribute('data-risk')] || 0;
+                    return direction === 'asc' ? aVal - bVal : bVal - aVal;
+                case 'updated':
+                    aVal = a.getAttribute('data-updated') || '';
+                    bVal = b.getAttribute('data-updated') || '';
+                    break;
+                default:
+                    aVal = '';
+                    bVal = '';
+            }
+            
+            if (typeof aVal === 'string') {
+                return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            }
+            return 0;
+        });
+        
+        rows.forEach(function(row) {
+            tbody.appendChild(row);
         });
     }
 
