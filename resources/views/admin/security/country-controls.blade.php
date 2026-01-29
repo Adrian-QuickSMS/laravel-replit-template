@@ -327,6 +327,80 @@
 .overrides-badge i {
     font-size: 0.65rem;
 }
+.country-name-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+.country-name-cell .country-name {
+    font-weight: 600;
+    color: #1e3a5f;
+}
+.country-name-cell .country-code {
+    font-size: 0.7rem;
+    color: #6c757d;
+    font-family: monospace;
+}
+.action-menu {
+    position: relative;
+    display: inline-block;
+}
+.action-menu-btn {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0.35rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.15s;
+}
+.action-menu-btn:hover {
+    background: #f3f4f6;
+    color: #1e3a5f;
+}
+.action-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 160px;
+    z-index: 100;
+    display: none;
+}
+.action-dropdown.show {
+    display: block;
+}
+.action-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: #374151;
+    transition: background 0.15s;
+}
+.action-dropdown-item:hover {
+    background: #f3f4f6;
+}
+.action-dropdown-item.approve i {
+    color: #16a34a;
+}
+.action-dropdown-item.reject i {
+    color: #dc2626;
+}
+.action-dropdown-item.view i {
+    color: #1e3a5f;
+}
+.action-dropdown-item:first-child {
+    border-radius: 6px 6px 0 0;
+}
+.action-dropdown-item:last-child {
+    border-radius: 0 0 6px 6px;
+}
 .risk-indicator {
     display: flex;
     align-items: center;
@@ -1172,14 +1246,12 @@
                         <thead>
                             <tr>
                                 <th style="width: 30px;"><input type="checkbox" id="selectAllCountries"></th>
-                                <th>Country</th>
-                                <th>ISO Code</th>
-                                <th>Dial Code</th>
-                                <th>Status</th>
-                        <th>Risk Level</th>
-                        <th>Customer Overrides</th>
-                        <th>Last Updated</th>
-                        <th style="width: 150px;">Actions</th>
+                                <th onclick="sortCountries('name')" class="sortable">
+                                    Country Name <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th>Default Status</th>
+                                <th>Customer Overrides</th>
+                                <th style="width: 80px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="countryTableBody">
@@ -2015,7 +2087,8 @@ var CountryReviewAuditService = {
         'COUNTRY_REQUEST_REJECTED',
         'COUNTRY_REQUEST_ADMIN_NOTE_ADDED',
         'COUNTRY_REQUEST_VIEWED',
-        'COUNTRY_REQUEST_ESCALATED'
+        'COUNTRY_REQUEST_ESCALATED',
+        'COUNTRY_DEFAULT_STATUS_CHANGED'
     ],
     
     PII_SAFE_FIELDS: [
@@ -2281,56 +2354,138 @@ function getRandomDate() {
     return dates[Math.floor(Math.random() * dates.length)];
 }
 
+var countrySortOrder = 'asc';
+
+function sortCountries(field) {
+    if (field === 'name') {
+        countrySortOrder = countrySortOrder === 'asc' ? 'desc' : 'asc';
+        countries.sort(function(a, b) {
+            if (countrySortOrder === 'asc') {
+                return a.name.localeCompare(b.name);
+            } else {
+                return b.name.localeCompare(a.name);
+            }
+        });
+        renderCountryTable();
+    }
+}
+
 function renderCountryTable() {
     var tbody = document.getElementById('countryTableBody');
-    var searchTerm = document.getElementById('countrySearch').value.toLowerCase();
-    var statusFilter = document.getElementById('bulkStatusFilter').value;
-    var riskFilter = document.getElementById('bulkRiskFilter').value;
+    var searchTerm = document.getElementById('countrySearch') ? document.getElementById('countrySearch').value.toLowerCase() : '';
+    var statusFilter = document.getElementById('bulkStatusFilter') ? document.getElementById('bulkStatusFilter').value : '';
 
     var filtered = countries.filter(function(c) {
         var matchesSearch = c.name.toLowerCase().includes(searchTerm) || 
                            c.code.toLowerCase().includes(searchTerm) ||
                            c.dialCode.includes(searchTerm);
         var matchesStatus = !statusFilter || c.status === statusFilter;
-        var matchesRisk = !riskFilter || c.risk === riskFilter;
-        return matchesSearch && matchesStatus && matchesRisk;
+        return matchesSearch && matchesStatus;
     });
 
     tbody.innerHTML = '';
 
     filtered.forEach(function(country) {
         var row = document.createElement('tr');
+        
+        var statusLabel = country.status === 'allowed' ? 'Allowed' : 'Blocked';
+        var statusClass = country.status === 'allowed' ? 'allowed' : 'blocked';
+        var statusIcon = country.status === 'allowed' ? 'fa-check-circle' : 'fa-ban';
+        var statusTooltip = country.status === 'allowed' ? 
+            'Any customer can send without approval' : 
+            'No customer can send unless explicit account override exists';
+
+        var overridesHtml = country.overrides > 0 ? 
+            '<span class="overrides-badge" onclick="viewOverrides(\'' + country.code + '\')" title="Click to view account overrides">' +
+                '<i class="fas fa-users"></i>' + country.overrides + 
+            '</span>' : 
+            '<span class="overrides-badge none">0</span>';
+
+        var actionMenu = 
+            '<div class="action-menu">' +
+                '<button class="action-menu-btn" onclick="toggleCountryActionMenu(event, \'' + country.code + '\')">' +
+                    '<i class="fas fa-ellipsis-v"></i>' +
+                '</button>' +
+                '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
+                    (country.status !== 'allowed' ? 
+                        '<div class="action-dropdown-item approve" onclick="setCountryStatus(\'' + country.code + '\', \'allowed\')">' +
+                            '<i class="fas fa-check-circle"></i>Set to Allowed' +
+                        '</div>' : '') +
+                    (country.status !== 'blocked' ? 
+                        '<div class="action-dropdown-item reject" onclick="setCountryStatus(\'' + country.code + '\', \'blocked\')">' +
+                            '<i class="fas fa-ban"></i>Set to Blocked' +
+                        '</div>' : '') +
+                    '<div class="action-dropdown-item view" onclick="viewOverrides(\'' + country.code + '\')">' +
+                        '<i class="fas fa-users"></i>View Overrides (' + country.overrides + ')' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+
         row.innerHTML = 
             '<td><input type="checkbox" class="country-checkbox" data-code="' + country.code + '"></td>' +
             '<td>' +
-                '<span class="country-name">' + country.name + '</span>' +
-            '</td>' +
-            '<td><code>' + country.code + '</code></td>' +
-            '<td>' + country.dialCode + '</td>' +
-            '<td><span class="status-badge ' + country.status + '">' + capitalize(country.status) + '</span></td>' +
-            '<td>' +
-                '<div class="risk-indicator">' +
-                    '<span class="risk-dot ' + country.risk + '"></span>' +
-                    '<span>' + capitalize(country.risk) + '</span>' +
+                '<div class="country-name-cell">' +
+                    '<span class="country-name">' + country.name + '</span>' +
+                    '<span class="country-code">' + country.code + '</span>' +
                 '</div>' +
             '</td>' +
-            '<td>' + (country.overrides > 0 ? 
-                '<span class="customer-override-badge">' + country.overrides + ' customers</span>' : 
-                '<span class="text-muted">None</span>') + 
-            '</td>' +
-            '<td class="small text-muted">' + country.lastUpdated + '</td>' +
             '<td>' +
-                '<div class="action-btn-group">' +
-                    (country.status !== 'allowed' ? 
-                        '<button class="action-btn allow" onclick="openActionModal(\'' + country.code + '\', \'allowed\')"><i class="fas fa-check"></i> Allow</button>' : '') +
-                    (country.status !== 'blocked' ? 
-                        '<button class="action-btn block" onclick="openActionModal(\'' + country.code + '\', \'blocked\')"><i class="fas fa-ban"></i> Block</button>' : '') +
-                    (country.status !== 'restricted' ? 
-                        '<button class="action-btn restrict" onclick="openActionModal(\'' + country.code + '\', \'restricted\')"><i class="fas fa-exclamation-triangle"></i></button>' : '') +
-                '</div>' +
-            '</td>';
+                '<span class="status-badge ' + statusClass + '" title="' + statusTooltip + '">' +
+                    '<i class="fas ' + statusIcon + '"></i>' + statusLabel +
+                '</span>' +
+            '</td>' +
+            '<td>' + overridesHtml + '</td>' +
+            '<td>' + actionMenu + '</td>';
+
         tbody.appendChild(row);
     });
+}
+
+function toggleCountryActionMenu(event, countryCode) {
+    event.stopPropagation();
+    document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
+        if (menu.id !== 'countryActionMenu-' + countryCode) {
+            menu.classList.remove('show');
+        }
+    });
+    document.getElementById('countryActionMenu-' + countryCode).classList.toggle('show');
+}
+
+function setCountryStatus(countryCode, newStatus) {
+    var country = countries.find(function(c) { return c.code === countryCode; });
+    if (!country) return;
+
+    var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
+    var statusMeaning = newStatus === 'allowed' ? 
+        'Any customer will be able to send to this country without approval.' : 
+        'No customer can send to this country unless they have an explicit account override.';
+
+    if (!confirm('Set ' + country.name + ' to ' + statusLabel + '?\n\n' + statusMeaning)) {
+        return;
+    }
+
+    var oldStatus = country.status;
+    country.status = newStatus;
+    country.lastUpdated = formatDateDDMMYYYY(new Date());
+
+    CountryReviewAuditService.emit('COUNTRY_DEFAULT_STATUS_CHANGED', {
+        countryIso: country.code,
+        countryName: country.name,
+        oldStatus: oldStatus,
+        newStatus: newStatus,
+        result: 'status_changed'
+    }, { emitToCustomerAudit: false });
+
+    renderCountryTable();
+    updateStats();
+    showAdminToast('Default status updated', country.name + ' is now ' + statusLabel + ' by default.', 'success');
+}
+
+function viewOverrides(countryCode) {
+    var country = countries.find(function(c) { return c.code === countryCode; });
+    if (!country) return;
+    
+    alert('View Overrides for ' + country.name + '\n\nThis would open a side panel showing all ' + country.overrides + ' account-level overrides for this country.\n\n(TODO: Implement overrides viewer)');
 }
 
 function capitalize(str) {
