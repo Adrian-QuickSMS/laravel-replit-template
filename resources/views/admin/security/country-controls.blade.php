@@ -2675,6 +2675,186 @@ window.CustomerPortalCountryService = CustomerPortalCountryService;
 console.log('[CustomerPortalCountryService] Initialized with visibility rules:', CustomerPortalCountryService.getVisibilityRules());
 console.log('[SharedPolicyStore] Policy store version:', SharedPolicyStore.getStoreVersion());
 
+var CountryControlsPermissions = (function() {
+    var ADMIN_ROLES = {
+        SUPER_ADMIN: 'super_admin',
+        SECURITY_ADMIN: 'security_admin',
+        COMPLIANCE_OFFICER: 'compliance_officer',
+        SUPPORT_AGENT: 'support_agent',
+        READ_ONLY: 'read_only'
+    };
+
+    var PERMISSION_DEFINITIONS = {
+        'country_controls.view': {
+            description: 'View Country Controls module',
+            allowedRoles: [ADMIN_ROLES.SUPER_ADMIN, ADMIN_ROLES.SECURITY_ADMIN, ADMIN_ROLES.COMPLIANCE_OFFICER, ADMIN_ROLES.SUPPORT_AGENT, ADMIN_ROLES.READ_ONLY]
+        },
+        'country_controls.review_requests': {
+            description: 'Review and action country access requests',
+            allowedRoles: [ADMIN_ROLES.SUPER_ADMIN, ADMIN_ROLES.SECURITY_ADMIN, ADMIN_ROLES.COMPLIANCE_OFFICER]
+        },
+        'country_controls.approve_requests': {
+            description: 'Approve country access requests',
+            allowedRoles: [ADMIN_ROLES.SUPER_ADMIN, ADMIN_ROLES.SECURITY_ADMIN]
+        },
+        'country_controls.reject_requests': {
+            description: 'Reject country access requests',
+            allowedRoles: [ADMIN_ROLES.SUPER_ADMIN, ADMIN_ROLES.SECURITY_ADMIN, ADMIN_ROLES.COMPLIANCE_OFFICER]
+        },
+        'country_controls.change_global_default': {
+            description: 'Change global default status for countries',
+            allowedRoles: [ADMIN_ROLES.SUPER_ADMIN]
+        },
+        'country_controls.add_override': {
+            description: 'Add account-level country overrides',
+            allowedRoles: [ADMIN_ROLES.SUPER_ADMIN, ADMIN_ROLES.SECURITY_ADMIN]
+        },
+        'country_controls.remove_override': {
+            description: 'Remove account-level country overrides',
+            allowedRoles: [ADMIN_ROLES.SUPER_ADMIN, ADMIN_ROLES.SECURITY_ADMIN]
+        },
+        'country_controls.view_audit_log': {
+            description: 'View country controls audit log',
+            allowedRoles: [ADMIN_ROLES.SUPER_ADMIN, ADMIN_ROLES.SECURITY_ADMIN, ADMIN_ROLES.COMPLIANCE_OFFICER]
+        }
+    };
+
+    var currentUser = {
+        id: 'admin-001',
+        email: 'admin@quicksms.co.uk',
+        role: ADMIN_ROLES.SUPER_ADMIN,
+        permissions: []
+    };
+
+    function initialize(user) {
+        if (user) {
+            currentUser = user;
+        }
+        currentUser.permissions = derivePermissions(currentUser.role);
+        console.log('[CountryControlsPermissions] Initialized for:', currentUser.email, 'Role:', currentUser.role);
+        console.log('[CountryControlsPermissions] Permissions:', currentUser.permissions);
+    }
+
+    function derivePermissions(role) {
+        var permissions = [];
+        Object.keys(PERMISSION_DEFINITIONS).forEach(function(perm) {
+            if (PERMISSION_DEFINITIONS[perm].allowedRoles.includes(role)) {
+                permissions.push(perm);
+            }
+        });
+        return permissions;
+    }
+
+    function hasPermission(permission) {
+        if (currentUser.role === ADMIN_ROLES.SUPER_ADMIN) {
+            return true;
+        }
+        return currentUser.permissions.includes(permission);
+    }
+
+    function canView() {
+        return hasPermission('country_controls.view');
+    }
+
+    function canReviewRequests() {
+        return hasPermission('country_controls.review_requests');
+    }
+
+    function canApproveRequests() {
+        return hasPermission('country_controls.approve_requests');
+    }
+
+    function canRejectRequests() {
+        return hasPermission('country_controls.reject_requests');
+    }
+
+    function canChangeGlobalDefault() {
+        return hasPermission('country_controls.change_global_default');
+    }
+
+    function canAddOverride() {
+        return hasPermission('country_controls.add_override');
+    }
+
+    function canRemoveOverride() {
+        return hasPermission('country_controls.remove_override');
+    }
+
+    function canViewAuditLog() {
+        return hasPermission('country_controls.view_audit_log');
+    }
+
+    function getCurrentUser() {
+        return {
+            id: currentUser.id,
+            email: currentUser.email,
+            role: currentUser.role
+        };
+    }
+
+    function getPermissionDefinitions() {
+        return JSON.parse(JSON.stringify(PERMISSION_DEFINITIONS));
+    }
+
+    function enforcePermission(permission, actionDescription) {
+        if (!hasPermission(permission)) {
+            console.error('[CountryControlsPermissions] Access denied:', actionDescription, 'requires', permission);
+            showAdminToast('Access Denied', 'You do not have permission to ' + actionDescription + '.', 'error');
+            return false;
+        }
+        return true;
+    }
+
+    function applyUIRestrictions() {
+        if (!canChangeGlobalDefault()) {
+            document.querySelectorAll('[data-permission="change_global_default"]').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        }
+        if (!canAddOverride()) {
+            document.querySelectorAll('[data-permission="add_override"]').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        }
+        if (!canRemoveOverride()) {
+            document.querySelectorAll('[data-permission="remove_override"]').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        }
+        if (!canApproveRequests()) {
+            document.querySelectorAll('[data-permission="approve_requests"]').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        }
+        if (!canRejectRequests()) {
+            document.querySelectorAll('[data-permission="reject_requests"]').forEach(function(el) {
+                el.style.display = 'none';
+            });
+        }
+    }
+
+    return {
+        ADMIN_ROLES: ADMIN_ROLES,
+        initialize: initialize,
+        hasPermission: hasPermission,
+        canView: canView,
+        canReviewRequests: canReviewRequests,
+        canApproveRequests: canApproveRequests,
+        canRejectRequests: canRejectRequests,
+        canChangeGlobalDefault: canChangeGlobalDefault,
+        canAddOverride: canAddOverride,
+        canRemoveOverride: canRemoveOverride,
+        canViewAuditLog: canViewAuditLog,
+        getCurrentUser: getCurrentUser,
+        getPermissionDefinitions: getPermissionDefinitions,
+        enforcePermission: enforcePermission,
+        applyUIRestrictions: applyUIRestrictions
+    };
+})();
+
+CountryControlsPermissions.initialize();
+window.CountryControlsPermissions = CountryControlsPermissions;
+
 var countries = [];
 var countryRequests = [];
 var currentAdmin = {
