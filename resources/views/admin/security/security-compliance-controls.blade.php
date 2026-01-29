@@ -2588,12 +2588,17 @@ var SecurityComplianceControlsService = (function() {
                 '9': { equivalents: ['g', 'q'], scope: ['url'], notes: 'Visual similarity' }
             };
             
-            function computeRisk(equivalents, scope) {
+            function computeRiskInternal(equivalents, scope) {
                 if (equivalents.length === 0) return 'none';
-                if (scope.length >= 3 && equivalents.length >= 4) return 'high';
-                if (scope.length >= 2 && equivalents.length >= 2) return 'medium';
-                if (equivalents.length >= 1) return 'low';
-                return 'none';
+                var hasUrlScope = scope.indexOf('url') !== -1;
+                var hasDigits = equivalents.some(function(eq) { return /[0-9]/.test(eq); });
+                var hasPunctuation = equivalents.some(function(eq) { return /[!@#$%^&*(),.?":{}|<>]/.test(eq); });
+                var digitCount = equivalents.filter(function(eq) { return /[0-9]/.test(eq); }).length;
+                
+                if (hasUrlScope) return 'high';
+                if (digitCount >= 2 && hasPunctuation) return 'high';
+                if (hasDigits || equivalents.length > 5) return 'medium';
+                return 'low';
             }
             
             'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function(char) {
@@ -2605,7 +2610,7 @@ var SecurityComplianceControlsService = (function() {
                     scope: data.scope,
                     notes: data.notes,
                     enabled: data.equivalents.length > 0,
-                    risk: computeRisk(data.equivalents, data.scope),
+                    risk: computeRiskInternal(data.equivalents, data.scope),
                     updatedAt: '28-01-2026',
                     updatedBy: 'admin@quicksms.co.uk'
                 });
@@ -2620,7 +2625,7 @@ var SecurityComplianceControlsService = (function() {
                     scope: data.scope,
                     notes: data.notes,
                     enabled: data.equivalents.length > 0,
-                    risk: computeRisk(data.equivalents, data.scope),
+                    risk: computeRiskInternal(data.equivalents, data.scope),
                     updatedAt: '28-01-2026',
                     updatedBy: 'admin@quicksms.co.uk'
                 });
@@ -2635,7 +2640,7 @@ var SecurityComplianceControlsService = (function() {
                     scope: data.scope,
                     notes: data.notes,
                     enabled: data.equivalents.length > 0,
-                    risk: computeRisk(data.equivalents, data.scope),
+                    risk: computeRiskInternal(data.equivalents, data.scope),
                     updatedAt: '28-01-2026',
                     updatedBy: 'admin@quicksms.co.uk'
                 });
@@ -4836,6 +4841,118 @@ function saveNormRule(originalBase) {
     var notes = document.getElementById('normRuleNotes').value.trim();
     var enabled = document.getElementById('normRuleEnabled').checked;
     
+    var pendingChange = {
+        base: base,
+        equivalents: equivalents,
+        scope: scope,
+        notes: notes,
+        enabled: enabled,
+        isEdit: isEdit
+    };
+    
+    var newRisk = computeRisk({ equivalents: equivalents, scope: scope });
+    var oldRisk = char.risk || 'none';
+    
+    if (newRisk === 'high' && oldRisk !== 'high') {
+        showHighRiskConfirmModal(pendingChange);
+        return;
+    }
+    
+    executeSaveNormRule(pendingChange);
+}
+
+function showHighRiskConfirmModal(pendingChange) {
+    var reasons = [];
+    if (pendingChange.scope.indexOf('url') !== -1) {
+        reasons.push('URL normalisation is enabled (can cause broad matches and false positives)');
+    }
+    var digitCount = pendingChange.equivalents.filter(function(eq) { return /[0-9]/.test(eq); }).length;
+    var hasPunctuation = pendingChange.equivalents.some(function(eq) { return /[!@#$%^&*(),.?":{}|<>]/.test(eq); });
+    if (digitCount >= 2 && hasPunctuation) {
+        reasons.push('Contains multiple digit equivalents with punctuation');
+    }
+    
+    var reasonsHtml = reasons.map(function(r) {
+        return '<li class="mb-1"><i class="fas fa-exclamation-circle text-danger me-2"></i>' + r + '</li>';
+    }).join('');
+    
+    var modalHtml = '<div class="modal fade" id="highRiskConfirmModal" tabindex="-1" data-bs-backdrop="static">' +
+        '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: #dc2626; color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>High Risk Change</h5>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="alert alert-danger" style="background: #fee2e2; border-color: #fecaca;">' +
+                        '<strong><i class="fas fa-shield-alt me-2"></i>This change is classified as HIGH RISK</strong>' +
+                    '</div>' +
+                    '<p class="mb-2"><strong>Base Character:</strong> <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">' + pendingChange.base + '</code></p>' +
+                    '<p class="mb-2"><strong>Risk Factors:</strong></p>' +
+                    '<ul class="mb-3" style="padding-left: 1.5rem;">' + reasonsHtml + '</ul>' +
+                    '<div class="alert alert-warning mb-3" style="background: #fef3c7; border-color: #fcd34d;">' +
+                        '<i class="fas fa-info-circle me-2"></i>High-risk rules may cause unintended message blocks or broad matching. Please review carefully before confirming.' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Type <code style="background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px;">CONFIRM</code> to proceed:</label>' +
+                        '<input type="text" class="form-control" id="highRiskConfirmInput" placeholder="Type CONFIRM here..." autocomplete="off">' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<button type="button" class="btn btn-light" data-bs-dismiss="modal" onclick="cancelHighRiskChange()">Cancel</button>' +
+                    '<button type="button" class="btn btn-danger" id="highRiskConfirmBtn" onclick="confirmHighRiskChange()" disabled>' +
+                        '<i class="fas fa-check me-1"></i>Confirm High Risk Change' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('highRiskConfirmModal');
+    if (existingModal) existingModal.remove();
+    
+    window.pendingHighRiskChange = pendingChange;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    var confirmInput = document.getElementById('highRiskConfirmInput');
+    var confirmBtn = document.getElementById('highRiskConfirmBtn');
+    
+    confirmInput.addEventListener('input', function() {
+        confirmBtn.disabled = this.value.trim().toUpperCase() !== 'CONFIRM';
+    });
+    
+    var normRuleModal = bootstrap.Modal.getInstance(document.getElementById('normRuleModal'));
+    if (normRuleModal) normRuleModal.hide();
+    
+    var modal = new bootstrap.Modal(document.getElementById('highRiskConfirmModal'));
+    modal.show();
+    
+    confirmInput.focus();
+}
+
+function confirmHighRiskChange() {
+    var input = document.getElementById('highRiskConfirmInput');
+    if (input.value.trim().toUpperCase() !== 'CONFIRM') {
+        return;
+    }
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('highRiskConfirmModal'));
+    modal.hide();
+    
+    if (window.pendingHighRiskChange) {
+        executeSaveNormRule(window.pendingHighRiskChange);
+        window.pendingHighRiskChange = null;
+    }
+}
+
+function cancelHighRiskChange() {
+    window.pendingHighRiskChange = null;
+}
+
+function executeSaveNormRule(changeData) {
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === changeData.base; });
+    if (!char) return;
+    
     var beforeState = {
         equivalents: char.equivalents.slice(),
         scope: char.scope.slice(),
@@ -4843,27 +4960,28 @@ function saveNormRule(originalBase) {
         enabled: char.enabled
     };
     
-    char.equivalents = equivalents;
-    char.scope = scope;
-    char.notes = notes;
-    char.enabled = enabled;
+    char.equivalents = changeData.equivalents;
+    char.scope = changeData.scope;
+    char.notes = changeData.notes;
+    char.enabled = changeData.enabled;
     char.updated = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
     
     char.risk = computeRisk(char);
     
     logAuditEvent('BASE_CHARACTER_UPDATED', {
-        base: base,
+        base: changeData.base,
         before: beforeState,
         after: {
             equivalents: char.equivalents,
             scope: char.scope,
             notes: char.notes,
-            enabled: char.enabled
+            enabled: char.enabled,
+            risk: char.risk
         }
     });
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('normRuleModal'));
-    modal.hide();
+    if (modal) modal.hide();
     
     MessageEnforcementService.hotReloadRules();
     SecurityComplianceControlsService.renderAllTabs();
@@ -4871,63 +4989,35 @@ function saveNormRule(originalBase) {
 }
 
 function computeRisk(char) {
-    var equivCount = char.equivalents.length;
-    var scopeCount = char.scope.length;
+    var equivalents = char.equivalents || [];
+    var scope = char.scope || [];
+    var equivCount = equivalents.length;
     
-    if (equivCount >= 4 && scopeCount >= 3) return 'high';
-    if (equivCount >= 2 && scopeCount >= 2) return 'medium';
-    if (equivCount >= 1) return 'low';
-    return 'none';
+    if (equivCount === 0) return 'none';
+    
+    var hasUrlScope = scope.indexOf('url') !== -1;
+    var hasDigits = equivalents.some(function(eq) { return /[0-9]/.test(eq); });
+    var hasPunctuation = equivalents.some(function(eq) { return /[!@#$%^&*(),.?":{}|<>]/.test(eq); });
+    var digitCount = equivalents.filter(function(eq) { return /[0-9]/.test(eq); }).length;
+    
+    if (hasUrlScope) return 'high';
+    if (digitCount >= 2 && hasPunctuation) return 'high';
+    
+    if (hasDigits || equivCount > 5) return 'medium';
+    
+    return 'low';
 }
 
-function saveBaseCharacter(base) {
-    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
-    if (!char) return;
-    
-    var equivalentsStr = document.getElementById('editCharEquivalents').value;
-    var equivalents = equivalentsStr.split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; });
-    
-    var scope = [];
-    if (document.getElementById('editCharScopeSenderid').checked) scope.push('senderid');
-    if (document.getElementById('editCharScopeContent').checked) scope.push('content');
-    if (document.getElementById('editCharScopeUrl').checked) scope.push('url');
-    
-    if (scope.length === 0) scope = ['senderid'];
-    
-    var notes = document.getElementById('editCharNotes').value.trim();
-    var enabled = document.getElementById('editCharEnabled').checked;
-    
-    function computeRisk(equivalents, scope) {
-        if (equivalents.length === 0) return 'none';
-        if (scope.length >= 3 && equivalents.length >= 4) return 'high';
-        if (scope.length >= 2 && equivalents.length >= 2) return 'medium';
-        if (equivalents.length >= 1) return 'low';
-        return 'none';
-    }
-    
-    var oldEquivalents = char.equivalents.slice();
-    char.equivalents = equivalents;
-    char.scope = scope;
-    char.notes = notes;
-    char.enabled = enabled;
-    char.risk = computeRisk(equivalents, scope);
-    char.updatedAt = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
-    char.updatedBy = 'admin@quicksms.co.uk';
-    
-    logAuditEvent('BASE_CHARACTER_UPDATED', {
-        base: base,
-        oldEquivalents: oldEquivalents,
-        newEquivalents: equivalents,
-        scope: scope,
-        enabled: enabled
-    });
-    
-    MessageEnforcementService.hotReloadRules();
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('editBaseCharModal'));
-    modal.hide();
-    
-    SecurityComplianceControlsService.renderAllTabs();
+function getRiskBadgeHtml(risk) {
+    var riskColors = {
+        'high': { bg: '#fee2e2', text: '#991b1b', icon: 'fa-exclamation-triangle' },
+        'medium': { bg: '#fef3c7', text: '#92400e', icon: 'fa-exclamation-circle' },
+        'low': { bg: '#d1fae5', text: '#065f46', icon: 'fa-check-circle' },
+        'none': { bg: '#f3f4f6', text: '#6b7280', icon: 'fa-minus-circle' }
+    };
+    var style = riskColors[risk] || riskColors['none'];
+    return '<span class="badge" style="background: ' + style.bg + '; color: ' + style.text + '; font-weight: 500; padding: 4px 8px;">' +
+        '<i class="fas ' + style.icon + ' me-1"></i>' + (risk.charAt(0).toUpperCase() + risk.slice(1)) + '</span>';
 }
 
 function testBaseCharacter(base) {
