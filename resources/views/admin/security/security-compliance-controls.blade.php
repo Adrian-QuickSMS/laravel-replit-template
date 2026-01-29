@@ -413,6 +413,122 @@
     font-size: 0.75rem;
     color: #6b7280;
 }
+.norm-admin-table tbody tr.expandable {
+    cursor: pointer;
+}
+.norm-admin-table tbody tr.expandable:hover {
+    background: #f0f7ff;
+}
+.norm-admin-table tbody tr.expanded {
+    background: #f0f7ff;
+    border-left: 3px solid #1e3a5f;
+}
+.norm-admin-table tbody tr.expansion-row {
+    background: #f8fafc;
+}
+.norm-admin-table tbody tr.expansion-row:hover {
+    background: #f8fafc;
+}
+.norm-expansion-content {
+    padding: 1rem 1.5rem;
+    border-left: 3px solid #1e3a5f;
+    background: linear-gradient(to right, #f0f7ff 0%, #f8fafc 100%);
+}
+.norm-expansion-section {
+    margin-bottom: 1rem;
+}
+.norm-expansion-section:last-child {
+    margin-bottom: 0;
+}
+.norm-expansion-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.35rem;
+}
+.norm-expansion-value {
+    font-size: 0.85rem;
+    color: #1f2937;
+}
+.equiv-full-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.equiv-full-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0 8px;
+    font-size: 1rem;
+    font-family: 'Courier New', monospace;
+    transition: all 0.15s ease;
+}
+.equiv-full-chip:hover {
+    background: #1e3a5f;
+    color: white;
+    border-color: #1e3a5f;
+}
+.equiv-codepoint {
+    font-size: 0.65rem;
+    color: #9ca3af;
+    margin-left: 4px;
+}
+.norm-codepoints-toggle {
+    font-size: 0.75rem;
+    color: #1e3a5f;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.norm-codepoints-toggle:hover {
+    color: #2c5282;
+}
+.norm-notes-text {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    color: #374151;
+    font-style: italic;
+}
+.norm-history-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+.norm-history-item:last-child {
+    border-bottom: none;
+}
+.norm-history-icon {
+    width: 24px;
+    height: 24px;
+    background: #e0e7ff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: #1e3a5f;
+    flex-shrink: 0;
+}
+.norm-history-text {
+    font-size: 0.8rem;
+    color: #4b5563;
+}
+.norm-history-time {
+    font-size: 0.7rem;
+    color: #9ca3af;
+}
 .sec-filter-row {
     display: flex;
     gap: 1rem;
@@ -3356,9 +3472,10 @@ var SecurityComplianceControlsService = (function() {
                 'data-scope="' + char.scope.join(',') + '" ' +
                 'data-status="' + (char.enabled ? 'enabled' : 'disabled') + '" ' +
                 'data-risk="' + char.risk + '" ' +
-                'data-updated="' + updatedDate + '"';
+                'data-updated="' + updatedDate + '" ' +
+                'data-notes="' + (char.notes || '').replace(/"/g, '&quot;') + '"';
             
-            return '<tr ' + dataAttrs + '>' +
+            return '<tr class="expandable" ' + dataAttrs + ' onclick="toggleNormRowExpansion(this, event)">' +
                 '<td>' +
                     '<span class="base-char-display">' + char.base + '</span>' +
                     (char.notes ? '<i class="fas fa-sticky-note ms-2 text-muted" style="font-size: 0.7rem;" title="' + char.notes + '"></i>' : '') +
@@ -4327,6 +4444,140 @@ function exportBaseCharacterLibrary() {
     URL.revokeObjectURL(url);
     
     logAuditEvent('NORMALISATION_RULES_EXPORTED', { ruleCount: activeRules.length });
+}
+
+function toggleNormRowExpansion(row, event) {
+    if (event.target.closest('.dropdown') || event.target.closest('.action-menu-btn') || event.target.closest('.dropdown-menu')) {
+        return;
+    }
+    
+    var base = row.getAttribute('data-base');
+    var existingExpansion = row.nextElementSibling;
+    
+    if (existingExpansion && existingExpansion.classList.contains('expansion-row')) {
+        row.classList.remove('expanded');
+        existingExpansion.remove();
+        return;
+    }
+    
+    var tbody = row.closest('tbody');
+    tbody.querySelectorAll('tr.expansion-row').forEach(function(er) { er.remove(); });
+    tbody.querySelectorAll('tr.expanded').forEach(function(er) { er.classList.remove('expanded'); });
+    
+    row.classList.add('expanded');
+    
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+    if (!char) return;
+    
+    var expansionHtml = createNormExpansionContent(char);
+    
+    var expansionRow = document.createElement('tr');
+    expansionRow.className = 'expansion-row';
+    expansionRow.innerHTML = '<td colspan="7">' + expansionHtml + '</td>';
+    
+    row.insertAdjacentElement('afterend', expansionRow);
+}
+
+function createNormExpansionContent(char) {
+    var equivalentsHtml = '';
+    if (char.equivalents.length > 0) {
+        equivalentsHtml = '<div class="equiv-full-list" id="equiv-list-' + char.base + '">';
+        char.equivalents.forEach(function(eq) {
+            var codepoint = eq.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+            equivalentsHtml += '<span class="equiv-full-chip" title="U+' + codepoint + '">' + eq + 
+                '<span class="equiv-codepoint codepoint-hidden" style="display: none;">U+' + codepoint + '</span></span>';
+        });
+        equivalentsHtml += '</div>';
+        equivalentsHtml += '<div class="mt-2"><span class="norm-codepoints-toggle" onclick="toggleCodepoints(\'' + char.base + '\')"><i class="fas fa-code me-1"></i>Show Unicode codepoints</span></div>';
+    } else {
+        equivalentsHtml = '<span class="text-muted">No equivalents configured for this character.</span>';
+    }
+    
+    var notesHtml = char.notes 
+        ? '<div class="norm-notes-text"><i class="fas fa-quote-left me-2 text-muted" style="font-size: 0.7rem;"></i>' + char.notes + '</div>'
+        : '<span class="text-muted fst-italic">No notes added.</span>';
+    
+    var historyHtml = generateCharHistory(char);
+    
+    return '<div class="norm-expansion-content">' +
+        '<div class="row">' +
+            '<div class="col-md-6">' +
+                '<div class="norm-expansion-section">' +
+                    '<div class="norm-expansion-label">Full Equivalents List (' + char.equivalents.length + ')</div>' +
+                    '<div class="norm-expansion-value">' + equivalentsHtml + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="col-md-3">' +
+                '<div class="norm-expansion-section">' +
+                    '<div class="norm-expansion-label">Notes</div>' +
+                    '<div class="norm-expansion-value">' + notesHtml + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="col-md-3">' +
+                '<div class="norm-expansion-section">' +
+                    '<div class="norm-expansion-label">Recent Change History</div>' +
+                    '<div class="norm-expansion-value">' + historyHtml + '</div>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="d-flex gap-2 mt-3 pt-3 border-top">' +
+            '<button class="btn btn-sm btn-outline-primary" onclick="editBaseCharacter(\'' + char.base + '\'); event.stopPropagation();" style="border-color: #1e3a5f; color: #1e3a5f;">' +
+                '<i class="fas fa-edit me-1"></i>Edit Equivalents' +
+            '</button>' +
+            '<button class="btn btn-sm btn-outline-secondary" onclick="testBaseCharacter(\'' + char.base + '\'); event.stopPropagation();">' +
+                '<i class="fas fa-flask me-1"></i>Test Character' +
+            '</button>' +
+        '</div>' +
+    '</div>';
+}
+
+function generateCharHistory(char) {
+    var history = char.history || [
+        { action: 'updated', description: 'Equivalents modified', time: char.updated || '28-01-2026', actor: 'admin@quicksms.co.uk' },
+        { action: 'created', description: 'Character initialized', time: '01-01-2026', actor: 'system' }
+    ];
+    
+    if (history.length === 0) {
+        return '<span class="text-muted fst-italic">No change history available.</span>';
+    }
+    
+    var icons = {
+        'updated': 'fa-pen',
+        'created': 'fa-plus',
+        'enabled': 'fa-check',
+        'disabled': 'fa-ban',
+        'scope_changed': 'fa-exchange-alt'
+    };
+    
+    return history.slice(0, 3).map(function(h) {
+        var icon = icons[h.action] || 'fa-circle';
+        return '<div class="norm-history-item">' +
+            '<div class="norm-history-icon"><i class="fas ' + icon + '"></i></div>' +
+            '<div>' +
+                '<div class="norm-history-text">' + h.description + '</div>' +
+                '<div class="norm-history-time">' + h.time + ' by ' + (h.actor || 'Unknown').split('@')[0] + '</div>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
+function toggleCodepoints(base) {
+    var container = document.getElementById('equiv-list-' + base);
+    if (!container) return;
+    
+    var codepoints = container.querySelectorAll('.equiv-codepoint');
+    var isVisible = codepoints.length > 0 && codepoints[0].style.display !== 'none';
+    
+    codepoints.forEach(function(cp) {
+        cp.style.display = isVisible ? 'none' : 'inline';
+    });
+    
+    var toggle = container.nextElementSibling.querySelector('.norm-codepoints-toggle');
+    if (toggle) {
+        toggle.innerHTML = isVisible 
+            ? '<i class="fas fa-code me-1"></i>Show Unicode codepoints'
+            : '<i class="fas fa-code me-1"></i>Hide Unicode codepoints';
+    }
 }
 
 function testNormalisationRule() {
