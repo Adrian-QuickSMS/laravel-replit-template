@@ -401,6 +401,73 @@
 .action-dropdown-item:last-child {
     border-radius: 0 0 6px 6px;
 }
+.overrides-modal-info {
+    background: #f0f7ff;
+    border-bottom: 1px solid #d1e3f6;
+    padding: 0.75rem 1rem;
+    font-size: 0.8rem;
+    color: #1e3a5f;
+}
+#overridesTable thead th {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1e3a5f;
+    padding: 0.5rem 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+#overridesTable tbody td {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #f1f3f5;
+    vertical-align: middle;
+}
+#overridesTable tbody tr:hover {
+    background: #f8f9fa;
+}
+.override-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.override-type-badge.allowed {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.override-type-badge.blocked {
+    background: #fee2e2;
+    color: #dc2626;
+}
+.override-account-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+.override-account-cell .account-name {
+    font-weight: 600;
+    color: #1e3a5f;
+}
+.override-account-cell .account-id {
+    font-size: 0.7rem;
+    color: #6c757d;
+    font-family: monospace;
+}
+.override-admin {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+}
+.override-admin i {
+    color: #6c757d;
+    font-size: 0.65rem;
+}
 .risk-indicator {
     display: flex;
     align-items: center;
@@ -1498,6 +1565,51 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="customerOverridesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; color: #fff;">
+                <h5 class="modal-title">
+                    <i class="fas fa-users me-2"></i>Customer Overrides
+                    <span id="overridesModalCountryName" class="ms-2 fw-normal" style="opacity: 0.8;"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="overrides-modal-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span>These account-level overrides take precedence over the global default status for this country.</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="overridesTable">
+                        <thead>
+                            <tr>
+                                <th>Account Name</th>
+                                <th>Sub Account</th>
+                                <th>Override Type</th>
+                                <th>Date Applied</th>
+                                <th>Applied By</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overridesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noOverridesMessage" class="text-center py-4 text-muted" style="display: none;">
+                    <i class="fas fa-inbox fa-2x mb-2 d-block" style="opacity: 0.5;"></i>
+                    No account overrides exist for this country.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <small class="text-muted me-auto">
+                    <i class="fas fa-lock me-1"></i>This view is read-only. Use the country row menu to manage overrides.
+                </small>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -2481,11 +2593,85 @@ function setCountryStatus(countryCode, newStatus) {
     showAdminToast('Default status updated', country.name + ' is now ' + statusLabel + ' by default.', 'success');
 }
 
+var mockOverridesData = {
+    'NG': [
+        { accountName: 'TechStart Ltd', accountId: 'ACC-10045', subAccount: null, overrideType: 'allowed', dateApplied: '28-01-2026', appliedBy: 'admin@quicksms.co.uk' },
+        { accountName: 'Global Comms Inc', accountId: 'ACC-10078', subAccount: 'Marketing Division', overrideType: 'allowed', dateApplied: '25-01-2026', appliedBy: 'sarah.jones@quicksms.co.uk' },
+        { accountName: 'FinServe Solutions', accountId: 'ACC-10102', subAccount: null, overrideType: 'allowed', dateApplied: '20-01-2026', appliedBy: 'admin@quicksms.co.uk' }
+    ],
+    'IN': [
+        { accountName: 'HealthFirst UK', accountId: 'ACC-10089', subAccount: 'NHS Partnership', overrideType: 'allowed', dateApplied: '28-01-2026', appliedBy: 'admin@quicksms.co.uk' },
+        { accountName: 'MediCare Global', accountId: 'ACC-10156', subAccount: null, overrideType: 'allowed', dateApplied: '22-01-2026', appliedBy: 'james.smith@quicksms.co.uk' }
+    ],
+    'PH': [
+        { accountName: 'E-Commerce Hub', accountId: 'ACC-10112', subAccount: null, overrideType: 'allowed', dateApplied: '27-01-2026', appliedBy: 'admin@quicksms.co.uk' }
+    ],
+    'PK': [
+        { accountName: 'RetailMax Corp', accountId: 'ACC-10034', subAccount: 'APAC Operations', overrideType: 'allowed', dateApplied: '15-01-2026', appliedBy: 'admin@quicksms.co.uk' },
+        { accountName: 'TravelWise Ltd', accountId: 'ACC-10098', subAccount: null, overrideType: 'allowed', dateApplied: '10-01-2026', appliedBy: 'sarah.jones@quicksms.co.uk' }
+    ],
+    'RU': [
+        { accountName: 'Logistics Pro', accountId: 'ACC-10067', subAccount: null, overrideType: 'blocked', dateApplied: '05-01-2026', appliedBy: 'admin@quicksms.co.uk' }
+    ]
+};
+
 function viewOverrides(countryCode) {
     var country = countries.find(function(c) { return c.code === countryCode; });
     if (!country) return;
+
+    document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
+        menu.classList.remove('show');
+    });
+
+    document.getElementById('overridesModalCountryName').textContent = '— ' + country.name;
     
-    alert('View Overrides for ' + country.name + '\n\nThis would open a side panel showing all ' + country.overrides + ' account-level overrides for this country.\n\n(TODO: Implement overrides viewer)');
+    var overrides = mockOverridesData[countryCode] || [];
+    var tbody = document.getElementById('overridesTableBody');
+    var noOverridesMsg = document.getElementById('noOverridesMessage');
+    var tableContainer = document.querySelector('#overridesTable').closest('.table-responsive');
+    
+    tbody.innerHTML = '';
+    
+    if (overrides.length === 0) {
+        tableContainer.style.display = 'none';
+        noOverridesMsg.style.display = 'block';
+    } else {
+        tableContainer.style.display = 'block';
+        noOverridesMsg.style.display = 'none';
+        
+        overrides.forEach(function(override) {
+            var row = document.createElement('tr');
+            
+            var typeIcon = override.overrideType === 'allowed' ? 'fa-check-circle' : 'fa-ban';
+            var typeLabel = override.overrideType === 'allowed' ? 'Allowed' : 'Blocked';
+            
+            row.innerHTML = 
+                '<td>' +
+                    '<div class="override-account-cell">' +
+                        '<span class="account-name">' + override.accountName + '</span>' +
+                        '<span class="account-id">' + override.accountId + '</span>' +
+                    '</div>' +
+                '</td>' +
+                '<td>' + (override.subAccount ? '<span class="text-muted">' + override.subAccount + '</span>' : '<span class="text-muted">—</span>') + '</td>' +
+                '<td>' +
+                    '<span class="override-type-badge ' + override.overrideType + '">' +
+                        '<i class="fas ' + typeIcon + '"></i>' + typeLabel +
+                    '</span>' +
+                '</td>' +
+                '<td class="text-muted">' + override.dateApplied + '</td>' +
+                '<td>' +
+                    '<div class="override-admin">' +
+                        '<i class="fas fa-user-shield"></i>' +
+                        '<span>' + override.appliedBy + '</span>' +
+                    '</div>' +
+                '</td>';
+            
+            tbody.appendChild(row);
+        });
+    }
+    
+    var modal = new bootstrap.Modal(document.getElementById('customerOverridesModal'));
+    modal.show();
 }
 
 function capitalize(str) {
