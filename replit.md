@@ -52,13 +52,13 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - **Tenant Isolation:** `getRulesForTenant(tenantId, engine)` guarantees no cross-tenant reads; global rules apply to all tenants
   - **Feature Flags:** Per-engine toggles (`senderid_controls_enabled`, `content_controls_enabled`, `url_controls_enabled`, `quarantine_enabled`, `normalisation_enabled`, `anti_spam_enabled`, `domain_age_check_enabled`)
   - **Admin Access Enforcement:** `AdminAccessControl` validates admin context at UI layer; `setFeatureFlag()` requires admin context
-- **NormalisationLibrary:** Single source of truth for character equivalence ("bastardisation") rules:
-  - **Rule Categories:** Character Substitution, Homoglyph Detection (Greek/Cyrillic), Unicode Normalisation (NFKC), Case Folding
-  - **Scoped Application:** Rules can target specific engines (SenderID, Content, URL) or apply globally to all engines
-  - **Character Mappings:** Define base characters and their visual equivalents (e.g., '0' → ['O', 'o', 'Ο', 'ο'])
+- **NormalisationLibrary:** Fixed base character library (62 immutable characters) for character equivalence:
+  - **Fixed Base Characters:** A–Z (26), a–z (26), 0–9 (10) - cannot be deleted
+  - **Per-Character Properties:** Equivalents (configurable), applies-to scope (SenderID/Content/URL), enabled/disabled state, notes, computed risk classification
+  - **Risk Classification:** Computed automatically based on equivalent count and scope coverage (high/medium/low/none)
   - **Consuming Engines:** SenderID Matching, Content Matching, URL Matching (guarded via feature flag)
-  - **Test & Export:** Interactive rule testing with transformation breakdown; JSON export of active substitution map
-  - **Audit Integration:** All rule changes logged via `logAuditEvent()` with NORMALISATION_RULE_CREATED, NORMALISATION_RULE_STATUS_CHANGED events
+  - **Bulk Operations:** Bulk edit scope across character groups; JSON export of full library
+  - **Audit Integration:** All changes logged via `logAuditEvent()` with BASE_CHARACTER_UPDATED, BASE_CHARACTER_STATUS_CHANGED events
 - **Design Principles:** Typed JSDoc objects, mock data modes for development, clean separation of UI and API, and robust error handling.
 
 ## External Dependencies

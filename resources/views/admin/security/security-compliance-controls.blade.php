@@ -261,6 +261,51 @@
     font-family: 'Courier New', monospace;
     color: #1e3a5f;
 }
+.base-char-display {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    border-radius: 6px;
+}
+.equiv-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 0 4px;
+    margin: 1px 2px;
+    font-size: 0.85rem;
+    font-family: 'Courier New', monospace;
+}
+.scope-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    margin-right: 3px;
+    font-size: 0.7rem;
+}
+.risk-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
 .sec-filter-row {
     display: flex;
     gap: 1rem;
@@ -878,7 +923,7 @@
             <div class="tab-pane fade" id="normalisation-rules" role="tabpanel">
                 <div class="tab-description">
                     <h6><i class="fas fa-globe me-2"></i>Normalisation Rules (Global)</h6>
-                    <p>Single source of truth for character equivalence ("bastardisation") rules. These rules define how visually similar characters are treated as equivalent during security checks.</p>
+                    <p>Single source of truth for character equivalence ("bastardisation") rules. Fixed base character library with configurable equivalents per character.</p>
                 </div>
 
                 <div class="alert alert-info d-flex align-items-start mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f; border-radius: 6px;">
@@ -895,87 +940,241 @@
 
                 <div class="sec-stats">
                     <div class="sec-stat-card active">
-                        <div class="sec-stat-value" id="norm-active-count">0</div>
-                        <div class="sec-stat-label">Active Rules</div>
+                        <div class="sec-stat-value" id="norm-enabled-count">0</div>
+                        <div class="sec-stat-label">Enabled</div>
                     </div>
                     <div class="sec-stat-card blocked">
                         <div class="sec-stat-value" id="norm-disabled-count">0</div>
                         <div class="sec-stat-label">Disabled</div>
                     </div>
                     <div class="sec-stat-card pending">
-                        <div class="sec-stat-value" id="norm-mappings-count">0</div>
-                        <div class="sec-stat-label">Total Mappings</div>
+                        <div class="sec-stat-value" id="norm-equivalents-count">0</div>
+                        <div class="sec-stat-label">Total Equivalents</div>
                     </div>
                     <div class="sec-stat-card total">
-                        <div class="sec-stat-value" id="norm-total-count">0</div>
-                        <div class="sec-stat-label">Total Rules</div>
+                        <div class="sec-stat-value" id="norm-base-count">62</div>
+                        <div class="sec-stat-label">Base Characters</div>
                     </div>
                 </div>
 
-                <div class="sec-table-card">
-                    <div class="sec-filter-row">
-                        <div class="sec-filter-group">
-                            <label>Status</label>
-                            <select id="norm-filter-status">
-                                <option value="">All Statuses</option>
-                                <option value="active">Active</option>
-                                <option value="disabled">Disabled</option>
-                            </select>
+                <ul class="nav nav-tabs mb-3" id="normCharTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="norm-uppercase-tab" data-bs-toggle="tab" data-bs-target="#norm-uppercase" type="button" role="tab" style="font-weight: 600; color: #1e3a5f;">
+                            <i class="fas fa-font me-1"></i>A–Z <span class="badge bg-secondary ms-1">26</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="norm-lowercase-tab" data-bs-toggle="tab" data-bs-target="#norm-lowercase" type="button" role="tab" style="font-weight: 600; color: #1e3a5f;">
+                            <i class="fas fa-text-height me-1"></i>a–z <span class="badge bg-secondary ms-1">26</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="norm-digits-tab" data-bs-toggle="tab" data-bs-target="#norm-digits" type="button" role="tab" style="font-weight: 600; color: #1e3a5f;">
+                            <i class="fas fa-hashtag me-1"></i>0–9 <span class="badge bg-secondary ms-1">10</span>
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="normCharTabsContent">
+                    <div class="tab-pane fade show active" id="norm-uppercase" role="tabpanel">
+                        <div class="sec-table-card">
+                            <div class="sec-filter-row">
+                                <div class="sec-filter-group">
+                                    <label>Status</label>
+                                    <select id="norm-filter-status-upper" onchange="filterBaseCharacters('uppercase')">
+                                        <option value="">All</option>
+                                        <option value="enabled">Enabled</option>
+                                        <option value="disabled">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="sec-filter-group">
+                                    <label>Scope</label>
+                                    <select id="norm-filter-scope-upper" onchange="filterBaseCharacters('uppercase')">
+                                        <option value="">All Scopes</option>
+                                        <option value="senderid">SenderID</option>
+                                        <option value="content">Content</option>
+                                        <option value="url">URL</option>
+                                    </select>
+                                </div>
+                                <div class="sec-filter-group">
+                                    <label>Risk</label>
+                                    <select id="norm-filter-risk-upper" onchange="filterBaseCharacters('uppercase')">
+                                        <option value="">All Risks</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                        <option value="none">None</option>
+                                    </select>
+                                </div>
+                                <div class="sec-filter-actions">
+                                    <button class="sec-btn-outline" onclick="resetNormFilters('uppercase')">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="sec-table-header">
+                                <h6>Uppercase Letters (A–Z)</h6>
+                                <div class="sec-search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" placeholder="Search base character..." id="norm-search-upper" onkeyup="filterBaseCharacters('uppercase')">
+                                </div>
+                            </div>
+                            <table class="sec-table" id="norm-uppercase-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">Base <i class="fas fa-sort"></i></th>
+                                        <th>Equivalents</th>
+                                        <th style="width: 120px;">Scope <i class="fas fa-sort"></i></th>
+                                        <th style="width: 100px;">Risk <i class="fas fa-sort"></i></th>
+                                        <th style="width: 90px;">Status <i class="fas fa-sort"></i></th>
+                                        <th style="width: 70px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="norm-uppercase-body"></tbody>
+                            </table>
                         </div>
-                        <div class="sec-filter-group">
-                            <label>Rule Category</label>
-                            <select id="norm-filter-category">
-                                <option value="">All Categories</option>
-                                <option value="substitution">Character Substitution</option>
-                                <option value="homoglyph">Homoglyph Detection</option>
-                                <option value="unicode">Unicode Normalisation</option>
-                                <option value="case">Case Folding</option>
-                            </select>
+                    </div>
+
+                    <div class="tab-pane fade" id="norm-lowercase" role="tabpanel">
+                        <div class="sec-table-card">
+                            <div class="sec-filter-row">
+                                <div class="sec-filter-group">
+                                    <label>Status</label>
+                                    <select id="norm-filter-status-lower" onchange="filterBaseCharacters('lowercase')">
+                                        <option value="">All</option>
+                                        <option value="enabled">Enabled</option>
+                                        <option value="disabled">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="sec-filter-group">
+                                    <label>Scope</label>
+                                    <select id="norm-filter-scope-lower" onchange="filterBaseCharacters('lowercase')">
+                                        <option value="">All Scopes</option>
+                                        <option value="senderid">SenderID</option>
+                                        <option value="content">Content</option>
+                                        <option value="url">URL</option>
+                                    </select>
+                                </div>
+                                <div class="sec-filter-group">
+                                    <label>Risk</label>
+                                    <select id="norm-filter-risk-lower" onchange="filterBaseCharacters('lowercase')">
+                                        <option value="">All Risks</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                        <option value="none">None</option>
+                                    </select>
+                                </div>
+                                <div class="sec-filter-actions">
+                                    <button class="sec-btn-outline" onclick="resetNormFilters('lowercase')">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="sec-table-header">
+                                <h6>Lowercase Letters (a–z)</h6>
+                                <div class="sec-search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" placeholder="Search base character..." id="norm-search-lower" onkeyup="filterBaseCharacters('lowercase')">
+                                </div>
+                            </div>
+                            <table class="sec-table" id="norm-lowercase-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">Base <i class="fas fa-sort"></i></th>
+                                        <th>Equivalents</th>
+                                        <th style="width: 120px;">Scope <i class="fas fa-sort"></i></th>
+                                        <th style="width: 100px;">Risk <i class="fas fa-sort"></i></th>
+                                        <th style="width: 90px;">Status <i class="fas fa-sort"></i></th>
+                                        <th style="width: 70px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="norm-lowercase-body"></tbody>
+                            </table>
                         </div>
-                        <div class="sec-filter-group">
-                            <label>Scope</label>
-                            <select id="norm-filter-scope">
-                                <option value="">All Scopes</option>
-                                <option value="senderid">SenderID Only</option>
-                                <option value="content">Content Only</option>
-                                <option value="url">URL Only</option>
-                                <option value="all">All Engines</option>
-                            </select>
+                    </div>
+
+                    <div class="tab-pane fade" id="norm-digits" role="tabpanel">
+                        <div class="sec-table-card">
+                            <div class="sec-filter-row">
+                                <div class="sec-filter-group">
+                                    <label>Status</label>
+                                    <select id="norm-filter-status-digits" onchange="filterBaseCharacters('digits')">
+                                        <option value="">All</option>
+                                        <option value="enabled">Enabled</option>
+                                        <option value="disabled">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="sec-filter-group">
+                                    <label>Scope</label>
+                                    <select id="norm-filter-scope-digits" onchange="filterBaseCharacters('digits')">
+                                        <option value="">All Scopes</option>
+                                        <option value="senderid">SenderID</option>
+                                        <option value="content">Content</option>
+                                        <option value="url">URL</option>
+                                    </select>
+                                </div>
+                                <div class="sec-filter-group">
+                                    <label>Risk</label>
+                                    <select id="norm-filter-risk-digits" onchange="filterBaseCharacters('digits')">
+                                        <option value="">All Risks</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                        <option value="none">None</option>
+                                    </select>
+                                </div>
+                                <div class="sec-filter-actions">
+                                    <button class="sec-btn-outline" onclick="resetNormFilters('digits')">
+                                        <i class="fas fa-undo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="sec-table-header">
+                                <h6>Digits (0–9)</h6>
+                                <div class="sec-search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" placeholder="Search base character..." id="norm-search-digits" onkeyup="filterBaseCharacters('digits')">
+                                </div>
+                            </div>
+                            <table class="sec-table" id="norm-digits-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">Base <i class="fas fa-sort"></i></th>
+                                        <th>Equivalents</th>
+                                        <th style="width: 120px;">Scope <i class="fas fa-sort"></i></th>
+                                        <th style="width: 100px;">Risk <i class="fas fa-sort"></i></th>
+                                        <th style="width: 90px;">Status <i class="fas fa-sort"></i></th>
+                                        <th style="width: 70px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="norm-digits-body"></tbody>
+                            </table>
                         </div>
-                        <div class="sec-filter-actions">
-                            <button class="sec-btn-primary" onclick="showAddNormRuleModal()">
-                                <i class="fas fa-plus"></i> Add Rule
+                    </div>
+                </div>
+
+                <div class="card mt-3" style="border: 1px solid #e9ecef; border-radius: 8px;">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white; border-radius: 8px 8px 0 0;">
+                        <h6 class="mb-0"><i class="fas fa-lock me-2"></i>Fixed Base Character Library</h6>
+                        <span class="badge bg-light text-dark">62 characters (immutable)</span>
+                    </div>
+                    <div class="card-body" style="padding: 1rem;">
+                        <p class="text-muted mb-2" style="font-size: 0.85rem;">Base characters (A–Z, a–z, 0–9) are fixed and cannot be deleted. Configure equivalents for each character to define normalisation rules.</p>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="exportBaseCharacterLibrary()">
+                                <i class="fas fa-download me-1"></i>Export Library
                             </button>
-                            <button class="sec-btn-outline" onclick="resetNormFilters()">
-                                <i class="fas fa-undo"></i> Reset
+                            <button class="btn btn-sm btn-outline-secondary" onclick="testNormalisationRule()">
+                                <i class="fas fa-flask me-1"></i>Test Normalisation
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="showBulkEditModal()">
+                                <i class="fas fa-edit me-1"></i>Bulk Edit Scope
                             </button>
                         </div>
                     </div>
-                    <div class="sec-table-header">
-                        <h6>Character Equivalence Rules</h6>
-                        <div class="sec-search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search rules or characters..." id="norm-search">
-                        </div>
-                    </div>
-                    <table class="sec-table" id="norm-rules-table">
-                        <thead>
-                            <tr>
-                                <th>Rule Name <i class="fas fa-sort"></i></th>
-                                <th>Category <i class="fas fa-sort"></i></th>
-                                <th>Character Mappings</th>
-                                <th>Scope <i class="fas fa-sort"></i></th>
-                                <th>Priority <i class="fas fa-sort"></i></th>
-                                <th>Status <i class="fas fa-sort"></i></th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="norm-rules-body">
-                        </tbody>
-                    </table>
-                    <div class="sec-empty-state" id="norm-empty-state" style="display: none;">
-                        <i class="fas fa-globe"></i>
-                        <h6>No Normalisation Rules</h6>
+                </div>
+            </div>
                         <p>Create character equivalence rules for consistent security matching.</p>
                     </div>
                 </div>
@@ -2021,145 +2220,135 @@ var SecurityComplianceControlsService = (function() {
             { id: 'EXC-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', reason: 'Enterprise customer - internal domain rotation', addedBy: 'compliance@quicksms.co.uk', addedAt: '20-01-2026 14:15' }
         ];
 
-        mockData.normalisationRules = [
-            { 
-                id: 1, 
-                name: 'Numeric-Alpha Substitution', 
-                category: 'substitution',
-                description: 'Maps numeric digits to visually similar letters',
-                mappings: [
-                    { base: '0', equivalents: ['O', 'o', 'Ο', 'ο'] },
-                    { base: '1', equivalents: ['I', 'i', 'l', 'L', '|', 'Ι', 'ι'] },
-                    { base: '3', equivalents: ['E', 'e', 'Ε', 'ε'] },
-                    { base: '4', equivalents: ['A', 'a', 'Α', 'α'] },
-                    { base: '5', equivalents: ['S', 's', 'Ѕ', 'ѕ'] },
-                    { base: '8', equivalents: ['B', 'b', 'Β', 'β'] }
-                ],
-                scope: 'all',
-                scopeLabel: 'All Engines',
-                priority: 1, 
-                status: 'active',
-                createdAt: '15-01-2026',
-                updatedAt: '28-01-2026',
-                createdBy: 'admin@quicksms.co.uk'
-            },
-            { 
-                id: 2, 
-                name: 'Greek Homoglyphs', 
-                category: 'homoglyph',
-                description: 'Detects Greek letters that appear identical to Latin characters',
-                mappings: [
-                    { base: 'A', equivalents: ['Α', 'α', 'Ά'] },
-                    { base: 'B', equivalents: ['Β', 'β', 'ϐ'] },
-                    { base: 'E', equivalents: ['Ε', 'ε', 'Έ'] },
-                    { base: 'H', equivalents: ['Η', 'η', 'Ή'] },
-                    { base: 'I', equivalents: ['Ι', 'ι', 'Ί'] },
-                    { base: 'K', equivalents: ['Κ', 'κ'] },
-                    { base: 'M', equivalents: ['Μ', 'μ'] },
-                    { base: 'N', equivalents: ['Ν', 'ν'] },
-                    { base: 'O', equivalents: ['Ο', 'ο', 'Ό'] },
-                    { base: 'P', equivalents: ['Ρ', 'ρ'] },
-                    { base: 'T', equivalents: ['Τ', 'τ'] },
-                    { base: 'X', equivalents: ['Χ', 'χ'] },
-                    { base: 'Y', equivalents: ['Υ', 'υ', 'Ύ'] },
-                    { base: 'Z', equivalents: ['Ζ', 'ζ'] }
-                ],
-                scope: 'senderid',
-                scopeLabel: 'SenderID Only',
-                priority: 2, 
-                status: 'active',
-                createdAt: '10-01-2026',
-                updatedAt: '25-01-2026',
-                createdBy: 'admin@quicksms.co.uk'
-            },
-            { 
-                id: 3, 
-                name: 'Cyrillic Homoglyphs', 
-                category: 'homoglyph',
-                description: 'Detects Cyrillic letters that appear identical to Latin characters',
-                mappings: [
-                    { base: 'A', equivalents: ['А', 'а'] },
-                    { base: 'B', equivalents: ['В', 'в'] },
-                    { base: 'C', equivalents: ['С', 'с'] },
-                    { base: 'E', equivalents: ['Е', 'е', 'Ё', 'ё'] },
-                    { base: 'H', equivalents: ['Н', 'н'] },
-                    { base: 'K', equivalents: ['К', 'к'] },
-                    { base: 'M', equivalents: ['М', 'м'] },
-                    { base: 'O', equivalents: ['О', 'о'] },
-                    { base: 'P', equivalents: ['Р', 'р'] },
-                    { base: 'T', equivalents: ['Т', 'т'] },
-                    { base: 'X', equivalents: ['Х', 'х'] },
-                    { base: 'Y', equivalents: ['У', 'у'] }
-                ],
-                scope: 'all',
-                scopeLabel: 'All Engines',
-                priority: 3, 
-                status: 'active',
-                createdAt: '10-01-2026',
-                updatedAt: '25-01-2026',
-                createdBy: 'admin@quicksms.co.uk'
-            },
-            { 
-                id: 4, 
-                name: 'Case Folding (Standard)', 
-                category: 'case',
-                description: 'Normalises upper and lower case for comparison',
-                mappings: [
-                    { base: 'A-Z', equivalents: ['a-z'] }
-                ],
-                scope: 'all',
-                scopeLabel: 'All Engines',
-                priority: 0, 
-                status: 'active',
-                createdAt: '01-01-2026',
-                updatedAt: '01-01-2026',
-                createdBy: 'system'
-            },
-            { 
-                id: 5, 
-                name: 'Unicode Normalisation (NFKC)', 
-                category: 'unicode',
-                description: 'Applies NFKC normalisation to decompose and recompose characters',
-                mappings: [
-                    { base: 'fi', equivalents: ['ﬁ'] },
-                    { base: 'fl', equivalents: ['ﬂ'] },
-                    { base: 'ff', equivalents: ['ﬀ'] },
-                    { base: '1/2', equivalents: ['½'] },
-                    { base: '(c)', equivalents: ['©'] },
-                    { base: '(r)', equivalents: ['®'] },
-                    { base: 'TM', equivalents: ['™'] }
-                ],
-                scope: 'content',
-                scopeLabel: 'Content Only',
-                priority: 4, 
-                status: 'active',
-                createdAt: '05-01-2026',
-                updatedAt: '20-01-2026',
-                createdBy: 'admin@quicksms.co.uk'
-            },
-            { 
-                id: 6, 
-                name: 'URL Character Substitution', 
-                category: 'substitution',
-                description: 'Detects character substitutions commonly used in phishing URLs',
-                mappings: [
-                    { base: 'l', equivalents: ['1', 'I', '|'] },
-                    { base: 'o', equivalents: ['0', 'O'] },
-                    { base: 'a', equivalents: ['@', '4'] },
-                    { base: 's', equivalents: ['$', '5'] },
-                    { base: 'e', equivalents: ['3'] },
-                    { base: 'g', equivalents: ['9'] },
-                    { base: 't', equivalents: ['7'] }
-                ],
-                scope: 'url',
-                scopeLabel: 'URL Only',
-                priority: 5, 
-                status: 'disabled',
-                createdAt: '12-01-2026',
-                updatedAt: '28-01-2026',
-                createdBy: 'admin@quicksms.co.uk'
+        mockData.baseCharacterLibrary = (function() {
+            var library = [];
+            
+            var uppercaseEquivalents = {
+                'A': { equivalents: ['Α', 'А', 'Ά', '4', '@'], scope: ['senderid', 'content'], notes: 'Greek Alpha, Cyrillic A, common substitutions' },
+                'B': { equivalents: ['Β', 'В', 'ϐ', '8'], scope: ['senderid', 'content'], notes: 'Greek Beta, Cyrillic Ve' },
+                'C': { equivalents: ['С', 'Ϲ', '('], scope: ['senderid', 'content'], notes: 'Cyrillic Es' },
+                'D': { equivalents: [], scope: ['senderid'], notes: '' },
+                'E': { equivalents: ['Ε', 'Е', 'Έ', '3'], scope: ['senderid', 'content', 'url'], notes: 'Greek Epsilon, Cyrillic Ie' },
+                'F': { equivalents: [], scope: ['senderid'], notes: '' },
+                'G': { equivalents: ['9'], scope: ['url'], notes: 'URL substitution' },
+                'H': { equivalents: ['Η', 'Н', 'Ή'], scope: ['senderid', 'content'], notes: 'Greek Eta, Cyrillic En' },
+                'I': { equivalents: ['Ι', 'І', 'Ί', '1', 'l', '|'], scope: ['senderid', 'content', 'url'], notes: 'Greek Iota, Cyrillic I, common substitutions' },
+                'J': { equivalents: ['Ј'], scope: ['senderid'], notes: 'Cyrillic Je' },
+                'K': { equivalents: ['Κ', 'К'], scope: ['senderid', 'content'], notes: 'Greek Kappa, Cyrillic Ka' },
+                'L': { equivalents: ['1', '|'], scope: ['senderid', 'url'], notes: 'Common substitution' },
+                'M': { equivalents: ['Μ', 'М'], scope: ['senderid', 'content'], notes: 'Greek Mu, Cyrillic Em' },
+                'N': { equivalents: ['Ν', 'Ň'], scope: ['senderid', 'content'], notes: 'Greek Nu' },
+                'O': { equivalents: ['Ο', 'О', 'Ό', '0'], scope: ['senderid', 'content', 'url'], notes: 'Greek Omicron, Cyrillic O, zero' },
+                'P': { equivalents: ['Ρ', 'Р'], scope: ['senderid', 'content'], notes: 'Greek Rho, Cyrillic Er' },
+                'Q': { equivalents: [], scope: ['senderid'], notes: '' },
+                'R': { equivalents: [], scope: ['senderid'], notes: '' },
+                'S': { equivalents: ['Ѕ', '$', '5'], scope: ['senderid', 'content', 'url'], notes: 'Cyrillic Dze, common substitutions' },
+                'T': { equivalents: ['Τ', 'Т', '7'], scope: ['senderid', 'content', 'url'], notes: 'Greek Tau, Cyrillic Te' },
+                'U': { equivalents: [], scope: ['senderid'], notes: '' },
+                'V': { equivalents: [], scope: ['senderid'], notes: '' },
+                'W': { equivalents: [], scope: ['senderid'], notes: '' },
+                'X': { equivalents: ['Χ', 'Х'], scope: ['senderid', 'content'], notes: 'Greek Chi, Cyrillic Ha' },
+                'Y': { equivalents: ['Υ', 'У', 'Ύ'], scope: ['senderid', 'content'], notes: 'Greek Upsilon, Cyrillic U' },
+                'Z': { equivalents: ['Ζ', '2'], scope: ['senderid', 'content'], notes: 'Greek Zeta' }
+            };
+            
+            var lowercaseEquivalents = {
+                'a': { equivalents: ['α', 'а', '@', '4'], scope: ['senderid', 'content', 'url'], notes: 'Greek alpha, Cyrillic a' },
+                'b': { equivalents: ['β', 'ь', 'в'], scope: ['senderid', 'content'], notes: 'Greek beta, Cyrillic soft sign' },
+                'c': { equivalents: ['с', 'ϲ'], scope: ['senderid', 'content'], notes: 'Cyrillic es' },
+                'd': { equivalents: [], scope: ['senderid'], notes: '' },
+                'e': { equivalents: ['ε', 'е', 'ё', '3'], scope: ['senderid', 'content', 'url'], notes: 'Greek epsilon, Cyrillic ie' },
+                'f': { equivalents: [], scope: ['senderid'], notes: '' },
+                'g': { equivalents: ['ɡ', '9'], scope: ['senderid', 'url'], notes: 'Latin small letter script g' },
+                'h': { equivalents: ['һ'], scope: ['senderid'], notes: 'Cyrillic shha' },
+                'i': { equivalents: ['ι', 'і', 'ί', '1', 'l', '|'], scope: ['senderid', 'content', 'url'], notes: 'Greek iota, Cyrillic i' },
+                'j': { equivalents: ['ј'], scope: ['senderid'], notes: 'Cyrillic je' },
+                'k': { equivalents: ['κ', 'к'], scope: ['senderid', 'content'], notes: 'Greek kappa, Cyrillic ka' },
+                'l': { equivalents: ['1', 'I', '|', 'ӏ'], scope: ['senderid', 'content', 'url'], notes: 'Common substitution, Cyrillic palochka' },
+                'm': { equivalents: ['м'], scope: ['senderid'], notes: 'Cyrillic em' },
+                'n': { equivalents: ['ν', 'п'], scope: ['senderid', 'content'], notes: 'Greek nu' },
+                'o': { equivalents: ['ο', 'о', 'ό', '0'], scope: ['senderid', 'content', 'url'], notes: 'Greek omicron, Cyrillic o, zero' },
+                'p': { equivalents: ['ρ', 'р'], scope: ['senderid', 'content'], notes: 'Greek rho, Cyrillic er' },
+                'q': { equivalents: [], scope: ['senderid'], notes: '' },
+                'r': { equivalents: ['г'], scope: ['senderid'], notes: 'Cyrillic ghe (visual similarity in some fonts)' },
+                's': { equivalents: ['ѕ', '$', '5'], scope: ['senderid', 'content', 'url'], notes: 'Cyrillic dze, common substitutions' },
+                't': { equivalents: ['τ', '7'], scope: ['senderid', 'content', 'url'], notes: 'Greek tau' },
+                'u': { equivalents: ['υ', 'ս'], scope: ['senderid'], notes: 'Greek upsilon, Armenian u' },
+                'v': { equivalents: ['ν'], scope: ['senderid'], notes: 'Greek nu (visual similarity)' },
+                'w': { equivalents: [], scope: ['senderid'], notes: '' },
+                'x': { equivalents: ['χ', 'х'], scope: ['senderid', 'content'], notes: 'Greek chi, Cyrillic ha' },
+                'y': { equivalents: ['у', 'γ'], scope: ['senderid', 'content'], notes: 'Cyrillic u, Greek gamma' },
+                'z': { equivalents: ['ζ'], scope: ['senderid', 'content'], notes: 'Greek zeta' }
+            };
+            
+            var digitEquivalents = {
+                '0': { equivalents: ['O', 'o', 'Ο', 'ο', 'О', 'о'], scope: ['senderid', 'content', 'url'], notes: 'Latin O, Greek Omicron, Cyrillic O' },
+                '1': { equivalents: ['I', 'i', 'l', 'L', '|', 'Ι', 'ι'], scope: ['senderid', 'content', 'url'], notes: 'Latin I/l, Greek Iota, pipe' },
+                '2': { equivalents: ['Z'], scope: ['url'], notes: 'Visual similarity in some fonts' },
+                '3': { equivalents: ['E', 'e', 'Ε', 'ε'], scope: ['senderid', 'content', 'url'], notes: 'Reversed E appearance' },
+                '4': { equivalents: ['A', 'a'], scope: ['senderid', 'url'], notes: 'Common leet substitution' },
+                '5': { equivalents: ['S', 's', 'Ѕ', 'ѕ'], scope: ['senderid', 'content', 'url'], notes: 'Cyrillic Dze' },
+                '6': { equivalents: ['b', 'G'], scope: ['url'], notes: 'Visual similarity' },
+                '7': { equivalents: ['T', 't', 'Τ', 'τ'], scope: ['senderid', 'url'], notes: 'Common leet substitution' },
+                '8': { equivalents: ['B', 'Β', 'β'], scope: ['senderid', 'content'], notes: 'Greek Beta' },
+                '9': { equivalents: ['g', 'q'], scope: ['url'], notes: 'Visual similarity' }
+            };
+            
+            function computeRisk(equivalents, scope) {
+                if (equivalents.length === 0) return 'none';
+                if (scope.length >= 3 && equivalents.length >= 4) return 'high';
+                if (scope.length >= 2 && equivalents.length >= 2) return 'medium';
+                if (equivalents.length >= 1) return 'low';
+                return 'none';
             }
-        ];
+            
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function(char) {
+                var data = uppercaseEquivalents[char] || { equivalents: [], scope: ['senderid'], notes: '' };
+                library.push({
+                    base: char,
+                    type: 'uppercase',
+                    equivalents: data.equivalents,
+                    scope: data.scope,
+                    notes: data.notes,
+                    enabled: data.equivalents.length > 0,
+                    risk: computeRisk(data.equivalents, data.scope),
+                    updatedAt: '28-01-2026',
+                    updatedBy: 'admin@quicksms.co.uk'
+                });
+            });
+            
+            'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function(char) {
+                var data = lowercaseEquivalents[char] || { equivalents: [], scope: ['senderid'], notes: '' };
+                library.push({
+                    base: char,
+                    type: 'lowercase',
+                    equivalents: data.equivalents,
+                    scope: data.scope,
+                    notes: data.notes,
+                    enabled: data.equivalents.length > 0,
+                    risk: computeRisk(data.equivalents, data.scope),
+                    updatedAt: '28-01-2026',
+                    updatedBy: 'admin@quicksms.co.uk'
+                });
+            });
+            
+            '0123456789'.split('').forEach(function(char) {
+                var data = digitEquivalents[char] || { equivalents: [], scope: ['senderid'], notes: '' };
+                library.push({
+                    base: char,
+                    type: 'digit',
+                    equivalents: data.equivalents,
+                    scope: data.scope,
+                    notes: data.notes,
+                    enabled: data.equivalents.length > 0,
+                    risk: computeRisk(data.equivalents, data.scope),
+                    updatedAt: '28-01-2026',
+                    updatedBy: 'admin@quicksms.co.uk'
+                });
+            });
+            
+            return library;
+        })();
 
         mockData.quarantinedMessages = [
             { 
@@ -3085,91 +3274,137 @@ var SecurityComplianceControlsService = (function() {
     }
 
     function renderNormTab() {
-        var tbody = document.getElementById('norm-rules-body');
-        var emptyState = document.getElementById('norm-empty-state');
-        var rules = mockData.normalisationRules;
-
-        var categoryLabels = {
-            'substitution': 'Character Substitution',
-            'homoglyph': 'Homoglyph Detection',
-            'unicode': 'Unicode Normalisation',
-            'case': 'Case Folding'
+        var library = mockData.baseCharacterLibrary;
+        
+        var riskColors = {
+            'high': { bg: '#fee2e2', color: '#991b1b', icon: 'fa-exclamation-triangle' },
+            'medium': { bg: '#fef3c7', color: '#92400e', icon: 'fa-exclamation-circle' },
+            'low': { bg: '#dbeafe', color: '#1e40af', icon: 'fa-info-circle' },
+            'none': { bg: '#f3f4f6', color: '#6b7280', icon: 'fa-minus-circle' }
         };
-
-        var categoryColors = {
-            'substitution': '#d97706',
-            'homoglyph': '#7c3aed',
-            'unicode': '#2563eb',
-            'case': '#059669'
-        };
-
+        
         var scopeIcons = {
-            'all': 'fa-globe',
-            'senderid': 'fa-id-badge',
-            'content': 'fa-comment-alt',
-            'url': 'fa-link'
+            'senderid': { icon: 'fa-id-badge', color: '#d97706', label: 'SenderID' },
+            'content': { icon: 'fa-comment-alt', color: '#2563eb', label: 'Content' },
+            'url': { icon: 'fa-link', color: '#7c3aed', label: 'URL' }
         };
-
-        var totalMappings = rules.reduce(function(sum, rule) {
-            return sum + (rule.mappings ? rule.mappings.length : 0);
-        }, 0);
-
-        document.getElementById('norm-active-count').textContent = rules.filter(r => r.status === 'active').length;
-        document.getElementById('norm-disabled-count').textContent = rules.filter(r => r.status === 'disabled').length;
-        document.getElementById('norm-mappings-count').textContent = totalMappings;
-        document.getElementById('norm-total-count').textContent = rules.length;
-
-        renderSubstitutionMapDisplay();
-
-        if (rules.length === 0) {
-            tbody.innerHTML = '';
-            emptyState.style.display = 'block';
-            return;
-        }
-
-        emptyState.style.display = 'none';
-        tbody.innerHTML = rules.map(function(rule) {
-            var categoryLabel = categoryLabels[rule.category] || rule.category;
-            var categoryColor = categoryColors[rule.category] || '#6c757d';
-            var scopeIcon = scopeIcons[rule.scope] || 'fa-globe';
+        
+        var uppercase = library.filter(function(c) { return c.type === 'uppercase'; });
+        var lowercase = library.filter(function(c) { return c.type === 'lowercase'; });
+        var digits = library.filter(function(c) { return c.type === 'digit'; });
+        
+        var enabledCount = library.filter(function(c) { return c.enabled; }).length;
+        var disabledCount = library.filter(function(c) { return !c.enabled; }).length;
+        var totalEquivalents = library.reduce(function(sum, c) { return sum + c.equivalents.length; }, 0);
+        
+        document.getElementById('norm-enabled-count').textContent = enabledCount;
+        document.getElementById('norm-disabled-count').textContent = disabledCount;
+        document.getElementById('norm-equivalents-count').textContent = totalEquivalents;
+        document.getElementById('norm-base-count').textContent = library.length;
+        
+        renderBaseCharacterTable('uppercase', uppercase, riskColors, scopeIcons);
+        renderBaseCharacterTable('lowercase', lowercase, riskColors, scopeIcons);
+        renderBaseCharacterTable('digits', digits, riskColors, scopeIcons);
+    }
+    
+    function renderBaseCharacterTable(type, characters, riskColors, scopeIcons) {
+        var bodyId = type === 'digits' ? 'norm-digits-body' : 
+                     type === 'lowercase' ? 'norm-lowercase-body' : 'norm-uppercase-body';
+        var tbody = document.getElementById(bodyId);
+        if (!tbody) return;
+        
+        tbody.innerHTML = characters.map(function(char) {
+            var riskStyle = riskColors[char.risk] || riskColors['none'];
             
-            var mappingsPreview = '';
-            if (rule.mappings && rule.mappings.length > 0) {
-                var previewMappings = rule.mappings.slice(0, 3);
-                mappingsPreview = previewMappings.map(function(m) {
-                    return '<span class="mapping-chip">' + 
-                        '<code>' + m.base + '</code> → <code>' + m.equivalents.slice(0, 2).join(', ') + '</code>' +
-                        (m.equivalents.length > 2 ? '...' : '') +
-                    '</span>';
-                }).join(' ');
-                if (rule.mappings.length > 3) {
-                    mappingsPreview += '<span class="text-muted" style="font-size: 0.75rem;"> +' + (rule.mappings.length - 3) + ' more</span>';
+            var equivalentsHtml = '';
+            if (char.equivalents.length > 0) {
+                equivalentsHtml = char.equivalents.slice(0, 6).map(function(eq) {
+                    return '<span class="equiv-chip">' + eq + '</span>';
+                }).join('');
+                if (char.equivalents.length > 6) {
+                    equivalentsHtml += '<span class="text-muted ms-1" style="font-size: 0.7rem;">+' + (char.equivalents.length - 6) + '</span>';
                 }
+            } else {
+                equivalentsHtml = '<span class="text-muted" style="font-size: 0.75rem;">No equivalents</span>';
             }
-
-            return '<tr data-rule-id="' + rule.id + '">' +
-                '<td><strong>' + rule.name + '</strong><br><small class="text-muted">' + (rule.description || '') + '</small></td>' +
-                '<td><span class="badge" style="background: ' + categoryColor + '; color: white;">' + categoryLabel + '</span></td>' +
-                '<td style="max-width: 250px;">' + mappingsPreview + '</td>' +
-                '<td><i class="fas ' + scopeIcon + ' me-1" style="color: #1e3a5f;"></i>' + rule.scopeLabel + '</td>' +
-                '<td><span class="badge bg-light text-dark">' + rule.priority + '</span></td>' +
-                '<td><span class="sec-status-badge ' + rule.status + '">' + rule.status.charAt(0).toUpperCase() + rule.status.slice(1) + '</span></td>' +
+            
+            var scopeHtml = char.scope.map(function(s) {
+                var si = scopeIcons[s] || { icon: 'fa-globe', color: '#6c757d', label: s };
+                return '<span class="scope-badge" style="background: ' + si.color + '20; color: ' + si.color + '; border: 1px solid ' + si.color + '40;" title="' + si.label + '">' +
+                    '<i class="fas ' + si.icon + '"></i>' +
+                '</span>';
+            }).join('');
+            
+            return '<tr data-base="' + char.base + '">' +
+                '<td>' +
+                    '<span class="base-char-display">' + char.base + '</span>' +
+                    (char.notes ? '<i class="fas fa-sticky-note ms-2 text-muted" style="font-size: 0.7rem;" title="' + char.notes + '"></i>' : '') +
+                '</td>' +
+                '<td>' + equivalentsHtml + '</td>' +
+                '<td>' + scopeHtml + '</td>' +
+                '<td>' +
+                    '<span class="risk-badge" style="background: ' + riskStyle.bg + '; color: ' + riskStyle.color + ';">' +
+                        '<i class="fas ' + riskStyle.icon + ' me-1"></i>' + char.risk.charAt(0).toUpperCase() + char.risk.slice(1) +
+                    '</span>' +
+                '</td>' +
+                '<td>' +
+                    '<span class="sec-status-badge ' + (char.enabled ? 'active' : 'disabled') + '">' +
+                        (char.enabled ? 'Enabled' : 'Disabled') +
+                    '</span>' +
+                '</td>' +
                 '<td>' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
-                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewNormalisationRule(' + rule.id + ')"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>' +
-                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editNormalisationRule(' + rule.id + ')"><i class="fas fa-edit me-2 text-muted"></i>Edit Rule</a></li>' +
-                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="testNormalisationRuleById(' + rule.id + ')"><i class="fas fa-flask me-2 text-muted"></i>Test Rule</a></li>' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editBaseCharacter(\'' + char.base + '\')"><i class="fas fa-edit me-2 text-muted"></i>Edit Equivalents</a></li>' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="testBaseCharacter(\'' + char.base + '\')"><i class="fas fa-flask me-2 text-muted"></i>Test</a></li>' +
                             '<li><hr class="dropdown-divider"></li>' +
-                            (rule.status === 'active' 
-                                ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleNormalisationRuleStatus(' + rule.id + ', \'disabled\')"><i class="fas fa-ban me-2 text-warning"></i>Disable</a></li>'
-                                : '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleNormalisationRuleStatus(' + rule.id + ', \'active\')"><i class="fas fa-check me-2 text-success"></i>Enable</a></li>') +
+                            (char.enabled 
+                                ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleBaseCharacterStatus(\'' + char.base + '\', false)"><i class="fas fa-ban me-2 text-warning"></i>Disable</a></li>'
+                                : '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleBaseCharacterStatus(\'' + char.base + '\', true)"><i class="fas fa-check me-2 text-success"></i>Enable</a></li>') +
                         '</ul>' +
                     '</div>' +
                 '</td>' +
-                '</tr>';
+            '</tr>';
         }).join('');
+    }
+    
+    function filterBaseCharacters(type) {
+        var statusFilter = document.getElementById('norm-filter-status-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value;
+        var scopeFilter = document.getElementById('norm-filter-scope-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value;
+        var riskFilter = document.getElementById('norm-filter-risk-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value;
+        var searchText = document.getElementById('norm-search-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value.toLowerCase();
+        
+        var tableId = type === 'digits' ? 'norm-digits-table' : 
+                      type === 'lowercase' ? 'norm-lowercase-table' : 'norm-uppercase-table';
+        var rows = document.querySelectorAll('#' + tableId + ' tbody tr');
+        
+        rows.forEach(function(row) {
+            var base = row.getAttribute('data-base');
+            var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+            if (!char) return;
+            
+            var show = true;
+            
+            if (statusFilter) {
+                if (statusFilter === 'enabled' && !char.enabled) show = false;
+                if (statusFilter === 'disabled' && char.enabled) show = false;
+            }
+            
+            if (scopeFilter && char.scope.indexOf(scopeFilter) === -1) {
+                show = false;
+            }
+            
+            if (riskFilter && char.risk !== riskFilter) {
+                show = false;
+            }
+            
+            if (searchText && base.toLowerCase().indexOf(searchText) === -1) {
+                show = false;
+            }
+            
+            row.style.display = show ? '' : 'none';
+        });
     }
 
     function renderQuarantineTab() {
@@ -3806,99 +4041,168 @@ function refreshAllControls() {
     SecurityComplianceControlsService.renderAllTabs();
 }
 
-function viewNormalisationRule(ruleId) {
-    console.log('[NormalisationRules] View rule:', ruleId);
-    // TODO: Implement view normalisation rule modal
-    alert('View Normalisation Rule: ' + ruleId);
+function editBaseCharacter(base) {
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+    if (!char) return;
+    
+    var scopeIcons = {
+        'senderid': { icon: 'fa-id-badge', color: '#d97706', label: 'SenderID' },
+        'content': { icon: 'fa-comment-alt', color: '#2563eb', label: 'Content' },
+        'url': { icon: 'fa-link', color: '#7c3aed', label: 'URL' }
+    };
+    
+    var modalHtml = '<div class="modal fade" id="editBaseCharModal" tabindex="-1">' +
+        '<div class="modal-dialog modal-lg">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Base Character: <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">' + base + '</code></h5>' +
+                    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="alert alert-info mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f;">' +
+                        '<i class="fas fa-lock me-2"></i><strong>Fixed Base Character:</strong> This character cannot be deleted from the library.' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Equivalent Characters</label>' +
+                        '<input type="text" class="form-control" id="editCharEquivalents" value="' + char.equivalents.join(', ') + '" placeholder="Enter equivalent characters, comma-separated">' +
+                        '<small class="text-muted">Characters that should be treated as equivalent to "' + base + '" during normalisation</small>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Applies-To Scope</label>' +
+                        '<div class="d-flex gap-3">' +
+                            '<div class="form-check">' +
+                                '<input class="form-check-input" type="checkbox" id="editCharScopeSenderid" ' + (char.scope.indexOf('senderid') !== -1 ? 'checked' : '') + '>' +
+                                '<label class="form-check-label" for="editCharScopeSenderid"><i class="fas fa-id-badge me-1" style="color: #d97706;"></i>SenderID</label>' +
+                            '</div>' +
+                            '<div class="form-check">' +
+                                '<input class="form-check-input" type="checkbox" id="editCharScopeContent" ' + (char.scope.indexOf('content') !== -1 ? 'checked' : '') + '>' +
+                                '<label class="form-check-label" for="editCharScopeContent"><i class="fas fa-comment-alt me-1" style="color: #2563eb;"></i>Content</label>' +
+                            '</div>' +
+                            '<div class="form-check">' +
+                                '<input class="form-check-input" type="checkbox" id="editCharScopeUrl" ' + (char.scope.indexOf('url') !== -1 ? 'checked' : '') + '>' +
+                                '<label class="form-check-label" for="editCharScopeUrl"><i class="fas fa-link me-1" style="color: #7c3aed;"></i>URL</label>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Notes</label>' +
+                        '<textarea class="form-control" id="editCharNotes" rows="2" placeholder="Optional notes about this character mapping...">' + (char.notes || '') + '</textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Status</label>' +
+                        '<div class="form-check form-switch">' +
+                            '<input class="form-check-input" type="checkbox" id="editCharEnabled" ' + (char.enabled ? 'checked' : '') + '>' +
+                            '<label class="form-check-label" for="editCharEnabled">Enabled</label>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<small class="text-muted me-auto"><i class="fas fa-shield-alt me-1"></i>Changes logged to audit trail</small>' +
+                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn btn-primary" onclick="saveBaseCharacter(\'' + base + '\')" style="background: #1e3a5f; border-color: #1e3a5f;">' +
+                        '<i class="fas fa-save me-1"></i>Save Changes' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('editBaseCharModal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var modal = new bootstrap.Modal(document.getElementById('editBaseCharModal'));
+    modal.show();
 }
 
-function editNormalisationRule(ruleId) {
-    console.log('[NormalisationRules] Edit rule:', ruleId);
-    // TODO: Implement edit normalisation rule modal
-    alert('Edit Normalisation Rule: ' + ruleId);
-}
-
-function toggleNormalisationRuleStatus(ruleId, newStatus) {
-    console.log('[NormalisationRules] Toggle rule status:', ruleId, '->', newStatus);
-    logAuditEvent('NORMALISATION_RULE_STATUS_CHANGED', {
-        ruleId: ruleId,
-        newStatus: newStatus
-    });
-    // TODO: Implement API call to update status
-    var rule = mockData.normalisationRules.find(function(r) { return r.id === ruleId; });
-    if (rule) {
-        rule.status = newStatus;
-        MessageEnforcementService.hotReloadRules();
+function saveBaseCharacter(base) {
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+    if (!char) return;
+    
+    var equivalentsStr = document.getElementById('editCharEquivalents').value;
+    var equivalents = equivalentsStr.split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e; });
+    
+    var scope = [];
+    if (document.getElementById('editCharScopeSenderid').checked) scope.push('senderid');
+    if (document.getElementById('editCharScopeContent').checked) scope.push('content');
+    if (document.getElementById('editCharScopeUrl').checked) scope.push('url');
+    
+    if (scope.length === 0) scope = ['senderid'];
+    
+    var notes = document.getElementById('editCharNotes').value.trim();
+    var enabled = document.getElementById('editCharEnabled').checked;
+    
+    function computeRisk(equivalents, scope) {
+        if (equivalents.length === 0) return 'none';
+        if (scope.length >= 3 && equivalents.length >= 4) return 'high';
+        if (scope.length >= 2 && equivalents.length >= 2) return 'medium';
+        if (equivalents.length >= 1) return 'low';
+        return 'none';
     }
+    
+    var oldEquivalents = char.equivalents.slice();
+    char.equivalents = equivalents;
+    char.scope = scope;
+    char.notes = notes;
+    char.enabled = enabled;
+    char.risk = computeRisk(equivalents, scope);
+    char.updatedAt = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+    char.updatedBy = 'admin@quicksms.co.uk';
+    
+    logAuditEvent('BASE_CHARACTER_UPDATED', {
+        base: base,
+        oldEquivalents: oldEquivalents,
+        newEquivalents: equivalents,
+        scope: scope,
+        enabled: enabled
+    });
+    
+    MessageEnforcementService.hotReloadRules();
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('editBaseCharModal'));
+    modal.hide();
+    
     SecurityComplianceControlsService.renderAllTabs();
 }
 
-function testNormalisationRuleById(ruleId) {
-    var rule = mockData.normalisationRules.find(function(r) { return r.id === ruleId; });
-    if (rule) {
-        showTestNormalisationModal(rule);
+function testBaseCharacter(base) {
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+    if (char) {
+        showTestNormalisationModal({ base: base, equivalents: char.equivalents });
     }
 }
 
-function renderSubstitutionMapDisplay() {
-    var container = document.getElementById('substitution-map-display');
-    if (!container) return;
+function toggleBaseCharacterStatus(base, enabled) {
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+    if (!char) return;
     
-    var activeRules = mockData.normalisationRules.filter(function(r) { return r.status === 'active'; });
-    var allMappings = {};
+    char.enabled = enabled;
+    char.updatedAt = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+    char.updatedBy = 'admin@quicksms.co.uk';
     
-    activeRules.forEach(function(rule) {
-        if (rule.mappings) {
-            rule.mappings.forEach(function(m) {
-                if (!allMappings[m.base]) {
-                    allMappings[m.base] = { equivalents: [], sources: [] };
-                }
-                m.equivalents.forEach(function(eq) {
-                    if (allMappings[m.base].equivalents.indexOf(eq) === -1) {
-                        allMappings[m.base].equivalents.push(eq);
-                    }
-                });
-                if (allMappings[m.base].sources.indexOf(rule.name) === -1) {
-                    allMappings[m.base].sources.push(rule.name);
-                }
-            });
-        }
+    logAuditEvent('BASE_CHARACTER_STATUS_CHANGED', {
+        base: base,
+        enabled: enabled
     });
     
-    var baseChars = Object.keys(allMappings).sort();
-    var html = '';
-    
-    baseChars.slice(0, 12).forEach(function(base) {
-        var mapping = allMappings[base];
-        html += '<div class="col-md-3 col-sm-4 col-6 mb-2">' +
-            '<div class="p-2 border rounded" style="background: #f8fafc; font-size: 0.8rem;">' +
-                '<code style="background: #1e3a5f; color: white; padding: 2px 6px; border-radius: 3px;">' + base + '</code>' +
-                ' <i class="fas fa-arrow-right text-muted mx-1" style="font-size: 0.7rem;"></i> ' +
-                '<span>' + mapping.equivalents.slice(0, 4).join(', ') + (mapping.equivalents.length > 4 ? '...' : '') + '</span>' +
-            '</div>' +
-        '</div>';
-    });
-    
-    if (baseChars.length > 12) {
-        html += '<div class="col-12 text-muted" style="font-size: 0.75rem;"><i class="fas fa-info-circle me-1"></i>' + (baseChars.length - 12) + ' more base characters configured</div>';
-    }
-    
-    container.innerHTML = html;
+    MessageEnforcementService.hotReloadRules();
+    SecurityComplianceControlsService.renderAllTabs();
 }
 
-function exportSubstitutionMap() {
-    var activeRules = mockData.normalisationRules.filter(function(r) { return r.status === 'active'; });
+function exportBaseCharacterLibrary() {
+    var library = mockData.baseCharacterLibrary;
     var exportData = {
         exportedAt: new Date().toISOString(),
         version: '1.0',
-        rules: activeRules.map(function(rule) {
+        baseCharacters: library.map(function(char) {
             return {
-                id: rule.id,
-                name: rule.name,
-                category: rule.category,
-                scope: rule.scope,
-                priority: rule.priority,
-                mappings: rule.mappings
+                base: char.base,
+                type: char.type,
+                equivalents: char.equivalents,
+                scope: char.scope,
+                enabled: char.enabled,
+                risk: char.risk,
+                notes: char.notes
             };
         })
     };
@@ -4176,11 +4480,114 @@ function saveNewNormRule() {
     SecurityComplianceControlsService.renderAllTabs();
 }
 
-function resetNormFilters() {
-    document.getElementById('norm-filter-status').value = '';
-    document.getElementById('norm-filter-category').value = '';
-    document.getElementById('norm-filter-scope').value = '';
-    document.getElementById('norm-search').value = '';
+function resetNormFilters(type) {
+    if (type) {
+        var suffix = type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits';
+        document.getElementById('norm-filter-status-' + suffix).value = '';
+        document.getElementById('norm-filter-scope-' + suffix).value = '';
+        document.getElementById('norm-filter-risk-' + suffix).value = '';
+        document.getElementById('norm-search-' + suffix).value = '';
+        filterBaseCharacters(type);
+    } else {
+        ['upper', 'lower', 'digits'].forEach(function(suffix) {
+            var statusEl = document.getElementById('norm-filter-status-' + suffix);
+            var scopeEl = document.getElementById('norm-filter-scope-' + suffix);
+            var riskEl = document.getElementById('norm-filter-risk-' + suffix);
+            var searchEl = document.getElementById('norm-search-' + suffix);
+            if (statusEl) statusEl.value = '';
+            if (scopeEl) scopeEl.value = '';
+            if (riskEl) riskEl.value = '';
+            if (searchEl) searchEl.value = '';
+        });
+        SecurityComplianceControlsService.renderAllTabs();
+    }
+}
+
+function showBulkEditModal() {
+    var modalHtml = '<div class="modal fade" id="bulkEditModal" tabindex="-1">' +
+        '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-edit me-2"></i>Bulk Edit Scope</h5>' +
+                    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Apply Scope To</label>' +
+                        '<select class="form-control" id="bulkEditTarget">' +
+                            '<option value="all">All Characters (62)</option>' +
+                            '<option value="uppercase">Uppercase Only (26)</option>' +
+                            '<option value="lowercase">Lowercase Only (26)</option>' +
+                            '<option value="digits">Digits Only (10)</option>' +
+                            '<option value="with_equivalents">Characters With Equivalents</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label class="form-label fw-bold">Set Scope</label>' +
+                        '<div class="d-flex gap-3">' +
+                            '<div class="form-check">' +
+                                '<input class="form-check-input" type="checkbox" id="bulkScopeSenderid" checked>' +
+                                '<label class="form-check-label" for="bulkScopeSenderid"><i class="fas fa-id-badge me-1" style="color: #d97706;"></i>SenderID</label>' +
+                            '</div>' +
+                            '<div class="form-check">' +
+                                '<input class="form-check-input" type="checkbox" id="bulkScopeContent">' +
+                                '<label class="form-check-label" for="bulkScopeContent"><i class="fas fa-comment-alt me-1" style="color: #2563eb;"></i>Content</label>' +
+                            '</div>' +
+                            '<div class="form-check">' +
+                                '<input class="form-check-input" type="checkbox" id="bulkScopeUrl">' +
+                                '<label class="form-check-label" for="bulkScopeUrl"><i class="fas fa-link me-1" style="color: #7c3aed;"></i>URL</label>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn btn-primary" onclick="applyBulkScope()" style="background: #1e3a5f; border-color: #1e3a5f;">' +
+                        '<i class="fas fa-check me-1"></i>Apply' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
+    
+    var existingModal = document.getElementById('bulkEditModal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var modal = new bootstrap.Modal(document.getElementById('bulkEditModal'));
+    modal.show();
+}
+
+function applyBulkScope() {
+    var target = document.getElementById('bulkEditTarget').value;
+    var scope = [];
+    if (document.getElementById('bulkScopeSenderid').checked) scope.push('senderid');
+    if (document.getElementById('bulkScopeContent').checked) scope.push('content');
+    if (document.getElementById('bulkScopeUrl').checked) scope.push('url');
+    
+    if (scope.length === 0) scope = ['senderid'];
+    
+    var count = 0;
+    mockData.baseCharacterLibrary.forEach(function(char) {
+        var shouldUpdate = false;
+        if (target === 'all') shouldUpdate = true;
+        else if (target === 'uppercase' && char.type === 'uppercase') shouldUpdate = true;
+        else if (target === 'lowercase' && char.type === 'lowercase') shouldUpdate = true;
+        else if (target === 'digits' && char.type === 'digit') shouldUpdate = true;
+        else if (target === 'with_equivalents' && char.equivalents.length > 0) shouldUpdate = true;
+        
+        if (shouldUpdate) {
+            char.scope = scope.slice();
+            count++;
+        }
+    });
+    
+    logAuditEvent('BULK_SCOPE_UPDATED', { target: target, scope: scope, count: count });
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkEditModal'));
+    modal.hide();
+    
+    MessageEnforcementService.hotReloadRules();
     SecurityComplianceControlsService.renderAllTabs();
 }
 
@@ -4188,40 +4595,34 @@ var NormalisationLibrary = (function() {
     function normalise(input, options) {
         options = options || {};
         var scope = options.scope || 'all';
-        var ruleId = options.ruleId || null;
+        var targetBase = options.base || null;
         
-        var rules = mockData.normalisationRules.filter(function(r) {
-            if (r.status !== 'active') return false;
-            if (ruleId !== null) return r.id === ruleId;
+        var chars = mockData.baseCharacterLibrary.filter(function(c) {
+            if (!c.enabled) return false;
+            if (targetBase !== null) return c.base === targetBase;
             if (scope === 'all') return true;
-            return r.scope === scope || r.scope === 'all';
-        });
-        
-        rules.sort(function(a, b) {
-            return a.priority - b.priority;
+            return c.scope.indexOf(scope) !== -1;
         });
         
         var result = input;
         var transformations = [];
         
-        rules.forEach(function(rule) {
-            if (rule.mappings) {
-                rule.mappings.forEach(function(mapping) {
-                    mapping.equivalents.forEach(function(eq) {
-                        if (result.indexOf(eq) !== -1) {
-                            var regex = new RegExp(escapeRegex(eq), 'g');
-                            var beforeLen = result.length;
-                            result = result.replace(regex, mapping.base);
-                            if (result.length !== beforeLen || result !== input) {
-                                transformations.push({
-                                    original: eq,
-                                    replacement: mapping.base,
-                                    ruleName: rule.name,
-                                    ruleId: rule.id
-                                });
-                            }
+        chars.forEach(function(char) {
+            if (char.equivalents && char.equivalents.length > 0) {
+                char.equivalents.forEach(function(eq) {
+                    if (result.indexOf(eq) !== -1) {
+                        var regex = new RegExp(escapeRegex(eq), 'g');
+                        var oldResult = result;
+                        result = result.replace(regex, char.base);
+                        if (result !== oldResult) {
+                            transformations.push({
+                                original: eq,
+                                replacement: char.base,
+                                ruleName: 'Base: ' + char.base,
+                                base: char.base
+                            });
                         }
-                    });
+                    }
                 });
             }
         });
@@ -4230,7 +4631,7 @@ var NormalisationLibrary = (function() {
             original: input,
             normalised: result,
             transformations: transformations,
-            rulesApplied: rules.map(function(r) { return r.id; })
+            charsApplied: chars.map(function(c) { return c.base; })
         };
     }
     
@@ -4238,24 +4639,29 @@ var NormalisationLibrary = (function() {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
     
-    function getActiveRules(scope) {
-        return mockData.normalisationRules.filter(function(r) {
-            if (r.status !== 'active') return false;
+    function getEnabledCharacters(scope) {
+        return mockData.baseCharacterLibrary.filter(function(c) {
+            if (!c.enabled) return false;
             if (!scope || scope === 'all') return true;
-            return r.scope === scope || r.scope === 'all';
+            return c.scope.indexOf(scope) !== -1;
         });
     }
     
-    function getMappingCount() {
-        return mockData.normalisationRules.reduce(function(sum, rule) {
-            return sum + (rule.mappings ? rule.mappings.length : 0);
+    function getTotalEquivalents() {
+        return mockData.baseCharacterLibrary.reduce(function(sum, char) {
+            return sum + char.equivalents.length;
         }, 0);
+    }
+    
+    function getCharacter(base) {
+        return mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     }
     
     return {
         normalise: normalise,
-        getActiveRules: getActiveRules,
-        getMappingCount: getMappingCount
+        getEnabledCharacters: getEnabledCharacters,
+        getTotalEquivalents: getTotalEquivalents,
+        getCharacter: getCharacter
     };
 })();
 
