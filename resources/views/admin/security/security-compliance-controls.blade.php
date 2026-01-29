@@ -587,14 +587,19 @@
                             </select>
                         </div>
                         <div class="sec-filter-group">
-                            <label>Category</label>
-                            <select id="content-filter-category">
-                                <option value="">All Categories</option>
-                                <option value="spam">Spam</option>
-                                <option value="fraud">Fraud</option>
-                                <option value="adult">Adult Content</option>
-                                <option value="gambling">Gambling</option>
-                                <option value="regulated">Regulated Industry</option>
+                            <label>Match Type</label>
+                            <select id="content-filter-matchtype">
+                                <option value="">All Types</option>
+                                <option value="keyword">Keyword</option>
+                                <option value="regex">Regex</option>
+                            </select>
+                        </div>
+                        <div class="sec-filter-group">
+                            <label>Rule Type</label>
+                            <select id="content-filter-ruletype">
+                                <option value="">All Types</option>
+                                <option value="block">Block</option>
+                                <option value="flag">Flag (Quarantine)</option>
                             </select>
                         </div>
                         <div class="sec-filter-actions">
@@ -607,26 +612,29 @@
                         </div>
                     </div>
                     <div class="sec-table-header">
-                        <h6>Content Filtering Rules</h6>
+                        <h6>Content Rule Library</h6>
                         <div class="sec-search-box">
                             <i class="fas fa-search"></i>
                             <input type="text" class="form-control" placeholder="Search rules..." id="content-search">
                         </div>
                     </div>
-                    <table class="sec-table" id="content-rules-table">
-                        <thead>
-                            <tr>
-                                <th>Rule Name <i class="fas fa-sort"></i></th>
-                                <th>Pattern <i class="fas fa-sort"></i></th>
-                                <th>Category <i class="fas fa-sort"></i></th>
-                                <th>Action <i class="fas fa-sort"></i></th>
-                                <th>Status <i class="fas fa-sort"></i></th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="content-rules-body">
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="sec-table" id="content-rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Rule Name <i class="fas fa-sort"></i></th>
+                                    <th>Match Type <i class="fas fa-sort"></i></th>
+                                    <th>Rule Type <i class="fas fa-sort"></i></th>
+                                    <th>Normalisation <i class="fas fa-sort"></i></th>
+                                    <th>Status <i class="fas fa-sort"></i></th>
+                                    <th>Last Updated <i class="fas fa-sort"></i></th>
+                                    <th style="width: 80px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="content-rules-body">
+                            </tbody>
+                        </table>
+                    </div>
                     <div class="sec-empty-state" id="content-empty-state" style="display: none;">
                         <i class="fas fa-comment-alt"></i>
                         <h6>No Content Rules</h6>
@@ -1026,6 +1034,69 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="contentRuleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
+                <h5 class="modal-title text-white" id="content-rule-modal-title">
+                    <i class="fas fa-comment-alt me-2"></i>Add Content Rule
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <form id="content-rule-form">
+                    <input type="hidden" id="content-rule-id" value="">
+                    
+                    <div class="mb-3">
+                        <label for="content-rule-name" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Rule Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="content-rule-name" placeholder="e.g., Phishing Keywords" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content-match-type" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Match Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="content-match-type" onchange="updateContentMatchInputLabel()">
+                            <option value="keyword">Keyword(s)</option>
+                            <option value="regex">Regex Pattern</option>
+                        </select>
+                        <small class="text-muted">Keyword matching is case-insensitive. Regex allows advanced pattern matching.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content-match-value" class="form-label" style="font-weight: 600; font-size: 0.85rem;" id="content-match-value-label">Keywords (comma-separated) <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="content-match-value" rows="3" placeholder="verify your account, click here, suspended" required></textarea>
+                        <small class="text-muted" id="content-match-value-help">Enter keywords separated by commas. Matching is case-insensitive.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content-rule-type" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Rule Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="content-rule-type">
+                            <option value="block">Block (Immediate Rejection)</option>
+                            <option value="flag">Flag (Quarantine for Review)</option>
+                        </select>
+                        <small class="text-muted">Block immediately rejects the message. Flag sends it to the quarantine queue for manual review.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="content-apply-normalisation" checked style="width: 2.5rem; height: 1.25rem;">
+                            <label class="form-check-label" for="content-apply-normalisation" style="font-weight: 600; font-size: 0.85rem; margin-left: 0.5rem;">
+                                Apply Normalisation
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">When enabled, message content is normalised (character substitution, case conversion) before matching.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveContentRule()">
+                    <i class="fas fa-save me-1"></i> Save Rule
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1063,9 +1134,11 @@ var SecurityComplianceControlsService = (function() {
         ];
 
         mockData.contentRules = [
-            { id: 1, name: 'Phishing Keywords', pattern: 'verify your account|click here immediately', category: 'fraud', action: 'block', status: 'active' },
-            { id: 2, name: 'Adult Content Filter', pattern: '(adult keywords)', category: 'adult', action: 'quarantine', status: 'active' },
-            { id: 3, name: 'Gambling Promotion', pattern: 'bet now|free spins|casino bonus', category: 'gambling', action: 'quarantine', status: 'active' }
+            { id: 'CNT-001', name: 'Phishing Keywords', matchType: 'keyword', matchValue: 'verify your account, click here immediately, suspended account, urgent action', ruleType: 'block', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
+            { id: 'CNT-002', name: 'Adult Content Filter', matchType: 'regex', matchValue: '(18\\+|xxx|adult\\s?content)', ruleType: 'flag', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '12-01-2026 14:00', updatedAt: '20-01-2026 11:45' },
+            { id: 'CNT-003', name: 'Gambling Promotion', matchType: 'keyword', matchValue: 'bet now, free spins, casino bonus, jackpot winner', ruleType: 'flag', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
+            { id: 'CNT-004', name: 'Cryptocurrency Scam', matchType: 'regex', matchValue: '(bitcoin|crypto|eth)\\s*(giveaway|airdrop|double)', ruleType: 'block', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '08-01-2026 10:20', updatedAt: '08-01-2026 10:20' },
+            { id: 'CNT-005', name: 'Premium Rate Numbers', matchType: 'regex', matchValue: '(call|text|dial)\\s*(09\\d{8,}|118\\d+)', ruleType: 'flag', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
         ];
 
         mockData.urlRules = [
@@ -1163,12 +1236,25 @@ var SecurityComplianceControlsService = (function() {
     function renderContentTab() {
         var tbody = document.getElementById('content-rules-body');
         var emptyState = document.getElementById('content-empty-state');
-        var rules = mockData.contentRules;
+        
+        var statusFilter = document.getElementById('content-filter-status').value;
+        var matchTypeFilter = document.getElementById('content-filter-matchtype').value;
+        var ruleTypeFilter = document.getElementById('content-filter-ruletype').value;
+        var searchTerm = document.getElementById('content-search').value.toLowerCase();
+        
+        var rules = mockData.contentRules.filter(function(rule) {
+            if (statusFilter && rule.status !== statusFilter) return false;
+            if (matchTypeFilter && rule.matchType !== matchTypeFilter) return false;
+            if (ruleTypeFilter && rule.ruleType !== ruleTypeFilter) return false;
+            if (searchTerm && rule.name.toLowerCase().indexOf(searchTerm) === -1 && 
+                rule.matchValue.toLowerCase().indexOf(searchTerm) === -1) return false;
+            return true;
+        });
 
-        document.getElementById('content-active-count').textContent = rules.filter(r => r.status === 'active').length;
-        document.getElementById('content-blocked-count').textContent = rules.filter(r => r.action === 'block').length;
-        document.getElementById('content-pending-count').textContent = 0;
-        document.getElementById('content-total-count').textContent = rules.length;
+        document.getElementById('content-active-count').textContent = mockData.contentRules.filter(r => r.status === 'active').length;
+        document.getElementById('content-blocked-count').textContent = mockData.contentRules.filter(r => r.ruleType === 'block').length;
+        document.getElementById('content-pending-count').textContent = mockData.contentRules.filter(r => r.ruleType === 'flag').length;
+        document.getElementById('content-total-count').textContent = mockData.contentRules.length;
 
         if (rules.length === 0) {
             tbody.innerHTML = '';
@@ -1178,15 +1264,254 @@ var SecurityComplianceControlsService = (function() {
 
         emptyState.style.display = 'none';
         tbody.innerHTML = rules.map(function(rule) {
-            return '<tr>' +
-                '<td><strong>' + rule.name + '</strong></td>' +
-                '<td><code>' + (rule.pattern.length > 30 ? rule.pattern.substring(0, 30) + '...' : rule.pattern) + '</code></td>' +
-                '<td>' + rule.category.charAt(0).toUpperCase() + rule.category.slice(1) + '</td>' +
-                '<td>' + rule.action.charAt(0).toUpperCase() + rule.action.slice(1) + '</td>' +
-                '<td><span class="sec-status-badge ' + rule.status + '">' + rule.status.charAt(0).toUpperCase() + rule.status.slice(1) + '</span></td>' +
-                '<td><button class="action-menu-btn"><i class="fas fa-ellipsis-v"></i></button></td>' +
+            var matchTypeBadge = rule.matchType === 'keyword' 
+                ? '<span class="sec-status-badge" style="background: #e0e7ff; color: #3730a3;"><i class="fas fa-key me-1"></i>Keyword</span>'
+                : '<span class="sec-status-badge" style="background: #fef3c7; color: #92400e;"><i class="fas fa-code me-1"></i>Regex</span>';
+            
+            var ruleTypeBadge = rule.ruleType === 'block'
+                ? '<span class="sec-status-badge blocked"><i class="fas fa-ban me-1"></i>Block</span>'
+                : '<span class="sec-status-badge pending"><i class="fas fa-flag me-1"></i>Flag</span>';
+            
+            var normBadge = rule.applyNormalisation
+                ? '<span class="sec-status-badge active"><i class="fas fa-check me-1"></i>Yes</span>'
+                : '<span class="sec-status-badge disabled"><i class="fas fa-times me-1"></i>No</span>';
+            
+            var statusBadge = '<span class="sec-status-badge ' + rule.status + '">' + 
+                (rule.status === 'active' ? '<i class="fas fa-check-circle me-1"></i>' : '<i class="fas fa-pause-circle me-1"></i>') +
+                rule.status.charAt(0).toUpperCase() + rule.status.slice(1) + '</span>';
+            
+            var dateOnly = rule.updatedAt.split(' ')[0];
+            
+            return '<tr data-rule-id="' + rule.id + '">' +
+                '<td><strong>' + rule.name + '</strong><br><small class="text-muted" style="font-size: 0.7rem;">' + rule.id + '</small></td>' +
+                '<td>' + matchTypeBadge + '</td>' +
+                '<td>' + ruleTypeBadge + '</td>' +
+                '<td>' + normBadge + '</td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
+                '<td>' +
+                    '<div class="action-menu-container">' +
+                        '<button class="action-menu-btn" onclick="toggleContentActionMenu(this, \'' + rule.id + '\')"><i class="fas fa-ellipsis-v"></i></button>' +
+                        '<div class="action-menu-dropdown" id="content-menu-' + rule.id + '">' +
+                            '<a href="#" onclick="viewContentRule(\'' + rule.id + '\'); return false;"><i class="fas fa-eye"></i> View Details</a>' +
+                            '<a href="#" onclick="editContentRule(\'' + rule.id + '\'); return false;"><i class="fas fa-edit"></i> Edit Rule</a>' +
+                            '<a href="#" onclick="toggleContentRuleStatus(\'' + rule.id + '\'); return false;"><i class="fas fa-toggle-on"></i> ' + (rule.status === 'active' ? 'Disable' : 'Enable') + '</a>' +
+                            '<div class="dropdown-divider"></div>' +
+                            '<a href="#" class="text-danger" onclick="deleteContentRule(\'' + rule.id + '\'); return false;"><i class="fas fa-trash"></i> Delete</a>' +
+                        '</div>' +
+                    '</div>' +
+                '</td>' +
                 '</tr>';
         }).join('');
+    }
+    
+    function toggleContentActionMenu(btn, ruleId) {
+        document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
+            if (menu.id !== 'content-menu-' + ruleId) {
+                menu.classList.remove('show');
+            }
+        });
+        var menu = document.getElementById('content-menu-' + ruleId);
+        menu.classList.toggle('show');
+    }
+    
+    function showAddContentRuleModal() {
+        document.getElementById('content-rule-modal-title').textContent = 'Add Content Rule';
+        document.getElementById('content-rule-form').reset();
+        document.getElementById('content-rule-id').value = '';
+        document.getElementById('content-match-type').value = 'keyword';
+        document.getElementById('content-apply-normalisation').checked = true;
+        updateContentMatchInputLabel();
+        clearContentRuleErrors();
+        var modal = new bootstrap.Modal(document.getElementById('contentRuleModal'));
+        modal.show();
+    }
+    
+    function editContentRule(ruleId) {
+        var rule = mockData.contentRules.find(function(r) { return r.id === ruleId; });
+        if (!rule) return;
+        
+        document.getElementById('content-rule-modal-title').textContent = 'Edit Content Rule';
+        document.getElementById('content-rule-id').value = rule.id;
+        document.getElementById('content-rule-name').value = rule.name;
+        document.getElementById('content-match-type').value = rule.matchType;
+        document.getElementById('content-match-value').value = rule.matchValue;
+        document.getElementById('content-rule-type').value = rule.ruleType;
+        document.getElementById('content-apply-normalisation').checked = rule.applyNormalisation;
+        updateContentMatchInputLabel();
+        clearContentRuleErrors();
+        
+        closeAllContentMenus();
+        var modal = new bootstrap.Modal(document.getElementById('contentRuleModal'));
+        modal.show();
+    }
+    
+    function viewContentRule(ruleId) {
+        editContentRule(ruleId);
+    }
+    
+    function updateContentMatchInputLabel() {
+        var matchType = document.getElementById('content-match-type').value;
+        var label = document.getElementById('content-match-value-label');
+        var input = document.getElementById('content-match-value');
+        var helpText = document.getElementById('content-match-value-help');
+        
+        if (matchType === 'keyword') {
+            label.textContent = 'Keywords (comma-separated)';
+            input.placeholder = 'verify your account, click here, suspended';
+            helpText.textContent = 'Enter keywords separated by commas. Matching is case-insensitive.';
+        } else {
+            label.textContent = 'Regex Pattern';
+            input.placeholder = '(verify|confirm)\\s+your\\s+(account|details)';
+            helpText.textContent = 'Enter a valid regular expression. Will be validated before saving.';
+        }
+    }
+    
+    function validateContentRuleForm() {
+        clearContentRuleErrors();
+        var isValid = true;
+        
+        var name = document.getElementById('content-rule-name').value.trim();
+        if (!name) {
+            showContentFieldError('content-rule-name', 'Rule name is required');
+            isValid = false;
+        }
+        
+        var matchValue = document.getElementById('content-match-value').value.trim();
+        if (!matchValue) {
+            showContentFieldError('content-match-value', 'Match value is required');
+            isValid = false;
+        }
+        
+        var matchType = document.getElementById('content-match-type').value;
+        if (matchType === 'regex' && matchValue) {
+            var regexError = validateRegexPattern(matchValue);
+            if (regexError) {
+                showContentFieldError('content-match-value', regexError);
+                isValid = false;
+            }
+        }
+        
+        return isValid;
+    }
+    
+    function validateRegexPattern(pattern) {
+        try {
+            new RegExp(pattern);
+            return null;
+        } catch (e) {
+            return 'Invalid regex: ' + e.message.replace('Invalid regular expression: ', '');
+        }
+    }
+    
+    function showContentFieldError(fieldId, message) {
+        var field = document.getElementById(fieldId);
+        field.classList.add('is-invalid');
+        var errorDiv = document.createElement('div');
+        errorDiv.className = 'invalid-feedback';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+    
+    function clearContentRuleErrors() {
+        document.querySelectorAll('#content-rule-form .is-invalid').forEach(function(el) {
+            el.classList.remove('is-invalid');
+        });
+        document.querySelectorAll('#content-rule-form .invalid-feedback').forEach(function(el) {
+            el.remove();
+        });
+    }
+    
+    function saveContentRule() {
+        if (!validateContentRuleForm()) return;
+        
+        var ruleId = document.getElementById('content-rule-id').value;
+        var ruleData = {
+            name: document.getElementById('content-rule-name').value.trim(),
+            matchType: document.getElementById('content-match-type').value,
+            matchValue: document.getElementById('content-match-value').value.trim(),
+            ruleType: document.getElementById('content-rule-type').value,
+            applyNormalisation: document.getElementById('content-apply-normalisation').checked,
+            status: 'active',
+            updatedAt: formatDateTime(new Date())
+        };
+        
+        var eventType, beforeState = null;
+        
+        if (ruleId) {
+            var existingRule = mockData.contentRules.find(function(r) { return r.id === ruleId; });
+            if (existingRule) {
+                beforeState = JSON.parse(JSON.stringify(existingRule));
+                Object.assign(existingRule, ruleData);
+                eventType = 'CONTENT_RULE_UPDATED';
+            }
+        } else {
+            ruleData.id = 'CNT-' + String(mockData.contentRules.length + 1).padStart(3, '0');
+            ruleData.createdBy = currentAdmin.email;
+            ruleData.createdAt = ruleData.updatedAt;
+            mockData.contentRules.push(ruleData);
+            eventType = 'CONTENT_RULE_CREATED';
+        }
+        
+        logAuditEvent(eventType, {
+            ruleId: ruleId || ruleData.id,
+            ruleName: ruleData.name,
+            matchType: ruleData.matchType,
+            ruleType: ruleData.ruleType,
+            before: beforeState,
+            after: ruleData
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('contentRuleModal')).hide();
+        renderContentTab();
+        showToast(ruleId ? 'Content rule updated successfully' : 'Content rule created successfully', 'success');
+    }
+    
+    function toggleContentRuleStatus(ruleId) {
+        var rule = mockData.contentRules.find(function(r) { return r.id === ruleId; });
+        if (!rule) return;
+        
+        var beforeStatus = rule.status;
+        rule.status = rule.status === 'active' ? 'disabled' : 'active';
+        rule.updatedAt = formatDateTime(new Date());
+        
+        logAuditEvent('CONTENT_RULE_STATUS_CHANGED', {
+            ruleId: ruleId,
+            ruleName: rule.name,
+            beforeStatus: beforeStatus,
+            afterStatus: rule.status
+        });
+        
+        closeAllContentMenus();
+        renderContentTab();
+        showToast('Content rule ' + (rule.status === 'active' ? 'enabled' : 'disabled'), 'success');
+    }
+    
+    function deleteContentRule(ruleId) {
+        var rule = mockData.contentRules.find(function(r) { return r.id === ruleId; });
+        if (!rule) return;
+        
+        document.getElementById('confirm-delete-message').textContent = 'Are you sure you want to delete the content rule "' + rule.name + '"?';
+        document.getElementById('delete-rule-id').value = ruleId;
+        document.getElementById('delete-rule-type').value = 'content';
+        
+        closeAllContentMenus();
+        var modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+        modal.show();
+    }
+    
+    function closeAllContentMenus() {
+        document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
+            menu.classList.remove('show');
+        });
+    }
+    
+    function resetContentFilters() {
+        document.getElementById('content-filter-status').value = '';
+        document.getElementById('content-filter-matchtype').value = '';
+        document.getElementById('content-filter-ruletype').value = '';
+        document.getElementById('content-search').value = '';
+        renderContentTab();
     }
 
     function renderUrlTab() {
@@ -1289,11 +1614,55 @@ var SecurityComplianceControlsService = (function() {
                 cb.checked = this.checked;
             }.bind(this));
         });
+        
+        setupContentTabListeners();
+        
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.action-menu-container')) {
+                document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+    }
+
+    function deleteContentRuleById(ruleId) {
+        var ruleIndex = mockData.contentRules.findIndex(function(r) { return r.id === ruleId; });
+        if (ruleIndex === -1) return;
+        
+        var deletedRule = mockData.contentRules[ruleIndex];
+        mockData.contentRules.splice(ruleIndex, 1);
+        
+        logAuditEvent('CONTENT_RULE_DELETED', {
+            ruleId: ruleId,
+            ruleName: deletedRule.name,
+            deletedRule: deletedRule
+        });
+        
+        showToast('Content rule deleted successfully', 'success');
+    }
+    
+    function setupContentTabListeners() {
+        document.getElementById('content-filter-status').addEventListener('change', renderContentTab);
+        document.getElementById('content-filter-matchtype').addEventListener('change', renderContentTab);
+        document.getElementById('content-filter-ruletype').addEventListener('change', renderContentTab);
+        document.getElementById('content-search').addEventListener('input', renderContentTab);
     }
 
     return {
         initialize: initialize,
-        renderAllTabs: renderAllTabs
+        renderAllTabs: renderAllTabs,
+        showAddContentRuleModal: showAddContentRuleModal,
+        editContentRule: editContentRule,
+        viewContentRule: viewContentRule,
+        toggleContentRuleStatus: toggleContentRuleStatus,
+        deleteContentRule: deleteContentRule,
+        deleteContentRuleById: deleteContentRuleById,
+        saveContentRule: saveContentRule,
+        updateContentMatchInputLabel: updateContentMatchInputLabel,
+        resetContentFilters: resetContentFilters,
+        toggleContentActionMenu: toggleContentActionMenu,
+        setupContentTabListeners: setupContentTabListeners
     };
 })();
 
@@ -1646,6 +2015,8 @@ function confirmDeleteRule() {
             ruleId: ruleId,
             deletedRule: deletedRule
         }));
+    } else if (ruleType === 'content') {
+        SecurityComplianceControlsService.deleteContentRuleById(ruleId);
     }
     
     bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
@@ -1653,8 +2024,39 @@ function confirmDeleteRule() {
 }
 
 function showAddContentRuleModal() {
-    console.log('[SecurityComplianceControls] TODO: Implement Add Content Rule modal');
-    alert('Add Content Rule - Coming Soon');
+    SecurityComplianceControlsService.showAddContentRuleModal();
+}
+
+function editContentRule(ruleId) {
+    SecurityComplianceControlsService.editContentRule(ruleId);
+}
+
+function viewContentRule(ruleId) {
+    SecurityComplianceControlsService.viewContentRule(ruleId);
+}
+
+function toggleContentRuleStatus(ruleId) {
+    SecurityComplianceControlsService.toggleContentRuleStatus(ruleId);
+}
+
+function deleteContentRule(ruleId) {
+    SecurityComplianceControlsService.deleteContentRule(ruleId);
+}
+
+function saveContentRule() {
+    SecurityComplianceControlsService.saveContentRule();
+}
+
+function updateContentMatchInputLabel() {
+    SecurityComplianceControlsService.updateContentMatchInputLabel();
+}
+
+function resetContentFilters() {
+    SecurityComplianceControlsService.resetContentFilters();
+}
+
+function toggleContentActionMenu(btn, ruleId) {
+    SecurityComplianceControlsService.toggleContentActionMenu(btn, ruleId);
 }
 
 function showAddUrlRuleModal() {
