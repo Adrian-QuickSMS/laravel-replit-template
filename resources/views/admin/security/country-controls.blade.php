@@ -395,8 +395,21 @@
 .action-dropdown-item.view i {
     color: #1e3a5f;
 }
-.action-dropdown-item:first-child {
-    border-radius: 6px 6px 0 0;
+.action-dropdown-section {
+    padding: 0.4rem 0.75rem 0.25rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9ca3af;
+}
+.action-dropdown-divider {
+    height: 1px;
+    background: #e9ecef;
+    margin: 0.35rem 0;
+}
+.action-dropdown-item:first-of-type {
+    border-radius: 0;
 }
 .action-dropdown-item:last-child {
     border-radius: 0 0 6px 6px;
@@ -1566,6 +1579,123 @@
     </div>
 </div>
 
+<div class="modal fade" id="defaultStatusConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" id="defaultStatusModalHeader">
+                <h5 class="modal-title" id="defaultStatusModalTitle">
+                    <i class="fas fa-globe me-2"></i>Change Default Status
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Country</label>
+                    <div class="fw-bold" id="defaultStatusCountryName"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">New Default Status</label>
+                    <div id="defaultStatusNewStatus"></div>
+                </div>
+                <div class="alert mb-3" id="defaultStatusDescription"></div>
+                <div class="alert alert-warning mb-0" id="defaultStatusOverrideWarning" style="display: none;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> <span id="overrideCountText"></span> account override(s) exist for this country. 
+                    These overrides will remain active and continue to take precedence over the default status unless explicitly removed.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="confirmDefaultStatusBtn" onclick="confirmDefaultStatusChange()">
+                    <i class="fas fa-check me-1"></i>Confirm Change
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addOverrideModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; color: #fff;">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>Add Account Override
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Country</label>
+                    <div class="fw-bold" id="addOverrideCountryName"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Account <span class="text-danger">*</span></label>
+                    <select class="form-select" id="addOverrideAccount">
+                        <option value="">Choose an account...</option>
+                        <option value="ACC-10045">TechStart Ltd (ACC-10045)</option>
+                        <option value="ACC-10089">HealthFirst UK (ACC-10089)</option>
+                        <option value="ACC-10112">E-Commerce Hub (ACC-10112)</option>
+                        <option value="ACC-10156">MediCare Global (ACC-10156)</option>
+                        <option value="ACC-10034">RetailMax Corp (ACC-10034)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Override Type <span class="text-danger">*</span></label>
+                    <select class="form-select" id="addOverrideType">
+                        <option value="allowed">Allowed - Account can send to this country</option>
+                        <option value="blocked">Blocked - Account cannot send to this country</option>
+                    </select>
+                </div>
+                <div class="alert alert-info small mb-0">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Account overrides take precedence over the global default status.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn admin-btn-primary" onclick="confirmAddOverride()">
+                    <i class="fas fa-plus me-1"></i>Add Override
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="removeOverrideModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #dc2626; color: #fff;">
+                <h5 class="modal-title">
+                    <i class="fas fa-minus-circle me-2"></i>Remove Account Override
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Country</label>
+                    <div class="fw-bold" id="removeOverrideCountryName"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Override to Remove <span class="text-danger">*</span></label>
+                    <select class="form-select" id="removeOverrideSelect">
+                        <option value="">Choose an override...</option>
+                    </select>
+                </div>
+                <div class="alert alert-warning small mb-0">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    After removal, the account will follow the global default status for this country.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmRemoveOverride()">
+                    <i class="fas fa-trash me-1"></i>Remove Override
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="customerOverridesModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
@@ -2200,7 +2330,9 @@ var CountryReviewAuditService = {
         'COUNTRY_REQUEST_ADMIN_NOTE_ADDED',
         'COUNTRY_REQUEST_VIEWED',
         'COUNTRY_REQUEST_ESCALATED',
-        'COUNTRY_DEFAULT_STATUS_CHANGED'
+        'COUNTRY_DEFAULT_STATUS_CHANGED',
+        'COUNTRY_OVERRIDE_ADDED',
+        'COUNTRY_OVERRIDE_REMOVED'
     ],
     
     PII_SAFE_FIELDS: [
@@ -2519,17 +2651,26 @@ function renderCountryTable() {
                     '<i class="fas fa-ellipsis-v"></i>' +
                 '</button>' +
                 '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
-                    (country.status !== 'allowed' ? 
-                        '<div class="action-dropdown-item approve" onclick="setCountryStatus(\'' + country.code + '\', \'allowed\')">' +
-                            '<i class="fas fa-check-circle"></i>Set to Allowed' +
-                        '</div>' : '') +
-                    (country.status !== 'blocked' ? 
-                        '<div class="action-dropdown-item reject" onclick="setCountryStatus(\'' + country.code + '\', \'blocked\')">' +
-                            '<i class="fas fa-ban"></i>Set to Blocked' +
-                        '</div>' : '') +
+                    '<div class="action-dropdown-section">Account Overrides</div>' +
+                    '<div class="action-dropdown-item" onclick="openAddOverrideModal(\'' + country.code + '\')">' +
+                        '<i class="fas fa-plus-circle"></i>Add Account Override' +
+                    '</div>' +
+                    '<div class="action-dropdown-item" onclick="openRemoveOverrideModal(\'' + country.code + '\')">' +
+                        '<i class="fas fa-minus-circle"></i>Remove Account Override' +
+                    '</div>' +
                     '<div class="action-dropdown-item view" onclick="viewOverrides(\'' + country.code + '\')">' +
                         '<i class="fas fa-users"></i>View Overrides (' + country.overrides + ')' +
                     '</div>' +
+                    '<div class="action-dropdown-divider"></div>' +
+                    '<div class="action-dropdown-section">Default Status</div>' +
+                    (country.status !== 'allowed' ? 
+                        '<div class="action-dropdown-item approve" onclick="openDefaultStatusModal(\'' + country.code + '\', \'allowed\')">' +
+                            '<i class="fas fa-check-circle"></i>Allow Country (Default)' +
+                        '</div>' : '') +
+                    (country.status !== 'blocked' ? 
+                        '<div class="action-dropdown-item reject" onclick="openDefaultStatusModal(\'' + country.code + '\', \'blocked\')">' +
+                            '<i class="fas fa-ban"></i>Block Country (Default)' +
+                        '</div>' : '') +
                 '</div>' +
             '</div>';
 
@@ -2563,18 +2704,61 @@ function toggleCountryActionMenu(event, countryCode) {
     document.getElementById('countryActionMenu-' + countryCode).classList.toggle('show');
 }
 
-function setCountryStatus(countryCode, newStatus) {
+var pendingDefaultStatusChange = { countryCode: null, newStatus: null };
+var pendingAddOverride = { countryCode: null };
+var pendingRemoveOverride = { countryCode: null };
+
+function openDefaultStatusModal(countryCode, newStatus) {
     var country = countries.find(function(c) { return c.code === countryCode; });
     if (!country) return;
 
-    var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
-    var statusMeaning = newStatus === 'allowed' ? 
-        'Any customer will be able to send to this country without approval.' : 
-        'No customer can send to this country unless they have an explicit account override.';
+    document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
+        menu.classList.remove('show');
+    });
 
-    if (!confirm('Set ' + country.name + ' to ' + statusLabel + '?\n\n' + statusMeaning)) {
-        return;
+    pendingDefaultStatusChange = { countryCode: countryCode, newStatus: newStatus };
+
+    var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
+    var statusIcon = newStatus === 'allowed' ? 'fa-check-circle' : 'fa-ban';
+    var statusClass = newStatus === 'allowed' ? 'allowed' : 'blocked';
+    var headerColor = newStatus === 'allowed' ? '#16a34a' : '#dc2626';
+    var description = newStatus === 'allowed' ? 
+        'Any customer will be able to send to this country without needing approval.' : 
+        'No customer can send to this country unless they have an explicit account override.';
+    var alertClass = newStatus === 'allowed' ? 'alert-success' : 'alert-danger';
+
+    document.getElementById('defaultStatusModalHeader').style.background = headerColor;
+    document.getElementById('defaultStatusModalHeader').style.color = '#fff';
+    document.getElementById('defaultStatusCountryName').textContent = country.name + ' (' + country.code + ')';
+    document.getElementById('defaultStatusNewStatus').innerHTML = 
+        '<span class="status-badge ' + statusClass + '">' +
+            '<i class="fas ' + statusIcon + '"></i>' + statusLabel +
+        '</span>';
+    document.getElementById('defaultStatusDescription').className = 'alert mb-3 ' + alertClass;
+    document.getElementById('defaultStatusDescription').innerHTML = 
+        '<i class="fas fa-info-circle me-1"></i>' + description;
+    
+    var confirmBtn = document.getElementById('confirmDefaultStatusBtn');
+    confirmBtn.className = newStatus === 'allowed' ? 'btn btn-success' : 'btn btn-danger';
+
+    var overrideWarning = document.getElementById('defaultStatusOverrideWarning');
+    if (country.overrides > 0) {
+        overrideWarning.style.display = 'block';
+        document.getElementById('overrideCountText').textContent = country.overrides;
+    } else {
+        overrideWarning.style.display = 'none';
     }
+
+    var modal = new bootstrap.Modal(document.getElementById('defaultStatusConfirmModal'));
+    modal.show();
+}
+
+function confirmDefaultStatusChange() {
+    var countryCode = pendingDefaultStatusChange.countryCode;
+    var newStatus = pendingDefaultStatusChange.newStatus;
+    
+    var country = countries.find(function(c) { return c.code === countryCode; });
+    if (!country) return;
 
     var oldStatus = country.status;
     country.status = newStatus;
@@ -2588,9 +2772,142 @@ function setCountryStatus(countryCode, newStatus) {
         result: 'status_changed'
     }, { emitToCustomerAudit: false });
 
+    bootstrap.Modal.getInstance(document.getElementById('defaultStatusConfirmModal')).hide();
+    
     renderCountryTable();
     updateStats();
+    
+    var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
     showAdminToast('Default status updated', country.name + ' is now ' + statusLabel + ' by default.', 'success');
+}
+
+function openAddOverrideModal(countryCode) {
+    var country = countries.find(function(c) { return c.code === countryCode; });
+    if (!country) return;
+
+    document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
+        menu.classList.remove('show');
+    });
+
+    pendingAddOverride = { countryCode: countryCode };
+    
+    document.getElementById('addOverrideCountryName').textContent = country.name + ' (' + country.code + ')';
+    document.getElementById('addOverrideAccount').value = '';
+    document.getElementById('addOverrideType').value = 'allowed';
+
+    var modal = new bootstrap.Modal(document.getElementById('addOverrideModal'));
+    modal.show();
+}
+
+function confirmAddOverride() {
+    var countryCode = pendingAddOverride.countryCode;
+    var accountId = document.getElementById('addOverrideAccount').value;
+    var overrideType = document.getElementById('addOverrideType').value;
+
+    if (!accountId) {
+        alert('Please select an account.');
+        return;
+    }
+
+    var country = countries.find(function(c) { return c.code === countryCode; });
+    if (!country) return;
+
+    var accountName = document.getElementById('addOverrideAccount').options[document.getElementById('addOverrideAccount').selectedIndex].text;
+
+    if (!mockOverridesData[countryCode]) {
+        mockOverridesData[countryCode] = [];
+    }
+    mockOverridesData[countryCode].push({
+        accountName: accountName.split(' (')[0],
+        accountId: accountId,
+        subAccount: null,
+        overrideType: overrideType,
+        dateApplied: formatDateDDMMYYYY(new Date()),
+        appliedBy: 'admin@quicksms.co.uk'
+    });
+    country.overrides = mockOverridesData[countryCode].length;
+
+    CountryReviewAuditService.emit('COUNTRY_OVERRIDE_ADDED', {
+        countryIso: country.code,
+        countryName: country.name,
+        accountId: accountId,
+        overrideType: overrideType,
+        result: 'override_added'
+    }, { emitToCustomerAudit: true });
+
+    bootstrap.Modal.getInstance(document.getElementById('addOverrideModal')).hide();
+    renderCountryTable();
+    
+    var typeLabel = overrideType === 'allowed' ? 'Allowed' : 'Blocked';
+    showAdminToast('Override added', accountName.split(' (')[0] + ' is now ' + typeLabel + ' for ' + country.name + '.', 'success');
+}
+
+function openRemoveOverrideModal(countryCode) {
+    var country = countries.find(function(c) { return c.code === countryCode; });
+    if (!country) return;
+
+    document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
+        menu.classList.remove('show');
+    });
+
+    pendingRemoveOverride = { countryCode: countryCode };
+    
+    document.getElementById('removeOverrideCountryName').textContent = country.name + ' (' + country.code + ')';
+    
+    var select = document.getElementById('removeOverrideSelect');
+    select.innerHTML = '<option value="">Choose an override...</option>';
+    
+    var overrides = mockOverridesData[countryCode] || [];
+    if (overrides.length === 0) {
+        select.innerHTML = '<option value="">No overrides exist for this country</option>';
+        select.disabled = true;
+    } else {
+        select.disabled = false;
+        overrides.forEach(function(override, index) {
+            var typeLabel = override.overrideType === 'allowed' ? 'Allowed' : 'Blocked';
+            var option = document.createElement('option');
+            option.value = index;
+            option.textContent = override.accountName + ' (' + override.accountId + ') - ' + typeLabel;
+            select.appendChild(option);
+        });
+    }
+
+    var modal = new bootstrap.Modal(document.getElementById('removeOverrideModal'));
+    modal.show();
+}
+
+function confirmRemoveOverride() {
+    var countryCode = pendingRemoveOverride.countryCode;
+    var overrideIndex = document.getElementById('removeOverrideSelect').value;
+
+    if (overrideIndex === '') {
+        alert('Please select an override to remove.');
+        return;
+    }
+
+    var country = countries.find(function(c) { return c.code === countryCode; });
+    if (!country) return;
+
+    var overrides = mockOverridesData[countryCode] || [];
+    var removedOverride = overrides[parseInt(overrideIndex)];
+
+    CountryReviewAuditService.emit('COUNTRY_OVERRIDE_REMOVED', {
+        countryIso: country.code,
+        countryName: country.name,
+        accountId: removedOverride.accountId,
+        accountName: removedOverride.accountName,
+        previousOverrideType: removedOverride.overrideType,
+        result: 'override_removed'
+    }, { emitToCustomerAudit: true });
+
+    overrides.splice(parseInt(overrideIndex), 1);
+    mockOverridesData[countryCode] = overrides;
+    country.overrides = overrides.length;
+
+    bootstrap.Modal.getInstance(document.getElementById('removeOverrideModal')).hide();
+    renderCountryTable();
+    
+    showAdminToast('Override removed', removedOverride.accountName + ' override for ' + country.name + ' has been removed.', 'success');
 }
 
 var mockOverridesData = {
