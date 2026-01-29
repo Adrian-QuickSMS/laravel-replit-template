@@ -576,6 +576,51 @@
                     </div>
                 </div>
 
+                <div class="card mb-3" style="border: 1px solid #e9ecef; border-left: 3px solid #1e3a5f;">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #f8f9fa;">
+                        <h6 class="mb-0" style="font-size: 0.9rem; font-weight: 600;">
+                            <i class="fas fa-shield-virus me-2" style="color: #1e3a5f;"></i>Anti-Spam Controls
+                        </h6>
+                        <span class="badge text-white" style="background: #1e3a5f; font-size: 0.65rem;">SUPPLEMENTARY</span>
+                    </div>
+                    <div class="card-body py-3">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="antispam-repeat-toggle" onchange="toggleAntiSpamRepeat()">
+                                    <label class="form-check-label" for="antispam-repeat-toggle" style="font-size: 0.85rem;">
+                                        <strong>Prevent identical content to same MSISDN within window</strong>
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                    When enabled, blocks duplicate messages sent to the same recipient within the configured time window.
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="antispam-window" class="form-label mb-1" style="font-size: 0.8rem; font-weight: 600;">Time Window</label>
+                                <select class="form-select form-select-sm" id="antispam-window" onchange="updateAntiSpamWindow()" disabled>
+                                    <option value="2">2 hours</option>
+                                    <option value="4">4 hours</option>
+                                    <option value="12">12 hours</option>
+                                    <option value="24" selected>24 hours</option>
+                                    <option value="48">48 hours</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <div id="antispam-status" class="d-inline-block">
+                                    <span class="badge bg-secondary" style="font-size: 0.75rem;">
+                                        <i class="fas fa-toggle-off me-1"></i> Disabled
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 p-2 bg-light rounded" style="font-size: 0.75rem; border: 1px solid #e9ecef;" id="antispam-info">
+                            <i class="fas fa-info-circle me-1 text-muted"></i>
+                            <span class="text-muted">Enforcement is handled globally via the shared Message Enforcement Service. Blocked events will include reason: "Repeated content within window".</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="sec-table-card">
                     <div class="sec-filter-row">
                         <div class="sec-filter-group">
@@ -1607,6 +1652,13 @@ var SecurityComplianceControlsService = (function() {
             requireNoteOnBlock: false,
             allowAddExceptionFromQuarantine: true,
             allowCreateRuleFromQuarantine: true
+        };
+        
+        mockData.antiSpamSettings = {
+            preventRepeatContent: false,
+            windowHours: 24,
+            lastUpdated: null,
+            updatedBy: null
         };
     }
 
@@ -2917,6 +2969,69 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('content-filter-matchtype').addEventListener('change', renderContentTab);
         document.getElementById('content-filter-ruletype').addEventListener('change', renderContentTab);
         document.getElementById('content-search').addEventListener('input', renderContentTab);
+        
+        renderAntiSpamControls();
+    }
+    
+    function renderAntiSpamControls() {
+        var settings = mockData.antiSpamSettings;
+        document.getElementById('antispam-repeat-toggle').checked = settings.preventRepeatContent;
+        document.getElementById('antispam-window').value = settings.windowHours;
+        document.getElementById('antispam-window').disabled = !settings.preventRepeatContent;
+        
+        var statusEl = document.getElementById('antispam-status');
+        if (settings.preventRepeatContent) {
+            statusEl.innerHTML = '<span class="badge bg-success" style="font-size: 0.75rem;"><i class="fas fa-toggle-on me-1"></i> Enabled (' + settings.windowHours + 'h window)</span>';
+        } else {
+            statusEl.innerHTML = '<span class="badge bg-secondary" style="font-size: 0.75rem;"><i class="fas fa-toggle-off me-1"></i> Disabled</span>';
+        }
+    }
+    
+    function toggleAntiSpamRepeat() {
+        var enabled = document.getElementById('antispam-repeat-toggle').checked;
+        mockData.antiSpamSettings.preventRepeatContent = enabled;
+        mockData.antiSpamSettings.lastUpdated = formatDateTime(new Date());
+        mockData.antiSpamSettings.updatedBy = currentAdmin.email;
+        
+        document.getElementById('antispam-window').disabled = !enabled;
+        
+        logAuditEvent('ANTISPAM_REPEAT_CONTENT_TOGGLED', {
+            enabled: enabled,
+            windowHours: mockData.antiSpamSettings.windowHours,
+            admin: currentAdmin.email
+        });
+        
+        if (window.MessageEnforcementService) {
+            window.MessageEnforcementService.updateAntiSpamSettings({
+                preventRepeatContent: enabled,
+                windowHours: mockData.antiSpamSettings.windowHours
+            });
+        }
+        
+        renderAntiSpamControls();
+        showToast(enabled ? 'Anti-spam repeat content protection enabled' : 'Anti-spam repeat content protection disabled', enabled ? 'success' : 'info');
+    }
+    
+    function updateAntiSpamWindow() {
+        var windowHours = parseInt(document.getElementById('antispam-window').value, 10);
+        mockData.antiSpamSettings.windowHours = windowHours;
+        mockData.antiSpamSettings.lastUpdated = formatDateTime(new Date());
+        mockData.antiSpamSettings.updatedBy = currentAdmin.email;
+        
+        logAuditEvent('ANTISPAM_WINDOW_UPDATED', {
+            windowHours: windowHours,
+            admin: currentAdmin.email
+        });
+        
+        if (window.MessageEnforcementService) {
+            window.MessageEnforcementService.updateAntiSpamSettings({
+                preventRepeatContent: mockData.antiSpamSettings.preventRepeatContent,
+                windowHours: windowHours
+            });
+        }
+        
+        renderAntiSpamControls();
+        showToast('Anti-spam window updated to ' + windowHours + ' hours', 'success');
     }
 
     return {
@@ -2933,6 +3048,9 @@ var SecurityComplianceControlsService = (function() {
         resetContentFilters: resetContentFilters,
         toggleContentActionMenu: toggleContentActionMenu,
         setupContentTabListeners: setupContentTabListeners,
+        toggleAntiSpamRepeat: toggleAntiSpamRepeat,
+        updateAntiSpamWindow: updateAntiSpamWindow,
+        renderAntiSpamControls: renderAntiSpamControls,
         showAddUrlRuleModal: showAddUrlRuleModal,
         editUrlRule: editUrlRule,
         viewUrlRule: viewUrlRule,
@@ -3491,6 +3609,14 @@ function releaseQuarantinedMessageFromModal() {
 
 function blockQuarantinedMessageFromModal() {
     SecurityComplianceControlsService.blockQuarantinedMessageFromModal();
+}
+
+function toggleAntiSpamRepeat() {
+    SecurityComplianceControlsService.toggleAntiSpamRepeat();
+}
+
+function updateAntiSpamWindow() {
+    SecurityComplianceControlsService.updateAntiSpamWindow();
 }
 
 document.addEventListener('DOMContentLoaded', function() {

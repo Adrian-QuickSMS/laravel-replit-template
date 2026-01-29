@@ -21,6 +21,13 @@ var MessageEnforcementService = (function() {
     };
 
     var domainAgeCache = {};
+    
+    var antiSpamSettings = {
+        preventRepeatContent: false,
+        windowHours: 24
+    };
+    
+    var recentMessageCache = {};
 
     function initialize() {
         loadActiveRules();
@@ -122,6 +129,15 @@ var MessageEnforcementService = (function() {
         } else if (urlResult.decision === DECISIONS.QUARANTINE && context.decision !== DECISIONS.BLOCK) {
             context.decision = DECISIONS.QUARANTINE;
             context.reason = context.reason || urlResult.reason;
+        }
+
+        var antiSpamResult = checkAntiSpamDuplicate(context.normalisedMessage, context);
+        context.processingOrder.push('antispam');
+        if (antiSpamResult.decision === DECISIONS.BLOCK) {
+            context.decision = DECISIONS.BLOCK;
+            context.reason = antiSpamResult.reason;
+            context.processingTimeMs = Date.now() - startTime;
+            return buildResult(context);
         }
 
         context.processingTimeMs = Date.now() - startTime;
@@ -509,6 +525,95 @@ var MessageEnforcementService = (function() {
         return result;
     }
 
+    function updateAntiSpamSettings(settings) {
+        if (settings.preventRepeatContent !== undefined) {
+            antiSpamSettings.preventRepeatContent = settings.preventRepeatContent;
+        }
+        if (settings.windowHours !== undefined) {
+            antiSpamSettings.windowHours = settings.windowHours;
+        }
+        console.log('[MessageEnforcementService] Anti-spam settings updated:', antiSpamSettings);
+        return antiSpamSettings;
+    }
+    
+    function getAntiSpamSettings() {
+        return JSON.parse(JSON.stringify(antiSpamSettings));
+    }
+    
+    function checkAntiSpamDuplicate(message, context) {
+        if (!antiSpamSettings.preventRepeatContent) {
+            return { decision: DECISIONS.ALLOW, reason: null };
+        }
+        
+        var recipient = message.recipient || '';
+        var body = (message.body || '').toLowerCase().trim();
+        
+        if (!recipient || !body) {
+            return { decision: DECISIONS.ALLOW, reason: null };
+        }
+        
+        var contentHash = simpleHash(body);
+        var cacheKey = recipient + ':' + contentHash;
+        var now = Date.now();
+        var windowMs = antiSpamSettings.windowHours * 60 * 60 * 1000;
+        
+        if (recentMessageCache[cacheKey]) {
+            var lastSent = recentMessageCache[cacheKey].timestamp;
+            if ((now - lastSent) < windowMs) {
+                var hoursAgo = Math.round((now - lastSent) / (60 * 60 * 1000) * 10) / 10;
+                
+                context.triggeredRules.push({
+                    ruleId: 'ANTISPAM-001',
+                    ruleName: 'Repeated Content Protection',
+                    engine: 'antispam',
+                    action: 'block',
+                    matchedValue: 'Identical content sent ' + hoursAgo + 'h ago'
+                });
+                
+                console.log('[MessageEnforcementService][ANTISPAM] Blocked duplicate content to ' + recipient + ' within ' + antiSpamSettings.windowHours + 'h window');
+                
+                return { 
+                    decision: DECISIONS.BLOCK, 
+                    reason: 'Repeated content within window (' + antiSpamSettings.windowHours + 'h): Identical message was sent to this recipient ' + hoursAgo + ' hours ago'
+                };
+            }
+        }
+        
+        recentMessageCache[cacheKey] = {
+            timestamp: now,
+            contentHash: contentHash
+        };
+        
+        cleanupMessageCache(windowMs);
+        
+        return { decision: DECISIONS.ALLOW, reason: null };
+    }
+    
+    function simpleHash(str) {
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+            var char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return hash.toString(16);
+    }
+    
+    function cleanupMessageCache(windowMs) {
+        var now = Date.now();
+        var keysToDelete = [];
+        for (var key in recentMessageCache) {
+            if (recentMessageCache.hasOwnProperty(key)) {
+                if ((now - recentMessageCache[key].timestamp) > windowMs) {
+                    keysToDelete.push(key);
+                }
+            }
+        }
+        keysToDelete.forEach(function(key) {
+            delete recentMessageCache[key];
+        });
+    }
+
     return {
         DECISIONS: DECISIONS,
         ENGINES: ENGINES,
@@ -517,7 +622,10 @@ var MessageEnforcementService = (function() {
         updateRules: updateRules,
         getRules: getRules,
         getStats: getStats,
-        testMessage: testMessage
+        testMessage: testMessage,
+        updateAntiSpamSettings: updateAntiSpamSettings,
+        getAntiSpamSettings: getAntiSpamSettings,
+        checkAntiSpamDuplicate: checkAntiSpamDuplicate
     };
 })();
 
