@@ -526,4 +526,283 @@ window.MessageEnforcementService = MessageEnforcementService;
 
 console.log('[MessageEnforcementService] Global enforcement service ready');
 console.log('[MessageEnforcementService] Rule stats:', MessageEnforcementService.getStats());
+
+var MessageSubmissionHandler = (function() {
+    var SOURCES = {
+        CAMPAIGNS: 'campaigns',
+        INBOX: 'inbox',
+        API: 'api',
+        EMAIL_TO_SMS: 'email_to_sms',
+        TEMPLATES: 'templates',
+        RCS: 'rcs'
+    };
+
+    var OUTCOMES = {
+        SENT: 'sent',
+        BLOCKED: 'blocked',
+        QUARANTINED: 'quarantined',
+        ERROR: 'error'
+    };
+
+    var quarantineStore = [];
+
+    function submit(message, source, context) {
+        context = context || {};
+        
+        var submissionId = 'SUB-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        var timestamp = new Date().toISOString();
+
+        console.log('[MessageSubmissionHandler] Processing submission:', {
+            submissionId: submissionId,
+            source: source,
+            senderId: message.senderId,
+            recipientCount: Array.isArray(message.recipients) ? message.recipients.length : 1
+        });
+
+        var enforcementResult = MessageEnforcementService.evaluate(message);
+
+        var result = {
+            submissionId: submissionId,
+            source: source,
+            timestamp: timestamp,
+            outcome: null,
+            message: null,
+            error: null,
+            enforcementResult: enforcementResult,
+            context: context
+        };
+
+        switch (enforcementResult.decision) {
+            case MessageEnforcementService.DECISIONS.BLOCK:
+                result.outcome = OUTCOMES.BLOCKED;
+                result.error = buildBlockError(enforcementResult);
+                logSubmissionEvent('MESSAGE_BLOCKED', result);
+                break;
+
+            case MessageEnforcementService.DECISIONS.QUARANTINE:
+                result.outcome = OUTCOMES.QUARANTINED;
+                result.message = 'Message quarantined for review';
+                addToQuarantine(submissionId, message, source, enforcementResult, context);
+                logSubmissionEvent('MESSAGE_QUARANTINED', result);
+                break;
+
+            case MessageEnforcementService.DECISIONS.ALLOW:
+                result.outcome = OUTCOMES.SENT;
+                result.message = 'Message accepted for delivery';
+                logSubmissionEvent('MESSAGE_ALLOWED', result);
+                break;
+
+            default:
+                result.outcome = OUTCOMES.ERROR;
+                result.error = { code: 'UNKNOWN_DECISION', message: 'Unknown enforcement decision' };
+                break;
+        }
+
+        return result;
+    }
+
+    function buildBlockError(enforcementResult) {
+        var triggeredRule = enforcementResult.triggeredRules.find(function(r) {
+            return r.action === 'block';
+        });
+
+        var errorDetails = {
+            code: 'MESSAGE_BLOCKED',
+            message: enforcementResult.reason || 'Message blocked by security policy',
+            category: triggeredRule ? triggeredRule.category : 'security',
+            ruleName: triggeredRule ? triggeredRule.ruleName : 'Unknown Rule',
+            ruleId: triggeredRule ? triggeredRule.ruleId : null,
+            engine: triggeredRule ? triggeredRule.engine : null,
+            matchedValue: triggeredRule ? triggeredRule.matchedValue : null,
+            userFriendlyMessage: buildUserFriendlyBlockMessage(triggeredRule)
+        };
+
+        return errorDetails;
+    }
+
+    function buildUserFriendlyBlockMessage(triggeredRule) {
+        if (!triggeredRule) {
+            return 'This message cannot be sent due to security policy restrictions.';
+        }
+
+        var messages = {
+            'senderid': 'The SenderID "' + (triggeredRule.matchedValue || 'specified') + '" is not permitted. Please use an approved SenderID.',
+            'content': 'The message content contains restricted terms. Please review and modify your message.',
+            'url': 'The message contains a blocked URL. Please remove or replace the link.'
+        };
+
+        return messages[triggeredRule.engine] || 'This message cannot be sent due to policy restrictions.';
+    }
+
+    function addToQuarantine(submissionId, message, source, enforcementResult, context) {
+        var quarantineEntry = {
+            id: 'QRN-' + Date.now(),
+            submissionId: submissionId,
+            message: {
+                senderId: message.senderId,
+                body: message.body ? message.body.substring(0, 200) + (message.body.length > 200 ? '...' : '') : '',
+                recipientCount: Array.isArray(message.recipients) ? message.recipients.length : 1
+            },
+            source: source,
+            accountId: context.accountId || null,
+            accountName: context.accountName || null,
+            submittedBy: context.userId || null,
+            reason: enforcementResult.reason,
+            triggeredRules: enforcementResult.triggeredRules,
+            matchedTokens: enforcementResult.matchedTokens,
+            status: 'pending',
+            createdAt: new Date().toISOString(),
+            reviewedAt: null,
+            reviewedBy: null,
+            reviewDecision: null
+        };
+
+        quarantineStore.push(quarantineEntry);
+        
+        console.log('[QuarantineStore] Message added:', quarantineEntry.id, {
+            source: source,
+            accountId: context.accountId,
+            reason: enforcementResult.reason
+        });
+
+        return quarantineEntry;
+    }
+
+    function getQuarantineQueue(filters) {
+        filters = filters || {};
+        var results = quarantineStore.filter(function(entry) {
+            if (filters.status && entry.status !== filters.status) return false;
+            if (filters.source && entry.source !== filters.source) return false;
+            if (filters.accountId && entry.accountId !== filters.accountId) return false;
+            return true;
+        });
+        
+        return results.sort(function(a, b) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+    }
+
+    function reviewQuarantinedMessage(quarantineId, decision, reviewerId, reason) {
+        var entry = quarantineStore.find(function(e) { return e.id === quarantineId; });
+        if (!entry) {
+            return { success: false, error: 'Quarantine entry not found' };
+        }
+
+        entry.status = decision === 'release' ? 'released' : 'rejected';
+        entry.reviewedAt = new Date().toISOString();
+        entry.reviewedBy = reviewerId;
+        entry.reviewDecision = decision;
+        entry.reviewReason = reason || null;
+
+        logSubmissionEvent('QUARANTINE_REVIEWED', {
+            quarantineId: quarantineId,
+            submissionId: entry.submissionId,
+            decision: decision,
+            reviewerId: reviewerId
+        });
+
+        return { success: true, entry: entry };
+    }
+
+    function logSubmissionEvent(eventType, data) {
+        var logEntry = {
+            eventType: eventType,
+            timestamp: new Date().toISOString(),
+            data: data
+        };
+        console.log('[MessageSubmissionHandler][' + eventType + ']', JSON.stringify(logEntry));
+    }
+
+    function submitFromCampaigns(message, campaignContext) {
+        return submit(message, SOURCES.CAMPAIGNS, {
+            accountId: campaignContext.accountId,
+            accountName: campaignContext.accountName,
+            userId: campaignContext.userId,
+            campaignId: campaignContext.campaignId,
+            campaignName: campaignContext.campaignName
+        });
+    }
+
+    function submitFromInbox(message, inboxContext) {
+        return submit(message, SOURCES.INBOX, {
+            accountId: inboxContext.accountId,
+            accountName: inboxContext.accountName,
+            userId: inboxContext.userId,
+            conversationId: inboxContext.conversationId,
+            isReply: true
+        });
+    }
+
+    function submitFromApi(message, apiContext) {
+        return submit(message, SOURCES.API, {
+            accountId: apiContext.accountId,
+            accountName: apiContext.accountName,
+            apiKeyId: apiContext.apiKeyId,
+            clientIp: apiContext.clientIp
+        });
+    }
+
+    function submitFromEmailToSms(message, emailContext) {
+        return submit(message, SOURCES.EMAIL_TO_SMS, {
+            accountId: emailContext.accountId,
+            accountName: emailContext.accountName,
+            senderEmail: emailContext.senderEmail,
+            emailSubject: emailContext.emailSubject,
+            parsedAt: emailContext.parsedAt
+        });
+    }
+
+    function submitFromTemplates(message, templateContext) {
+        return submit(message, SOURCES.TEMPLATES, {
+            accountId: templateContext.accountId,
+            accountName: templateContext.accountName,
+            userId: templateContext.userId,
+            templateId: templateContext.templateId,
+            templateName: templateContext.templateName
+        });
+    }
+
+    function submitFromRcs(message, rcsContext) {
+        return submit(message, SOURCES.RCS, {
+            accountId: rcsContext.accountId,
+            accountName: rcsContext.accountName,
+            userId: rcsContext.userId,
+            agentId: rcsContext.agentId,
+            agentName: rcsContext.agentName
+        });
+    }
+
+    function getQuarantineStats() {
+        return {
+            total: quarantineStore.length,
+            pending: quarantineStore.filter(function(e) { return e.status === 'pending'; }).length,
+            released: quarantineStore.filter(function(e) { return e.status === 'released'; }).length,
+            rejected: quarantineStore.filter(function(e) { return e.status === 'rejected'; }).length,
+            bySource: quarantineStore.reduce(function(acc, e) {
+                acc[e.source] = (acc[e.source] || 0) + 1;
+                return acc;
+            }, {})
+        };
+    }
+
+    return {
+        SOURCES: SOURCES,
+        OUTCOMES: OUTCOMES,
+        submit: submit,
+        submitFromCampaigns: submitFromCampaigns,
+        submitFromInbox: submitFromInbox,
+        submitFromApi: submitFromApi,
+        submitFromEmailToSms: submitFromEmailToSms,
+        submitFromTemplates: submitFromTemplates,
+        submitFromRcs: submitFromRcs,
+        getQuarantineQueue: getQuarantineQueue,
+        reviewQuarantinedMessage: reviewQuarantinedMessage,
+        getQuarantineStats: getQuarantineStats
+    };
+})();
+
+window.MessageSubmissionHandler = MessageSubmissionHandler;
+
+console.log('[MessageSubmissionHandler] Unified submission handler ready');
+console.log('[MessageSubmissionHandler] Supported sources:', Object.keys(MessageSubmissionHandler.SOURCES));
 </script>
