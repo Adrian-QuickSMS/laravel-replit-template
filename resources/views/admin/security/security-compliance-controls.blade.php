@@ -898,7 +898,7 @@
 
                 <div class="sec-stats">
                     <div class="sec-stat-card pending">
-                        <div class="sec-stat-value" id="quarantine-pending-count">12</div>
+                        <div class="sec-stat-value" id="quarantine-pending-count">0</div>
                         <div class="sec-stat-label">Awaiting Review</div>
                     </div>
                     <div class="sec-stat-card active">
@@ -906,12 +906,12 @@
                         <div class="sec-stat-label">Released Today</div>
                     </div>
                     <div class="sec-stat-card blocked">
-                        <div class="sec-stat-value" id="quarantine-rejected-count">0</div>
-                        <div class="sec-stat-label">Rejected Today</div>
+                        <div class="sec-stat-value" id="quarantine-blocked-count">0</div>
+                        <div class="sec-stat-label">Permanently Blocked</div>
                     </div>
                     <div class="sec-stat-card total">
                         <div class="sec-stat-value" id="quarantine-total-count">0</div>
-                        <div class="sec-stat-label">Total Reviewed</div>
+                        <div class="sec-stat-label">Total in Queue</div>
                     </div>
                 </div>
 
@@ -920,61 +920,76 @@
                         <div class="sec-filter-group">
                             <label>Status</label>
                             <select id="quarantine-filter-status">
-                                <option value="pending">Pending Review</option>
                                 <option value="">All Statuses</option>
+                                <option value="pending" selected>Pending</option>
                                 <option value="released">Released</option>
-                                <option value="rejected">Rejected</option>
+                                <option value="blocked">Permanently Blocked</option>
                             </select>
                         </div>
                         <div class="sec-filter-group">
-                            <label>Reason</label>
-                            <select id="quarantine-filter-reason">
-                                <option value="">All Reasons</option>
-                                <option value="keyword">Keyword Match</option>
-                                <option value="url">Suspicious URL</option>
-                                <option value="pattern">Pattern Match</option>
-                                <option value="manual">Manual Hold</option>
+                            <label>Rule Triggered</label>
+                            <select id="quarantine-filter-rule">
+                                <option value="">All Rules</option>
+                                <option value="senderid">SenderID Rule</option>
+                                <option value="content">Content Rule</option>
+                                <option value="url">URL Rule</option>
+                                <option value="domain_age">Domain Age</option>
                             </select>
                         </div>
                         <div class="sec-filter-group">
-                            <label>Customer</label>
-                            <select id="quarantine-filter-customer">
-                                <option value="">All Customers</option>
+                            <label>URL Present</label>
+                            <select id="quarantine-filter-url">
+                                <option value="">All</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="sec-filter-group">
+                            <label>Account</label>
+                            <select id="quarantine-filter-account">
+                                <option value="">All Accounts</option>
                             </select>
                         </div>
                         <div class="sec-filter-actions">
                             <button class="sec-btn-primary" onclick="bulkReleaseQuarantine()">
                                 <i class="fas fa-check"></i> Release Selected
                             </button>
-                            <button class="sec-btn-outline" onclick="bulkRejectQuarantine()">
-                                <i class="fas fa-times"></i> Reject Selected
+                            <button class="sec-btn-outline text-danger" style="border-color: #dc3545;" onclick="bulkBlockQuarantine()">
+                                <i class="fas fa-ban"></i> Block Selected
                             </button>
                         </div>
                     </div>
                     <div class="sec-table-header">
-                        <h6>Quarantined Messages</h6>
+                        <h6>Quarantine Inbox</h6>
                         <div class="sec-search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search messages..." id="quarantine-search">
+                            <input type="text" class="form-control" placeholder="Search messages, accounts, SenderIDs..." id="quarantine-search">
                         </div>
                     </div>
-                    <table class="sec-table" id="quarantine-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px;"><input type="checkbox" id="quarantine-select-all"></th>
-                                <th>Customer <i class="fas fa-sort"></i></th>
-                                <th>Message Preview <i class="fas fa-sort"></i></th>
-                                <th>Reason <i class="fas fa-sort"></i></th>
-                                <th>Flagged At <i class="fas fa-sort"></i></th>
-                                <th>Status <i class="fas fa-sort"></i></th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="quarantine-body">
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="sec-table" id="quarantine-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="quarantine-select-all"></th>
+                                    <th>Timestamp <i class="fas fa-sort"></i></th>
+                                    <th>Account <i class="fas fa-sort"></i></th>
+                                    <th>Sub-Account <i class="fas fa-sort"></i></th>
+                                    <th>SenderID <i class="fas fa-sort"></i></th>
+                                    <th>Message Snippet <i class="fas fa-sort"></i></th>
+                                    <th>URL <i class="fas fa-sort"></i></th>
+                                    <th>Rule Triggered <i class="fas fa-sort"></i></th>
+                                    <th>Status <i class="fas fa-sort"></i></th>
+                                    <th>Reviewer <i class="fas fa-sort"></i></th>
+                                    <th>Decision At <i class="fas fa-sort"></i></th>
+                                    <th style="width: 100px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quarantine-body">
+                            </tbody>
+                        </table>
+                    </div>
                     <div class="sec-empty-state" id="quarantine-empty-state" style="display: none;">
-                        <i class="fas fa-check-circle"></i>
+                        <i class="fas fa-check-circle" style="color: #1e3a5f;"></i>
                         <h6>No Messages in Quarantine</h6>
                         <p>All messages have been reviewed. Check back later for new items.</p>
                     </div>
@@ -1277,6 +1292,81 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="quarantineViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-search me-2"></i>Quarantine Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless" style="font-size: 0.85rem;">
+                            <tr>
+                                <td style="font-weight: 600; width: 130px;">Quarantine ID:</td>
+                                <td id="qrn-view-id"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Timestamp:</td>
+                                <td id="qrn-view-timestamp"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Account:</td>
+                                <td id="qrn-view-account"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Sub-Account:</td>
+                                <td id="qrn-view-subaccount"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">SenderID:</td>
+                                <td><code id="qrn-view-senderid"></code></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">URL Present:</td>
+                                <td id="qrn-view-hasurl"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless" style="font-size: 0.85rem;">
+                            <tr>
+                                <td style="font-weight: 600; width: 130px;">Rule Triggered:</td>
+                                <td id="qrn-view-rule"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Status:</td>
+                                <td id="qrn-view-status"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Reviewer:</td>
+                                <td id="qrn-view-reviewer"></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Decision At:</td>
+                                <td id="qrn-view-decisionat"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <label style="font-weight: 600; font-size: 0.85rem;">Message Content:</label>
+                    <div class="p-3 bg-light rounded" style="font-size: 0.9rem; border: 1px solid #e9ecef;">
+                        <span id="qrn-view-message"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
+                <div id="qrn-view-actions" class="me-auto"></div>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1347,9 +1437,14 @@ var SecurityComplianceControlsService = (function() {
         ];
 
         mockData.quarantinedMessages = [
-            { id: 1, customer: 'TechStart Ltd', accountId: 'ACC-10045', preview: 'Congratulations! You have won...', reason: 'keyword', flaggedAt: '29-01-2026 10:15', status: 'pending' },
-            { id: 2, customer: 'HealthFirst UK', accountId: 'ACC-10089', preview: 'Click here to verify your account...', reason: 'url', flaggedAt: '29-01-2026 09:45', status: 'pending' },
-            { id: 3, customer: 'E-Commerce Hub', accountId: 'ACC-10112', preview: 'Limited time offer! Free casino...', reason: 'pattern', flaggedAt: '29-01-2026 08:30', status: 'pending' }
+            { id: 'QRN-001', timestamp: '29-01-2026 10:15:32', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccountId: 'SUB-001', subAccountName: 'Marketing Dept', senderId: 'TECHPROMO', messageSnippet: 'Congratulations! You have won a prize...', hasUrl: true, ruleTriggered: 'content', ruleName: 'Lottery Keywords', status: 'pending', reviewer: null, decisionAt: null },
+            { id: 'QRN-002', timestamp: '29-01-2026 09:45:18', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccountId: null, subAccountName: null, senderId: 'HEALTH', messageSnippet: 'Click here to verify your account immediately...', hasUrl: true, ruleTriggered: 'url', ruleName: 'Suspicious URL Pattern', status: 'pending', reviewer: null, decisionAt: null },
+            { id: 'QRN-003', timestamp: '29-01-2026 08:30:45', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccountId: 'SUB-005', subAccountName: 'Promotions', senderId: 'ECOMDEALS', messageSnippet: 'Limited time offer! Free casino bonus...', hasUrl: false, ruleTriggered: 'content', ruleName: 'Gambling Keywords', status: 'pending', reviewer: null, decisionAt: null },
+            { id: 'QRN-004', timestamp: '29-01-2026 07:22:11', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccountId: null, subAccountName: null, senderId: 'HMRC', messageSnippet: 'Your tax refund is ready. Click to claim...', hasUrl: true, ruleTriggered: 'senderid', ruleName: 'Block HMRC Impersonation', status: 'pending', reviewer: null, decisionAt: null },
+            { id: 'QRN-005', timestamp: '28-01-2026 16:45:00', accountId: 'ACC-10200', accountName: 'FastLoans Ltd', subAccountId: null, subAccountName: null, senderId: 'LOANS', messageSnippet: 'Instant approval! Get cash now at bit.ly/xxx', hasUrl: true, ruleTriggered: 'domain_age', ruleName: 'Domain Age Check', status: 'pending', reviewer: null, decisionAt: null },
+            { id: 'QRN-006', timestamp: '28-01-2026 14:30:22', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccountId: 'SUB-003', subAccountName: 'Patient Comms', senderId: 'NHSALERT', messageSnippet: 'Important health notice regarding...', hasUrl: false, ruleTriggered: 'senderid', ruleName: 'Block NHS Impersonation', status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '28-01-2026 15:10:00' },
+            { id: 'QRN-007', timestamp: '28-01-2026 11:15:33', accountId: 'ACC-10150', accountName: 'CryptoTraders', subAccountId: null, subAccountName: null, senderId: 'CRYPTO', messageSnippet: 'Bitcoin giveaway! Double your crypto...', hasUrl: true, ruleTriggered: 'content', ruleName: 'Cryptocurrency Scam', status: 'blocked', reviewer: 'compliance@quicksms.co.uk', decisionAt: '28-01-2026 12:00:00' },
+            { id: 'QRN-008', timestamp: '27-01-2026 09:00:15', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccountId: 'SUB-005', subAccountName: 'Promotions', senderId: 'SHOP', messageSnippet: 'Flash sale! 50% off everything...', hasUrl: true, ruleTriggered: 'url', ruleName: 'URL Shortener Flag', status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '27-01-2026 09:30:00' }
         ];
     }
 
@@ -2162,12 +2257,32 @@ var SecurityComplianceControlsService = (function() {
     function renderQuarantineTab() {
         var tbody = document.getElementById('quarantine-body');
         var emptyState = document.getElementById('quarantine-empty-state');
-        var messages = mockData.quarantinedMessages;
+        
+        var statusFilter = document.getElementById('quarantine-filter-status').value;
+        var ruleFilter = document.getElementById('quarantine-filter-rule').value;
+        var urlFilter = document.getElementById('quarantine-filter-url').value;
+        var accountFilter = document.getElementById('quarantine-filter-account').value;
+        var searchTerm = document.getElementById('quarantine-search').value.toLowerCase();
+        
+        var messages = mockData.quarantinedMessages.filter(function(msg) {
+            if (statusFilter && msg.status !== statusFilter) return false;
+            if (ruleFilter && msg.ruleTriggered !== ruleFilter) return false;
+            if (urlFilter === 'yes' && !msg.hasUrl) return false;
+            if (urlFilter === 'no' && msg.hasUrl) return false;
+            if (accountFilter && msg.accountId !== accountFilter) return false;
+            if (searchTerm) {
+                var searchFields = [msg.accountName, msg.senderId, msg.messageSnippet, msg.ruleName].join(' ').toLowerCase();
+                if (searchFields.indexOf(searchTerm) === -1) return false;
+            }
+            return true;
+        });
 
-        document.getElementById('quarantine-pending-count').textContent = messages.filter(m => m.status === 'pending').length;
-        document.getElementById('quarantine-released-count').textContent = messages.filter(m => m.status === 'released').length;
-        document.getElementById('quarantine-rejected-count').textContent = messages.filter(m => m.status === 'rejected').length;
-        document.getElementById('quarantine-total-count').textContent = messages.length;
+        document.getElementById('quarantine-pending-count').textContent = mockData.quarantinedMessages.filter(m => m.status === 'pending').length;
+        document.getElementById('quarantine-released-count').textContent = mockData.quarantinedMessages.filter(m => m.status === 'released').length;
+        document.getElementById('quarantine-blocked-count').textContent = mockData.quarantinedMessages.filter(m => m.status === 'blocked').length;
+        document.getElementById('quarantine-total-count').textContent = mockData.quarantinedMessages.length;
+        
+        populateAccountFilter();
 
         if (messages.length === 0) {
             tbody.innerHTML = '';
@@ -2177,20 +2292,195 @@ var SecurityComplianceControlsService = (function() {
 
         emptyState.style.display = 'none';
         tbody.innerHTML = messages.map(function(msg) {
-            var reasonLabels = { keyword: 'Keyword Match', url: 'Suspicious URL', pattern: 'Pattern Match', manual: 'Manual Hold' };
-            return '<tr>' +
-                '<td><input type="checkbox" class="quarantine-checkbox" data-id="' + msg.id + '"></td>' +
-                '<td><strong>' + msg.customer + '</strong><br><small class="text-muted">' + msg.accountId + '</small></td>' +
-                '<td>' + msg.preview + '</td>' +
-                '<td><span class="badge bg-warning text-dark">' + (reasonLabels[msg.reason] || msg.reason) + '</span></td>' +
-                '<td>' + msg.flaggedAt + '</td>' +
-                '<td><span class="sec-status-badge ' + msg.status + '">' + msg.status.charAt(0).toUpperCase() + msg.status.slice(1) + '</span></td>' +
-                '<td>' +
-                    '<button class="sec-btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin-right: 0.25rem;" onclick="reviewQuarantinedMessage(' + msg.id + ')"><i class="fas fa-eye"></i></button>' +
-                    '<button class="action-menu-btn"><i class="fas fa-ellipsis-v"></i></button>' +
-                '</td>' +
+            var ruleTypeBadges = {
+                'senderid': '<span class="sec-status-badge" style="background: #fef3c7; color: #92400e;"><i class="fas fa-id-badge me-1"></i>SenderID</span>',
+                'content': '<span class="sec-status-badge" style="background: #dbeafe; color: #1e40af;"><i class="fas fa-comment me-1"></i>Content</span>',
+                'url': '<span class="sec-status-badge" style="background: #f3e8ff; color: #6b21a8;"><i class="fas fa-link me-1"></i>URL</span>',
+                'domain_age': '<span class="sec-status-badge" style="background: #fee2e2; color: #991b1b;"><i class="fas fa-clock me-1"></i>Domain Age</span>'
+            };
+            
+            var statusBadges = {
+                'pending': '<span class="sec-status-badge pending"><i class="fas fa-clock me-1"></i>Pending</span>',
+                'released': '<span class="sec-status-badge active"><i class="fas fa-check-circle me-1"></i>Released</span>',
+                'blocked': '<span class="sec-status-badge blocked"><i class="fas fa-ban me-1"></i>Blocked</span>'
+            };
+            
+            var urlBadge = msg.hasUrl 
+                ? '<span class="sec-status-badge" style="background: #dcfce7; color: #166534;"><i class="fas fa-check me-1"></i>Yes</span>'
+                : '<span class="sec-status-badge disabled"><i class="fas fa-times me-1"></i>No</span>';
+            
+            var subAccountDisplay = msg.subAccountName 
+                ? '<span style="font-size: 0.75rem;">' + msg.subAccountName + '</span><br><small class="text-muted">' + msg.subAccountId + '</small>'
+                : '<span class="text-muted">—</span>';
+            
+            var reviewerDisplay = msg.reviewer 
+                ? '<span style="font-size: 0.75rem;">' + msg.reviewer.split('@')[0] + '</span>'
+                : '<span class="text-muted">—</span>';
+            
+            var decisionDisplay = msg.decisionAt 
+                ? '<span style="font-size: 0.75rem;">' + msg.decisionAt.split(' ')[0] + '</span>'
+                : '<span class="text-muted">—</span>';
+            
+            var actionButtons = '';
+            if (msg.status === 'pending') {
+                actionButtons = '<div class="d-flex gap-1">' +
+                    '<button class="btn btn-sm btn-outline-success" onclick="releaseQuarantinedMessage(\'' + msg.id + '\')" title="Release"><i class="fas fa-check"></i></button>' +
+                    '<button class="btn btn-sm btn-outline-danger" onclick="blockQuarantinedMessage(\'' + msg.id + '\')" title="Block"><i class="fas fa-ban"></i></button>' +
+                    '<button class="btn btn-sm btn-outline-secondary" onclick="viewQuarantinedMessage(\'' + msg.id + '\')" title="View"><i class="fas fa-eye"></i></button>' +
+                '</div>';
+            } else {
+                actionButtons = '<button class="btn btn-sm btn-outline-secondary" onclick="viewQuarantinedMessage(\'' + msg.id + '\')" title="View Details"><i class="fas fa-eye"></i></button>';
+            }
+            
+            return '<tr data-msg-id="' + msg.id + '">' +
+                '<td><input type="checkbox" class="quarantine-checkbox" data-id="' + msg.id + '"' + (msg.status !== 'pending' ? ' disabled' : '') + '></td>' +
+                '<td><span style="font-size: 0.75rem;">' + msg.timestamp + '</span></td>' +
+                '<td><strong style="font-size: 0.8rem;">' + msg.accountName + '</strong><br><small class="text-muted">' + msg.accountId + '</small></td>' +
+                '<td>' + subAccountDisplay + '</td>' +
+                '<td><code style="font-size: 0.8rem; background: #f8f9fa; padding: 0.15rem 0.35rem; border-radius: 3px;">' + msg.senderId + '</code></td>' +
+                '<td><span style="font-size: 0.8rem; max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="' + msg.messageSnippet + '">' + msg.messageSnippet + '</span></td>' +
+                '<td>' + urlBadge + '</td>' +
+                '<td>' + ruleTypeBadges[msg.ruleTriggered] + '<br><small class="text-muted" style="font-size: 0.7rem;">' + msg.ruleName + '</small></td>' +
+                '<td>' + statusBadges[msg.status] + '</td>' +
+                '<td>' + reviewerDisplay + '</td>' +
+                '<td>' + decisionDisplay + '</td>' +
+                '<td>' + actionButtons + '</td>' +
                 '</tr>';
         }).join('');
+    }
+    
+    function populateAccountFilter() {
+        var select = document.getElementById('quarantine-filter-account');
+        var currentValue = select.value;
+        var accounts = [];
+        mockData.quarantinedMessages.forEach(function(msg) {
+            if (accounts.indexOf(msg.accountId) === -1) {
+                accounts.push(msg.accountId);
+            }
+        });
+        
+        var options = '<option value="">All Accounts</option>';
+        accounts.forEach(function(accId) {
+            var msg = mockData.quarantinedMessages.find(function(m) { return m.accountId === accId; });
+            options += '<option value="' + accId + '">' + msg.accountName + '</option>';
+        });
+        select.innerHTML = options;
+        select.value = currentValue;
+    }
+    
+    function viewQuarantinedMessage(msgId) {
+        var msg = mockData.quarantinedMessages.find(function(m) { return m.id === msgId; });
+        if (!msg) return;
+        
+        document.getElementById('qrn-view-id').textContent = msg.id;
+        document.getElementById('qrn-view-timestamp').textContent = msg.timestamp;
+        document.getElementById('qrn-view-account').textContent = msg.accountName + ' (' + msg.accountId + ')';
+        document.getElementById('qrn-view-subaccount').textContent = msg.subAccountName ? msg.subAccountName + ' (' + msg.subAccountId + ')' : '—';
+        document.getElementById('qrn-view-senderid').textContent = msg.senderId;
+        document.getElementById('qrn-view-message').textContent = msg.messageSnippet;
+        document.getElementById('qrn-view-hasurl').textContent = msg.hasUrl ? 'Yes' : 'No';
+        document.getElementById('qrn-view-rule').textContent = msg.ruleName + ' (' + msg.ruleTriggered + ')';
+        document.getElementById('qrn-view-status').textContent = msg.status.charAt(0).toUpperCase() + msg.status.slice(1);
+        document.getElementById('qrn-view-reviewer').textContent = msg.reviewer || '—';
+        document.getElementById('qrn-view-decisionat').textContent = msg.decisionAt || '—';
+        
+        var actionsDiv = document.getElementById('qrn-view-actions');
+        if (msg.status === 'pending') {
+            actionsDiv.innerHTML = '<button class="btn btn-success btn-sm me-2" onclick="releaseQuarantinedMessage(\'' + msg.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'quarantineViewModal\')).hide();"><i class="fas fa-check me-1"></i> Release</button>' +
+                '<button class="btn btn-danger btn-sm" onclick="blockQuarantinedMessage(\'' + msg.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'quarantineViewModal\')).hide();"><i class="fas fa-ban me-1"></i> Block</button>';
+        } else {
+            actionsDiv.innerHTML = '<span class="text-muted">This message has already been reviewed.</span>';
+        }
+        
+        var modal = new bootstrap.Modal(document.getElementById('quarantineViewModal'));
+        modal.show();
+    }
+    
+    function releaseQuarantinedMessage(msgId) {
+        var msg = mockData.quarantinedMessages.find(function(m) { return m.id === msgId; });
+        if (!msg || msg.status !== 'pending') return;
+        
+        msg.status = 'released';
+        msg.reviewer = currentAdmin.email;
+        msg.decisionAt = formatDateTime(new Date());
+        
+        logAuditEvent('QUARANTINE_MESSAGE_RELEASED', {
+            messageId: msgId,
+            accountId: msg.accountId,
+            accountName: msg.accountName,
+            senderId: msg.senderId,
+            ruleTriggered: msg.ruleTriggered,
+            reviewer: currentAdmin.email
+        });
+        
+        renderQuarantineTab();
+        showToast('Message released for delivery', 'success');
+    }
+    
+    function blockQuarantinedMessage(msgId) {
+        var msg = mockData.quarantinedMessages.find(function(m) { return m.id === msgId; });
+        if (!msg || msg.status !== 'pending') return;
+        
+        msg.status = 'blocked';
+        msg.reviewer = currentAdmin.email;
+        msg.decisionAt = formatDateTime(new Date());
+        
+        logAuditEvent('QUARANTINE_MESSAGE_BLOCKED', {
+            messageId: msgId,
+            accountId: msg.accountId,
+            accountName: msg.accountName,
+            senderId: msg.senderId,
+            ruleTriggered: msg.ruleTriggered,
+            reviewer: currentAdmin.email
+        });
+        
+        renderQuarantineTab();
+        showToast('Message permanently blocked', 'success');
+    }
+    
+    function bulkReleaseQuarantine() {
+        var selectedIds = getSelectedQuarantineIds();
+        if (selectedIds.length === 0) {
+            showToast('Please select messages to release', 'warning');
+            return;
+        }
+        
+        selectedIds.forEach(function(msgId) {
+            releaseQuarantinedMessage(msgId);
+        });
+        
+        showToast(selectedIds.length + ' message(s) released', 'success');
+    }
+    
+    function bulkBlockQuarantine() {
+        var selectedIds = getSelectedQuarantineIds();
+        if (selectedIds.length === 0) {
+            showToast('Please select messages to block', 'warning');
+            return;
+        }
+        
+        selectedIds.forEach(function(msgId) {
+            blockQuarantinedMessage(msgId);
+        });
+        
+        showToast(selectedIds.length + ' message(s) blocked', 'success');
+    }
+    
+    function getSelectedQuarantineIds() {
+        var checkboxes = document.querySelectorAll('.quarantine-checkbox:checked');
+        var ids = [];
+        checkboxes.forEach(function(cb) {
+            ids.push(cb.dataset.id);
+        });
+        return ids;
+    }
+    
+    function setupQuarantineTabListeners() {
+        document.getElementById('quarantine-filter-status').addEventListener('change', renderQuarantineTab);
+        document.getElementById('quarantine-filter-rule').addEventListener('change', renderQuarantineTab);
+        document.getElementById('quarantine-filter-url').addEventListener('change', renderQuarantineTab);
+        document.getElementById('quarantine-filter-account').addEventListener('change', renderQuarantineTab);
+        document.getElementById('quarantine-search').addEventListener('input', renderQuarantineTab);
     }
 
     function setupEventListeners() {
@@ -2203,6 +2493,7 @@ var SecurityComplianceControlsService = (function() {
         
         setupContentTabListeners();
         setupUrlTabListeners();
+        setupQuarantineTabListeners();
         
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.action-menu-container')) {
@@ -2264,7 +2555,13 @@ var SecurityComplianceControlsService = (function() {
         saveDomainAgeSettings: saveDomainAgeSettings,
         showAddDomainAgeExceptionModal: showAddDomainAgeExceptionModal,
         saveException: saveException,
-        removeDomainAgeException: removeDomainAgeException
+        removeDomainAgeException: removeDomainAgeException,
+        viewQuarantinedMessage: viewQuarantinedMessage,
+        releaseQuarantinedMessage: releaseQuarantinedMessage,
+        blockQuarantinedMessage: blockQuarantinedMessage,
+        bulkReleaseQuarantine: bulkReleaseQuarantine,
+        bulkBlockQuarantine: bulkBlockQuarantine,
+        setupQuarantineTabListeners: setupQuarantineTabListeners
     };
 })();
 
@@ -2755,14 +3052,28 @@ function bulkReleaseQuarantine() {
     alert('Bulk release ' + selected.length + ' messages - Coming Soon');
 }
 
+function viewQuarantinedMessage(msgId) {
+    SecurityComplianceControlsService.viewQuarantinedMessage(msgId);
+}
+
+function releaseQuarantinedMessage(msgId) {
+    SecurityComplianceControlsService.releaseQuarantinedMessage(msgId);
+}
+
+function blockQuarantinedMessage(msgId) {
+    SecurityComplianceControlsService.blockQuarantinedMessage(msgId);
+}
+
+function bulkReleaseQuarantine() {
+    SecurityComplianceControlsService.bulkReleaseQuarantine();
+}
+
+function bulkBlockQuarantine() {
+    SecurityComplianceControlsService.bulkBlockQuarantine();
+}
+
 function bulkRejectQuarantine() {
-    var selected = document.querySelectorAll('.quarantine-checkbox:checked');
-    if (selected.length === 0) {
-        alert('Please select messages to reject.');
-        return;
-    }
-    console.log('[SecurityComplianceControls] TODO: Implement bulk reject');
-    alert('Bulk reject ' + selected.length + ' messages - Coming Soon');
+    SecurityComplianceControlsService.bulkBlockQuarantine();
 }
 
 function reviewQuarantinedMessage(id) {
