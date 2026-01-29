@@ -166,6 +166,7 @@ Route::prefix('admin')->group(function () {
             
             Route::get('/security/audit-logs', 'securityAuditLogs')->name('admin.security.audit-logs');
             Route::get('/security/country-controls', 'securityCountryControls')->name('admin.security.country-controls');
+            Route::get('/security/security-compliance-controls', 'securityComplianceControls')->name('admin.security.security-compliance-controls');
             Route::get('/security/anti-spam', 'securityAntiSpam')->name('admin.security.anti-spam');
             Route::get('/security/ip-allowlists', 'securityIpAllowlists')->name('admin.security.ip-allowlists');
             Route::get('/security/admin-users', 'securityAdminUsers')->name('admin.security.admin-users');

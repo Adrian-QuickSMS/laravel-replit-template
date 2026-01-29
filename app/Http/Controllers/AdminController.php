@@ -428,6 +428,13 @@ class AdminController extends Controller
         ]);
     }
 
+    public function securityComplianceControls()
+    {
+        return view('admin.security.security-compliance-controls', [
+            'page_title' => 'Security & Compliance Controls'
+        ]);
+    }
+
     public function securityAntiSpam()
     {
         return view('admin.security.anti-spam', [
