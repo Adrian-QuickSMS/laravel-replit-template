@@ -437,38 +437,254 @@
     font-size: 0.85rem;
     min-width: 150px;
 }
-.review-stat-cards {
+.queue-stats-row {
     display: flex;
     gap: 1rem;
     margin-bottom: 1.5rem;
+    flex-wrap: wrap;
 }
-.review-stat-card {
-    flex: 1;
+.queue-stat-card {
     background: #fff;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1px solid #e5e9f2;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    min-width: 140px;
+    cursor: pointer;
+    transition: all 0.2s;
     text-align: center;
 }
-.review-stat-card.pending {
-    border-top: 3px solid #ecc94b;
+.queue-stat-card:hover {
+    border-color: #1e3a5f;
+    box-shadow: 0 2px 8px rgba(30, 58, 95, 0.1);
 }
-.review-stat-card.approved-today {
-    border-top: 3px solid #48bb78;
+.queue-stat-card.active {
+    border-color: #1e3a5f;
+    background: rgba(30, 58, 95, 0.05);
 }
-.review-stat-card.rejected-today {
-    border-top: 3px solid #e53e3e;
-}
-.review-stat-value {
-    font-size: 1.5rem;
+.queue-stat-card .stat-count {
+    font-size: 1.75rem;
     font-weight: 700;
-    color: #1e3a5f;
+    line-height: 1.2;
 }
-.review-stat-label {
-    font-size: 0.7rem;
+.queue-stat-card .stat-label {
+    font-size: 0.75rem;
     color: #6c757d;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 0.25rem;
 }
+.queue-stat-card.awaiting .stat-count { color: #f59e0b; }
+.queue-stat-card.approved .stat-count { color: #059669; }
+.queue-stat-card.rejected .stat-count { color: #dc2626; }
+.queue-stat-card.total .stat-count { color: #1e3a5f; }
+.filter-panel {
+    background: #f8f9fc;
+    border: 1px solid #e5e9f2;
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.filter-row {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 150px;
+}
+.filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+.queue-table-container {
+    background: #fff;
+    border: 1px solid #e5e9f2;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.queue-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.queue-table thead {
+    background: #f8f9fc;
+    border-bottom: 2px solid #e5e9f2;
+}
+.queue-table th {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: #1e3a5f;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.queue-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+.queue-table tbody tr {
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+.queue-table tbody tr:hover {
+    background: #f8f9fc;
+    box-shadow: inset 3px 0 0 #1e3a5f;
+}
+.queue-table tbody tr.high-risk {
+    background: rgba(220, 38, 38, 0.03);
+}
+.queue-table tbody tr.high-risk:hover {
+    background: rgba(220, 38, 38, 0.06);
+    box-shadow: inset 3px 0 0 #dc2626;
+}
+.type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.type-badge.country-enable {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.type-badge.country-disable {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.account-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+.account-name {
+    font-weight: 500;
+    color: #1e3a5f;
+}
+.account-id {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+.status-pill.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+.status-pill.approved {
+    background: #d9f99d;
+    color: #3f6212;
+}
+.status-pill.rejected {
+    background: #fecaca;
+    color: #7f1d1d;
+}
+.risk-pill {
+    padding: 0.125rem 0.5rem;
+    border-radius: 50px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.risk-pill.high {
+    background: #fecaca;
+    color: #991b1b;
+}
+.risk-pill.medium {
+    background: #fed7aa;
+    color: #9a3412;
+}
+.risk-pill.low {
+    background: #d9f99d;
+    color: #3f6212;
+}
+.risk-pill.critical {
+    background: #fce7f3;
+    color: #9d174d;
+}
+.action-menu {
+    position: relative;
+}
+.action-menu-btn {
+    background: none;
+    border: 1px solid #e5e9f2;
+    border-radius: 6px;
+    padding: 0.375rem 0.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    transition: all 0.2s;
+}
+.action-menu-btn:hover {
+    background: #f8f9fc;
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.action-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: #fff;
+    border: 1px solid #e5e9f2;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 180px;
+    z-index: 100;
+    display: none;
+}
+.action-dropdown.show {
+    display: block;
+}
+.action-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 1rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #495057;
+    transition: background 0.15s;
+}
+.action-dropdown-item:hover {
+    background: #f8f9fc;
+}
+.action-dropdown-item i {
+    width: 16px;
+    text-align: center;
+    color: #6c757d;
+}
+.action-dropdown-item.approve { color: #059669; }
+.action-dropdown-item.approve i { color: #059669; }
+.action-dropdown-item.reject { color: #dc2626; }
+.action-dropdown-item.reject i { color: #dc2626; }
+.action-dropdown-item.view { color: #1e3a5f; }
+.action-dropdown-item.view i { color: #1e3a5f; }
 </style>
 @endpush
 
@@ -514,37 +730,91 @@
 
     <div class="tab-content" id="countryControlsTabContent">
         <div class="tab-pane fade show active" id="reviewPane" role="tabpanel">
-            <div class="review-stat-cards">
-                <div class="review-stat-card pending">
-                    <div class="review-stat-value" id="reviewPendingCount">3</div>
-                    <div class="review-stat-label">Pending Requests</div>
+            <div class="queue-stats-row">
+                <div class="queue-stat-card awaiting active" data-filter="pending" onclick="filterByStatus('pending')">
+                    <div class="stat-count" id="reviewPendingCount">3</div>
+                    <div class="stat-label">Awaiting Review</div>
                 </div>
-                <div class="review-stat-card approved-today">
-                    <div class="review-stat-value" id="reviewApprovedToday">5</div>
-                    <div class="review-stat-label">Approved Today</div>
+                <div class="queue-stat-card approved" data-filter="approved" onclick="filterByStatus('approved')">
+                    <div class="stat-count" id="reviewApprovedCount">5</div>
+                    <div class="stat-label">Approved</div>
                 </div>
-                <div class="review-stat-card rejected-today">
-                    <div class="review-stat-value" id="reviewRejectedToday">1</div>
-                    <div class="review-stat-label">Rejected Today</div>
+                <div class="queue-stat-card rejected" data-filter="rejected" onclick="filterByStatus('rejected')">
+                    <div class="stat-count" id="reviewRejectedCount">1</div>
+                    <div class="stat-label">Rejected</div>
+                </div>
+                <div class="queue-stat-card total" data-filter="" onclick="filterByStatus('')">
+                    <div class="stat-count" id="reviewTotalCount">9</div>
+                    <div class="stat-label">Total</div>
                 </div>
             </div>
 
-            <div class="review-filters">
-                <select class="form-select form-select-sm" id="reviewStatusFilter">
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="">All Requests</option>
-                </select>
-                <select class="form-select form-select-sm" id="reviewCustomerFilter">
-                    <option value="">All Customers</option>
-                </select>
-                <select class="form-select form-select-sm" id="reviewCountryFilter">
-                    <option value="">All Countries</option>
-                </select>
+            <div class="filter-panel">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select class="form-select form-select-sm" id="reviewStatusFilter">
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="">All Statuses</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Customer</label>
+                        <select class="form-select form-select-sm" id="reviewCustomerFilter">
+                            <option value="">All Customers</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Country</label>
+                        <select class="form-select form-select-sm" id="reviewCountryFilter">
+                            <option value="">All Countries</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Risk Level</label>
+                        <select class="form-select form-select-sm" id="reviewRiskFilter">
+                            <option value="">All Risks</option>
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applyReviewFilters()">
+                            <i class="fas fa-check me-1"></i>Apply
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="clearReviewFilters()">
+                            <i class="fas fa-undo me-1"></i>Reset
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <div id="requestsList"></div>
+            <div class="queue-table-container">
+                <table class="queue-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Account</th>
+                            <th>Country</th>
+                            <th>Status</th>
+                            <th>Risk</th>
+                            <th>Submitted</th>
+                            <th>Volume</th>
+                            <th style="width: 80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviewTableBody"></tbody>
+                </table>
+            </div>
+            <div id="emptyReviewState" class="empty-state" style="display: none;">
+                <i class="fas fa-inbox"></i>
+                <h6>No requests found</h6>
+                <p class="small">There are no country access requests matching your filters.</p>
+            </div>
         </div>
 
         <div class="tab-pane fade" id="countriesPane" role="tabpanel">
@@ -643,6 +913,79 @@
         </div>
         <div class="audit-preview-content" id="auditPreviewContent"></div>
     </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reviewDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-globe-americas me-2"></i>Country Access Request</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">REQUEST ID</label>
+                            <div id="modalRequestId" class="fw-medium"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">STATUS</label>
+                            <div id="modalRequestStatus"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">CUSTOMER</label>
+                            <div id="modalRequestCustomer" class="fw-medium"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">RISK LEVEL</label>
+                            <div id="modalRequestRisk"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">COUNTRY REQUESTED</label>
+                            <div id="modalRequestCountry" class="fw-medium"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">ESTIMATED VOLUME</label>
+                            <div id="modalRequestVolume"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">SUBMITTED BY</label>
+                            <div id="modalRequestSubmittedBy"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">SUBMITTED AT</label>
+                            <div id="modalRequestSubmittedAt"></div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label class="form-label small text-muted fw-bold">BUSINESS JUSTIFICATION</label>
+                            <div id="modalRequestReason" class="p-3 bg-light rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <div id="modalRequestActions" class="d-flex gap-2"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -861,10 +1204,12 @@ function generateMockRequests() {
             requestType: 'enable',
             reason: 'We have legitimate business operations in Nigeria and need to send SMS to our local customers.',
             submittedBy: 'james@techstart.co.uk',
-            submittedAt: '2026-01-28 14:30',
+            submittedAt: '28-01-2026 14:30',
             status: 'pending',
             risk: 'high',
-            estimatedVolume: '5,000 messages/month'
+            estimatedVolume: '5,000/mo',
+            reviewedBy: null,
+            reviewedAt: null
         },
         {
             id: 'REQ-002',
@@ -873,10 +1218,12 @@ function generateMockRequests() {
             requestType: 'enable',
             reason: 'Need to send appointment reminders to patients in our Indian branch.',
             submittedBy: 'dr.jones@healthfirst.nhs.uk',
-            submittedAt: '2026-01-28 10:15',
+            submittedAt: '28-01-2026 10:15',
             status: 'pending',
             risk: 'medium',
-            estimatedVolume: '2,000 messages/month'
+            estimatedVolume: '2,000/mo',
+            reviewedBy: null,
+            reviewedAt: null
         },
         {
             id: 'REQ-003',
@@ -885,10 +1232,12 @@ function generateMockRequests() {
             requestType: 'enable',
             reason: 'Expanding e-commerce operations to Philippines, need order confirmation SMS.',
             submittedBy: 'ops@ecommercehub.com',
-            submittedAt: '2026-01-27 16:45',
+            submittedAt: '27-01-2026 16:45',
             status: 'pending',
-            risk: 'high',
-            estimatedVolume: '10,000 messages/month'
+            risk: 'critical',
+            estimatedVolume: '10,000/mo',
+            reviewedBy: null,
+            reviewedAt: null
         },
         {
             id: 'REQ-004',
@@ -897,12 +1246,12 @@ function generateMockRequests() {
             requestType: 'enable',
             reason: 'Opening new retail stores in Brazil.',
             submittedBy: 'admin@retailmax.com',
-            submittedAt: '2026-01-27 09:00',
+            submittedAt: '27-01-2026 09:00',
             status: 'approved',
             risk: 'medium',
-            estimatedVolume: '8,000 messages/month',
+            estimatedVolume: '8,000/mo',
             reviewedBy: 'sarah.johnson@quicksms.co.uk',
-            reviewedAt: '2026-01-27 11:30'
+            reviewedAt: '27-01-2026 11:30'
         },
         {
             id: 'REQ-005',
@@ -911,120 +1260,181 @@ function generateMockRequests() {
             requestType: 'enable',
             reason: 'Business expansion.',
             submittedBy: 'info@unknowncorp.com',
-            submittedAt: '2026-01-26 14:00',
+            submittedAt: '26-01-2026 14:00',
             status: 'rejected',
             risk: 'critical',
-            estimatedVolume: '50,000 messages/month',
+            estimatedVolume: '50,000/mo',
             reviewedBy: 'emily.chen@quicksms.co.uk',
-            reviewedAt: '2026-01-26 15:30',
-            rejectionReason: 'Russia is on the blocked countries list due to regulatory compliance.'
+            reviewedAt: '26-01-2026 15:30'
         }
     ];
 }
 
 function renderRequestsList() {
-    var container = document.getElementById('requestsList');
+    var tbody = document.getElementById('reviewTableBody');
+    var emptyState = document.getElementById('emptyReviewState');
+    var tableContainer = document.querySelector('.queue-table-container');
     var statusFilter = document.getElementById('reviewStatusFilter').value;
     var customerFilter = document.getElementById('reviewCustomerFilter').value;
     var countryFilter = document.getElementById('reviewCountryFilter').value;
+    var riskFilter = document.getElementById('reviewRiskFilter') ? document.getElementById('reviewRiskFilter').value : '';
 
     var filtered = countryRequests.filter(function(r) {
         var matchesStatus = !statusFilter || r.status === statusFilter;
         var matchesCustomer = !customerFilter || r.customer.id === customerFilter;
         var matchesCountry = !countryFilter || r.country.code === countryFilter;
-        return matchesStatus && matchesCustomer && matchesCountry;
+        var matchesRisk = !riskFilter || r.risk === riskFilter;
+        return matchesStatus && matchesCustomer && matchesCountry && matchesRisk;
     });
 
     if (filtered.length === 0) {
-        container.innerHTML = 
-            '<div class="empty-state">' +
-                '<i class="fas fa-inbox"></i>' +
-                '<h6>No requests found</h6>' +
-                '<p class="small">There are no country access requests matching your filters.</p>' +
-            '</div>';
+        tableContainer.style.display = 'none';
+        emptyState.style.display = 'block';
         return;
     }
 
-    container.innerHTML = '';
+    tableContainer.style.display = 'block';
+    emptyState.style.display = 'none';
+    tbody.innerHTML = '';
+
     filtered.forEach(function(request) {
-        var card = document.createElement('div');
-        card.className = 'request-card ' + request.status;
-        
-        var statusBadge = '<span class="status-badge ' + request.status + '">' + capitalize(request.status) + '</span>';
-        var riskBadge = '<span class="status-badge ' + request.risk + '" style="margin-left: 0.5rem;">' + 
-            capitalize(request.risk) + ' Risk</span>';
+        var row = document.createElement('tr');
+        row.className = (request.risk === 'high' || request.risk === 'critical') ? 'high-risk' : '';
+        row.onclick = function(e) { 
+            if (!e.target.closest('.action-menu')) {
+                openReviewModal(request.id);
+            }
+        };
 
-        var actionsHtml = '';
-        if (request.status === 'pending') {
-            actionsHtml = 
-                '<div class="request-actions">' +
-                    '<button class="btn btn-sm" style="background: #48bb78; color: #fff;" onclick="approveRequest(\'' + request.id + '\')">' +
-                        '<i class="fas fa-check me-1"></i>Approve' +
-                    '</button>' +
-                    '<button class="btn btn-sm" style="background: #e53e3e; color: #fff;" onclick="rejectRequest(\'' + request.id + '\')">' +
-                        '<i class="fas fa-times me-1"></i>Reject' +
-                    '</button>' +
-                    '<button class="btn btn-sm btn-outline-secondary" onclick="viewRequestDetails(\'' + request.id + '\')">' +
-                        '<i class="fas fa-eye me-1"></i>Details' +
-                    '</button>' +
-                '</div>';
-        } else {
-            var reviewInfo = request.status === 'approved' ? 
-                '<span class="text-success small"><i class="fas fa-check-circle me-1"></i>Approved by ' + request.reviewedBy + ' on ' + request.reviewedAt + '</span>' :
-                '<span class="text-danger small"><i class="fas fa-times-circle me-1"></i>Rejected by ' + request.reviewedBy + ' on ' + request.reviewedAt + '</span>';
-            actionsHtml = '<div class="request-actions">' + reviewInfo + '</div>';
-        }
+        var typeBadge = request.requestType === 'enable' ?
+            '<span class="type-badge country-enable"><i class="fas fa-plus-circle"></i>Enable</span>' :
+            '<span class="type-badge country-disable"><i class="fas fa-minus-circle"></i>Disable</span>';
 
-        card.innerHTML = 
-            '<div class="request-card-header">' +
-                '<div>' +
-                    '<span class="request-customer">' + request.customer.name + '</span>' +
-                    '<span class="request-customer-id">' + request.customer.accountNumber + '</span>' +
+        var statusPill = '<span class="status-pill ' + request.status + '">' + 
+            (request.status === 'pending' ? '<i class="fas fa-clock"></i>' : 
+             request.status === 'approved' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>') + 
+            ' ' + capitalize(request.status) + '</span>';
+
+        var riskPill = '<span class="risk-pill ' + request.risk + '">' + request.risk.toUpperCase() + '</span>';
+
+        var actionMenu = '<div class="action-menu">' +
+            '<button class="action-menu-btn" onclick="toggleActionMenu(event, \'' + request.id + '\')">' +
+                '<i class="fas fa-ellipsis-v"></i>' +
+            '</button>' +
+            '<div class="action-dropdown" id="actionMenu-' + request.id + '">' +
+                '<div class="action-dropdown-item view" onclick="openReviewModal(\'' + request.id + '\')">' +
+                    '<i class="fas fa-eye"></i>View Details' +
                 '</div>' +
-                '<div class="request-meta">' +
-                    statusBadge + riskBadge +
-                '</div>' +
+                (request.status === 'pending' ? 
+                    '<div class="action-dropdown-item approve" onclick="approveRequest(\'' + request.id + '\')">' +
+                        '<i class="fas fa-check-circle"></i>Approve' +
+                    '</div>' +
+                    '<div class="action-dropdown-item reject" onclick="rejectRequest(\'' + request.id + '\')">' +
+                        '<i class="fas fa-times-circle"></i>Reject' +
+                    '</div>' : '') +
             '</div>' +
-            '<div class="request-card-body">' +
-                '<div class="request-details">' +
-                    '<div class="request-detail-item">' +
-                        '<div class="request-detail-label">Country Requested</div>' +
-                        '<div class="request-detail-value">' + request.country.name + ' (' + request.country.dialCode + ')</div>' +
-                    '</div>' +
-                    '<div class="request-detail-item">' +
-                        '<div class="request-detail-label">Estimated Volume</div>' +
-                        '<div class="request-detail-value">' + request.estimatedVolume + '</div>' +
-                    '</div>' +
-                    '<div class="request-detail-item">' +
-                        '<div class="request-detail-label">Submitted By</div>' +
-                        '<div class="request-detail-value">' + request.submittedBy + '</div>' +
-                    '</div>' +
-                    '<div class="request-detail-item">' +
-                        '<div class="request-detail-label">Submitted</div>' +
-                        '<div class="request-detail-value">' + request.submittedAt + '</div>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="mt-3 small text-muted">' +
-                    '<strong>Reason:</strong> ' + request.reason +
-                '</div>' +
-                actionsHtml +
-            '</div>';
-        container.appendChild(card);
+        '</div>';
+
+        row.innerHTML = 
+            '<td>' + typeBadge + '</td>' +
+            '<td><div class="account-cell"><span class="account-name">' + request.customer.name + '</span>' +
+                '<span class="account-id">' + request.customer.accountNumber + '</span></div></td>' +
+            '<td><strong>' + request.country.name + '</strong> <span class="text-muted">(' + request.country.dialCode + ')</span></td>' +
+            '<td>' + statusPill + '</td>' +
+            '<td>' + riskPill + '</td>' +
+            '<td><span class="text-muted small">' + request.submittedAt + '</span></td>' +
+            '<td><span class="small">' + request.estimatedVolume + '</span></td>' +
+            '<td>' + actionMenu + '</td>';
+
+        tbody.appendChild(row);
     });
+}
+
+function toggleActionMenu(event, requestId) {
+    event.stopPropagation();
+    document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
+        if (menu.id !== 'actionMenu-' + requestId) {
+            menu.classList.remove('show');
+        }
+    });
+    document.getElementById('actionMenu-' + requestId).classList.toggle('show');
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.action-menu')) {
+        document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
+            menu.classList.remove('show');
+        });
+    }
+});
+
+function filterByStatus(status) {
+    document.getElementById('reviewStatusFilter').value = status;
+    document.querySelectorAll('.queue-stat-card').forEach(function(card) {
+        card.classList.remove('active');
+        if (card.dataset.filter === status) {
+            card.classList.add('active');
+        }
+    });
+    renderRequestsList();
+}
+
+function applyReviewFilters() {
+    renderRequestsList();
+}
+
+function clearReviewFilters() {
+    document.getElementById('reviewStatusFilter').value = 'pending';
+    document.getElementById('reviewCustomerFilter').value = '';
+    document.getElementById('reviewCountryFilter').value = '';
+    if (document.getElementById('reviewRiskFilter')) {
+        document.getElementById('reviewRiskFilter').value = '';
+    }
+    filterByStatus('pending');
+}
+
+function openReviewModal(requestId) {
+    var request = countryRequests.find(function(r) { return r.id === requestId; });
+    if (!request) return;
+    selectedRequest = request;
+    
+    document.getElementById('modalRequestId').textContent = request.id;
+    document.getElementById('modalRequestCustomer').textContent = request.customer.name + ' (' + request.customer.accountNumber + ')';
+    document.getElementById('modalRequestCountry').textContent = request.country.name + ' (' + request.country.dialCode + ')';
+    document.getElementById('modalRequestVolume').textContent = request.estimatedVolume;
+    document.getElementById('modalRequestSubmittedBy').textContent = request.submittedBy;
+    document.getElementById('modalRequestSubmittedAt').textContent = request.submittedAt;
+    document.getElementById('modalRequestReason').textContent = request.reason;
+    document.getElementById('modalRequestRisk').innerHTML = '<span class="risk-pill ' + request.risk + '">' + request.risk.toUpperCase() + '</span>';
+    document.getElementById('modalRequestStatus').innerHTML = '<span class="status-pill ' + request.status + '">' + capitalize(request.status) + '</span>';
+    
+    var actionsDiv = document.getElementById('modalRequestActions');
+    if (request.status === 'pending') {
+        actionsDiv.innerHTML = 
+            '<button class="btn" style="background: #059669; color: #fff;" onclick="approveRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
+                '<i class="fas fa-check-circle me-1"></i>Approve Request' +
+            '</button>' +
+            '<button class="btn" style="background: #dc2626; color: #fff;" onclick="rejectRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
+                '<i class="fas fa-times-circle me-1"></i>Reject Request' +
+            '</button>';
+    } else {
+        actionsDiv.innerHTML = '<span class="text-muted">This request has already been ' + request.status + '.</span>';
+    }
+    
+    var modal = new bootstrap.Modal(document.getElementById('reviewDetailModal'));
+    modal.show();
 }
 
 function updateReviewStats() {
     var pending = countryRequests.filter(function(r) { return r.status === 'pending'; }).length;
-    var approvedToday = countryRequests.filter(function(r) { 
-        return r.status === 'approved' && r.reviewedAt && r.reviewedAt.startsWith('2026-01-28'); 
-    }).length;
-    var rejectedToday = countryRequests.filter(function(r) { 
-        return r.status === 'rejected' && r.reviewedAt && r.reviewedAt.startsWith('2026-01-28'); 
-    }).length;
+    var approved = countryRequests.filter(function(r) { return r.status === 'approved'; }).length;
+    var rejected = countryRequests.filter(function(r) { return r.status === 'rejected'; }).length;
+    var total = countryRequests.length;
 
     document.getElementById('reviewPendingCount').textContent = pending;
-    document.getElementById('reviewApprovedToday').textContent = approvedToday;
-    document.getElementById('reviewRejectedToday').textContent = rejectedToday;
+    document.getElementById('reviewApprovedCount').textContent = approved;
+    document.getElementById('reviewRejectedCount').textContent = rejected;
+    document.getElementById('reviewTotalCount').textContent = total;
     document.getElementById('pendingRequestsBadge').textContent = pending;
     
     if (pending === 0) {
