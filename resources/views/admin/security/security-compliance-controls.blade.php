@@ -774,6 +774,31 @@
     font-weight: 600;
     color: #1e3a5f;
 }
+.norm-export-format-btn,
+.norm-import-mode-btn {
+    padding: 0.75rem 1.25rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    color: #6b7280;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    text-align: left;
+}
+.norm-export-format-btn:hover,
+.norm-import-mode-btn:hover {
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.norm-export-format-btn.active,
+.norm-import-mode-btn.active {
+    background: #1e3a5f;
+    border-color: #1e3a5f;
+    color: white;
+}
+.norm-import-mode-btn.active small {
+    color: rgba(255,255,255,0.7) !important;
+}
 .sec-filter-row {
     display: flex;
     gap: 1rem;
@@ -5127,31 +5152,149 @@ function toggleBaseCharacterStatus(base, enabled) {
 }
 
 function exportBaseCharacterLibrary() {
-    var library = mockData.baseCharacterLibrary;
-    var exportData = {
-        exportedAt: new Date().toISOString(),
-        version: '1.0',
-        baseCharacters: library.map(function(char) {
-            return {
-                base: char.base,
-                type: char.type,
-                equivalents: char.equivalents,
-                scope: char.scope,
-                enabled: char.enabled,
-                risk: char.risk,
-                notes: char.notes
-            };
-        })
-    };
+    showExportNormModal();
+}
+
+function showExportNormModal() {
+    var modalHtml = '<div class="modal fade" id="exportNormModal" tabindex="-1">' +
+        '<div class="modal-dialog">' +
+            '<div class="modal-content">' +
+                '<div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-download me-2"></i>Export Normalisation Rules</h5>' +
+                    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<div class="mb-4">' +
+                        '<label class="form-label fw-bold"><i class="fas fa-file me-2 text-muted"></i>Export Format</label>' +
+                        '<div class="d-flex gap-2">' +
+                            '<button type="button" class="btn norm-export-format-btn active" data-format="json" onclick="selectExportFormat(this)">' +
+                                '<i class="fas fa-code me-1"></i>JSON' +
+                            '</button>' +
+                            '<button type="button" class="btn norm-export-format-btn" data-format="csv" onclick="selectExportFormat(this)">' +
+                                '<i class="fas fa-file-csv me-1"></i>CSV' +
+                            '</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="mb-4">' +
+                        '<label class="form-label fw-bold"><i class="fas fa-filter me-2 text-muted"></i>Include</label>' +
+                        '<div class="form-check">' +
+                            '<input class="form-check-input" type="checkbox" id="exportIncludeEnabled" checked>' +
+                            '<label class="form-check-label" for="exportIncludeEnabled">Enabled rules</label>' +
+                        '</div>' +
+                        '<div class="form-check">' +
+                            '<input class="form-check-input" type="checkbox" id="exportIncludeDisabled" checked>' +
+                            '<label class="form-check-label" for="exportIncludeDisabled">Disabled rules</label>' +
+                        '</div>' +
+                        '<div class="form-check">' +
+                            '<input class="form-check-input" type="checkbox" id="exportIncludeEmpty">' +
+                            '<label class="form-check-label" for="exportIncludeEmpty">Rules with no equivalents</label>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="alert alert-info" style="background: #e8f4fd; border: 1px solid #1e3a5f;">' +
+                        '<i class="fas fa-info-circle me-2" style="color: #1e3a5f;"></i>' +
+                        '<strong>Exported fields:</strong> base_char, equivalents, applies_to, status, risk, updated_at' +
+                    '</div>' +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<small class="text-muted me-auto"><i class="fas fa-shield-alt me-1"></i>Export action will be logged</small>' +
+                    '<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn" onclick="executeNormExport()" style="background: #1e3a5f; border-color: #1e3a5f; color: white;">' +
+                        '<i class="fas fa-download me-1"></i>Download' +
+                    '</button>' +
+                '</div>' +
+            '</div>' +
+        '</div>' +
+    '</div>';
     
-    var blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    var existingModal = document.getElementById('exportNormModal');
+    if (existingModal) existingModal.remove();
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    var modal = new bootstrap.Modal(document.getElementById('exportNormModal'));
+    modal.show();
+}
+
+function selectExportFormat(btn) {
+    document.querySelectorAll('.norm-export-format-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    btn.classList.add('active');
+}
+
+function executeNormExport() {
+    var formatBtn = document.querySelector('.norm-export-format-btn.active');
+    var format = formatBtn ? formatBtn.getAttribute('data-format') : 'json';
+    var includeEnabled = document.getElementById('exportIncludeEnabled').checked;
+    var includeDisabled = document.getElementById('exportIncludeDisabled').checked;
+    var includeEmpty = document.getElementById('exportIncludeEmpty').checked;
+    
+    var library = mockData.baseCharacterLibrary.filter(function(char) {
+        if (!includeEnabled && char.enabled) return false;
+        if (!includeDisabled && !char.enabled) return false;
+        if (!includeEmpty && char.equivalents.length === 0) return false;
+        return true;
+    });
+    
+    var timestamp = new Date().toISOString().split('T')[0];
+    var filename, blob, content;
+    
+    if (format === 'json') {
+        var exportData = {
+            exportedAt: new Date().toISOString(),
+            exportedBy: 'admin@quicksms.co.uk',
+            version: '1.0',
+            totalRules: library.length,
+            rules: library.map(function(char) {
+                return {
+                    base_char: char.base,
+                    equivalents: char.equivalents.join(','),
+                    applies_to: char.scope.join(','),
+                    status: char.enabled ? 'enabled' : 'disabled',
+                    risk: char.risk || 'none',
+                    updated_at: char.updatedAt || char.updated || ''
+                };
+            })
+        };
+        content = JSON.stringify(exportData, null, 2);
+        blob = new Blob([content], { type: 'application/json' });
+        filename = 'normalisation-rules-' + timestamp + '.json';
+    } else {
+        var csvRows = ['base_char,equivalents,applies_to,status,risk,updated_at'];
+        library.forEach(function(char) {
+            var row = [
+                char.base,
+                '"' + char.equivalents.join(',') + '"',
+                '"' + char.scope.join(',') + '"',
+                char.enabled ? 'enabled' : 'disabled',
+                char.risk || 'none',
+                char.updatedAt || char.updated || ''
+            ];
+            csvRows.push(row.join(','));
+        });
+        content = csvRows.join('\n');
+        blob = new Blob([content], { type: 'text/csv' });
+        filename = 'normalisation-rules-' + timestamp + '.csv';
+    }
+    
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'normalisation-rules-export-' + new Date().toISOString().split('T')[0] + '.json';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    logAuditEvent('NORMALISATION_RULES_EXPORTED', {
+        format: format,
+        rulesExported: library.length,
+        filters: { includeEnabled: includeEnabled, includeDisabled: includeDisabled, includeEmpty: includeEmpty }
+    });
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('exportNormModal'));
+    modal.hide();
+    
+    showToast('Exported ' + library.length + ' rules as ' + format.toUpperCase(), 'success');
     URL.revokeObjectURL(url);
     
     logAuditEvent('NORMALISATION_RULES_EXPORTED', { ruleCount: activeRules.length });
@@ -5901,45 +6044,130 @@ function applyGlobalNormFilters() {
 }
 
 function showImportNormLibraryModal() {
-    var modalHtml = 
-    '<div class="modal fade" id="importNormModal" tabindex="-1">' +
-        '<div class="modal-dialog modal-lg">' +
+    var modalHtml = '<div class="modal fade" id="importNormModal" tabindex="-1" data-bs-backdrop="static">' +
+        '<div class="modal-dialog modal-xl">' +
             '<div class="modal-content">' +
-                '<div class="modal-header" style="background: #1e3a5f; color: white;">' +
-                    '<h5 class="modal-title"><i class="fas fa-upload me-2"></i>Import Normalisation Library</h5>' +
+                '<div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white;">' +
+                    '<h5 class="modal-title"><i class="fas fa-upload me-2"></i>Import Normalisation Rules</h5>' +
                     '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
                 '</div>' +
                 '<div class="modal-body">' +
-                    '<div class="alert alert-warning">' +
-                        '<i class="fas fa-exclamation-triangle me-2"></i>' +
-                        '<strong>Warning:</strong> Importing will merge or replace existing equivalents. This action will be logged.' +
+                    '<div id="importStep1">' +
+                        '<div class="alert alert-warning" style="background: #fef3c7; border: 1px solid #f59e0b;">' +
+                            '<i class="fas fa-exclamation-triangle me-2" style="color: #92400e;"></i>' +
+                            '<strong>Warning:</strong> Importing will modify existing rules. All changes are logged to the audit trail.' +
+                        '</div>' +
+                        
+                        '<div class="mb-4">' +
+                            '<label class="form-label fw-bold"><i class="fas fa-file me-2 text-muted"></i>Upload File (CSV or JSON)</label>' +
+                            '<input type="file" class="form-control form-control-lg" id="importFile" accept=".json,.csv" onchange="parseImportFile()">' +
+                            '<small class="text-muted">Accepts .json or .csv files exported from this system</small>' +
+                        '</div>' +
+                        
+                        '<div class="text-center my-4">' +
+                            '<span class="text-muted">— or paste content directly —</span>' +
+                        '</div>' +
+                        
+                        '<div class="mb-4">' +
+                            '<label class="form-label fw-bold"><i class="fas fa-paste me-2 text-muted"></i>Paste Content</label>' +
+                            '<textarea class="form-control" id="importPasteContent" rows="6" placeholder="Paste JSON or CSV content here..." onchange="parseImportPaste()"></textarea>' +
+                        '</div>' +
+                        
+                        '<div class="mb-4">' +
+                            '<label class="form-label fw-bold"><i class="fas fa-cog me-2 text-muted"></i>Import Mode</label>' +
+                            '<div class="d-flex gap-2">' +
+                                '<button type="button" class="btn norm-import-mode-btn active" data-mode="merge" onclick="selectImportMode(this)">' +
+                                    '<i class="fas fa-code-merge me-1"></i>Merge' +
+                                    '<small class="d-block text-muted" style="font-size: 0.7rem;">Add new equivalents, keep existing</small>' +
+                                '</button>' +
+                                '<button type="button" class="btn norm-import-mode-btn" data-mode="replace" onclick="selectImportMode(this)">' +
+                                    '<i class="fas fa-sync me-1"></i>Replace' +
+                                    '<small class="d-block text-muted" style="font-size: 0.7rem;">Overwrite all equivalents</small>' +
+                                '</button>' +
+                            '</div>' +
+                        '</div>' +
+                        
+                        '<div class="text-end">' +
+                            '<button type="button" class="btn btn-lg" id="importPreviewBtn" onclick="showImportPreview()" style="background: #1e3a5f; border-color: #1e3a5f; color: white;" disabled>' +
+                                '<i class="fas fa-eye me-1"></i>Preview Changes' +
+                            '</button>' +
+                        '</div>' +
                     '</div>' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Import Mode</label>' +
-                        '<select class="form-control" id="importMode">' +
-                            '<option value="merge">Merge - Add new equivalents, keep existing</option>' +
-                            '<option value="replace">Replace - Overwrite all equivalents</option>' +
-                        '</select>' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Upload JSON File</label>' +
-                        '<input type="file" class="form-control" id="importFile" accept=".json">' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Or Paste JSON</label>' +
-                        '<textarea class="form-control" id="importJsonText" rows="6" placeholder=\'{"A": {"equivalents": ["Α", "А"], "scope": ["senderid"]}...}\'></textarea>' +
-                    '</div>' +
-                    '<div id="importPreview" style="display: none;">' +
-                        '<label class="form-label fw-bold">Import Preview</label>' +
-                        '<div class="p-3 bg-light rounded" style="max-height: 200px; overflow-y: auto;">' +
-                            '<pre id="importPreviewText" style="margin: 0; font-size: 0.8rem;"></pre>' +
+                    
+                    '<div id="importStep2" style="display: none;">' +
+                        '<div class="d-flex justify-content-between align-items-center mb-3">' +
+                            '<button type="button" class="btn btn-outline-secondary" onclick="backToImportStep1()">' +
+                                '<i class="fas fa-arrow-left me-1"></i>Back' +
+                            '</button>' +
+                            '<h6 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Import Preview</h6>' +
+                            '<span></span>' +
+                        '</div>' +
+                        
+                        '<div class="row g-3 mb-4">' +
+                            '<div class="col-md-4">' +
+                                '<div class="card border-0 h-100" style="background: #d1fae5;">' +
+                                    '<div class="card-body text-center">' +
+                                        '<div class="fs-2 fw-bold" style="color: #065f46;" id="importNewCount">0</div>' +
+                                        '<div class="text-muted small">New Rules</div>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="col-md-4">' +
+                                '<div class="card border-0 h-100" style="background: #fef3c7;">' +
+                                    '<div class="card-body text-center">' +
+                                        '<div class="fs-2 fw-bold" style="color: #92400e;" id="importUpdatedCount">0</div>' +
+                                        '<div class="text-muted small">Updated Rules</div>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="col-md-4">' +
+                                '<div class="card border-0 h-100" style="background: #fee2e2;">' +
+                                    '<div class="card-body text-center">' +
+                                        '<div class="fs-2 fw-bold" style="color: #991b1b;" id="importConflictCount">0</div>' +
+                                        '<div class="text-muted small">Conflicts</div>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        
+                        '<div class="card border-0 mb-4" style="background: #fafbfc; max-height: 300px; overflow-y: auto;">' +
+                            '<div class="card-header bg-transparent border-bottom fw-bold">' +
+                                '<i class="fas fa-list me-2 text-muted"></i>Changes to Apply' +
+                            '</div>' +
+                            '<div class="card-body p-0">' +
+                                '<table class="table table-sm mb-0">' +
+                                    '<thead style="position: sticky; top: 0; background: #f8f9fa;">' +
+                                        '<tr>' +
+                                            '<th style="width: 60px;">Base</th>' +
+                                            '<th>Change Type</th>' +
+                                            '<th>Current</th>' +
+                                            '<th>New</th>' +
+                                        '</tr>' +
+                                    '</thead>' +
+                                    '<tbody id="importChangesTable"></tbody>' +
+                                '</table>' +
+                            '</div>' +
+                        '</div>' +
+                        
+                        '<div id="importConflictWarning" class="alert alert-danger mb-4" style="display: none; background: #fee2e2; border-color: #fecaca;">' +
+                            '<i class="fas fa-exclamation-triangle me-2" style="color: #991b1b;"></i>' +
+                            '<strong>Conflicts detected:</strong> Some rules have different values. Review carefully before importing.' +
+                        '</div>' +
+                        
+                        '<div class="alert alert-info" style="background: #e8f4fd; border: 1px solid #1e3a5f;">' +
+                            '<i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i>' +
+                            'To confirm import, type <code style="background: #1e3a5f; color: white; padding: 2px 6px; border-radius: 4px;">IMPORT</code> below:' +
+                        '</div>' +
+                        '<div class="mb-3">' +
+                            '<input type="text" class="form-control" id="importConfirmInput" placeholder="Type IMPORT to confirm..." autocomplete="off">' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="modal-footer">' +
-                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
-                    '<button type="button" class="btn btn-primary" onclick="executeNormImport()" style="background: #1e3a5f; border-color: #1e3a5f;">' +
-                        '<i class="fas fa-upload me-1"></i>Import' +
+                    '<small class="text-muted me-auto"><i class="fas fa-shield-alt me-1"></i>All import actions are logged</small>' +
+                    '<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn" id="importApplyBtn" onclick="executeNormImport()" style="background: #1e3a5f; border-color: #1e3a5f; color: white; display: none;" disabled>' +
+                        '<i class="fas fa-check me-1"></i>Apply Import' +
                     '</button>' +
                 '</div>' +
             '</div>' +
@@ -5949,22 +6177,316 @@ function showImportNormLibraryModal() {
     var existingModal = document.getElementById('importNormModal');
     if (existingModal) existingModal.remove();
     
+    window.pendingImportData = null;
+    window.parsedImportRules = null;
+    
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     var modal = new bootstrap.Modal(document.getElementById('importNormModal'));
     modal.show();
 }
 
-function executeNormImport() {
-    // TODO: Backend integration - parse and import JSON data
-    console.log('[NormalisationLibrary] Import executed');
+function selectImportMode(btn) {
+    document.querySelectorAll('.norm-import-mode-btn').forEach(function(b) {
+        b.classList.remove('active');
+    });
+    btn.classList.add('active');
+}
+
+function parseImportFile() {
+    var fileInput = document.getElementById('importFile');
+    if (!fileInput.files || fileInput.files.length === 0) return;
     
-    var importMode = document.getElementById('importMode').value;
-    logAuditEvent('NORMALISATION_LIBRARY_IMPORTED', { mode: importMode });
+    var file = fileInput.files[0];
+    var reader = new FileReader();
+    
+    reader.onload = function(e) {
+        var content = e.target.result;
+        var isCSV = file.name.endsWith('.csv');
+        
+        try {
+            if (isCSV) {
+                window.parsedImportRules = parseCSVImport(content);
+            } else {
+                window.parsedImportRules = parseJSONImport(content);
+            }
+            document.getElementById('importPreviewBtn').disabled = false;
+            showToast('File parsed: ' + window.parsedImportRules.length + ' rules found', 'success');
+        } catch (err) {
+            showToast('Error parsing file: ' + err.message, 'error');
+            document.getElementById('importPreviewBtn').disabled = true;
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
+function parseImportPaste() {
+    var content = document.getElementById('importPasteContent').value.trim();
+    if (!content) {
+        document.getElementById('importPreviewBtn').disabled = true;
+        return;
+    }
+    
+    try {
+        if (content.startsWith('{') || content.startsWith('[')) {
+            window.parsedImportRules = parseJSONImport(content);
+        } else {
+            window.parsedImportRules = parseCSVImport(content);
+        }
+        document.getElementById('importPreviewBtn').disabled = false;
+        showToast('Content parsed: ' + window.parsedImportRules.length + ' rules found', 'success');
+    } catch (err) {
+        showToast('Error parsing content: ' + err.message, 'error');
+        document.getElementById('importPreviewBtn').disabled = true;
+    }
+}
+
+function parseJSONImport(content) {
+    var data = JSON.parse(content);
+    var rules = data.rules || data.baseCharacters || [];
+    
+    return rules.map(function(r) {
+        return {
+            base_char: r.base_char || r.base,
+            equivalents: typeof r.equivalents === 'string' ? r.equivalents.split(',').filter(function(e) { return e.trim(); }) : (r.equivalents || []),
+            applies_to: typeof r.applies_to === 'string' ? r.applies_to.split(',').filter(function(s) { return s.trim(); }) : (r.applies_to || r.scope || ['senderid']),
+            status: r.status || (r.enabled ? 'enabled' : 'disabled'),
+            risk: r.risk || 'none',
+            notes: r.notes || ''
+        };
+    });
+}
+
+function parseCSVImport(content) {
+    var lines = content.trim().split('\n');
+    if (lines.length < 2) throw new Error('CSV must have header and at least one data row');
+    
+    var headers = lines[0].split(',').map(function(h) { return h.trim().toLowerCase(); });
+    var baseIdx = headers.indexOf('base_char');
+    var equivIdx = headers.indexOf('equivalents');
+    var scopeIdx = headers.indexOf('applies_to');
+    var statusIdx = headers.indexOf('status');
+    var riskIdx = headers.indexOf('risk');
+    
+    if (baseIdx === -1) throw new Error('Missing required column: base_char');
+    
+    var rules = [];
+    for (var i = 1; i < lines.length; i++) {
+        var values = parseCSVLine(lines[i]);
+        if (values.length === 0 || !values[baseIdx]) continue;
+        
+        rules.push({
+            base_char: values[baseIdx],
+            equivalents: equivIdx !== -1 ? values[equivIdx].split(',').filter(function(e) { return e.trim(); }) : [],
+            applies_to: scopeIdx !== -1 ? values[scopeIdx].split(',').filter(function(s) { return s.trim(); }) : ['senderid'],
+            status: statusIdx !== -1 ? values[statusIdx] : 'enabled',
+            risk: riskIdx !== -1 ? values[riskIdx] : 'none'
+        });
+    }
+    
+    return rules;
+}
+
+function parseCSVLine(line) {
+    var values = [];
+    var current = '';
+    var inQuotes = false;
+    
+    for (var i = 0; i < line.length; i++) {
+        var char = line[i];
+        if (char === '"') {
+            inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    values.push(current.trim());
+    
+    return values;
+}
+
+function showImportPreview() {
+    if (!window.parsedImportRules || window.parsedImportRules.length === 0) {
+        showToast('No rules to import', 'error');
+        return;
+    }
+    
+    var modeBtn = document.querySelector('.norm-import-mode-btn.active');
+    var mode = modeBtn ? modeBtn.getAttribute('data-mode') : 'merge';
+    
+    var newRules = [];
+    var updatedRules = [];
+    var conflicts = [];
+    
+    window.parsedImportRules.forEach(function(importRule) {
+        var existingChar = mockData.baseCharacterLibrary.find(function(c) { return c.base === importRule.base_char; });
+        
+        if (!existingChar) {
+            return;
+        }
+        
+        var currentEquivs = existingChar.equivalents.slice().sort().join(',');
+        var newEquivs = (importRule.equivalents || []).slice().sort().join(',');
+        
+        if (mode === 'merge') {
+            var mergedEquivs = existingChar.equivalents.slice();
+            (importRule.equivalents || []).forEach(function(eq) {
+                if (mergedEquivs.indexOf(eq) === -1) {
+                    mergedEquivs.push(eq);
+                }
+            });
+            newEquivs = mergedEquivs.slice().sort().join(',');
+        }
+        
+        if (currentEquivs === newEquivs && 
+            existingChar.scope.slice().sort().join(',') === (importRule.applies_to || []).slice().sort().join(',') &&
+            (existingChar.enabled ? 'enabled' : 'disabled') === importRule.status) {
+            return;
+        }
+        
+        var changeType = existingChar.equivalents.length === 0 ? 'new' : 'update';
+        
+        if (changeType === 'new') {
+            newRules.push({ rule: importRule, existing: existingChar });
+        } else {
+            var hasConflict = mode === 'replace' && currentEquivs !== '' && newEquivs !== currentEquivs;
+            if (hasConflict) {
+                conflicts.push({ rule: importRule, existing: existingChar });
+            } else {
+                updatedRules.push({ rule: importRule, existing: existingChar });
+            }
+        }
+    });
+    
+    document.getElementById('importNewCount').textContent = newRules.length;
+    document.getElementById('importUpdatedCount').textContent = updatedRules.length;
+    document.getElementById('importConflictCount').textContent = conflicts.length;
+    
+    var tableHtml = '';
+    
+    newRules.forEach(function(item) {
+        tableHtml += '<tr>' +
+            '<td><code class="fs-5">' + item.rule.base_char + '</code></td>' +
+            '<td><span class="badge bg-success">New</span></td>' +
+            '<td class="text-muted">—</td>' +
+            '<td>' + (item.rule.equivalents || []).join(', ') + '</td>' +
+        '</tr>';
+    });
+    
+    updatedRules.forEach(function(item) {
+        tableHtml += '<tr>' +
+            '<td><code class="fs-5">' + item.rule.base_char + '</code></td>' +
+            '<td><span class="badge bg-warning text-dark">Update</span></td>' +
+            '<td>' + item.existing.equivalents.join(', ') + '</td>' +
+            '<td>' + (item.rule.equivalents || []).join(', ') + '</td>' +
+        '</tr>';
+    });
+    
+    conflicts.forEach(function(item) {
+        tableHtml += '<tr style="background: #fee2e2;">' +
+            '<td><code class="fs-5">' + item.rule.base_char + '</code></td>' +
+            '<td><span class="badge bg-danger">Conflict</span></td>' +
+            '<td>' + item.existing.equivalents.join(', ') + '</td>' +
+            '<td>' + (item.rule.equivalents || []).join(', ') + '</td>' +
+        '</tr>';
+    });
+    
+    if (tableHtml === '') {
+        tableHtml = '<tr><td colspan="4" class="text-center text-muted py-4">No changes to apply</td></tr>';
+    }
+    
+    document.getElementById('importChangesTable').innerHTML = tableHtml;
+    document.getElementById('importConflictWarning').style.display = conflicts.length > 0 ? 'block' : 'none';
+    
+    window.pendingImportData = { newRules: newRules, updatedRules: updatedRules, conflicts: conflicts, mode: mode };
+    
+    document.getElementById('importStep1').style.display = 'none';
+    document.getElementById('importStep2').style.display = 'block';
+    document.getElementById('importApplyBtn').style.display = 'inline-block';
+    
+    var confirmInput = document.getElementById('importConfirmInput');
+    var applyBtn = document.getElementById('importApplyBtn');
+    
+    confirmInput.value = '';
+    applyBtn.disabled = true;
+    
+    confirmInput.addEventListener('input', function() {
+        applyBtn.disabled = this.value.trim().toUpperCase() !== 'IMPORT';
+    });
+}
+
+function backToImportStep1() {
+    document.getElementById('importStep1').style.display = 'block';
+    document.getElementById('importStep2').style.display = 'none';
+    document.getElementById('importApplyBtn').style.display = 'none';
+}
+
+function executeNormImport() {
+    var confirmInput = document.getElementById('importConfirmInput');
+    if (confirmInput.value.trim().toUpperCase() !== 'IMPORT') {
+        showToast('Please type IMPORT to confirm', 'warning');
+        return;
+    }
+    
+    if (!window.pendingImportData) {
+        showToast('No import data available', 'error');
+        return;
+    }
+    
+    var data = window.pendingImportData;
+    var appliedCount = 0;
+    
+    var allChanges = data.newRules.concat(data.updatedRules).concat(data.conflicts);
+    
+    allChanges.forEach(function(item) {
+        var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === item.rule.base_char; });
+        if (!char) return;
+        
+        var beforeState = {
+            equivalents: char.equivalents.slice(),
+            scope: char.scope.slice(),
+            enabled: char.enabled
+        };
+        
+        if (data.mode === 'merge') {
+            (item.rule.equivalents || []).forEach(function(eq) {
+                if (char.equivalents.indexOf(eq) === -1) {
+                    char.equivalents.push(eq);
+                }
+            });
+        } else {
+            char.equivalents = item.rule.equivalents || [];
+        }
+        
+        char.scope = item.rule.applies_to || char.scope;
+        char.enabled = item.rule.status === 'enabled';
+        char.risk = computeRisk(char);
+        char.updated = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+        
+        appliedCount++;
+    });
+    
+    logAuditEvent('NORMALISATION_RULES_IMPORTED', {
+        mode: data.mode,
+        newRules: data.newRules.length,
+        updatedRules: data.updatedRules.length,
+        conflicts: data.conflicts.length,
+        totalApplied: appliedCount
+    });
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('importNormModal'));
     modal.hide();
     
-    showToast('Import completed successfully', 'success');
+    window.pendingImportData = null;
+    window.parsedImportRules = null;
+    
+    MessageEnforcementService.hotReloadRules();
+    SecurityComplianceControlsService.renderAllTabs();
+    
+    showToast('Successfully imported ' + appliedCount + ' rules', 'success');
 }
 
 var NormalisationLibrary = (function() {
