@@ -529,6 +529,92 @@
     font-size: 0.7rem;
     color: #9ca3af;
 }
+.norm-scope-toggle {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    color: #6b7280;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+.norm-scope-toggle:hover {
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.norm-scope-toggle.active {
+    background: #1e3a5f;
+    border-color: #1e3a5f;
+    color: white;
+}
+.norm-equiv-container {
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem;
+    min-height: 80px;
+    background: #fafbfc;
+    transition: border-color 0.15s ease;
+}
+.norm-equiv-container:focus-within {
+    border-color: #1e3a5f;
+    background: white;
+}
+.norm-equiv-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.norm-equiv-tag {
+    display: inline-flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e3a5f;
+    transition: all 0.15s ease;
+}
+.norm-equiv-tag:hover {
+    background: #f0f7ff;
+    border-color: #1e3a5f;
+}
+.norm-equiv-code {
+    font-size: 0.65rem;
+    color: #9ca3af;
+    margin-left: 6px;
+    font-weight: 400;
+}
+.norm-equiv-remove {
+    margin-left: 8px;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: color 0.15s ease;
+}
+.norm-equiv-remove:hover {
+    color: #dc2626;
+}
+.norm-equiv-input-wrap {
+    margin-top: 4px;
+}
+.norm-equiv-input {
+    border: none;
+    background: transparent;
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+    padding: 4px 8px;
+    width: 100%;
+    outline: none;
+}
+.norm-equiv-input::placeholder {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    font-family: inherit;
+}
 .sec-filter-row {
     display: flex;
     gap: 1rem;
@@ -1164,7 +1250,7 @@
                             <button class="btn btn-sm btn-outline-secondary" onclick="testNormalisationRule()">
                                 <i class="fas fa-flask me-1"></i>Test
                             </button>
-                            <button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="showAddEquivalentModal()">
+                            <button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="showNormRuleModal()">
                                 <i class="fas fa-plus me-1"></i>Add Rule
                             </button>
                         </div>
@@ -4268,77 +4354,237 @@ function refreshAllControls() {
 }
 
 function editBaseCharacter(base) {
-    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
-    if (!char) return;
+    showNormRuleModal(base);
+}
+
+function showNormRuleModal(base) {
+    var isEdit = !!base;
+    var char = isEdit ? mockData.baseCharacterLibrary.find(function(c) { return c.base === base; }) : null;
     
-    var scopeIcons = {
-        'senderid': { icon: 'fa-id-badge', color: '#d97706', label: 'SenderID' },
-        'content': { icon: 'fa-comment-alt', color: '#2563eb', label: 'Content' },
-        'url': { icon: 'fa-link', color: '#7c3aed', label: 'URL' }
-    };
+    var title = isEdit 
+        ? '<i class="fas fa-edit me-2"></i>Edit Normalisation Rule: <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; font-size: 1.1rem;">' + base + '</code>'
+        : '<i class="fas fa-plus me-2"></i>Add Normalisation Rule';
     
-    var modalHtml = '<div class="modal fade" id="editBaseCharModal" tabindex="-1">' +
+    var charOptions = mockData.baseCharacterLibrary.map(function(c) {
+        var selected = (isEdit && c.base === base) ? ' selected' : '';
+        return '<option value="' + c.base + '"' + selected + '>' + c.base + ' (' + c.type + ')</option>';
+    }).join('');
+    
+    var existingEquivalents = char ? char.equivalents : [];
+    var existingScope = char ? char.scope : ['senderid', 'content'];
+    var existingNotes = char ? (char.notes || '') : '';
+    var existingEnabled = char ? char.enabled : true;
+    
+    var equivalentsChipsHtml = existingEquivalents.map(function(eq) {
+        var codepoint = eq.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+        return '<span class="norm-equiv-tag" data-char="' + eq + '">' + eq + 
+            '<span class="norm-equiv-code">U+' + codepoint + '</span>' +
+            '<i class="fas fa-times norm-equiv-remove" onclick="removeEquivFromModal(\'' + eq.replace(/'/g, "\\'") + '\')"></i></span>';
+    }).join('');
+    
+    var modalHtml = '<div class="modal fade" id="normRuleModal" tabindex="-1">' +
         '<div class="modal-dialog modal-lg">' +
             '<div class="modal-content">' +
                 '<div class="modal-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%); color: white;">' +
-                    '<h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Base Character: <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">' + base + '</code></h5>' +
+                    '<h5 class="modal-title">' + title + '</h5>' +
                     '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
                 '</div>' +
                 '<div class="modal-body">' +
-                    '<div class="alert alert-info mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f;">' +
-                        '<i class="fas fa-lock me-2"></i><strong>Fixed Base Character:</strong> This character cannot be deleted from the library.' +
+                    (isEdit ? '<div class="alert alert-info mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f; border-radius: 8px;">' +
+                        '<i class="fas fa-lock me-2" style="color: #1e3a5f;"></i><strong>Fixed Base Character:</strong> Base characters cannot be changed or deleted.' +
+                    '</div>' : '') +
+                    
+                    '<div class="mb-4">' +
+                        '<label class="form-label fw-bold"><i class="fas fa-font me-2 text-muted"></i>Base Character</label>' +
+                        '<select class="form-select" id="normRuleBase" ' + (isEdit ? 'disabled' : '') + ' style="' + (isEdit ? 'background: #f8f9fa; font-size: 1.1rem; font-family: monospace;' : 'font-size: 1.1rem; font-family: monospace;') + '">' +
+                            charOptions +
+                        '</select>' +
+                        (isEdit ? '<input type="hidden" id="normRuleBaseHidden" value="' + base + '">' : '') +
+                        '<small class="text-muted">The base character that equivalents will map to</small>' +
                     '</div>' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Equivalent Characters</label>' +
-                        '<input type="text" class="form-control" id="editCharEquivalents" value="' + char.equivalents.join(', ') + '" placeholder="Enter equivalent characters, comma-separated">' +
-                        '<small class="text-muted">Characters that should be treated as equivalent to "' + base + '" during normalisation</small>' +
+                    
+                    '<div class="mb-4">' +
+                        '<label class="form-label fw-bold"><i class="fas fa-bullseye me-2 text-muted"></i>Applies To</label>' +
+                        '<div class="d-flex gap-2 flex-wrap">' +
+                            '<button type="button" class="btn norm-scope-toggle ' + (existingScope.indexOf('senderid') !== -1 ? 'active' : '') + '" data-scope="senderid" onclick="toggleNormScope(this)">' +
+                                '<i class="fas fa-id-badge me-1"></i>SenderID' +
+                            '</button>' +
+                            '<button type="button" class="btn norm-scope-toggle ' + (existingScope.indexOf('content') !== -1 ? 'active' : '') + '" data-scope="content" onclick="toggleNormScope(this)">' +
+                                '<i class="fas fa-comment-alt me-1"></i>Content' +
+                            '</button>' +
+                            '<button type="button" class="btn norm-scope-toggle ' + (existingScope.indexOf('url') !== -1 ? 'active' : '') + '" data-scope="url" onclick="toggleNormScope(this)">' +
+                                '<i class="fas fa-link me-1"></i>URL' +
+                            '</button>' +
+                        '</div>' +
+                        '<small class="text-muted">Select which engines will use this normalisation rule</small>' +
                     '</div>' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Applies-To Scope</label>' +
-                        '<div class="d-flex gap-3">' +
-                            '<div class="form-check">' +
-                                '<input class="form-check-input" type="checkbox" id="editCharScopeSenderid" ' + (char.scope.indexOf('senderid') !== -1 ? 'checked' : '') + '>' +
-                                '<label class="form-check-label" for="editCharScopeSenderid"><i class="fas fa-id-badge me-1" style="color: #d97706;"></i>SenderID</label>' +
-                            '</div>' +
-                            '<div class="form-check">' +
-                                '<input class="form-check-input" type="checkbox" id="editCharScopeContent" ' + (char.scope.indexOf('content') !== -1 ? 'checked' : '') + '>' +
-                                '<label class="form-check-label" for="editCharScopeContent"><i class="fas fa-comment-alt me-1" style="color: #2563eb;"></i>Content</label>' +
-                            '</div>' +
-                            '<div class="form-check">' +
-                                '<input class="form-check-input" type="checkbox" id="editCharScopeUrl" ' + (char.scope.indexOf('url') !== -1 ? 'checked' : '') + '>' +
-                                '<label class="form-check-label" for="editCharScopeUrl"><i class="fas fa-link me-1" style="color: #7c3aed;"></i>URL</label>' +
+                    
+                    '<div class="mb-4">' +
+                        '<label class="form-label fw-bold"><i class="fas fa-equals me-2 text-muted"></i>Equivalents</label>' +
+                        '<div class="norm-equiv-container" id="normEquivContainer">' +
+                            '<div class="norm-equiv-tags" id="normEquivTags">' + equivalentsChipsHtml + '</div>' +
+                            '<div class="norm-equiv-input-wrap">' +
+                                '<input type="text" class="norm-equiv-input" id="normEquivInput" placeholder="Type character and press Enter..." maxlength="2" onkeydown="handleEquivInput(event)">' +
                             '</div>' +
                         '</div>' +
+                        '<div class="d-flex justify-content-between align-items-center mt-2">' +
+                            '<small class="text-muted">Type a character and press Enter to add. Click X to remove.</small>' +
+                            '<span class="badge bg-secondary" id="normEquivCount">' + existingEquivalents.length + ' equivalent(s)</span>' +
+                        '</div>' +
                     '</div>' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Notes</label>' +
-                        '<textarea class="form-control" id="editCharNotes" rows="2" placeholder="Optional notes about this character mapping...">' + (char.notes || '') + '</textarea>' +
+                    
+                    '<div class="mb-4">' +
+                        '<label class="form-label fw-bold"><i class="fas fa-sticky-note me-2 text-muted"></i>Notes <span class="text-muted fw-normal">(optional)</span></label>' +
+                        '<textarea class="form-control" id="normRuleNotes" rows="2" placeholder="Add notes about this mapping, e.g., &quot;Greek capital Alpha - commonly used in phishing&quot;">' + existingNotes.replace(/"/g, '&quot;') + '</textarea>' +
                     '</div>' +
+                    
                     '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Status</label>' +
+                        '<label class="form-label fw-bold"><i class="fas fa-toggle-on me-2 text-muted"></i>Status</label>' +
                         '<div class="form-check form-switch">' +
-                            '<input class="form-check-input" type="checkbox" id="editCharEnabled" ' + (char.enabled ? 'checked' : '') + '>' +
-                            '<label class="form-check-label" for="editCharEnabled">Enabled</label>' +
+                            '<input class="form-check-input" type="checkbox" id="normRuleEnabled" ' + (existingEnabled ? 'checked' : '') + ' style="width: 3rem; height: 1.5rem;">' +
+                            '<label class="form-check-label ms-2" for="normRuleEnabled" id="normRuleStatusLabel">' + (existingEnabled ? 'Enabled' : 'Disabled') + '</label>' +
                         '</div>' +
                     '</div>' +
                 '</div>' +
                 '<div class="modal-footer">' +
                     '<small class="text-muted me-auto"><i class="fas fa-shield-alt me-1"></i>Changes logged to audit trail</small>' +
-                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
-                    '<button type="button" class="btn btn-primary" onclick="saveBaseCharacter(\'' + base + '\')" style="background: #1e3a5f; border-color: #1e3a5f;">' +
-                        '<i class="fas fa-save me-1"></i>Save Changes' +
+                    '<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>' +
+                    '<button type="button" class="btn" onclick="saveNormRule(\'' + (base || '') + '\')" style="background: #1e3a5f; border-color: #1e3a5f; color: white;">' +
+                        '<i class="fas fa-save me-1"></i>Save' +
                     '</button>' +
                 '</div>' +
             '</div>' +
         '</div>' +
     '</div>';
     
-    var existingModal = document.getElementById('editBaseCharModal');
+    var existingModal = document.getElementById('normRuleModal');
     if (existingModal) existingModal.remove();
     
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    var modal = new bootstrap.Modal(document.getElementById('editBaseCharModal'));
+    
+    document.getElementById('normRuleEnabled').addEventListener('change', function() {
+        document.getElementById('normRuleStatusLabel').textContent = this.checked ? 'Enabled' : 'Disabled';
+    });
+    
+    var modal = new bootstrap.Modal(document.getElementById('normRuleModal'));
     modal.show();
+}
+
+function toggleNormScope(btn) {
+    btn.classList.toggle('active');
+}
+
+function handleEquivInput(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        var input = document.getElementById('normEquivInput');
+        var char = input.value.trim();
+        if (char.length === 0) return;
+        
+        var tagsContainer = document.getElementById('normEquivTags');
+        var existingTags = tagsContainer.querySelectorAll('.norm-equiv-tag');
+        var exists = false;
+        existingTags.forEach(function(tag) {
+            if (tag.getAttribute('data-char') === char) exists = true;
+        });
+        
+        if (exists) {
+            input.value = '';
+            return;
+        }
+        
+        var codepoint = char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+        var tagHtml = '<span class="norm-equiv-tag" data-char="' + char + '">' + char + 
+            '<span class="norm-equiv-code">U+' + codepoint + '</span>' +
+            '<i class="fas fa-times norm-equiv-remove" onclick="removeEquivFromModal(\'' + char.replace(/'/g, "\\'") + '\')"></i></span>';
+        
+        tagsContainer.insertAdjacentHTML('beforeend', tagHtml);
+        input.value = '';
+        updateEquivCount();
+    }
+}
+
+function removeEquivFromModal(char) {
+    var tagsContainer = document.getElementById('normEquivTags');
+    var tags = tagsContainer.querySelectorAll('.norm-equiv-tag');
+    tags.forEach(function(tag) {
+        if (tag.getAttribute('data-char') === char) {
+            tag.remove();
+        }
+    });
+    updateEquivCount();
+}
+
+function updateEquivCount() {
+    var count = document.querySelectorAll('#normEquivTags .norm-equiv-tag').length;
+    document.getElementById('normEquivCount').textContent = count + ' equivalent(s)';
+}
+
+function saveNormRule(originalBase) {
+    var isEdit = !!originalBase;
+    var base = isEdit ? originalBase : document.getElementById('normRuleBase').value;
+    
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+    if (!char) return;
+    
+    var scopeButtons = document.querySelectorAll('.norm-scope-toggle.active');
+    var scope = [];
+    scopeButtons.forEach(function(btn) {
+        scope.push(btn.getAttribute('data-scope'));
+    });
+    if (scope.length === 0) scope = ['senderid'];
+    
+    var equivTags = document.querySelectorAll('#normEquivTags .norm-equiv-tag');
+    var equivalents = [];
+    equivTags.forEach(function(tag) {
+        equivalents.push(tag.getAttribute('data-char'));
+    });
+    
+    var notes = document.getElementById('normRuleNotes').value.trim();
+    var enabled = document.getElementById('normRuleEnabled').checked;
+    
+    var beforeState = {
+        equivalents: char.equivalents.slice(),
+        scope: char.scope.slice(),
+        notes: char.notes,
+        enabled: char.enabled
+    };
+    
+    char.equivalents = equivalents;
+    char.scope = scope;
+    char.notes = notes;
+    char.enabled = enabled;
+    char.updated = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+    
+    char.risk = computeRisk(char);
+    
+    logAuditEvent('BASE_CHARACTER_UPDATED', {
+        base: base,
+        before: beforeState,
+        after: {
+            equivalents: char.equivalents,
+            scope: char.scope,
+            notes: char.notes,
+            enabled: char.enabled
+        }
+    });
+    
+    var modal = bootstrap.Modal.getInstance(document.getElementById('normRuleModal'));
+    modal.hide();
+    
+    MessageEnforcementService.hotReloadRules();
+    SecurityComplianceControlsService.renderAllTabs();
+    showToast((isEdit ? 'Updated' : 'Added') + ' normalisation rule for "' + base + '"', 'success');
+}
+
+function computeRisk(char) {
+    var equivCount = char.equivalents.length;
+    var scopeCount = char.scope.length;
+    
+    if (equivCount >= 4 && scopeCount >= 3) return 'high';
+    if (equivCount >= 2 && scopeCount >= 2) return 'medium';
+    if (equivCount >= 1) return 'low';
+    return 'none';
 }
 
 function saveBaseCharacter(base) {
@@ -5078,107 +5324,6 @@ function executeNormImport() {
     modal.hide();
     
     showToast('Import completed successfully', 'success');
-}
-
-function showAddEquivalentModal() {
-    var charOptions = mockData.baseCharacterLibrary.map(function(c) {
-        return '<option value="' + c.base + '">' + c.base + ' (' + c.type + ')</option>';
-    }).join('');
-    
-    var modalHtml = 
-    '<div class="modal fade" id="addEquivalentModal" tabindex="-1">' +
-        '<div class="modal-dialog">' +
-            '<div class="modal-content">' +
-                '<div class="modal-header" style="background: #1e3a5f; color: white;">' +
-                    '<h5 class="modal-title"><i class="fas fa-plus me-2"></i>Add Equivalent Character</h5>' +
-                    '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
-                '</div>' +
-                '<div class="modal-body">' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Base Character</label>' +
-                        '<select class="form-control" id="addEquivBase">' +
-                            charOptions +
-                        '</select>' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">New Equivalent(s)</label>' +
-                        '<input type="text" class="form-control" id="addEquivChars" placeholder="Enter equivalent characters (comma-separated)">' +
-                        '<small class="text-muted">e.g., Α, А, Ａ (Greek, Cyrillic, Fullwidth)</small>' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Apply To Scope</label>' +
-                        '<div class="d-flex gap-3">' +
-                            '<div class="form-check">' +
-                                '<input class="form-check-input" type="checkbox" id="addEquivSenderid" checked>' +
-                                '<label class="form-check-label" for="addEquivSenderid"><i class="fas fa-id-badge me-1" style="color: #d97706;"></i>SenderID</label>' +
-                            '</div>' +
-                            '<div class="form-check">' +
-                                '<input class="form-check-input" type="checkbox" id="addEquivContent">' +
-                                '<label class="form-check-label" for="addEquivContent"><i class="fas fa-comment-alt me-1" style="color: #2563eb;"></i>Content</label>' +
-                            '</div>' +
-                            '<div class="form-check">' +
-                                '<input class="form-check-input" type="checkbox" id="addEquivUrl">' +
-                                '<label class="form-check-label" for="addEquivUrl"><i class="fas fa-link me-1" style="color: #7c3aed;"></i>URL</label>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="modal-footer">' +
-                    '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>' +
-                    '<button type="button" class="btn btn-primary" onclick="executeAddEquivalent()" style="background: #1e3a5f; border-color: #1e3a5f;">' +
-                        '<i class="fas fa-plus me-1"></i>Add' +
-                    '</button>' +
-                '</div>' +
-            '</div>' +
-        '</div>' +
-    '</div>';
-    
-    var existingModal = document.getElementById('addEquivalentModal');
-    if (existingModal) existingModal.remove();
-    
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
-    var modal = new bootstrap.Modal(document.getElementById('addEquivalentModal'));
-    modal.show();
-}
-
-function executeAddEquivalent() {
-    var baseChar = document.getElementById('addEquivBase').value;
-    var newEquivsRaw = document.getElementById('addEquivChars').value;
-    var scope = [];
-    if (document.getElementById('addEquivSenderid').checked) scope.push('senderid');
-    if (document.getElementById('addEquivContent').checked) scope.push('content');
-    if (document.getElementById('addEquivUrl').checked) scope.push('url');
-    
-    if (!newEquivsRaw.trim()) {
-        showToast('Please enter at least one equivalent character', 'error');
-        return;
-    }
-    
-    var newEquivs = newEquivsRaw.split(',').map(function(e) { return e.trim(); }).filter(function(e) { return e.length > 0; });
-    
-    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === baseChar; });
-    if (char) {
-        var beforeEquivs = char.equivalents.slice();
-        newEquivs.forEach(function(eq) {
-            if (char.equivalents.indexOf(eq) === -1) {
-                char.equivalents.push(eq);
-            }
-        });
-        if (scope.length > 0) char.scope = scope;
-        
-        logAuditEvent('BASE_CHARACTER_UPDATED', {
-            base: baseChar,
-            before: { equivalents: beforeEquivs },
-            after: { equivalents: char.equivalents }
-        });
-    }
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('addEquivalentModal'));
-    modal.hide();
-    
-    MessageEnforcementService.hotReloadRules();
-    SecurityComplianceControlsService.renderAllTabs();
-    showToast('Equivalent character(s) added to ' + baseChar, 'success');
 }
 
 var NormalisationLibrary = (function() {
