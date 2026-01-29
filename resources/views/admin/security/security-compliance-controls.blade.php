@@ -485,17 +485,27 @@
                             <select id="senderid-filter-status">
                                 <option value="">All Statuses</option>
                                 <option value="active">Active</option>
-                                <option value="blocked">Blocked</option>
-                                <option value="pending">Pending</option>
+                                <option value="disabled">Disabled</option>
                             </select>
                         </div>
                         <div class="sec-filter-group">
                             <label>Rule Type</label>
                             <select id="senderid-filter-type">
                                 <option value="">All Types</option>
-                                <option value="exact">Exact Match</option>
-                                <option value="pattern">Pattern</option>
-                                <option value="keyword">Keyword</option>
+                                <option value="block">Block</option>
+                                <option value="flag">Flag (Quarantine)</option>
+                            </select>
+                        </div>
+                        <div class="sec-filter-group">
+                            <label>Category</label>
+                            <select id="senderid-filter-category">
+                                <option value="">All Categories</option>
+                                <option value="bank_impersonation">Bank Impersonation</option>
+                                <option value="government">Government</option>
+                                <option value="lottery_prize">Lottery/Prize</option>
+                                <option value="brand_abuse">Brand Abuse</option>
+                                <option value="premium_rate">Premium Rate</option>
+                                <option value="other">Other</option>
                             </select>
                         </div>
                         <div class="sec-filter-actions">
@@ -508,26 +518,31 @@
                         </div>
                     </div>
                     <div class="sec-table-header">
-                        <h6>SenderID Rules</h6>
+                        <h6>SenderID Rule Library</h6>
                         <div class="sec-search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search SenderIDs..." id="senderid-search">
+                            <input type="text" class="form-control" placeholder="Search rules..." id="senderid-search">
                         </div>
                     </div>
-                    <table class="sec-table" id="senderid-rules-table">
-                        <thead>
-                            <tr>
-                                <th>Rule Name <i class="fas fa-sort"></i></th>
-                                <th>Pattern / Value <i class="fas fa-sort"></i></th>
-                                <th>Type <i class="fas fa-sort"></i></th>
-                                <th>Status <i class="fas fa-sort"></i></th>
-                                <th>Created <i class="fas fa-sort"></i></th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="senderid-rules-body">
-                        </tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="sec-table" id="senderid-rules-table">
+                            <thead>
+                                <tr>
+                                    <th>Rule Name <i class="fas fa-sort"></i></th>
+                                    <th>Base SenderID <i class="fas fa-sort"></i></th>
+                                    <th>Rule Type <i class="fas fa-sort"></i></th>
+                                    <th>Category <i class="fas fa-sort"></i></th>
+                                    <th>Normalisation <i class="fas fa-sort"></i></th>
+                                    <th>Status <i class="fas fa-sort"></i></th>
+                                    <th>Created By <i class="fas fa-sort"></i></th>
+                                    <th>Last Updated <i class="fas fa-sort"></i></th>
+                                    <th style="width: 80px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="senderid-rules-body">
+                            </tbody>
+                        </table>
+                    </div>
                     <div class="sec-empty-state" id="senderid-empty-state" style="display: none;">
                         <i class="fas fa-id-badge"></i>
                         <h6>No SenderID Rules</h6>
@@ -879,6 +894,138 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="senderIdRuleModal" tabindex="-1" aria-labelledby="senderIdRuleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f8f9fc; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" id="senderIdRuleModalLabel" style="color: #1e3a5f; font-weight: 600;">
+                    <i class="fas fa-id-badge me-2"></i><span id="senderid-modal-title">Add SenderID Rule</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="senderid-rule-id" value="">
+                
+                <div class="mb-3">
+                    <label class="form-label" style="font-weight: 500; color: #1e3a5f;">Rule Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="senderid-rule-name" placeholder="e.g., Block HSBC Impersonation" required>
+                    <small class="text-muted">A descriptive name for this rule</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-weight: 500; color: #1e3a5f;">Base SenderID <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="senderid-base-value" placeholder="e.g., HSBC" style="text-transform: uppercase;" required>
+                    <small class="text-muted">The canonical SenderID to match (case-insensitive, variants auto-detected)</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-weight: 500; color: #1e3a5f;">Rule Type <span class="text-danger">*</span></label>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="senderid-rule-type" id="senderid-type-block" value="block" checked>
+                            <label class="form-check-label" for="senderid-type-block">
+                                <span class="badge bg-danger">Block</span>
+                                <small class="d-block text-muted">Reject message outright</small>
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="senderid-rule-type" id="senderid-type-flag" value="flag">
+                            <label class="form-check-label" for="senderid-type-flag">
+                                <span class="badge bg-warning text-dark">Flag</span>
+                                <small class="d-block text-muted">Send to quarantine for review</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" style="font-weight: 500; color: #1e3a5f;">Category <span class="text-danger">*</span></label>
+                    <select class="form-select" id="senderid-category" required>
+                        <option value="">Select a category...</option>
+                        <option value="bank_impersonation">Bank Impersonation</option>
+                        <option value="government">Government Impersonation</option>
+                        <option value="lottery_prize">Lottery/Prize Scam</option>
+                        <option value="brand_abuse">Brand Abuse</option>
+                        <option value="premium_rate">Premium Rate Services</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="senderid-apply-normalisation" checked>
+                        <label class="form-check-label" for="senderid-apply-normalisation" style="font-weight: 500; color: #1e3a5f;">
+                            Apply Normalisation Rules
+                        </label>
+                    </div>
+                    <small class="text-muted">When enabled, global normalisation rules will be applied before matching</small>
+                </div>
+
+                <div class="p-3 rounded" style="background: #f8f9fc; border: 1px solid #e9ecef;">
+                    <h6 style="font-size: 0.8rem; font-weight: 600; color: #1e3a5f; margin-bottom: 0.5rem;">
+                        <i class="fas fa-info-circle me-1"></i> Matching Behaviour
+                    </h6>
+                    <ul style="font-size: 0.75rem; color: #6c757d; margin: 0; padding-left: 1.25rem;">
+                        <li>Case-insensitive matching (HSBC = hsbc = HsBc)</li>
+                        <li>Character substitution variants detected (0→O, 1→I/L, 5→S)</li>
+                        <li>Whitespace and special characters normalized</li>
+                        <li id="normalisation-note">Global normalisation rules applied first</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8f9fc; border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" style="background: #1e3a5f; color: #fff;" onclick="saveSenderIdRule()">
+                    <i class="fas fa-save me-1"></i> <span id="senderid-save-btn-text">Save Rule</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="senderIdViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f8f9fc; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #1e3a5f; font-weight: 600;">
+                    <i class="fas fa-eye me-2"></i>View SenderID Rule
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="senderid-view-content">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fc; border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #fee2e2; border-bottom: 1px solid #fecaca;">
+                <h5 class="modal-title" style="color: #991b1b; font-weight: 600;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-delete-message">Are you sure you want to delete this rule?</p>
+                <p class="text-muted" style="font-size: 0.8rem;">This action cannot be undone.</p>
+                <input type="hidden" id="delete-rule-id" value="">
+                <input type="hidden" id="delete-rule-type" value="">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmDeleteRule()">
+                    <i class="fas fa-trash me-1"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -908,9 +1055,11 @@ var SecurityComplianceControlsService = (function() {
 
     function loadMockData() {
         mockData.senderIdRules = [
-            { id: 1, name: 'Block Bank Impersonation', pattern: '*HSBC*', type: 'pattern', status: 'active', created: '15-01-2026' },
-            { id: 2, name: 'Block Lottery Keywords', pattern: 'WINNER|PRIZE|LOTTERY', type: 'keyword', status: 'active', created: '12-01-2026' },
-            { id: 3, name: 'Restrict Premium SenderIDs', pattern: 'PREMIUM', type: 'exact', status: 'pending', created: '20-01-2026' }
+            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
+            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
+            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
+            { id: 'SID-004', name: 'Block Lottery Sender', baseSenderId: 'LOTTERY', ruleType: 'block', category: 'lottery_prize', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
+            { id: 'SID-005', name: 'Flag Premium Rate', baseSenderId: 'PREMIUM', ruleType: 'flag', category: 'premium_rate', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
         ];
 
         mockData.contentRules = [
@@ -951,9 +1100,18 @@ var SecurityComplianceControlsService = (function() {
         var emptyState = document.getElementById('senderid-empty-state');
         var rules = mockData.senderIdRules;
 
+        var categoryLabels = {
+            'bank_impersonation': 'Bank Impersonation',
+            'government': 'Government',
+            'lottery_prize': 'Lottery/Prize',
+            'brand_abuse': 'Brand Abuse',
+            'premium_rate': 'Premium Rate',
+            'other': 'Other'
+        };
+
         document.getElementById('senderid-active-count').textContent = rules.filter(r => r.status === 'active').length;
-        document.getElementById('senderid-blocked-count').textContent = rules.filter(r => r.status === 'blocked').length;
-        document.getElementById('senderid-pending-count').textContent = rules.filter(r => r.status === 'pending').length;
+        document.getElementById('senderid-blocked-count').textContent = rules.filter(r => r.ruleType === 'block').length;
+        document.getElementById('senderid-pending-count').textContent = rules.filter(r => r.ruleType === 'flag').length;
         document.getElementById('senderid-total-count').textContent = rules.length;
 
         if (rules.length === 0) {
@@ -964,13 +1122,40 @@ var SecurityComplianceControlsService = (function() {
 
         emptyState.style.display = 'none';
         tbody.innerHTML = rules.map(function(rule) {
-            return '<tr>' +
-                '<td><strong>' + rule.name + '</strong></td>' +
-                '<td><code>' + rule.pattern + '</code></td>' +
-                '<td>' + rule.type.charAt(0).toUpperCase() + rule.type.slice(1) + '</td>' +
-                '<td><span class="sec-status-badge ' + rule.status + '">' + rule.status.charAt(0).toUpperCase() + rule.status.slice(1) + '</span></td>' +
-                '<td>' + rule.created + '</td>' +
-                '<td><button class="action-menu-btn"><i class="fas fa-ellipsis-v"></i></button></td>' +
+            var ruleTypeBadge = rule.ruleType === 'block' 
+                ? '<span class="sec-status-badge blocked">Block</span>'
+                : '<span class="sec-status-badge pending">Flag</span>';
+            var statusBadge = rule.status === 'active'
+                ? '<span class="sec-status-badge active">Active</span>'
+                : '<span class="sec-status-badge draft">Disabled</span>';
+            var normBadge = rule.applyNormalisation
+                ? '<span class="badge bg-success" style="font-size: 0.65rem;">Y</span>'
+                : '<span class="badge bg-secondary" style="font-size: 0.65rem;">N</span>';
+            var isSuperAdmin = currentAdmin.role === 'super_admin';
+            
+            return '<tr data-rule-id="' + rule.id + '">' +
+                '<td><strong>' + rule.name + '</strong><br><small class="text-muted">' + rule.id + '</small></td>' +
+                '<td><code style="background: #e9ecef; padding: 0.15rem 0.4rem; border-radius: 3px;">' + rule.baseSenderId + '</code></td>' +
+                '<td>' + ruleTypeBadge + '</td>' +
+                '<td>' + (categoryLabels[rule.category] || rule.category) + '</td>' +
+                '<td class="text-center">' + normBadge + '</td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td><small>' + rule.createdBy.split('@')[0] + '</small></td>' +
+                '<td><small>' + rule.updatedAt + '</small></td>' +
+                '<td>' +
+                    '<div class="dropdown">' +
+                        '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
+                        '<ul class="dropdown-menu dropdown-menu-end">' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewSenderIdRule(\'' + rule.id + '\')"><i class="fas fa-eye me-2 text-muted"></i>View</a></li>' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editSenderIdRule(\'' + rule.id + '\')"><i class="fas fa-edit me-2 text-muted"></i>Edit</a></li>' +
+                            '<li><hr class="dropdown-divider"></li>' +
+                            (rule.status === 'active' 
+                                ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleSenderIdRuleStatus(\'' + rule.id + '\', \'disabled\')"><i class="fas fa-ban me-2 text-warning"></i>Disable</a></li>'
+                                : '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleSenderIdRuleStatus(\'' + rule.id + '\', \'active\')"><i class="fas fa-check me-2 text-success"></i>Enable</a></li>') +
+                            (isSuperAdmin ? '<li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="showDeleteConfirmation(\'' + rule.id + '\', \'senderid\')"><i class="fas fa-trash me-2"></i>Delete</a></li>' : '') +
+                        '</ul>' +
+                    '</div>' +
+                '</td>' +
                 '</tr>';
         }).join('');
     }
@@ -1117,9 +1302,354 @@ function refreshAllControls() {
     SecurityComplianceControlsService.renderAllTabs();
 }
 
+var SenderIdMatchingService = (function() {
+    var SUBSTITUTION_MAP = {
+        '0': ['O', 'o'],
+        'O': ['0'],
+        'o': ['0'],
+        '1': ['I', 'i', 'L', 'l', '|'],
+        'I': ['1', 'l', '|'],
+        'i': ['1', 'L', 'l', '|'],
+        'L': ['1', 'I', 'i', '|'],
+        'l': ['1', 'I', 'i', '|'],
+        '5': ['S', 's'],
+        'S': ['5'],
+        's': ['5'],
+        '3': ['E', 'e'],
+        'E': ['3'],
+        'e': ['3'],
+        '4': ['A', 'a'],
+        'A': ['4'],
+        'a': ['4'],
+        '8': ['B', 'b'],
+        'B': ['8'],
+        'b': ['8'],
+        '6': ['G', 'g'],
+        'G': ['6'],
+        'g': ['6'],
+        '7': ['T', 't'],
+        'T': ['7'],
+        't': ['7']
+    };
+
+    function normalise(senderId) {
+        if (!senderId) return '';
+        return senderId.toUpperCase().replace(/[\s\-_\.]/g, '');
+    }
+
+    function generateVariants(baseSenderId) {
+        var normalised = normalise(baseSenderId);
+        var variants = [normalised];
+        
+        for (var i = 0; i < normalised.length; i++) {
+            var char = normalised[i];
+            if (SUBSTITUTION_MAP[char]) {
+                var subs = SUBSTITUTION_MAP[char];
+                var newVariants = [];
+                variants.forEach(function(v) {
+                    subs.forEach(function(sub) {
+                        var newVariant = v.substring(0, i) + sub.toUpperCase() + v.substring(i + 1);
+                        if (newVariants.indexOf(newVariant) === -1) {
+                            newVariants.push(newVariant);
+                        }
+                    });
+                });
+                variants = variants.concat(newVariants);
+            }
+        }
+        
+        return [...new Set(variants)];
+    }
+
+    function matches(inputSenderId, baseSenderId, applyNormalisation) {
+        var normalisedInput = normalise(inputSenderId);
+        var normalisedBase = normalise(baseSenderId);
+        
+        if (normalisedInput === normalisedBase) {
+            return { matched: true, reason: 'exact_match', variant: normalisedBase };
+        }
+        
+        if (applyNormalisation) {
+            var variants = generateVariants(normalisedBase);
+            for (var i = 0; i < variants.length; i++) {
+                if (normalisedInput === variants[i]) {
+                    return { matched: true, reason: 'variant_match', variant: variants[i] };
+                }
+            }
+        }
+        
+        return { matched: false, reason: null, variant: null };
+    }
+
+    function buildRegexPattern(baseSenderId) {
+        var normalised = normalise(baseSenderId);
+        var pattern = '';
+        
+        for (var i = 0; i < normalised.length; i++) {
+            var char = normalised[i];
+            if (SUBSTITUTION_MAP[char]) {
+                var allChars = [char].concat(SUBSTITUTION_MAP[char]);
+                pattern += '[' + allChars.join('') + ']';
+            } else {
+                pattern += char;
+            }
+        }
+        
+        return new RegExp('^' + pattern + '$', 'i');
+    }
+
+    return {
+        normalise: normalise,
+        generateVariants: generateVariants,
+        matches: matches,
+        buildRegexPattern: buildRegexPattern
+    };
+})();
+
+window.SenderIdMatchingService = SenderIdMatchingService;
+
+var senderIdRulesStore = [];
+
 function showAddSenderIdRuleModal() {
-    console.log('[SecurityComplianceControls] TODO: Implement Add SenderID Rule modal');
-    alert('Add SenderID Rule - Coming Soon');
+    document.getElementById('senderid-modal-title').textContent = 'Add SenderID Rule';
+    document.getElementById('senderid-save-btn-text').textContent = 'Save Rule';
+    document.getElementById('senderid-rule-id').value = '';
+    document.getElementById('senderid-rule-name').value = '';
+    document.getElementById('senderid-base-value').value = '';
+    document.getElementById('senderid-type-block').checked = true;
+    document.getElementById('senderid-category').value = '';
+    document.getElementById('senderid-apply-normalisation').checked = true;
+    
+    var modal = new bootstrap.Modal(document.getElementById('senderIdRuleModal'));
+    modal.show();
+}
+
+function editSenderIdRule(ruleId) {
+    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
+    if (rules.length === 0) {
+        rules = [
+            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
+            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
+            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
+            { id: 'SID-004', name: 'Block Lottery Sender', baseSenderId: 'LOTTERY', ruleType: 'block', category: 'lottery_prize', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
+            { id: 'SID-005', name: 'Flag Premium Rate', baseSenderId: 'PREMIUM', ruleType: 'flag', category: 'premium_rate', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
+        ];
+    }
+    
+    var rule = rules.find(r => r.id === ruleId);
+    if (!rule) {
+        console.error('Rule not found:', ruleId);
+        return;
+    }
+    
+    document.getElementById('senderid-modal-title').textContent = 'Edit SenderID Rule';
+    document.getElementById('senderid-save-btn-text').textContent = 'Update Rule';
+    document.getElementById('senderid-rule-id').value = rule.id;
+    document.getElementById('senderid-rule-name').value = rule.name;
+    document.getElementById('senderid-base-value').value = rule.baseSenderId;
+    document.getElementById('senderid-type-' + rule.ruleType).checked = true;
+    document.getElementById('senderid-category').value = rule.category;
+    document.getElementById('senderid-apply-normalisation').checked = rule.applyNormalisation;
+    
+    var modal = new bootstrap.Modal(document.getElementById('senderIdRuleModal'));
+    modal.show();
+}
+
+function viewSenderIdRule(ruleId) {
+    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
+    if (rules.length === 0) {
+        rules = [
+            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
+            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
+            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
+            { id: 'SID-004', name: 'Block Lottery Sender', baseSenderId: 'LOTTERY', ruleType: 'block', category: 'lottery_prize', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
+            { id: 'SID-005', name: 'Flag Premium Rate', baseSenderId: 'PREMIUM', ruleType: 'flag', category: 'premium_rate', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
+        ];
+    }
+    
+    var rule = rules.find(r => r.id === ruleId);
+    if (!rule) return;
+    
+    var categoryLabels = {
+        'bank_impersonation': 'Bank Impersonation',
+        'government': 'Government',
+        'lottery_prize': 'Lottery/Prize',
+        'brand_abuse': 'Brand Abuse',
+        'premium_rate': 'Premium Rate',
+        'other': 'Other'
+    };
+    
+    var variants = SenderIdMatchingService.generateVariants(rule.baseSenderId);
+    
+    var html = '<div class="mb-3"><strong style="color: #1e3a5f;">Rule Details</strong></div>' +
+        '<table class="table table-sm">' +
+        '<tr><td class="text-muted" style="width: 40%;">Rule ID</td><td>' + rule.id + '</td></tr>' +
+        '<tr><td class="text-muted">Rule Name</td><td>' + rule.name + '</td></tr>' +
+        '<tr><td class="text-muted">Base SenderID</td><td><code>' + rule.baseSenderId + '</code></td></tr>' +
+        '<tr><td class="text-muted">Rule Type</td><td>' + (rule.ruleType === 'block' ? '<span class="badge bg-danger">Block</span>' : '<span class="badge bg-warning text-dark">Flag</span>') + '</td></tr>' +
+        '<tr><td class="text-muted">Category</td><td>' + (categoryLabels[rule.category] || rule.category) + '</td></tr>' +
+        '<tr><td class="text-muted">Normalisation</td><td>' + (rule.applyNormalisation ? '<span class="badge bg-success">Enabled</span>' : '<span class="badge bg-secondary">Disabled</span>') + '</td></tr>' +
+        '<tr><td class="text-muted">Status</td><td>' + (rule.status === 'active' ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Disabled</span>') + '</td></tr>' +
+        '<tr><td class="text-muted">Created By</td><td>' + rule.createdBy + '</td></tr>' +
+        '<tr><td class="text-muted">Created At</td><td>' + rule.createdAt + '</td></tr>' +
+        '<tr><td class="text-muted">Last Updated</td><td>' + rule.updatedAt + '</td></tr>' +
+        '</table>' +
+        '<div class="mt-3 p-2 rounded" style="background: #f8f9fc; border: 1px solid #e9ecef;">' +
+        '<small class="text-muted d-block mb-1"><strong>Detected Variants (' + variants.length + ')</strong></small>' +
+        '<div style="font-size: 0.75rem; max-height: 80px; overflow-y: auto;">' +
+        variants.slice(0, 20).map(function(v) { return '<code class="me-1 mb-1 d-inline-block" style="background: #e9ecef; padding: 0.1rem 0.3rem; border-radius: 3px;">' + v + '</code>'; }).join('') +
+        (variants.length > 20 ? '<span class="text-muted">... and ' + (variants.length - 20) + ' more</span>' : '') +
+        '</div></div>';
+    
+    document.getElementById('senderid-view-content').innerHTML = html;
+    var modal = new bootstrap.Modal(document.getElementById('senderIdViewModal'));
+    modal.show();
+}
+
+function saveSenderIdRule() {
+    var ruleId = document.getElementById('senderid-rule-id').value;
+    var name = document.getElementById('senderid-rule-name').value.trim();
+    var baseSenderId = document.getElementById('senderid-base-value').value.trim().toUpperCase();
+    var ruleType = document.querySelector('input[name="senderid-rule-type"]:checked').value;
+    var category = document.getElementById('senderid-category').value;
+    var applyNormalisation = document.getElementById('senderid-apply-normalisation').checked;
+    
+    if (!name || !baseSenderId || !category) {
+        alert('Please fill in all required fields.');
+        return;
+    }
+    
+    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
+    if (rules.length === 0) {
+        rules = [
+            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
+            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
+            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
+            { id: 'SID-004', name: 'Block Lottery Sender', baseSenderId: 'LOTTERY', ruleType: 'block', category: 'lottery_prize', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
+            { id: 'SID-005', name: 'Flag Premium Rate', baseSenderId: 'PREMIUM', ruleType: 'flag', category: 'premium_rate', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
+        ];
+    }
+    
+    var now = new Date();
+    var timestamp = now.toLocaleDateString('en-GB').replace(/\//g, '-') + ' ' + now.toTimeString().slice(0, 5);
+    var beforeState = null;
+    var isEdit = !!ruleId;
+    
+    if (isEdit) {
+        var existingIndex = rules.findIndex(r => r.id === ruleId);
+        if (existingIndex !== -1) {
+            beforeState = JSON.parse(JSON.stringify(rules[existingIndex]));
+            rules[existingIndex] = {
+                ...rules[existingIndex],
+                name: name,
+                baseSenderId: baseSenderId,
+                ruleType: ruleType,
+                category: category,
+                applyNormalisation: applyNormalisation,
+                updatedAt: timestamp
+            };
+        }
+    } else {
+        var newId = 'SID-' + String(rules.length + 1).padStart(3, '0');
+        rules.push({
+            id: newId,
+            name: name,
+            baseSenderId: baseSenderId,
+            ruleType: ruleType,
+            category: category,
+            applyNormalisation: applyNormalisation,
+            status: 'active',
+            createdBy: currentAdmin.email,
+            createdAt: timestamp,
+            updatedAt: timestamp
+        });
+        ruleId = newId;
+    }
+    
+    localStorage.setItem('senderIdRules', JSON.stringify(rules));
+    
+    var auditEvent = {
+        eventType: isEdit ? 'SENDERID_RULE_UPDATED' : 'SENDERID_RULE_CREATED',
+        timestamp: new Date().toISOString(),
+        adminActor: { id: currentAdmin.id, email: currentAdmin.email, role: currentAdmin.role },
+        ruleId: ruleId,
+        beforeState: beforeState,
+        afterState: { name, baseSenderId, ruleType, category, applyNormalisation }
+    };
+    console.log('[SecurityComplianceAudit]', JSON.stringify(auditEvent));
+    
+    bootstrap.Modal.getInstance(document.getElementById('senderIdRuleModal')).hide();
+    SecurityComplianceControlsService.renderAllTabs();
+    
+    console.log('[SenderIdControls] Rule saved:', ruleId);
+}
+
+function toggleSenderIdRuleStatus(ruleId, newStatus) {
+    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
+    if (rules.length === 0) {
+        rules = [
+            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
+            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'bank_impersonation', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
+            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
+            { id: 'SID-004', name: 'Block Lottery Sender', baseSenderId: 'LOTTERY', ruleType: 'block', category: 'lottery_prize', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
+            { id: 'SID-005', name: 'Flag Premium Rate', baseSenderId: 'PREMIUM', ruleType: 'flag', category: 'premium_rate', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
+        ];
+    }
+    
+    var ruleIndex = rules.findIndex(r => r.id === ruleId);
+    if (ruleIndex !== -1) {
+        var beforeStatus = rules[ruleIndex].status;
+        rules[ruleIndex].status = newStatus;
+        rules[ruleIndex].updatedAt = new Date().toLocaleDateString('en-GB').replace(/\//g, '-') + ' ' + new Date().toTimeString().slice(0, 5);
+        localStorage.setItem('senderIdRules', JSON.stringify(rules));
+        
+        console.log('[SecurityComplianceAudit]', JSON.stringify({
+            eventType: 'SENDERID_RULE_STATUS_CHANGED',
+            timestamp: new Date().toISOString(),
+            adminActor: { id: currentAdmin.id, email: currentAdmin.email },
+            ruleId: ruleId,
+            beforeStatus: beforeStatus,
+            afterStatus: newStatus
+        }));
+        
+        SecurityComplianceControlsService.renderAllTabs();
+    }
+}
+
+function showDeleteConfirmation(ruleId, ruleType) {
+    document.getElementById('delete-rule-id').value = ruleId;
+    document.getElementById('delete-rule-type').value = ruleType;
+    document.getElementById('confirm-delete-message').textContent = 'Are you sure you want to delete rule ' + ruleId + '?';
+    var modal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+    modal.show();
+}
+
+function confirmDeleteRule() {
+    var ruleId = document.getElementById('delete-rule-id').value;
+    var ruleType = document.getElementById('delete-rule-type').value;
+    
+    if (currentAdmin.role !== 'super_admin') {
+        alert('Only Super Admins can delete rules.');
+        return;
+    }
+    
+    if (ruleType === 'senderid') {
+        var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
+        var deletedRule = rules.find(r => r.id === ruleId);
+        rules = rules.filter(r => r.id !== ruleId);
+        localStorage.setItem('senderIdRules', JSON.stringify(rules));
+        
+        console.log('[SecurityComplianceAudit]', JSON.stringify({
+            eventType: 'SENDERID_RULE_DELETED',
+            timestamp: new Date().toISOString(),
+            adminActor: { id: currentAdmin.id, email: currentAdmin.email, role: currentAdmin.role },
+            ruleId: ruleId,
+            deletedRule: deletedRule
+        }));
+    }
+    
+    bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+    SecurityComplianceControlsService.renderAllTabs();
 }
 
 function showAddContentRuleModal() {
@@ -1140,6 +1670,7 @@ function showAddNormRuleModal() {
 function resetSenderIdFilters() {
     document.getElementById('senderid-filter-status').value = '';
     document.getElementById('senderid-filter-type').value = '';
+    document.getElementById('senderid-filter-category').value = '';
     document.getElementById('senderid-search').value = '';
 }
 
