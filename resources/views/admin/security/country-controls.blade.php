@@ -481,6 +481,16 @@
     color: #6c757d;
     font-size: 0.65rem;
 }
+.override-remove-btn {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
+    border-radius: 4px;
+}
+.override-remove-btn:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+    color: white;
+}
 .account-typeahead-wrapper {
     position: relative;
 }
@@ -1904,6 +1914,7 @@
                                 <th>Override Type</th>
                                 <th>Date Applied</th>
                                 <th>Applied By</th>
+                                <th style="width: 60px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="overridesTableBody">
@@ -1917,7 +1928,7 @@
             </div>
             <div class="modal-footer">
                 <small class="text-muted me-auto">
-                    <i class="fas fa-lock me-1"></i>This view is read-only. Use the country row menu to manage overrides.
+                    <i class="fas fa-info-circle me-1"></i>Click the <i class="fas fa-trash-alt text-danger"></i> button to remove an override.
                 </small>
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
             </div>
@@ -3235,9 +3246,13 @@ var mockOverridesData = {
     ]
 };
 
+var currentViewingCountryCode = null;
+
 function viewOverrides(countryCode) {
     var country = countries.find(function(c) { return c.code === countryCode; });
     if (!country) return;
+
+    currentViewingCountryCode = countryCode;
 
     document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
         menu.classList.remove('show');
@@ -3245,6 +3260,13 @@ function viewOverrides(countryCode) {
 
     document.getElementById('overridesModalCountryName').textContent = '— ' + country.name;
     
+    renderOverridesTable(countryCode);
+    
+    var modal = new bootstrap.Modal(document.getElementById('customerOverridesModal'));
+    modal.show();
+}
+
+function renderOverridesTable(countryCode) {
     var overrides = mockOverridesData[countryCode] || [];
     var tbody = document.getElementById('overridesTableBody');
     var noOverridesMsg = document.getElementById('noOverridesMessage');
@@ -3259,7 +3281,7 @@ function viewOverrides(countryCode) {
         tableContainer.style.display = 'block';
         noOverridesMsg.style.display = 'none';
         
-        overrides.forEach(function(override) {
+        overrides.forEach(function(override, index) {
             var row = document.createElement('tr');
             
             var typeIcon = override.overrideType === 'allowed' ? 'fa-check-circle' : 'fa-ban';
@@ -3284,14 +3306,60 @@ function viewOverrides(countryCode) {
                         '<i class="fas fa-user-shield"></i>' +
                         '<span>' + override.appliedBy + '</span>' +
                     '</div>' +
+                '</td>' +
+                '<td>' +
+                    '<button class="btn btn-sm btn-outline-danger override-remove-btn" ' +
+                        'onclick="confirmRemoveOverrideFromModal(\'' + countryCode + '\', ' + index + ')" ' +
+                        'title="Remove this override">' +
+                        '<i class="fas fa-trash-alt"></i>' +
+                    '</button>' +
                 '</td>';
             
             tbody.appendChild(row);
         });
     }
+}
+
+function confirmRemoveOverrideFromModal(countryCode, overrideIndex) {
+    var country = countries.find(function(c) { return c.code === countryCode; });
+    var overrides = mockOverridesData[countryCode] || [];
+    var override = overrides[overrideIndex];
     
-    var modal = new bootstrap.Modal(document.getElementById('customerOverridesModal'));
-    modal.show();
+    if (!country || !override) return;
+
+    var scopeText = override.subAccount ? 
+        override.accountName + ' / ' + override.subAccount : 
+        override.accountName;
+    var typeLabel = override.overrideType === 'allowed' ? 'Allowed' : 'Blocked';
+
+    var confirmMessage = 'Remove this override?\n\n' +
+        'Account: ' + scopeText + '\n' +
+        'Override Type: ' + typeLabel + '\n\n' +
+        'After removal, this account will follow the global default status (' + 
+        (country.status === 'allowed' ? 'Allowed' : 'Blocked') + ') for ' + country.name + '.';
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    CountryReviewAuditService.emit('COUNTRY_OVERRIDE_REMOVED', {
+        countryIso: country.code,
+        countryName: country.name,
+        accountId: override.accountId,
+        accountName: override.accountName,
+        subAccount: override.subAccount,
+        previousOverrideType: override.overrideType,
+        result: 'override_removed'
+    }, { emitToCustomerAudit: true });
+
+    overrides.splice(overrideIndex, 1);
+    mockOverridesData[countryCode] = overrides;
+    country.overrides = overrides.length;
+
+    renderOverridesTable(countryCode);
+    renderCountryTable();
+    
+    showAdminToast('Override removed', scopeText + ' override for ' + country.name + ' has been removed.', 'success');
 }
 
 function capitalize(str) {
