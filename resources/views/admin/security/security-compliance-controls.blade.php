@@ -615,6 +615,83 @@
     font-size: 0.85rem;
     font-family: inherit;
 }
+.norm-equiv-char {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.norm-equiv-encoding {
+    font-size: 0.6rem;
+    padding: 2px 4px;
+    border-radius: 3px;
+    margin-left: 6px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+.norm-equiv-gsm {
+    background: #d1fae5;
+    color: #065f46;
+}
+.norm-equiv-unicode {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.norm-char-picker {
+    margin-top: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+.norm-char-picker-header {
+    background: #1e3a5f;
+    color: white;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.norm-char-picker-title {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+.norm-char-picker-section {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.norm-char-picker-section:last-child {
+    border-bottom: none;
+}
+.norm-char-picker-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+.norm-char-picker-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.norm-char-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.norm-char-btn:hover {
+    background: #1e3a5f;
+    color: white;
+    border-color: #1e3a5f;
+    transform: scale(1.1);
+}
 .sec-filter-row {
     display: flex;
     gap: 1rem;
@@ -4357,6 +4434,33 @@ function editBaseCharacter(base) {
     showNormRuleModal(base);
 }
 
+var GSM7_CHARS = '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ !"#¤%&\'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+    'ÄÖÑÜabcdefghijklmnopqrstuvwxyzäöñüà';
+var GSM7_EXTENDED = '^{}\\[~]|€';
+var MAX_EQUIVALENTS = 25;
+
+function isGSM7Char(char) {
+    return GSM7_CHARS.indexOf(char) !== -1 || GSM7_EXTENDED.indexOf(char) !== -1;
+}
+
+function getCharEncoding(char) {
+    if (isGSM7Char(char)) return 'GSM-7';
+    return 'Unicode';
+}
+
+function buildEquivChipHtml(char) {
+    var encoding = getCharEncoding(char);
+    var codepoint = char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+    var encodingClass = encoding === 'GSM-7' ? 'norm-equiv-gsm' : 'norm-equiv-unicode';
+    var escapedChar = char.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    
+    return '<span class="norm-equiv-tag" data-char="' + escapedChar + '">' +
+        '<span class="norm-equiv-char">' + char + '</span>' +
+        '<span class="norm-equiv-encoding ' + encodingClass + '">' + encoding + '</span>' +
+        '<i class="fas fa-times norm-equiv-remove" onclick="removeEquivFromModal(\'' + escapedChar + '\')"></i>' +
+    '</span>';
+}
+
 function showNormRuleModal(base) {
     var isEdit = !!base;
     var char = isEdit ? mockData.baseCharacterLibrary.find(function(c) { return c.base === base; }) : null;
@@ -4374,13 +4478,13 @@ function showNormRuleModal(base) {
     var existingScope = char ? char.scope : ['senderid', 'content'];
     var existingNotes = char ? (char.notes || '') : '';
     var existingEnabled = char ? char.enabled : true;
+    var hasUrlScope = existingScope.indexOf('url') !== -1;
     
     var equivalentsChipsHtml = existingEquivalents.map(function(eq) {
-        var codepoint = eq.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
-        return '<span class="norm-equiv-tag" data-char="' + eq + '">' + eq + 
-            '<span class="norm-equiv-code">U+' + codepoint + '</span>' +
-            '<i class="fas fa-times norm-equiv-remove" onclick="removeEquivFromModal(\'' + eq.replace(/'/g, "\\'") + '\')"></i></span>';
+        return buildEquivChipHtml(eq);
     }).join('');
+    
+    var charPickerHtml = buildCharPickerHtml();
     
     var modalHtml = '<div class="modal fade" id="normRuleModal" tabindex="-1">' +
         '<div class="modal-dialog modal-lg">' +
@@ -4396,7 +4500,7 @@ function showNormRuleModal(base) {
                     
                     '<div class="mb-4">' +
                         '<label class="form-label fw-bold"><i class="fas fa-font me-2 text-muted"></i>Base Character</label>' +
-                        '<select class="form-select" id="normRuleBase" ' + (isEdit ? 'disabled' : '') + ' style="' + (isEdit ? 'background: #f8f9fa; font-size: 1.1rem; font-family: monospace;' : 'font-size: 1.1rem; font-family: monospace;') + '">' +
+                        '<select class="form-select" id="normRuleBase" ' + (isEdit ? 'disabled' : '') + ' onchange="updateNormRuleBaseContext()" style="' + (isEdit ? 'background: #f8f9fa; font-size: 1.1rem; font-family: monospace;' : 'font-size: 1.1rem; font-family: monospace;') + '">' +
                             charOptions +
                         '</select>' +
                         (isEdit ? '<input type="hidden" id="normRuleBaseHidden" value="' + base + '">' : '') +
@@ -4416,7 +4520,11 @@ function showNormRuleModal(base) {
                                 '<i class="fas fa-link me-1"></i>URL' +
                             '</button>' +
                         '</div>' +
-                        '<small class="text-muted">Select which engines will use this normalisation rule</small>' +
+                        '<div id="normUrlWarning" class="alert alert-warning mt-2 mb-0" style="display: ' + (hasUrlScope ? 'block' : 'none') + '; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">' +
+                            '<i class="fas fa-exclamation-triangle me-2" style="color: #856404;"></i>' +
+                            '<strong>Warning:</strong> URL normalisation can cause broad matches and false positives.' +
+                        '</div>' +
+                        '<small class="text-muted mt-2 d-block">Select which engines will use this normalisation rule</small>' +
                     '</div>' +
                     
                     '<div class="mb-4">' +
@@ -4424,13 +4532,23 @@ function showNormRuleModal(base) {
                         '<div class="norm-equiv-container" id="normEquivContainer">' +
                             '<div class="norm-equiv-tags" id="normEquivTags">' + equivalentsChipsHtml + '</div>' +
                             '<div class="norm-equiv-input-wrap">' +
-                                '<input type="text" class="norm-equiv-input" id="normEquivInput" placeholder="Type character and press Enter..." maxlength="2" onkeydown="handleEquivInput(event)">' +
+                                '<input type="text" class="norm-equiv-input" id="normEquivInput" placeholder="Type or paste characters..." onkeydown="handleEquivInput(event)" onpaste="handleEquivPaste(event)">' +
                             '</div>' +
                         '</div>' +
                         '<div class="d-flex justify-content-between align-items-center mt-2">' +
-                            '<small class="text-muted">Type a character and press Enter to add. Click X to remove.</small>' +
-                            '<span class="badge bg-secondary" id="normEquivCount">' + existingEquivalents.length + ' equivalent(s)</span>' +
+                            '<div>' +
+                                '<button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="toggleCharPicker()">' +
+                                    '<i class="fas fa-keyboard me-1"></i>Character Picker' +
+                                '</button>' +
+                                '<small class="text-muted">Press Enter to add. Paste to add multiple.</small>' +
+                            '</div>' +
+                            '<span class="badge" id="normEquivCount" style="background: ' + (existingEquivalents.length >= MAX_EQUIVALENTS ? '#dc3545' : '#6c757d') + ';">' + 
+                                existingEquivalents.length + '/' + MAX_EQUIVALENTS + '</span>' +
                         '</div>' +
+                        '<div id="normCharPicker" class="norm-char-picker" style="display: none;">' +
+                            charPickerHtml +
+                        '</div>' +
+                        '<div id="normEquivError" class="text-danger mt-2" style="display: none; font-size: 0.85rem;"></div>' +
                     '</div>' +
                     
                     '<div class="mb-4">' +
@@ -4472,35 +4590,190 @@ function showNormRuleModal(base) {
 
 function toggleNormScope(btn) {
     btn.classList.toggle('active');
+    var urlBtn = document.querySelector('.norm-scope-toggle[data-scope="url"]');
+    var urlWarning = document.getElementById('normUrlWarning');
+    if (urlWarning && urlBtn) {
+        urlWarning.style.display = urlBtn.classList.contains('active') ? 'block' : 'none';
+    }
+}
+
+function updateNormRuleBaseContext() {
+    var baseSelect = document.getElementById('normRuleBase');
+    if (baseSelect) {
+        window.currentNormRuleBase = baseSelect.value;
+    }
+}
+
+function buildCharPickerHtml() {
+    var gsm7Special = ['@', '£', '$', '¥', 'è', 'é', 'ù', 'ì', 'ò', 'Ç', 'Ø', 'ø', 'Å', 'å', 'Δ', 'Φ', 'Γ', 'Λ', 'Ω', 'Π', 'Ψ', 'Σ', 'Θ', 'Ξ', '¡', '¤', 'Ä', 'Ö', 'Ñ', 'Ü', 'ä', 'ö', 'ñ', 'ü', 'à', '§'];
+    var gsm7Extended = ['^', '{', '}', '\\', '[', '~', ']', '|', '€'];
+    var accented = ['À', 'Á', 'Â', 'Ã', 'Ā', 'Ă', 'Ą', 'Ć', 'Ĉ', 'Ċ', 'Č', 'Ď', 'Đ', 'È', 'É', 'Ê', 'Ë', 'Ē', 'Ĕ', 'Ė', 'Ę', 'Ě', 'Ĝ', 'Ğ', 'Ġ', 'Ģ', 'Ĥ', 'Ħ', 'Ì', 'Í', 'Î', 'Ï', 'Ĩ', 'Ī', 'Ĭ', 'Į', 'İ', 'Ĵ', 'Ķ', 'Ĺ', 'Ļ', 'Ľ', 'Ŀ', 'Ł', 'Ń', 'Ņ', 'Ň', 'Ŋ', 'Ò', 'Ó', 'Ô', 'Õ', 'Ō', 'Ŏ', 'Ő', 'Œ', 'Ŕ', 'Ŗ', 'Ř', 'Ś', 'Ŝ', 'Ş', 'Š', 'Ţ', 'Ť', 'Ŧ', 'Ù', 'Ú', 'Û', 'Ũ', 'Ū', 'Ŭ', 'Ů', 'Ű', 'Ų', 'Ŵ', 'Ŷ', 'Ÿ', 'Ź', 'Ż', 'Ž'];
+    var lookalikes = ['Α', 'Β', 'Ε', 'Ζ', 'Η', 'Ι', 'Κ', 'Μ', 'Ν', 'Ο', 'Ρ', 'Τ', 'Υ', 'Χ', 'А', 'В', 'С', 'Е', 'Н', 'К', 'М', 'О', 'Р', 'Т', 'Х', 'Ａ', 'Ｂ', 'Ｃ', 'Ｄ', 'Ｅ', 'Ｆ', 'Ｇ', 'Ｈ', 'Ｉ', 'Ｊ', 'Ｋ', 'Ｌ', 'Ｍ', 'Ｎ', 'Ｏ', 'Ｐ', 'Ｑ', 'Ｒ', 'Ｓ', 'Ｔ', 'Ｕ', 'Ｖ', 'Ｗ', 'Ｘ', 'Ｙ', 'Ｚ'];
+    
+    var html = '<div class="norm-char-picker-header">' +
+        '<span class="norm-char-picker-title"><i class="fas fa-keyboard me-1"></i>Character Picker</span>' +
+        '<button type="button" class="btn-close btn-close-white" onclick="toggleCharPicker()" style="font-size: 0.6rem;"></button>' +
+    '</div>';
+    
+    html += '<div class="norm-char-picker-section">' +
+        '<div class="norm-char-picker-label"><span class="badge bg-success me-1">GSM-7</span>Special Characters</div>' +
+        '<div class="norm-char-picker-grid">';
+    gsm7Special.forEach(function(c) {
+        html += '<button type="button" class="norm-char-btn" onclick="addCharFromPicker(\'' + c.replace(/'/g, "\\'") + '\')" title="U+' + c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0') + '">' + c + '</button>';
+    });
+    html += '</div></div>';
+    
+    html += '<div class="norm-char-picker-section">' +
+        '<div class="norm-char-picker-label"><span class="badge bg-success me-1">GSM-7</span>Extended</div>' +
+        '<div class="norm-char-picker-grid">';
+    gsm7Extended.forEach(function(c) {
+        html += '<button type="button" class="norm-char-btn" onclick="addCharFromPicker(\'' + c.replace(/'/g, "\\'").replace(/\\/g, '\\\\') + '\')" title="U+' + c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0') + '">' + c + '</button>';
+    });
+    html += '</div></div>';
+    
+    html += '<div class="norm-char-picker-section">' +
+        '<div class="norm-char-picker-label"><span class="badge bg-primary me-1">Unicode</span>Accented Characters</div>' +
+        '<div class="norm-char-picker-grid">';
+    accented.forEach(function(c) {
+        html += '<button type="button" class="norm-char-btn" onclick="addCharFromPicker(\'' + c + '\')" title="U+' + c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0') + '">' + c + '</button>';
+    });
+    html += '</div></div>';
+    
+    html += '<div class="norm-char-picker-section">' +
+        '<div class="norm-char-picker-label"><span class="badge bg-warning text-dark me-1">Lookalike</span>Greek / Cyrillic / Fullwidth</div>' +
+        '<div class="norm-char-picker-grid">';
+    lookalikes.forEach(function(c) {
+        html += '<button type="button" class="norm-char-btn" onclick="addCharFromPicker(\'' + c + '\')" title="U+' + c.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0') + '">' + c + '</button>';
+    });
+    html += '</div></div>';
+    
+    return html;
+}
+
+function toggleCharPicker() {
+    var picker = document.getElementById('normCharPicker');
+    if (picker) {
+        picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function addCharFromPicker(char) {
+    var result = addEquivCharacter(char);
+    if (result.success) {
+        document.getElementById('normEquivInput').focus();
+    }
+}
+
+function validateEquivChar(char) {
+    var errors = [];
+    
+    if (!char || char.trim().length === 0) {
+        errors.push('Whitespace-only characters are not allowed');
+        return { valid: false, errors: errors };
+    }
+    
+    if (/[\*\?\+\[\]\(\)\{\}\^\$\.\|\\]/.test(char) && char.length > 1) {
+        errors.push('Regex/wildcard patterns are not allowed');
+        return { valid: false, errors: errors };
+    }
+    
+    var baseSelect = document.getElementById('normRuleBase');
+    var baseHidden = document.getElementById('normRuleBaseHidden');
+    var baseChar = baseHidden ? baseHidden.value : (baseSelect ? baseSelect.value : null);
+    
+    if (baseChar && char === baseChar) {
+        errors.push('Base character cannot be added as its own equivalent');
+        return { valid: false, errors: errors };
+    }
+    
+    var currentCount = document.querySelectorAll('#normEquivTags .norm-equiv-tag').length;
+    if (currentCount >= MAX_EQUIVALENTS) {
+        errors.push('Maximum ' + MAX_EQUIVALENTS + ' equivalents per base character');
+        return { valid: false, errors: errors };
+    }
+    
+    var existingTags = document.querySelectorAll('#normEquivTags .norm-equiv-tag');
+    var exists = false;
+    existingTags.forEach(function(tag) {
+        if (tag.getAttribute('data-char') === char) exists = true;
+    });
+    if (exists) {
+        return { valid: false, errors: ['Character already added'], silent: true };
+    }
+    
+    return { valid: true, errors: [] };
+}
+
+function addEquivCharacter(char) {
+    var validation = validateEquivChar(char);
+    if (!validation.valid) {
+        if (!validation.silent) {
+            showEquivError(validation.errors[0]);
+        }
+        return { success: false, error: validation.errors[0] };
+    }
+    
+    hideEquivError();
+    var tagsContainer = document.getElementById('normEquivTags');
+    var tagHtml = buildEquivChipHtml(char);
+    tagsContainer.insertAdjacentHTML('beforeend', tagHtml);
+    updateEquivCount();
+    return { success: true };
 }
 
 function handleEquivInput(event) {
     if (event.key === 'Enter') {
         event.preventDefault();
         var input = document.getElementById('normEquivInput');
-        var char = input.value.trim();
-        if (char.length === 0) return;
+        var value = input.value;
         
-        var tagsContainer = document.getElementById('normEquivTags');
-        var existingTags = tagsContainer.querySelectorAll('.norm-equiv-tag');
-        var exists = false;
-        existingTags.forEach(function(tag) {
-            if (tag.getAttribute('data-char') === char) exists = true;
+        if (value.length === 0) return;
+        
+        var chars = Array.from(value);
+        var added = 0;
+        chars.forEach(function(char) {
+            if (char.trim().length > 0) {
+                var result = addEquivCharacter(char);
+                if (result.success) added++;
+            }
         });
         
-        if (exists) {
-            input.value = '';
-            return;
-        }
-        
-        var codepoint = char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
-        var tagHtml = '<span class="norm-equiv-tag" data-char="' + char + '">' + char + 
-            '<span class="norm-equiv-code">U+' + codepoint + '</span>' +
-            '<i class="fas fa-times norm-equiv-remove" onclick="removeEquivFromModal(\'' + char.replace(/'/g, "\\'") + '\')"></i></span>';
-        
-        tagsContainer.insertAdjacentHTML('beforeend', tagHtml);
         input.value = '';
-        updateEquivCount();
+        if (added > 0) {
+            hideEquivError();
+        }
+    }
+}
+
+function handleEquivPaste(event) {
+    event.preventDefault();
+    var pastedText = (event.clipboardData || window.clipboardData).getData('text');
+    if (!pastedText) return;
+    
+    var chars = Array.from(pastedText);
+    var uniqueChars = [];
+    chars.forEach(function(char) {
+        if (char.trim().length > 0 && uniqueChars.indexOf(char) === -1) {
+            uniqueChars.push(char);
+        }
+    });
+    
+    var added = 0;
+    var errors = [];
+    uniqueChars.forEach(function(char) {
+        var result = addEquivCharacter(char);
+        if (result.success) {
+            added++;
+        } else if (result.error && errors.indexOf(result.error) === -1) {
+            errors.push(result.error);
+        }
+    });
+    
+    if (added > 0) {
+        showToast('Added ' + added + ' character(s)', 'success');
+    }
+    if (errors.length > 0 && added === 0) {
+        showEquivError(errors[0]);
     }
 }
 
@@ -4513,11 +4786,31 @@ function removeEquivFromModal(char) {
         }
     });
     updateEquivCount();
+    hideEquivError();
 }
 
 function updateEquivCount() {
     var count = document.querySelectorAll('#normEquivTags .norm-equiv-tag').length;
-    document.getElementById('normEquivCount').textContent = count + ' equivalent(s)';
+    var countBadge = document.getElementById('normEquivCount');
+    if (countBadge) {
+        countBadge.textContent = count + '/' + MAX_EQUIVALENTS;
+        countBadge.style.background = count >= MAX_EQUIVALENTS ? '#dc3545' : '#6c757d';
+    }
+}
+
+function showEquivError(msg) {
+    var errorDiv = document.getElementById('normEquivError');
+    if (errorDiv) {
+        errorDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>' + msg;
+        errorDiv.style.display = 'block';
+    }
+}
+
+function hideEquivError() {
+    var errorDiv = document.getElementById('normEquivError');
+    if (errorDiv) {
+        errorDiv.style.display = 'none';
+    }
 }
 
 function saveNormRule(originalBase) {
