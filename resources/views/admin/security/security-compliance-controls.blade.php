@@ -1294,75 +1294,110 @@
 </div>
 
 <div class="modal fade" id="quarantineViewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
                 <h5 class="modal-title text-white">
-                    <i class="fas fa-search me-2"></i>Quarantine Details
+                    <i class="fas fa-shield-alt me-2"></i>Quarantine Review: <span id="qrn-view-id-header"></span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" style="padding: 1.5rem;">
+            <div class="modal-body" style="padding: 1.5rem; max-height: 70vh; overflow-y: auto;">
                 <div class="row">
                     <div class="col-md-6">
-                        <table class="table table-sm table-borderless" style="font-size: 0.85rem;">
-                            <tr>
-                                <td style="font-weight: 600; width: 130px;">Quarantine ID:</td>
-                                <td id="qrn-view-id"></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: 600;">Timestamp:</td>
-                                <td id="qrn-view-timestamp"></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: 600;">Account:</td>
-                                <td id="qrn-view-account"></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: 600;">Sub-Account:</td>
-                                <td id="qrn-view-subaccount"></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: 600;">SenderID:</td>
-                                <td><code id="qrn-view-senderid"></code></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: 600;">URL Present:</td>
-                                <td id="qrn-view-hasurl"></td>
-                            </tr>
-                        </table>
+                        <div class="card mb-3" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
+                                <i class="fas fa-info-circle me-1" style="color: #1e3a5f;"></i> Message Details
+                            </div>
+                            <div class="card-body py-2">
+                                <table class="table table-sm table-borderless mb-0" style="font-size: 0.8rem;">
+                                    <tr><td style="font-weight: 600; width: 120px;">Quarantine ID:</td><td id="qrn-view-id"></td></tr>
+                                    <tr><td style="font-weight: 600;">Timestamp:</td><td id="qrn-view-timestamp"></td></tr>
+                                    <tr><td style="font-weight: 600;">Account:</td><td id="qrn-view-account"></td></tr>
+                                    <tr><td style="font-weight: 600;">Sub-Account:</td><td id="qrn-view-subaccount"></td></tr>
+                                    <tr><td style="font-weight: 600;">SenderID:</td><td><code id="qrn-view-senderid" style="background: #f8f9fa; padding: 0.15rem 0.35rem; border-radius: 3px;"></code></td></tr>
+                                    <tr><td style="font-weight: 600;">Recipient:</td><td id="qrn-view-recipient"></td></tr>
+                                    <tr><td style="font-weight: 600;">URL Present:</td><td id="qrn-view-hasurl"></td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
+                                <i class="fas fa-exclamation-triangle me-1" style="color: #dc3545;"></i> Triggered Rules
+                            </div>
+                            <div class="card-body py-2" id="qrn-view-triggered-rules">
+                            </div>
+                        </div>
+                        
+                        <div class="card" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
+                                <i class="fas fa-magic me-1" style="color: #6b21a8;"></i> Normalised Values
+                            </div>
+                            <div class="card-body py-2" id="qrn-view-normalised">
+                            </div>
+                        </div>
                     </div>
+                    
                     <div class="col-md-6">
-                        <table class="table table-sm table-borderless" style="font-size: 0.85rem;">
-                            <tr>
-                                <td style="font-weight: 600; width: 130px;">Rule Triggered:</td>
-                                <td id="qrn-view-rule"></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: 600;">Status:</td>
-                                <td id="qrn-view-status"></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: 600;">Reviewer:</td>
-                                <td id="qrn-view-reviewer"></td>
-                            </tr>
-                            <tr>
-                                <td style="font-weight: 600;">Decision At:</td>
-                                <td id="qrn-view-decisionat"></td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <label style="font-weight: 600; font-size: 0.85rem;">Message Content:</label>
-                    <div class="p-3 bg-light rounded" style="font-size: 0.9rem; border: 1px solid #e9ecef;">
-                        <span id="qrn-view-message"></span>
+                        <div class="card mb-3" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
+                                <i class="fas fa-envelope me-1" style="color: #1e3a5f;"></i> Message Content
+                                <span class="badge bg-warning text-dark float-end" style="font-size: 0.65rem;">PII GATED</span>
+                            </div>
+                            <div class="card-body py-2">
+                                <div class="p-2 bg-light rounded" style="font-size: 0.85rem; border: 1px solid #dee2e6; min-height: 80px;">
+                                    <span id="qrn-view-message"></span>
+                                </div>
+                                <div class="mt-2 text-muted" style="font-size: 0.7rem;">
+                                    <i class="fas fa-lock me-1"></i> Phone numbers and sensitive data are masked for compliance.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
+                                <i class="fas fa-clipboard-check me-1" style="color: #1e3a5f;"></i> Review Status
+                            </div>
+                            <div class="card-body py-2">
+                                <table class="table table-sm table-borderless mb-0" style="font-size: 0.8rem;">
+                                    <tr><td style="font-weight: 600; width: 100px;">Status:</td><td id="qrn-view-status"></td></tr>
+                                    <tr><td style="font-weight: 600;">Reviewer:</td><td id="qrn-view-reviewer"></td></tr>
+                                    <tr><td style="font-weight: 600;">Decision At:</td><td id="qrn-view-decisionat"></td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="card" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
+                                <i class="fas fa-sticky-note me-1" style="color: #1e3a5f;"></i> Internal Notes
+                                <span class="badge text-white float-end" style="font-size: 0.65rem; background: #1e3a5f;">ADMIN ONLY</span>
+                            </div>
+                            <div class="card-body py-2">
+                                <div id="qrn-view-notes-list" style="max-height: 100px; overflow-y: auto; font-size: 0.8rem;"></div>
+                                <div class="mt-2" id="qrn-add-note-section">
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="qrn-new-note" placeholder="Add internal note...">
+                                        <button class="btn btn-outline-secondary" type="button" onclick="addQuarantineNote()">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
-                <div id="qrn-view-actions" class="me-auto"></div>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem; background: #f8f9fa;">
+                <div id="qrn-view-actions" class="d-flex gap-2 flex-wrap">
+                </div>
+                <div class="ms-auto d-flex gap-2">
+                    <div class="form-check form-switch" id="qrn-notify-customer-section" style="display: none;">
+                        <input class="form-check-input" type="checkbox" id="qrn-notify-customer">
+                        <label class="form-check-label" for="qrn-notify-customer" style="font-size: 0.8rem;">Notify Customer Admin</label>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1437,15 +1472,142 @@ var SecurityComplianceControlsService = (function() {
         ];
 
         mockData.quarantinedMessages = [
-            { id: 'QRN-001', timestamp: '29-01-2026 10:15:32', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccountId: 'SUB-001', subAccountName: 'Marketing Dept', senderId: 'TECHPROMO', messageSnippet: 'Congratulations! You have won a prize...', hasUrl: true, ruleTriggered: 'content', ruleName: 'Lottery Keywords', status: 'pending', reviewer: null, decisionAt: null },
-            { id: 'QRN-002', timestamp: '29-01-2026 09:45:18', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccountId: null, subAccountName: null, senderId: 'HEALTH', messageSnippet: 'Click here to verify your account immediately...', hasUrl: true, ruleTriggered: 'url', ruleName: 'Suspicious URL Pattern', status: 'pending', reviewer: null, decisionAt: null },
-            { id: 'QRN-003', timestamp: '29-01-2026 08:30:45', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccountId: 'SUB-005', subAccountName: 'Promotions', senderId: 'ECOMDEALS', messageSnippet: 'Limited time offer! Free casino bonus...', hasUrl: false, ruleTriggered: 'content', ruleName: 'Gambling Keywords', status: 'pending', reviewer: null, decisionAt: null },
-            { id: 'QRN-004', timestamp: '29-01-2026 07:22:11', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccountId: null, subAccountName: null, senderId: 'HMRC', messageSnippet: 'Your tax refund is ready. Click to claim...', hasUrl: true, ruleTriggered: 'senderid', ruleName: 'Block HMRC Impersonation', status: 'pending', reviewer: null, decisionAt: null },
-            { id: 'QRN-005', timestamp: '28-01-2026 16:45:00', accountId: 'ACC-10200', accountName: 'FastLoans Ltd', subAccountId: null, subAccountName: null, senderId: 'LOANS', messageSnippet: 'Instant approval! Get cash now at bit.ly/xxx', hasUrl: true, ruleTriggered: 'domain_age', ruleName: 'Domain Age Check', status: 'pending', reviewer: null, decisionAt: null },
-            { id: 'QRN-006', timestamp: '28-01-2026 14:30:22', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccountId: 'SUB-003', subAccountName: 'Patient Comms', senderId: 'NHSALERT', messageSnippet: 'Important health notice regarding...', hasUrl: false, ruleTriggered: 'senderid', ruleName: 'Block NHS Impersonation', status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '28-01-2026 15:10:00' },
-            { id: 'QRN-007', timestamp: '28-01-2026 11:15:33', accountId: 'ACC-10150', accountName: 'CryptoTraders', subAccountId: null, subAccountName: null, senderId: 'CRYPTO', messageSnippet: 'Bitcoin giveaway! Double your crypto...', hasUrl: true, ruleTriggered: 'content', ruleName: 'Cryptocurrency Scam', status: 'blocked', reviewer: 'compliance@quicksms.co.uk', decisionAt: '28-01-2026 12:00:00' },
-            { id: 'QRN-008', timestamp: '27-01-2026 09:00:15', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccountId: 'SUB-005', subAccountName: 'Promotions', senderId: 'SHOP', messageSnippet: 'Flash sale! 50% off everything...', hasUrl: true, ruleTriggered: 'url', ruleName: 'URL Shortener Flag', status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '27-01-2026 09:30:00' }
+            { 
+                id: 'QRN-001', timestamp: '29-01-2026 10:15:32', accountId: 'ACC-10045', accountName: 'TechStart Ltd', 
+                subAccountId: 'SUB-001', subAccountName: 'Marketing Dept', senderId: 'TECHPROMO', 
+                recipient: '+44****7890', recipientFull: '+447700900890',
+                messageSnippet: 'Congratulations! You have won a prize...', 
+                fullMessage: 'Congratulations! You have won a prize of £1000! Click here to claim: http://win-prize-now.xyz/claim?ref=123',
+                hasUrl: true, extractedUrls: ['http://win-prize-now.xyz/claim?ref=123'],
+                ruleTriggered: 'content', ruleName: 'Lottery Keywords', ruleId: 'CONT-002',
+                triggeredRules: [
+                    { engine: 'MessageContentEngine', ruleId: 'CONT-002', ruleName: 'Lottery Keywords', matchType: 'Keyword', matchedValue: 'won a prize' }
+                ],
+                normalisedValues: { senderId: 'TECHPROMO', senderIdNormalised: 'techpromo', messageNormalised: 'congratulations! you have won a prize of £1000! click here to claim: http://win-prize-now.xyz/claim?ref=123' },
+                status: 'pending', reviewer: null, decisionAt: null,
+                notes: [], idempotencyKey: 'idem-001-abc', releaseAttempts: 0
+            },
+            { 
+                id: 'QRN-002', timestamp: '29-01-2026 09:45:18', accountId: 'ACC-10089', accountName: 'HealthFirst UK', 
+                subAccountId: null, subAccountName: null, senderId: 'HEALTH', 
+                recipient: '+44****1234', recipientFull: '+447700901234',
+                messageSnippet: 'Click here to verify your account immediately...', 
+                fullMessage: 'URGENT: Click here to verify your account immediately or it will be suspended: http://verify-now.tk/urgent',
+                hasUrl: true, extractedUrls: ['http://verify-now.tk/urgent'],
+                ruleTriggered: 'url', ruleName: 'Suspicious URL Pattern', ruleId: 'URL-003',
+                triggeredRules: [
+                    { engine: 'UrlEnforcementEngine', ruleId: 'URL-003', ruleName: 'Suspicious URL Pattern', matchType: 'Wildcard', matchedValue: '*.tk/*' }
+                ],
+                normalisedValues: { senderId: 'HEALTH', senderIdNormalised: 'health', messageNormalised: 'urgent: click here to verify your account immediately or it will be suspended: http://verify-now.tk/urgent' },
+                status: 'pending', reviewer: null, decisionAt: null,
+                notes: [{ author: 'admin@quicksms.co.uk', timestamp: '29-01-2026 10:00:00', text: 'Appears to be phishing attempt - investigate account' }],
+                idempotencyKey: 'idem-002-def', releaseAttempts: 0
+            },
+            { 
+                id: 'QRN-003', timestamp: '29-01-2026 08:30:45', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', 
+                subAccountId: 'SUB-005', subAccountName: 'Promotions', senderId: 'ECOMDEALS', 
+                recipient: '+44****5678', recipientFull: '+447700905678',
+                messageSnippet: 'Limited time offer! Free casino bonus...', 
+                fullMessage: 'Limited time offer! Free casino bonus when you sign up. Visit our site for more gaming deals!',
+                hasUrl: false, extractedUrls: [],
+                ruleTriggered: 'content', ruleName: 'Gambling Keywords', ruleId: 'CONT-003',
+                triggeredRules: [
+                    { engine: 'MessageContentEngine', ruleId: 'CONT-003', ruleName: 'Gambling Keywords', matchType: 'Keyword', matchedValue: 'casino bonus' }
+                ],
+                normalisedValues: { senderId: 'ECOMDEALS', senderIdNormalised: 'ecomdeals', messageNormalised: 'limited time offer! free casino bonus when you sign up. visit our site for more gaming deals!' },
+                status: 'pending', reviewer: null, decisionAt: null,
+                notes: [], idempotencyKey: 'idem-003-ghi', releaseAttempts: 0
+            },
+            { 
+                id: 'QRN-004', timestamp: '29-01-2026 07:22:11', accountId: 'ACC-10045', accountName: 'TechStart Ltd', 
+                subAccountId: null, subAccountName: null, senderId: 'HMRC', 
+                recipient: '+44****9999', recipientFull: '+447700909999',
+                messageSnippet: 'Your tax refund is ready. Click to claim...', 
+                fullMessage: 'HMRC: Your tax refund of £450.32 is ready. Click to claim within 24 hours: http://hmrc-refund.net/claim',
+                hasUrl: true, extractedUrls: ['http://hmrc-refund.net/claim'],
+                ruleTriggered: 'senderid', ruleName: 'Block HMRC Impersonation', ruleId: 'SID-001',
+                triggeredRules: [
+                    { engine: 'SenderIdEnforcementEngine', ruleId: 'SID-001', ruleName: 'Block HMRC Impersonation', matchType: 'Exact', matchedValue: 'HMRC' },
+                    { engine: 'UrlEnforcementEngine', ruleId: 'URL-005', ruleName: 'Suspicious Domain', matchType: 'Exact', matchedValue: 'hmrc-refund.net' }
+                ],
+                normalisedValues: { senderId: 'HMRC', senderIdNormalised: 'hmrc', messageNormalised: 'hmrc: your tax refund of £450.32 is ready. click to claim within 24 hours: http://hmrc-refund.net/claim' },
+                status: 'pending', reviewer: null, decisionAt: null,
+                notes: [], idempotencyKey: 'idem-004-jkl', releaseAttempts: 0
+            },
+            { 
+                id: 'QRN-005', timestamp: '28-01-2026 16:45:00', accountId: 'ACC-10200', accountName: 'FastLoans Ltd', 
+                subAccountId: null, subAccountName: null, senderId: 'LOANS', 
+                recipient: '+44****4321', recipientFull: '+447700904321',
+                messageSnippet: 'Instant approval! Get cash now at bit.ly/xxx', 
+                fullMessage: 'Instant approval! Get cash now. No credit check needed. Apply at bit.ly/fastcash-now',
+                hasUrl: true, extractedUrls: ['bit.ly/fastcash-now'],
+                ruleTriggered: 'domain_age', ruleName: 'Domain Age Check', ruleId: 'DAGE-001',
+                triggeredRules: [
+                    { engine: 'DomainAgeEngine', ruleId: 'DAGE-001', ruleName: 'Domain Age Check', matchType: 'Age', matchedValue: 'Domain registered 2 hours ago (threshold: 72 hours)' }
+                ],
+                normalisedValues: { senderId: 'LOANS', senderIdNormalised: 'loans', messageNormalised: 'instant approval! get cash now. no credit check needed. apply at bit.ly/fastcash-now' },
+                status: 'pending', reviewer: null, decisionAt: null,
+                notes: [], idempotencyKey: 'idem-005-mno', releaseAttempts: 0
+            },
+            { 
+                id: 'QRN-006', timestamp: '28-01-2026 14:30:22', accountId: 'ACC-10089', accountName: 'HealthFirst UK', 
+                subAccountId: 'SUB-003', subAccountName: 'Patient Comms', senderId: 'NHSALERT', 
+                recipient: '+44****8765', recipientFull: '+447700908765',
+                messageSnippet: 'Important health notice regarding...', 
+                fullMessage: 'Important health notice regarding your upcoming appointment on 30th January. Please confirm attendance.',
+                hasUrl: false, extractedUrls: [],
+                ruleTriggered: 'senderid', ruleName: 'Block NHS Impersonation', ruleId: 'SID-002',
+                triggeredRules: [
+                    { engine: 'SenderIdEnforcementEngine', ruleId: 'SID-002', ruleName: 'Block NHS Impersonation', matchType: 'Fuzzy', matchedValue: 'NHSALERT (variant of NHS)' }
+                ],
+                normalisedValues: { senderId: 'NHSALERT', senderIdNormalised: 'nhsalert', messageNormalised: 'important health notice regarding your upcoming appointment on 30th january. please confirm attendance.' },
+                status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '28-01-2026 15:10:00',
+                notes: [{ author: 'admin@quicksms.co.uk', timestamp: '28-01-2026 15:08:00', text: 'Verified with HealthFirst - legitimate NHS partnership communication' }],
+                idempotencyKey: 'idem-006-pqr', releaseAttempts: 1
+            },
+            { 
+                id: 'QRN-007', timestamp: '28-01-2026 11:15:33', accountId: 'ACC-10150', accountName: 'CryptoTraders', 
+                subAccountId: null, subAccountName: null, senderId: 'CRYPTO', 
+                recipient: '+44****2222', recipientFull: '+447700902222',
+                messageSnippet: 'Bitcoin giveaway! Double your crypto...', 
+                fullMessage: 'Bitcoin giveaway! Double your crypto instantly. Send 0.1 BTC to wallet xyz and receive 0.2 BTC back!',
+                hasUrl: true, extractedUrls: [],
+                ruleTriggered: 'content', ruleName: 'Cryptocurrency Scam', ruleId: 'CONT-005',
+                triggeredRules: [
+                    { engine: 'MessageContentEngine', ruleId: 'CONT-005', ruleName: 'Cryptocurrency Scam', matchType: 'Regex', matchedValue: 'double.*crypto|send.*btc.*receive' }
+                ],
+                normalisedValues: { senderId: 'CRYPTO', senderIdNormalised: 'crypto', messageNormalised: 'bitcoin giveaway! double your crypto instantly. send 0.1 btc to wallet xyz and receive 0.2 btc back!' },
+                status: 'blocked', reviewer: 'compliance@quicksms.co.uk', decisionAt: '28-01-2026 12:00:00',
+                notes: [
+                    { author: 'compliance@quicksms.co.uk', timestamp: '28-01-2026 11:45:00', text: 'Classic crypto doubling scam pattern' },
+                    { author: 'compliance@quicksms.co.uk', timestamp: '28-01-2026 12:00:00', text: 'Blocked permanently - account flagged for review' }
+                ],
+                idempotencyKey: 'idem-007-stu', releaseAttempts: 0
+            },
+            { 
+                id: 'QRN-008', timestamp: '27-01-2026 09:00:15', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', 
+                subAccountId: 'SUB-005', subAccountName: 'Promotions', senderId: 'SHOP', 
+                recipient: '+44****3333', recipientFull: '+447700903333',
+                messageSnippet: 'Flash sale! 50% off everything...', 
+                fullMessage: 'Flash sale! 50% off everything this weekend only. Shop now at bit.ly/shop-sale',
+                hasUrl: true, extractedUrls: ['bit.ly/shop-sale'],
+                ruleTriggered: 'url', ruleName: 'URL Shortener Flag', ruleId: 'URL-002',
+                triggeredRules: [
+                    { engine: 'UrlEnforcementEngine', ruleId: 'URL-002', ruleName: 'URL Shortener Flag', matchType: 'Wildcard', matchedValue: 'bit.ly/*' }
+                ],
+                normalisedValues: { senderId: 'SHOP', senderIdNormalised: 'shop', messageNormalised: 'flash sale! 50% off everything this weekend only. shop now at bit.ly/shop-sale' },
+                status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '27-01-2026 09:30:00',
+                notes: [{ author: 'admin@quicksms.co.uk', timestamp: '27-01-2026 09:28:00', text: 'Verified shortened URL points to legitimate e-commerce site' }],
+                idempotencyKey: 'idem-008-vwx', releaseAttempts: 1
+            }
         ];
+        
+        mockData.quarantineFeatureFlags = {
+            notifyCustomerAdminOnRelease: true,
+            requireNoteOnBlock: false,
+            allowAddExceptionFromQuarantine: true,
+            allowCreateRuleFromQuarantine: true
+        };
     }
 
     function renderAllTabs() {
@@ -2368,37 +2530,239 @@ var SecurityComplianceControlsService = (function() {
         select.value = currentValue;
     }
     
+    var currentQuarantineMessageId = null;
+    
     function viewQuarantinedMessage(msgId) {
         var msg = mockData.quarantinedMessages.find(function(m) { return m.id === msgId; });
         if (!msg) return;
         
+        currentQuarantineMessageId = msgId;
+        
+        document.getElementById('qrn-view-id-header').textContent = msg.id;
         document.getElementById('qrn-view-id').textContent = msg.id;
         document.getElementById('qrn-view-timestamp').textContent = msg.timestamp;
         document.getElementById('qrn-view-account').textContent = msg.accountName + ' (' + msg.accountId + ')';
         document.getElementById('qrn-view-subaccount').textContent = msg.subAccountName ? msg.subAccountName + ' (' + msg.subAccountId + ')' : '—';
         document.getElementById('qrn-view-senderid').textContent = msg.senderId;
-        document.getElementById('qrn-view-message').textContent = msg.messageSnippet;
-        document.getElementById('qrn-view-hasurl').textContent = msg.hasUrl ? 'Yes' : 'No';
-        document.getElementById('qrn-view-rule').textContent = msg.ruleName + ' (' + msg.ruleTriggered + ')';
-        document.getElementById('qrn-view-status').textContent = msg.status.charAt(0).toUpperCase() + msg.status.slice(1);
+        document.getElementById('qrn-view-recipient').textContent = msg.recipient || '—';
+        document.getElementById('qrn-view-hasurl').innerHTML = msg.hasUrl 
+            ? '<span class="badge bg-success" style="font-size: 0.7rem;">Yes</span>' 
+            : '<span class="badge bg-secondary" style="font-size: 0.7rem;">No</span>';
+        
+        document.getElementById('qrn-view-message').innerHTML = escapeHtml(msg.fullMessage || msg.messageSnippet);
+        
+        var statusBadge = msg.status === 'pending' 
+            ? '<span class="badge bg-warning text-dark">Pending</span>'
+            : msg.status === 'released'
+                ? '<span class="badge bg-success">Released</span>'
+                : '<span class="badge bg-danger">Blocked</span>';
+        document.getElementById('qrn-view-status').innerHTML = statusBadge;
         document.getElementById('qrn-view-reviewer').textContent = msg.reviewer || '—';
         document.getElementById('qrn-view-decisionat').textContent = msg.decisionAt || '—';
         
+        var triggeredRulesHtml = '';
+        if (msg.triggeredRules && msg.triggeredRules.length > 0) {
+            triggeredRulesHtml = '<div class="list-group list-group-flush" style="font-size: 0.8rem;">';
+            msg.triggeredRules.forEach(function(rule) {
+                var engineColor = rule.engine === 'SenderIdEnforcementEngine' ? '#6b21a8' 
+                    : rule.engine === 'MessageContentEngine' ? '#1e3a5f'
+                    : rule.engine === 'UrlEnforcementEngine' ? '#0d6efd'
+                    : '#dc3545';
+                triggeredRulesHtml += '<div class="list-group-item px-2 py-2" style="border-left: 3px solid ' + engineColor + ';">' +
+                    '<div><strong>' + rule.ruleName + '</strong> <code style="font-size: 0.7rem; background: #f8f9fa; padding: 0.1rem 0.3rem;">' + rule.ruleId + '</code></div>' +
+                    '<small class="text-muted">Engine: ' + rule.engine + '</small><br>' +
+                    '<small>Match: <span class="badge bg-light text-dark">' + rule.matchType + '</span> ' + escapeHtml(rule.matchedValue) + '</small>' +
+                '</div>';
+            });
+            triggeredRulesHtml += '</div>';
+        } else {
+            triggeredRulesHtml = '<span class="text-muted" style="font-size: 0.8rem;">No rule details available</span>';
+        }
+        document.getElementById('qrn-view-triggered-rules').innerHTML = triggeredRulesHtml;
+        
+        var normHtml = '';
+        if (msg.normalisedValues) {
+            normHtml = '<table class="table table-sm table-borderless mb-0" style="font-size: 0.75rem;">';
+            if (msg.normalisedValues.senderId !== msg.normalisedValues.senderIdNormalised) {
+                normHtml += '<tr><td style="width: 90px;"><strong>SenderID:</strong></td><td><code>' + msg.normalisedValues.senderId + '</code> → <code>' + msg.normalisedValues.senderIdNormalised + '</code></td></tr>';
+            } else {
+                normHtml += '<tr><td style="width: 90px;"><strong>SenderID:</strong></td><td><code>' + msg.normalisedValues.senderIdNormalised + '</code> <span class="text-muted">(unchanged)</span></td></tr>';
+            }
+            normHtml += '<tr><td colspan="2"><strong>Message (normalised):</strong></td></tr>';
+            normHtml += '<tr><td colspan="2" style="background: #f8f9fa; padding: 0.5rem; border-radius: 4px; word-break: break-word;">' + escapeHtml(msg.normalisedValues.messageNormalised) + '</td></tr>';
+            normHtml += '</table>';
+        } else {
+            normHtml = '<span class="text-muted" style="font-size: 0.8rem;">Normalisation not applied</span>';
+        }
+        document.getElementById('qrn-view-normalised').innerHTML = normHtml;
+        
+        var notesHtml = '';
+        if (msg.notes && msg.notes.length > 0) {
+            msg.notes.forEach(function(note) {
+                notesHtml += '<div class="mb-2 p-2 bg-light rounded" style="border-left: 3px solid #1e3a5f;">' +
+                    '<small class="text-muted">' + note.timestamp + ' - ' + note.author.split('@')[0] + '</small><br>' +
+                    '<span>' + escapeHtml(note.text) + '</span></div>';
+            });
+        } else {
+            notesHtml = '<span class="text-muted" style="font-size: 0.8rem;">No notes yet</span>';
+        }
+        document.getElementById('qrn-view-notes-list').innerHTML = notesHtml;
+        document.getElementById('qrn-new-note').value = '';
+        
+        var addNoteSection = document.getElementById('qrn-add-note-section');
+        addNoteSection.style.display = 'block';
+        
+        var notifySection = document.getElementById('qrn-notify-customer-section');
+        var notifyCheckbox = document.getElementById('qrn-notify-customer');
+        if (msg.status === 'pending' && mockData.quarantineFeatureFlags.notifyCustomerAdminOnRelease) {
+            notifySection.style.display = 'block';
+            notifyCheckbox.checked = false;
+        } else {
+            notifySection.style.display = 'none';
+        }
+        
         var actionsDiv = document.getElementById('qrn-view-actions');
         if (msg.status === 'pending') {
-            actionsDiv.innerHTML = '<button class="btn btn-success btn-sm me-2" onclick="releaseQuarantinedMessage(\'' + msg.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'quarantineViewModal\')).hide();"><i class="fas fa-check me-1"></i> Release</button>' +
-                '<button class="btn btn-danger btn-sm" onclick="blockQuarantinedMessage(\'' + msg.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'quarantineViewModal\')).hide();"><i class="fas fa-ban me-1"></i> Block</button>';
+            var actionsHtml = '<button class="btn btn-success btn-sm" onclick="releaseQuarantinedMessageFromModal()">' +
+                '<i class="fas fa-paper-plane me-1"></i> Release (Send)</button> ' +
+                '<button class="btn btn-danger btn-sm" onclick="blockQuarantinedMessageFromModal()">' +
+                '<i class="fas fa-ban me-1"></i> Block Permanently</button> ';
+            
+            if (mockData.quarantineFeatureFlags.allowAddExceptionFromQuarantine) {
+                actionsHtml += '<button class="btn btn-outline-primary btn-sm" onclick="addExceptionFromQuarantine()">' +
+                    '<i class="fas fa-shield-alt me-1"></i> Add Exception</button> ';
+            }
+            if (mockData.quarantineFeatureFlags.allowCreateRuleFromQuarantine) {
+                actionsHtml += '<button class="btn btn-outline-secondary btn-sm" onclick="createRuleFromQuarantine()">' +
+                    '<i class="fas fa-plus me-1"></i> Create Rule</button>';
+            }
+            actionsDiv.innerHTML = actionsHtml;
         } else {
-            actionsDiv.innerHTML = '<span class="text-muted">This message has already been reviewed.</span>';
+            actionsDiv.innerHTML = '<span class="badge bg-secondary"><i class="fas fa-check-circle me-1"></i> Reviewed</span> ' +
+                '<span class="text-muted" style="font-size: 0.85rem;">Decision made on ' + msg.decisionAt + ' by ' + (msg.reviewer ? msg.reviewer.split('@')[0] : 'System') + '</span>';
         }
         
         var modal = new bootstrap.Modal(document.getElementById('quarantineViewModal'));
         modal.show();
     }
     
-    function releaseQuarantinedMessage(msgId) {
+    function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function releaseQuarantinedMessageFromModal() {
+        if (!currentQuarantineMessageId) return;
+        var notifyCustomer = document.getElementById('qrn-notify-customer').checked;
+        releaseQuarantinedMessage(currentQuarantineMessageId, notifyCustomer);
+        bootstrap.Modal.getInstance(document.getElementById('quarantineViewModal')).hide();
+    }
+    
+    function blockQuarantinedMessageFromModal() {
+        if (!currentQuarantineMessageId) return;
+        blockQuarantinedMessage(currentQuarantineMessageId);
+        bootstrap.Modal.getInstance(document.getElementById('quarantineViewModal')).hide();
+    }
+    
+    function addQuarantineNote() {
+        if (!currentQuarantineMessageId) return;
+        var noteText = document.getElementById('qrn-new-note').value.trim();
+        if (!noteText) {
+            showToast('Please enter a note', 'warning');
+            return;
+        }
+        
+        var msg = mockData.quarantinedMessages.find(function(m) { return m.id === currentQuarantineMessageId; });
+        if (!msg) return;
+        
+        if (!msg.notes) msg.notes = [];
+        msg.notes.push({
+            author: currentAdmin.email,
+            timestamp: formatDateTime(new Date()),
+            text: noteText
+        });
+        
+        logAuditEvent('QUARANTINE_NOTE_ADDED', {
+            messageId: currentQuarantineMessageId,
+            accountId: msg.accountId,
+            note: noteText,
+            admin: currentAdmin.email
+        });
+        
+        viewQuarantinedMessage(currentQuarantineMessageId);
+        showToast('Note added', 'success');
+    }
+    
+    function addExceptionFromQuarantine() {
+        if (!currentQuarantineMessageId) return;
+        var msg = mockData.quarantinedMessages.find(function(m) { return m.id === currentQuarantineMessageId; });
+        if (!msg) return;
+        
+        bootstrap.Modal.getInstance(document.getElementById('quarantineViewModal')).hide();
+        
+        var exceptionType = msg.ruleTriggered;
+        if (exceptionType === 'senderid') {
+            showToast('TODO: Deep-link to SenderID exceptions with account=' + msg.accountId + ', senderId=' + msg.senderId, 'info');
+        } else if (exceptionType === 'content') {
+            showToast('TODO: Deep-link to Content exceptions with account=' + msg.accountId, 'info');
+        } else if (exceptionType === 'url' || exceptionType === 'domain_age') {
+            document.getElementById('exception-account').value = msg.accountId;
+            var modal = new bootstrap.Modal(document.getElementById('domainAgeExceptionModal'));
+            modal.show();
+        }
+        
+        logAuditEvent('QUARANTINE_EXCEPTION_STARTED', {
+            messageId: currentQuarantineMessageId,
+            accountId: msg.accountId,
+            ruleType: exceptionType,
+            admin: currentAdmin.email
+        });
+    }
+    
+    function createRuleFromQuarantine() {
+        if (!currentQuarantineMessageId) return;
+        var msg = mockData.quarantinedMessages.find(function(m) { return m.id === currentQuarantineMessageId; });
+        if (!msg) return;
+        
+        bootstrap.Modal.getInstance(document.getElementById('quarantineViewModal')).hide();
+        
+        if (msg.ruleTriggered === 'content' || msg.extractedUrls.length === 0) {
+            document.querySelector('#contentRuleModal [data-content-type="keyword"]').click();
+            document.getElementById('content-rule-value').value = msg.fullMessage ? msg.fullMessage.substring(0, 50) : '';
+            var modal = new bootstrap.Modal(document.getElementById('contentRuleModal'));
+            modal.show();
+        } else {
+            document.getElementById('url-pattern').value = msg.extractedUrls[0] || '';
+            var modal = new bootstrap.Modal(document.getElementById('urlRuleModal'));
+            modal.show();
+        }
+        
+        logAuditEvent('QUARANTINE_RULE_CREATE_STARTED', {
+            messageId: currentQuarantineMessageId,
+            accountId: msg.accountId,
+            prefilledFrom: msg.ruleTriggered,
+            admin: currentAdmin.email
+        });
+        
+        showToast('Rule form prefilled from quarantine data', 'info');
+    }
+    
+    function releaseQuarantinedMessage(msgId, notifyCustomer) {
         var msg = mockData.quarantinedMessages.find(function(m) { return m.id === msgId; });
-        if (!msg || msg.status !== 'pending') return;
+        if (!msg) return;
+        
+        if (msg.status !== 'pending') {
+            console.log('[Quarantine] Idempotency check: Message ' + msgId + ' already processed (status: ' + msg.status + ')');
+            showToast('This message has already been reviewed', 'warning');
+            return;
+        }
+        
+        if (msg.releaseAttempts > 0) {
+            console.log('[Quarantine] Idempotency warning: Release already attempted for ' + msgId + ' (attempts: ' + msg.releaseAttempts + ')');
+        }
+        msg.releaseAttempts = (msg.releaseAttempts || 0) + 1;
         
         msg.status = 'released';
         msg.reviewer = currentAdmin.email;
@@ -2406,20 +2770,42 @@ var SecurityComplianceControlsService = (function() {
         
         logAuditEvent('QUARANTINE_MESSAGE_RELEASED', {
             messageId: msgId,
+            idempotencyKey: msg.idempotencyKey,
             accountId: msg.accountId,
             accountName: msg.accountName,
             senderId: msg.senderId,
+            recipient: msg.recipient,
             ruleTriggered: msg.ruleTriggered,
-            reviewer: currentAdmin.email
+            triggeredRules: msg.triggeredRules.map(function(r) { return r.ruleId; }),
+            reviewer: currentAdmin.email,
+            notifyCustomer: notifyCustomer || false,
+            releaseAttempts: msg.releaseAttempts
         });
         
+        if (notifyCustomer && mockData.quarantineFeatureFlags.notifyCustomerAdminOnRelease) {
+            console.log('[Quarantine] TODO: Send notification to customer admin for account ' + msg.accountId);
+            logAuditEvent('QUARANTINE_CUSTOMER_NOTIFIED', {
+                messageId: msgId,
+                accountId: msg.accountId,
+                notificationType: 'message_released'
+            });
+        }
+        
+        console.log('[Quarantine] Message ' + msgId + ' released - resuming delivery pipeline');
+        
         renderQuarantineTab();
-        showToast('Message released for delivery', 'success');
+        showToast('Message released for delivery' + (notifyCustomer ? ' (customer notified)' : ''), 'success');
     }
     
     function blockQuarantinedMessage(msgId) {
         var msg = mockData.quarantinedMessages.find(function(m) { return m.id === msgId; });
-        if (!msg || msg.status !== 'pending') return;
+        if (!msg) return;
+        
+        if (msg.status !== 'pending') {
+            console.log('[Quarantine] Idempotency check: Message ' + msgId + ' already processed (status: ' + msg.status + ')');
+            showToast('This message has already been reviewed', 'warning');
+            return;
+        }
         
         msg.status = 'blocked';
         msg.reviewer = currentAdmin.email;
@@ -2427,12 +2813,18 @@ var SecurityComplianceControlsService = (function() {
         
         logAuditEvent('QUARANTINE_MESSAGE_BLOCKED', {
             messageId: msgId,
+            idempotencyKey: msg.idempotencyKey,
             accountId: msg.accountId,
             accountName: msg.accountName,
             senderId: msg.senderId,
+            recipient: msg.recipient,
             ruleTriggered: msg.ruleTriggered,
-            reviewer: currentAdmin.email
+            triggeredRules: msg.triggeredRules ? msg.triggeredRules.map(function(r) { return r.ruleId; }) : [],
+            reviewer: currentAdmin.email,
+            permanent: true
         });
+        
+        console.log('[Quarantine] Message ' + msgId + ' permanently blocked');
         
         renderQuarantineTab();
         showToast('Message permanently blocked', 'success');
@@ -2561,7 +2953,12 @@ var SecurityComplianceControlsService = (function() {
         blockQuarantinedMessage: blockQuarantinedMessage,
         bulkReleaseQuarantine: bulkReleaseQuarantine,
         bulkBlockQuarantine: bulkBlockQuarantine,
-        setupQuarantineTabListeners: setupQuarantineTabListeners
+        setupQuarantineTabListeners: setupQuarantineTabListeners,
+        addQuarantineNote: addQuarantineNote,
+        addExceptionFromQuarantine: addExceptionFromQuarantine,
+        createRuleFromQuarantine: createRuleFromQuarantine,
+        releaseQuarantinedMessageFromModal: releaseQuarantinedMessageFromModal,
+        blockQuarantinedMessageFromModal: blockQuarantinedMessageFromModal
     };
 })();
 
@@ -3076,9 +3473,24 @@ function bulkRejectQuarantine() {
     SecurityComplianceControlsService.bulkBlockQuarantine();
 }
 
-function reviewQuarantinedMessage(id) {
-    console.log('[SecurityComplianceControls] TODO: Implement review modal for message', id);
-    alert('Review message #' + id + ' - Coming Soon');
+function addQuarantineNote() {
+    SecurityComplianceControlsService.addQuarantineNote();
+}
+
+function addExceptionFromQuarantine() {
+    SecurityComplianceControlsService.addExceptionFromQuarantine();
+}
+
+function createRuleFromQuarantine() {
+    SecurityComplianceControlsService.createRuleFromQuarantine();
+}
+
+function releaseQuarantinedMessageFromModal() {
+    SecurityComplianceControlsService.releaseQuarantinedMessageFromModal();
+}
+
+function blockQuarantinedMessageFromModal() {
+    SecurityComplianceControlsService.blockQuarantinedMessageFromModal();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
