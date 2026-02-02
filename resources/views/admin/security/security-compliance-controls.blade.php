@@ -3705,9 +3705,14 @@
                             <div class="col-md-6">
                                 <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">Account <span class="text-danger">*</span></label>
                                 <div class="position-relative">
-                                    <input type="text" class="form-control form-control-sm" id="global-exemption-account-search" placeholder="Search account..." autocomplete="off">
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control form-control-sm" id="global-exemption-account-search" placeholder="Search account..." autocomplete="off" style="border-right: none;">
+                                        <button class="btn btn-outline-secondary" type="button" id="global-exemption-account-toggle" onclick="toggleGlobalExemptionAccountDropdown()" style="border-left: none; background: #fff;">
+                                            <i class="fas fa-chevron-down" style="font-size: 0.65rem;"></i>
+                                        </button>
+                                    </div>
                                     <input type="hidden" id="global-exemption-account-id" value="">
-                                    <div class="dropdown-menu w-100" id="global-exemption-account-dropdown" style="max-height: 180px; overflow-y: auto;"></div>
+                                    <div class="dropdown-menu w-100" id="global-exemption-account-dropdown" style="max-height: 200px; overflow-y: auto;"></div>
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -8823,24 +8828,33 @@ var SecurityComplianceControlsService = (function() {
         });
     }
     
-    function filterGlobalExemptionAccounts() {
-        var search = document.getElementById('global-exemption-account-search').value.toLowerCase();
+    function toggleGlobalExemptionAccountDropdown() {
+        var dropdown = document.getElementById('global-exemption-account-dropdown');
+        if (dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+        } else {
+            showGlobalExemptionAccountDropdown();
+        }
+    }
+    
+    function showGlobalExemptionAccountDropdown() {
+        var search = document.getElementById('global-exemption-account-search').value.toLowerCase().trim();
         var dropdown = document.getElementById('global-exemption-account-dropdown');
         
-        if (search.length < 2) {
-            dropdown.classList.remove('show');
-            return;
+        var filtered;
+        if (search.length === 0) {
+            filtered = mockData.accounts.slice(0, 15);
+        } else {
+            filtered = mockData.accounts.filter(function(a) {
+                return a.name.toLowerCase().indexOf(search) !== -1 || a.id.toLowerCase().indexOf(search) !== -1;
+            }).slice(0, 15);
         }
         
-        var filtered = mockData.accounts.filter(function(a) {
-            return a.name.toLowerCase().indexOf(search) !== -1 || a.id.toLowerCase().indexOf(search) !== -1;
-        }).slice(0, 10);
-        
         if (filtered.length === 0) {
-            dropdown.innerHTML = '<div class="dropdown-item text-muted">No accounts found</div>';
+            dropdown.innerHTML = '<div class="dropdown-item text-muted" style="font-size: 0.85rem;">No accounts found</div>';
         } else {
             dropdown.innerHTML = filtered.map(function(a) {
-                return '<div class="dropdown-item" style="cursor: pointer; font-size: 0.85rem;" onclick="selectGlobalExemptionAccount(\'' + a.id + '\', \'' + escapeHtml(a.name).replace(/'/g, "\\'") + '\')">' +
+                return '<div class="dropdown-item" style="cursor: pointer; font-size: 0.85rem; padding: 0.4rem 0.75rem;" onclick="selectGlobalExemptionAccount(\'' + a.id + '\', \'' + escapeHtml(a.name).replace(/'/g, "\\'") + '\')" onmouseenter="this.style.background=\'#e9ecef\'" onmouseleave="this.style.background=\'transparent\'">' +
                     '<div style="font-weight: 500;">' + escapeHtml(a.name) + '</div>' +
                     '<small class="text-muted">' + a.id + '</small>' +
                 '</div>';
@@ -8848,6 +8862,10 @@ var SecurityComplianceControlsService = (function() {
         }
         
         dropdown.classList.add('show');
+    }
+    
+    function filterGlobalExemptionAccounts() {
+        showGlobalExemptionAccountDropdown();
     }
     
     function selectGlobalExemptionAccount(accountId, accountName) {
@@ -9173,7 +9191,20 @@ var SecurityComplianceControlsService = (function() {
         var globalExemptionAccountSearch = document.getElementById('global-exemption-account-search');
         if (globalExemptionAccountSearch) {
             globalExemptionAccountSearch.addEventListener('input', filterGlobalExemptionAccounts);
+            globalExemptionAccountSearch.addEventListener('focus', showGlobalExemptionAccountDropdown);
         }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            var dropdown = document.getElementById('global-exemption-account-dropdown');
+            var searchInput = document.getElementById('global-exemption-account-search');
+            var toggleBtn = document.getElementById('global-exemption-account-toggle');
+            if (dropdown && searchInput && toggleBtn) {
+                if (!searchInput.contains(e.target) && !dropdown.contains(e.target) && !toggleBtn.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
         
         // Account filter change updates sub-account options
         var urlExemptionsAccountFilter = document.getElementById('url-exemptions-filter-account');
