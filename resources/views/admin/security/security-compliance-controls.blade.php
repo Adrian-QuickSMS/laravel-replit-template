@@ -2037,6 +2037,72 @@
                                             </button>
                                         </div>
                                     </div>
+                                    
+                                    <hr style="margin: 1rem 0 0.75rem 0; border-color: #e9ecef;">
+                                    
+                                    <!-- Exemptions Section -->
+                                    <div class="row g-3">
+                                        <!-- A) Domain Allowlist -->
+                                        <div class="col-md-6">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span style="font-size: 0.8rem; font-weight: 600; color: #1e3a5f;">
+                                                    <i class="fas fa-globe me-1"></i> Domain Allowlist
+                                                </span>
+                                                <button class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;" onclick="showAddDomainAllowlistModal()">
+                                                    <i class="fas fa-plus me-1"></i> Add Domain
+                                                </button>
+                                            </div>
+                                            <div class="table-responsive" style="max-height: 160px; overflow-y: auto;">
+                                                <table class="table table-sm mb-0" style="font-size: 0.75rem;">
+                                                    <thead>
+                                                        <tr style="background: #f8f9fa;">
+                                                            <th style="padding: 0.3rem; font-weight: 600;">Domain</th>
+                                                            <th style="padding: 0.3rem; font-weight: 600;">Scope</th>
+                                                            <th style="padding: 0.3rem; font-weight: 600;">Type</th>
+                                                            <th style="padding: 0.3rem; font-weight: 600;">Updated</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="domain-allowlist-preview-body">
+                                                        <tr><td colspan="4" class="text-center text-muted" style="padding: 0.5rem;">No domain exemptions</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="text-end mt-1">
+                                                <a href="javascript:void(0)" onclick="viewAllDomainAgeExemptions('domain')" style="font-size: 0.7rem; color: #1e3a5f;">View all <i class="fas fa-arrow-right ms-1"></i></a>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- B) Account/Sub-account Threshold Override -->
+                                        <div class="col-md-6">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span style="font-size: 0.8rem; font-weight: 600; color: #1e3a5f;">
+                                                    <i class="fas fa-building me-1"></i> Threshold Overrides
+                                                </span>
+                                                <button class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;" onclick="showAddThresholdOverrideModal()">
+                                                    <i class="fas fa-plus me-1"></i> Add Override
+                                                </button>
+                                            </div>
+                                            <div class="table-responsive" style="max-height: 160px; overflow-y: auto;">
+                                                <table class="table table-sm mb-0" style="font-size: 0.75rem;">
+                                                    <thead>
+                                                        <tr style="background: #f8f9fa;">
+                                                            <th style="padding: 0.3rem; font-weight: 600;">Account</th>
+                                                            <th style="padding: 0.3rem; font-weight: 600;">Sub-accts</th>
+                                                            <th style="padding: 0.3rem; font-weight: 600;">Threshold</th>
+                                                            <th style="padding: 0.3rem; font-weight: 600;">Action</th>
+                                                            <th style="padding: 0.3rem; font-weight: 600;">Updated</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="threshold-override-preview-body">
+                                                        <tr><td colspan="5" class="text-center text-muted" style="padding: 0.5rem;">No threshold overrides</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="text-end mt-1">
+                                                <a href="javascript:void(0)" onclick="viewAllDomainAgeExemptions('threshold')" style="font-size: 0.7rem; color: #1e3a5f;">View all <i class="fas fa-arrow-right ms-1"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4420,6 +4486,21 @@ var SecurityComplianceControlsService = (function() {
             minAgeHours: 72,
             action: 'block'
         };
+        
+        mockData.domainAllowlist = [
+            { id: 'DAL-001', domain: 'trusted-shortlinks.com', scope: 'all', scopeDetails: null, overrideType: 'full', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '18-01-2026 10:30', updatedAt: '18-01-2026 10:30' },
+            { id: 'DAL-002', domain: 'partner-links.io', scope: 'account', scopeDetails: { accountId: 'ACC-10045', accountName: 'TechStart Ltd' }, overrideType: 'full', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '20-01-2026 14:15', updatedAt: '20-01-2026 14:15' },
+            { id: 'DAL-003', domain: '*.approved-cdn.net', scope: 'all', scopeDetails: null, overrideType: 'partial', status: 'active', addedBy: 'compliance@quicksms.co.uk', addedAt: '22-01-2026 09:00', updatedAt: '22-01-2026 09:00' },
+            { id: 'DAL-004', domain: 'marketing-links.uk', scope: 'subaccount', scopeDetails: { accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccountId: 'SUB-001', subAccountName: 'Marketing Dept' }, overrideType: 'full', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '25-01-2026 16:45', updatedAt: '25-01-2026 16:45' },
+            { id: 'DAL-005', domain: 'legacy-tracker.com', scope: 'account', scopeDetails: { accountId: 'ACC-10112', accountName: 'E-Commerce Hub' }, overrideType: 'full', status: 'disabled', addedBy: 'admin@quicksms.co.uk', addedAt: '28-01-2026 11:20', updatedAt: '30-01-2026 09:00' }
+        ];
+        
+        mockData.thresholdOverrides = [
+            { id: 'THR-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], allSubaccounts: true, thresholdHours: 24, actionOverride: 'flag', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '19-01-2026 11:00', updatedAt: '19-01-2026 11:00' },
+            { id: 'THR-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [{ id: 'SUB-001', name: 'Marketing Dept' }], allSubaccounts: false, thresholdHours: 48, actionOverride: 'block', status: 'active', addedBy: 'compliance@quicksms.co.uk', addedAt: '21-01-2026 15:30', updatedAt: '21-01-2026 15:30' },
+            { id: 'THR-003', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: [], allSubaccounts: true, thresholdHours: 12, actionOverride: 'flag', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '26-01-2026 09:45', updatedAt: '26-01-2026 09:45' },
+            { id: 'THR-004', accountId: 'ACC-10156', accountName: 'Retail Pro', subAccounts: [], allSubaccounts: true, thresholdHours: 0, actionOverride: 'none', status: 'disabled', addedBy: 'admin@quicksms.co.uk', addedAt: '29-01-2026 14:00', updatedAt: '31-01-2026 10:00' }
+        ];
         
         mockData.domainAgeExceptions = [
             { id: 'EXC-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', reason: 'Approved marketing partner - verified shortlinks', addedBy: 'admin@quicksms.co.uk', addedAt: '15-01-2026 10:30' },
@@ -7119,6 +7200,7 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('domain-age-action').value = mockData.domainAgeSettings.action || 'block';
         
         updateDomainAgeStatusBadge();
+        renderDomainAgeExemptionPreviews();
         
         // Collapse icon rotation
         var collapseEl = document.getElementById('domain-age-collapse');
@@ -7233,6 +7315,99 @@ var SecurityComplianceControlsService = (function() {
     
     function saveDomainAgeSettings() {
         confirmSaveDomainAgeSettings();
+    }
+    
+    function renderDomainAgeExemptionPreviews() {
+        renderDomainAllowlistPreview();
+        renderThresholdOverridesPreview();
+    }
+    
+    function renderDomainAllowlistPreview() {
+        var tbody = document.getElementById('domain-allowlist-preview-body');
+        if (!tbody) return;
+        
+        var items = (mockData.domainAllowlist || []).filter(function(d) { return d.status === 'active'; })
+            .sort(function(a, b) { return (b.updatedAt || '').localeCompare(a.updatedAt || ''); })
+            .slice(0, 5);
+        
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding: 0.5rem;">No domain exemptions</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = items.map(function(item) {
+            var scopeLabel = item.scope === 'all' ? 'All' : 
+                            (item.scope === 'account' ? item.scopeDetails.accountName : 
+                            (item.scopeDetails ? item.scopeDetails.subAccountName : 'N/A'));
+            var scopeBadgeColor = item.scope === 'all' ? '#1e3a5f' : (item.scope === 'account' ? '#0d6efd' : '#6f42c1');
+            var typeLabel = item.overrideType === 'full' ? 'Full' : 'Partial';
+            var typeBadgeColor = item.overrideType === 'full' ? '#198754' : '#ffc107';
+            var typeTextColor = item.overrideType === 'full' ? 'white' : '#212529';
+            
+            return '<tr>' +
+                '<td style="padding: 0.3rem;"><code style="font-size: 0.7rem; background: #e9ecef; padding: 1px 4px; border-radius: 2px;">' + escapeHtml(item.domain) + '</code></td>' +
+                '<td style="padding: 0.3rem;"><span class="badge" style="font-size: 0.6rem; background: ' + scopeBadgeColor + '; color: white;">' + escapeHtml(scopeLabel.substring(0, 12)) + '</span></td>' +
+                '<td style="padding: 0.3rem;"><span class="badge" style="font-size: 0.6rem; background: ' + typeBadgeColor + '; color: ' + typeTextColor + ';">' + typeLabel + '</span></td>' +
+                '<td style="padding: 0.3rem; font-size: 0.65rem; color: #6c757d;">' + (item.updatedAt || '').split(' ')[0] + '</td>' +
+            '</tr>';
+        }).join('');
+    }
+    
+    function renderThresholdOverridesPreview() {
+        var tbody = document.getElementById('threshold-override-preview-body');
+        if (!tbody) return;
+        
+        var items = (mockData.thresholdOverrides || []).filter(function(t) { return t.status === 'active'; })
+            .sort(function(a, b) { return (b.updatedAt || '').localeCompare(a.updatedAt || ''); })
+            .slice(0, 5);
+        
+        if (items.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding: 0.5rem;">No threshold overrides</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = items.map(function(item) {
+            var subAcctLabel = item.allSubaccounts ? 'All' : (item.subAccounts.length + ' selected');
+            var actionLabel = item.actionOverride === 'flag' ? 'Flag' : (item.actionOverride === 'block' ? 'Block' : 'Default');
+            var actionColor = item.actionOverride === 'flag' ? '#ffc107' : (item.actionOverride === 'block' ? '#dc3545' : '#6c757d');
+            var actionTextColor = item.actionOverride === 'flag' ? '#212529' : 'white';
+            
+            return '<tr>' +
+                '<td style="padding: 0.3rem; font-size: 0.7rem; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="' + escapeHtml(item.accountName) + '">' + escapeHtml(item.accountName.substring(0, 12)) + '</td>' +
+                '<td style="padding: 0.3rem; font-size: 0.7rem;">' + subAcctLabel + '</td>' +
+                '<td style="padding: 0.3rem;"><span class="badge bg-info text-white" style="font-size: 0.6rem;">' + item.thresholdHours + 'h</span></td>' +
+                '<td style="padding: 0.3rem;"><span class="badge" style="font-size: 0.6rem; background: ' + actionColor + '; color: ' + actionTextColor + ';">' + actionLabel + '</span></td>' +
+                '<td style="padding: 0.3rem; font-size: 0.65rem; color: #6c757d;">' + (item.updatedAt || '').split(' ')[0] + '</td>' +
+            '</tr>';
+        }).join('');
+    }
+    
+    function showAddDomainAllowlistModal() {
+        showToast('Add Domain Exemption - TODO: Implement modal with domain input, scope selection, and override type', 'info');
+    }
+    
+    function showAddThresholdOverrideModal() {
+        showToast('Add Threshold Override - TODO: Implement modal with account search, threshold hours, and action override', 'info');
+    }
+    
+    function viewAllDomainAgeExemptions(filterType) {
+        // Switch to Exemptions tab and apply filter
+        var exemptionsTab = document.getElementById('url-exemptions-tab');
+        if (exemptionsTab) {
+            var tab = new bootstrap.Tab(exemptionsTab);
+            tab.show();
+            
+            // Set the filter to domain_age type
+            setTimeout(function() {
+                var typeFilter = document.getElementById('url-exemptions-filter-type');
+                if (typeFilter) {
+                    typeFilter.value = 'domain_age';
+                    renderUrlExemptionsTab();
+                }
+            }, 100);
+        }
+        
+        showToast('Showing all Domain Age exemptions', 'info');
     }
     
     function showAddDomainAgeExceptionModal() {
@@ -9050,6 +9225,12 @@ var SecurityComplianceControlsService = (function() {
         cancelDomainAgeSettings: cancelDomainAgeSettings,
         confirmSaveDomainAgeSettings: confirmSaveDomainAgeSettings,
         executeSaveDomainAgeSettings: executeSaveDomainAgeSettings,
+        renderDomainAgeExemptionPreviews: renderDomainAgeExemptionPreviews,
+        renderDomainAllowlistPreview: renderDomainAllowlistPreview,
+        renderThresholdOverridesPreview: renderThresholdOverridesPreview,
+        showAddDomainAllowlistModal: showAddDomainAllowlistModal,
+        showAddThresholdOverrideModal: showAddThresholdOverrideModal,
+        viewAllDomainAgeExemptions: viewAllDomainAgeExemptions,
         showAddDomainAgeExceptionModal: showAddDomainAgeExceptionModal,
         saveException: saveException,
         removeDomainAgeException: removeDomainAgeException,
@@ -12781,6 +12962,18 @@ function confirmSaveDomainAgeSettings() {
 
 function executeSaveDomainAgeSettings() {
     SecurityComplianceControlsService.executeSaveDomainAgeSettings();
+}
+
+function showAddDomainAllowlistModal() {
+    SecurityComplianceControlsService.showAddDomainAllowlistModal();
+}
+
+function showAddThresholdOverrideModal() {
+    SecurityComplianceControlsService.showAddThresholdOverrideModal();
+}
+
+function viewAllDomainAgeExemptions(filterType) {
+    SecurityComplianceControlsService.viewAllDomainAgeExemptions(filterType);
 }
 
 function showAddDomainAgeExceptionModal() {
