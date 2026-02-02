@@ -1626,6 +1626,39 @@
     </div>
 </div>
 
+<div class="modal fade" id="approvalConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #16a34a; color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-check-circle me-2"></i>Approve Request</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-light border mb-3">
+                    <div class="small text-muted">Approving request for:</div>
+                    <div><strong id="approvalCustomerName"></strong> &rarr; <strong id="approvalCountryName"></strong></div>
+                </div>
+                
+                <div class="alert alert-info mb-0" style="background: rgba(30, 58, 95, 0.1); border-color: #1e3a5f; color: #1e3a5f;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>What will happen:</strong>
+                    <ul class="mb-0 mt-2" style="padding-left: 1.2rem;">
+                        <li>An account-level override will be created allowing this customer to send to this country</li>
+                        <li>Global country policy will NOT be changed</li>
+                        <li>The customer will be notified via their portal</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmApproveBtn" onclick="confirmApproval()">
+                    <i class="fas fa-check-circle me-1"></i>Confirm Approval
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="rejectionReasonModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -3144,13 +3177,23 @@ function updateReviewStats() {
     }
 }
 
+var pendingApprovalRequest = null;
+
 function approveRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) return;
 
-    if (!confirm('Approve country access for ' + request.customer.name + ' to ' + request.country.name + '?\n\nThis will add an account-level override allowing this customer to send to ' + request.country.name + '. Global country policy will NOT be changed.')) {
-        return;
-    }
+    pendingApprovalRequest = request;
+    document.getElementById('approvalCustomerName').textContent = request.customer.name;
+    document.getElementById('approvalCountryName').textContent = request.country.name;
+    
+    var modal = new bootstrap.Modal(document.getElementById('approvalConfirmModal'));
+    modal.show();
+}
+
+function confirmApproval() {
+    var request = pendingApprovalRequest;
+    if (!request) return;
 
     var now = new Date();
     var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
@@ -3176,6 +3219,9 @@ function approveRequest(requestId) {
         countryName: request.country.name,
         countryCode: request.country.code
     });
+
+    bootstrap.Modal.getInstance(document.getElementById('approvalConfirmModal')).hide();
+    pendingApprovalRequest = null;
 
     renderRequestsList();
     updateReviewStats();
