@@ -6922,7 +6922,7 @@ var SecurityComplianceControlsService = (function() {
                     '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
                     '<td>' +
                         '<div class="action-menu-container">' +
-                            '<button class="action-menu-btn" onclick="toggleUrlActionMenu(this, \'' + rule.id + '\')"><i class="fas fa-ellipsis-v"></i></button>' +
+                            '<button class="action-menu-btn" onclick="toggleUrlActionMenu(this, \'' + rule.id + '\', event)"><i class="fas fa-ellipsis-v"></i></button>' +
                             '<div class="action-menu-dropdown" id="url-menu-' + rule.id + '">' +
                                 '<a href="#" onclick="viewUrlRule(\'' + rule.id + '\'); return false;"><i class="fas fa-eye"></i> View Details</a>' +
                                 '<a href="#" onclick="editUrlRule(\'' + rule.id + '\'); return false;"><i class="fas fa-edit"></i> Edit Rule</a>' +
@@ -7218,14 +7218,21 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function toggleUrlExemptionActionMenu(btn, exemptionId, event) {
-        if (event) event.stopPropagation();
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        // Close all other menus first
         document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
             if (menu.id !== 'url-exemption-menu-' + exemptionId) {
                 menu.classList.remove('show');
             }
         });
+        // Toggle this menu
         var menu = document.getElementById('url-exemption-menu-' + exemptionId);
-        if (menu) menu.classList.toggle('show');
+        if (menu) {
+            menu.classList.toggle('show');
+        }
     }
     
     function showAddUrlExemptionModal() {
@@ -7482,14 +7489,22 @@ var SecurityComplianceControlsService = (function() {
         renderUrlExemptionsTab();
     }
     
-    function toggleUrlActionMenu(btn, ruleId) {
+    function toggleUrlActionMenu(btn, ruleId, event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        // Close all other menus first
         document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
             if (menu.id !== 'url-menu-' + ruleId) {
                 menu.classList.remove('show');
             }
         });
+        // Toggle this menu
         var menu = document.getElementById('url-menu-' + ruleId);
-        menu.classList.toggle('show');
+        if (menu) {
+            menu.classList.toggle('show');
+        }
     }
     
     function showAddUrlRuleModal() {
@@ -13910,8 +13925,8 @@ function resetUrlControlsFilters() {
     SecurityComplianceControlsService.resetUrlControlsFilters();
 }
 
-function toggleUrlActionMenu(btn, ruleId) {
-    SecurityComplianceControlsService.toggleUrlActionMenu(btn, ruleId);
+function toggleUrlActionMenu(btn, ruleId, event) {
+    SecurityComplianceControlsService.toggleUrlActionMenu(btn, ruleId, event);
 }
 
 // URL Exemptions global wrappers
