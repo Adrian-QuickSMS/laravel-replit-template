@@ -2220,15 +2220,23 @@
             <div class="modal-body">
                 <input type="hidden" id="senderid-rule-id" value="">
                 
+                <!-- Validation Alert -->
+                <div class="alert alert-danger d-none" id="senderid-validation-alert" style="font-size: 0.85rem;">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span id="senderid-validation-message">Please complete all required fields before saving.</span>
+                </div>
+                
                 <div class="mb-3">
                     <label class="form-label" style="font-weight: 500; color: #1e3a5f;">Rule Name <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="senderid-rule-name" placeholder="e.g., Block HSBC Impersonation" required>
+                    <div class="invalid-feedback" id="senderid-rule-name-error">Rule name is required</div>
                     <small class="text-muted">A descriptive name for this rule</small>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label" style="font-weight: 500; color: #1e3a5f;">Base SenderID <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="senderid-base-value" placeholder="e.g., HSBC" style="text-transform: uppercase;" required>
+                    <div class="invalid-feedback" id="senderid-base-value-error">Base SenderID is required</div>
                     <small class="text-muted">The canonical SenderID to match (case-insensitive, variants auto-detected)</small>
                 </div>
 
@@ -2262,6 +2270,7 @@
                         <option value="miscellaneous">Miscellaneous</option>
                         <option value="generic">Generic</option>
                     </select>
+                    <div class="invalid-feedback" id="senderid-category-error">Please select a category</div>
                 </div>
 
                 <div class="mb-3">
@@ -2309,6 +2318,54 @@
             </div>
             <div class="modal-footer" style="background: #f8f9fc; border-top: 1px solid #e9ecef;">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SenderID Rule Confirmation Modal -->
+<div class="modal fade" id="senderIdConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f8f9fc; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #1e3a5f; font-weight: 600;">
+                    <i class="fas fa-check-circle me-2"></i>Confirm Rule Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 1rem;">Please review the rule details before saving:</p>
+                
+                <table class="table table-sm" style="font-size: 0.85rem;">
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: 600; color: #1e3a5f; width: 40%;">Rule Name</td>
+                            <td id="confirm-rule-name"></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #1e3a5f;">Base SenderID</td>
+                            <td><code id="confirm-base-senderid" style="background: #e9ecef; padding: 0.15rem 0.4rem; border-radius: 3px;"></code></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #1e3a5f;">Rule Type</td>
+                            <td id="confirm-rule-type"></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #1e3a5f;">Category</td>
+                            <td id="confirm-category"></td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: #1e3a5f;">Normalisation</td>
+                            <td id="confirm-normalisation"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer" style="background: #f8f9fc; border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" style="background: #1e3a5f; color: #fff;" onclick="confirmSaveSenderIdRule()">
+                    <i class="fas fa-check me-1"></i> Confirm & Save
+                </button>
             </div>
         </div>
     </div>
@@ -9294,6 +9351,8 @@ window.SenderIdMatchingService = SenderIdMatchingService;
 var senderIdRulesStore = [];
 
 function showAddSenderIdRuleModal() {
+    clearSenderIdValidationState();
+    
     document.getElementById('senderid-modal-title').textContent = 'Add SenderID Rule';
     document.getElementById('senderid-save-btn-text').textContent = 'Save Rule';
     document.getElementById('senderid-rule-id').value = '';
@@ -9324,6 +9383,8 @@ function editSenderIdRule(ruleId) {
         console.error('Rule not found:', ruleId);
         return;
     }
+    
+    clearSenderIdValidationState();
     
     document.getElementById('senderid-modal-title').textContent = 'Edit SenderID Rule';
     document.getElementById('senderid-save-btn-text').textContent = 'Update Rule';
@@ -9388,7 +9449,73 @@ function viewSenderIdRule(ruleId) {
     modal.show();
 }
 
+var pendingSenderIdRule = null;
+
+function clearSenderIdValidationState() {
+    var alertEl = document.getElementById('senderid-validation-alert');
+    if (alertEl) alertEl.classList.add('d-none');
+    
+    var fields = ['senderid-rule-name', 'senderid-base-value', 'senderid-category'];
+    fields.forEach(function(fieldId) {
+        var field = document.getElementById(fieldId);
+        if (field) field.classList.remove('is-invalid');
+    });
+}
+
+function validateSenderIdRule() {
+    clearSenderIdValidationState();
+    
+    var name = document.getElementById('senderid-rule-name').value.trim();
+    var baseSenderId = document.getElementById('senderid-base-value').value.trim();
+    var category = document.getElementById('senderid-category').value;
+    
+    var errors = [];
+    
+    if (!name) {
+        document.getElementById('senderid-rule-name').classList.add('is-invalid');
+        errors.push('Rule name');
+    }
+    
+    if (!baseSenderId) {
+        document.getElementById('senderid-base-value').classList.add('is-invalid');
+        errors.push('Base SenderID');
+    }
+    
+    if (!category) {
+        document.getElementById('senderid-category').classList.add('is-invalid');
+        errors.push('Category');
+    }
+    
+    if (errors.length > 0) {
+        var alertEl = document.getElementById('senderid-validation-alert');
+        var messageEl = document.getElementById('senderid-validation-message');
+        if (alertEl && messageEl) {
+            messageEl.textContent = 'Please complete all required fields before saving.';
+            alertEl.classList.remove('d-none');
+            alertEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        return false;
+    }
+    
+    return true;
+}
+
+function getCategoryDisplayName(categoryValue) {
+    var categoryMap = {
+        'government_healthcare': 'Government and Healthcare',
+        'banking_finance': 'Banking and Finance',
+        'delivery_logistics': 'Delivery and Logistics',
+        'miscellaneous': 'Miscellaneous',
+        'generic': 'Generic'
+    };
+    return categoryMap[categoryValue] || categoryValue;
+}
+
 function saveSenderIdRule() {
+    if (!validateSenderIdRule()) {
+        return;
+    }
+    
     var ruleId = document.getElementById('senderid-rule-id').value;
     var name = document.getElementById('senderid-rule-name').value.trim();
     var baseSenderId = document.getElementById('senderid-base-value').value.trim().toUpperCase();
@@ -9396,11 +9523,42 @@ function saveSenderIdRule() {
     var category = document.getElementById('senderid-category').value;
     var applyNormalisation = document.getElementById('senderid-apply-normalisation').checked;
     
-    if (!name || !baseSenderId || !category) {
-        alert('Please fill in all required fields.');
+    pendingSenderIdRule = {
+        ruleId: ruleId,
+        name: name,
+        baseSenderId: baseSenderId,
+        ruleType: ruleType,
+        category: category,
+        applyNormalisation: applyNormalisation,
+        isEdit: !!ruleId
+    };
+    
+    document.getElementById('confirm-rule-name').textContent = name;
+    document.getElementById('confirm-base-senderid').textContent = baseSenderId;
+    
+    var ruleTypeBadge = ruleType === 'block' 
+        ? '<span class="badge bg-danger">Block</span>' 
+        : '<span class="badge bg-warning text-dark">Flag</span>';
+    document.getElementById('confirm-rule-type').innerHTML = ruleTypeBadge;
+    
+    document.getElementById('confirm-category').textContent = getCategoryDisplayName(category);
+    
+    var normalisationText = applyNormalisation 
+        ? '<span class="text-success"><i class="fas fa-check me-1"></i>Enabled</span>' 
+        : '<span class="text-muted"><i class="fas fa-times me-1"></i>Disabled</span>';
+    document.getElementById('confirm-normalisation').innerHTML = normalisationText;
+    
+    var confirmModal = new bootstrap.Modal(document.getElementById('senderIdConfirmModal'));
+    confirmModal.show();
+}
+
+function confirmSaveSenderIdRule() {
+    if (!pendingSenderIdRule) {
+        console.error('[SenderIdControls] No pending rule to save');
         return;
     }
     
+    var data = pendingSenderIdRule;
     var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
     if (rules.length === 0) {
         rules = [
@@ -9415,57 +9573,90 @@ function saveSenderIdRule() {
     var now = new Date();
     var timestamp = now.toLocaleDateString('en-GB').replace(/\//g, '-') + ' ' + now.toTimeString().slice(0, 5);
     var beforeState = null;
-    var isEdit = !!ruleId;
+    var ruleId = data.ruleId;
     
-    if (isEdit) {
-        var existingIndex = rules.findIndex(r => r.id === ruleId);
+    if (data.isEdit) {
+        var existingIndex = rules.findIndex(function(r) { return r.id === ruleId; });
         if (existingIndex !== -1) {
             beforeState = JSON.parse(JSON.stringify(rules[existingIndex]));
-            rules[existingIndex] = {
-                ...rules[existingIndex],
-                name: name,
-                baseSenderId: baseSenderId,
-                ruleType: ruleType,
-                category: category,
-                applyNormalisation: applyNormalisation,
+            rules[existingIndex] = Object.assign({}, rules[existingIndex], {
+                name: data.name,
+                baseSenderId: data.baseSenderId,
+                ruleType: data.ruleType,
+                category: data.category,
+                applyNormalisation: data.applyNormalisation,
                 updatedAt: timestamp
-            };
+            });
         }
     } else {
-        var newId = 'SID-' + String(rules.length + 1).padStart(3, '0');
+        ruleId = 'SID-' + String(rules.length + 1).padStart(3, '0');
         rules.push({
-            id: newId,
-            name: name,
-            baseSenderId: baseSenderId,
-            ruleType: ruleType,
-            category: category,
-            applyNormalisation: applyNormalisation,
+            id: ruleId,
+            name: data.name,
+            baseSenderId: data.baseSenderId,
+            ruleType: data.ruleType,
+            category: data.category,
+            applyNormalisation: data.applyNormalisation,
             status: 'active',
             createdBy: currentAdmin.email,
             createdAt: timestamp,
             updatedAt: timestamp
         });
-        ruleId = newId;
     }
     
     localStorage.setItem('senderIdRules', JSON.stringify(rules));
     
-    logAuditEvent(isEdit ? 'SENDERID_RULE_UPDATED' : 'SENDERID_RULE_CREATED', {
+    logAuditEvent(data.isEdit ? 'SENDERID_RULE_UPDATED' : 'SENDERID_RULE_CREATED', {
         ruleId: ruleId,
-        ruleName: name,
-        baseSenderId: baseSenderId,
-        ruleType: ruleType,
-        category: category,
-        applyNormalisation: applyNormalisation,
+        ruleName: data.name,
+        baseSenderId: data.baseSenderId,
+        ruleType: data.ruleType,
+        category: data.category,
+        applyNormalisation: data.applyNormalisation,
         before: beforeState,
-        after: { name: name, baseSenderId: baseSenderId, ruleType: ruleType, category: category, applyNormalisation: applyNormalisation },
+        after: { name: data.name, baseSenderId: data.baseSenderId, ruleType: data.ruleType, category: data.category, applyNormalisation: data.applyNormalisation },
         entityType: 'senderid_rule'
     });
     
+    bootstrap.Modal.getInstance(document.getElementById('senderIdConfirmModal')).hide();
     bootstrap.Modal.getInstance(document.getElementById('senderIdRuleModal')).hide();
+    
     SecurityComplianceControlsService.renderAllTabs();
     
+    showSuccessToast(data.isEdit ? 'Rule updated successfully' : 'Rule created successfully');
+    
+    pendingSenderIdRule = null;
     console.log('[SenderIdControls] Rule saved:', ruleId);
+}
+
+function showSuccessToast(message) {
+    var toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    var toastId = 'toast-' + Date.now();
+    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">' +
+        '<div class="d-flex">' +
+        '<div class="toast-body">' +
+        '<i class="fas fa-check-circle me-2"></i>' + message +
+        '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+        '</div>' +
+        '</div>';
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    var toastEl = document.getElementById(toastId);
+    var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    toast.show();
+    
+    toastEl.addEventListener('hidden.bs.toast', function() {
+        toastEl.remove();
+    });
 }
 
 function toggleSenderIdRuleStatus(ruleId, newStatus) {
