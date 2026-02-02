@@ -1469,25 +1469,6 @@
         </div>
 
         <div class="tab-pane fade" id="countriesPane" role="tabpanel">
-            <div class="country-stats">
-                <div class="country-stat-card allowed">
-                    <div class="country-stat-value" id="allowedCount">142</div>
-                    <div class="country-stat-label">Allowed Countries</div>
-                </div>
-                <div class="country-stat-card blocked">
-                    <div class="country-stat-value" id="blockedCount">23</div>
-                    <div class="country-stat-label">Blocked Countries</div>
-                </div>
-                <div class="country-stat-card restricted">
-                    <div class="country-stat-value" id="restrictedCount">12</div>
-                    <div class="country-stat-label">Restricted (Approval Required)</div>
-                </div>
-                <div class="country-stat-card pending">
-                    <div class="country-stat-value" id="pendingCount">5</div>
-                    <div class="country-stat-label">Pending Review</div>
-                </div>
-            </div>
-
             <div class="country-table-card">
                 <div class="country-table-header">
                     <div class="d-flex align-items-center gap-3">
@@ -2933,7 +2914,6 @@ function initCountryControls() {
     renderCountryTable();
     renderRequestsList();
     bindEvents();
-    updateStats();
     updateReviewStats();
     
     console.log('[CountryControls] Initialized with shared enforcement service');
@@ -4028,7 +4008,6 @@ function confirmDefaultStatusChange() {
     bootstrap.Modal.getInstance(document.getElementById('defaultStatusConfirmModal')).hide();
     
     renderCountryTable();
-    updateStats();
     
     var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
     showAdminToast('Default status updated', country.name + ' is now ' + statusLabel + ' by default.', 'success');
@@ -4433,12 +4412,6 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function updateStats() {
-    document.getElementById('allowedCount').textContent = countries.filter(function(c) { return c.status === 'allowed'; }).length;
-    document.getElementById('blockedCount').textContent = countries.filter(function(c) { return c.status === 'blocked'; }).length;
-    document.getElementById('restrictedCount').textContent = countries.filter(function(c) { return c.status === 'restricted'; }).length;
-    document.getElementById('pendingCount').textContent = countries.filter(function(c) { return c.status === 'pending'; }).length;
-}
 
 function bindEvents() {
     document.getElementById('countrySearch').addEventListener('input', renderCountryTable);
@@ -4509,7 +4482,6 @@ function applyStatusChange() {
         syncIndicator.innerHTML = '<i class="fas fa-check-circle"></i><span>All systems synchronized</span>';
 
         renderCountryTable();
-        updateStats();
 
         bootstrap.Modal.getInstance(document.getElementById('countryActionModal')).hide();
 
