@@ -10888,7 +10888,7 @@ function editBaseCharacter(base) {
 var GSM7_CHARS = '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ !"#¤%&\'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
     'ÄÖÑÜabcdefghijklmnopqrstuvwxyzäöñüà';
 var GSM7_EXTENDED = '^{}\\[~]|€';
-var MAX_EQUIVALENTS = 25;
+var MAX_EQUIVALENTS = 50;
 
 function isGSM7Char(char) {
     return GSM7_CHARS.indexOf(char) !== -1 || GSM7_EXTENDED.indexOf(char) !== -1;
@@ -11072,23 +11072,31 @@ function addCharFromPicker(char) {
 function validateEquivChar(char) {
     var errors = [];
     
-    if (!char || char.trim().length === 0) {
-        errors.push('Whitespace-only characters are not allowed');
+    if (!char || char.length === 0) {
+        return { valid: false, errors: ['Empty character not allowed'], silent: true };
+    }
+    
+    if (/^\s+$/.test(char)) {
+        errors.push('Whitespace characters are not allowed');
         return { valid: false, errors: errors };
     }
     
-    if (/[\*\?\+\[\]\(\)\{\}\^\$\.\|\\]/.test(char) && char.length > 1) {
-        errors.push('Regex/wildcard patterns are not allowed');
+    if (/\s/.test(char)) {
+        errors.push('Characters containing whitespace are not allowed');
         return { valid: false, errors: errors };
     }
     
-    var baseSelect = document.getElementById('normRuleBase');
+    var codePoints = Array.from(char);
+    if (codePoints.length > 1) {
+        errors.push('Multi-character tokens are not allowed. Add one character at a time.');
+        return { valid: false, errors: errors };
+    }
+    
     var baseHidden = document.getElementById('normRuleBaseHidden');
-    var baseChar = baseHidden ? baseHidden.value : (baseSelect ? baseSelect.value : null);
+    var baseChar = baseHidden ? baseHidden.value : null;
     
-    if (baseChar && char === baseChar) {
-        errors.push('Base character cannot be added as its own equivalent');
-        return { valid: false, errors: errors };
+    if (baseChar && (char === baseChar || char === baseChar.toLowerCase() || char === baseChar.toUpperCase())) {
+        return { valid: false, errors: ['Base letter itself is implied and not needed'], silent: true };
     }
     
     var currentCount = document.querySelectorAll('#normEquivTags .norm-equiv-tag').length;
@@ -11135,17 +11143,34 @@ function handleEquivInput(event) {
         if (value.length === 0) return;
         
         var chars = Array.from(value);
-        var added = 0;
+        var uniqueChars = [];
+        var seenChars = {};
         chars.forEach(function(char) {
-            if (char.trim().length > 0) {
-                var result = addEquivCharacter(char);
-                if (result.success) added++;
+            if (!/\s/.test(char) && !seenChars[char]) {
+                seenChars[char] = true;
+                uniqueChars.push(char);
+            }
+        });
+        
+        var added = 0;
+        var lastError = null;
+        uniqueChars.forEach(function(char) {
+            var result = addEquivCharacter(char);
+            if (result.success) {
+                added++;
+            } else if (result.error) {
+                lastError = result.error;
             }
         });
         
         input.value = '';
         if (added > 0) {
             hideEquivError();
+            if (added > 1) {
+                showToast('Added ' + added + ' character(s)', 'success');
+            }
+        } else if (lastError) {
+            showEquivError(lastError);
         }
     }
 }
@@ -11157,28 +11182,42 @@ function handleEquivPaste(event) {
     
     var chars = Array.from(pastedText);
     var uniqueChars = [];
+    var seenChars = {};
+    
     chars.forEach(function(char) {
-        if (char.trim().length > 0 && uniqueChars.indexOf(char) === -1) {
+        if (!/\s/.test(char) && !seenChars[char]) {
+            seenChars[char] = true;
             uniqueChars.push(char);
         }
     });
     
     var added = 0;
+    var skipped = 0;
     var errors = [];
+    
     uniqueChars.forEach(function(char) {
         var result = addEquivCharacter(char);
         if (result.success) {
             added++;
-        } else if (result.error && errors.indexOf(result.error) === -1) {
-            errors.push(result.error);
+        } else {
+            skipped++;
+            if (result.error && errors.indexOf(result.error) === -1 && !result.silent) {
+                errors.push(result.error);
+            }
         }
     });
     
     if (added > 0) {
-        showToast('Added ' + added + ' character(s)', 'success');
-    }
-    if (errors.length > 0 && added === 0) {
+        var msg = 'Added ' + added + ' character' + (added !== 1 ? 's' : '');
+        if (skipped > 0) {
+            msg += ' (' + skipped + ' skipped)';
+        }
+        showToast(msg, 'success');
+        hideEquivError();
+    } else if (errors.length > 0) {
         showEquivError(errors[0]);
+    } else if (skipped > 0) {
+        showToast('All characters already exist or were invalid', 'info');
     }
 }
 
@@ -12238,7 +12277,7 @@ var NormalisationRulesConfig = {
         test_tool_enabled: true
     },
     
-    MAX_EQUIVALENTS_PER_CHAR: 25,
+    MAX_EQUIVALENTS_PER_CHAR: 50,
     MAX_BASE_CHARACTERS: 62,
     CACHE_TTL_MS: 60000,
     
