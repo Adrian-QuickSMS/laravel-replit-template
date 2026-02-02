@@ -581,17 +581,20 @@
 
 /* SenderID Sub-tabs styling */
 #senderidSubTabs .nav-link,
-#contentSubTabs .nav-link {
+#contentSubTabs .nav-link,
+#urlSubTabs .nav-link {
     border-radius: 0;
     transition: all 0.2s;
 }
 #senderidSubTabs .nav-link:hover,
-#contentSubTabs .nav-link:hover {
+#contentSubTabs .nav-link:hover,
+#urlSubTabs .nav-link:hover {
     color: #1e3a5f;
     background: rgba(30, 58, 95, 0.05);
 }
 #senderidSubTabs .nav-link.active,
-#contentSubTabs .nav-link.active {
+#contentSubTabs .nav-link.active,
+#urlSubTabs .nav-link.active {
     color: #1e3a5f;
     border-bottom: 3px solid #1e3a5f !important;
     background: transparent;
@@ -1971,159 +1974,215 @@
             </div>
 
             <div class="tab-pane fade" id="url-controls" role="tabpanel">
-                <div class="tab-description">
-                    <h6><i class="fas fa-link me-2"></i>URL Controls</h6>
-                    <p>Manage URL domain/pattern rules, domain age controls, and per-account exceptions for link enforcement.</p>
-                </div>
-
+                <!-- Sub-tabs for URL Controls -->
+                <ul class="nav nav-tabs mb-3" id="urlSubTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="url-domain-age-tab" data-bs-toggle="tab" data-bs-target="#url-domain-age" type="button" role="tab" style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f; border: none; border-bottom: 3px solid transparent; padding: 0.5rem 1rem;">
+                            <i class="fas fa-clock me-1"></i> Domain Age
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="url-rules-tab" data-bs-toggle="tab" data-bs-target="#url-rules-pane" type="button" role="tab" style="font-size: 0.85rem; font-weight: 600; color: #6c757d; border: none; border-bottom: 3px solid transparent; padding: 0.5rem 1rem;">
+                            <i class="fas fa-link me-1"></i> URL Rule Library
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="url-exemptions-tab" data-bs-toggle="tab" data-bs-target="#url-exemptions" type="button" role="tab" style="font-size: 0.85rem; font-weight: 600; color: #6c757d; border: none; border-bottom: 3px solid transparent; padding: 0.5rem 1rem;">
+                            <i class="fas fa-shield-alt me-1"></i> Exemptions
+                        </button>
+                    </li>
+                </ul>
                 
-                <div class="sec-table-card" style="margin-bottom: 1.5rem;">
-                    <div class="sec-table-header" style="border-bottom: 1px solid #e9ecef; padding-bottom: 0.75rem; margin-bottom: 1rem;">
-                        <h6 style="margin: 0;"><i class="fas fa-clock me-2" style="color: #1e3a5f;"></i>Domain Age Control</h6>
-                    </div>
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="domain-age-enabled" style="width: 2.5rem; height: 1.25rem;">
-                                    <label class="form-check-label" for="domain-age-enabled" style="font-weight: 600; margin-left: 0.5rem;">
-                                        Enable Domain Age Check
-                                    </label>
+                <div class="tab-content" id="urlSubTabContent">
+                    <!-- Domain Age Tab -->
+                    <div class="tab-pane fade show active" id="url-domain-age" role="tabpanel">
+                        <div class="sec-table-card">
+                            <div class="sec-table-header" style="border-bottom: 1px solid #e9ecef; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                                <h6 style="margin: 0;"><i class="fas fa-clock me-2" style="color: #1e3a5f;"></i>Domain Age Control</h6>
+                            </div>
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="domain-age-enabled" style="width: 2.5rem; height: 1.25rem;">
+                                            <label class="form-check-label" for="domain-age-enabled" style="font-weight: 600; margin-left: 0.5rem;">
+                                                Enable Domain Age Check
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">When enabled, newly registered domains will be blocked or flagged based on their age.</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Block domains younger than</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="domain-age-hours" value="72" min="1" max="8760" disabled>
+                                        <span class="input-group-text">hours</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Action</label>
+                                    <select class="form-select" id="domain-age-action" disabled>
+                                        <option value="block">Block</option>
+                                        <option value="flag">Flag (Quarantine)</option>
+                                    </select>
                                 </div>
                             </div>
-                            <small class="text-muted d-block mt-1">When enabled, newly registered domains will be blocked or flagged based on their age.</small>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Block domains younger than</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="domain-age-hours" value="72" min="1" max="8760" disabled>
-                                <span class="input-group-text">hours</span>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Action</label>
-                            <select class="form-select" id="domain-age-action" disabled>
-                                <option value="block">Block</option>
-                                <option value="flag">Flag (Quarantine)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mt-3 text-end">
-                        <button class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveDomainAgeSettings()">
-                            <i class="fas fa-save me-1"></i> Save Settings
-                        </button>
-                    </div>
-                </div>
-
-                <div class="sec-table-card">
-                    <div class="sec-toolbar">
-                        <div class="sec-search-box-left">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search domains/patterns..." id="url-search">
-                        </div>
-                        <div class="sec-toolbar-actions">
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="url-filter-btn">
-                                    <i class="fas fa-filter me-1"></i> Filter
+                            <div class="mt-3 text-end">
+                                <button class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveDomainAgeSettings()">
+                                    <i class="fas fa-save me-1"></i> Save Settings
                                 </button>
-                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Status</label>
-                                        <select class="form-select form-select-sm" id="url-filter-status">
-                                            <option value="">All Statuses</option>
-                                            <option value="active">Active</option>
-                                            <option value="disabled">Disabled</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Match Type</label>
-                                        <select class="form-select form-select-sm" id="url-filter-matchtype">
-                                            <option value="">All Types</option>
-                                            <option value="exact">Exact Domain</option>
-                                            <option value="wildcard">Wildcard</option>
-                                            <option value="regex">Regex</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Rule Type</label>
-                                        <select class="form-select form-select-sm" id="url-filter-ruletype">
-                                            <option value="">All Types</option>
-                                            <option value="block">Block</option>
-                                            <option value="flag">Flag</option>
-                                        </select>
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetUrlFilters()">
-                                            <i class="fas fa-undo me-1"></i> Reset
-                                        </button>
-                                        <button class="btn btn-sm btn-primary flex-fill" onclick="applyUrlFilters()">
-                                            Apply
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="showAddUrlRuleModal()">
-                                <i class="fas fa-plus me-1"></i> Add Rule
-                            </button>
                         </div>
                     </div>
-                    <div class="sec-table-header">
-                        <h6>URL Rule Library</h6>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="sec-table" id="url-rules-table">
-                            <thead>
-                                <tr>
-                                    <th>Domain/Pattern <i class="fas fa-sort"></i></th>
-                                    <th>Match Type <i class="fas fa-sort"></i></th>
-                                    <th>Rule Type <i class="fas fa-sort"></i></th>
-                                    <th>Domain Age <i class="fas fa-sort"></i></th>
-                                    <th>Status <i class="fas fa-sort"></i></th>
-                                    <th>Last Updated <i class="fas fa-sort"></i></th>
-                                    <th style="width: 80px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="url-rules-body">
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="sec-empty-state" id="url-empty-state" style="display: none;">
-                        <i class="fas fa-link"></i>
-                        <h6>No URL Rules</h6>
-                        <p>Add domain/pattern rules to control URL usage in messages.</p>
-                    </div>
-                </div>
 
-                <div class="sec-table-card" style="margin-top: 1.5rem;">
-                    <div class="sec-table-header" style="border-bottom: 1px solid #e9ecef; padding-bottom: 0.75rem; margin-bottom: 1rem;">
-                        <h6 style="margin: 0;"><i class="fas fa-user-shield me-2" style="color: #1e3a5f;"></i>Per-Account Domain Age Exceptions</h6>
-                        <button class="sec-btn-primary" onclick="showAddDomainAgeExceptionModal()">
-                            <i class="fas fa-plus"></i> Add Exception
-                        </button>
+                    <!-- URL Rule Library Tab -->
+                    <div class="tab-pane fade" id="url-rules-pane" role="tabpanel">
+                        <div class="sec-table-card">
+                            <div class="sec-toolbar">
+                                <div class="sec-search-box-left">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" placeholder="Search domains/patterns..." id="url-search">
+                                </div>
+                                <div class="sec-toolbar-actions">
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="url-filter-btn">
+                                            <i class="fas fa-filter me-1"></i> Filter
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Status</label>
+                                                <select class="form-select form-select-sm" id="url-filter-status">
+                                                    <option value="">All Statuses</option>
+                                                    <option value="active">Active</option>
+                                                    <option value="disabled">Disabled</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Match Type</label>
+                                                <select class="form-select form-select-sm" id="url-filter-matchtype">
+                                                    <option value="">All Types</option>
+                                                    <option value="exact">Exact Domain</option>
+                                                    <option value="wildcard">Wildcard</option>
+                                                    <option value="regex">Regex</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Rule Type</label>
+                                                <select class="form-select form-select-sm" id="url-filter-ruletype">
+                                                    <option value="">All Types</option>
+                                                    <option value="block">Block</option>
+                                                    <option value="flag">Flag</option>
+                                                </select>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetUrlFilters()">
+                                                    <i class="fas fa-undo me-1"></i> Reset
+                                                </button>
+                                                <button class="btn btn-sm text-white flex-fill" style="background: #1e3a5f;" onclick="applyUrlFilters()">
+                                                    Apply
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="showAddUrlRuleModal()">
+                                        <i class="fas fa-plus me-1"></i> Add Rule
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="sec-table" id="url-rules-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Domain/Pattern <i class="fas fa-sort"></i></th>
+                                            <th>Match Type <i class="fas fa-sort"></i></th>
+                                            <th>Rule Type <i class="fas fa-sort"></i></th>
+                                            <th>Domain Age <i class="fas fa-sort"></i></th>
+                                            <th>Status <i class="fas fa-sort"></i></th>
+                                            <th>Last Updated <i class="fas fa-sort"></i></th>
+                                            <th style="width: 80px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="url-rules-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="sec-empty-state" id="url-empty-state" style="display: none;">
+                                <i class="fas fa-link"></i>
+                                <h6>No URL Rules</h6>
+                                <p>Add domain/pattern rules to control URL usage in messages.</p>
+                            </div>
+                        </div>
                     </div>
-                    <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1rem;">
-                        Accounts listed below are exempt from domain age checks. All exceptions are logged in the audit trail.
-                    </p>
-                    <div class="table-responsive">
-                        <table class="sec-table" id="domain-age-exceptions-table">
-                            <thead>
-                                <tr>
-                                    <th>Account ID <i class="fas fa-sort"></i></th>
-                                    <th>Account Name <i class="fas fa-sort"></i></th>
-                                    <th>Reason <i class="fas fa-sort"></i></th>
-                                    <th>Added By <i class="fas fa-sort"></i></th>
-                                    <th>Added On <i class="fas fa-sort"></i></th>
-                                    <th style="width: 80px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="domain-age-exceptions-body">
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="sec-empty-state" id="domain-exceptions-empty-state" style="display: none;">
-                        <i class="fas fa-user-check"></i>
-                        <h6>No Exceptions</h6>
-                        <p>All accounts are subject to domain age checks when enabled.</p>
+
+                    <!-- Exemptions Tab -->
+                    <div class="tab-pane fade" id="url-exemptions" role="tabpanel">
+                        <div class="sec-table-card">
+                            <div class="sec-toolbar">
+                                <div class="sec-search-box-left">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" placeholder="Search accounts..." id="url-exemptions-search">
+                                </div>
+                                <div class="sec-toolbar-actions">
+                                    <div class="dropdown">
+                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="url-exemptions-filter-btn">
+                                            <i class="fas fa-filter me-1"></i> Filter
+                                        </button>
+                                        <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Status</label>
+                                                <select class="form-select form-select-sm" id="url-exemptions-filter-status">
+                                                    <option value="">All Statuses</option>
+                                                    <option value="active">Active</option>
+                                                    <option value="disabled">Disabled</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Exemption Type</label>
+                                                <select class="form-select form-select-sm" id="url-exemptions-filter-type">
+                                                    <option value="">All Types</option>
+                                                    <option value="domain_age">Domain Age</option>
+                                                    <option value="url_rule">URL Rules</option>
+                                                </select>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetUrlExemptionsFilters()">
+                                                    <i class="fas fa-undo me-1"></i> Reset
+                                                </button>
+                                                <button class="btn btn-sm text-white flex-fill" style="background: #1e3a5f;" onclick="applyUrlExemptionsFilters()">
+                                                    Apply
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="showAddUrlExemptionModal()">
+                                        <i class="fas fa-plus me-1"></i> Add Exemption
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="sec-table" id="url-exemptions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Account <i class="fas fa-sort"></i></th>
+                                            <th>Sub-accounts <i class="fas fa-sort"></i></th>
+                                            <th>Exemption Type <i class="fas fa-sort"></i></th>
+                                            <th>Rules Exempted <i class="fas fa-sort"></i></th>
+                                            <th>Applied By <i class="fas fa-sort"></i></th>
+                                            <th>Applied Date <i class="fas fa-sort"></i></th>
+                                            <th>Status <i class="fas fa-sort"></i></th>
+                                            <th style="width: 80px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="url-exemptions-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="sec-empty-state" id="url-exemptions-empty-state" style="display: none;">
+                                <i class="fas fa-shield-alt"></i>
+                                <h6>No Exemptions</h6>
+                                <p>All accounts are subject to URL controls. Add exemptions to override specific rules for accounts.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3175,6 +3234,72 @@
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveException()">
                     <i class="fas fa-save me-1"></i> Add Exception
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="urlExemptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
+                <h5 class="modal-title text-white" id="url-exemption-modal-title">
+                    <i class="fas fa-shield-alt me-2"></i>Add URL Exemption
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <form id="url-exemption-form">
+                    <input type="hidden" id="url-exemption-id" value="">
+                    
+                    <div class="mb-3">
+                        <label for="url-exemption-account-search" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Account <span class="text-danger">*</span></label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="url-exemption-account-search" placeholder="Search by account name or ID..." autocomplete="off">
+                            <input type="hidden" id="url-exemption-account" value="">
+                            <div class="dropdown-menu w-100" id="url-exemption-account-dropdown" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Exemption Type <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="url-exemption-type" id="url-exemption-type-domain-age" value="domain_age" checked onchange="toggleUrlExemptionType()">
+                                <label class="form-check-label" for="url-exemption-type-domain-age" style="font-size: 0.85rem;">
+                                    <i class="fas fa-clock me-1" style="color: #1e40af;"></i> Domain Age
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="url-exemption-type" id="url-exemption-type-url-rule" value="url_rule" onchange="toggleUrlExemptionType()">
+                                <label class="form-check-label" for="url-exemption-type-url-rule" style="font-size: 0.85rem;">
+                                    <i class="fas fa-link me-1" style="color: #6b21a8;"></i> URL Rules
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3" id="url-exemption-rules-group" style="display: none;">
+                        <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Exempt from Rules <span class="text-danger">*</span></label>
+                        <div id="url-exemption-rules-list" class="border rounded p-2" style="max-height: 150px; overflow-y: auto; background: #f8f9fa;">
+                            <small class="text-muted">Loading rules...</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="url-exemption-reason" class="form-label" style="font-weight: 600; font-size: 0.85rem;">
+                            Reason <span class="text-muted" style="font-weight: 400; font-size: 0.75rem;">(optional)</span>
+                        </label>
+                        <textarea class="form-control" id="url-exemption-reason" rows="2" placeholder="Enter reason for this exemption..." style="font-size: 0.85rem;"></textarea>
+                        <small class="text-muted">This will be recorded in the audit log.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveUrlExemption()">
+                    <i class="fas fa-save me-1"></i> <span id="url-exemption-save-btn-text">Save Exemption</span>
                 </button>
             </div>
         </div>
@@ -4258,6 +4383,12 @@ var SecurityComplianceControlsService = (function() {
             { id: 'EXC-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', reason: 'Approved marketing partner - verified shortlinks', addedBy: 'admin@quicksms.co.uk', addedAt: '15-01-2026 10:30' },
             { id: 'EXC-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', reason: 'Enterprise customer - internal domain rotation', addedBy: 'compliance@quicksms.co.uk', addedAt: '20-01-2026 14:15' }
         ];
+        
+        mockData.urlExemptions = [
+            { id: 'UEX-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], allSubaccounts: true, type: 'domain_age', exemptRules: [], status: 'active', reason: 'Enterprise customer with verified domains', appliedBy: 'admin@quicksms.co.uk', appliedAt: '18-01-2026 14:30' },
+            { id: 'UEX-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [{ id: 'SUB-001', name: 'Marketing Dept' }], allSubaccounts: false, type: 'url_rule', exemptRules: ['URL-001', 'URL-003'], status: 'active', reason: 'Marketing uses approved URL shorteners', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '22-01-2026 09:15' },
+            { id: 'UEX-003', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: [], allSubaccounts: true, type: 'domain_age', exemptRules: [], status: 'disabled', reason: 'Temporary exemption for product launch', appliedBy: 'admin@quicksms.co.uk', appliedAt: '25-01-2026 16:45' }
+        ];
 
         mockData.baseCharacterLibrary = (function() {
             var library = [];
@@ -4546,6 +4677,7 @@ var SecurityComplianceControlsService = (function() {
         renderContentTab();
         renderContentExemptionsTab();
         renderUrlTab();
+        renderUrlExemptionsTab();
         renderNormTab();
         renderQuarantineTab();
     }
@@ -6395,6 +6527,337 @@ var SecurityComplianceControlsService = (function() {
         }).join('');
     }
     
+    function renderUrlExemptionsTab() {
+        var tbody = document.getElementById('url-exemptions-body');
+        var emptyState = document.getElementById('url-exemptions-empty-state');
+        
+        if (!tbody) return;
+        
+        var statusFilter = (document.getElementById('url-exemptions-filter-status') || {}).value || '';
+        var typeFilter = (document.getElementById('url-exemptions-filter-type') || {}).value || '';
+        var searchTerm = (document.getElementById('url-exemptions-search') || {}).value || '';
+        searchTerm = searchTerm.toLowerCase();
+        
+        var exemptions = (mockData.urlExemptions || []).filter(function(ex) {
+            if (statusFilter && ex.status !== statusFilter) return false;
+            if (typeFilter && ex.type !== typeFilter) return false;
+            if (searchTerm && ex.accountName.toLowerCase().indexOf(searchTerm) === -1 && 
+                ex.accountId.toLowerCase().indexOf(searchTerm) === -1) return false;
+            return true;
+        });
+        
+        if (exemptions.length === 0) {
+            tbody.innerHTML = '';
+            if (emptyState) emptyState.style.display = 'block';
+            return;
+        }
+        
+        if (emptyState) emptyState.style.display = 'none';
+        tbody.innerHTML = exemptions.map(function(ex) {
+            var subAccountsHtml = ex.allSubaccounts 
+                ? '<span class="badge bg-info text-white" style="font-size: 0.65rem;">All Sub-accounts</span>'
+                : (ex.subAccounts && ex.subAccounts.length > 0 
+                    ? ex.subAccounts.map(function(s) { return '<span class="badge bg-light text-dark me-1" style="font-size: 0.65rem;">' + escapeHtml(s.name) + '</span>'; }).join('')
+                    : '<span class="text-muted" style="font-size: 0.75rem;">Account only</span>');
+            
+            var typeBadge = ex.type === 'domain_age'
+                ? '<span class="sec-status-badge" style="background: #dbeafe; color: #1e40af;"><i class="fas fa-clock me-1"></i>Domain Age</span>'
+                : '<span class="sec-status-badge" style="background: #f3e8ff; color: #6b21a8;"><i class="fas fa-link me-1"></i>URL Rules</span>';
+            
+            var rulesHtml = '';
+            if (ex.type === 'url_rule' && ex.exemptRules && ex.exemptRules.length > 0) {
+                rulesHtml = ex.exemptRules.map(function(ruleId) {
+                    var rule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
+                    var label = rule ? rule.pattern : ruleId;
+                    return '<span class="badge bg-secondary me-1" style="font-size: 0.65rem;">' + escapeHtml(label) + '</span>';
+                }).join('');
+            } else if (ex.type === 'domain_age') {
+                rulesHtml = '<span class="text-muted" style="font-size: 0.75rem;">N/A</span>';
+            } else {
+                rulesHtml = '<span class="text-muted" style="font-size: 0.75rem;">None</span>';
+            }
+            
+            var statusBadge = '<span class="sec-status-badge ' + ex.status + '">' + 
+                (ex.status === 'active' ? '<i class="fas fa-check-circle me-1"></i>' : '<i class="fas fa-pause-circle me-1"></i>') +
+                ex.status.charAt(0).toUpperCase() + ex.status.slice(1) + '</span>';
+            
+            var dateOnly = ex.appliedAt ? ex.appliedAt.split(' ')[0] : '-';
+            
+            return '<tr data-exemption-id="' + ex.id + '">' +
+                '<td><strong>' + escapeHtml(ex.accountName) + '</strong><br><small class="text-muted">' + ex.accountId + '</small></td>' +
+                '<td>' + subAccountsHtml + '</td>' +
+                '<td>' + typeBadge + '</td>' +
+                '<td style="max-width: 200px;">' + rulesHtml + '</td>' +
+                '<td><span style="font-size: 0.8rem;">' + escapeHtml(ex.appliedBy || '-') + '</span></td>' +
+                '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' +
+                    '<div class="action-menu-container">' +
+                        '<button class="action-menu-btn" onclick="toggleUrlExemptionActionMenu(this, \'' + ex.id + '\', event)"><i class="fas fa-ellipsis-v"></i></button>' +
+                        '<div class="action-menu-dropdown" id="url-exemption-menu-' + ex.id + '">' +
+                            '<a href="#" onclick="editUrlExemption(\'' + ex.id + '\'); return false;"><i class="fas fa-edit"></i> Edit</a>' +
+                            '<a href="#" onclick="toggleUrlExemptionStatus(\'' + ex.id + '\'); return false;"><i class="fas fa-toggle-on"></i> ' + (ex.status === 'active' ? 'Disable' : 'Enable') + '</a>' +
+                            '<div class="dropdown-divider"></div>' +
+                            '<a href="#" class="text-danger" onclick="deleteUrlExemption(\'' + ex.id + '\'); return false;"><i class="fas fa-trash"></i> Delete</a>' +
+                        '</div>' +
+                    '</div>' +
+                '</td>' +
+                '</tr>';
+        }).join('');
+    }
+    
+    function toggleUrlExemptionActionMenu(btn, exemptionId, event) {
+        if (event) event.stopPropagation();
+        document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
+            if (menu.id !== 'url-exemption-menu-' + exemptionId) {
+                menu.classList.remove('show');
+            }
+        });
+        var menu = document.getElementById('url-exemption-menu-' + exemptionId);
+        if (menu) menu.classList.toggle('show');
+    }
+    
+    function showAddUrlExemptionModal() {
+        document.getElementById('url-exemption-modal-title').textContent = 'Add URL Exemption';
+        document.getElementById('url-exemption-form').reset();
+        document.getElementById('url-exemption-id').value = '';
+        document.getElementById('url-exemption-save-btn-text').textContent = 'Save Exemption';
+        document.getElementById('url-exemption-type-domain-age').checked = true;
+        document.getElementById('url-exemption-account-search').value = '';
+        document.getElementById('url-exemption-account').value = '';
+        document.getElementById('url-exemption-reason').value = '';
+        
+        populateUrlRulesChecklist();
+        toggleUrlExemptionType();
+        
+        var modal = new bootstrap.Modal(document.getElementById('urlExemptionModal'));
+        modal.show();
+    }
+    
+    function editUrlExemption(exemptionId) {
+        var ex = mockData.urlExemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        document.getElementById('url-exemption-modal-title').textContent = 'Edit URL Exemption';
+        document.getElementById('url-exemption-save-btn-text').textContent = 'Update Exemption';
+        document.getElementById('url-exemption-id').value = ex.id;
+        document.getElementById('url-exemption-account-search').value = ex.accountName;
+        document.getElementById('url-exemption-account').value = ex.accountId;
+        document.getElementById('url-exemption-reason').value = ex.reason || '';
+        
+        if (ex.type === 'url_rule') {
+            document.getElementById('url-exemption-type-url-rule').checked = true;
+        } else {
+            document.getElementById('url-exemption-type-domain-age').checked = true;
+        }
+        
+        populateUrlRulesChecklist();
+        toggleUrlExemptionType();
+        
+        // Check selected rules
+        if (ex.exemptRules && ex.exemptRules.length > 0) {
+            ex.exemptRules.forEach(function(ruleId) {
+                var cb = document.getElementById('url-rule-check-' + ruleId);
+                if (cb) cb.checked = true;
+            });
+        }
+        
+        var modal = new bootstrap.Modal(document.getElementById('urlExemptionModal'));
+        modal.show();
+    }
+    
+    function toggleUrlExemptionType() {
+        var type = document.querySelector('input[name="url-exemption-type"]:checked').value;
+        document.getElementById('url-exemption-rules-group').style.display = type === 'url_rule' ? 'block' : 'none';
+    }
+    
+    function populateUrlRulesChecklist() {
+        var container = document.getElementById('url-exemption-rules-list');
+        if (!container) return;
+        
+        var rules = mockData.urlRules.filter(function(r) { return r.status === 'active'; });
+        
+        if (rules.length === 0) {
+            container.innerHTML = '<small class="text-muted">No active URL rules available</small>';
+            return;
+        }
+        
+        container.innerHTML = rules.map(function(rule) {
+            return '<div class="form-check">' +
+                '<input class="form-check-input url-rule-checkbox" type="checkbox" value="' + rule.id + '" id="url-rule-check-' + rule.id + '">' +
+                '<label class="form-check-label" for="url-rule-check-' + rule.id + '" style="font-size: 0.85rem;">' +
+                    '<code style="background: #e9ecef; padding: 0 4px; border-radius: 2px;">' + escapeHtml(rule.pattern) + '</code>' +
+                    '<span class="badge bg-light text-secondary ms-2" style="font-size: 0.65rem;">' + rule.matchType + '</span>' +
+                '</label>' +
+            '</div>';
+        }).join('');
+    }
+    
+    function saveUrlExemption() {
+        var accountId = document.getElementById('url-exemption-account').value;
+        if (!accountId) {
+            showToast('Please select an account', 'error');
+            return;
+        }
+        
+        var type = document.querySelector('input[name="url-exemption-type"]:checked').value;
+        var account = mockData.accounts.find(function(a) { return a.id === accountId; });
+        var exemptionId = document.getElementById('url-exemption-id').value;
+        var reason = document.getElementById('url-exemption-reason').value.trim();
+        
+        // Get before state for audit
+        var beforeState = null;
+        var existingIdx = mockData.urlExemptions.findIndex(function(e) { return e.id === exemptionId; });
+        if (existingIdx !== -1) {
+            beforeState = JSON.parse(JSON.stringify(mockData.urlExemptions[existingIdx]));
+        }
+        
+        var exemptionData = {
+            id: exemptionId || 'UEX-' + String(mockData.urlExemptions.length + 1).padStart(3, '0'),
+            accountId: accountId,
+            accountName: account ? account.name : accountId,
+            subAccounts: [],
+            allSubaccounts: true,
+            type: type,
+            status: 'active',
+            reason: reason,
+            appliedBy: currentAdmin.email,
+            appliedAt: formatDateTime(new Date())
+        };
+        
+        if (type === 'url_rule') {
+            var selectedRules = Array.from(document.querySelectorAll('.url-rule-checkbox:checked')).map(function(cb) {
+                return cb.value;
+            });
+            if (selectedRules.length === 0) {
+                showToast('Please select at least one URL rule to exempt from', 'error');
+                return;
+            }
+            exemptionData.exemptRules = selectedRules;
+        } else {
+            exemptionData.exemptRules = [];
+        }
+        
+        // Determine event type
+        var isNew = existingIdx === -1;
+        var eventType = type === 'domain_age' 
+            ? (isNew ? 'URL_DOMAIN_AGE_EXEMPTION_ADDED' : 'URL_DOMAIN_AGE_EXEMPTION_UPDATED')
+            : (isNew ? 'URL_RULE_EXEMPTION_ADDED' : 'URL_RULE_EXEMPTION_UPDATED');
+        
+        // Save
+        if (existingIdx !== -1) {
+            mockData.urlExemptions[existingIdx] = exemptionData;
+        } else {
+            mockData.urlExemptions.push(exemptionData);
+        }
+        
+        // Audit log
+        logAuditEvent(eventType, {
+            exemptionId: exemptionData.id,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
+            accountId: exemptionData.accountId,
+            accountName: exemptionData.accountName,
+            type: exemptionData.type,
+            ruleIdsAffected: exemptionData.exemptRules,
+            reason: reason,
+            before: beforeState,
+            after: exemptionData
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('urlExemptionModal')).hide();
+        renderUrlExemptionsTab();
+        showToast('URL exemption ' + (isNew ? 'added' : 'updated') + ' successfully', 'success');
+    }
+    
+    function filterUrlExemptionAccounts() {
+        var search = document.getElementById('url-exemption-account-search').value.toLowerCase();
+        var dropdown = document.getElementById('url-exemption-account-dropdown');
+        
+        if (search.length < 2) {
+            dropdown.classList.remove('show');
+            return;
+        }
+        
+        var filtered = mockData.accounts.filter(function(a) {
+            return a.name.toLowerCase().indexOf(search) !== -1 || a.id.toLowerCase().indexOf(search) !== -1;
+        }).slice(0, 10);
+        
+        if (filtered.length === 0) {
+            dropdown.innerHTML = '<div class="dropdown-item text-muted">No accounts found</div>';
+        } else {
+            dropdown.innerHTML = filtered.map(function(a) {
+                return '<div class="dropdown-item" style="cursor: pointer;" onclick="selectUrlExemptionAccount(\'' + a.id + '\', \'' + escapeHtml(a.name).replace(/'/g, "\\'") + '\')">' +
+                    '<div style="font-weight: 500;">' + escapeHtml(a.name) + '</div>' +
+                    '<small class="text-muted">' + a.id + '</small>' +
+                '</div>';
+            }).join('');
+        }
+        
+        dropdown.classList.add('show');
+    }
+    
+    function selectUrlExemptionAccount(accountId, accountName) {
+        document.getElementById('url-exemption-account').value = accountId;
+        document.getElementById('url-exemption-account-search').value = accountName;
+        document.getElementById('url-exemption-account-dropdown').classList.remove('show');
+    }
+    
+    function toggleUrlExemptionStatus(exemptionId) {
+        var ex = mockData.urlExemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        var beforeStatus = ex.status;
+        ex.status = ex.status === 'active' ? 'disabled' : 'active';
+        
+        logAuditEvent('URL_EXEMPTION_STATUS_CHANGED', {
+            exemptionId: exemptionId,
+            accountId: ex.accountId,
+            before: beforeStatus,
+            after: ex.status
+        });
+        
+        renderUrlExemptionsTab();
+        showSuccessToast('Exemption ' + (ex.status === 'active' ? 'enabled' : 'disabled'));
+    }
+    
+    function deleteUrlExemption(exemptionId) {
+        var ex = mockData.urlExemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        if (confirm('Are you sure you want to delete this exemption for ' + ex.accountName + '?')) {
+            var idx = mockData.urlExemptions.findIndex(function(e) { return e.id === exemptionId; });
+            if (idx !== -1) {
+                var beforeState = JSON.parse(JSON.stringify(mockData.urlExemptions[idx]));
+                mockData.urlExemptions.splice(idx, 1);
+                
+                var eventType = ex.type === 'domain_age' ? 'URL_DOMAIN_AGE_EXEMPTION_REMOVED' : 'URL_RULE_EXEMPTION_REMOVED';
+                logAuditEvent(eventType, {
+                    exemptionId: exemptionId,
+                    adminUser: currentAdmin.email,
+                    timestamp: new Date().toISOString(),
+                    accountId: ex.accountId,
+                    before: beforeState,
+                    after: null
+                });
+                
+                renderUrlExemptionsTab();
+                showSuccessToast('Exemption deleted successfully');
+            }
+        }
+    }
+    
+    function resetUrlExemptionsFilters() {
+        document.getElementById('url-exemptions-filter-status').value = '';
+        document.getElementById('url-exemptions-filter-type').value = '';
+        document.getElementById('url-exemptions-search').value = '';
+        renderUrlExemptionsTab();
+    }
+    
+    function applyUrlExemptionsFilters() {
+        renderUrlExemptionsTab();
+    }
+    
     function toggleUrlActionMenu(btn, ruleId) {
         document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
             if (menu.id !== 'url-menu-' + ruleId) {
@@ -6707,6 +7170,34 @@ var SecurityComplianceControlsService = (function() {
             document.getElementById('domain-age-hours').disabled = !this.checked;
             document.getElementById('domain-age-action').disabled = !this.checked;
         });
+        
+        // URL Exemptions tab listeners
+        var urlExemptionsSearch = document.getElementById('url-exemptions-search');
+        if (urlExemptionsSearch) {
+            urlExemptionsSearch.addEventListener('input', renderUrlExemptionsTab);
+        }
+        var urlExemptionsFilterStatus = document.getElementById('url-exemptions-filter-status');
+        if (urlExemptionsFilterStatus) {
+            urlExemptionsFilterStatus.addEventListener('change', renderUrlExemptionsTab);
+        }
+        var urlExemptionsFilterType = document.getElementById('url-exemptions-filter-type');
+        if (urlExemptionsFilterType) {
+            urlExemptionsFilterType.addEventListener('change', renderUrlExemptionsTab);
+        }
+        
+        // Render URL exemptions when tab is shown
+        var urlExemptionsTab = document.getElementById('url-exemptions-tab');
+        if (urlExemptionsTab) {
+            urlExemptionsTab.addEventListener('shown.bs.tab', function() {
+                renderUrlExemptionsTab();
+            });
+        }
+        
+        // URL Exemption modal account search
+        var urlExemptionAccountSearch = document.getElementById('url-exemption-account-search');
+        if (urlExemptionAccountSearch) {
+            urlExemptionAccountSearch.addEventListener('input', filterUrlExemptionAccounts);
+        }
     }
 
     function renderNormTab() {
@@ -8152,6 +8643,17 @@ var SecurityComplianceControlsService = (function() {
             });
         });
         
+        // URL Sub-tabs styling
+        var urlSubTabs = document.querySelectorAll('#urlSubTabs .nav-link');
+        urlSubTabs.forEach(function(tab) {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                urlSubTabs.forEach(function(t) {
+                    t.style.color = '#6c757d';
+                });
+                e.target.style.color = '#1e3a5f';
+            });
+        });
+        
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.action-menu-container')) {
                 document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
@@ -8397,6 +8899,20 @@ var SecurityComplianceControlsService = (function() {
         showAddDomainAgeExceptionModal: showAddDomainAgeExceptionModal,
         saveException: saveException,
         removeDomainAgeException: removeDomainAgeException,
+        // URL Exemptions
+        renderUrlExemptionsTab: renderUrlExemptionsTab,
+        showAddUrlExemptionModal: showAddUrlExemptionModal,
+        editUrlExemption: editUrlExemption,
+        toggleUrlExemptionStatus: toggleUrlExemptionStatus,
+        deleteUrlExemption: deleteUrlExemption,
+        toggleUrlExemptionActionMenu: toggleUrlExemptionActionMenu,
+        resetUrlExemptionsFilters: resetUrlExemptionsFilters,
+        applyUrlExemptionsFilters: applyUrlExemptionsFilters,
+        toggleUrlExemptionType: toggleUrlExemptionType,
+        populateUrlRulesChecklist: populateUrlRulesChecklist,
+        saveUrlExemption: saveUrlExemption,
+        filterUrlExemptionAccounts: filterUrlExemptionAccounts,
+        selectUrlExemptionAccount: selectUrlExemptionAccount,
         viewQuarantinedMessage: viewQuarantinedMessage,
         releaseQuarantinedMessage: releaseQuarantinedMessage,
         blockQuarantinedMessage: blockQuarantinedMessage,
@@ -12050,6 +12566,51 @@ function resetUrlFilters() {
 
 function toggleUrlActionMenu(btn, ruleId) {
     SecurityComplianceControlsService.toggleUrlActionMenu(btn, ruleId);
+}
+
+// URL Exemptions global wrappers
+function showAddUrlExemptionModal() {
+    SecurityComplianceControlsService.showAddUrlExemptionModal();
+}
+
+function editUrlExemption(exemptionId) {
+    SecurityComplianceControlsService.editUrlExemption(exemptionId);
+}
+
+function toggleUrlExemptionStatus(exemptionId) {
+    SecurityComplianceControlsService.toggleUrlExemptionStatus(exemptionId);
+}
+
+function deleteUrlExemption(exemptionId) {
+    SecurityComplianceControlsService.deleteUrlExemption(exemptionId);
+}
+
+function toggleUrlExemptionActionMenu(btn, exemptionId, event) {
+    SecurityComplianceControlsService.toggleUrlExemptionActionMenu(btn, exemptionId, event);
+}
+
+function resetUrlExemptionsFilters() {
+    SecurityComplianceControlsService.resetUrlExemptionsFilters();
+}
+
+function applyUrlExemptionsFilters() {
+    SecurityComplianceControlsService.applyUrlExemptionsFilters();
+}
+
+function toggleUrlExemptionType() {
+    SecurityComplianceControlsService.toggleUrlExemptionType();
+}
+
+function saveUrlExemption() {
+    SecurityComplianceControlsService.saveUrlExemption();
+}
+
+function filterUrlExemptionAccounts() {
+    SecurityComplianceControlsService.filterUrlExemptionAccounts();
+}
+
+function selectUrlExemptionAccount(accountId, accountName) {
+    SecurityComplianceControlsService.selectUrlExemptionAccount(accountId, accountName);
 }
 
 function saveDomainAgeSettings() {
