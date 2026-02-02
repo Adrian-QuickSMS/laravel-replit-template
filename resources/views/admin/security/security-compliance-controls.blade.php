@@ -2897,18 +2897,27 @@
                     
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="content-exemption-account" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Account <span class="text-danger">*</span></label>
-                            <select class="form-select" id="content-exemption-account" required onchange="loadContentExemptionSubaccounts()">
-                                <option value="">Select Account...</option>
-                            </select>
-                            <small class="text-muted">Select the account to exempt</small>
+                            <label for="content-exemption-account-search" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Account <span class="text-danger">*</span></label>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="content-exemption-account-search" placeholder="Search accounts..." autocomplete="off" oninput="filterContentExemptionAccounts()" onfocus="showContentExemptionAccountDropdown()">
+                                <input type="hidden" id="content-exemption-account" value="">
+                                <div class="dropdown-menu w-100" id="content-exemption-account-dropdown" style="max-height: 200px; overflow-y: auto;">
+                                </div>
+                            </div>
+                            <small class="text-muted">Type to search accounts</small>
                         </div>
                         <div class="col-md-6">
-                            <label for="content-exemption-subaccount" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Sub-Account(s)</label>
-                            <select class="form-select" id="content-exemption-subaccount" multiple size="3" disabled>
-                                <option value="">Select account first...</option>
-                            </select>
-                            <small class="text-muted">Leave empty to apply to all sub-accounts</small>
+                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Sub-Account(s)</label>
+                            <div class="border rounded p-2" style="max-height: 120px; overflow-y: auto; background: #fff;" id="content-exemption-subaccounts-container">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="content-exemption-all-subaccounts" checked onchange="toggleAllSubaccounts()">
+                                    <label class="form-check-label fw-bold" for="content-exemption-all-subaccounts">All Sub-accounts</label>
+                                </div>
+                                <div id="content-exemption-subaccounts-list" class="mt-1">
+                                    <small class="text-muted">Select an account first</small>
+                                </div>
+                            </div>
+                            <small class="text-muted">Select specific sub-accounts or apply to all</small>
                         </div>
                     </div>
                     
@@ -2940,16 +2949,32 @@
                     <!-- Anti-Spam Override Section -->
                     <div id="content-exemption-antispam-section" style="display: none;">
                         <div class="p-3 mb-3" style="background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
-                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Anti-Spam Override <span class="text-danger">*</span></label>
-                            <select class="form-select" id="content-exemption-antispam-override" onchange="updateAntispamOverrideWindow()">
-                                <option value="disabled">Disabled - Allow repeated content</option>
-                                <option value="enabled">Enabled - Use global window setting</option>
-                                <option value="strict">Strict - Custom shorter window</option>
-                            </select>
-                            <small class="text-muted d-block mt-1">Override the global anti-spam protection for this account</small>
-                            
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Anti-Spam Status</label>
+                                    <div class="d-flex gap-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="antispam-toggle" id="antispam-toggle-on" value="on" checked onchange="updateAntispamModeOptions()">
+                                            <label class="form-check-label" for="antispam-toggle-on">ON</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="antispam-toggle" id="antispam-toggle-off" value="off" onchange="updateAntispamModeOptions()">
+                                            <label class="form-check-label" for="antispam-toggle-off">OFF</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-2" id="antispam-mode-group">
+                                    <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Mode</label>
+                                    <select class="form-select form-select-sm" id="content-exemption-antispam-mode" onchange="updateAntispamOverrideWindow()">
+                                        <option value="default">Use Global Default</option>
+                                        <option value="stricter">Stricter (shorter window)</option>
+                                        <option value="relaxed">Less Strict (longer window)</option>
+                                        <option value="custom">Custom Window</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div class="mt-2" id="antispam-window-override-group" style="display: none;">
-                                <label class="form-label mb-1" style="font-weight: 600; font-size: 0.8rem;">Custom Window</label>
+                                <label class="form-label mb-1" style="font-weight: 600; font-size: 0.8rem;">Window Duration</label>
                                 <select class="form-select form-select-sm" id="content-exemption-antispam-window" style="width: auto;">
                                     <option value="15">15 minutes</option>
                                     <option value="30">30 minutes</option>
@@ -2957,6 +2982,7 @@
                                     <option value="120">120 minutes</option>
                                 </select>
                             </div>
+                            <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i>Override the global anti-spam protection for this account/sub-accounts</small>
                         </div>
                     </div>
                     
@@ -5377,9 +5403,11 @@ var SecurityComplianceControlsService = (function() {
                     : ruleNames.join(', ');
             } else {
                 var overrideLabels = {
-                    'disabled': 'Anti-Spam Disabled',
-                    'enabled': 'Anti-Spam Forced On',
-                    'strict': 'Strict Mode (' + (ex.customWindow || 15) + 'min)'
+                    'disabled': 'Anti-Spam OFF',
+                    'enabled': 'Anti-Spam ON (default)',
+                    'strict': 'Stricter (' + (ex.customWindow || 15) + 'min)',
+                    'relaxed': 'Less Strict (' + (ex.customWindow || 120) + 'min)',
+                    'custom': 'Custom (' + (ex.customWindow || 60) + 'min)'
                 };
                 exemptFromText = overrideLabels[ex.antispamOverride] || ex.antispamOverride;
             }
@@ -5435,17 +5463,19 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('content-exemption-save-btn-text').textContent = 'Save Exemption';
         document.getElementById('content-exemption-type-rule').checked = true;
         
-        // Populate accounts dropdown
-        var accountSelect = document.getElementById('content-exemption-account');
-        accountSelect.innerHTML = '<option value="">Select Account...</option>' + 
-            mockData.accounts.map(function(acc) {
-                return '<option value="' + acc.id + '">' + escapeHtml(acc.name) + ' (' + acc.id + ')</option>';
-            }).join('');
+        // Reset account search
+        document.getElementById('content-exemption-account-search').value = '';
+        document.getElementById('content-exemption-account').value = '';
         
-        // Reset subaccount
-        var subSelect = document.getElementById('content-exemption-subaccount');
-        subSelect.innerHTML = '<option value="">Select account first...</option>';
-        subSelect.disabled = true;
+        // Reset subaccounts
+        document.getElementById('content-exemption-all-subaccounts').checked = true;
+        document.getElementById('content-exemption-subaccounts-list').innerHTML = '<small class="text-muted">Select an account first</small>';
+        
+        // Reset anti-spam options
+        document.getElementById('antispam-toggle-on').checked = true;
+        document.getElementById('content-exemption-antispam-mode').value = 'default';
+        document.getElementById('antispam-mode-group').style.display = 'block';
+        document.getElementById('antispam-window-override-group').style.display = 'none';
         
         // Populate rules checklist
         populateContentRulesChecklist();
@@ -5454,6 +5484,54 @@ var SecurityComplianceControlsService = (function() {
         
         var modal = new bootstrap.Modal(document.getElementById('contentExemptionModal'));
         modal.show();
+    }
+    
+    function filterContentExemptionAccounts() {
+        var searchTerm = document.getElementById('content-exemption-account-search').value.toLowerCase();
+        var dropdown = document.getElementById('content-exemption-account-dropdown');
+        
+        var filtered = mockData.accounts.filter(function(acc) {
+            return acc.name.toLowerCase().indexOf(searchTerm) !== -1 || 
+                   acc.id.toLowerCase().indexOf(searchTerm) !== -1;
+        });
+        
+        if (filtered.length === 0) {
+            dropdown.innerHTML = '<div class="dropdown-item text-muted">No accounts found</div>';
+        } else {
+            dropdown.innerHTML = filtered.slice(0, 10).map(function(acc) {
+                return '<a class="dropdown-item" href="#" onclick="selectContentExemptionAccount(\'' + acc.id + '\', \'' + escapeHtml(acc.name) + '\'); return false;">' +
+                    '<strong>' + escapeHtml(acc.name) + '</strong> <small class="text-muted">(' + acc.id + ')</small></a>';
+            }).join('');
+        }
+        
+        dropdown.classList.add('show');
+    }
+    
+    function showContentExemptionAccountDropdown() {
+        filterContentExemptionAccounts();
+    }
+    
+    function selectContentExemptionAccount(accountId, accountName) {
+        document.getElementById('content-exemption-account').value = accountId;
+        document.getElementById('content-exemption-account-search').value = accountName + ' (' + accountId + ')';
+        document.getElementById('content-exemption-account-dropdown').classList.remove('show');
+        
+        loadContentExemptionSubaccounts();
+    }
+    
+    function toggleAllSubaccounts() {
+        var allChecked = document.getElementById('content-exemption-all-subaccounts').checked;
+        var checkboxes = document.querySelectorAll('.subaccount-checkbox');
+        checkboxes.forEach(function(cb) {
+            cb.checked = false;
+            cb.disabled = allChecked;
+        });
+    }
+    
+    function updateAntispamModeOptions() {
+        var isOn = document.getElementById('antispam-toggle-on').checked;
+        document.getElementById('antispam-mode-group').style.display = isOn ? 'block' : 'none';
+        document.getElementById('antispam-window-override-group').style.display = 'none';
     }
     
     function populateContentRulesChecklist() {
@@ -5480,25 +5558,38 @@ var SecurityComplianceControlsService = (function() {
     
     function loadContentExemptionSubaccounts() {
         var accountId = document.getElementById('content-exemption-account').value;
-        var subSelect = document.getElementById('content-exemption-subaccount');
+        var container = document.getElementById('content-exemption-subaccounts-list');
+        var allCheckbox = document.getElementById('content-exemption-all-subaccounts');
         
         if (!accountId) {
-            subSelect.innerHTML = '<option value="">Select account first...</option>';
-            subSelect.disabled = true;
+            container.innerHTML = '<small class="text-muted">Select an account first</small>';
+            allCheckbox.checked = true;
             return;
         }
         
         var account = mockData.accounts.find(function(a) { return a.id === accountId; });
         if (!account || !account.subAccounts || account.subAccounts.length === 0) {
-            subSelect.innerHTML = '<option value="">No sub-accounts</option>';
-            subSelect.disabled = true;
+            container.innerHTML = '<small class="text-muted">No sub-accounts available</small>';
+            allCheckbox.checked = true;
             return;
         }
         
-        subSelect.innerHTML = account.subAccounts.map(function(sub) {
-            return '<option value="' + sub.id + '">' + escapeHtml(sub.name) + ' (' + sub.id + ')</option>';
+        container.innerHTML = account.subAccounts.map(function(sub) {
+            return '<div class="form-check">' +
+                '<input class="form-check-input subaccount-checkbox" type="checkbox" value="' + sub.id + '" id="subaccount-' + sub.id + '" disabled onchange="handleSubaccountChange()">' +
+                '<label class="form-check-label" for="subaccount-' + sub.id + '">' + escapeHtml(sub.name) + '</label>' +
+            '</div>';
         }).join('');
-        subSelect.disabled = false;
+        
+        allCheckbox.checked = true;
+    }
+    
+    function handleSubaccountChange() {
+        var checkedBoxes = document.querySelectorAll('.subaccount-checkbox:checked');
+        if (checkedBoxes.length === 0) {
+            document.getElementById('content-exemption-all-subaccounts').checked = true;
+            toggleAllSubaccounts();
+        }
     }
     
     function toggleContentExemptionType() {
@@ -5518,8 +5609,8 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function updateAntispamOverrideWindow() {
-        var override = document.getElementById('content-exemption-antispam-override').value;
-        document.getElementById('antispam-window-override-group').style.display = override === 'strict' ? 'block' : 'none';
+        var mode = document.getElementById('content-exemption-antispam-mode').value;
+        document.getElementById('antispam-window-override-group').style.display = (mode === 'custom' || mode === 'stricter' || mode === 'relaxed') ? 'block' : 'none';
     }
     
     function saveContentExemption() {
@@ -5532,10 +5623,17 @@ var SecurityComplianceControlsService = (function() {
         var type = document.querySelector('input[name="content-exemption-type"]:checked').value;
         var account = mockData.accounts.find(function(a) { return a.id === accountId; });
         
-        var selectedSubaccounts = Array.from(document.getElementById('content-exemption-subaccount').selectedOptions).map(function(opt) {
-            var sub = account.subAccounts.find(function(s) { return s.id === opt.value; });
-            return sub || { id: opt.value, name: opt.value };
-        });
+        // Get selected subaccounts from checkboxes
+        var allSubaccounts = document.getElementById('content-exemption-all-subaccounts').checked;
+        var selectedSubaccounts = [];
+        
+        if (!allSubaccounts) {
+            var checkedBoxes = document.querySelectorAll('.subaccount-checkbox:checked');
+            checkedBoxes.forEach(function(cb) {
+                var sub = account && account.subAccounts ? account.subAccounts.find(function(s) { return s.id === cb.value; }) : null;
+                selectedSubaccounts.push(sub || { id: cb.value, name: cb.value });
+            });
+        }
         
         var exemptionData = {
             id: document.getElementById('content-exemption-id').value || 'CEX-' + String(mockData.contentExemptions.length + 1).padStart(3, '0'),
@@ -5561,9 +5659,24 @@ var SecurityComplianceControlsService = (function() {
             }
             exemptionData.exemptRules = selectedRules;
         } else {
-            exemptionData.antispamOverride = document.getElementById('content-exemption-antispam-override').value;
-            if (exemptionData.antispamOverride === 'strict') {
-                exemptionData.customWindow = parseInt(document.getElementById('content-exemption-antispam-window').value);
+            // Anti-spam override with new ON/OFF toggle and mode
+            var isOn = document.getElementById('antispam-toggle-on').checked;
+            var mode = document.getElementById('content-exemption-antispam-mode').value;
+            var window = parseInt(document.getElementById('content-exemption-antispam-window').value);
+            
+            if (!isOn) {
+                exemptionData.antispamOverride = 'disabled';
+            } else if (mode === 'default') {
+                exemptionData.antispamOverride = 'enabled';
+            } else if (mode === 'stricter') {
+                exemptionData.antispamOverride = 'strict';
+                exemptionData.customWindow = window;
+            } else if (mode === 'relaxed') {
+                exemptionData.antispamOverride = 'relaxed';
+                exemptionData.customWindow = window;
+            } else {
+                exemptionData.antispamOverride = 'custom';
+                exemptionData.customWindow = window;
             }
         }
         
@@ -5580,14 +5693,18 @@ var SecurityComplianceControlsService = (function() {
         logAuditEvent(eventType, {
             exemptionId: exemptionData.id,
             accountId: exemptionData.accountId,
+            accountName: exemptionData.accountName,
+            scope: exemptionData.scope,
             type: exemptionData.type,
             exemptRules: exemptionData.exemptRules || null,
-            antispamOverride: exemptionData.antispamOverride || null
+            antispamOverride: exemptionData.antispamOverride || null,
+            customWindow: exemptionData.customWindow || null,
+            notes: exemptionData.notes
         });
         
         bootstrap.Modal.getInstance(document.getElementById('contentExemptionModal')).hide();
         renderContentExemptionsTab();
-        showSuccessToast('Content exemption ' + (existingIdx !== -1 ? 'updated' : 'created') + ' successfully');
+        showToast('Content exemption ' + (existingIdx !== -1 ? 'updated' : 'created') + ' successfully', 'success');
     }
     
     function viewContentExemption(exemptionId) {
@@ -7642,6 +7759,12 @@ var SecurityComplianceControlsService = (function() {
                     menu.classList.remove('show');
                 });
             }
+            // Close account dropdown when clicking outside
+            if (!e.target.closest('#content-exemption-account-dropdown') && 
+                !e.target.closest('#content-exemption-account-search')) {
+                var dropdown = document.getElementById('content-exemption-account-dropdown');
+                if (dropdown) dropdown.classList.remove('show');
+            }
         });
     }
     
@@ -7844,6 +7967,12 @@ var SecurityComplianceControlsService = (function() {
         saveContentExemption: saveContentExemption,
         toggleContentExemptionType: toggleContentExemptionType,
         updateAntispamOverrideWindow: updateAntispamOverrideWindow,
+        filterContentExemptionAccounts: filterContentExemptionAccounts,
+        showContentExemptionAccountDropdown: showContentExemptionAccountDropdown,
+        selectContentExemptionAccount: selectContentExemptionAccount,
+        toggleAllSubaccounts: toggleAllSubaccounts,
+        handleSubaccountChange: handleSubaccountChange,
+        updateAntispamModeOptions: updateAntispamModeOptions,
         loadContentExemptionSubaccounts: loadContentExemptionSubaccounts,
         toggleContentExemptionActionMenu: toggleContentExemptionActionMenu,
         toggleContentExemptionsFilterPanel: toggleContentExemptionsFilterPanel,
@@ -11429,6 +11558,30 @@ function toggleContentExemptionType() {
 
 function updateAntispamOverrideWindow() {
     SecurityComplianceControlsService.updateAntispamOverrideWindow();
+}
+
+function filterContentExemptionAccounts() {
+    SecurityComplianceControlsService.filterContentExemptionAccounts();
+}
+
+function showContentExemptionAccountDropdown() {
+    SecurityComplianceControlsService.showContentExemptionAccountDropdown();
+}
+
+function selectContentExemptionAccount(accountId, accountName) {
+    SecurityComplianceControlsService.selectContentExemptionAccount(accountId, accountName);
+}
+
+function toggleAllSubaccounts() {
+    SecurityComplianceControlsService.toggleAllSubaccounts();
+}
+
+function handleSubaccountChange() {
+    SecurityComplianceControlsService.handleSubaccountChange();
+}
+
+function updateAntispamModeOptions() {
+    SecurityComplianceControlsService.updateAntispamModeOptions();
 }
 
 function loadContentExemptionSubaccounts() {
