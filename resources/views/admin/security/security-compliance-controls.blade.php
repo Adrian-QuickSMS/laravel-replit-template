@@ -2496,58 +2496,33 @@
 
                 <ul class="nav nav-tabs mb-3" id="normCharTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="norm-uppercase-tab" data-bs-toggle="tab" data-bs-target="#norm-uppercase" type="button" role="tab" style="font-weight: 600; color: #1e3a5f;">
-                            <i class="fas fa-font me-1"></i>A–Z <span class="badge bg-secondary ms-1">26</span>
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="norm-lowercase-tab" data-bs-toggle="tab" data-bs-target="#norm-lowercase" type="button" role="tab" style="font-weight: 600; color: #1e3a5f;">
-                            <i class="fas fa-text-height me-1"></i>a–z <span class="badge bg-secondary ms-1">26</span>
+                        <button class="nav-link active" id="norm-letters-tab" data-bs-toggle="tab" data-bs-target="#norm-letters" type="button" role="tab" style="font-weight: 600; color: #1e3a5f;">
+                            <i class="fas fa-font me-1"></i>Letters A–Z <span class="badge bg-secondary ms-1">26</span>
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="norm-digits-tab" data-bs-toggle="tab" data-bs-target="#norm-digits" type="button" role="tab" style="font-weight: 600; color: #1e3a5f;">
-                            <i class="fas fa-hashtag me-1"></i>0–9 <span class="badge bg-secondary ms-1">10</span>
+                            <i class="fas fa-hashtag me-1"></i>Digits 0–9 <span class="badge bg-secondary ms-1">10</span>
                         </button>
                     </li>
                 </ul>
 
                 <div class="tab-content" id="normCharTabsContent">
-                    <div class="tab-pane fade show active" id="norm-uppercase" role="tabpanel">
+                    <div class="tab-pane fade show active" id="norm-letters" role="tabpanel">
                         <div class="sec-table-card">
                             <div class="table-responsive">
-                                <table class="table table-hover norm-admin-table" id="norm-uppercase-table">
+                                <table class="table table-hover norm-admin-table" id="norm-letters-table">
                                     <thead>
                                         <tr>
-                                            <th class="sortable" data-sort="base" style="width: 100px;">Base Char <i class="fas fa-sort sort-icon"></i></th>
-                                            <th style="min-width: 200px;">Equivalents</th>
+                                            <th class="sortable" data-sort="base" style="width: 100px;">Base <i class="fas fa-sort sort-icon"></i></th>
+                                            <th style="min-width: 300px;">Equivalents (includes lowercase, accents, lookalikes)</th>
                                             <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
                                             <th style="width: 70px;">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="norm-uppercase-body"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tab-pane fade" id="norm-lowercase" role="tabpanel">
-                        <div class="sec-table-card">
-                            <div class="table-responsive">
-                                <table class="table table-hover norm-admin-table" id="norm-lowercase-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="sortable" data-sort="base" style="width: 100px;">Base Char <i class="fas fa-sort sort-icon"></i></th>
-                                            <th style="min-width: 200px;">Equivalents</th>
-                                            <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
-                                            <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
-                                            <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
-                                            <th style="width: 70px;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="norm-lowercase-body"></tbody>
+                                    <tbody id="norm-letters-body"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -4863,76 +4838,56 @@ var SecurityComplianceControlsService = (function() {
         mockData.baseCharacterLibrary = (function() {
             var library = [];
             
-            var uppercaseEquivalents = {
-                'A': { equivalents: ['a', '4', 'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Α', 'А', 'Ά', '@'], notes: 'Safe defaults: accented variants, Greek Alpha, Cyrillic A' },
-                'B': { equivalents: ['Β', 'В', 'ϐ', '8'], notes: 'Greek Beta, Cyrillic Ve' },
-                'C': { equivalents: ['С', 'Ϲ', '('], notes: 'Cyrillic Es' },
-                'D': { equivalents: [], notes: '' },
-                'E': { equivalents: ['e', '3', 'È', 'É', 'Ê', 'Ë', 'Ε', 'Е', 'Έ'], notes: 'Safe defaults: accented variants, Greek Epsilon, Cyrillic Ie' },
-                'F': { equivalents: [], notes: '' },
-                'G': { equivalents: ['g', '9'], notes: 'Safe defaults: lowercase, digit substitution' },
-                'H': { equivalents: ['Η', 'Н', 'Ή'], notes: 'Greek Eta, Cyrillic En' },
-                'I': { equivalents: ['i', '1', 'l', 'Ì', 'Í', 'Î', 'Ï', 'Ι', 'І', 'Ί', '|'], notes: 'Safe defaults: accented variants, Greek Iota, Cyrillic I' },
-                'J': { equivalents: ['Ј'], notes: 'Cyrillic Je' },
-                'K': { equivalents: ['Κ', 'К'], notes: 'Greek Kappa, Cyrillic Ka' },
-                'L': { equivalents: ['1', '|'], notes: 'Common substitution' },
-                'M': { equivalents: ['Μ', 'М'], notes: 'Greek Mu, Cyrillic Em' },
-                'N': { equivalents: ['Ν', 'Ň'], notes: 'Greek Nu' },
-                'O': { equivalents: ['o', '0', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ο', 'О', 'Ό'], notes: 'Safe defaults: accented variants, Greek Omicron, Cyrillic O, zero' },
-                'P': { equivalents: ['Ρ', 'Р'], notes: 'Greek Rho, Cyrillic Er' },
-                'Q': { equivalents: [], notes: '' },
-                'R': { equivalents: [], notes: '' },
-                'S': { equivalents: ['s', '5', '$', 'Ѕ'], notes: 'Safe defaults: lowercase, digit, dollar sign' },
-                'T': { equivalents: ['t', '7', 'Τ', 'Т'], notes: 'Safe defaults: lowercase, digit, Greek Tau, Cyrillic Te' },
-                'U': { equivalents: [], notes: '' },
-                'V': { equivalents: [], notes: '' },
-                'W': { equivalents: [], notes: '' },
-                'X': { equivalents: ['Χ', 'Х'], notes: 'Greek Chi, Cyrillic Ha' },
-                'Y': { equivalents: ['Υ', 'У', 'Ύ'], notes: 'Greek Upsilon, Cyrillic U' },
-                'Z': { equivalents: ['Ζ', '2'], notes: 'Greek Zeta' }
-            };
-            
-            var lowercaseEquivalents = {
-                'a': { equivalents: ['A', '4', 'à', 'á', 'â', 'ã', 'ä', 'å', 'α', 'а', '@'], notes: 'Safe defaults: accented variants, Greek alpha, Cyrillic a' },
-                'b': { equivalents: ['β', 'ь', 'в'], notes: 'Greek beta, Cyrillic soft sign' },
-                'c': { equivalents: ['с', 'ϲ'], notes: 'Cyrillic es' },
-                'd': { equivalents: [], notes: '' },
-                'e': { equivalents: ['E', '3', 'è', 'é', 'ê', 'ë', 'ε', 'е', 'ё'], notes: 'Safe defaults: accented variants, Greek epsilon, Cyrillic ie' },
-                'f': { equivalents: [], notes: '' },
-                'g': { equivalents: ['G', '9', 'ɡ'], notes: 'Safe defaults: uppercase, digit substitution' },
-                'h': { equivalents: ['һ'], notes: 'Cyrillic shha' },
-                'i': { equivalents: ['I', '1', 'l', 'ì', 'í', 'î', 'ï', 'ι', 'і', 'ί', '|'], notes: 'Safe defaults: accented variants, Greek iota, Cyrillic i' },
-                'j': { equivalents: ['ј'], notes: 'Cyrillic je' },
-                'k': { equivalents: ['κ', 'к'], notes: 'Greek kappa, Cyrillic ka' },
-                'l': { equivalents: ['1', 'I', '|', 'ӏ'], notes: 'Common substitution, Cyrillic palochka' },
-                'm': { equivalents: ['м'], notes: 'Cyrillic em' },
-                'n': { equivalents: ['ν', 'п'], notes: 'Greek nu' },
-                'o': { equivalents: ['O', '0', 'ò', 'ó', 'ô', 'õ', 'ö', 'ο', 'о', 'ό'], notes: 'Safe defaults: accented variants, Greek omicron, Cyrillic o, zero' },
-                'p': { equivalents: ['ρ', 'р'], notes: 'Greek rho, Cyrillic er' },
-                'q': { equivalents: [], notes: '' },
-                'r': { equivalents: ['г'], notes: 'Cyrillic ghe (visual similarity in some fonts)' },
-                's': { equivalents: ['S', '5', '$', 'ѕ'], notes: 'Safe defaults: uppercase, digit, dollar sign' },
-                't': { equivalents: ['T', '7', 'τ'], notes: 'Safe defaults: uppercase, digit, Greek tau' },
-                'u': { equivalents: ['υ', 'ս'], notes: 'Greek upsilon, Armenian u' },
-                'v': { equivalents: ['ν'], notes: 'Greek nu (visual similarity)' },
-                'w': { equivalents: [], notes: '' },
-                'x': { equivalents: ['χ', 'х'], notes: 'Greek chi, Cyrillic ha' },
-                'y': { equivalents: ['у', 'γ'], notes: 'Cyrillic u, Greek gamma' },
-                'z': { equivalents: ['ζ'], notes: 'Greek zeta' }
+            var letterEquivalents = {
+                'A': { equivalents: ['a', '4', '@', 'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'à', 'á', 'â', 'ã', 'ä', 'å', 'Α', 'α', 'А', 'а', 'Ά'], notes: 'Lowercase a, digit 4, @, accented variants, Greek Alpha, Cyrillic A' },
+                'B': { equivalents: ['b', '8', 'Β', 'β', 'В', 'в', 'ϐ', 'ь'], notes: 'Lowercase b, digit 8, Greek Beta, Cyrillic Ve' },
+                'C': { equivalents: ['c', '(', 'С', 'с', 'Ϲ', 'ϲ'], notes: 'Lowercase c, parenthesis, Cyrillic Es' },
+                'D': { equivalents: ['d'], notes: 'Lowercase d' },
+                'E': { equivalents: ['e', '3', 'È', 'É', 'Ê', 'Ë', 'è', 'é', 'ê', 'ë', 'Ε', 'ε', 'Е', 'е', 'ё', 'Έ'], notes: 'Lowercase e, digit 3, accented variants, Greek Epsilon, Cyrillic Ie' },
+                'F': { equivalents: ['f'], notes: 'Lowercase f' },
+                'G': { equivalents: ['g', '9', 'ɡ'], notes: 'Lowercase g, digit 9' },
+                'H': { equivalents: ['h', 'Η', 'Н', 'Ή', 'һ'], notes: 'Lowercase h, Greek Eta, Cyrillic En, Cyrillic Shha' },
+                'I': { equivalents: ['i', '1', 'l', 'L', '|', 'Ì', 'Í', 'Î', 'Ï', 'ì', 'í', 'î', 'ï', 'Ι', 'ι', 'І', 'і', 'Ί', 'ί', 'ӏ'], notes: 'Lowercase i/l, digit 1, pipe, accented variants, Greek Iota, Cyrillic I' },
+                'J': { equivalents: ['j', 'Ј', 'ј'], notes: 'Lowercase j, Cyrillic Je' },
+                'K': { equivalents: ['k', 'Κ', 'κ', 'К', 'к'], notes: 'Lowercase k, Greek Kappa, Cyrillic Ka' },
+                'L': { equivalents: ['l', '1', 'I', 'i', '|', 'ӏ', 'Ł', 'Ĺ', 'Ľ'], notes: 'Lowercase l, digit 1, I variants, Cyrillic Palochka, Polish L' },
+                'M': { equivalents: ['m', 'Μ', 'М', 'м'], notes: 'Lowercase m, Greek Mu, Cyrillic Em' },
+                'N': { equivalents: ['n', 'Ν', 'ν', 'Ň', 'п'], notes: 'Lowercase n, Greek Nu, Cyrillic Pe' },
+                'O': { equivalents: ['o', '0', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'ò', 'ó', 'ô', 'õ', 'ö', 'Ο', 'ο', 'О', 'о', 'Ό', 'ό'], notes: 'Lowercase o, digit 0, accented variants, Greek Omicron, Cyrillic O' },
+                'P': { equivalents: ['p', 'Ρ', 'ρ', 'Р', 'р'], notes: 'Lowercase p, Greek Rho, Cyrillic Er' },
+                'Q': { equivalents: ['q'], notes: 'Lowercase q' },
+                'R': { equivalents: ['r', 'г'], notes: 'Lowercase r, Cyrillic Ghe' },
+                'S': { equivalents: ['s', '5', '$', 'Ѕ', 'ѕ'], notes: 'Lowercase s, digit 5, dollar sign, Cyrillic Dze' },
+                'T': { equivalents: ['t', '7', 'Τ', 'τ', 'Т'], notes: 'Lowercase t, digit 7, Greek Tau, Cyrillic Te' },
+                'U': { equivalents: ['u', 'υ', 'ս'], notes: 'Lowercase u, Greek Upsilon, Armenian U' },
+                'V': { equivalents: ['v', 'ν'], notes: 'Lowercase v, Greek Nu' },
+                'W': { equivalents: ['w'], notes: 'Lowercase w' },
+                'X': { equivalents: ['x', 'Χ', 'χ', 'Х', 'х'], notes: 'Lowercase x, Greek Chi, Cyrillic Ha' },
+                'Y': { equivalents: ['y', 'Υ', 'У', 'у', 'γ', 'Ύ'], notes: 'Lowercase y, Greek Upsilon, Cyrillic U, Greek Gamma' },
+                'Z': { equivalents: ['z', '2', 'Ζ', 'ζ'], notes: 'Lowercase z, digit 2, Greek Zeta' }
             };
             
             var digitEquivalents = {
                 '0': { equivalents: ['O', 'o', 'Ο', 'ο', 'О', 'о'], notes: 'Latin O, Greek Omicron, Cyrillic O' },
                 '1': { equivalents: ['I', 'i', 'l', 'L', '|', 'Ι', 'ι'], notes: 'Latin I/l, Greek Iota, pipe' },
-                '2': { equivalents: ['Z'], notes: 'Visual similarity in some fonts' },
+                '2': { equivalents: ['Z', 'z'], notes: 'Visual similarity to Z' },
                 '3': { equivalents: ['E', 'e', 'Ε', 'ε'], notes: 'Reversed E appearance' },
                 '4': { equivalents: ['A', 'a'], notes: 'Common leet substitution' },
                 '5': { equivalents: ['S', 's', 'Ѕ', 'ѕ'], notes: 'Cyrillic Dze' },
-                '6': { equivalents: ['b', 'G'], notes: 'Visual similarity' },
+                '6': { equivalents: ['b', 'G', 'g'], notes: 'Visual similarity' },
                 '7': { equivalents: ['T', 't', 'Τ', 'τ'], notes: 'Common leet substitution' },
                 '8': { equivalents: ['B', 'Β', 'β'], notes: 'Greek Beta' },
                 '9': { equivalents: ['g', 'q'], notes: 'Visual similarity' }
             };
+            
+            function dedupeEquivalents(arr) {
+                var seen = {};
+                return arr.filter(function(item) {
+                    if (seen[item]) return false;
+                    seen[item] = true;
+                    return true;
+                });
+            }
             
             function computeRiskInternal(equivalents) {
                 if (equivalents.length === 0) return 'none';
@@ -4947,28 +4902,15 @@ var SecurityComplianceControlsService = (function() {
             }
             
             'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function(char) {
-                var data = uppercaseEquivalents[char] || { equivalents: [], notes: '' };
+                var data = letterEquivalents[char] || { equivalents: [], notes: '' };
+                var dedupedEquivs = dedupeEquivalents(data.equivalents);
                 library.push({
                     base: char,
-                    type: 'uppercase',
-                    equivalents: data.equivalents,
+                    type: 'letter',
+                    equivalents: dedupedEquivs,
                     notes: data.notes,
-                    enabled: data.equivalents.length > 0,
-                    risk: computeRiskInternal(data.equivalents),
-                    updatedAt: '28-01-2026',
-                    updatedBy: 'admin@quicksms.co.uk'
-                });
-            });
-            
-            'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function(char) {
-                var data = lowercaseEquivalents[char] || { equivalents: [], notes: '' };
-                library.push({
-                    base: char,
-                    type: 'lowercase',
-                    equivalents: data.equivalents,
-                    notes: data.notes,
-                    enabled: data.equivalents.length > 0,
-                    risk: computeRiskInternal(data.equivalents),
+                    enabled: dedupedEquivs.length > 0,
+                    risk: computeRiskInternal(dedupedEquivs),
                     updatedAt: '28-01-2026',
                     updatedBy: 'admin@quicksms.co.uk'
                 });
@@ -4976,13 +4918,14 @@ var SecurityComplianceControlsService = (function() {
             
             '0123456789'.split('').forEach(function(char) {
                 var data = digitEquivalents[char] || { equivalents: [], notes: '' };
+                var dedupedEquivs = dedupeEquivalents(data.equivalents);
                 library.push({
                     base: char,
                     type: 'digit',
-                    equivalents: data.equivalents,
+                    equivalents: dedupedEquivs,
                     notes: data.notes,
-                    enabled: data.equivalents.length > 0,
-                    risk: computeRiskInternal(data.equivalents),
+                    enabled: dedupedEquivs.length > 0,
+                    risk: computeRiskInternal(dedupedEquivs),
                     updatedAt: '28-01-2026',
                     updatedBy: 'admin@quicksms.co.uk'
                 });
@@ -9161,24 +9104,19 @@ var SecurityComplianceControlsService = (function() {
             'url': { icon: 'fa-link', color: '#7c3aed', label: 'URL' }
         };
         
-        var uppercase = library.filter(function(c) { return c.type === 'uppercase'; });
-        var lowercase = library.filter(function(c) { return c.type === 'lowercase'; });
+        var letters = library.filter(function(c) { return c.type === 'letter'; });
         var digits = library.filter(function(c) { return c.type === 'digit'; });
         
         var enabledCount = library.filter(function(c) { return c.enabled; }).length;
         var disabledCount = library.filter(function(c) { return !c.enabled; }).length;
         var totalEquivalents = library.reduce(function(sum, c) { return sum + c.equivalents.length; }, 0);
         
-        // Stats elements removed from UI
-        
-        renderBaseCharacterTable('uppercase', uppercase, riskColors, scopeIcons);
-        renderBaseCharacterTable('lowercase', lowercase, riskColors, scopeIcons);
+        renderBaseCharacterTable('letters', letters, riskColors, scopeIcons);
         renderBaseCharacterTable('digits', digits, riskColors, scopeIcons);
     }
     
     function renderBaseCharacterTable(type, characters, riskColors, scopeIcons) {
-        var bodyId = type === 'digits' ? 'norm-digits-body' : 
-                     type === 'lowercase' ? 'norm-lowercase-body' : 'norm-uppercase-body';
+        var bodyId = type === 'digits' ? 'norm-digits-body' : 'norm-letters-body';
         var tbody = document.getElementById(bodyId);
         if (!tbody) return;
         
@@ -9240,12 +9178,12 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function filterBaseCharacters(type) {
-        var statusFilter = document.getElementById('norm-filter-status-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value;
-        var riskFilter = document.getElementById('norm-filter-risk-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value;
-        var searchText = document.getElementById('norm-search-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value.toLowerCase();
+        var suffix = type === 'digits' ? 'digits' : 'letters';
+        var statusFilter = document.getElementById('norm-filter-status-' + suffix) ? document.getElementById('norm-filter-status-' + suffix).value : '';
+        var riskFilter = document.getElementById('norm-filter-risk-' + suffix) ? document.getElementById('norm-filter-risk-' + suffix).value : '';
+        var searchText = document.getElementById('norm-search-' + suffix) ? document.getElementById('norm-search-' + suffix).value.toLowerCase() : '';
         
-        var tableId = type === 'digits' ? 'norm-digits-table' : 
-                      type === 'lowercase' ? 'norm-lowercase-table' : 'norm-uppercase-table';
+        var tableId = type === 'digits' ? 'norm-digits-table' : 'norm-letters-table';
         var rows = document.querySelectorAll('#' + tableId + ' tbody tr');
         
         rows.forEach(function(row) {
@@ -10597,7 +10535,7 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function setupNormTableSorting() {
-        var tables = ['norm-uppercase-table', 'norm-lowercase-table', 'norm-digits-table'];
+        var tables = ['norm-letters-table', 'norm-digits-table'];
         tables.forEach(function(tableId) {
             var table = document.getElementById(tableId);
             if (!table) return;
@@ -12798,20 +12736,20 @@ function saveNewNormRule() {
 
 function resetNormFilters(type) {
     if (type) {
-        var suffix = type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits';
-        document.getElementById('norm-filter-status-' + suffix).value = '';
-        document.getElementById('norm-filter-scope-' + suffix).value = '';
-        document.getElementById('norm-filter-risk-' + suffix).value = '';
-        document.getElementById('norm-search-' + suffix).value = '';
+        var suffix = type === 'digits' ? 'digits' : 'letters';
+        var statusEl = document.getElementById('norm-filter-status-' + suffix);
+        var riskEl = document.getElementById('norm-filter-risk-' + suffix);
+        var searchEl = document.getElementById('norm-search-' + suffix);
+        if (statusEl) statusEl.value = '';
+        if (riskEl) riskEl.value = '';
+        if (searchEl) searchEl.value = '';
         filterBaseCharacters(type);
     } else {
-        ['upper', 'lower', 'digits'].forEach(function(suffix) {
+        ['letters', 'digits'].forEach(function(suffix) {
             var statusEl = document.getElementById('norm-filter-status-' + suffix);
-            var scopeEl = document.getElementById('norm-filter-scope-' + suffix);
             var riskEl = document.getElementById('norm-filter-risk-' + suffix);
             var searchEl = document.getElementById('norm-search-' + suffix);
             if (statusEl) statusEl.value = '';
-            if (scopeEl) scopeEl.value = '';
             if (riskEl) riskEl.value = '';
             if (searchEl) searchEl.value = '';
         });
@@ -12829,11 +12767,10 @@ function showBulkEditModal() {
                 '</div>' +
                 '<div class="modal-body">' +
                     '<div class="mb-3">' +
-                        '<label class="form-label fw-bold">Apply Scope To</label>' +
+                        '<label class="form-label fw-bold">Apply To</label>' +
                         '<select class="form-control" id="bulkEditTarget">' +
-                            '<option value="all">All Characters (62)</option>' +
-                            '<option value="uppercase">Uppercase Only (26)</option>' +
-                            '<option value="lowercase">Lowercase Only (26)</option>' +
+                            '<option value="all">All Characters (36)</option>' +
+                            '<option value="letters">Letters Only (26)</option>' +
                             '<option value="digits">Digits Only (10)</option>' +
                             '<option value="with_equivalents">Characters With Equivalents</option>' +
                         '</select>' +
@@ -12895,7 +12832,7 @@ function applyGlobalNormFilters() {
     var statusFilter = document.getElementById('norm-global-status').value;
     var riskFilter = document.getElementById('norm-global-risk').value;
     
-    var tables = ['norm-uppercase-body', 'norm-lowercase-body', 'norm-digits-body'];
+    var tables = ['norm-letters-body', 'norm-digits-body'];
     
     tables.forEach(function(tableId) {
         var tbody = document.getElementById(tableId);
