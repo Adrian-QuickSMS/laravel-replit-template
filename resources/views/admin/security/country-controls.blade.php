@@ -494,6 +494,21 @@
 .account-typeahead-wrapper {
     position: relative;
 }
+.account-typeahead-wrapper input {
+    padding-right: 2rem;
+}
+.account-typeahead-wrapper::after {
+    content: '\f078';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 0.7rem;
+    pointer-events: none;
+}
 .typeahead-results {
     position: absolute;
     top: 100%;
@@ -504,7 +519,7 @@
     border-top: none;
     border-radius: 0 0 6px 6px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    max-height: 200px;
+    max-height: 250px;
     overflow-y: auto;
     z-index: 1000;
     display: none;
@@ -4038,11 +4053,26 @@ function initAccountTypeahead() {
     
     if (!searchInput) return;
 
+    function renderAccountList(accounts) {
+        if (accounts.length === 0) {
+            resultsContainer.innerHTML = '<div class="typeahead-no-results">No accounts found</div>';
+        } else {
+            resultsContainer.innerHTML = accounts.map(function(account) {
+                return '<div class="typeahead-item" onclick="selectAccount(\'' + account.id + '\')">' +
+                    '<div><span class="account-name">' + account.name + '</span>' +
+                    '<span class="account-status ' + account.status + '">' + account.status.toUpperCase() + '</span></div>' +
+                    '<div class="account-id">' + account.id + '</div>' +
+                '</div>';
+            }).join('');
+        }
+        resultsContainer.classList.add('show');
+    }
+
     searchInput.addEventListener('input', function() {
         var query = this.value.toLowerCase().trim();
         
-        if (query.length < 2) {
-            resultsContainer.classList.remove('show');
+        if (query.length === 0) {
+            renderAccountList(mockAccountsData);
             return;
         }
 
@@ -4051,19 +4081,7 @@ function initAccountTypeahead() {
                    account.id.toLowerCase().includes(query);
         });
 
-        if (filtered.length === 0) {
-            resultsContainer.innerHTML = '<div class="typeahead-no-results">No accounts found</div>';
-        } else {
-            resultsContainer.innerHTML = filtered.map(function(account) {
-                return '<div class="typeahead-item" onclick="selectAccount(\'' + account.id + '\')">' +
-                    '<div><span class="account-name">' + account.name + '</span>' +
-                    '<span class="account-status ' + account.status + '">' + account.status.toUpperCase() + '</span></div>' +
-                    '<div class="account-id">' + account.id + '</div>' +
-                '</div>';
-            }).join('');
-        }
-        
-        resultsContainer.classList.add('show');
+        renderAccountList(filtered);
     });
 
     searchInput.addEventListener('blur', function() {
@@ -4073,8 +4091,15 @@ function initAccountTypeahead() {
     });
 
     searchInput.addEventListener('focus', function() {
-        if (this.value.length >= 2) {
-            resultsContainer.classList.add('show');
+        var query = this.value.toLowerCase().trim();
+        if (query.length === 0) {
+            renderAccountList(mockAccountsData);
+        } else {
+            var filtered = mockAccountsData.filter(function(account) {
+                return account.name.toLowerCase().includes(query) || 
+                       account.id.toLowerCase().includes(query);
+            });
+            renderAccountList(filtered);
         }
     });
 }
