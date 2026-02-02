@@ -2496,6 +2496,37 @@
     </div>
 </div>
 
+<!-- Generic Action Confirmation Modal -->
+<div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="action-confirm-header" style="background: #f8f9fc; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" id="action-confirm-title" style="color: #1e3a5f; font-weight: 600;">
+                    <i class="fas fa-question-circle me-2" id="action-confirm-icon"></i><span id="action-confirm-title-text">Confirm Action</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="action-confirm-message">Are you sure you want to perform this action?</p>
+                <div id="action-confirm-details" class="mb-3"></div>
+                <div id="action-confirm-reason-container" style="display: none;">
+                    <label class="form-label" style="font-weight: 500; color: #1e3a5f;">Reason (optional)</label>
+                    <textarea class="form-control" id="action-confirm-reason" rows="2" placeholder="Enter reason for this action..."></textarea>
+                </div>
+                <input type="hidden" id="action-confirm-id" value="">
+                <input type="hidden" id="action-confirm-type" value="">
+                <input type="hidden" id="action-confirm-action" value="">
+            </div>
+            <div class="modal-footer" style="background: #f8f9fc; border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm" id="action-confirm-btn" onclick="executeConfirmedAction()">
+                    <i class="fas fa-check me-1"></i> <span id="action-confirm-btn-text">Confirm</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
@@ -4385,27 +4416,101 @@ var SecurityComplianceControlsService = (function() {
     }
 
     function editExemption(exemptionId) {
-        // TODO: Implement edit exemption modal
-        console.log('[SecurityComplianceControls] editExemption called for:', exemptionId);
-        alert('Edit exemption functionality coming soon');
+        var exemptions = mockData.senderIdExemptions || [];
+        var ex = exemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex || ex.source !== 'manual') {
+            showToast('Only manual exemptions can be edited', 'warning');
+            return;
+        }
+        
+        var manualEx = mockData.manualExemptions.find(function(m) { return m.id === ex.sourceId; });
+        if (!manualEx) {
+            showToast('Exemption data not found', 'error');
+            return;
+        }
+        
+        document.getElementById('exemption-modal-title').textContent = 'Edit Exemption';
+        document.getElementById('exemption-save-btn-text').textContent = 'Update Exemption';
+        document.getElementById('exemption-edit-id').value = manualEx.id;
+        
+        document.getElementById('exemption-sender-id').value = manualEx.senderId;
+        document.getElementById('exemption-type-' + manualEx.type).checked = true;
+        document.getElementById('exemption-category').value = manualEx.category;
+        document.getElementById('exemption-scope').value = manualEx.scope;
+        document.getElementById('exemption-notes').value = manualEx.notes || '';
+        
+        updateExemptionAccountVisibility();
+        
+        if (manualEx.accountId && manualEx.accountId !== 'global') {
+            document.getElementById('exemption-account').value = manualEx.accountId;
+        }
+        
+        var modal = new bootstrap.Modal(document.getElementById('addExemptionModal'));
+        modal.show();
+        
+        logAuditEvent('EXEMPTION_EDIT_STARTED', { exemptionId: exemptionId, sourceId: ex.sourceId });
     }
 
     function disableExemptionEnforcement(sourceId) {
-        var reason = prompt('Enter reason for disabling enforcement (this SenderID will be blocked):');
-        if (reason === null) return;
+        var exemptions = mockData.senderIdExemptions || [];
+        var ex = exemptions.find(function(e) { return e.sourceId === sourceId; });
+        if (!ex) return;
         
-        setEnforcementOverride(sourceId, 'disabled', reason || 'No reason provided');
-        renderExemptionsTab();
-        showToast('Enforcement disabled - SenderID will now be blocked', 'warning');
+        showActionConfirmation({
+            id: sourceId,
+            type: 'exemption',
+            action: 'disable_enforcement',
+            title: 'Disable Enforcement',
+            icon: 'fa-pause-circle',
+            iconColor: 'text-warning',
+            message: 'Disabling enforcement will immediately block this SenderID.',
+            details: '<table class="table table-sm" style="font-size: 0.85rem;">' +
+                '<tr><td class="text-muted" style="width: 35%;">SenderID</td><td><code>' + escapeHtml(ex.senderId) + '</code></td></tr>' +
+                '<tr><td class="text-muted">Account</td><td>' + (ex.accountId === 'global' ? 'All Accounts' : escapeHtml(ex.accountName || ex.accountId)) + '</td></tr>' +
+                '</table>' +
+                '<div class="alert alert-warning" style="font-size: 0.8rem; padding: 0.5rem;"><i class="fas fa-exclamation-triangle me-1"></i>Messages using this SenderID will be blocked until enforcement is re-enabled.</div>',
+            btnText: 'Disable Enforcement',
+            btnClass: 'btn-warning',
+            showReason: true
+        });
     }
     
     function enableExemptionEnforcement(sourceId) {
+        var exemptions = mockData.senderIdExemptions || [];
+        var ex = exemptions.find(function(e) { return e.sourceId === sourceId; });
+        if (!ex) return;
+        
+        showActionConfirmation({
+            id: sourceId,
+            type: 'exemption',
+            action: 'enable_enforcement',
+            title: 'Enable Enforcement',
+            icon: 'fa-play-circle',
+            iconColor: 'text-success',
+            message: 'Re-enabling enforcement will allow this SenderID to bypass blocking rules.',
+            details: '<table class="table table-sm" style="font-size: 0.85rem;">' +
+                '<tr><td class="text-muted" style="width: 35%;">SenderID</td><td><code>' + escapeHtml(ex.senderId) + '</code></td></tr>' +
+                '<tr><td class="text-muted">Account</td><td>' + (ex.accountId === 'global' ? 'All Accounts' : escapeHtml(ex.accountName || ex.accountId)) + '</td></tr>' +
+                '</table>',
+            btnText: 'Enable Enforcement',
+            btnClass: 'btn-success',
+            showReason: false
+        });
+    }
+    
+    function executeDisableExemptionEnforcement(sourceId, reason) {
+        setEnforcementOverride(sourceId, 'disabled', reason || 'No reason provided');
+        renderExemptionsTab();
+        showSuccessToast('Enforcement disabled - SenderID will now be blocked');
+    }
+    
+    function executeEnableExemptionEnforcement(sourceId) {
         delete mockData.enforcementOverrides[sourceId];
         rebuildExemptions();
         
         logAuditEvent('EXEMPTION_ENFORCEMENT_ENABLED', { sourceId: sourceId });
         renderExemptionsTab();
-        showToast('Enforcement enabled - SenderID is now allowed', 'success');
+        showSuccessToast('Enforcement enabled - SenderID is now allowed');
     }
     
     function revokeExemption(exemptionId) {
@@ -4417,8 +4522,6 @@ var SecurityComplianceControlsService = (function() {
     }
 
     function deleteExemption(exemptionId) {
-        if (!confirm('Are you sure you want to permanently delete this manual exemption?')) return;
-        
         var exemptions = mockData.senderIdExemptions || [];
         var ex = exemptions.find(function(e) { return e.id === exemptionId; });
         if (!ex || ex.source !== 'manual') {
@@ -4426,13 +4529,37 @@ var SecurityComplianceControlsService = (function() {
             return;
         }
         
+        showActionConfirmation({
+            id: exemptionId,
+            type: 'exemption',
+            action: 'delete',
+            title: 'Delete Exemption',
+            icon: 'fa-trash',
+            iconColor: 'text-danger',
+            message: 'Are you sure you want to permanently delete this manual exemption?',
+            details: '<table class="table table-sm" style="font-size: 0.85rem;">' +
+                '<tr><td class="text-muted" style="width: 35%;">SenderID</td><td><code>' + escapeHtml(ex.senderId) + '</code></td></tr>' +
+                '<tr><td class="text-muted">Account</td><td>' + (ex.accountId === 'global' ? 'All Accounts' : escapeHtml(ex.accountName || ex.accountId)) + '</td></tr>' +
+                '</table>' +
+                '<div class="alert alert-danger" style="font-size: 0.8rem; padding: 0.5rem;"><i class="fas fa-exclamation-triangle me-1"></i>This action cannot be undone.</div>',
+            btnText: 'Delete Exemption',
+            btnClass: 'btn-danger',
+            showReason: false
+        });
+    }
+    
+    function executeDeleteExemption(exemptionId) {
+        var exemptions = mockData.senderIdExemptions || [];
+        var ex = exemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
         var manIndex = mockData.manualExemptions.findIndex(function(m) { return m.id === ex.sourceId; });
         if (manIndex !== -1) {
             var deleted = mockData.manualExemptions.splice(manIndex, 1)[0];
             rebuildExemptions();
             logAuditEvent('EXEMPTION_DELETED', { exemptionId: exemptionId, sourceId: ex.sourceId, senderId: deleted.senderId });
             renderExemptionsTab();
-            showToast('Manual exemption deleted successfully', 'success');
+            showSuccessToast('Manual exemption deleted successfully');
         }
     }
 
@@ -9786,6 +9913,49 @@ function showSuccessToast(message) {
     });
 }
 
+function showToast(message, type) {
+    var toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    var bgClass = 'bg-primary';
+    var icon = 'fa-info-circle';
+    if (type === 'success') {
+        bgClass = 'bg-success';
+        icon = 'fa-check-circle';
+    } else if (type === 'warning') {
+        bgClass = 'bg-warning text-dark';
+        icon = 'fa-exclamation-triangle';
+    } else if (type === 'error') {
+        bgClass = 'bg-danger';
+        icon = 'fa-times-circle';
+    }
+    
+    var toastId = 'toast-' + Date.now();
+    var toastHtml = '<div id="' + toastId + '" class="toast align-items-center ' + bgClass + ' border-0" role="alert" aria-live="assertive" aria-atomic="true">' +
+        '<div class="d-flex">' +
+        '<div class="toast-body">' +
+        '<i class="fas ' + icon + ' me-2"></i>' + message +
+        '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+        '</div>' +
+        '</div>';
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    var toastEl = document.getElementById(toastId);
+    var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    toast.show();
+    
+    toastEl.addEventListener('hidden.bs.toast', function() {
+        toastEl.remove();
+    });
+}
+
 // ===== Import Rules Functions =====
 var pendingImportRules = [];
 var VALID_CATEGORIES = ['government_healthcare', 'banking_finance', 'delivery_logistics', 'miscellaneous', 'generic'];
@@ -10066,7 +10236,35 @@ function toggleSenderIdRuleStatus(ruleId, newStatus) {
         ];
     }
     
-    var ruleIndex = rules.findIndex(r => r.id === ruleId);
+    var rule = rules.find(function(r) { return r.id === ruleId; });
+    if (!rule) return;
+    
+    var isDisabling = newStatus === 'disabled';
+    showActionConfirmation({
+        id: ruleId,
+        type: 'senderid_rule',
+        action: isDisabling ? 'disable' : 'enable',
+        title: isDisabling ? 'Disable Rule' : 'Enable Rule',
+        icon: isDisabling ? 'fa-ban' : 'fa-check-circle',
+        iconColor: isDisabling ? 'text-warning' : 'text-success',
+        message: isDisabling 
+            ? 'Are you sure you want to disable this blocking rule?' 
+            : 'Are you sure you want to enable this blocking rule?',
+        details: '<table class="table table-sm" style="font-size: 0.85rem;">' +
+            '<tr><td class="text-muted" style="width: 35%;">Rule Name</td><td><strong>' + escapeHtml(rule.name) + '</strong></td></tr>' +
+            '<tr><td class="text-muted">SenderID</td><td><code>' + escapeHtml(rule.baseSenderId) + '</code></td></tr>' +
+            '<tr><td class="text-muted">Current Status</td><td>' + (rule.status === 'active' ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Disabled</span>') + '</td></tr>' +
+            '</table>' +
+            '<small class="text-muted">' + (isDisabling ? 'Disabling this rule will allow matching SenderIDs to pass through.' : 'Enabling this rule will block or flag matching SenderIDs.') + '</small>',
+        btnText: isDisabling ? 'Disable Rule' : 'Enable Rule',
+        btnClass: isDisabling ? 'btn-warning' : 'btn-success',
+        showReason: false
+    });
+}
+
+function executeToggleSenderIdRuleStatus(ruleId, newStatus) {
+    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
+    var ruleIndex = rules.findIndex(function(r) { return r.id === ruleId; });
     if (ruleIndex !== -1) {
         var beforeStatus = rules[ruleIndex].status;
         rules[ruleIndex].status = newStatus;
@@ -10082,6 +10280,59 @@ function toggleSenderIdRuleStatus(ruleId, newStatus) {
         });
         
         SecurityComplianceControlsService.renderAllTabs();
+        showSuccessToast('Rule ' + (newStatus === 'disabled' ? 'disabled' : 'enabled') + ' successfully');
+    }
+}
+
+function showActionConfirmation(opts) {
+    document.getElementById('action-confirm-id').value = opts.id;
+    document.getElementById('action-confirm-type').value = opts.type;
+    document.getElementById('action-confirm-action').value = opts.action;
+    document.getElementById('action-confirm-title-text').textContent = opts.title || 'Confirm Action';
+    document.getElementById('action-confirm-message').textContent = opts.message || 'Are you sure you want to perform this action?';
+    document.getElementById('action-confirm-details').innerHTML = opts.details || '';
+    document.getElementById('action-confirm-btn-text').textContent = opts.btnText || 'Confirm';
+    document.getElementById('action-confirm-reason').value = '';
+    
+    var header = document.getElementById('action-confirm-header');
+    var iconEl = document.getElementById('action-confirm-icon');
+    var btn = document.getElementById('action-confirm-btn');
+    
+    iconEl.className = 'fas ' + (opts.icon || 'fa-question-circle') + ' me-2 ' + (opts.iconColor || '');
+    btn.className = 'btn btn-sm ' + (opts.btnClass || 'btn-primary');
+    
+    if (opts.showReason) {
+        document.getElementById('action-confirm-reason-container').style.display = 'block';
+    } else {
+        document.getElementById('action-confirm-reason-container').style.display = 'none';
+    }
+    
+    var modal = new bootstrap.Modal(document.getElementById('actionConfirmModal'));
+    modal.show();
+}
+
+function executeConfirmedAction() {
+    var id = document.getElementById('action-confirm-id').value;
+    var type = document.getElementById('action-confirm-type').value;
+    var action = document.getElementById('action-confirm-action').value;
+    var reason = document.getElementById('action-confirm-reason').value;
+    
+    bootstrap.Modal.getInstance(document.getElementById('actionConfirmModal')).hide();
+    
+    if (type === 'senderid_rule') {
+        if (action === 'disable') {
+            executeToggleSenderIdRuleStatus(id, 'disabled');
+        } else if (action === 'enable') {
+            executeToggleSenderIdRuleStatus(id, 'active');
+        }
+    } else if (type === 'exemption') {
+        if (action === 'disable_enforcement') {
+            executeDisableExemptionEnforcement(id, reason);
+        } else if (action === 'enable_enforcement') {
+            executeEnableExemptionEnforcement(id);
+        } else if (action === 'delete') {
+            executeDeleteExemption(id);
+        }
     }
 }
 
