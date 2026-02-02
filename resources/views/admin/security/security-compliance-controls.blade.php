@@ -1794,11 +1794,6 @@
             </div>
 
             <div class="tab-pane fade show active" id="quarantine-review" role="tabpanel">
-                <div class="tab-description">
-                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Quarantine Review</h6>
-                    <p>Review flagged messages, suspicious content, and items held for manual review before delivery.</p>
-                </div>
-
                 <div class="sec-stats">
                     <div class="sec-stat-card pending" id="tile-awaiting-review" onclick="toggleQuarantineTileFilter('pending')">
                         <div class="sec-stat-value" id="quarantine-pending-count">0</div>
