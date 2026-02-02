@@ -10490,11 +10490,60 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function toggleAntiSpamRepeat() {
-        var enabled = document.getElementById('antispam-repeat-toggle').checked;
+        var toggle = document.getElementById('antispam-repeat-toggle');
+        var newEnabled = toggle.checked;
+        var wasEnabled = mockData.antiSpamSettings.preventRepeatContent;
+        
+        // Revert toggle until confirmed
+        toggle.checked = wasEnabled;
+        
+        var actionText = newEnabled ? 'Enable' : 'Disable';
+        var statusBefore = wasEnabled ? '<span class="badge bg-success">Enabled</span>' : '<span class="badge bg-secondary">Disabled</span>';
+        var statusAfter = newEnabled ? '<span class="badge bg-success">Enabled</span>' : '<span class="badge bg-secondary">Disabled</span>';
+        
+        var modalHtml = 
+            '<div class="modal fade" id="confirmAntiSpamToggleModal" tabindex="-1" data-bs-backdrop="static">' +
+                '<div class="modal-dialog modal-dialog-centered">' +
+                    '<div class="modal-content">' +
+                        '<div class="modal-header py-2" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">' +
+                            '<h6 class="modal-title" style="font-size: 0.9rem; color: #1e3a5f;"><i class="fas fa-shield-alt me-2"></i>Confirm Anti-Spam Protection Change</h6>' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="modal" style="font-size: 0.7rem;"></button>' +
+                        '</div>' +
+                        '<div class="modal-body py-3">' +
+                            '<p style="font-size: 0.85rem; margin-bottom: 1rem;">You are about to ' + actionText.toLowerCase() + ' Anti-Spam Repeat Content Protection. This change will apply globally.</p>' +
+                            '<table class="table table-sm mb-0" style="font-size: 0.8rem;">' +
+                                '<tr><td style="width: 40%; font-weight: 600; padding: 0.4rem;">Setting</td><td style="padding: 0.4rem;">Anti-Spam Protection</td></tr>' +
+                                '<tr><td style="font-weight: 600; padding: 0.4rem;">Before</td><td style="padding: 0.4rem;">' + statusBefore + '</td></tr>' +
+                                '<tr><td style="font-weight: 600; padding: 0.4rem;">After</td><td style="padding: 0.4rem;">' + statusAfter + '</td></tr>' +
+                                '<tr><td style="font-weight: 600; padding: 0.4rem;">Window</td><td style="padding: 0.4rem;">' + mockData.antiSpamSettings.windowHours + ' min</td></tr>' +
+                            '</table>' +
+                        '</div>' +
+                        '<div class="modal-footer py-2" style="border-top: 1px solid #e9ecef;">' +
+                            '<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal" style="font-size: 0.8rem;">Cancel</button>' +
+                            '<button type="button" class="btn btn-sm text-white" style="background: #1e3a5f; font-size: 0.8rem;" onclick="confirmAntiSpamToggle(' + newEnabled + ')"><i class="fas fa-check me-1"></i>Confirm ' + actionText + '</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        
+        // Remove existing modal if any
+        var existingModal = document.getElementById('confirmAntiSpamToggleModal');
+        if (existingModal) existingModal.remove();
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        var modal = new bootstrap.Modal(document.getElementById('confirmAntiSpamToggleModal'));
+        modal.show();
+    }
+    
+    function confirmAntiSpamToggle(enabled) {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('confirmAntiSpamToggleModal'));
+        if (modal) modal.hide();
+        
         mockData.antiSpamSettings.preventRepeatContent = enabled;
         mockData.antiSpamSettings.lastUpdated = formatDateTime(new Date());
         mockData.antiSpamSettings.updatedBy = currentAdmin.email;
         
+        document.getElementById('antispam-repeat-toggle').checked = enabled;
         document.getElementById('antispam-window').disabled = !enabled;
         
         logAuditEvent('ANTISPAM_REPEAT_CONTENT_TOGGLED', {
