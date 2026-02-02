@@ -3844,7 +3844,7 @@
                                 </div>
                             </div>
                             <div class="d-flex gap-2 mb-1" style="font-size: 0.7rem;">
-                                <span><strong>From:</strong> <code id="qrn-view-senderid" style="background: #e9ecef; padding: 0 0.2rem; font-size: 0.65rem;"></code></span>
+                                <span><strong>From:</strong> <span id="qrn-view-senderid" style="font-weight: 600; color: #1e3a5f; font-size: 0.75rem;"></span></span>
                                 <span><strong>To:</strong> <span id="qrn-view-recipient" style="font-family: monospace; font-size: 0.65rem;"></span></span>
                                 <span id="qrn-view-hasurl"></span>
                             </div>
@@ -5253,7 +5253,7 @@ var SecurityComplianceControlsService = (function() {
             
             return '<tr data-rule-id="' + rule.id + '">' +
                 '<td><strong>' + rule.name + '</strong><br><small class="text-muted">' + rule.id + '</small></td>' +
-                '<td><code style="background: #e9ecef; padding: 0.15rem 0.4rem; border-radius: 3px;">' + rule.baseSenderId + '</code></td>' +
+                '<td><div style="font-weight: 600; font-size: 0.85rem; color: #1e3a5f;">' + rule.baseSenderId + '</div><small class="text-muted" style="font-size: 0.7rem;">' + rule.id + '</small></td>' +
                 '<td>' + ruleTypeBadge + '</td>' +
                 '<td>' + (categoryLabels[rule.category] || rule.category) + '</td>' +
                 '<td class="text-center">' + normBadge + '</td>' +
@@ -5365,7 +5365,7 @@ var SecurityComplianceControlsService = (function() {
             var isSuperAdmin = currentAdmin.role === 'super_admin';
             
             return '<tr data-exemption-id="' + ex.id + '" data-source-id="' + ex.sourceId + '">' +
-                '<td><code style="background: #f8f9fa; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.75rem;">' + ex.senderId + '</code></td>' +
+                '<td><div style="font-weight: 600; font-size: 0.85rem; color: #1e3a5f;">' + ex.senderId + '</div><small class="text-muted" style="font-size: 0.7rem;">' + ex.id + '</small></td>' +
                 '<td style="font-size: 0.75rem;">' + (typeLabels[ex.type] || ex.type) + '</td>' +
                 '<td style="font-size: 0.75rem;">' + (categoryLabels[ex.category] || ex.category) + '</td>' +
                 '<td>' + scopeBadge + '</td>' +
@@ -5548,7 +5548,7 @@ var SecurityComplianceControlsService = (function() {
         var html = '<div class="mb-3"><strong style="color: #1e3a5f;">Exemption Details</strong></div>' +
             '<table class="table table-sm">' +
             '<tr><td class="text-muted" style="width: 40%;">Source Record</td><td>' + ex.sourceId + '</td></tr>' +
-            '<tr><td class="text-muted">SenderID</td><td><code style="background: ' + (ex.enforcementStatus === 'active' ? '#d4edda; color: #155724' : '#f8d7da; color: #721c24') + '; padding: 0.15rem 0.4rem; border-radius: 3px;">' + ex.senderId + '</code></td></tr>' +
+            '<tr><td class="text-muted">SenderID</td><td><div style="font-weight: 600; font-size: 0.9rem; color: #1e3a5f;">' + ex.senderId + '</div><small class="text-muted">' + ex.id + '</small></td></tr>' +
             '<tr><td class="text-muted">Normalised Value</td><td><code>' + ex.normalisedValue + '</code></td></tr>' +
             '<tr><td class="text-muted">Account</td><td>' + (ex.accountId === 'global' ? '<span class="badge bg-info"><i class="fas fa-globe me-1"></i>Global (All Accounts)</span>' : ex.accountName + ' (' + ex.accountId + ')') + '</td></tr>' +
             '<tr><td class="text-muted">Source</td><td>' + sourceBadge + (ex.source === 'approval' ? ' <a href="/admin/assets/sender-ids?id=' + ex.sourceId + '" class="ms-2"><i class="fas fa-external-link-alt"></i> View Approval</a>' : '') + '</td></tr>' +
@@ -9481,7 +9481,7 @@ var SecurityComplianceControlsService = (function() {
                 '<td><span style="font-size: 0.75rem;">' + msg.timestamp + '</span></td>' +
                 '<td><strong style="font-size: 0.8rem;">' + msg.accountName + '</strong><br><small class="text-muted">' + msg.accountId + '</small></td>' +
                 '<td>' + subAccountDisplay + '</td>' +
-                '<td><code style="font-size: 0.8rem; background: #f8f9fa; padding: 0.15rem 0.35rem; border-radius: 3px;">' + msg.senderId + '</code></td>' +
+                '<td><div style="font-weight: 600; font-size: 0.85rem; color: #1e3a5f;">' + msg.senderId + '</div></td>' +
                 '<td><span style="font-size: 0.8rem; max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="' + msg.messageSnippet + '">' + msg.messageSnippet + '</span></td>' +
                 '<td>' + urlBadge + '</td>' +
                 '<td>' + ruleTriggeredHtml + '</td>' +
@@ -13835,7 +13835,7 @@ function viewSenderIdRule(ruleId) {
         '<table class="table table-sm">' +
         '<tr><td class="text-muted" style="width: 40%;">Rule ID</td><td>' + rule.id + '</td></tr>' +
         '<tr><td class="text-muted">Rule Name</td><td>' + rule.name + '</td></tr>' +
-        '<tr><td class="text-muted">Base SenderID</td><td><code>' + rule.baseSenderId + '</code></td></tr>' +
+        '<tr><td class="text-muted">Base SenderID</td><td><div style="font-weight: 600; font-size: 0.9rem; color: #1e3a5f;">' + rule.baseSenderId + '</div><small class="text-muted">' + rule.id + '</small></td></tr>' +
         '<tr><td class="text-muted">Rule Type</td><td>' + (rule.ruleType === 'block' ? '<span class="badge bg-danger">Block</span>' : '<span class="badge bg-warning text-dark">Flag</span>') + '</td></tr>' +
         '<tr><td class="text-muted">Category</td><td>' + (categoryLabels[rule.category] || rule.category) + '</td></tr>' +
         '<tr><td class="text-muted">Normalisation</td><td>' + (rule.applyNormalisation ? '<span class="badge bg-success">Enabled</span>' : '<span class="badge bg-secondary">Disabled</span>') + '</td></tr>' +
