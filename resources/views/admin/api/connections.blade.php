@@ -4,6 +4,13 @@
 
 @push('styles')
 <style>
+.breadcrumb-item.active {
+    color: #1e3a5f !important;
+    font-weight: 500;
+}
+.breadcrumb-item.active a {
+    color: #1e3a5f !important;
+}
 .integration-tile {
     border: 2px solid #e9ecef;
     border-radius: 0.5rem;
@@ -396,7 +403,7 @@
                 <small class="text-muted">Global view of all customer API connections</small>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
+                <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border: 1px solid #1e3a5f; color: #1e3a5f; background: transparent;">
                     <i class="fas fa-filter me-1"></i> Filters
                 </button>
                 <a href="{{ route('admin.api.connections') }}/create" class="btn btn-primary btn-sm">
