@@ -455,6 +455,69 @@
     border-top: 1px solid #e9ecef;
 }
 
+/* Exemptions Filter Panel */
+.exemptions-filter-panel {
+    background: #fff;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: none;
+}
+.exemptions-filter-panel .filter-body {
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+}
+.exemptions-filter-panel .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.exemptions-filter-panel .filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+    flex: 1;
+    max-width: 200px;
+}
+.exemptions-filter-panel .filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.375rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.exemptions-filter-panel .filter-group select {
+    font-size: 0.85rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+.exemptions-filter-panel .filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
+}
+
+/* SenderID Sub-tabs styling */
+#senderidSubTabs .nav-link {
+    border-radius: 0;
+    transition: all 0.2s;
+}
+#senderidSubTabs .nav-link:hover {
+    color: #1e3a5f;
+    background: rgba(30, 58, 95, 0.05);
+}
+#senderidSubTabs .nav-link.active {
+    color: #1e3a5f;
+    border-bottom: 3px solid #1e3a5f !important;
+    background: transparent;
+}
+
 .quarantine-filter-panel .btn-apply {
     background: #1e3a5f;
     border: 1px solid #1e3a5f;
@@ -1326,92 +1389,193 @@
 
         <div class="tab-content" id="securityControlsTabContent">
             <div class="tab-pane fade" id="senderid-controls" role="tabpanel">
-                <div class="sec-table-card">
-                    <div class="sec-toolbar">
-                        <div class="sec-search-box-left">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search rules..." id="senderid-search">
-                        </div>
-                        <div class="sec-toolbar-actions">
-                            <button class="sec-pill-btn" type="button" id="senderid-filter-btn" onclick="toggleSenderIdFilterPanel()">
-                                <i class="fas fa-filter"></i>
-                                <span>Filter</span>
-                                <span class="badge bg-primary" id="senderid-filter-count" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem;">0</span>
-                            </button>
-                            <button class="sec-pill-btn" type="button" onclick="showAddSenderIdExemptionModal()">
-                                <i class="fas fa-shield-alt"></i>
-                                <span>Add Exemption</span>
-                            </button>
-                            <button class="sec-primary-btn" type="button" onclick="showAddSenderIdRuleModal()">
-                                <i class="fas fa-plus"></i>
-                                <span>Add Rule</span>
-                            </button>
+                <!-- Sub-tabs for SenderID Controls -->
+                <ul class="nav nav-tabs mb-3" id="senderidSubTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="blocking-rules-tab" data-bs-toggle="tab" data-bs-target="#blocking-rules" type="button" role="tab" style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f; border: none; border-bottom: 3px solid transparent; padding: 0.5rem 1rem;">
+                            <i class="fas fa-ban me-1"></i> Blocking Rules
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="exemptions-tab" data-bs-toggle="tab" data-bs-target="#exemptions" type="button" role="tab" style="font-size: 0.85rem; font-weight: 600; color: #6c757d; border: none; border-bottom: 3px solid transparent; padding: 0.5rem 1rem;">
+                            <i class="fas fa-shield-alt me-1"></i> Exemptions
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="senderidSubTabContent">
+                    <!-- Blocking Rules Tab -->
+                    <div class="tab-pane fade show active" id="blocking-rules" role="tabpanel">
+                        <div class="sec-table-card">
+                            <div class="sec-toolbar">
+                                <div class="sec-search-box-left">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" placeholder="Search rules..." id="senderid-search">
+                                </div>
+                                <div class="sec-toolbar-actions">
+                                    <button class="sec-pill-btn" type="button" id="senderid-filter-btn" onclick="toggleSenderIdFilterPanel()">
+                                        <i class="fas fa-filter"></i>
+                                        <span>Filter</span>
+                                        <span class="badge bg-primary" id="senderid-filter-count" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem;">0</span>
+                                    </button>
+                                    <button class="sec-primary-btn" type="button" onclick="showAddSenderIdRuleModal()">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Add Rule</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="senderid-filter-panel" id="senderid-filter-panel">
+                                <div class="filter-body">
+                                    <div class="filter-row">
+                                        <div class="filter-group">
+                                            <label>Status</label>
+                                            <select id="senderid-filter-status">
+                                                <option value="">All Statuses</option>
+                                                <option value="active">Active</option>
+                                                <option value="disabled">Disabled</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Rule Type</label>
+                                            <select id="senderid-filter-type">
+                                                <option value="">All Types</option>
+                                                <option value="block">Block</option>
+                                                <option value="flag">Flag (Quarantine)</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Category</label>
+                                            <select id="senderid-filter-category">
+                                                <option value="">All Categories</option>
+                                                <option value="government_healthcare">Government and Healthcare</option>
+                                                <option value="banking_finance">Banking and Finance</option>
+                                                <option value="delivery_logistics">Delivery and logistics</option>
+                                                <option value="miscellaneous">Miscellaneous</option>
+                                                <option value="generic">Generic</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="filter-actions">
+                                        <button class="btn btn-sm btn-link text-secondary" onclick="resetSenderIdFilters()">Reset</button>
+                                        <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applySenderIdFilters()">Apply Filters</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sec-table-header">
+                                <h6>SenderID Rule Library</h6>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="sec-table" id="senderid-rules-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Rule Name <i class="fas fa-sort"></i></th>
+                                            <th>Base SenderID <i class="fas fa-sort"></i></th>
+                                            <th>Rule Type <i class="fas fa-sort"></i></th>
+                                            <th>Category <i class="fas fa-sort"></i></th>
+                                            <th>Normalisation <i class="fas fa-sort"></i></th>
+                                            <th>Status <i class="fas fa-sort"></i></th>
+                                            <th>Created By <i class="fas fa-sort"></i></th>
+                                            <th>Last Updated <i class="fas fa-sort"></i></th>
+                                            <th style="width: 80px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="senderid-rules-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="sec-empty-state" id="senderid-empty-state" style="display: none;">
+                                <i class="fas fa-id-badge"></i>
+                                <h6>No SenderID Rules</h6>
+                                <p>Create rules to control which SenderIDs can be used on the platform.</p>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="senderid-filter-panel" id="senderid-filter-panel">
-                        <div class="filter-body">
-                            <div class="filter-row">
-                                <div class="filter-group">
-                                    <label>Status</label>
-                                    <select id="senderid-filter-status">
-                                        <option value="">All Statuses</option>
-                                        <option value="active">Active</option>
-                                        <option value="disabled">Disabled</option>
-                                    </select>
+                    <!-- Exemptions Tab -->
+                    <div class="tab-pane fade" id="exemptions" role="tabpanel">
+                        <div class="sec-table-card">
+                            <div class="sec-toolbar">
+                                <div class="sec-search-box-left">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" placeholder="Search exemptions..." id="exemptions-search" oninput="filterExemptionsTable()">
                                 </div>
-                                <div class="filter-group">
-                                    <label>Rule Type</label>
-                                    <select id="senderid-filter-type">
-                                        <option value="">All Types</option>
-                                        <option value="block">Block</option>
-                                        <option value="flag">Flag (Quarantine)</option>
-                                    </select>
-                                </div>
-                                <div class="filter-group">
-                                    <label>Category</label>
-                                    <select id="senderid-filter-category">
-                                        <option value="">All Categories</option>
-                                        <option value="government_healthcare">Government and Healthcare</option>
-                                        <option value="banking_finance">Banking and Finance</option>
-                                        <option value="delivery_logistics">Delivery and logistics</option>
-                                        <option value="miscellaneous">Miscellaneous</option>
-                                        <option value="generic">Generic</option>
-                                    </select>
+                                <div class="sec-toolbar-actions">
+                                    <button class="sec-pill-btn" type="button" id="exemptions-filter-btn" onclick="toggleExemptionsFilterPanel()">
+                                        <i class="fas fa-filter"></i>
+                                        <span>Filter</span>
+                                        <span class="badge bg-primary" id="exemptions-filter-count" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem;">0</span>
+                                    </button>
+                                    <button class="sec-primary-btn" type="button" onclick="showAddSenderIdExemptionModal()">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Add Exemption</span>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="filter-actions">
-                                <button class="btn btn-sm btn-link text-secondary" onclick="resetSenderIdFilters()">Reset</button>
-                                <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applySenderIdFilters()">Apply Filters</button>
+                            
+                            <div class="exemptions-filter-panel" id="exemptions-filter-panel">
+                                <div class="filter-body">
+                                    <div class="filter-row">
+                                        <div class="filter-group">
+                                            <label>Source</label>
+                                            <select id="exemptions-filter-source">
+                                                <option value="">All Sources</option>
+                                                <option value="approval">SenderID Approvals</option>
+                                                <option value="manual">Manual Exemption</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Status</label>
+                                            <select id="exemptions-filter-status">
+                                                <option value="">All Statuses</option>
+                                                <option value="active">Active</option>
+                                                <option value="expired">Expired</option>
+                                                <option value="revoked">Revoked</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Account</label>
+                                            <select id="exemptions-filter-account">
+                                                <option value="">All Accounts</option>
+                                                <option value="global">Global (All Accounts)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="filter-actions">
+                                        <button class="btn btn-sm btn-link text-secondary" onclick="resetExemptionsFilters()">Reset</button>
+                                        <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applyExemptionsFilters()">Apply Filters</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sec-table-header">
+                                <h6>SenderID Exemptions (Allowlist)</h6>
+                                <small class="text-muted">Approved SenderIDs from SenderID Approvals and manually added exemptions</small>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="sec-table" id="exemptions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>SenderID <i class="fas fa-sort"></i></th>
+                                            <th>Account <i class="fas fa-sort"></i></th>
+                                            <th>Source <i class="fas fa-sort"></i></th>
+                                            <th>Category <i class="fas fa-sort"></i></th>
+                                            <th>Approved By <i class="fas fa-sort"></i></th>
+                                            <th>Approved Date <i class="fas fa-sort"></i></th>
+                                            <th>Expiry <i class="fas fa-sort"></i></th>
+                                            <th>Status <i class="fas fa-sort"></i></th>
+                                            <th style="width: 80px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="exemptions-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="sec-empty-state" id="exemptions-empty-state" style="display: none;">
+                                <i class="fas fa-shield-alt"></i>
+                                <h6>No Exemptions</h6>
+                                <p>Approved SenderIDs and manual exemptions will appear here.</p>
                             </div>
                         </div>
-                    </div>
-                    <div class="sec-table-header">
-                        <h6>SenderID Rule Library</h6>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="sec-table" id="senderid-rules-table">
-                            <thead>
-                                <tr>
-                                    <th>Rule Name <i class="fas fa-sort"></i></th>
-                                    <th>Base SenderID <i class="fas fa-sort"></i></th>
-                                    <th>Rule Type <i class="fas fa-sort"></i></th>
-                                    <th>Category <i class="fas fa-sort"></i></th>
-                                    <th>Normalisation <i class="fas fa-sort"></i></th>
-                                    <th>Status <i class="fas fa-sort"></i></th>
-                                    <th>Created By <i class="fas fa-sort"></i></th>
-                                    <th>Last Updated <i class="fas fa-sort"></i></th>
-                                    <th style="width: 80px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="senderid-rules-body">
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="sec-empty-state" id="senderid-empty-state" style="display: none;">
-                        <i class="fas fa-id-badge"></i>
-                        <h6>No SenderID Rules</h6>
-                        <p>Create rules to control which SenderIDs can be used on the platform.</p>
                     </div>
                 </div>
             </div>
@@ -2705,6 +2869,70 @@ document.getElementById('featureFlagsModal').addEventListener('show.bs.modal', f
 console.log('[SecurityComplianceControls] Initialized');
 </script>
 
+<div class="modal fade" id="addSenderIdExemptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="font-weight: 600; color: #1e3a5f;">
+                    <i class="fas fa-shield-alt me-2"></i>Add Manual Exemption
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addExemptionForm">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">SenderID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="exemption-senderid" placeholder="e.g. MYCOMPANY" maxlength="11" style="text-transform: uppercase; font-family: monospace;">
+                        <small class="text-muted">Max 11 alphanumeric characters</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Scope <span class="text-danger">*</span></label>
+                        <select class="form-select" id="exemption-scope">
+                            <option value="global">Global (All Accounts)</option>
+                            <option value="account">Specific Account</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="exemption-account-group" style="display: none;">
+                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Account <span class="text-danger">*</span></label>
+                        <select class="form-select" id="exemption-account">
+                            <option value="">Select account...</option>
+                            <option value="ACC-10045">TechStart Ltd (ACC-10045)</option>
+                            <option value="ACC-10089">HealthFirst UK (ACC-10089)</option>
+                            <option value="ACC-10112">E-Commerce Hub (ACC-10112)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Category <span class="text-danger">*</span></label>
+                        <select class="form-select" id="exemption-category">
+                            <option value="">Select category...</option>
+                            <option value="government_healthcare">Government and Healthcare</option>
+                            <option value="banking_finance">Banking and Finance</option>
+                            <option value="delivery_logistics">Delivery and logistics</option>
+                            <option value="miscellaneous">Miscellaneous</option>
+                            <option value="generic">Generic</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Expiry Date (Optional)</label>
+                        <input type="date" class="form-control" id="exemption-expiry">
+                        <small class="text-muted">Leave empty for no expiry</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Notes</label>
+                        <textarea class="form-control" id="exemption-notes" rows="2" placeholder="Reason for exemption..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="sec-primary-btn" onclick="saveNewExemption()">
+                    <i class="fas fa-plus me-1"></i>Add Exemption
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="bulkActionConfirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -2982,6 +3210,15 @@ var SecurityComplianceControlsService = (function() {
             { id: 'CNT-003', name: 'Gambling Promotion', matchType: 'keyword', matchValue: 'bet now, free spins, casino bonus, jackpot winner', ruleType: 'flag', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
             { id: 'CNT-004', name: 'Cryptocurrency Scam', matchType: 'regex', matchValue: '(bitcoin|crypto|eth)\\s*(giveaway|airdrop|double)', ruleType: 'block', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '08-01-2026 10:20', updatedAt: '08-01-2026 10:20' },
             { id: 'CNT-005', name: 'Premium Rate Numbers', matchType: 'regex', matchValue: '(call|text|dial)\\s*(09\\d{8,}|118\\d+)', ruleType: 'flag', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
+        ];
+
+        mockData.senderIdExemptions = [
+            { id: 'EXM-001', senderId: 'MYBANK', accountId: 'ACC-10045', accountName: 'TechStart Ltd', source: 'approval', category: 'banking_finance', approvedBy: 'admin@quicksms.co.uk', approvedAt: '10-01-2026 09:30', expiry: null, status: 'active', notes: 'Approved via SenderID Registration' },
+            { id: 'EXM-002', senderId: 'HEALTHUK', accountId: 'ACC-10089', accountName: 'HealthFirst UK', source: 'approval', category: 'government_healthcare', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '12-01-2026 14:00', expiry: '12-01-2027 14:00', status: 'active', notes: 'NHS partner verification complete' },
+            { id: 'EXM-003', senderId: 'ROYALMAIL', accountId: 'global', accountName: 'All Accounts', source: 'manual', category: 'delivery_logistics', approvedBy: 'admin@quicksms.co.uk', approvedAt: '05-01-2026 11:15', expiry: null, status: 'active', notes: 'Global exemption for Royal Mail notifications' },
+            { id: 'EXM-004', senderId: 'PARCELFORCE', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', source: 'approval', category: 'delivery_logistics', approvedBy: 'admin@quicksms.co.uk', approvedAt: '08-01-2026 16:45', expiry: '08-07-2026 16:45', status: 'active', notes: 'Delivery notification SenderID' },
+            { id: 'EXM-005', senderId: 'GOVUK', accountId: 'global', accountName: 'All Accounts', source: 'manual', category: 'government_healthcare', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '01-01-2026 10:00', expiry: null, status: 'active', notes: 'Official government SenderID' },
+            { id: 'EXM-006', senderId: 'OLDPROMO', accountId: 'ACC-10045', accountName: 'TechStart Ltd', source: 'approval', category: 'miscellaneous', approvedBy: 'admin@quicksms.co.uk', approvedAt: '15-06-2025 09:00', expiry: '15-12-2025 09:00', status: 'expired', notes: 'Promotional campaign - expired' }
         ];
 
         mockData.urlRules = [
@@ -3286,6 +3523,7 @@ var SecurityComplianceControlsService = (function() {
 
     function renderAllTabs() {
         renderSenderIdTab();
+        renderExemptionsTab();
         renderContentTab();
         renderUrlTab();
         renderNormTab();
@@ -3350,6 +3588,209 @@ var SecurityComplianceControlsService = (function() {
                 '</td>' +
                 '</tr>';
         }).join('');
+    }
+
+    function renderExemptionsTab() {
+        var tbody = document.getElementById('exemptions-body');
+        var emptyState = document.getElementById('exemptions-empty-state');
+        var exemptions = mockData.senderIdExemptions || [];
+
+        var categoryLabels = {
+            'government_healthcare': 'Government and Healthcare',
+            'banking_finance': 'Banking and Finance',
+            'delivery_logistics': 'Delivery and logistics',
+            'miscellaneous': 'Miscellaneous',
+            'generic': 'Generic'
+        };
+
+        var sourceLabels = {
+            'approval': 'SenderID Approvals',
+            'manual': 'Manual Exemption'
+        };
+
+        // Apply filters
+        var sourceFilter = document.getElementById('exemptions-filter-source') ? document.getElementById('exemptions-filter-source').value : '';
+        var statusFilter = document.getElementById('exemptions-filter-status') ? document.getElementById('exemptions-filter-status').value : '';
+        var accountFilter = document.getElementById('exemptions-filter-account') ? document.getElementById('exemptions-filter-account').value : '';
+        var searchTerm = document.getElementById('exemptions-search') ? document.getElementById('exemptions-search').value.toLowerCase() : '';
+
+        var filteredExemptions = exemptions.filter(function(ex) {
+            if (sourceFilter && ex.source !== sourceFilter) return false;
+            if (statusFilter && ex.status !== statusFilter) return false;
+            if (accountFilter === 'global' && ex.accountId !== 'global') return false;
+            if (searchTerm && ex.senderId.toLowerCase().indexOf(searchTerm) === -1 && 
+                ex.accountName.toLowerCase().indexOf(searchTerm) === -1) return false;
+            return true;
+        });
+
+        if (filteredExemptions.length === 0) {
+            tbody.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        tbody.innerHTML = filteredExemptions.map(function(ex) {
+            var statusBadge = ex.status === 'active'
+                ? '<span class="sec-status-badge active">Active</span>'
+                : ex.status === 'expired'
+                ? '<span class="sec-status-badge draft">Expired</span>'
+                : '<span class="sec-status-badge blocked">Revoked</span>';
+            
+            var sourceBadge = ex.source === 'approval'
+                ? '<span class="badge" style="background: #198754; font-size: 0.65rem;"><i class="fas fa-check-circle me-1"></i>Approved</span>'
+                : '<span class="badge" style="background: #1e3a5f; font-size: 0.65rem;"><i class="fas fa-user-shield me-1"></i>Manual</span>';
+            
+            var accountDisplay = ex.accountId === 'global' 
+                ? '<span class="badge bg-info" style="font-size: 0.65rem;"><i class="fas fa-globe me-1"></i>Global</span>'
+                : '<strong>' + ex.accountName + '</strong><br><small class="text-muted">' + ex.accountId + '</small>';
+            
+            var expiryDisplay = ex.expiry 
+                ? ex.expiry.split(' ')[0]
+                : '<span class="text-muted">No expiry</span>';
+            
+            var isSuperAdmin = currentAdmin.role === 'super_admin';
+            
+            return '<tr data-exemption-id="' + ex.id + '">' +
+                '<td><code style="background: #d4edda; padding: 0.15rem 0.4rem; border-radius: 3px; color: #155724;">' + ex.senderId + '</code></td>' +
+                '<td>' + accountDisplay + '</td>' +
+                '<td>' + sourceBadge + '</td>' +
+                '<td>' + (categoryLabels[ex.category] || ex.category) + '</td>' +
+                '<td><small>' + ex.approvedBy.split('@')[0] + '</small></td>' +
+                '<td><small>' + ex.approvedAt.split(' ')[0] + '</small></td>' +
+                '<td><small>' + expiryDisplay + '</small></td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' +
+                    '<div class="dropdown">' +
+                        '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
+                        '<ul class="dropdown-menu dropdown-menu-end">' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewExemption(\'' + ex.id + '\')"><i class="fas fa-eye me-2 text-muted"></i>View</a></li>' +
+                            (ex.source === 'manual' ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editExemption(\'' + ex.id + '\')"><i class="fas fa-edit me-2 text-muted"></i>Edit</a></li>' : '') +
+                            '<li><hr class="dropdown-divider"></li>' +
+                            (ex.status === 'active' 
+                                ? '<li><a class="dropdown-item text-warning" href="javascript:void(0)" onclick="revokeExemption(\'' + ex.id + '\')"><i class="fas fa-ban me-2"></i>Revoke</a></li>'
+                                : '') +
+                            (isSuperAdmin && ex.source === 'manual' ? '<li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteExemption(\'' + ex.id + '\')"><i class="fas fa-trash me-2"></i>Delete</a></li>' : '') +
+                        '</ul>' +
+                    '</div>' +
+                '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    function toggleExemptionsFilterPanel() {
+        var panel = document.getElementById('exemptions-filter-panel');
+        var btn = document.getElementById('exemptions-filter-btn');
+        
+        if (!panel || !btn) return;
+        
+        if (panel.style.display === 'none' || panel.style.display === '') {
+            panel.style.display = 'block';
+            btn.classList.add('active');
+        } else {
+            panel.style.display = 'none';
+            btn.classList.remove('active');
+        }
+    }
+
+    function applyExemptionsFilters() {
+        var filterCount = 0;
+        var source = document.getElementById('exemptions-filter-source').value;
+        var status = document.getElementById('exemptions-filter-status').value;
+        var account = document.getElementById('exemptions-filter-account').value;
+        
+        if (source) filterCount++;
+        if (status) filterCount++;
+        if (account) filterCount++;
+        
+        var badge = document.getElementById('exemptions-filter-count');
+        if (filterCount > 0) {
+            badge.textContent = filterCount;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+        
+        renderExemptionsTab();
+        toggleExemptionsFilterPanel();
+    }
+
+    function resetExemptionsFilters() {
+        document.getElementById('exemptions-filter-source').value = '';
+        document.getElementById('exemptions-filter-status').value = '';
+        document.getElementById('exemptions-filter-account').value = '';
+        document.getElementById('exemptions-search').value = '';
+        document.getElementById('exemptions-filter-count').style.display = 'none';
+        renderExemptionsTab();
+    }
+
+    function filterExemptionsTable() {
+        renderExemptionsTab();
+    }
+
+    function viewExemption(exemptionId) {
+        var exemptions = mockData.senderIdExemptions || [];
+        var ex = exemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        var categoryLabels = {
+            'government_healthcare': 'Government and Healthcare',
+            'banking_finance': 'Banking and Finance',
+            'delivery_logistics': 'Delivery and logistics',
+            'miscellaneous': 'Miscellaneous',
+            'generic': 'Generic'
+        };
+        
+        var html = '<div class="mb-3"><strong style="color: #1e3a5f;">Exemption Details</strong></div>' +
+            '<table class="table table-sm">' +
+            '<tr><td class="text-muted" style="width: 40%;">Exemption ID</td><td>' + ex.id + '</td></tr>' +
+            '<tr><td class="text-muted">SenderID</td><td><code style="background: #d4edda; padding: 0.15rem 0.4rem; border-radius: 3px; color: #155724;">' + ex.senderId + '</code></td></tr>' +
+            '<tr><td class="text-muted">Account</td><td>' + (ex.accountId === 'global' ? 'Global (All Accounts)' : ex.accountName + ' (' + ex.accountId + ')') + '</td></tr>' +
+            '<tr><td class="text-muted">Source</td><td>' + (ex.source === 'approval' ? 'SenderID Approvals' : 'Manual Exemption') + '</td></tr>' +
+            '<tr><td class="text-muted">Category</td><td>' + (categoryLabels[ex.category] || ex.category) + '</td></tr>' +
+            '<tr><td class="text-muted">Status</td><td>' + ex.status.charAt(0).toUpperCase() + ex.status.slice(1) + '</td></tr>' +
+            '<tr><td class="text-muted">Approved By</td><td>' + ex.approvedBy + '</td></tr>' +
+            '<tr><td class="text-muted">Approved Date</td><td>' + ex.approvedAt + '</td></tr>' +
+            '<tr><td class="text-muted">Expiry</td><td>' + (ex.expiry || 'No expiry') + '</td></tr>' +
+            '<tr><td class="text-muted">Notes</td><td>' + (ex.notes || '-') + '</td></tr>' +
+            '</table>';
+        
+        document.getElementById('generic-view-content').innerHTML = html;
+        document.getElementById('generic-view-title').textContent = 'View Exemption: ' + ex.senderId;
+        var modal = new bootstrap.Modal(document.getElementById('genericViewModal'));
+        modal.show();
+    }
+
+    function editExemption(exemptionId) {
+        // TODO: Implement edit exemption modal
+        console.log('[SecurityComplianceControls] editExemption called for:', exemptionId);
+        alert('Edit exemption functionality coming soon');
+    }
+
+    function revokeExemption(exemptionId) {
+        if (!confirm('Are you sure you want to revoke this exemption? The SenderID will no longer be allowed.')) return;
+        
+        var exemptions = mockData.senderIdExemptions || [];
+        var exIndex = exemptions.findIndex(function(e) { return e.id === exemptionId; });
+        if (exIndex !== -1) {
+            exemptions[exIndex].status = 'revoked';
+            logAuditEvent('EXEMPTION_REVOKED', { exemptionId: exemptionId, senderId: exemptions[exIndex].senderId });
+            renderExemptionsTab();
+            showToast('Exemption revoked successfully', 'warning');
+        }
+    }
+
+    function deleteExemption(exemptionId) {
+        if (!confirm('Are you sure you want to permanently delete this exemption?')) return;
+        
+        var exemptions = mockData.senderIdExemptions || [];
+        var exIndex = exemptions.findIndex(function(e) { return e.id === exemptionId; });
+        if (exIndex !== -1) {
+            var deleted = exemptions.splice(exIndex, 1)[0];
+            logAuditEvent('EXEMPTION_DELETED', { exemptionId: exemptionId, senderId: deleted.senderId });
+            renderExemptionsTab();
+            showToast('Exemption deleted successfully', 'success');
+        }
     }
 
     function renderContentTab() {
@@ -4907,9 +5348,67 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function showAddSenderIdExemptionModal() {
-        // TODO: Implement exemption modal
-        alert('Add Exemption functionality coming soon');
+        document.getElementById('addExemptionForm').reset();
+        document.getElementById('exemption-account-group').style.display = 'none';
+        
+        document.getElementById('exemption-scope').addEventListener('change', function() {
+            var accountGroup = document.getElementById('exemption-account-group');
+            accountGroup.style.display = this.value === 'account' ? 'block' : 'none';
+        });
+        
+        var modal = new bootstrap.Modal(document.getElementById('addSenderIdExemptionModal'));
+        modal.show();
         console.log('[SecurityComplianceControls] showAddSenderIdExemptionModal called');
+    }
+    
+    function saveNewExemption() {
+        var senderId = document.getElementById('exemption-senderid').value.trim().toUpperCase();
+        var scope = document.getElementById('exemption-scope').value;
+        var category = document.getElementById('exemption-category').value;
+        var expiry = document.getElementById('exemption-expiry').value;
+        var notes = document.getElementById('exemption-notes').value.trim();
+        
+        if (!senderId) {
+            alert('Please enter a SenderID');
+            return;
+        }
+        if (!category) {
+            alert('Please select a category');
+            return;
+        }
+        
+        var accountId = 'global';
+        var accountName = 'All Accounts';
+        if (scope === 'account') {
+            accountId = document.getElementById('exemption-account').value;
+            if (!accountId) {
+                alert('Please select an account');
+                return;
+            }
+            var accountSelect = document.getElementById('exemption-account');
+            accountName = accountSelect.options[accountSelect.selectedIndex].text.split(' (')[0];
+        }
+        
+        var newExemption = {
+            id: 'EXM-' + String(mockData.senderIdExemptions.length + 1).padStart(3, '0'),
+            senderId: senderId,
+            accountId: accountId,
+            accountName: accountName,
+            source: 'manual',
+            category: category,
+            approvedBy: currentAdmin.email,
+            approvedAt: new Date().toLocaleDateString('en-GB').split('/').join('-') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+            expiry: expiry ? expiry.split('-').reverse().join('-') + ' 00:00' : null,
+            status: 'active',
+            notes: notes || 'Manual exemption added by admin'
+        };
+        
+        mockData.senderIdExemptions.push(newExemption);
+        logAuditEvent('EXEMPTION_CREATED', { exemptionId: newExemption.id, senderId: senderId, accountId: accountId });
+        
+        bootstrap.Modal.getInstance(document.getElementById('addSenderIdExemptionModal')).hide();
+        renderExemptionsTab();
+        showToast('Exemption added successfully for ' + senderId, 'success');
     }
     
     function applyQuarantineFilters() {
@@ -8406,6 +8905,42 @@ function toggleSenderIdFilterPanel() {
 
 function showAddSenderIdExemptionModal() {
     SecurityComplianceControlsService.showAddSenderIdExemptionModal();
+}
+
+function saveNewExemption() {
+    SecurityComplianceControlsService.saveNewExemption();
+}
+
+function toggleExemptionsFilterPanel() {
+    SecurityComplianceControlsService.toggleExemptionsFilterPanel();
+}
+
+function applyExemptionsFilters() {
+    SecurityComplianceControlsService.applyExemptionsFilters();
+}
+
+function resetExemptionsFilters() {
+    SecurityComplianceControlsService.resetExemptionsFilters();
+}
+
+function filterExemptionsTable() {
+    SecurityComplianceControlsService.filterExemptionsTable();
+}
+
+function viewExemption(exemptionId) {
+    SecurityComplianceControlsService.viewExemption(exemptionId);
+}
+
+function editExemption(exemptionId) {
+    SecurityComplianceControlsService.editExemption(exemptionId);
+}
+
+function revokeExemption(exemptionId) {
+    SecurityComplianceControlsService.revokeExemption(exemptionId);
+}
+
+function deleteExemption(exemptionId) {
+    SecurityComplianceControlsService.deleteExemption(exemptionId);
 }
 
 function applyQuarantineFilters() {
