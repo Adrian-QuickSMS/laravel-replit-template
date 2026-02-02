@@ -10737,6 +10737,7 @@ var SecurityComplianceControlsService = (function() {
         toggleContentActionMenu: toggleContentActionMenu,
         setupContentTabListeners: setupContentTabListeners,
         toggleAntiSpamRepeat: toggleAntiSpamRepeat,
+        confirmAntiSpamToggle: confirmAntiSpamToggle,
         updateAntiSpamWindow: updateAntiSpamWindow,
         renderAntiSpamControls: renderAntiSpamControls,
         // Content Exemptions
@@ -14847,6 +14848,10 @@ function blockQuarantinedMessageFromModal() {
 
 function toggleAntiSpamRepeat() {
     SecurityComplianceControlsService.toggleAntiSpamRepeat();
+}
+
+function confirmAntiSpamToggle(enabled) {
+    SecurityComplianceControlsService.confirmAntiSpamToggle(enabled);
 }
 
 function updateAntiSpamWindow() {
