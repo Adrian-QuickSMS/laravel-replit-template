@@ -775,6 +775,11 @@
     background: #f3f4f6;
     color: #6b7280;
 }
+/* Collapse icon rotation for URL Rule test section */
+#url-rule-test-collapse.show ~ .card-header #url-rule-test-collapse-icon,
+[data-bs-target="#url-rule-test-collapse"][aria-expanded="true"] #url-rule-test-collapse-icon {
+    transform: rotate(180deg);
+}
 .mapping-chip {
     display: inline-block;
     background: #f1f5f9;
@@ -2327,12 +2332,12 @@
                                 <table class="sec-table" id="url-rules-table">
                                     <thead>
                                         <tr>
-                                            <th>Domain/Pattern <i class="fas fa-sort"></i></th>
+                                            <th>Rule Name <i class="fas fa-sort"></i></th>
+                                            <th>Pattern <i class="fas fa-sort"></i></th>
                                             <th>Match Type <i class="fas fa-sort"></i></th>
                                             <th>Rule Type <i class="fas fa-sort"></i></th>
-                                            <th>Domain Age <i class="fas fa-sort"></i></th>
                                             <th>Status <i class="fas fa-sort"></i></th>
-                                            <th>Last Updated <i class="fas fa-sort"></i></th>
+                                            <th>Updated <i class="fas fa-sort"></i></th>
                                             <th style="width: 80px;">Actions</th>
                                         </tr>
                                     </thead>
@@ -3400,7 +3405,7 @@
 </div>
 
 <div class="modal fade" id="urlRuleModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
                 <h5 class="modal-title text-white" id="url-rule-modal-title">
@@ -3413,45 +3418,124 @@
                     <input type="hidden" id="url-rule-id" value="">
                     
                     <div class="mb-3">
-                        <label for="url-match-type" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Match Type <span class="text-danger">*</span></label>
-                        <select class="form-select" id="url-match-type" onchange="updateUrlPatternLabel()">
-                            <option value="exact">Exact Domain</option>
-                            <option value="wildcard">Wildcard Pattern</option>
-                            <option value="regex">Regex Pattern</option>
-                        </select>
-                        <small class="text-muted">Choose how the domain/URL pattern should be matched.</small>
+                        <label for="url-rule-name" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Rule Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="url-rule-name" placeholder="e.g., Block bit.ly shortlinks" required>
+                        <small class="text-muted">A descriptive name to identify this rule.</small>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="url-match-type" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Match Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="url-match-type" onchange="updateUrlPatternLabel()">
+                                <option value="exact">Exact Domain</option>
+                                <option value="wildcard">Wildcard Domain</option>
+                                <option value="regex">Regex</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="url-rule-type" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Rule Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="url-rule-type">
+                                <option value="block">Block</option>
+                                <option value="flag">Flag-to-Quarantine</option>
+                            </select>
+                        </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="url-pattern" class="form-label" style="font-weight: 600; font-size: 0.85rem;" id="url-pattern-label">Domain <span class="text-danger">*</span></label>
+                        <label for="url-pattern" class="form-label" style="font-weight: 600; font-size: 0.85rem;" id="url-pattern-label">Pattern <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="url-pattern" placeholder="example.com" required>
                         <small class="text-muted" id="url-pattern-help">Enter the exact domain to match (e.g., example.com)</small>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="url-rule-type" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Rule Type <span class="text-danger">*</span></label>
-                        <select class="form-select" id="url-rule-type">
-                            <option value="block">Block (Immediate Rejection)</option>
-                            <option value="flag">Flag (Quarantine for Review)</option>
-                        </select>
-                        <small class="text-muted">Block immediately rejects messages containing this URL. Flag sends them to quarantine.</small>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Status</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="url-rule-enabled" checked style="width: 2.25rem; height: 1.1rem;">
+                                <label class="form-check-label" for="url-rule-enabled" style="font-size: 0.85rem; margin-left: 0.25rem;">Enabled</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Domain Age Check</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="url-apply-domain-age" checked style="width: 2.25rem; height: 1.1rem;">
+                                <label class="form-check-label" for="url-apply-domain-age" style="font-size: 0.85rem; margin-left: 0.25rem;">Apply domain age check</label>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="url-apply-domain-age" checked style="width: 2.5rem; height: 1.25rem;">
-                            <label class="form-check-label" for="url-apply-domain-age" style="font-weight: 600; font-size: 0.85rem; margin-left: 0.5rem;">
-                                Apply Domain Age Check
-                            </label>
+                    <!-- Test this rule section (collapsed by default) -->
+                    <div class="card mt-3" style="border: 1px solid #e9ecef; border-radius: 6px;">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #f8f9fa; cursor: pointer; border-bottom: 1px solid #e9ecef;" data-bs-toggle="collapse" data-bs-target="#url-rule-test-collapse" aria-expanded="false">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-flask" style="color: #1e3a5f; font-size: 0.8rem;"></i>
+                                <span style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f;">Test this rule</span>
+                            </div>
+                            <i class="fas fa-chevron-down" id="url-rule-test-collapse-icon" style="font-size: 0.65rem; color: #6c757d; transition: transform 0.2s;"></i>
                         </div>
-                        <small class="text-muted d-block mt-1">When enabled, the global domain age rule will also apply to URLs matching this pattern.</small>
+                        <div class="collapse" id="url-rule-test-collapse">
+                            <div class="card-body" style="padding: 1rem;">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-md-9">
+                                        <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">Input URL</label>
+                                        <input type="text" class="form-control form-control-sm" id="url-rule-test-input" placeholder="https://example.com/path">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="button" class="btn btn-sm w-100" style="background: #1e3a5f; color: white;" onclick="runUrlRuleTest()">
+                                            <i class="fas fa-play me-1"></i> Run Test
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="url-rule-test-result" class="mt-3" style="display: none;">
+                                    <div class="p-3 rounded" id="url-rule-test-result-box" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <span class="badge" id="url-rule-test-result-badge">MATCHED</span>
+                                            <span id="url-rule-test-result-action" style="font-size: 0.8rem; font-weight: 600;"></span>
+                                        </div>
+                                        <div style="font-size: 0.8rem;">
+                                            <div><strong>Extracted hostname:</strong> <code id="url-rule-test-hostname">-</code></div>
+                                            <div><strong>Matched rule:</strong> <span id="url-rule-test-matched-rule">-</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveUrlRule()">
-                    <i class="fas fa-save me-1"></i> Save Rule
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="confirmSaveUrlRule()">
+                    <i class="fas fa-save me-1"></i> <span id="url-rule-save-btn-text">Save Rule</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- URL Rule Confirmation Modal -->
+<div class="modal fade" id="urlRuleConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2" style="background: #1e3a5f; border-bottom: none;">
+                <h6 class="modal-title text-white mb-0">
+                    <i class="fas fa-check-circle me-2"></i>Confirm Rule Settings
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem;">
+                <p style="font-size: 0.9rem; color: #495057; margin-bottom: 1rem;">Please review the rule settings before saving:</p>
+                <div class="p-3 rounded" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                    <table style="width: 100%; font-size: 0.85rem;">
+                        <tbody id="url-rule-confirm-summary">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer py-2" style="border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Go Back</button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="executeSaveUrlRule()">
+                    <i class="fas fa-check me-1"></i> Confirm Save
                 </button>
             </div>
         </div>
@@ -4788,11 +4872,11 @@ var SecurityComplianceControlsService = (function() {
         }
 
         mockData.urlRules = [
-            { id: 'URL-001', pattern: 'bit.ly', matchType: 'exact', ruleType: 'flag', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
-            { id: 'URL-002', pattern: 'malicious-site.com', matchType: 'exact', ruleType: 'block', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 14:00', updatedAt: '20-01-2026 11:45' },
-            { id: 'URL-003', pattern: '*.tinyurl.com', matchType: 'wildcard', ruleType: 'flag', applyDomainAge: false, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '08-01-2026 10:20', updatedAt: '25-01-2026 16:30' },
-            { id: 'URL-004', pattern: 'phish\\d+\\.com', matchType: 'regex', ruleType: 'block', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 08:45', updatedAt: '05-01-2026 08:45' },
-            { id: 'URL-005', pattern: 'suspicious-domain.net', matchType: 'exact', ruleType: 'block', applyDomainAge: true, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '01-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
+            { id: 'URL-001', name: 'Block bit.ly shortlinks', pattern: 'bit.ly', matchType: 'exact', ruleType: 'flag', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
+            { id: 'URL-002', name: 'Block malicious-site.com', pattern: 'malicious-site.com', matchType: 'exact', ruleType: 'block', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 14:00', updatedAt: '20-01-2026 11:45' },
+            { id: 'URL-003', name: 'Flag tinyurl subdomains', pattern: '*.tinyurl.com', matchType: 'wildcard', ruleType: 'flag', applyDomainAge: false, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '08-01-2026 10:20', updatedAt: '25-01-2026 16:30' },
+            { id: 'URL-004', name: 'Block phishing domains', pattern: 'phish\\d+\\.com', matchType: 'regex', ruleType: 'block', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 08:45', updatedAt: '05-01-2026 08:45' },
+            { id: 'URL-005', name: 'Block suspicious domain', pattern: 'suspicious-domain.net', matchType: 'exact', ruleType: 'block', applyDomainAge: true, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '01-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
         ];
         
         mockData.domainAgeSettings = {
@@ -6876,7 +6960,11 @@ var SecurityComplianceControlsService = (function() {
             if (statusFilter && rule.status !== statusFilter) return false;
             if (matchTypeFilter && rule.matchType !== matchTypeFilter) return false;
             if (ruleTypeFilter && rule.ruleType !== ruleTypeFilter) return false;
-            if (searchTerm && rule.pattern.toLowerCase().indexOf(searchTerm) === -1) return false;
+            if (searchTerm) {
+                var nameMatch = rule.name && rule.name.toLowerCase().indexOf(searchTerm) !== -1;
+                var patternMatch = rule.pattern.toLowerCase().indexOf(searchTerm) !== -1;
+                if (!nameMatch && !patternMatch) return false;
+            }
             return true;
         });
 
@@ -6894,30 +6982,26 @@ var SecurityComplianceControlsService = (function() {
             emptyState.style.display = 'none';
             tbody.innerHTML = rules.map(function(rule) {
                 var matchTypeBadges = {
-                    'exact': '<span class="sec-status-badge" style="background: #dbeafe; color: #1e40af;"><i class="fas fa-bullseye me-1"></i>Exact</span>',
-                    'wildcard': '<span class="sec-status-badge" style="background: #fef3c7; color: #92400e;"><i class="fas fa-asterisk me-1"></i>Wildcard</span>',
-                    'regex': '<span class="sec-status-badge" style="background: #f3e8ff; color: #6b21a8;"><i class="fas fa-code me-1"></i>Regex</span>'
+                    'exact': '<span class="sec-status-badge" style="background: #dbeafe; color: #1e40af;">Exact</span>',
+                    'wildcard': '<span class="sec-status-badge" style="background: #fef3c7; color: #92400e;">Wildcard</span>',
+                    'regex': '<span class="sec-status-badge" style="background: #f3e8ff; color: #6b21a8;">Regex</span>'
                 };
                 
                 var ruleTypeBadge = rule.ruleType === 'block'
-                    ? '<span class="sec-status-badge blocked"><i class="fas fa-ban me-1"></i>Block</span>'
-                    : '<span class="sec-status-badge pending"><i class="fas fa-flag me-1"></i>Flag</span>';
-                
-                var domainAgeBadge = rule.applyDomainAge
-                    ? '<span class="sec-status-badge active"><i class="fas fa-check me-1"></i>Yes</span>'
-                    : '<span class="sec-status-badge disabled"><i class="fas fa-times me-1"></i>No</span>';
+                    ? '<span class="sec-status-badge blocked">Block</span>'
+                    : '<span class="sec-status-badge pending">Quarantine</span>';
                 
                 var statusBadge = '<span class="sec-status-badge ' + rule.status + '">' + 
-                    (rule.status === 'active' ? '<i class="fas fa-check-circle me-1"></i>' : '<i class="fas fa-pause-circle me-1"></i>') +
-                    rule.status.charAt(0).toUpperCase() + rule.status.slice(1) + '</span>';
+                    (rule.status === 'active' ? 'Enabled' : 'Disabled') + '</span>';
                 
                 var dateOnly = rule.updatedAt.split(' ')[0];
+                var ruleName = rule.name || rule.pattern;
                 
                 return '<tr data-rule-id="' + rule.id + '">' +
-                    '<td><code style="background: #f8f9fa; padding: 0.25rem 0.5rem; border-radius: 4px;">' + rule.pattern + '</code><br><small class="text-muted" style="font-size: 0.7rem;">' + rule.id + '</small></td>' +
+                    '<td><strong style="font-size: 0.85rem;">' + escapeHtml(ruleName) + '</strong><br><small class="text-muted" style="font-size: 0.7rem;">' + rule.id + '</small></td>' +
+                    '<td><code style="background: #f8f9fa; padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.8rem;">' + escapeHtml(rule.pattern) + '</code></td>' +
                     '<td>' + matchTypeBadges[rule.matchType] + '</td>' +
                     '<td>' + ruleTypeBadge + '</td>' +
-                    '<td>' + domainAgeBadge + '</td>' +
                     '<td>' + statusBadge + '</td>' +
                     '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
                     '<td>' +
@@ -7508,13 +7592,18 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function showAddUrlRuleModal() {
-        document.getElementById('url-rule-modal-title').textContent = 'Add URL Rule';
+        document.getElementById('url-rule-modal-title').innerHTML = '<i class="fas fa-link me-2"></i>Add URL Rule';
         document.getElementById('url-rule-form').reset();
         document.getElementById('url-rule-id').value = '';
+        document.getElementById('url-rule-name').value = '';
         document.getElementById('url-match-type').value = 'exact';
+        document.getElementById('url-rule-type').value = 'block';
+        document.getElementById('url-rule-enabled').checked = true;
         document.getElementById('url-apply-domain-age').checked = true;
+        document.getElementById('url-rule-save-btn-text').textContent = 'Save Rule';
         updateUrlPatternLabel();
         clearUrlRuleErrors();
+        resetUrlRuleTestSection();
         var modal = new bootstrap.Modal(document.getElementById('urlRuleModal'));
         modal.show();
     }
@@ -7523,14 +7612,18 @@ var SecurityComplianceControlsService = (function() {
         var rule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
         if (!rule) return;
         
-        document.getElementById('url-rule-modal-title').textContent = 'Edit URL Rule';
+        document.getElementById('url-rule-modal-title').innerHTML = '<i class="fas fa-link me-2"></i>Edit URL Rule';
         document.getElementById('url-rule-id').value = rule.id;
+        document.getElementById('url-rule-name').value = rule.name || '';
         document.getElementById('url-pattern').value = rule.pattern;
         document.getElementById('url-match-type').value = rule.matchType;
         document.getElementById('url-rule-type').value = rule.ruleType;
+        document.getElementById('url-rule-enabled').checked = rule.status === 'active';
         document.getElementById('url-apply-domain-age').checked = rule.applyDomainAge;
+        document.getElementById('url-rule-save-btn-text').textContent = 'Update Rule';
         updateUrlPatternLabel();
         clearUrlRuleErrors();
+        resetUrlRuleTestSection();
         
         closeAllUrlMenus();
         var modal = new bootstrap.Modal(document.getElementById('urlRuleModal'));
@@ -7548,12 +7641,12 @@ var SecurityComplianceControlsService = (function() {
         var helpText = document.getElementById('url-pattern-help');
         
         var config = {
-            'exact': { label: 'Domain', placeholder: 'example.com', help: 'Enter the exact domain to match (e.g., example.com)' },
-            'wildcard': { label: 'Wildcard Pattern', placeholder: '*.example.com', help: 'Use * for wildcard matching (e.g., *.example.com matches all subdomains)' },
-            'regex': { label: 'Regex Pattern', placeholder: 'phish\\d+\\.com', help: 'Enter a valid regular expression pattern' }
+            'exact': { label: 'Pattern', placeholder: 'example.com', help: 'Enter the exact domain to match (e.g., example.com)' },
+            'wildcard': { label: 'Pattern', placeholder: '*.example.com', help: 'Use * for wildcard matching (e.g., *.example.com matches all subdomains)' },
+            'regex': { label: 'Pattern', placeholder: 'phish\\d+\\.com', help: 'Enter a valid regular expression pattern' }
         };
         
-        label.textContent = config[matchType].label;
+        label.innerHTML = config[matchType].label + ' <span class="text-danger">*</span>';
         input.placeholder = config[matchType].placeholder;
         helpText.textContent = config[matchType].help;
     }
@@ -7562,9 +7655,15 @@ var SecurityComplianceControlsService = (function() {
         clearUrlRuleErrors();
         var isValid = true;
         
+        var name = document.getElementById('url-rule-name').value.trim();
+        if (!name) {
+            showUrlFieldError('url-rule-name', 'Rule name is required');
+            isValid = false;
+        }
+        
         var pattern = document.getElementById('url-pattern').value.trim();
         if (!pattern) {
-            showUrlFieldError('url-pattern', 'Domain/pattern is required');
+            showUrlFieldError('url-pattern', 'Pattern is required');
             isValid = false;
         }
         
@@ -7584,8 +7683,11 @@ var SecurityComplianceControlsService = (function() {
     function showUrlFieldError(fieldId, message) {
         var field = document.getElementById(fieldId);
         field.classList.add('is-invalid');
+        var existingError = field.parentNode.querySelector('.invalid-feedback');
+        if (existingError) existingError.remove();
         var errorDiv = document.createElement('div');
         errorDiv.className = 'invalid-feedback';
+        errorDiv.style.display = 'block';
         errorDiv.textContent = message;
         field.parentNode.appendChild(errorDiv);
     }
@@ -7599,16 +7701,145 @@ var SecurityComplianceControlsService = (function() {
         });
     }
     
-    function saveUrlRule() {
+    function resetUrlRuleTestSection() {
+        document.getElementById('url-rule-test-input').value = '';
+        document.getElementById('url-rule-test-result').style.display = 'none';
+        var collapseEl = document.getElementById('url-rule-test-collapse');
+        if (collapseEl.classList.contains('show')) {
+            var bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
+            if (bsCollapse) bsCollapse.hide();
+        }
+    }
+    
+    // URL matching logic - same as enforcement engine
+    function extractHostname(urlString) {
+        try {
+            var url = urlString.trim();
+            if (!url.match(/^https?:\/\//i)) {
+                url = 'https://' + url;
+            }
+            var parsed = new URL(url);
+            return parsed.hostname.toLowerCase();
+        } catch (e) {
+            var match = urlString.match(/^(?:https?:\/\/)?([^\/\?#:]+)/i);
+            return match ? match[1].toLowerCase() : null;
+        }
+    }
+    
+    function matchUrlPattern(hostname, pattern, matchType) {
+        if (!hostname || !pattern) return false;
+        hostname = hostname.toLowerCase();
+        pattern = pattern.toLowerCase();
+        
+        switch (matchType) {
+            case 'exact':
+                return hostname === pattern;
+            case 'wildcard':
+                var regexPattern = pattern
+                    .replace(/\./g, '\\.')
+                    .replace(/\*/g, '.*');
+                try {
+                    return new RegExp('^' + regexPattern + '$').test(hostname);
+                } catch (e) {
+                    return false;
+                }
+            case 'regex':
+                try {
+                    return new RegExp(pattern, 'i').test(hostname);
+                } catch (e) {
+                    return false;
+                }
+            default:
+                return false;
+        }
+    }
+    
+    function runUrlRuleTest() {
+        var testUrl = document.getElementById('url-rule-test-input').value.trim();
+        var resultBox = document.getElementById('url-rule-test-result');
+        
+        if (!testUrl) {
+            showToast('Please enter a URL to test', 'warning');
+            return;
+        }
+        
+        var hostname = extractHostname(testUrl);
+        if (!hostname) {
+            resultBox.style.display = 'block';
+            document.getElementById('url-rule-test-result-badge').className = 'badge bg-danger';
+            document.getElementById('url-rule-test-result-badge').textContent = 'INVALID URL';
+            document.getElementById('url-rule-test-result-action').textContent = '';
+            document.getElementById('url-rule-test-hostname').textContent = 'Could not extract hostname';
+            document.getElementById('url-rule-test-matched-rule').textContent = '-';
+            return;
+        }
+        
+        var currentPattern = document.getElementById('url-pattern').value.trim();
+        var currentMatchType = document.getElementById('url-match-type').value;
+        var currentRuleType = document.getElementById('url-rule-type').value;
+        var currentRuleName = document.getElementById('url-rule-name').value.trim() || 'Current rule';
+        
+        var isMatch = matchUrlPattern(hostname, currentPattern, currentMatchType);
+        
+        resultBox.style.display = 'block';
+        var badge = document.getElementById('url-rule-test-result-badge');
+        var actionSpan = document.getElementById('url-rule-test-result-action');
+        
+        if (isMatch) {
+            badge.className = 'badge bg-success';
+            badge.textContent = 'MATCHED';
+            var actionText = currentRuleType === 'block' ? 'Will be BLOCKED' : 'Will be QUARANTINED';
+            actionSpan.textContent = '→ ' + actionText;
+            actionSpan.style.color = currentRuleType === 'block' ? '#dc3545' : '#fd7e14';
+            document.getElementById('url-rule-test-matched-rule').innerHTML = '<code>' + currentPattern + '</code> (' + currentMatchType + ')';
+        } else {
+            badge.className = 'badge bg-secondary';
+            badge.textContent = 'NOT MATCHED';
+            actionSpan.textContent = '→ No action (passes this rule)';
+            actionSpan.style.color = '#6c757d';
+            document.getElementById('url-rule-test-matched-rule').textContent = 'None';
+        }
+        
+        document.getElementById('url-rule-test-hostname').textContent = hostname;
+    }
+    
+    function confirmSaveUrlRule() {
         if (!validateUrlRuleForm()) return;
         
         var ruleId = document.getElementById('url-rule-id').value;
+        var isEdit = !!ruleId;
+        var name = document.getElementById('url-rule-name').value.trim();
+        var pattern = document.getElementById('url-pattern').value.trim();
+        var matchType = document.getElementById('url-match-type').value;
+        var ruleType = document.getElementById('url-rule-type').value;
+        var enabled = document.getElementById('url-rule-enabled').checked;
+        var applyDomainAge = document.getElementById('url-apply-domain-age').checked;
+        
+        var matchTypeLabels = { 'exact': 'Exact Domain', 'wildcard': 'Wildcard Domain', 'regex': 'Regex' };
+        var ruleTypeLabels = { 'block': 'Block', 'flag': 'Flag-to-Quarantine' };
+        
+        var summaryHtml = '<tr><td style="padding: 0.35rem 0.5rem; font-weight: 600; width: 40%;">Rule Name</td><td style="padding: 0.35rem 0.5rem;">' + escapeHtml(name) + '</td></tr>' +
+            '<tr><td style="padding: 0.35rem 0.5rem; font-weight: 600;">Match Type</td><td style="padding: 0.35rem 0.5rem;">' + matchTypeLabels[matchType] + '</td></tr>' +
+            '<tr><td style="padding: 0.35rem 0.5rem; font-weight: 600;">Pattern</td><td style="padding: 0.35rem 0.5rem;"><code>' + escapeHtml(pattern) + '</code></td></tr>' +
+            '<tr><td style="padding: 0.35rem 0.5rem; font-weight: 600;">Rule Type</td><td style="padding: 0.35rem 0.5rem;">' + ruleTypeLabels[ruleType] + '</td></tr>' +
+            '<tr><td style="padding: 0.35rem 0.5rem; font-weight: 600;">Status</td><td style="padding: 0.35rem 0.5rem;"><span class="badge bg-' + (enabled ? 'success' : 'secondary') + '">' + (enabled ? 'Enabled' : 'Disabled') + '</span></td></tr>' +
+            '<tr><td style="padding: 0.35rem 0.5rem; font-weight: 600;">Domain Age Check</td><td style="padding: 0.35rem 0.5rem;">' + (applyDomainAge ? 'Applied' : 'Not applied') + '</td></tr>';
+        
+        document.getElementById('url-rule-confirm-summary').innerHTML = summaryHtml;
+        
+        var confirmModal = new bootstrap.Modal(document.getElementById('urlRuleConfirmModal'));
+        confirmModal.show();
+    }
+    
+    function executeSaveUrlRule() {
+        var ruleId = document.getElementById('url-rule-id').value;
         var ruleData = {
+            name: document.getElementById('url-rule-name').value.trim(),
             pattern: document.getElementById('url-pattern').value.trim(),
             matchType: document.getElementById('url-match-type').value,
             ruleType: document.getElementById('url-rule-type').value,
             applyDomainAge: document.getElementById('url-apply-domain-age').checked,
-            status: 'active',
+            status: document.getElementById('url-rule-enabled').checked ? 'active' : 'disabled',
             updatedAt: formatDateTime(new Date())
         };
         
@@ -7631,6 +7862,7 @@ var SecurityComplianceControlsService = (function() {
         
         logAuditEvent(eventType, {
             ruleId: ruleId || ruleData.id,
+            name: ruleData.name,
             pattern: ruleData.pattern,
             matchType: ruleData.matchType,
             ruleType: ruleData.ruleType,
@@ -7638,9 +7870,10 @@ var SecurityComplianceControlsService = (function() {
             after: ruleData
         });
         
+        bootstrap.Modal.getInstance(document.getElementById('urlRuleConfirmModal')).hide();
         bootstrap.Modal.getInstance(document.getElementById('urlRuleModal')).hide();
         renderUrlTab();
-        showToast(ruleId ? 'URL rule updated successfully' : 'URL rule created successfully', 'success');
+        showToast(ruleId ? 'Rule updated successfully' : 'Rule added successfully', 'success');
     }
     
     function toggleUrlRuleStatus(ruleId) {
@@ -10207,7 +10440,11 @@ var SecurityComplianceControlsService = (function() {
         toggleUrlRuleStatus: toggleUrlRuleStatus,
         deleteUrlRule: deleteUrlRule,
         deleteUrlRuleById: deleteUrlRuleById,
-        saveUrlRule: saveUrlRule,
+        confirmSaveUrlRule: confirmSaveUrlRule,
+        executeSaveUrlRule: executeSaveUrlRule,
+        runUrlRuleTest: runUrlRuleTest,
+        extractHostname: extractHostname,
+        matchUrlPattern: matchUrlPattern,
         updateUrlPatternLabel: updateUrlPatternLabel,
         resetUrlFilters: resetUrlFilters,
         toggleUrlControlsFilterPanel: toggleUrlControlsFilterPanel,
@@ -13901,8 +14138,16 @@ function deleteUrlRule(ruleId) {
     SecurityComplianceControlsService.deleteUrlRule(ruleId);
 }
 
-function saveUrlRule() {
-    SecurityComplianceControlsService.saveUrlRule();
+function confirmSaveUrlRule() {
+    SecurityComplianceControlsService.confirmSaveUrlRule();
+}
+
+function executeSaveUrlRule() {
+    SecurityComplianceControlsService.executeSaveUrlRule();
+}
+
+function runUrlRuleTest() {
+    SecurityComplianceControlsService.runUrlRuleTest();
 }
 
 function updateUrlPatternLabel() {
@@ -14268,6 +14513,30 @@ function updateAntiSpamWindow() {
 
 document.addEventListener('DOMContentLoaded', function() {
     SecurityComplianceControlsService.initialize();
+    
+    // Enter key to run URL rule test
+    var testInput = document.getElementById('url-rule-test-input');
+    if (testInput) {
+        testInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                runUrlRuleTest();
+            }
+        });
+    }
+    
+    // Toggle collapse icon for URL Rule test section
+    var testCollapseEl = document.getElementById('url-rule-test-collapse');
+    if (testCollapseEl) {
+        testCollapseEl.addEventListener('show.bs.collapse', function() {
+            var icon = document.getElementById('url-rule-test-collapse-icon');
+            if (icon) icon.style.transform = 'rotate(180deg)';
+        });
+        testCollapseEl.addEventListener('hide.bs.collapse', function() {
+            var icon = document.getElementById('url-rule-test-collapse-icon');
+            if (icon) icon.style.transform = 'rotate(0deg)';
+        });
+    }
 });
 </script>
 @endpush
