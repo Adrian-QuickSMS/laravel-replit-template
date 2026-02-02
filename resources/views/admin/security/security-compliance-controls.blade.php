@@ -6,6 +6,19 @@
 
 @push('styles')
 <style>
+/* Full-width layout for Spam Filter */
+.qsms-fullbleed .qsms-content-wrap {
+    max-width: none !important;
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+}
+.spam-filter-page {
+    width: 100%;
+}
+.spam-filter-page .page-titles {
+    padding: 0;
+    margin-bottom: 1rem;
+}
 .sec-controls-header {
     display: flex;
     justify-content: space-between;
@@ -1016,8 +1029,7 @@
 @endpush
 
 @section('content')
-<div class="content-body">
-    <div class="container-fluid">
+<div class="spam-filter-page">
         <div class="page-titles">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
@@ -1749,7 +1761,6 @@
             </div>
         </div>
     </div>
-</div>
 
 <div class="modal fade" id="senderIdRuleModal" tabindex="-1" aria-labelledby="senderIdRuleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
