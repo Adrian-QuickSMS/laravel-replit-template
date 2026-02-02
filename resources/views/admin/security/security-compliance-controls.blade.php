@@ -1347,7 +1347,9 @@
     background: rgba(30, 58, 95, 0.08);
 }
 .action-menu-dropdown {
-    display: none;
+    display: none !important;
+    visibility: hidden;
+    opacity: 0;
     position: absolute;
     right: 0;
     top: 100%;
@@ -1356,11 +1358,14 @@
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     min-width: 160px;
-    z-index: 1000;
+    z-index: 1050;
     padding: 0.35rem 0;
+    margin-top: 2px;
 }
 .action-menu-dropdown.show {
-    display: block;
+    display: block !important;
+    visibility: visible;
+    opacity: 1;
 }
 .action-menu-dropdown a {
     display: flex;
@@ -1371,6 +1376,7 @@
     color: #495057;
     text-decoration: none;
     transition: all 0.15s;
+    white-space: nowrap;
 }
 .action-menu-dropdown a:hover {
     background: rgba(30, 58, 95, 0.05);
@@ -5025,7 +5031,7 @@ var SecurityComplianceControlsService = (function() {
                 '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
                 '<td>' +
                     '<div class="action-menu-container">' +
-                        '<button class="action-menu-btn" onclick="toggleContentActionMenu(this, \'' + rule.id + '\')"><i class="fas fa-ellipsis-v"></i></button>' +
+                        '<button class="action-menu-btn" onclick="toggleContentActionMenu(this, \'' + rule.id + '\', event)"><i class="fas fa-ellipsis-v"></i></button>' +
                         '<div class="action-menu-dropdown" id="content-menu-' + rule.id + '">' +
                             '<a href="#" onclick="viewContentRule(\'' + rule.id + '\'); return false;"><i class="fas fa-eye"></i> View Details</a>' +
                             '<a href="#" onclick="editContentRule(\'' + rule.id + '\'); return false;"><i class="fas fa-edit"></i> Edit Rule</a>' +
@@ -5039,14 +5045,20 @@ var SecurityComplianceControlsService = (function() {
         }).join('');
     }
     
-    function toggleContentActionMenu(btn, ruleId) {
+    function toggleContentActionMenu(btn, ruleId, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
         document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
             if (menu.id !== 'content-menu-' + ruleId) {
                 menu.classList.remove('show');
             }
         });
         var menu = document.getElementById('content-menu-' + ruleId);
-        menu.classList.toggle('show');
+        if (menu) {
+            menu.classList.toggle('show');
+        }
     }
     
     function showAddContentRuleModal() {
@@ -5472,7 +5484,7 @@ var SecurityComplianceControlsService = (function() {
                 '<td>' + statusBadge + '</td>' +
                 '<td>' +
                     '<div class="action-menu-container">' +
-                        '<button class="action-menu-btn" onclick="toggleContentExemptionActionMenu(this, \'' + ex.id + '\')"><i class="fas fa-ellipsis-v"></i></button>' +
+                        '<button class="action-menu-btn" onclick="toggleContentExemptionActionMenu(this, \'' + ex.id + '\', event)"><i class="fas fa-ellipsis-v"></i></button>' +
                         '<div class="action-menu-dropdown" id="content-exemption-menu-' + ex.id + '">' +
                             '<a href="#" onclick="viewContentExemption(\'' + ex.id + '\'); return false;"><i class="fas fa-eye"></i> View Details</a>' +
                             '<a href="#" onclick="editContentExemption(\'' + ex.id + '\'); return false;"><i class="fas fa-edit"></i> Edit</a>' +
@@ -5553,14 +5565,20 @@ var SecurityComplianceControlsService = (function() {
         renderContentExemptionsTab();
     }
     
-    function toggleContentExemptionActionMenu(btn, exemptionId) {
+    function toggleContentExemptionActionMenu(btn, exemptionId, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
         document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
             if (menu.id !== 'content-exemption-menu-' + exemptionId) {
                 menu.classList.remove('show');
             }
         });
         var menu = document.getElementById('content-exemption-menu-' + exemptionId);
-        menu.classList.toggle('show');
+        if (menu) {
+            menu.classList.toggle('show');
+        }
     }
     
     function showAddContentExemptionModal() {
@@ -11632,8 +11650,8 @@ function applyContentFilters() {
     SecurityComplianceControlsService.applyContentFilters();
 }
 
-function toggleContentActionMenu(btn, ruleId) {
-    SecurityComplianceControlsService.toggleContentActionMenu(btn, ruleId);
+function toggleContentActionMenu(btn, ruleId, event) {
+    SecurityComplianceControlsService.toggleContentActionMenu(btn, ruleId, event);
 }
 
 // Content Exemptions global wrappers
@@ -11697,8 +11715,8 @@ function loadContentExemptionSubaccounts() {
     SecurityComplianceControlsService.loadContentExemptionSubaccounts();
 }
 
-function toggleContentExemptionActionMenu(btn, exemptionId) {
-    SecurityComplianceControlsService.toggleContentExemptionActionMenu(btn, exemptionId);
+function toggleContentExemptionActionMenu(btn, exemptionId, event) {
+    SecurityComplianceControlsService.toggleContentExemptionActionMenu(btn, exemptionId, event);
 }
 
 function toggleContentExemptionsFilterPanel() {
