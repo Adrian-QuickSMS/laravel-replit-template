@@ -1836,7 +1836,66 @@ function updateTableRowStatus(userId, newStatus) {
     }[newStatus] || 'badge-archived';
     
     statusCell.innerHTML = '<span class="badge-pill ' + statusClass + '">' + newStatus + '</span>';
+    
+    // Update action menu based on new status
+    var actionsCell = row.querySelector('td:last-child');
+    if (actionsCell) {
+        actionsCell.innerHTML = buildActionMenuHtml(userId, newStatus);
+        initializeDropdowns();
+    }
+    
     highlightRow(userId);
+}
+
+function buildActionMenuHtml(userId, status) {
+    var html = '<div class="dropdown">' +
+        '<button class="action-dots-btn" type="button" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>' +
+        '<ul class="dropdown-menu dropdown-menu-end shadow-sm">' +
+        '<li><a class="dropdown-item" href="#" onclick="openUserDetail(\'' + userId + '\')"><i class="fas fa-eye me-2"></i>View Details</a></li>';
+    
+    if (status !== 'Archived') {
+        html += '<li><a class="dropdown-item" href="#" onclick="editUser(\'' + userId + '\')"><i class="fas fa-edit me-2"></i>Edit User</a></li>';
+    } else {
+        html += '<li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-edit me-2"></i>Edit User</a></li>';
+    }
+    
+    html += '<li><hr class="dropdown-divider"></li>' +
+        '<li class="dropdown-header" style="font-size: 0.7rem; color: #6c757d;">Account Status</li>';
+    
+    if (status === 'Active') {
+        html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendUser(\'' + userId + '\')"><i class="fas fa-user-slash me-2"></i>Suspend</a></li>';
+    } else if (status === 'Suspended') {
+        html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateUser(\'' + userId + '\')"><i class="fas fa-user-check me-2"></i>Reactivate</a></li>';
+        html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveUser(\'' + userId + '\')"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+    } else if (status === 'Invited') {
+        html += '<li><a class="dropdown-item" href="#" onclick="resendInvite(\'' + userId + '\')"><i class="fas fa-paper-plane me-2"></i>Resend Invite</a></li>';
+        html += '<li><a class="dropdown-item text-danger" href="#" onclick="revokeInvite(\'' + userId + '\')"><i class="fas fa-times me-2"></i>Revoke Invite</a></li>';
+    } else if (status === 'Archived') {
+        html += '<li><a class="dropdown-item disabled text-muted" href="#" style="pointer-events: none;"><i class="fas fa-lock me-2"></i>No actions available</a></li>';
+    }
+    
+    if (status !== 'Invited' && status !== 'Archived') {
+        html += '<li><hr class="dropdown-divider"></li>' +
+            '<li class="dropdown-header" style="font-size: 0.7rem; color: #6c757d;">Security</li>' +
+            '<li><a class="dropdown-item" href="#" onclick="resetPassword(\'' + userId + '\')"><i class="fas fa-key me-2"></i>Reset Password</a></li>';
+        
+        if (status === 'Active') {
+            html += '<li><a class="dropdown-item" href="#" onclick="forceLogout(\'' + userId + '\')"><i class="fas fa-sign-out-alt me-2"></i>Force Logout</a></li>';
+        }
+        
+        html += '<li><a class="dropdown-item" href="#" onclick="resetMfa(\'' + userId + '\')"><i class="fas fa-shield-alt me-2"></i>Reset MFA</a></li>' +
+            '<li><a class="dropdown-item" href="#" onclick="updateMfaDetails(\'' + userId + '\')"><i class="fas fa-mobile-alt me-2"></i>MFA Settings</a></li>' +
+            '<li><a class="dropdown-item" href="#" onclick="updateEmail(\'' + userId + '\')"><i class="fas fa-envelope me-2"></i>Update Email</a></li>';
+        
+        if (status === 'Active' && currentAdminRole === 'super_admin') {
+            html += '<li><hr class="dropdown-divider"></li>' +
+                '<li class="dropdown-header" style="font-size: 0.7rem; color: #6c757d;">Support</li>' +
+                '<li><a class="dropdown-item text-danger impersonate-action" href="#" onclick="impersonateUser(\'' + userId + '\')"><i class="fas fa-user-secret me-2"></i>Impersonate User</a></li>';
+        }
+    }
+    
+    html += '</ul></div>';
+    return html;
 }
 
 function updateTableRowMfa(userId, mfaStatus) {
