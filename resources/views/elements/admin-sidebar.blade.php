@@ -55,15 +55,10 @@
             </li>
             
             <li class="{{ request()->routeIs('admin.billing.*') ? 'mm-active' : '' }}">
-                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
+                <a href="{{ route('admin.billing.invoices') }}" aria-expanded="false">
                     <i class="fas fa-file-invoice-dollar"></i>
-                    <span class="nav-text">Invoices & Payments</span>
+                    <span class="nav-text">Invoices and Payments</span>
                 </a>
-                <ul aria-expanded="false">
-                    <li><a href="{{ route('admin.billing.invoices') }}" class="{{ request()->routeIs('admin.billing.invoices') ? 'mm-active' : '' }}">Invoices (All Clients)</a></li>
-                    <li><a href="{{ route('admin.billing.payments') }}" class="{{ request()->routeIs('admin.billing.payments') ? 'mm-active' : '' }}">Payments</a></li>
-                    <li><a href="{{ route('admin.billing.credits') }}" class="{{ request()->routeIs('admin.billing.credits') ? 'mm-active' : '' }}">Credit Adjustments</a></li>
-                </ul>
             </li>
             
             <li class="{{ request()->routeIs('admin.security.*') ? 'mm-active' : '' }}">
