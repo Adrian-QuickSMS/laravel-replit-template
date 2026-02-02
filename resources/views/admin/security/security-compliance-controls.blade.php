@@ -2182,7 +2182,7 @@
                                     <div class="row g-2 align-items-end">
                                         <div class="col-md-4">
                                             <div class="form-check form-switch mb-0">
-                                                <input class="form-check-input" type="checkbox" id="domain-age-enabled" style="width: 2.25rem; height: 1.1rem;">
+                                                <input class="form-check-input" type="checkbox" id="domain-age-enabled" style="width: 2.25rem; height: 1.1rem;" onchange="toggleDomainAgeFields()">
                                                 <label class="form-check-label" for="domain-age-enabled" style="font-weight: 600; font-size: 0.8rem; margin-left: 0.25rem;">
                                                     Enable Enforcement
                                                 </label>
@@ -8235,6 +8235,7 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('domain-age-enabled').checked = mockData.domainAgeSettings.enabled;
         document.getElementById('domain-age-hours').value = mockData.domainAgeSettings.minAgeHours || 72;
         document.getElementById('domain-age-action').value = mockData.domainAgeSettings.action || 'block';
+        toggleDomainAgeFields();
         
         updateDomainAgeStatusBadge();
         updateDomainAgeMeta();
@@ -8266,12 +8267,19 @@ var SecurityComplianceControlsService = (function() {
         }
     }
     
+    function toggleDomainAgeFields() {
+        var enabled = document.getElementById('domain-age-enabled').checked;
+        document.getElementById('domain-age-hours').disabled = !enabled;
+        document.getElementById('domain-age-action').disabled = !enabled;
+    }
+    
     function cancelDomainAgeSettings() {
         if (!domainAgeOriginalSettings) return;
         
         document.getElementById('domain-age-enabled').checked = domainAgeOriginalSettings.enabled;
         document.getElementById('domain-age-hours').value = domainAgeOriginalSettings.minAgeHours || 72;
         document.getElementById('domain-age-action').value = domainAgeOriginalSettings.action || 'block';
+        toggleDomainAgeFields();
         
         updateDomainAgeStatusBadge();
         
@@ -10756,6 +10764,7 @@ var SecurityComplianceControlsService = (function() {
         saveDomainAgeSettings: saveDomainAgeSettings,
         initDomainAgeSettings: initDomainAgeSettings,
         updateDomainAgeStatusBadge: updateDomainAgeStatusBadge,
+        toggleDomainAgeFields: toggleDomainAgeFields,
         cancelDomainAgeSettings: cancelDomainAgeSettings,
         confirmSaveDomainAgeSettings: confirmSaveDomainAgeSettings,
         executeSaveDomainAgeSettings: executeSaveDomainAgeSettings,
@@ -14536,6 +14545,10 @@ function saveDomainAgeSettings() {
 
 function cancelDomainAgeSettings() {
     SecurityComplianceControlsService.cancelDomainAgeSettings();
+}
+
+function toggleDomainAgeFields() {
+    SecurityComplianceControlsService.toggleDomainAgeFields();
 }
 
 function confirmSaveDomainAgeSettings() {
