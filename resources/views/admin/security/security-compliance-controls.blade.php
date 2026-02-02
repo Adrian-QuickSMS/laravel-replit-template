@@ -1059,7 +1059,13 @@
 
         <ul class="nav admin-tabs" id="securityControlsTabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="senderid-controls-tab" data-bs-toggle="tab" data-bs-target="#senderid-controls" type="button" role="tab">
+                <button class="nav-link active" id="quarantine-review-tab" data-bs-toggle="tab" data-bs-target="#quarantine-review" type="button" role="tab">
+                    <i class="fas fa-exclamation-triangle me-1"></i> Quarantine Review
+                    <span class="badge pending-badge">12</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="senderid-controls-tab" data-bs-toggle="tab" data-bs-target="#senderid-controls" type="button" role="tab">
                     <i class="fas fa-id-badge me-1"></i> SenderID Controls
                 </button>
             </li>
@@ -1078,16 +1084,10 @@
                     <i class="fas fa-globe me-1"></i> Normalisation Rules (Global)
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="quarantine-review-tab" data-bs-toggle="tab" data-bs-target="#quarantine-review" type="button" role="tab">
-                    <i class="fas fa-exclamation-triangle me-1"></i> Quarantine & Review
-                    <span class="badge pending-badge">12</span>
-                </button>
-            </li>
         </ul>
 
         <div class="tab-content" id="securityControlsTabContent">
-            <div class="tab-pane fade show active" id="senderid-controls" role="tabpanel">
+            <div class="tab-pane fade" id="senderid-controls" role="tabpanel">
                 <div class="tab-description">
                     <h6><i class="fas fa-id-badge me-2"></i>SenderID Controls</h6>
                     <p>Manage blocked and restricted SenderIDs, configure approval requirements, and set up keyword filters for sender identification.</p>
@@ -1654,9 +1654,9 @@
                 </div>
             </div>
 
-            <div class="tab-pane fade" id="quarantine-review" role="tabpanel">
+            <div class="tab-pane fade show active" id="quarantine-review" role="tabpanel">
                 <div class="tab-description">
-                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Quarantine & Review</h6>
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Quarantine Review</h6>
                     <p>Review flagged messages, suspicious content, and items held for manual review before delivery.</p>
                 </div>
 
