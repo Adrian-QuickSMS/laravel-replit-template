@@ -120,23 +120,28 @@
 }
 .sec-stat-card {
     flex: 1;
+    max-width: 220px;
     background: #fff;
     border-radius: 0.5rem;
     padding: 1rem 1.25rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     border-left: 3px solid;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.sec-stat-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
+}
+.sec-stat-card.selected {
+    box-shadow: 0 0 0 2px #1e3a5f, 0 2px 8px rgba(30, 58, 95, 0.25);
+    background: #f0f4f8;
 }
 .sec-stat-card.active {
     border-left-color: #48bb78;
 }
-.sec-stat-card.blocked {
-    border-left-color: #e53e3e;
-}
 .sec-stat-card.pending {
     border-left-color: #ecc94b;
-}
-.sec-stat-card.total {
-    border-left-color: #1e3a5f;
 }
 .sec-stat-value {
     font-size: 1.75rem;
@@ -1757,21 +1762,13 @@
                 </div>
 
                 <div class="sec-stats">
-                    <div class="sec-stat-card pending">
+                    <div class="sec-stat-card pending" id="tile-awaiting-review" onclick="toggleQuarantineTileFilter('pending')">
                         <div class="sec-stat-value" id="quarantine-pending-count">0</div>
                         <div class="sec-stat-label">Awaiting Review</div>
                     </div>
-                    <div class="sec-stat-card active">
+                    <div class="sec-stat-card active" id="tile-released-today" onclick="toggleQuarantineTileFilter('released')">
                         <div class="sec-stat-value" id="quarantine-released-count">0</div>
                         <div class="sec-stat-label">Released Today</div>
-                    </div>
-                    <div class="sec-stat-card blocked">
-                        <div class="sec-stat-value" id="quarantine-blocked-count">0</div>
-                        <div class="sec-stat-label">Permanently Blocked</div>
-                    </div>
-                    <div class="sec-stat-card total">
-                        <div class="sec-stat-value" id="quarantine-total-count">0</div>
-                        <div class="sec-stat-label">Total in Queue</div>
                     </div>
                 </div>
 
@@ -4004,8 +4001,22 @@ var SecurityComplianceControlsService = (function() {
         var urlFilter = document.getElementById('quarantine-filter-url').value;
         var accountFilter = document.getElementById('quarantine-filter-account').value;
         var searchTerm = document.getElementById('quarantine-search').value.toLowerCase();
+        var tileFilter = getActiveTileFilter();
+        
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
         
         var messages = mockData.quarantinedMessages.filter(function(msg) {
+            if (tileFilter === 'pending' && msg.status !== 'pending') return false;
+            if (tileFilter === 'released') {
+                if (msg.status !== 'released') return false;
+                if (msg.decisionAt) {
+                    var decisionDate = new Date(msg.decisionAt.split(' ')[0].split('-').reverse().join('-'));
+                    decisionDate.setHours(0, 0, 0, 0);
+                    if (decisionDate.getTime() !== today.getTime()) return false;
+                }
+            }
+            
             if (statusFilter && msg.status !== statusFilter) return false;
             if (ruleFilter && msg.ruleTriggered !== ruleFilter) return false;
             if (urlFilter === 'yes' && !msg.hasUrl) return false;
@@ -4018,10 +4029,17 @@ var SecurityComplianceControlsService = (function() {
             return true;
         });
 
-        document.getElementById('quarantine-pending-count').textContent = mockData.quarantinedMessages.filter(m => m.status === 'pending').length;
-        document.getElementById('quarantine-released-count').textContent = mockData.quarantinedMessages.filter(m => m.status === 'released').length;
-        document.getElementById('quarantine-blocked-count').textContent = mockData.quarantinedMessages.filter(m => m.status === 'blocked').length;
-        document.getElementById('quarantine-total-count').textContent = mockData.quarantinedMessages.length;
+        var pendingCount = mockData.quarantinedMessages.filter(m => m.status === 'pending').length;
+        var releasedTodayCount = mockData.quarantinedMessages.filter(function(m) {
+            if (m.status !== 'released') return false;
+            if (!m.decisionAt) return false;
+            var decisionDate = new Date(m.decisionAt.split(' ')[0].split('-').reverse().join('-'));
+            decisionDate.setHours(0, 0, 0, 0);
+            return decisionDate.getTime() === today.getTime();
+        }).length;
+        
+        document.getElementById('quarantine-pending-count').textContent = pendingCount;
+        document.getElementById('quarantine-released-count').textContent = releasedTodayCount;
         
         populateAccountFilter();
 
@@ -4518,6 +4536,35 @@ var SecurityComplianceControlsService = (function() {
         
         renderQuarantineTab();
     }
+    
+    var activeTileFilter = null;
+    
+    function toggleQuarantineTileFilter(filterType) {
+        var pendingTile = document.getElementById('tile-awaiting-review');
+        var releasedTile = document.getElementById('tile-released-today');
+        
+        if (activeTileFilter === filterType) {
+            activeTileFilter = null;
+            pendingTile.classList.remove('selected');
+            releasedTile.classList.remove('selected');
+        } else {
+            activeTileFilter = filterType;
+            pendingTile.classList.remove('selected');
+            releasedTile.classList.remove('selected');
+            
+            if (filterType === 'pending') {
+                pendingTile.classList.add('selected');
+            } else if (filterType === 'released') {
+                releasedTile.classList.add('selected');
+            }
+        }
+        
+        renderQuarantineTab();
+    }
+    
+    function getActiveTileFilter() {
+        return activeTileFilter;
+    }
 
     function setupEventListeners() {
         document.getElementById('quarantine-select-all').addEventListener('change', function() {
@@ -4756,7 +4803,9 @@ var SecurityComplianceControlsService = (function() {
         blockQuarantinedMessageFromModal: blockQuarantinedMessageFromModal,
         toggleQuarantineFilterPanel: toggleQuarantineFilterPanel,
         applyQuarantineFilters: applyQuarantineFilters,
-        resetQuarantineFilters: resetQuarantineFilters
+        resetQuarantineFilters: resetQuarantineFilters,
+        toggleQuarantineTileFilter: toggleQuarantineTileFilter,
+        getActiveTileFilter: getActiveTileFilter
     };
 })();
 
@@ -7814,6 +7863,10 @@ function applyQuarantineFilters() {
 
 function resetQuarantineFilters() {
     SecurityComplianceControlsService.resetQuarantineFilters();
+}
+
+function toggleQuarantineTileFilter(filterType) {
+    SecurityComplianceControlsService.toggleQuarantineTileFilter(filterType);
 }
 
 function resetNormFilters() {
