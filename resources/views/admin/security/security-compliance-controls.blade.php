@@ -10604,6 +10604,7 @@ var SecurityComplianceControlsService = (function() {
         var toggle = document.getElementById('antispam-repeat-toggle');
         var newEnabled = toggle.checked;
         var wasEnabled = mockData.antiSpamSettings.preventRepeatContent;
+        var currentWindow = mockData.antiSpamSettings.windowHours || 60;
         
         // Revert toggle until confirmed
         toggle.checked = wasEnabled;
@@ -10611,6 +10612,15 @@ var SecurityComplianceControlsService = (function() {
         var actionText = newEnabled ? 'Enable' : 'Disable';
         var statusBefore = wasEnabled ? '<span class="badge bg-success">Enabled</span>' : '<span class="badge bg-secondary">Disabled</span>';
         var statusAfter = newEnabled ? '<span class="badge bg-success">Enabled</span>' : '<span class="badge bg-secondary">Disabled</span>';
+        
+        var windowSelectHtml = newEnabled ? 
+            '<select class="form-select form-select-sm" id="confirm-antispam-window" style="width: auto; font-size: 0.8rem;">' +
+                '<option value="15"' + (currentWindow == 15 ? ' selected' : '') + '>15 min</option>' +
+                '<option value="30"' + (currentWindow == 30 ? ' selected' : '') + '>30 min</option>' +
+                '<option value="60"' + (currentWindow == 60 ? ' selected' : '') + '>60 min</option>' +
+                '<option value="120"' + (currentWindow == 120 ? ' selected' : '') + '>120 min</option>' +
+            '</select>' : 
+            '<span class="text-muted">' + currentWindow + ' min (N/A when disabled)</span>';
         
         var modalHtml = 
             '<div class="modal fade" id="confirmAntiSpamToggleModal" tabindex="-1" data-bs-backdrop="static">' +
@@ -10626,7 +10636,7 @@ var SecurityComplianceControlsService = (function() {
                                 '<tr><td style="width: 40%; font-weight: 600; padding: 0.4rem;">Setting</td><td style="padding: 0.4rem;">Anti-Spam Protection</td></tr>' +
                                 '<tr><td style="font-weight: 600; padding: 0.4rem;">Before</td><td style="padding: 0.4rem;">' + statusBefore + '</td></tr>' +
                                 '<tr><td style="font-weight: 600; padding: 0.4rem;">After</td><td style="padding: 0.4rem;">' + statusAfter + '</td></tr>' +
-                                '<tr><td style="font-weight: 600; padding: 0.4rem;">Window</td><td style="padding: 0.4rem;">' + mockData.antiSpamSettings.windowHours + ' min</td></tr>' +
+                                '<tr><td style="font-weight: 600; padding: 0.4rem;">Window</td><td style="padding: 0.4rem;">' + windowSelectHtml + '</td></tr>' +
                             '</table>' +
                         '</div>' +
                         '<div class="modal-footer py-2" style="border-top: 1px solid #e9ecef;">' +
@@ -10648,30 +10658,42 @@ var SecurityComplianceControlsService = (function() {
     
     function confirmAntiSpamToggle(enabled) {
         var modal = bootstrap.Modal.getInstance(document.getElementById('confirmAntiSpamToggleModal'));
+        
+        // Get window value from modal if enabling
+        var windowHours = mockData.antiSpamSettings.windowHours;
+        if (enabled) {
+            var windowSelect = document.getElementById('confirm-antispam-window');
+            if (windowSelect) {
+                windowHours = parseInt(windowSelect.value) || 60;
+            }
+        }
+        
         if (modal) modal.hide();
         
         mockData.antiSpamSettings.preventRepeatContent = enabled;
+        mockData.antiSpamSettings.windowHours = windowHours;
         mockData.antiSpamSettings.lastUpdated = formatDateTime(new Date());
         mockData.antiSpamSettings.updatedBy = currentAdmin.email;
         
         document.getElementById('antispam-repeat-toggle').checked = enabled;
+        document.getElementById('antispam-window').value = windowHours;
         document.getElementById('antispam-window').disabled = !enabled;
         
         logAuditEvent('ANTISPAM_REPEAT_CONTENT_TOGGLED', {
             enabled: enabled,
-            windowHours: mockData.antiSpamSettings.windowHours,
+            windowHours: windowHours,
             admin: currentAdmin.email
         });
         
         if (window.MessageEnforcementService) {
             window.MessageEnforcementService.updateAntiSpamSettings({
                 preventRepeatContent: enabled,
-                windowHours: mockData.antiSpamSettings.windowHours
+                windowHours: windowHours
             });
         }
         
         renderAntiSpamControls();
-        showToast(enabled ? 'Anti-spam repeat content protection enabled' : 'Anti-spam repeat content protection disabled', enabled ? 'success' : 'info');
+        showToast(enabled ? 'Anti-spam repeat content protection enabled (' + windowHours + ' min window)' : 'Anti-spam repeat content protection disabled', enabled ? 'success' : 'info');
     }
     
     function updateAntiSpamWindow() {
