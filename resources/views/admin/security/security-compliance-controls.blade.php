@@ -175,6 +175,43 @@
     transform: translateY(-50%);
     color: #9ca3af;
 }
+.sec-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+    gap: 1rem;
+}
+.sec-search-box-left {
+    position: relative;
+    width: 300px;
+    flex-shrink: 0;
+}
+.sec-search-box-left input {
+    padding-left: 2.25rem;
+    font-size: 0.85rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    height: 32px;
+}
+.sec-search-box-left input:focus {
+    border-color: #1e3a5f;
+    box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1);
+}
+.sec-search-box-left i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 0.85rem;
+}
+.sec-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
 .sec-table {
     width: 100%;
     margin: 0;
@@ -1042,70 +1079,63 @@
                     <p>Manage blocked and restricted SenderIDs, configure approval requirements, and set up keyword filters for sender identification.</p>
                 </div>
 
-                <div class="sec-stats">
-                    <div class="sec-stat-card active">
-                        <div class="sec-stat-value" id="senderid-active-count">0</div>
-                        <div class="sec-stat-label">Active Rules</div>
-                    </div>
-                    <div class="sec-stat-card blocked">
-                        <div class="sec-stat-value" id="senderid-blocked-count">0</div>
-                        <div class="sec-stat-label">Blocked SenderIDs</div>
-                    </div>
-                    <div class="sec-stat-card pending">
-                        <div class="sec-stat-value" id="senderid-pending-count">0</div>
-                        <div class="sec-stat-label">Pending Review</div>
-                    </div>
-                    <div class="sec-stat-card total">
-                        <div class="sec-stat-value" id="senderid-total-count">0</div>
-                        <div class="sec-stat-label">Total</div>
-                    </div>
-                </div>
-
                 <div class="sec-table-card">
-                    <div class="sec-filter-row">
-                        <div class="sec-filter-group">
-                            <label>Status</label>
-                            <select id="senderid-filter-status">
-                                <option value="">All Statuses</option>
-                                <option value="active">Active</option>
-                                <option value="disabled">Disabled</option>
-                            </select>
+                    <div class="sec-toolbar">
+                        <div class="sec-search-box-left">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" placeholder="Search rules..." id="senderid-search">
                         </div>
-                        <div class="sec-filter-group">
-                            <label>Rule Type</label>
-                            <select id="senderid-filter-type">
-                                <option value="">All Types</option>
-                                <option value="block">Block</option>
-                                <option value="flag">Flag (Quarantine)</option>
-                            </select>
-                        </div>
-                        <div class="sec-filter-group">
-                            <label>Category</label>
-                            <select id="senderid-filter-category">
-                                <option value="">All Categories</option>
-                                <option value="bank_impersonation">Bank Impersonation</option>
-                                <option value="government">Government</option>
-                                <option value="lottery_prize">Lottery/Prize</option>
-                                <option value="brand_abuse">Brand Abuse</option>
-                                <option value="premium_rate">Premium Rate</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div class="sec-filter-actions">
-                            <button class="sec-btn-primary" onclick="showAddSenderIdRuleModal()">
-                                <i class="fas fa-plus"></i> Add Rule
-                            </button>
-                            <button class="sec-btn-outline" onclick="resetSenderIdFilters()">
-                                <i class="fas fa-undo"></i> Reset
+                        <div class="sec-toolbar-actions">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="senderid-filter-btn">
+                                    <i class="fas fa-filter me-1"></i> Filter
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Status</label>
+                                        <select class="form-select form-select-sm" id="senderid-filter-status">
+                                            <option value="">All Statuses</option>
+                                            <option value="active">Active</option>
+                                            <option value="disabled">Disabled</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Rule Type</label>
+                                        <select class="form-select form-select-sm" id="senderid-filter-type">
+                                            <option value="">All Types</option>
+                                            <option value="block">Block</option>
+                                            <option value="flag">Flag (Quarantine)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Category</label>
+                                        <select class="form-select form-select-sm" id="senderid-filter-category">
+                                            <option value="">All Categories</option>
+                                            <option value="bank_impersonation">Bank Impersonation</option>
+                                            <option value="government">Government</option>
+                                            <option value="lottery_prize">Lottery/Prize</option>
+                                            <option value="brand_abuse">Brand Abuse</option>
+                                            <option value="premium_rate">Premium Rate</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetSenderIdFilters()">
+                                            <i class="fas fa-undo me-1"></i> Reset
+                                        </button>
+                                        <button class="btn btn-sm btn-primary flex-fill" onclick="applySenderIdFilters()">
+                                            Apply
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="showAddSenderIdRuleModal()">
+                                <i class="fas fa-plus me-1"></i> Add Rule
                             </button>
                         </div>
                     </div>
                     <div class="sec-table-header">
                         <h6>SenderID Rule Library</h6>
-                        <div class="sec-search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search rules..." id="senderid-search">
-                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="sec-table" id="senderid-rules-table">
@@ -1140,25 +1170,7 @@
                     <p>Configure content filtering rules, banned keywords, and message scanning policies to ensure compliance.</p>
                 </div>
 
-                <div class="sec-stats">
-                    <div class="sec-stat-card active">
-                        <div class="sec-stat-value" id="content-active-count">0</div>
-                        <div class="sec-stat-label">Active Filters</div>
-                    </div>
-                    <div class="sec-stat-card blocked">
-                        <div class="sec-stat-value" id="content-blocked-count">0</div>
-                        <div class="sec-stat-label">Blocked Keywords</div>
-                    </div>
-                    <div class="sec-stat-card pending">
-                        <div class="sec-stat-value" id="content-pending-count">0</div>
-                        <div class="sec-stat-label">Pending Review</div>
-                    </div>
-                    <div class="sec-stat-card total">
-                        <div class="sec-stat-value" id="content-total-count">0</div>
-                        <div class="sec-stat-label">Total Rules</div>
-                    </div>
-                </div>
-
+                
                 <div class="card mb-3" style="border: 1px solid #e9ecef; border-left: 3px solid #1e3a5f;">
                     <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #f8f9fa;">
                         <h6 class="mb-0" style="font-size: 0.9rem; font-weight: 600;">
@@ -1205,46 +1217,58 @@
                 </div>
 
                 <div class="sec-table-card">
-                    <div class="sec-filter-row">
-                        <div class="sec-filter-group">
-                            <label>Status</label>
-                            <select id="content-filter-status">
-                                <option value="">All Statuses</option>
-                                <option value="active">Active</option>
-                                <option value="disabled">Disabled</option>
-                            </select>
+                    <div class="sec-toolbar">
+                        <div class="sec-search-box-left">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" placeholder="Search rules..." id="content-search">
                         </div>
-                        <div class="sec-filter-group">
-                            <label>Match Type</label>
-                            <select id="content-filter-matchtype">
-                                <option value="">All Types</option>
-                                <option value="keyword">Keyword</option>
-                                <option value="regex">Regex</option>
-                            </select>
-                        </div>
-                        <div class="sec-filter-group">
-                            <label>Rule Type</label>
-                            <select id="content-filter-ruletype">
-                                <option value="">All Types</option>
-                                <option value="block">Block</option>
-                                <option value="flag">Flag (Quarantine)</option>
-                            </select>
-                        </div>
-                        <div class="sec-filter-actions">
-                            <button class="sec-btn-primary" onclick="showAddContentRuleModal()">
-                                <i class="fas fa-plus"></i> Add Rule
-                            </button>
-                            <button class="sec-btn-outline" onclick="resetContentFilters()">
-                                <i class="fas fa-undo"></i> Reset
+                        <div class="sec-toolbar-actions">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="content-filter-btn">
+                                    <i class="fas fa-filter me-1"></i> Filter
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Status</label>
+                                        <select class="form-select form-select-sm" id="content-filter-status">
+                                            <option value="">All Statuses</option>
+                                            <option value="active">Active</option>
+                                            <option value="disabled">Disabled</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Match Type</label>
+                                        <select class="form-select form-select-sm" id="content-filter-matchtype">
+                                            <option value="">All Types</option>
+                                            <option value="keyword">Keyword</option>
+                                            <option value="regex">Regex</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Rule Type</label>
+                                        <select class="form-select form-select-sm" id="content-filter-ruletype">
+                                            <option value="">All Types</option>
+                                            <option value="block">Block</option>
+                                            <option value="flag">Flag (Quarantine)</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetContentFilters()">
+                                            <i class="fas fa-undo me-1"></i> Reset
+                                        </button>
+                                        <button class="btn btn-sm btn-primary flex-fill" onclick="applyContentFilters()">
+                                            Apply
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="showAddContentRuleModal()">
+                                <i class="fas fa-plus me-1"></i> Add Rule
                             </button>
                         </div>
                     </div>
                     <div class="sec-table-header">
                         <h6>Content Rule Library</h6>
-                        <div class="sec-search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search rules..." id="content-search">
-                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="sec-table" id="content-rules-table">
@@ -1277,25 +1301,7 @@
                     <p>Manage URL domain/pattern rules, domain age controls, and per-account exceptions for link enforcement.</p>
                 </div>
 
-                <div class="sec-stats">
-                    <div class="sec-stat-card active">
-                        <div class="sec-stat-value" id="url-active-count">0</div>
-                        <div class="sec-stat-label">Active Rules</div>
-                    </div>
-                    <div class="sec-stat-card blocked">
-                        <div class="sec-stat-value" id="url-block-count">0</div>
-                        <div class="sec-stat-label">Block Rules</div>
-                    </div>
-                    <div class="sec-stat-card pending">
-                        <div class="sec-stat-value" id="url-flag-count">0</div>
-                        <div class="sec-stat-label">Flag Rules</div>
-                    </div>
-                    <div class="sec-stat-card total">
-                        <div class="sec-stat-value" id="url-total-count">0</div>
-                        <div class="sec-stat-label">Total Rules</div>
-                    </div>
-                </div>
-
+                
                 <div class="sec-table-card" style="margin-bottom: 1.5rem;">
                     <div class="sec-table-header" style="border-bottom: 1px solid #e9ecef; padding-bottom: 0.75rem; margin-bottom: 1rem;">
                         <h6 style="margin: 0;"><i class="fas fa-clock me-2" style="color: #1e3a5f;"></i>Domain Age Control</h6>
@@ -1335,47 +1341,59 @@
                 </div>
 
                 <div class="sec-table-card">
-                    <div class="sec-filter-row">
-                        <div class="sec-filter-group">
-                            <label>Status</label>
-                            <select id="url-filter-status">
-                                <option value="">All Statuses</option>
-                                <option value="active">Active</option>
-                                <option value="disabled">Disabled</option>
-                            </select>
+                    <div class="sec-toolbar">
+                        <div class="sec-search-box-left">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" placeholder="Search domains/patterns..." id="url-search">
                         </div>
-                        <div class="sec-filter-group">
-                            <label>Match Type</label>
-                            <select id="url-filter-matchtype">
-                                <option value="">All Types</option>
-                                <option value="exact">Exact Domain</option>
-                                <option value="wildcard">Wildcard</option>
-                                <option value="regex">Regex</option>
-                            </select>
-                        </div>
-                        <div class="sec-filter-group">
-                            <label>Rule Type</label>
-                            <select id="url-filter-ruletype">
-                                <option value="">All Types</option>
-                                <option value="block">Block</option>
-                                <option value="flag">Flag</option>
-                            </select>
-                        </div>
-                        <div class="sec-filter-actions">
-                            <button class="sec-btn-primary" onclick="showAddUrlRuleModal()">
-                                <i class="fas fa-plus"></i> Add Rule
-                            </button>
-                            <button class="sec-btn-outline" onclick="resetUrlFilters()">
-                                <i class="fas fa-undo"></i> Reset
+                        <div class="sec-toolbar-actions">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="url-filter-btn">
+                                    <i class="fas fa-filter me-1"></i> Filter
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Status</label>
+                                        <select class="form-select form-select-sm" id="url-filter-status">
+                                            <option value="">All Statuses</option>
+                                            <option value="active">Active</option>
+                                            <option value="disabled">Disabled</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Match Type</label>
+                                        <select class="form-select form-select-sm" id="url-filter-matchtype">
+                                            <option value="">All Types</option>
+                                            <option value="exact">Exact Domain</option>
+                                            <option value="wildcard">Wildcard</option>
+                                            <option value="regex">Regex</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Rule Type</label>
+                                        <select class="form-select form-select-sm" id="url-filter-ruletype">
+                                            <option value="">All Types</option>
+                                            <option value="block">Block</option>
+                                            <option value="flag">Flag</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetUrlFilters()">
+                                            <i class="fas fa-undo me-1"></i> Reset
+                                        </button>
+                                        <button class="btn btn-sm btn-primary flex-fill" onclick="applyUrlFilters()">
+                                            Apply
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary btn-sm" onclick="showAddUrlRuleModal()">
+                                <i class="fas fa-plus me-1"></i> Add Rule
                             </button>
                         </div>
                     </div>
                     <div class="sec-table-header">
                         <h6>URL Rule Library</h6>
-                        <div class="sec-search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search domains/patterns..." id="url-search">
-                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="sec-table" id="url-rules-table">
