@@ -2981,10 +2981,6 @@ var SecurityComplianceControlsService = (function() {
             'other': 'Other'
         };
 
-        document.getElementById('senderid-active-count').textContent = rules.filter(r => r.status === 'active').length;
-        document.getElementById('senderid-blocked-count').textContent = rules.filter(r => r.ruleType === 'block').length;
-        document.getElementById('senderid-pending-count').textContent = rules.filter(r => r.ruleType === 'flag').length;
-        document.getElementById('senderid-total-count').textContent = rules.length;
 
         if (rules.length === 0) {
             tbody.innerHTML = '';
@@ -3050,10 +3046,6 @@ var SecurityComplianceControlsService = (function() {
             return true;
         });
 
-        document.getElementById('content-active-count').textContent = mockData.contentRules.filter(r => r.status === 'active').length;
-        document.getElementById('content-blocked-count').textContent = mockData.contentRules.filter(r => r.ruleType === 'block').length;
-        document.getElementById('content-pending-count').textContent = mockData.contentRules.filter(r => r.ruleType === 'flag').length;
-        document.getElementById('content-total-count').textContent = mockData.contentRules.length;
 
         if (rules.length === 0) {
             tbody.innerHTML = '';
@@ -3330,10 +3322,6 @@ var SecurityComplianceControlsService = (function() {
             return true;
         });
 
-        document.getElementById('url-active-count').textContent = mockData.urlRules.filter(r => r.status === 'active').length;
-        document.getElementById('url-block-count').textContent = mockData.urlRules.filter(r => r.ruleType === 'block').length;
-        document.getElementById('url-flag-count').textContent = mockData.urlRules.filter(r => r.ruleType === 'flag').length;
-        document.getElementById('url-total-count').textContent = mockData.urlRules.length;
         
         document.getElementById('domain-age-enabled').checked = mockData.domainAgeSettings.enabled;
         document.getElementById('domain-age-hours').value = mockData.domainAgeSettings.minAgeHours;
