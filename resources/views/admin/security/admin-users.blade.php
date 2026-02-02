@@ -12,6 +12,10 @@
     --admin-secondary: #2d5a87;
     --admin-accent: #4a90d9;
 }
+.breadcrumb-item.active {
+    color: #1e3a5f !important;
+    font-weight: 500;
+}
 .admin-users-header {
     display: flex;
     justify-content: space-between;
@@ -409,7 +413,7 @@ $invitedUsers = collect($adminUsers)->where('status', 'Invited')->count();
                     </div>
                     <span class="text-muted small" id="resultCount">Showing {{ $totalUsers }} of {{ $totalUsers }} users</span>
                 </div>
-                <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border: 1px solid #6f42c1; color: #6f42c1; background: transparent;">
+                <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border: 1px solid #1e3a5f; color: #1e3a5f; background: transparent;">
                     <i class="fas fa-filter me-1"></i> Filters
                 </button>
             </div>
