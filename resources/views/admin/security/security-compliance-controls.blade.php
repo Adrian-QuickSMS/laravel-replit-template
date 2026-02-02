@@ -455,52 +455,70 @@
     border-top: 1px solid #e9ecef;
 }
 
-/* Exemptions Filter Panel */
+/* Exemptions Filter Panel - Transparent dark blue accent */
 .exemptions-filter-panel {
-    background: #fff;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    background: transparent;
+    border-bottom: 1px solid rgba(30, 58, 95, 0.12);
     display: none;
 }
 .exemptions-filter-panel .filter-body {
-    padding: 1rem 1.25rem;
-    background: #f8fafc;
-    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(30, 58, 95, 0.03);
 }
 .exemptions-filter-panel .filter-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 .exemptions-filter-panel .filter-group {
     display: flex;
     flex-direction: column;
-    min-width: 160px;
+    min-width: 140px;
     flex: 1;
-    max-width: 200px;
+    max-width: 180px;
 }
 .exemptions-filter-panel .filter-group label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    color: #6c757d;
-    margin-bottom: 0.375rem;
+    color: #1e3a5f;
+    margin-bottom: 0.25rem;
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
 .exemptions-filter-panel .filter-group select {
-    font-size: 0.85rem;
-    padding: 0.375rem 0.75rem;
-    border: 1px solid #ced4da;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid rgba(30, 58, 95, 0.2);
     border-radius: 4px;
+    background: #fff;
+}
+.exemptions-filter-panel .filter-group select:focus {
+    border-color: #1e3a5f;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1);
 }
 .exemptions-filter-panel .filter-actions {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-    padding-top: 0.75rem;
-    border-top: 1px solid #e9ecef;
+    padding-top: 0.5rem;
+}
+
+/* Exemptions Compact Table */
+.exemptions-compact-table thead th {
+    padding: 0.4rem 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    white-space: nowrap;
+}
+.exemptions-compact-table tbody td {
+    padding: 0.4rem 0.35rem;
+    font-size: 0.75rem;
+    border-bottom: 1px solid #f1f3f5;
+    vertical-align: middle;
 }
 
 /* SenderID Sub-tabs styling */
@@ -1495,16 +1513,16 @@
                     <!-- Exemptions Tab -->
                     <div class="tab-pane fade" id="exemptions" role="tabpanel">
                         <div class="sec-table-card">
-                            <div class="sec-toolbar">
-                                <div class="sec-search-box-left">
+                            <div class="sec-toolbar" style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-bottom: 1px solid #e9ecef;">
+                                <div class="sec-search-box-left" style="flex: 0 0 300px;">
                                     <i class="fas fa-search"></i>
-                                    <input type="text" class="form-control" placeholder="Search exemptions..." id="exemptions-search" oninput="filterExemptionsTable()">
+                                    <input type="text" class="form-control" placeholder="Search SenderIDs..." id="exemptions-search" oninput="filterExemptionsTable()">
                                 </div>
-                                <div class="sec-toolbar-actions">
+                                <div class="sec-toolbar-actions" style="display: flex; gap: 0.5rem; margin-left: auto;">
                                     <button class="sec-pill-btn" type="button" id="exemptions-filter-btn" onclick="toggleExemptionsFilterPanel()">
                                         <i class="fas fa-filter"></i>
                                         <span>Filter</span>
-                                        <span class="badge bg-primary" id="exemptions-filter-count" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem;">0</span>
+                                        <span class="badge" id="exemptions-filter-count" style="display: none; background: #1e3a5f; font-size: 0.65rem; padding: 0.15rem 0.35rem; margin-left: 0.25rem;">0</span>
                                     </button>
                                     <button class="sec-primary-btn" type="button" onclick="showAddSenderIdExemptionModal()">
                                         <i class="fas fa-plus"></i>
@@ -1517,52 +1535,76 @@
                                 <div class="filter-body">
                                     <div class="filter-row">
                                         <div class="filter-group">
+                                            <label>Type</label>
+                                            <select id="exemptions-filter-type">
+                                                <option value="">All Types</option>
+                                                <option value="alphanumeric">Alphanumeric</option>
+                                                <option value="numeric">Numeric</option>
+                                                <option value="shortcode">Shortcode</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Category</label>
+                                            <select id="exemptions-filter-category">
+                                                <option value="">All Categories</option>
+                                                <option value="government_healthcare">Government and Healthcare</option>
+                                                <option value="banking_finance">Banking and Finance</option>
+                                                <option value="delivery_logistics">Delivery and logistics</option>
+                                                <option value="miscellaneous">Miscellaneous</option>
+                                                <option value="generic">Generic</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Scope</label>
+                                            <select id="exemptions-filter-scope">
+                                                <option value="">All Scopes</option>
+                                                <option value="global">Global</option>
+                                                <option value="account">Account</option>
+                                                <option value="subaccount">Sub-account</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
                                             <label>Source</label>
                                             <select id="exemptions-filter-source">
                                                 <option value="">All Sources</option>
-                                                <option value="approval">SenderID Approvals</option>
-                                                <option value="manual">Manual Exemption</option>
+                                                <option value="approval">Approved via Approvals</option>
+                                                <option value="manual">Added manually</option>
                                             </select>
                                         </div>
                                         <div class="filter-group">
                                             <label>Status</label>
                                             <select id="exemptions-filter-status">
                                                 <option value="">All</option>
-                                                <option value="active">Enforced</option>
+                                                <option value="active">Active</option>
                                                 <option value="disabled">Disabled</option>
-                                            </select>
-                                        </div>
-                                        <div class="filter-group">
-                                            <label>Account</label>
-                                            <select id="exemptions-filter-account">
-                                                <option value="">All Accounts</option>
-                                                <option value="global">Global (All Accounts)</option>
                                             </select>
                                         </div>
                                     </div>
                                     <div class="filter-actions">
                                         <button class="btn btn-sm btn-link text-secondary" onclick="resetExemptionsFilters()">Reset</button>
-                                        <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applyExemptionsFilters()">Apply Filters</button>
+                                        <button class="btn btn-sm sec-primary-btn" onclick="applyExemptionsFilters()">Apply Filters</button>
                                     </div>
                                 </div>
                             </div>
-                            <div class="sec-table-header">
-                                <h6>SenderID Exemptions (Allowlist)</h6>
-                                <small class="text-muted">Approved SenderIDs from SenderID Approvals and manually added exemptions</small>
+                            
+                            <div class="filter-chips-row" id="exemptions-chips-row" style="display: none; padding: 0.5rem 1rem; background: #f8f9fc; border-bottom: 1px solid #e9ecef;">
+                                <div class="d-flex align-items-center gap-2 flex-wrap" id="exemptions-chips-container"></div>
                             </div>
+                            
                             <div class="table-responsive">
-                                <table class="sec-table" id="exemptions-table">
+                                <table class="sec-table exemptions-compact-table" id="exemptions-table">
                                     <thead>
                                         <tr>
                                             <th>SenderID <i class="fas fa-sort"></i></th>
-                                            <th>Account <i class="fas fa-sort"></i></th>
-                                            <th>Source <i class="fas fa-sort"></i></th>
+                                            <th>Type <i class="fas fa-sort"></i></th>
                                             <th>Category <i class="fas fa-sort"></i></th>
-                                            <th>Approved By <i class="fas fa-sort"></i></th>
-                                            <th>Approved Date <i class="fas fa-sort"></i></th>
-                                            <th>Expiry <i class="fas fa-sort"></i></th>
-                                            <th>Enforcement <i class="fas fa-sort"></i></th>
-                                            <th style="width: 80px;">Actions</th>
+                                            <th>Scope <i class="fas fa-sort"></i></th>
+                                            <th>Account <i class="fas fa-sort"></i></th>
+                                            <th>Sub-account(s) <i class="fas fa-sort"></i></th>
+                                            <th>Source <i class="fas fa-sort"></i></th>
+                                            <th>Status <i class="fas fa-sort"></i></th>
+                                            <th>Updated <i class="fas fa-sort"></i></th>
+                                            <th style="width: 50px;"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="exemptions-body">
@@ -3210,12 +3252,16 @@ var SecurityComplianceControlsService = (function() {
                 sourceId: appr.id,
                 senderId: appr.senderId,
                 normalisedValue: appr.normalisedValue || appr.senderId.toUpperCase(),
+                type: appr.type || 'alphanumeric',
+                scope: appr.scope || 'account',
+                subAccounts: appr.subAccounts || [],
                 accountId: appr.accountId,
                 accountName: appr.accountName,
                 source: 'approval',
                 category: appr.category,
                 approvedBy: appr.approvedBy,
                 approvedAt: appr.approvedAt,
+                updatedAt: appr.updatedAt || appr.approvedAt,
                 expiry: null,
                 approvalStatus: appr.approvalStatus,
                 enforcementStatus: enforcementStatus,
@@ -3232,12 +3278,16 @@ var SecurityComplianceControlsService = (function() {
                 sourceId: man.id,
                 senderId: man.senderId,
                 normalisedValue: man.normalisedValue || man.senderId.toUpperCase(),
+                type: man.type || 'alphanumeric',
+                scope: man.scope || 'global',
+                subAccounts: man.subAccounts || [],
                 accountId: man.accountId,
                 accountName: man.accountName,
                 source: 'manual',
                 category: man.category,
                 approvedBy: man.addedBy,
                 approvedAt: man.addedAt,
+                updatedAt: man.updatedAt || man.addedAt,
                 expiry: man.expiry,
                 approvalStatus: 'n/a',
                 enforcementStatus: enforcementStatus,
@@ -3324,20 +3374,21 @@ var SecurityComplianceControlsService = (function() {
         ];
 
         mockData.senderIdApprovals = [
-            { id: 'APPR-001', senderId: 'ACMECO', accountId: 'ACC-1234', accountName: 'Acme Corporation', category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '15-01-2026 09:30', submittedAt: '10-01-2026 14:00', notes: 'Standard business SenderID', normalisedValue: 'ACMECO' },
-            { id: 'APPR-002', senderId: 'FINLTD', accountId: 'ACC-5678', accountName: 'Finance Ltd', category: 'banking_finance', approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '12-01-2026 14:00', submittedAt: '08-01-2026 10:15', notes: 'Financial services - verified', normalisedValue: 'FINLTD' },
-            { id: 'APPR-003', senderId: 'RETAILMX', accountId: 'ACC-4001', accountName: 'RetailMax Group', category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '20-01-2026 11:00', submittedAt: '18-01-2026 09:00', notes: 'Retail notifications', normalisedValue: 'RETAILMX' },
-            { id: 'APPR-004', senderId: 'HLTHPLUS', accountId: 'ACC-4005', accountName: 'HealthPlus Care', category: 'government_healthcare', approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '08-01-2026 16:45', submittedAt: '05-01-2026 11:30', notes: 'Healthcare provider - NHS verified', normalisedValue: 'HLTHPLUS' },
-            { id: 'APPR-005', senderId: 'TECHSTRT', accountId: 'ACC-4008', accountName: 'TechStartup Inc', category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '25-01-2026 10:20', submittedAt: '22-01-2026 15:00', notes: 'Tech startup notifications', normalisedValue: 'TECHSTRT' },
-            { id: 'APPR-006', senderId: 'FOODDLVR', accountId: 'ACC-4009', accountName: 'FoodDelivery Pro', category: 'delivery_logistics', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '18-01-2026 14:30', submittedAt: '15-01-2026 09:45', notes: 'Food delivery updates', normalisedValue: 'FOODDLVR' },
-            { id: 'APPR-007', senderId: 'EDULEARN', accountId: 'ACC-4006', accountName: 'EduLearn Academy', category: 'miscellaneous', approvalStatus: 'pending', approvedBy: null, approvedAt: null, submittedAt: '28-01-2026 10:00', notes: 'Pending review', normalisedValue: 'EDULEARN' },
-            { id: 'APPR-008', senderId: 'SECBANK', accountId: 'ACC-4012', accountName: 'SecureBank Financial', category: 'banking_finance', approvalStatus: 'rejected', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '05-01-2026 16:00', submittedAt: '02-01-2026 11:00', notes: 'Rejected - conflicts with existing bank SenderID', normalisedValue: 'SECBANK' }
+            { id: 'APPR-001', senderId: 'ACMECO', type: 'alphanumeric', accountId: 'ACC-1234', accountName: 'Acme Corporation', scope: 'account', subAccounts: [], category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30', notes: 'Standard business SenderID', normalisedValue: 'ACMECO' },
+            { id: 'APPR-002', senderId: 'FINLTD', type: 'alphanumeric', accountId: 'ACC-5678', accountName: 'Finance Ltd', scope: 'account', subAccounts: ['SUB-001', 'SUB-002'], category: 'banking_finance', approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '12-01-2026 14:00', updatedAt: '20-01-2026 11:45', notes: 'Financial services - verified', normalisedValue: 'FINLTD' },
+            { id: 'APPR-003', senderId: 'RETAILMX', type: 'alphanumeric', accountId: 'ACC-4001', accountName: 'RetailMax Group', scope: 'account', subAccounts: [], category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '20-01-2026 11:00', updatedAt: '20-01-2026 11:00', notes: 'Retail notifications', normalisedValue: 'RETAILMX' },
+            { id: 'APPR-004', senderId: 'HLTHPLUS', type: 'alphanumeric', accountId: 'ACC-4005', accountName: 'HealthPlus Care', scope: 'subaccount', subAccounts: ['SUB-010', 'SUB-011', 'SUB-012'], category: 'government_healthcare', approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '08-01-2026 16:45', updatedAt: '25-01-2026 09:15', notes: 'Healthcare provider - NHS verified', normalisedValue: 'HLTHPLUS' },
+            { id: 'APPR-005', senderId: 'TECHSTRT', type: 'alphanumeric', accountId: 'ACC-4008', accountName: 'TechStartup Inc', scope: 'account', subAccounts: [], category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '25-01-2026 10:20', updatedAt: '25-01-2026 10:20', notes: 'Tech startup notifications', normalisedValue: 'TECHSTRT' },
+            { id: 'APPR-006', senderId: 'FOODDLVR', type: 'alphanumeric', accountId: 'ACC-4009', accountName: 'FoodDelivery Pro', scope: 'account', subAccounts: [], category: 'delivery_logistics', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '18-01-2026 14:30', updatedAt: '18-01-2026 14:30', notes: 'Food delivery updates', normalisedValue: 'FOODDLVR' },
+            { id: 'APPR-007', senderId: '88001', type: 'shortcode', accountId: 'ACC-4010', accountName: 'PromoMax Ltd', scope: 'account', subAccounts: [], category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '28-01-2026 10:00', updatedAt: '28-01-2026 10:00', notes: 'Shortcode for promotions', normalisedValue: '88001' },
+            { id: 'APPR-008', senderId: '447700900123', type: 'numeric', accountId: 'ACC-4011', accountName: 'DirectCall Ltd', scope: 'account', subAccounts: [], category: 'generic', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '30-01-2026 09:00', updatedAt: '30-01-2026 09:00', notes: 'Numeric sender for callbacks', normalisedValue: '447700900123' }
         ];
         
         mockData.manualExemptions = [
-            { id: 'MAN-001', senderId: 'ROYALMAIL', accountId: 'global', accountName: 'All Accounts', category: 'delivery_logistics', addedBy: 'admin@quicksms.co.uk', addedAt: '05-01-2026 11:15', expiry: null, notes: 'Global exemption for Royal Mail notifications', normalisedValue: 'ROYALMAIL' },
-            { id: 'MAN-002', senderId: 'GOVUK', accountId: 'global', accountName: 'All Accounts', category: 'government_healthcare', addedBy: 'compliance@quicksms.co.uk', addedAt: '01-01-2026 10:00', expiry: null, notes: 'Official government SenderID', normalisedValue: 'GOVUK' },
-            { id: 'MAN-003', senderId: 'NHSUK', accountId: 'global', accountName: 'All Accounts', category: 'government_healthcare', addedBy: 'compliance@quicksms.co.uk', addedAt: '01-01-2026 10:00', expiry: null, notes: 'National Health Service official', normalisedValue: 'NHSUK' }
+            { id: 'MAN-001', senderId: 'ROYALMAIL', type: 'alphanumeric', accountId: 'global', accountName: 'All Accounts', scope: 'global', subAccounts: [], category: 'delivery_logistics', addedBy: 'admin@quicksms.co.uk', addedAt: '05-01-2026 11:15', updatedAt: '05-01-2026 11:15', expiry: null, notes: 'Global exemption for Royal Mail notifications', normalisedValue: 'ROYALMAIL' },
+            { id: 'MAN-002', senderId: 'GOVUK', type: 'alphanumeric', accountId: 'global', accountName: 'All Accounts', scope: 'global', subAccounts: [], category: 'government_healthcare', addedBy: 'compliance@quicksms.co.uk', addedAt: '01-01-2026 10:00', updatedAt: '01-01-2026 10:00', expiry: null, notes: 'Official government SenderID', normalisedValue: 'GOVUK' },
+            { id: 'MAN-003', senderId: 'NHSUK', type: 'alphanumeric', accountId: 'global', accountName: 'All Accounts', scope: 'global', subAccounts: [], category: 'government_healthcare', addedBy: 'compliance@quicksms.co.uk', addedAt: '01-01-2026 10:00', updatedAt: '15-01-2026 14:30', expiry: null, notes: 'National Health Service official', normalisedValue: 'NHSUK' },
+            { id: 'MAN-004', senderId: '82222', type: 'shortcode', accountId: 'global', accountName: 'All Accounts', scope: 'global', subAccounts: [], category: 'generic', addedBy: 'admin@quicksms.co.uk', addedAt: '20-01-2026 09:00', updatedAt: '20-01-2026 09:00', expiry: null, notes: 'Platform shared shortcode', normalisedValue: '82222' }
         ];
         
         mockData.enforcementOverrides = {};
@@ -3725,16 +3776,32 @@ var SecurityComplianceControlsService = (function() {
             'miscellaneous': 'Miscellaneous',
             'generic': 'Generic'
         };
+        
+        var typeLabels = {
+            'alphanumeric': 'Alphanumeric',
+            'numeric': 'Numeric',
+            'shortcode': 'Shortcode'
+        };
+        
+        var scopeLabels = {
+            'global': 'Global',
+            'account': 'Account',
+            'subaccount': 'Sub-account'
+        };
 
+        var typeFilter = document.getElementById('exemptions-filter-type') ? document.getElementById('exemptions-filter-type').value : '';
+        var categoryFilter = document.getElementById('exemptions-filter-category') ? document.getElementById('exemptions-filter-category').value : '';
+        var scopeFilter = document.getElementById('exemptions-filter-scope') ? document.getElementById('exemptions-filter-scope').value : '';
         var sourceFilter = document.getElementById('exemptions-filter-source') ? document.getElementById('exemptions-filter-source').value : '';
         var statusFilter = document.getElementById('exemptions-filter-status') ? document.getElementById('exemptions-filter-status').value : '';
-        var accountFilter = document.getElementById('exemptions-filter-account') ? document.getElementById('exemptions-filter-account').value : '';
         var searchTerm = document.getElementById('exemptions-search') ? document.getElementById('exemptions-search').value.toLowerCase() : '';
 
         var filteredExemptions = exemptions.filter(function(ex) {
+            if (typeFilter && ex.type !== typeFilter) return false;
+            if (categoryFilter && ex.category !== categoryFilter) return false;
+            if (scopeFilter && ex.scope !== scopeFilter) return false;
             if (sourceFilter && ex.source !== sourceFilter) return false;
             if (statusFilter && ex.enforcementStatus !== statusFilter) return false;
-            if (accountFilter === 'global' && ex.accountId !== 'global') return false;
             if (searchTerm && ex.senderId.toLowerCase().indexOf(searchTerm) === -1 && 
                 ex.accountName.toLowerCase().indexOf(searchTerm) === -1) return false;
             return true;
@@ -3743,42 +3810,56 @@ var SecurityComplianceControlsService = (function() {
         if (filteredExemptions.length === 0) {
             tbody.innerHTML = '';
             emptyState.style.display = 'block';
+            document.getElementById('exemptions-table').style.display = 'none';
             return;
         }
 
         emptyState.style.display = 'none';
+        document.getElementById('exemptions-table').style.display = 'table';
+        
         tbody.innerHTML = filteredExemptions.map(function(ex) {
-            var enforcementBadge = ex.enforcementStatus === 'active'
-                ? '<span class="sec-status-badge active"><i class="fas fa-shield-alt me-1"></i>Enforced</span>'
-                : '<span class="sec-status-badge blocked"><i class="fas fa-pause-circle me-1"></i>Disabled</span>';
+            var statusBadge = ex.enforcementStatus === 'active'
+                ? '<span class="badge" style="background: #198754; font-size: 0.65rem;">Active</span>'
+                : '<span class="badge" style="background: #dc3545; font-size: 0.65rem;">Disabled</span>';
             
             var sourceBadge = ex.source === 'approval'
-                ? '<span class="badge" style="background: #198754; font-size: 0.65rem;"><i class="fas fa-check-circle me-1"></i>Approved</span>'
-                : '<span class="badge" style="background: #1e3a5f; font-size: 0.65rem;"><i class="fas fa-user-shield me-1"></i>Manual</span>';
+                ? '<span class="badge" style="background: #198754; font-size: 0.65rem;">Approved</span>'
+                : '<span class="badge" style="background: #1e3a5f; font-size: 0.65rem;">Manual</span>';
             
-            var accountDisplay = ex.accountId === 'global' 
-                ? '<span class="badge bg-info" style="font-size: 0.65rem;"><i class="fas fa-globe me-1"></i>Global</span>'
-                : '<strong>' + ex.accountName + '</strong><br><small class="text-muted">' + ex.accountId + '</small>';
+            var scopeBadge;
+            if (ex.scope === 'global') {
+                scopeBadge = '<span class="badge" style="background: #17a2b8; font-size: 0.65rem;">Global</span>';
+            } else if (ex.scope === 'subaccount') {
+                scopeBadge = '<span class="badge" style="background: #6f42c1; font-size: 0.65rem;">Sub-account</span>';
+            } else {
+                scopeBadge = '<span class="badge" style="background: #6c757d; font-size: 0.65rem;">Account</span>';
+            }
             
-            var expiryDisplay = ex.expiry 
-                ? ex.expiry.split(' ')[0]
-                : '<span class="text-muted">-</span>';
+            var accountDisplay = ex.scope === 'global' ? '<span class="text-muted">-</span>' : ex.accountName;
+            
+            var subAccountDisplay = '<span class="text-muted">-</span>';
+            if (ex.subAccounts && ex.subAccounts.length > 0) {
+                if (ex.subAccounts.length === 1) {
+                    subAccountDisplay = ex.subAccounts[0];
+                } else {
+                    subAccountDisplay = ex.subAccounts[0] + ' <span class="badge bg-secondary" style="font-size: 0.6rem;">+' + (ex.subAccounts.length - 1) + '</span>';
+                }
+            }
+            
+            var updatedDisplay = ex.updatedAt ? ex.updatedAt.split(' ')[0] : '-';
             
             var isSuperAdmin = currentAdmin.role === 'super_admin';
             
-            var approvalLink = ex.source === 'approval' 
-                ? '<a href="/admin/assets/sender-ids?id=' + ex.sourceId + '" class="text-decoration-none" title="View in SenderID Approvals"><i class="fas fa-external-link-alt ms-1" style="font-size: 0.6rem; opacity: 0.6;"></i></a>'
-                : '';
-            
             return '<tr data-exemption-id="' + ex.id + '" data-source-id="' + ex.sourceId + '">' +
-                '<td><code style="background: ' + (ex.enforcementStatus === 'active' ? '#d4edda' : '#f8d7da') + '; padding: 0.15rem 0.4rem; border-radius: 3px; color: ' + (ex.enforcementStatus === 'active' ? '#155724' : '#721c24') + ';">' + ex.senderId + '</code></td>' +
-                '<td>' + accountDisplay + '</td>' +
-                '<td>' + sourceBadge + approvalLink + '</td>' +
-                '<td>' + (categoryLabels[ex.category] || ex.category) + '</td>' +
-                '<td><small>' + (ex.approvedBy ? ex.approvedBy.split('@')[0] : '-') + '</small></td>' +
-                '<td><small>' + (ex.approvedAt ? ex.approvedAt.split(' ')[0] : '-') + '</small></td>' +
-                '<td><small>' + expiryDisplay + '</small></td>' +
-                '<td>' + enforcementBadge + '</td>' +
+                '<td><code style="background: #f8f9fa; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.75rem;">' + ex.senderId + '</code></td>' +
+                '<td style="font-size: 0.75rem;">' + (typeLabels[ex.type] || ex.type) + '</td>' +
+                '<td style="font-size: 0.75rem;">' + (categoryLabels[ex.category] || ex.category) + '</td>' +
+                '<td>' + scopeBadge + '</td>' +
+                '<td style="font-size: 0.75rem;">' + accountDisplay + '</td>' +
+                '<td style="font-size: 0.75rem;">' + subAccountDisplay + '</td>' +
+                '<td>' + sourceBadge + '</td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td style="font-size: 0.75rem;">' + updatedDisplay + '</td>' +
                 '<td>' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
@@ -3796,6 +3877,8 @@ var SecurityComplianceControlsService = (function() {
                 '</td>' +
                 '</tr>';
         }).join('');
+        
+        updateExemptionsFilterChips();
     }
 
     function toggleExemptionsFilterPanel() {
@@ -3815,13 +3898,17 @@ var SecurityComplianceControlsService = (function() {
 
     function applyExemptionsFilters() {
         var filterCount = 0;
+        var type = document.getElementById('exemptions-filter-type').value;
+        var category = document.getElementById('exemptions-filter-category').value;
+        var scope = document.getElementById('exemptions-filter-scope').value;
         var source = document.getElementById('exemptions-filter-source').value;
         var status = document.getElementById('exemptions-filter-status').value;
-        var account = document.getElementById('exemptions-filter-account').value;
         
+        if (type) filterCount++;
+        if (category) filterCount++;
+        if (scope) filterCount++;
         if (source) filterCount++;
         if (status) filterCount++;
-        if (account) filterCount++;
         
         var badge = document.getElementById('exemptions-filter-count');
         if (filterCount > 0) {
@@ -3836,9 +3923,11 @@ var SecurityComplianceControlsService = (function() {
     }
 
     function resetExemptionsFilters() {
+        document.getElementById('exemptions-filter-type').value = '';
+        document.getElementById('exemptions-filter-category').value = '';
+        document.getElementById('exemptions-filter-scope').value = '';
         document.getElementById('exemptions-filter-source').value = '';
         document.getElementById('exemptions-filter-status').value = '';
-        document.getElementById('exemptions-filter-account').value = '';
         document.getElementById('exemptions-search').value = '';
         document.getElementById('exemptions-filter-count').style.display = 'none';
         renderExemptionsTab();
@@ -3846,6 +3935,72 @@ var SecurityComplianceControlsService = (function() {
 
     function filterExemptionsTable() {
         renderExemptionsTab();
+    }
+    
+    function updateExemptionsFilterChips() {
+        var chipsRow = document.getElementById('exemptions-chips-row');
+        var chipsContainer = document.getElementById('exemptions-chips-container');
+        if (!chipsRow || !chipsContainer) return;
+        
+        var chips = [];
+        var searchTerm = document.getElementById('exemptions-search').value.trim();
+        var typeFilter = document.getElementById('exemptions-filter-type').value;
+        var categoryFilter = document.getElementById('exemptions-filter-category').value;
+        var scopeFilter = document.getElementById('exemptions-filter-scope').value;
+        var sourceFilter = document.getElementById('exemptions-filter-source').value;
+        var statusFilter = document.getElementById('exemptions-filter-status').value;
+        
+        var typeLabels = { 'alphanumeric': 'Alphanumeric', 'numeric': 'Numeric', 'shortcode': 'Shortcode' };
+        var categoryLabels = { 'government_healthcare': 'Govt & Healthcare', 'banking_finance': 'Banking & Finance', 'delivery_logistics': 'Delivery & Logistics', 'miscellaneous': 'Miscellaneous', 'generic': 'Generic' };
+        var scopeLabels = { 'global': 'Global', 'account': 'Account', 'subaccount': 'Sub-account' };
+        var sourceLabels = { 'approval': 'Approved via Approvals', 'manual': 'Added manually' };
+        var statusLabels = { 'active': 'Active', 'disabled': 'Disabled' };
+        
+        if (searchTerm) {
+            chips.push({ label: 'Search', value: searchTerm.substring(0, 15) + (searchTerm.length > 15 ? '...' : ''), filterKey: 'search' });
+        }
+        if (typeFilter) chips.push({ label: 'Type', value: typeLabels[typeFilter] || typeFilter, filterKey: 'type' });
+        if (categoryFilter) chips.push({ label: 'Category', value: categoryLabels[categoryFilter] || categoryFilter, filterKey: 'category' });
+        if (scopeFilter) chips.push({ label: 'Scope', value: scopeLabels[scopeFilter] || scopeFilter, filterKey: 'scope' });
+        if (sourceFilter) chips.push({ label: 'Source', value: sourceLabels[sourceFilter] || sourceFilter, filterKey: 'source' });
+        if (statusFilter) chips.push({ label: 'Status', value: statusLabels[statusFilter] || statusFilter, filterKey: 'status' });
+        
+        if (chips.length === 0) {
+            chipsRow.style.display = 'none';
+            return;
+        }
+        
+        chipsRow.style.display = 'block';
+        var chipsHtml = chips.map(function(chip) {
+            return '<span class="filter-chip" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.25rem 0.5rem; background: rgba(30, 58, 95, 0.08); border: 1px solid rgba(30, 58, 95, 0.15); border-radius: 4px; font-size: 0.7rem;">' +
+                '<span style="color: #1e3a5f; font-weight: 500;">' + chip.label + ':</span> ' +
+                '<span style="color: #495057;">' + chip.value + '</span>' +
+                '<span class="remove-chip" onclick="removeExemptionsFilter(\'' + chip.filterKey + '\')" style="cursor: pointer; margin-left: 0.25rem; color: #6c757d;">' +
+                    '<i class="fas fa-times" style="font-size: 0.6rem;"></i>' +
+                '</span>' +
+            '</span>';
+        }).join('');
+        
+        chipsHtml += '<span class="clear-all-filters" onclick="resetExemptionsFilters()" style="cursor: pointer; font-size: 0.7rem; color: #1e3a5f; margin-left: 0.5rem; text-decoration: underline;">Clear all</span>';
+        
+        chipsContainer.innerHTML = chipsHtml;
+    }
+    
+    function removeExemptionsFilter(filterKey) {
+        if (filterKey === 'search') {
+            document.getElementById('exemptions-search').value = '';
+        } else if (filterKey === 'type') {
+            document.getElementById('exemptions-filter-type').value = '';
+        } else if (filterKey === 'category') {
+            document.getElementById('exemptions-filter-category').value = '';
+        } else if (filterKey === 'scope') {
+            document.getElementById('exemptions-filter-scope').value = '';
+        } else if (filterKey === 'source') {
+            document.getElementById('exemptions-filter-source').value = '';
+        } else if (filterKey === 'status') {
+            document.getElementById('exemptions-filter-status').value = '';
+        }
+        applyExemptionsFilters();
     }
 
     function viewExemption(exemptionId) {
