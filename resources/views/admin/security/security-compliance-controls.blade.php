@@ -158,7 +158,7 @@
     background: #fff;
     border-radius: 0.5rem;
     border: 1px solid #e5e9f2;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.75rem;
     overflow: hidden;
 }
 .sec-table-header {
@@ -715,11 +715,11 @@
     border-bottom: 2px solid #e5e9f2;
 }
 .sec-table th {
-    padding: 0.5rem 0.35rem;
-    font-size: 0.75rem;
+    padding: 0.35rem 0.3rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
     color: #1e3a5f;
     text-align: left;
     white-space: nowrap;
@@ -739,10 +739,11 @@
     opacity: 0.7;
 }
 .sec-table td {
-    padding: 0.5rem 0.35rem;
-    font-size: 0.8rem;
+    padding: 0.3rem 0.3rem;
+    font-size: 0.75rem;
     border-bottom: 1px solid #f1f3f5;
     vertical-align: middle;
+    line-height: 1.3;
 }
 .sec-table tbody tr:hover {
     background: #f8f9fc;
@@ -2177,8 +2178,8 @@
                                 </div>
                             </div>
                             <div class="collapse" id="domain-age-collapse">
-                                <div class="card-body" style="padding: 1rem;">
-                                    <div class="row g-3 align-items-end">
+                                <div class="card-body" style="padding: 0.75rem;">
+                                    <div class="row g-2 align-items-end">
                                         <div class="col-md-4">
                                             <div class="form-check form-switch mb-0">
                                                 <input class="form-check-input" type="checkbox" id="domain-age-enabled" style="width: 2.25rem; height: 1.1rem;">
@@ -2209,32 +2210,31 @@
                                         </div>
                                     </div>
                                     
-                                    <hr style="margin: 1rem 0 0.75rem 0; border-color: #e9ecef;">
+                                    <hr style="margin: 0.5rem 0; border-color: #e9ecef;">
                                     
                                     <!-- Exemptions Section -->
-                                    <div class="row g-3">
+                                    <div class="row g-2">
                                         <!-- A) Domain Allowlist -->
                                         <div class="col-md-6">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <span style="font-size: 0.8rem; font-weight: 600; color: #1e3a5f;">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span style="font-size: 0.75rem; font-weight: 600; color: #1e3a5f;">
                                                     <i class="fas fa-globe me-1"></i> Domain Allowlist
                                                 </span>
                                                 <button class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;" onclick="showAddDomainAllowlistModal()">
                                                     <i class="fas fa-plus me-1"></i> Add Domain
                                                 </button>
                                             </div>
-                                            <div class="table-responsive" style="max-height: 160px; overflow-y: auto;">
-                                                <table class="table table-sm mb-0" style="font-size: 0.75rem;">
+                                            <div class="table-responsive" style="max-height: 120px; overflow-y: auto;">
+                                                <table class="table table-sm mb-0" style="font-size: 0.7rem;">
                                                     <thead>
                                                         <tr style="background: #f8f9fa;">
-                                                            <th style="padding: 0.3rem; font-weight: 600;">Domain</th>
-                                                            <th style="padding: 0.3rem; font-weight: 600;">Scope</th>
-                                                            <th style="padding: 0.3rem; font-weight: 600;">Type</th>
-                                                            <th style="padding: 0.3rem; font-weight: 600;">Updated</th>
+                                                            <th style="padding: 0.2rem 0.25rem; font-weight: 600;">Domain</th>
+                                                            <th style="padding: 0.2rem 0.25rem; font-weight: 600;">Scope</th>
+                                                            <th style="padding: 0.2rem 0.25rem; font-weight: 600;">Updated</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="domain-allowlist-preview-body">
-                                                        <tr><td colspan="4" class="text-center text-muted" style="padding: 0.5rem;">No domain exemptions</td></tr>
+                                                        <tr><td colspan="3" class="text-center text-muted" style="padding: 0.4rem;">No domain exemptions</td></tr>
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -2245,27 +2245,25 @@
                                         
                                         <!-- B) Account/Sub-account Threshold Override -->
                                         <div class="col-md-6">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <span style="font-size: 0.8rem; font-weight: 600; color: #1e3a5f;">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span style="font-size: 0.75rem; font-weight: 600; color: #1e3a5f;">
                                                     <i class="fas fa-building me-1"></i> Threshold Overrides
                                                 </span>
                                                 <button class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem; padding: 0.15rem 0.4rem;" onclick="showAddThresholdOverrideModal()">
                                                     <i class="fas fa-plus me-1"></i> Add Override
                                                 </button>
                                             </div>
-                                            <div class="table-responsive" style="max-height: 160px; overflow-y: auto;">
-                                                <table class="table table-sm mb-0" style="font-size: 0.75rem;">
+                                            <div class="table-responsive" style="max-height: 120px; overflow-y: auto;">
+                                                <table class="table table-sm mb-0" style="font-size: 0.7rem;">
                                                     <thead>
                                                         <tr style="background: #f8f9fa;">
-                                                            <th style="padding: 0.3rem; font-weight: 600;">Account</th>
-                                                            <th style="padding: 0.3rem; font-weight: 600;">Sub-accts</th>
-                                                            <th style="padding: 0.3rem; font-weight: 600;">Threshold</th>
-                                                            <th style="padding: 0.3rem; font-weight: 600;">Action</th>
-                                                            <th style="padding: 0.3rem; font-weight: 600;">Updated</th>
+                                                            <th style="padding: 0.2rem 0.25rem; font-weight: 600;">Account</th>
+                                                            <th style="padding: 0.2rem 0.25rem; font-weight: 600;">Threshold</th>
+                                                            <th style="padding: 0.2rem 0.25rem; font-weight: 600;">Action</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="threshold-override-preview-body">
-                                                        <tr><td colspan="5" class="text-center text-muted" style="padding: 0.5rem;">No threshold overrides</td></tr>
+                                                        <tr><td colspan="3" class="text-center text-muted" style="padding: 0.4rem;">No threshold overrides</td></tr>
                                                     </tbody>
                                                 </table>
                                             </div>
@@ -8335,24 +8333,20 @@ var SecurityComplianceControlsService = (function() {
             .slice(0, 5);
         
         if (items.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding: 0.5rem;">No domain exemptions</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted" style="padding: 0.4rem;">No domain exemptions</td></tr>';
             return;
         }
         
         tbody.innerHTML = items.map(function(item) {
-            var scopeLabel = item.scope === 'all' ? 'All' : 
-                            (item.scope === 'account' ? item.scopeDetails.accountName : 
-                            (item.scopeDetails ? item.scopeDetails.subAccountName : 'N/A'));
+            var scopeLabel = item.scope === 'all' ? 'Global' : 
+                            (item.scope === 'account' ? (item.scopeDetails ? item.scopeDetails.accountName : 'Account').substring(0, 10) : 
+                            (item.scopeDetails ? item.scopeDetails.subAccountName : 'N/A').substring(0, 10));
             var scopeBadgeColor = item.scope === 'all' ? '#1e3a5f' : (item.scope === 'account' ? '#0d6efd' : '#6f42c1');
-            var typeLabel = item.overrideType === 'full' ? 'Full' : 'Partial';
-            var typeBadgeColor = item.overrideType === 'full' ? '#198754' : '#ffc107';
-            var typeTextColor = item.overrideType === 'full' ? 'white' : '#212529';
             
             return '<tr>' +
-                '<td style="padding: 0.3rem;"><code style="font-size: 0.7rem; background: #e9ecef; padding: 1px 4px; border-radius: 2px;">' + escapeHtml(item.domain) + '</code></td>' +
-                '<td style="padding: 0.3rem;"><span class="badge" style="font-size: 0.6rem; background: ' + scopeBadgeColor + '; color: white;">' + escapeHtml(scopeLabel.substring(0, 12)) + '</span></td>' +
-                '<td style="padding: 0.3rem;"><span class="badge" style="font-size: 0.6rem; background: ' + typeBadgeColor + '; color: ' + typeTextColor + ';">' + typeLabel + '</span></td>' +
-                '<td style="padding: 0.3rem; font-size: 0.65rem; color: #6c757d;">' + (item.updatedAt || '').split(' ')[0] + '</td>' +
+                '<td style="padding: 0.2rem 0.25rem;"><code style="font-size: 0.65rem; background: #e9ecef; padding: 1px 3px; border-radius: 2px;">' + escapeHtml(item.domain.substring(0, 18)) + '</code></td>' +
+                '<td style="padding: 0.2rem 0.25rem;"><span class="badge" style="font-size: 0.55rem; background: ' + scopeBadgeColor + '; color: white;">' + escapeHtml(scopeLabel) + '</span></td>' +
+                '<td style="padding: 0.2rem 0.25rem; font-size: 0.6rem; color: #6c757d;">' + (item.updatedAt || '').split(' ')[0] + '</td>' +
             '</tr>';
         }).join('');
     }
@@ -8366,22 +8360,19 @@ var SecurityComplianceControlsService = (function() {
             .slice(0, 5);
         
         if (items.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding: 0.5rem;">No threshold overrides</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted" style="padding: 0.4rem;">No threshold overrides</td></tr>';
             return;
         }
         
         tbody.innerHTML = items.map(function(item) {
-            var subAcctLabel = item.allSubaccounts ? 'All' : (item.subAccounts.length + ' selected');
             var actionLabel = item.actionOverride === 'flag' ? 'Flag' : (item.actionOverride === 'block' ? 'Block' : 'Default');
             var actionColor = item.actionOverride === 'flag' ? '#ffc107' : (item.actionOverride === 'block' ? '#dc3545' : '#6c757d');
             var actionTextColor = item.actionOverride === 'flag' ? '#212529' : 'white';
             
             return '<tr>' +
-                '<td style="padding: 0.3rem; font-size: 0.7rem; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="' + escapeHtml(item.accountName) + '">' + escapeHtml(item.accountName.substring(0, 12)) + '</td>' +
-                '<td style="padding: 0.3rem; font-size: 0.7rem;">' + subAcctLabel + '</td>' +
-                '<td style="padding: 0.3rem;"><span class="badge bg-info text-white" style="font-size: 0.6rem;">' + item.thresholdHours + 'h</span></td>' +
-                '<td style="padding: 0.3rem;"><span class="badge" style="font-size: 0.6rem; background: ' + actionColor + '; color: ' + actionTextColor + ';">' + actionLabel + '</span></td>' +
-                '<td style="padding: 0.3rem; font-size: 0.65rem; color: #6c757d;">' + (item.updatedAt || '').split(' ')[0] + '</td>' +
+                '<td style="padding: 0.2rem 0.25rem; font-size: 0.65rem; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="' + escapeHtml(item.accountName) + '">' + escapeHtml(item.accountName.substring(0, 14)) + '</td>' +
+                '<td style="padding: 0.2rem 0.25rem;"><span class="badge bg-info text-white" style="font-size: 0.55rem;">' + item.thresholdHours + 'h</span></td>' +
+                '<td style="padding: 0.2rem 0.25rem;"><span class="badge" style="font-size: 0.55rem; background: ' + actionColor + '; color: ' + actionTextColor + ';">' + actionLabel + '</span></td>' +
             '</tr>';
         }).join('');
     }
