@@ -2456,15 +2456,7 @@
 
             <div class="tab-pane fade" id="normalisation-rules" role="tabpanel">
                 <div class="norm-page-header mb-4">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                        <div>
-                            <h5 class="mb-1" style="color: #1e3a5f; font-weight: 600;">
-                                <i class="fas fa-globe me-2"></i>Normalisation Rules
-                            </h5>
-                            <p class="text-muted mb-0" style="font-size: 0.9rem; max-width: 600px;">
-                                Define character equivalence rules used to detect sender/content bastardisation (e.g. O=0, I=1). Changes affect matching across the platform.
-                            </p>
-                        </div>
+                    <div class="d-flex justify-content-end align-items-start mb-3">
                         <div class="d-flex gap-2">
                             <button class="btn btn-sm btn-outline-secondary" onclick="showImportNormLibraryModal()">
                                 <i class="fas fa-upload me-1"></i>Import
@@ -2523,37 +2515,6 @@
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="alert alert-info d-flex align-items-start mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f; border-radius: 6px;">
-                    <i class="fas fa-info-circle me-2 mt-1" style="color: #1e3a5f;"></i>
-                    <div>
-                        <strong>Consuming Engines:</strong> These normalisation rules are consumed by the enforcement engines below. Changes apply globally.
-                        <div class="d-flex gap-2 mt-2">
-                            <span class="badge" style="background: #d97706; color: white;"><i class="fas fa-id-badge me-1"></i>SenderID Matching</span>
-                            <span class="badge" style="background: #2563eb; color: white;"><i class="fas fa-comment-alt me-1"></i>Content Matching</span>
-                            <span class="badge" style="background: #7c3aed; color: white;" id="url-engine-badge"><i class="fas fa-link me-1"></i>URL Matching <small>(guarded)</small></span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sec-stats">
-                    <div class="sec-stat-card active">
-                        <div class="sec-stat-value" id="norm-enabled-count">0</div>
-                        <div class="sec-stat-label">Enabled</div>
-                    </div>
-                    <div class="sec-stat-card blocked">
-                        <div class="sec-stat-value" id="norm-disabled-count">0</div>
-                        <div class="sec-stat-label">Disabled</div>
-                    </div>
-                    <div class="sec-stat-card pending">
-                        <div class="sec-stat-value" id="norm-equivalents-count">0</div>
-                        <div class="sec-stat-label">Total Equivalents</div>
-                    </div>
-                    <div class="sec-stat-card total">
-                        <div class="sec-stat-value" id="norm-base-count">62</div>
-                        <div class="sec-stat-label">Base Characters</div>
                     </div>
                 </div>
 
@@ -9239,10 +9200,7 @@ var SecurityComplianceControlsService = (function() {
         var disabledCount = library.filter(function(c) { return !c.enabled; }).length;
         var totalEquivalents = library.reduce(function(sum, c) { return sum + c.equivalents.length; }, 0);
         
-        document.getElementById('norm-enabled-count').textContent = enabledCount;
-        document.getElementById('norm-disabled-count').textContent = disabledCount;
-        document.getElementById('norm-equivalents-count').textContent = totalEquivalents;
-        document.getElementById('norm-base-count').textContent = library.length;
+        // Stats elements removed from UI
         
         renderBaseCharacterTable('uppercase', uppercase, riskColors, scopeIcons);
         renderBaseCharacterTable('lowercase', lowercase, riskColors, scopeIcons);
