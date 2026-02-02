@@ -2192,8 +2192,13 @@
                                     <span><strong>To:</strong> <span id="qrn-view-recipient" style="font-family: monospace;"></span></span>
                                     <span id="qrn-view-hasurl"></span>
                                 </div>
-                                <div class="p-2 bg-light rounded" style="font-size: 0.8rem; border: 1px solid #dee2e6; min-height: 60px; max-height: 100px; overflow-y: auto;">
-                                    <span id="qrn-view-message"></span>
+                                <div class="position-relative">
+                                    <div class="p-2 rounded" style="font-size: 0.8rem; border: 1px solid #e9ecef; min-height: 60px; max-height: 100px; overflow-y: auto; background: #f5f5f5; color: #212529; white-space: pre-wrap; word-wrap: break-word;">
+                                        <span id="qrn-view-message"></span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm position-absolute" style="top: 4px; right: 4px; padding: 0.15rem 0.35rem; background: #e9ecef; border: none; font-size: 0.65rem; color: #6c757d;" onclick="copyQuarantineMessage()" title="Copy message">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -4404,6 +4409,29 @@ var SecurityComplianceControlsService = (function() {
         bootstrap.Modal.getInstance(document.getElementById('quarantineViewModal')).hide();
     }
     
+    function copyQuarantineMessage() {
+        var messageEl = document.getElementById('qrn-view-message');
+        if (!messageEl) return;
+        
+        var messageText = messageEl.textContent || messageEl.innerText;
+        if (!messageText) {
+            showToast('No message content to copy', 'warning');
+            return;
+        }
+        
+        navigator.clipboard.writeText(messageText).then(function() {
+            showToast('Message copied to clipboard', 'success');
+        }).catch(function() {
+            var textArea = document.createElement('textarea');
+            textArea.value = messageText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast('Message copied to clipboard', 'success');
+        });
+    }
+    
     function addQuarantineNote() {
         if (!currentQuarantineMessageId) return;
         var noteText = document.getElementById('qrn-new-note').value.trim();
@@ -5035,6 +5063,7 @@ var SecurityComplianceControlsService = (function() {
         bulkBlockQuarantine: bulkBlockQuarantine,
         setupQuarantineTabListeners: setupQuarantineTabListeners,
         addQuarantineNote: addQuarantineNote,
+        copyQuarantineMessage: copyQuarantineMessage,
         addExceptionFromQuarantine: addExceptionFromQuarantine,
         createRuleFromQuarantine: createRuleFromQuarantine,
         releaseQuarantinedMessageFromModal: releaseQuarantinedMessageFromModal,
@@ -8165,6 +8194,10 @@ function bulkRejectQuarantine() {
 
 function addQuarantineNote() {
     SecurityComplianceControlsService.addQuarantineNote();
+}
+
+function copyQuarantineMessage() {
+    SecurityComplianceControlsService.copyQuarantineMessage();
 }
 
 function addExceptionFromQuarantine() {
