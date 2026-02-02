@@ -7463,16 +7463,25 @@ var SecurityComplianceControlsService = (function() {
         
         // Audit log
         logAuditEvent(eventType, {
+            entityType: 'url_exemption',
             exemptionId: exemptionData.id,
+            adminUserId: currentAdmin.id,
             adminUser: currentAdmin.email,
             timestamp: new Date().toISOString(),
+            sourceIp: getClientIP(),
             accountId: exemptionData.accountId,
             accountName: exemptionData.accountName,
             type: exemptionData.type,
             ruleIdsAffected: exemptionData.exemptRules,
             reason: reason,
             before: beforeState,
-            after: exemptionData
+            after: exemptionData,
+            affectedScope: {
+                type: exemptionData.allSubaccounts ? 'account_all_subaccounts' : 'account_specific_subaccounts',
+                accountId: exemptionData.accountId,
+                accountName: exemptionData.accountName,
+                subAccountsAffected: exemptionData.subAccounts
+            }
         });
         
         bootstrap.Modal.getInstance(document.getElementById('urlExemptionModal')).hide();
@@ -7520,11 +7529,22 @@ var SecurityComplianceControlsService = (function() {
         var beforeStatus = ex.status;
         ex.status = ex.status === 'active' ? 'disabled' : 'active';
         
-        logAuditEvent('URL_EXEMPTION_STATUS_CHANGED', {
+        var exemptionEventType = ex.type === 'domain_age' ? 'URL_DOMAIN_AGE_EXEMPTION_STATUS_CHANGED' : 'URL_RULE_EXEMPTION_STATUS_CHANGED';
+        logAuditEvent(exemptionEventType, {
+            entityType: 'url_exemption',
             exemptionId: exemptionId,
-            accountId: ex.accountId,
-            before: beforeStatus,
-            after: ex.status
+            adminUserId: currentAdmin.id,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
+            sourceIp: getClientIP(),
+            before: { status: beforeStatus },
+            after: { status: ex.status },
+            affectedScope: {
+                type: 'account',
+                accountId: ex.accountId,
+                accountName: ex.accountName,
+                subAccountsAffected: ex.subAccounts || []
+            }
         });
         
         renderUrlExemptionsTab();
@@ -7541,14 +7561,22 @@ var SecurityComplianceControlsService = (function() {
                 var beforeState = JSON.parse(JSON.stringify(mockData.urlExemptions[idx]));
                 mockData.urlExemptions.splice(idx, 1);
                 
-                var eventType = ex.type === 'domain_age' ? 'URL_DOMAIN_AGE_EXEMPTION_REMOVED' : 'URL_RULE_EXEMPTION_REMOVED';
-                logAuditEvent(eventType, {
+                var deleteEventType = ex.type === 'domain_age' ? 'URL_DOMAIN_AGE_EXEMPTION_REMOVED' : 'URL_RULE_EXEMPTION_REMOVED';
+                logAuditEvent(deleteEventType, {
+                    entityType: 'url_exemption',
                     exemptionId: exemptionId,
+                    adminUserId: currentAdmin.id,
                     adminUser: currentAdmin.email,
                     timestamp: new Date().toISOString(),
-                    accountId: ex.accountId,
+                    sourceIp: getClientIP(),
                     before: beforeState,
-                    after: null
+                    after: null,
+                    affectedScope: {
+                        type: 'account',
+                        accountId: ex.accountId,
+                        accountName: ex.accountName,
+                        subAccountsAffected: ex.subAccounts || []
+                    }
                 });
                 
                 renderUrlExemptionsTab();
@@ -7869,13 +7897,19 @@ var SecurityComplianceControlsService = (function() {
         }
         
         logAuditEvent(eventType, {
+            entityType: 'url_rule',
             ruleId: ruleId || ruleData.id,
             name: ruleData.name,
             pattern: ruleData.pattern,
             matchType: ruleData.matchType,
             ruleType: ruleData.ruleType,
             before: beforeState,
-            after: ruleData
+            after: ruleData,
+            adminUserId: currentAdmin.id,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
+            sourceIp: getClientIP(),
+            affectedScope: { type: 'global', description: 'All messages containing matching URLs' }
         });
         
         bootstrap.Modal.getInstance(document.getElementById('urlRuleConfirmModal')).hide();
@@ -7892,11 +7926,19 @@ var SecurityComplianceControlsService = (function() {
         rule.status = rule.status === 'active' ? 'disabled' : 'active';
         rule.updatedAt = formatDateTime(new Date());
         
-        logAuditEvent('URL_RULE_STATUS_CHANGED', {
+        var statusEventType = rule.status === 'active' ? 'URL_RULE_ENABLED' : 'URL_RULE_DISABLED';
+        logAuditEvent(statusEventType, {
+            entityType: 'url_rule',
             ruleId: ruleId,
+            ruleName: rule.name,
             pattern: rule.pattern,
-            beforeStatus: beforeStatus,
-            afterStatus: rule.status
+            before: { status: beforeStatus },
+            after: { status: rule.status },
+            adminUserId: currentAdmin.id,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
+            sourceIp: getClientIP(),
+            affectedScope: { type: 'global', description: 'All messages containing matching URLs' }
         });
         
         closeAllUrlMenus();
@@ -7925,9 +7967,17 @@ var SecurityComplianceControlsService = (function() {
         mockData.urlRules.splice(ruleIndex, 1);
         
         logAuditEvent('URL_RULE_DELETED', {
+            entityType: 'url_rule',
             ruleId: ruleId,
+            ruleName: deletedRule.name,
             pattern: deletedRule.pattern,
-            deletedRule: deletedRule
+            before: deletedRule,
+            after: null,
+            adminUserId: currentAdmin.id,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
+            sourceIp: getClientIP(),
+            affectedScope: { type: 'global', description: 'All messages containing matching URLs' }
         });
         
         showToast('URL rule deleted successfully', 'success');
@@ -8200,11 +8250,15 @@ var SecurityComplianceControlsService = (function() {
         
         domainAgeOriginalSettings = JSON.parse(JSON.stringify(mockData.domainAgeSettings));
         
-        logAuditEvent('DOMAIN_AGE_SETTINGS_UPDATED', {
+        logAuditEvent('URL_DOMAIN_AGE_DEFAULT_UPDATED', {
+            entityType: 'domain_age_settings',
             before: beforeSettings,
             after: mockData.domainAgeSettings,
+            adminUserId: currentAdmin.id,
             adminUser: currentAdmin.email,
-            timestamp: now.toISOString()
+            timestamp: now.toISOString(),
+            sourceIp: getClientIP(),
+            affectedScope: { type: 'global', description: 'All accounts and sub-accounts' }
         });
         
         bootstrap.Modal.getInstance(document.getElementById('domainAgeConfirmModal')).hide();
@@ -8641,13 +8695,21 @@ var SecurityComplianceControlsService = (function() {
         mockData.urlExemptions.push(exemptionData);
         
         logAuditEvent(eventType, {
+            entityType: 'url_exemption',
             exemptionId: exemptionData.id,
+            adminUserId: currentAdmin.id,
             adminUser: currentAdmin.email,
             timestamp: new Date().toISOString(),
-            accountId: exemptionData.accountId,
-            accountName: exemptionData.accountName,
+            sourceIp: getClientIP(),
+            before: null,
+            after: exemptionData,
+            affectedScope: {
+                type: exemptionData.allSubaccounts ? 'account_all_subaccounts' : 'account_specific_subaccounts',
+                accountId: exemptionData.accountId,
+                accountName: exemptionData.accountName,
+                subAccountsAffected: exemptionData.subAccounts.length > 0 ? exemptionData.subAccounts : 'all'
+            },
             type: exemptionData.type,
-            subAccountsAffected: exemptionData.subAccounts.length > 0 ? exemptionData.subAccounts.map(function(s) { return s.id; }) : ['all'],
             domains: exemptionData.domains || [],
             ruleIdsAffected: exemptionData.exemptRules || [],
             reason: reason
@@ -8699,10 +8761,21 @@ var SecurityComplianceControlsService = (function() {
         
         mockData.domainAgeExceptions.push(exception);
         
-        logAuditEvent('DOMAIN_AGE_EXCEPTION_ADDED', {
+        logAuditEvent('URL_DOMAIN_AGE_OVERRIDE_ADDED', {
+            entityType: 'domain_age_override',
             exceptionId: exception.id,
-            accountId: accountId,
-            accountName: accountName,
+            adminUserId: currentAdmin.id,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
+            sourceIp: getClientIP(),
+            before: null,
+            after: exception,
+            affectedScope: {
+                type: 'account',
+                accountId: accountId,
+                accountName: accountName,
+                subAccountsAffected: []
+            },
             reason: reason
         });
         
@@ -8718,10 +8791,21 @@ var SecurityComplianceControlsService = (function() {
         var removedExc = mockData.domainAgeExceptions[excIndex];
         mockData.domainAgeExceptions.splice(excIndex, 1);
         
-        logAuditEvent('DOMAIN_AGE_EXCEPTION_REMOVED', {
+        logAuditEvent('URL_DOMAIN_AGE_OVERRIDE_REMOVED', {
+            entityType: 'domain_age_override',
             exceptionId: exceptionId,
-            accountId: removedExc.accountId,
-            accountName: removedExc.accountName
+            adminUserId: currentAdmin.id,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
+            sourceIp: getClientIP(),
+            before: removedExc,
+            after: null,
+            affectedScope: {
+                type: 'account',
+                accountId: removedExc.accountId,
+                accountName: removedExc.accountName,
+                subAccountsAffected: []
+            }
         });
         
         renderDomainAgeExceptions();
