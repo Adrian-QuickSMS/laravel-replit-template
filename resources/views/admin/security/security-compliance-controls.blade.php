@@ -1328,6 +1328,10 @@
     border-color: #1e3a5f;
     color: #1e3a5f;
 }
+.action-menu-container {
+    position: relative;
+    display: inline-block;
+}
 .action-menu-btn {
     background: transparent;
     border: none;
@@ -1340,6 +1344,45 @@
 .action-menu-btn:hover {
     color: #1e3a5f;
     background: rgba(30, 58, 95, 0.08);
+}
+.action-menu-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 160px;
+    z-index: 1000;
+    padding: 0.35rem 0;
+}
+.action-menu-dropdown.show {
+    display: block;
+}
+.action-menu-dropdown a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.8rem;
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+.action-menu-dropdown a:hover {
+    background: rgba(30, 58, 95, 0.05);
+    color: #1e3a5f;
+}
+.action-menu-dropdown a.text-danger:hover {
+    background: rgba(220, 53, 69, 0.08);
+    color: #dc3545;
+}
+.action-menu-dropdown .dropdown-divider {
+    height: 0;
+    margin: 0.25rem 0;
+    border-top: 1px solid #e9ecef;
 }
 .sec-empty-state {
     text-align: center;
@@ -2763,6 +2806,20 @@
                         <small class="text-muted" id="content-match-value-help">Enter keywords separated by commas. Matching is case-insensitive.</small>
                     </div>
                     
+                    <!-- Test Rule Section -->
+                    <div class="mb-3 p-3" style="background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
+                        <label class="form-label" style="font-weight: 600; font-size: 0.85rem; color: #1e3a5f;">
+                            <i class="fas fa-flask me-1"></i> Test Rule
+                        </label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" id="content-rule-test-input" placeholder="Enter sample text to test against the rule...">
+                            <button type="button" class="btn btn-outline-secondary" onclick="testContentRule()">
+                                <i class="fas fa-play me-1"></i> Test
+                            </button>
+                        </div>
+                        <div id="content-rule-test-result" class="mt-2" style="display: none;"></div>
+                    </div>
+                    
                     <div class="mb-3">
                         <label for="content-rule-type" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Rule Type <span class="text-danger">*</span></label>
                         <select class="form-select" id="content-rule-type">
@@ -2787,6 +2844,49 @@
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveContentRule()">
                     <i class="fas fa-save me-1"></i> Save Rule
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Rule Success Modal -->
+<div class="modal fade" id="contentRuleSuccessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); border-bottom: none;">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-check-circle me-2"></i>Rule <span id="success-rule-action">Created</span> Successfully
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div style="font-size: 4rem; color: #48bb78; margin-bottom: 1rem;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h5 style="color: #1e3a5f; font-weight: 600; margin-bottom: 1rem;">Content Rule Saved</h5>
+                <div class="p-3 mb-3" style="background: #f8f9fa; border-radius: 8px; text-align: left;">
+                    <div class="mb-2">
+                        <small class="text-muted">Rule Name</small>
+                        <div style="font-weight: 600;" id="success-rule-name">-</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Match Type</small>
+                            <div style="font-weight: 600;" id="success-rule-matchtype">-</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Action</small>
+                            <div style="font-weight: 600;" id="success-rule-type">-</div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted mb-0" style="font-size: 0.85rem;">The rule is now active and will be applied to incoming messages.</p>
+            </div>
+            <div class="modal-footer justify-content-center" style="border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" data-bs-dismiss="modal" onclick="showAddContentRuleModal()">
+                    <i class="fas fa-plus me-1"></i> Add Another Rule
                 </button>
             </div>
         </div>
@@ -5080,7 +5180,77 @@ var SecurityComplianceControlsService = (function() {
         
         bootstrap.Modal.getInstance(document.getElementById('contentRuleModal')).hide();
         renderContentTab();
-        showToast(ruleId ? 'Content rule updated successfully' : 'Content rule created successfully', 'success');
+        
+        // Show success confirmation modal
+        showContentRuleSuccessModal(ruleId ? 'updated' : 'created', ruleData.name, ruleData.matchType, ruleData.ruleType);
+    }
+    
+    function testContentRule() {
+        var testInput = document.getElementById('content-rule-test-input').value.trim();
+        var matchType = document.getElementById('content-match-type').value;
+        var matchValue = document.getElementById('content-match-value').value.trim();
+        var applyNorm = document.getElementById('content-apply-normalisation').checked;
+        var resultDiv = document.getElementById('content-rule-test-result');
+        
+        if (!testInput) {
+            resultDiv.innerHTML = '<div class="alert alert-warning mb-0 py-2" style="font-size: 0.8rem;"><i class="fas fa-info-circle me-1"></i> Please enter sample text to test.</div>';
+            resultDiv.style.display = 'block';
+            return;
+        }
+        
+        if (!matchValue) {
+            resultDiv.innerHTML = '<div class="alert alert-warning mb-0 py-2" style="font-size: 0.8rem;"><i class="fas fa-info-circle me-1"></i> Please enter keywords or regex pattern first.</div>';
+            resultDiv.style.display = 'block';
+            return;
+        }
+        
+        var testContent = applyNorm ? testInput.toLowerCase() : testInput;
+        var matched = false;
+        var matchedKeyword = '';
+        
+        if (matchType === 'keyword') {
+            var keywords = matchValue.split(',').map(function(k) { return k.trim().toLowerCase(); });
+            for (var i = 0; i < keywords.length; i++) {
+                if (testContent.toLowerCase().includes(keywords[i])) {
+                    matched = true;
+                    matchedKeyword = keywords[i];
+                    break;
+                }
+            }
+        } else {
+            try {
+                var regex = new RegExp(matchValue, applyNorm ? 'i' : '');
+                var regexMatch = testContent.match(regex);
+                if (regexMatch) {
+                    matched = true;
+                    matchedKeyword = regexMatch[0];
+                }
+            } catch (e) {
+                resultDiv.innerHTML = '<div class="alert alert-danger mb-0 py-2" style="font-size: 0.8rem;"><i class="fas fa-times-circle me-1"></i> Invalid regex pattern: ' + e.message + '</div>';
+                resultDiv.style.display = 'block';
+                return;
+            }
+        }
+        
+        if (matched) {
+            resultDiv.innerHTML = '<div class="alert alert-success mb-0 py-2" style="font-size: 0.8rem;"><i class="fas fa-check-circle me-1"></i> <strong>Match found!</strong> Matched: "<span style="background: #d4edda; padding: 0 4px; border-radius: 2px;">' + matchedKeyword + '</span>"</div>';
+        } else {
+            resultDiv.innerHTML = '<div class="alert alert-secondary mb-0 py-2" style="font-size: 0.8rem;"><i class="fas fa-times me-1"></i> No match found in the test input.</div>';
+        }
+        resultDiv.style.display = 'block';
+    }
+    
+    function showContentRuleSuccessModal(action, ruleName, matchType, ruleType) {
+        var modal = document.getElementById('contentRuleSuccessModal');
+        if (!modal) return;
+        
+        document.getElementById('success-rule-action').textContent = action;
+        document.getElementById('success-rule-name').textContent = ruleName;
+        document.getElementById('success-rule-matchtype').textContent = matchType === 'keyword' ? 'Keyword Match' : 'Regex Pattern';
+        document.getElementById('success-rule-type').textContent = ruleType === 'block' ? 'Block' : 'Flag for Review';
+        
+        var successModal = new bootstrap.Modal(modal);
+        successModal.show();
     }
     
     function toggleContentRuleStatus(ruleId) {
