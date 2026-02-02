@@ -1227,11 +1227,6 @@
 
         <div class="tab-content" id="securityControlsTabContent">
             <div class="tab-pane fade" id="senderid-controls" role="tabpanel">
-                <div class="tab-description">
-                    <h6><i class="fas fa-id-badge me-2"></i>SenderID Controls</h6>
-                    <p>Manage blocked and restricted SenderIDs, configure approval requirements, and set up keyword filters for sender identification.</p>
-                </div>
-
                 <div class="sec-table-card">
                     <div class="sec-toolbar">
                         <div class="sec-search-box-left">
