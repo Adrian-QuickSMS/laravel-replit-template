@@ -526,6 +526,7 @@
 .content-exemptions-filter-panel {
     background: transparent;
     border-bottom: 1px solid rgba(30, 58, 95, 0.12);
+    display: none;
 }
 .content-filter-panel .filter-body,
 .content-exemptions-filter-panel .filter-body {
