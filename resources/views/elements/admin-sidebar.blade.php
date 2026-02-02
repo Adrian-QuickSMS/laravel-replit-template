@@ -64,13 +64,12 @@
             <li class="{{ request()->routeIs('admin.security.*') ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-shield-alt"></i>
-                    <span class="nav-text">Security & Compliance</span>
+                    <span class="nav-text">Security</span>
                 </a>
                 <ul aria-expanded="false">
                     <li><a href="{{ route('admin.security.audit-logs') }}" class="{{ request()->routeIs('admin.security.audit-logs') ? 'mm-active' : '' }}">Audit Logs</a></li>
                     <li><a href="{{ route('admin.security.country-controls') }}" class="{{ request()->routeIs('admin.security.country-controls') ? 'mm-active' : '' }}">Country Controls</a></li>
                     <li><a href="{{ route('admin.security.security-compliance-controls') }}" class="{{ request()->routeIs('admin.security.security-compliance-controls') ? 'mm-active' : '' }}">Spam Filter</a></li>
-                    <li><a href="{{ route('admin.security.anti-spam') }}" class="{{ request()->routeIs('admin.security.anti-spam') ? 'mm-active' : '' }}">Anti-Spam Rules</a></li>
                     <li><a href="{{ route('admin.security.ip-allowlists') }}" class="{{ request()->routeIs('admin.security.ip-allowlists') ? 'mm-active' : '' }}">IP Allow Lists</a></li>
                     @if(in_array(session('admin_role', 'super_admin'), ['super_admin', 'internal_support']))
                     <li><a href="{{ route('admin.security.admin-users') }}" class="{{ request()->routeIs('admin.security.admin-users') ? 'mm-active' : '' }}">Admin Users</a></li>
