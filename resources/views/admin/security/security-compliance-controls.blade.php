@@ -4156,8 +4156,6 @@ function hotReloadRules() {
 document.getElementById('featureFlagsModal').addEventListener('show.bs.modal', function() {
     loadFeatureFlagsModal();
 });
-
-console.log('[SecurityComplianceControls] Initialized');
 </script>
 
 <div class="modal fade" id="addSenderIdExemptionModal" tabindex="-1" aria-hidden="true">
@@ -4590,6 +4588,10 @@ var SecurityComplianceControlsService = (function() {
         urlRules: [],
         normalisationRules: [],
         quarantinedMessages: [],
+        senderIdApprovals: [],
+        manualExemptions: [],
+        senderIdExemptions: [],
+        enforcementOverrides: {},
         accounts: [
             { id: 'ACC-10045', name: 'TechStart Ltd', subAccounts: [{ id: 'SUB-001', name: 'Marketing Dept' }, { id: 'SUB-002', name: 'Sales Team' }] },
             { id: 'ACC-10089', name: 'HealthFirst UK', subAccounts: [{ id: 'SUB-003', name: 'Patient Comms' }] },
@@ -4611,10 +4613,11 @@ var SecurityComplianceControlsService = (function() {
     
     function initialize() {
         loadMockData();
+        console.log('[SecurityComplianceControls] mockData loaded with ' + mockData.quarantinedMessages.length + ' quarantine messages');
         renderAllTabs();
         setupEventListeners();
         initDomainAgeSettings();
-        console.log('[SecurityComplianceControls] Initialized');
+        console.log('[SecurityComplianceControls] Initialized successfully');
     }
     
     function buildExemptionsList() {
@@ -10834,6 +10837,23 @@ var SecurityComplianceControlsService = (function() {
     };
 })();
 
+// Mark that initialization has occurred to prevent duplicate init
+var _sccInitialized = false;
+
+// Initialize immediately since script is at bottom of page and DOM is ready
+(function() {
+    if (_sccInitialized) return;
+    try {
+        SecurityComplianceControlsService.initialize();
+        SecurityComplianceControlsService.renderQuarantineTab();
+        SecurityComplianceControlsService.updateQuarantineFilterChips();
+        _sccInitialized = true;
+        console.log('[SecurityComplianceControls] Immediate init completed');
+    } catch(e) {
+        console.error('[SecurityComplianceControls] Immediate init failed:', e.message);
+    }
+})();
+
 function refreshAllControls() {
     console.log('[SecurityComplianceControls] Refreshing all controls...');
     SecurityComplianceControlsService.renderAllTabs();
@@ -14483,13 +14503,22 @@ function updateAntiSpamWindow() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    SecurityComplianceControlsService.initialize();
+    // Skip if already initialized by immediate IIFE
+    if (_sccInitialized) {
+        console.log('[SecurityComplianceControls] Already initialized, skipping DOMContentLoaded init');
+        return;
+    }
     
-    // Ensure Quarantine tab renders after DOM is fully ready
-    setTimeout(function() {
+    try {
+        console.log('[SecurityComplianceControls] DOMContentLoaded init');
+        SecurityComplianceControlsService.initialize();
         SecurityComplianceControlsService.renderQuarantineTab();
         SecurityComplianceControlsService.updateQuarantineFilterChips();
-    }, 100);
+        _sccInitialized = true;
+        console.log('[SecurityComplianceControls] DOMContentLoaded init complete');
+    } catch(e) {
+        console.error('[SecurityComplianceControls] Error during init:', e.message, e.stack);
+    }
     
     // Enter key to run URL rule test
     var testInput = document.getElementById('url-rule-test-input');
