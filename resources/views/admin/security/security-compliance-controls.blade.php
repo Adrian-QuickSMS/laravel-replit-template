@@ -2531,49 +2531,13 @@
             </div>
 
             <div class="tab-pane fade" id="normalisation-rules" role="tabpanel">
-                <div class="norm-page-header mb-4">
-                    <div class="d-flex justify-content-end align-items-start mb-3">
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="testNormalisationRule()">
-                                <i class="fas fa-flask me-1"></i>Test
-                            </button>
-                        </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted" style="font-size: 0.85rem;">Click any character to edit its equivalents</span>
                     </div>
-                    
-                    <div class="norm-controls-bar p-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-4">
-                                <label class="form-label small fw-bold text-muted mb-1">Search</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
-                                    <input type="text" class="form-control" id="norm-global-search" placeholder="Search base or equivalent character..." onkeyup="globalNormSearch()">
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small fw-bold text-muted mb-1">Status</label>
-                                <select class="form-select" id="norm-global-status" onchange="globalNormFilter()">
-                                    <option value="">All Statuses</option>
-                                    <option value="enabled">Enabled</option>
-                                    <option value="disabled">Disabled</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small fw-bold text-muted mb-1">Risk Level</label>
-                                <select class="form-select" id="norm-global-risk" onchange="globalNormFilter()">
-                                    <option value="">All Levels</option>
-                                    <option value="high">High</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="low">Low</option>
-                                    <option value="none">None</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2 text-end">
-                                <button class="btn btn-outline-secondary btn-sm" onclick="resetGlobalNormFilters()">
-                                    <i class="fas fa-undo me-1"></i>Reset
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <button class="btn btn-sm" onclick="testNormalisationRule()" style="background: transparent; color: #1e3a5f; border: 1px solid #1e3a5f;">
+                        <i class="fas fa-flask me-1"></i>Test Normalisation
+                    </button>
                 </div>
 
                 <ul class="nav nav-tabs mb-3" id="normCharTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
@@ -13012,60 +12976,6 @@ function showBulkEditModal() {
     modal.show();
 }
 
-function globalNormSearch() {
-    var searchTerm = document.getElementById('norm-global-search').value.toLowerCase().trim();
-    applyGlobalNormFilters();
-}
-
-function globalNormFilter() {
-    applyGlobalNormFilters();
-}
-
-function resetGlobalNormFilters() {
-    document.getElementById('norm-global-search').value = '';
-    document.getElementById('norm-global-status').value = '';
-    document.getElementById('norm-global-risk').value = '';
-    applyGlobalNormFilters();
-}
-
-function applyGlobalNormFilters() {
-    var searchTerm = document.getElementById('norm-global-search').value.toLowerCase().trim();
-    var statusFilter = document.getElementById('norm-global-status').value;
-    var riskFilter = document.getElementById('norm-global-risk').value;
-    
-    var grids = ['norm-letters-grid', 'norm-digits-grid'];
-    
-    grids.forEach(function(gridId) {
-        var grid = document.getElementById(gridId);
-        if (!grid) return;
-        
-        var cards = grid.querySelectorAll('.norm-char-card');
-        cards.forEach(function(card) {
-            var baseChar = card.getAttribute('data-base') || '';
-            var equivalents = card.getAttribute('data-equivalents') || '';
-            var status = card.getAttribute('data-status') || '';
-            var risk = card.getAttribute('data-risk') || '';
-            
-            var show = true;
-            
-            if (searchTerm) {
-                var matchBase = baseChar.toLowerCase().indexOf(searchTerm) !== -1;
-                var matchEquiv = equivalents.toLowerCase().indexOf(searchTerm) !== -1;
-                if (!matchBase && !matchEquiv) show = false;
-            }
-            
-            if (statusFilter && show) {
-                if (status !== statusFilter) show = false;
-            }
-            
-            if (riskFilter && show) {
-                if (risk !== riskFilter) show = false;
-            }
-            
-            card.style.display = show ? '' : 'none';
-        });
-    });
-}
 
 var NormalisationLibrary = (function() {
     function normalise(input, options) {
