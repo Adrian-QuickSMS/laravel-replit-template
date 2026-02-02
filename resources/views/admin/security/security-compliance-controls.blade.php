@@ -2178,143 +2178,120 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
             </div>
-            <div class="modal-body" style="padding: 1rem; overflow-y: auto; flex: 1;">
-                <div class="row g-3">
+            <div class="modal-body" style="padding: 0.75rem; overflow-y: auto; flex: 1;">
+                <div class="row g-2">
                     <div class="col-lg-6">
-                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
-                                <i class="fas fa-envelope me-1" style="color: #1e3a5f;"></i> Message Content
-                                <span class="badge bg-warning text-dark float-end" style="font-size: 0.6rem;">PII GATED</span>
+                        <div class="mb-2 p-2 rounded" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span style="font-size: 0.7rem; font-weight: 600; color: #1e3a5f;"><i class="fas fa-envelope me-1"></i>MESSAGE</span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="badge bg-warning text-dark" style="font-size: 0.5rem;">PII GATED</span>
+                                    <button type="button" class="btn btn-link p-0" style="font-size: 0.65rem; color: #6c757d;" onclick="copyQuarantineMessage()" title="Copy"><i class="fas fa-copy"></i></button>
+                                </div>
                             </div>
-                            <div class="card-body py-2 px-2">
-                                <div class="d-flex gap-2 mb-2" style="font-size: 0.75rem;">
-                                    <span><strong>From:</strong> <code id="qrn-view-senderid" style="background: #e9ecef; padding: 0.1rem 0.25rem; border-radius: 2px; font-size: 0.7rem;"></code></span>
-                                    <span><strong>To:</strong> <span id="qrn-view-recipient" style="font-family: monospace;"></span></span>
-                                    <span id="qrn-view-hasurl"></span>
-                                </div>
-                                <div class="position-relative">
-                                    <div class="p-2 rounded" style="font-size: 0.8rem; border: 1px solid #e9ecef; min-height: 60px; max-height: 100px; overflow-y: auto; background: #f5f5f5; color: #212529; white-space: pre-wrap; word-wrap: break-word;">
-                                        <span id="qrn-view-message"></span>
-                                    </div>
-                                    <button type="button" class="btn btn-sm position-absolute" style="top: 4px; right: 4px; padding: 0.15rem 0.35rem; background: #e9ecef; border: none; font-size: 0.65rem; color: #6c757d;" onclick="copyQuarantineMessage()" title="Copy message">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                </div>
+                            <div class="d-flex gap-2 mb-1" style="font-size: 0.7rem;">
+                                <span><strong>From:</strong> <code id="qrn-view-senderid" style="background: #e9ecef; padding: 0 0.2rem; font-size: 0.65rem;"></code></span>
+                                <span><strong>To:</strong> <span id="qrn-view-recipient" style="font-family: monospace; font-size: 0.65rem;"></span></span>
+                                <span id="qrn-view-hasurl"></span>
+                            </div>
+                            <div class="p-1 rounded" style="font-size: 0.75rem; border: 1px solid #e0e0e0; background: #f5f5f5; color: #212529; white-space: pre-wrap; word-wrap: break-word; max-height: 55px; overflow-y: auto;">
+                                <span id="qrn-view-message"></span>
+                            </div>
+                            <div id="qrn-message-expand" style="display: none;">
+                                <button class="btn btn-link btn-sm p-0" style="font-size: 0.65rem;" onclick="toggleMessageExpand()">Show more</button>
                             </div>
                         </div>
                         
-                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
-                                <i class="fas fa-exclamation-triangle me-1" style="color: #dc3545;"></i> Triggered Rules
+                        <div class="mb-2 p-2 rounded" style="background: #fff5f5; border: 1px solid #f5c6cb;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span style="font-size: 0.7rem; font-weight: 600; color: #dc3545;"><i class="fas fa-exclamation-triangle me-1"></i>TRIGGERED RULES</span>
+                                <span id="qrn-rules-count" class="badge bg-danger" style="font-size: 0.55rem;">0</span>
                             </div>
-                            <div class="card-body py-2 px-2" id="qrn-view-triggered-rules" style="max-height: 140px; overflow-y: auto;">
-                            </div>
+                            <div id="qrn-view-triggered-rules" style="max-height: 50px; overflow-y: auto;"></div>
                         </div>
                         
-                        <div class="accordion accordion-flush" id="qrn-left-accordions">
-                            <div class="accordion-item" style="border: 1px solid #e9ecef; border-radius: 4px;">
+                        <div class="accordion accordion-flush" id="qrn-left-accordions" style="font-size: 0.7rem;">
+                            <div class="accordion-item" style="border: 1px solid #e9ecef; border-radius: 3px;">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-normalisation-collapse" style="font-size: 0.8rem; font-weight: 600; background: #f8f9fa;">
+                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-normalisation-collapse" style="font-size: 0.7rem; font-weight: 600; background: #f8f9fa;">
                                         <i class="fas fa-magic me-1" style="color: #6b21a8;"></i> Normalisation Debug
                                     </button>
                                 </h2>
                                 <div id="qrn-normalisation-collapse" class="accordion-collapse collapse">
-                                    <div class="accordion-body py-2 px-2" id="qrn-view-normalised" style="font-size: 0.75rem;">
-                                    </div>
+                                    <div class="accordion-body py-1 px-2" id="qrn-view-normalised" style="font-size: 0.7rem;"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
                     <div class="col-lg-6">
-                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
-                                <i class="fas fa-info-circle me-1" style="color: #1e3a5f;"></i> Metadata
-                            </div>
-                            <div class="card-body py-2 px-2">
-                                <div class="row g-2" style="font-size: 0.75rem;">
-                                    <div class="col-6">
-                                        <div class="text-muted" style="font-size: 0.65rem;">QUARANTINE ID</div>
-                                        <div id="qrn-view-id" style="font-family: monospace;"></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="text-muted" style="font-size: 0.65rem;">TIMESTAMP</div>
-                                        <div id="qrn-view-timestamp"></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="text-muted" style="font-size: 0.65rem;">ACCOUNT</div>
-                                        <div id="qrn-view-account"></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="text-muted" style="font-size: 0.65rem;">SUB-ACCOUNT</div>
-                                        <div id="qrn-view-subaccount"></div>
-                                    </div>
-                                </div>
+                        <div class="mb-2 p-2 rounded" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                            <span style="font-size: 0.7rem; font-weight: 600; color: #1e3a5f;"><i class="fas fa-info-circle me-1"></i>DETAILS</span>
+                            <table class="table table-sm table-borderless mb-0 mt-1" style="font-size: 0.7rem;">
+                                <tr>
+                                    <td style="width: 80px; padding: 0.1rem 0; color: #6c757d;">ID:</td>
+                                    <td style="padding: 0.1rem 0;"><code id="qrn-view-id" style="font-size: 0.65rem;"></code></td>
+                                    <td style="width: 80px; padding: 0.1rem 0; color: #6c757d;">Timestamp:</td>
+                                    <td style="padding: 0.1rem 0;" id="qrn-view-timestamp"></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.1rem 0; color: #6c757d;">Account:</td>
+                                    <td style="padding: 0.1rem 0;" id="qrn-view-account"></td>
+                                    <td style="padding: 0.1rem 0; color: #6c757d;">Sub-Acct:</td>
+                                    <td style="padding: 0.1rem 0;" id="qrn-view-subaccount"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="mb-2 p-2 rounded" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                            <span style="font-size: 0.7rem; font-weight: 600; color: #1e3a5f;"><i class="fas fa-clipboard-check me-1"></i>STATUS</span>
+                            <div class="d-flex align-items-center gap-3 mt-1" style="font-size: 0.7rem;">
+                                <div><span class="text-muted">Status:</span> <span id="qrn-view-status"></span></div>
+                                <div><span class="text-muted">Reviewer:</span> <span id="qrn-view-reviewer"></span></div>
+                                <div><span class="text-muted">At:</span> <span id="qrn-view-decisionat"></span></div>
                             </div>
                         </div>
                         
-                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
-                                <i class="fas fa-clipboard-check me-1" style="color: #1e3a5f;"></i> Review Status
-                            </div>
-                            <div class="card-body py-2 px-2">
-                                <div class="d-flex align-items-center gap-3" style="font-size: 0.75rem;">
-                                    <div>
-                                        <div class="text-muted" style="font-size: 0.65rem;">STATUS</div>
-                                        <div id="qrn-view-status"></div>
-                                    </div>
-                                    <div>
-                                        <div class="text-muted" style="font-size: 0.65rem;">REVIEWER</div>
-                                        <div id="qrn-view-reviewer"></div>
-                                    </div>
-                                    <div>
-                                        <div class="text-muted" style="font-size: 0.65rem;">DECISION AT</div>
-                                        <div id="qrn-view-decisionat"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
-                                <i class="fas fa-sticky-note me-1" style="color: #1e3a5f;"></i> Internal Notes
-                                <span class="badge text-white float-end" style="font-size: 0.55rem; background: #1e3a5f;">ADMIN ONLY</span>
-                            </div>
-                            <div class="card-body py-2 px-2">
-                                <div id="qrn-view-notes-list" style="max-height: 60px; overflow-y: auto; font-size: 0.75rem;"></div>
-                                <div class="mt-1" id="qrn-add-note-section">
-                                    <div class="input-group input-group-sm">
-                                        <input type="text" class="form-control form-control-sm" id="qrn-new-note" placeholder="Add internal note..." style="font-size: 0.75rem;">
-                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="addQuarantineNote()" style="font-size: 0.75rem;">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="accordion accordion-flush" id="qrn-right-accordions">
-                            <div class="accordion-item mb-1" style="border: 1px solid #e9ecef; border-radius: 4px;">
+                        <div class="accordion accordion-flush" id="qrn-right-accordions" style="font-size: 0.7rem;">
+                            <div class="accordion-item mb-1" style="border: 1px solid #e9ecef; border-radius: 3px;">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-raw-metadata-collapse" style="font-size: 0.8rem; font-weight: 600; background: #f8f9fa;">
-                                        <i class="fas fa-code me-1" style="color: #6c757d;"></i> Raw Metadata JSON
+                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-notes-collapse" style="font-size: 0.7rem; font-weight: 600; background: #f8f9fa;">
+                                        <i class="fas fa-sticky-note me-1" style="color: #1e3a5f;"></i> Internal Notes <span class="badge text-white ms-1" style="font-size: 0.5rem; background: #1e3a5f;">ADMIN</span>
+                                    </button>
+                                </h2>
+                                <div id="qrn-notes-collapse" class="accordion-collapse collapse">
+                                    <div class="accordion-body py-1 px-2">
+                                        <div id="qrn-view-notes-list" style="max-height: 50px; overflow-y: auto; font-size: 0.7rem;"></div>
+                                        <div class="mt-1" id="qrn-add-note-section">
+                                            <div class="input-group input-group-sm">
+                                                <input type="text" class="form-control form-control-sm" id="qrn-new-note" placeholder="Add note..." style="font-size: 0.7rem; padding: 0.15rem 0.4rem;">
+                                                <button class="btn btn-outline-secondary btn-sm" type="button" onclick="addQuarantineNote()" style="font-size: 0.65rem; padding: 0.15rem 0.4rem;"><i class="fas fa-plus"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item mb-1" style="border: 1px solid #e9ecef; border-radius: 3px;">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-raw-metadata-collapse" style="font-size: 0.7rem; font-weight: 600; background: #f8f9fa;">
+                                        <i class="fas fa-code me-1" style="color: #6c757d;"></i> Raw JSON
                                     </button>
                                 </h2>
                                 <div id="qrn-raw-metadata-collapse" class="accordion-collapse collapse">
-                                    <div class="accordion-body py-2 px-2">
-                                        <pre id="qrn-view-raw-json" style="font-size: 0.65rem; background: #f8f9fa; padding: 0.5rem; border-radius: 4px; max-height: 120px; overflow: auto; margin: 0;"></pre>
+                                    <div class="accordion-body py-1 px-2">
+                                        <pre id="qrn-view-raw-json" style="font-size: 0.6rem; background: #f8f9fa; padding: 0.25rem; border-radius: 3px; max-height: 80px; overflow: auto; margin: 0;"></pre>
                                     </div>
                                 </div>
                             </div>
-                            <div class="accordion-item" style="border: 1px solid #e9ecef; border-radius: 4px;">
+                            <div class="accordion-item" style="border: 1px solid #e9ecef; border-radius: 3px;">
                                 <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-routing-collapse" style="font-size: 0.8rem; font-weight: 600; background: #f8f9fa;">
-                                        <i class="fas fa-route me-1" style="color: #6c757d;"></i> Routing / Supplier Info
+                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-routing-collapse" style="font-size: 0.7rem; font-weight: 600; background: #f8f9fa;">
+                                        <i class="fas fa-route me-1" style="color: #6c757d;"></i> Routing Info
                                     </button>
                                 </h2>
                                 <div id="qrn-routing-collapse" class="accordion-collapse collapse">
-                                    <div class="accordion-body py-2 px-2" id="qrn-view-routing" style="font-size: 0.75rem;">
-                                        <span class="text-muted">No routing info available (message blocked before routing)</span>
+                                    <div class="accordion-body py-1 px-2" id="qrn-view-routing" style="font-size: 0.7rem;">
+                                        <span class="text-muted">No routing info (blocked before routing)</span>
                                     </div>
                                 </div>
                             </div>
@@ -4271,8 +4248,11 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('qrn-view-decisionat').textContent = msg.decisionAt || '—';
         
         var triggeredRulesHtml = '';
+        var rulesCount = msg.triggeredRules ? msg.triggeredRules.length : 0;
+        document.getElementById('qrn-rules-count').textContent = rulesCount;
+        
         if (msg.triggeredRules && msg.triggeredRules.length > 0) {
-            triggeredRulesHtml = '<div class="d-flex flex-column gap-1">';
+            triggeredRulesHtml = '<div class="d-flex flex-wrap gap-1">';
             msg.triggeredRules.forEach(function(rule) {
                 var engineColor = rule.engine === 'SenderIdEnforcementEngine' ? '#6b21a8' 
                     : rule.engine === 'MessageContentEngine' ? '#1e3a5f'
@@ -4282,18 +4262,14 @@ var SecurityComplianceControlsService = (function() {
                     : rule.engine === 'MessageContentEngine' ? 'CNT'
                     : rule.engine === 'UrlEnforcementEngine' ? 'URL'
                     : 'OTH';
-                triggeredRulesHtml += '<div class="px-2 py-1" style="border-left: 3px solid ' + engineColor + '; background: #fafafa; border-radius: 2px; font-size: 0.75rem;">' +
-                    '<div class="d-flex align-items-center gap-1">' +
-                    '<span class="badge" style="background: ' + engineColor + '; font-size: 0.55rem;">' + engineShort + '</span>' +
-                    '<strong style="font-size: 0.7rem;">' + rule.ruleName + '</strong>' +
-                    '<code style="font-size: 0.6rem; background: #e9ecef; padding: 0 0.2rem;">' + rule.ruleId + '</code>' +
-                    '</div>' +
-                    '<small class="text-muted" style="font-size: 0.65rem;">Match: ' + rule.matchType + ' → ' + escapeHtml(rule.matchedValue).substring(0, 50) + (rule.matchedValue.length > 50 ? '...' : '') + '</small>' +
-                '</div>';
+                var truncatedMatch = escapeHtml(rule.matchedValue).substring(0, 25) + (rule.matchedValue.length > 25 ? '...' : '');
+                triggeredRulesHtml += '<span class="badge d-inline-flex align-items-center" style="background: ' + engineColor + '; font-size: 0.6rem; font-weight: 500; padding: 0.2rem 0.4rem;" title="' + escapeHtml(rule.matchedValue) + '">' +
+                    engineShort + ': ' + rule.ruleName.substring(0, 15) + (rule.ruleName.length > 15 ? '...' : '') +
+                '</span>';
             });
             triggeredRulesHtml += '</div>';
         } else {
-            triggeredRulesHtml = '<span class="text-muted" style="font-size: 0.75rem;">No rule details available</span>';
+            triggeredRulesHtml = '<span class="text-muted" style="font-size: 0.65rem;">No rules triggered</span>';
         }
         document.getElementById('qrn-view-triggered-rules').innerHTML = triggeredRulesHtml;
         
@@ -4342,12 +4318,12 @@ var SecurityComplianceControlsService = (function() {
         var notesHtml = '';
         if (msg.notes && msg.notes.length > 0) {
             msg.notes.forEach(function(note) {
-                notesHtml += '<div class="mb-2 p-2 bg-light rounded" style="border-left: 3px solid #1e3a5f;">' +
-                    '<small class="text-muted">' + note.timestamp + ' - ' + note.author.split('@')[0] + '</small><br>' +
-                    '<span>' + escapeHtml(note.text) + '</span></div>';
+                notesHtml += '<div class="mb-1 p-1 bg-light rounded" style="border-left: 2px solid #1e3a5f; font-size: 0.65rem;">' +
+                    '<span class="text-muted">' + note.timestamp.split(' ')[0] + ' ' + note.author.split('@')[0] + ':</span> ' +
+                    escapeHtml(note.text) + '</div>';
             });
         } else {
-            notesHtml = '<span class="text-muted" style="font-size: 0.8rem;">No notes yet</span>';
+            notesHtml = '<span class="text-muted" style="font-size: 0.65rem;">No notes</span>';
         }
         document.getElementById('qrn-view-notes-list').innerHTML = notesHtml;
         document.getElementById('qrn-new-note').value = '';
@@ -4366,23 +4342,23 @@ var SecurityComplianceControlsService = (function() {
         
         var actionsDiv = document.getElementById('qrn-view-actions');
         if (msg.status === 'pending') {
-            var actionsHtml = '<button class="btn btn-success btn-sm" onclick="releaseQuarantinedMessageFromModal()">' +
-                '<i class="fas fa-paper-plane me-1"></i> Release (Send)</button> ' +
-                '<button class="btn btn-danger btn-sm" onclick="blockQuarantinedMessageFromModal()">' +
-                '<i class="fas fa-ban me-1"></i> Block Permanently</button> ';
+            var actionsHtml = '<button class="btn btn-success btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="releaseQuarantinedMessageFromModal()">' +
+                '<i class="fas fa-paper-plane me-1"></i>Release</button> ' +
+                '<button class="btn btn-danger btn-sm" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="blockQuarantinedMessageFromModal()">' +
+                '<i class="fas fa-ban me-1"></i>Block</button> ';
             
             if (mockData.quarantineFeatureFlags.allowAddExceptionFromQuarantine) {
-                actionsHtml += '<button class="btn btn-outline-primary btn-sm" onclick="addExceptionFromQuarantine()">' +
-                    '<i class="fas fa-shield-alt me-1"></i> Add Exception</button> ';
+                actionsHtml += '<button class="btn btn-outline-primary btn-sm" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;" onclick="addExceptionFromQuarantine()">' +
+                    '<i class="fas fa-shield-alt me-1"></i>Exception</button> ';
             }
             if (mockData.quarantineFeatureFlags.allowCreateRuleFromQuarantine) {
-                actionsHtml += '<button class="btn btn-outline-secondary btn-sm" onclick="createRuleFromQuarantine()">' +
-                    '<i class="fas fa-plus me-1"></i> Create Rule</button>';
+                actionsHtml += '<button class="btn btn-outline-secondary btn-sm" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;" onclick="createRuleFromQuarantine()">' +
+                    '<i class="fas fa-plus me-1"></i>Rule</button>';
             }
             actionsDiv.innerHTML = actionsHtml;
         } else {
-            actionsDiv.innerHTML = '<span class="badge bg-secondary"><i class="fas fa-check-circle me-1"></i> Reviewed</span> ' +
-                '<span class="text-muted" style="font-size: 0.85rem;">Decision made on ' + msg.decisionAt + ' by ' + (msg.reviewer ? msg.reviewer.split('@')[0] : 'System') + '</span>';
+            actionsDiv.innerHTML = '<span class="badge bg-secondary" style="font-size: 0.65rem;"><i class="fas fa-check-circle me-1"></i>Reviewed</span> ' +
+                '<span class="text-muted" style="font-size: 0.7rem;">' + msg.decisionAt + ' by ' + (msg.reviewer ? msg.reviewer.split('@')[0] : 'System') + '</span>';
         }
         
         var modal = new bootstrap.Modal(document.getElementById('quarantineViewModal'));
@@ -4430,6 +4406,22 @@ var SecurityComplianceControlsService = (function() {
             document.body.removeChild(textArea);
             showToast('Message copied to clipboard', 'success');
         });
+    }
+    
+    var messageExpanded = false;
+    function toggleMessageExpand() {
+        var msgBox = document.querySelector('#qrn-view-message').parentElement;
+        var btn = document.querySelector('#qrn-message-expand button');
+        if (!msgBox || !btn) return;
+        
+        messageExpanded = !messageExpanded;
+        if (messageExpanded) {
+            msgBox.style.maxHeight = '150px';
+            btn.textContent = 'Show less';
+        } else {
+            msgBox.style.maxHeight = '55px';
+            btn.textContent = 'Show more';
+        }
     }
     
     function addQuarantineNote() {
@@ -5064,6 +5056,7 @@ var SecurityComplianceControlsService = (function() {
         setupQuarantineTabListeners: setupQuarantineTabListeners,
         addQuarantineNote: addQuarantineNote,
         copyQuarantineMessage: copyQuarantineMessage,
+        toggleMessageExpand: toggleMessageExpand,
         addExceptionFromQuarantine: addExceptionFromQuarantine,
         createRuleFromQuarantine: createRuleFromQuarantine,
         releaseQuarantinedMessageFromModal: releaseQuarantinedMessageFromModal,
@@ -8198,6 +8191,10 @@ function addQuarantineNote() {
 
 function copyQuarantineMessage() {
     SecurityComplianceControlsService.copyQuarantineMessage();
+}
+
+function toggleMessageExpand() {
+    SecurityComplianceControlsService.toggleMessageExpand();
 }
 
 function addExceptionFromQuarantine() {
