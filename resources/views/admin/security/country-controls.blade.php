@@ -3178,6 +3178,7 @@ function updateReviewStats() {
 }
 
 var pendingApprovalRequest = null;
+var pendingRejectionRequest = null;
 
 function approveRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
@@ -3731,8 +3732,6 @@ function formatDateDDMMYYYY(date) {
 function padZero(n) {
     return n < 10 ? '0' + n : n;
 }
-
-var pendingRejectionRequest = null;
 
 function generateMockCountries() {
     var countryData = [
