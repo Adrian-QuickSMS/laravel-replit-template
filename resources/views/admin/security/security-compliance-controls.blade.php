@@ -2911,7 +2911,7 @@ console.log('[SecurityComplianceControls] Initialized');
 </script>
 
 <div class="modal fade" id="addSenderIdExemptionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
                 <h5 class="modal-title" style="font-weight: 600; color: #1e3a5f;">
@@ -2919,56 +2919,176 @@ console.log('[SecurityComplianceControls] Initialized');
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <form id="addExemptionForm">
-                    <div class="mb-3">
-                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">SenderID <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="exemption-senderid" placeholder="e.g. MYCOMPANY" maxlength="11" style="text-transform: uppercase; font-family: monospace;">
-                        <small class="text-muted">Max 11 alphanumeric characters</small>
+            <div class="modal-body" style="padding: 0;">
+                <div class="exemption-wizard">
+                    <div class="wizard-steps" style="display: flex; justify-content: center; padding: 1rem; background: #f8fafc; border-bottom: 1px solid #e9ecef;">
+                        <div class="wizard-step active" data-step="1" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="step-number" style="width: 28px; height: 28px; border-radius: 50%; background: #1e3a5f; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600;">1</span>
+                            <span class="step-label" style="font-size: 0.85rem; font-weight: 500; color: #1e3a5f;">SenderID Definition</span>
+                        </div>
+                        <div class="step-connector" style="width: 60px; height: 2px; background: #e9ecef; margin: 0 1rem; align-self: center;"></div>
+                        <div class="wizard-step" data-step="2" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span class="step-number" style="width: 28px; height: 28px; border-radius: 50%; background: #e9ecef; color: #6c757d; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600;">2</span>
+                            <span class="step-label" style="font-size: 0.85rem; font-weight: 500; color: #6c757d;">Assignment Scope</span>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Scope <span class="text-danger">*</span></label>
-                        <select class="form-select" id="exemption-scope">
-                            <option value="global">Global (All Accounts)</option>
-                            <option value="account">Specific Account</option>
-                        </select>
-                    </div>
-                    <div class="mb-3" id="exemption-account-group" style="display: none;">
-                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Account <span class="text-danger">*</span></label>
-                        <select class="form-select" id="exemption-account">
-                            <option value="">Select account...</option>
-                            <option value="ACC-10045">TechStart Ltd (ACC-10045)</option>
-                            <option value="ACC-10089">HealthFirst UK (ACC-10089)</option>
-                            <option value="ACC-10112">E-Commerce Hub (ACC-10112)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Category <span class="text-danger">*</span></label>
-                        <select class="form-select" id="exemption-category">
-                            <option value="">Select category...</option>
-                            <option value="government_healthcare">Government and Healthcare</option>
-                            <option value="banking_finance">Banking and Finance</option>
-                            <option value="delivery_logistics">Delivery and logistics</option>
-                            <option value="miscellaneous">Miscellaneous</option>
-                            <option value="generic">Generic</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Expiry Date (Optional)</label>
-                        <input type="date" class="form-control" id="exemption-expiry">
-                        <small class="text-muted">Leave empty for no expiry</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" style="font-weight: 500; font-size: 0.85rem;">Notes</label>
-                        <textarea class="form-control" id="exemption-notes" rows="2" placeholder="Reason for exemption..."></textarea>
-                    </div>
-                </form>
+                    
+                    <form id="addExemptionForm" style="padding: 1.25rem;">
+                        <div id="exemption-step-1">
+                            <div class="alert" style="background: rgba(30, 58, 95, 0.06); border: 1px solid rgba(30, 58, 95, 0.12); color: #1e3a5f; font-size: 0.85rem; margin-bottom: 1.25rem;">
+                                <strong>Step 1: SenderID Type & Value</strong> – Choose the type and enter the SenderID value.
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">SenderID Type <span class="text-danger">*</span></label>
+                                <div class="exemption-type-selector" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                                    <div class="exemption-type-card selected" data-type="alphanumeric" style="flex: 1; min-width: 120px; max-width: 160px; padding: 1rem 0.75rem; border: 2px solid #1e3a5f; border-radius: 0.5rem; text-align: center; cursor: pointer; background: rgba(30, 58, 95, 0.05); transition: all 0.2s;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: #1e3a5f; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                                            <i class="fas fa-font" style="color: #fff;"></i>
+                                        </div>
+                                        <div style="font-weight: 600; font-size: 0.85rem; color: #343a40;">Alphanumeric</div>
+                                        <div style="font-size: 0.7rem; color: #6c757d;">e.g. MYBRAND</div>
+                                    </div>
+                                    <div class="exemption-type-card" data-type="numeric" style="flex: 1; min-width: 120px; max-width: 160px; padding: 1rem 0.75rem; border: 2px solid #e9ecef; border-radius: 0.5rem; text-align: center; cursor: pointer; background: #fff; transition: all 0.2s;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(30, 58, 95, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                                            <i class="fas fa-phone" style="color: #1e3a5f;"></i>
+                                        </div>
+                                        <div style="font-weight: 600; font-size: 0.85rem; color: #343a40;">Numeric</div>
+                                        <div style="font-size: 0.7rem; color: #6c757d;">e.g. 447700...</div>
+                                    </div>
+                                    <div class="exemption-type-card" data-type="shortcode" style="flex: 1; min-width: 120px; max-width: 160px; padding: 1rem 0.75rem; border: 2px solid #e9ecef; border-radius: 0.5rem; text-align: center; cursor: pointer; background: #fff; transition: all 0.2s;">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(30, 58, 95, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                                            <i class="fas fa-hashtag" style="color: #1e3a5f;"></i>
+                                        </div>
+                                        <div style="font-weight: 600; font-size: 0.85rem; color: #343a40;">Shortcode</div>
+                                        <div style="font-size: 0.7rem; color: #6c757d;">e.g. 60123</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="exemption-type" value="alphanumeric">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">SenderID Value <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="exemption-senderid" placeholder="e.g. MYCOMPANY" maxlength="11" style="font-size: 1.1rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; font-family: monospace;">
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small class="text-muted" id="exemption-senderid-hint">3-11 characters: A-Z a-z 0-9</small>
+                                    <small class="text-muted"><span id="exemption-senderid-charcount">0</span>/11</small>
+                                </div>
+                                <div class="invalid-feedback" id="exemption-senderid-error"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="exemption-category">
+                                    <option value="">Select category...</option>
+                                    <option value="government_healthcare">Government and Healthcare</option>
+                                    <option value="banking_finance">Banking and Finance</option>
+                                    <option value="delivery_logistics">Delivery and logistics</option>
+                                    <option value="miscellaneous">Miscellaneous</option>
+                                    <option value="generic">Generic</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-0">
+                                <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Notes (Optional)</label>
+                                <textarea class="form-control" id="exemption-notes" rows="2" placeholder="Reason for exemption..." style="font-size: 0.85rem;"></textarea>
+                            </div>
+                        </div>
+                        
+                        <div id="exemption-step-2" style="display: none;">
+                            <div class="alert" style="background: rgba(30, 58, 95, 0.06); border: 1px solid rgba(30, 58, 95, 0.12); color: #1e3a5f; font-size: 0.85rem; margin-bottom: 1.25rem;">
+                                <strong>Step 2: Assignment Scope</strong> – Define where this exemption applies.
+                            </div>
+                            
+                            <div class="exemption-summary-card" style="background: #f8f9fa; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.25rem; border: 1px solid #e9ecef;">
+                                <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">SenderID to Exempt</div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <code id="exemption-summary-senderid" style="font-size: 1.1rem; padding: 0.25rem 0.75rem; background: #e9ecef; border-radius: 4px;">-</code>
+                                    <span class="badge" id="exemption-summary-type" style="background: #1e3a5f; font-size: 0.7rem;">Alphanumeric</span>
+                                    <span class="badge" id="exemption-summary-category" style="background: #6c757d; font-size: 0.7rem;">-</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Assign To <span class="text-danger">*</span></label>
+                                <div class="exemption-scope-options" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <label class="scope-option selected" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border: 2px solid #1e3a5f; border-radius: 0.5rem; cursor: pointer; background: rgba(30, 58, 95, 0.03);">
+                                        <input type="radio" name="exemption-scope" value="global" checked style="width: 18px; height: 18px; accent-color: #1e3a5f;">
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.85rem; color: #343a40;"><i class="fas fa-globe me-1 text-info"></i>Global (All Accounts)</div>
+                                            <div style="font-size: 0.75rem; color: #6c757d;">Exemption applies platform-wide</div>
+                                        </div>
+                                    </label>
+                                    <label class="scope-option" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border: 2px solid #e9ecef; border-radius: 0.5rem; cursor: pointer; background: #fff;">
+                                        <input type="radio" name="exemption-scope" value="account" style="width: 18px; height: 18px; accent-color: #1e3a5f;">
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.85rem; color: #343a40;"><i class="fas fa-building me-1 text-secondary"></i>Specific Account</div>
+                                            <div style="font-size: 0.75rem; color: #6c757d;">Exemption applies to one account only</div>
+                                        </div>
+                                    </label>
+                                    <label class="scope-option" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border: 2px solid #e9ecef; border-radius: 0.5rem; cursor: pointer; background: #fff;">
+                                        <input type="radio" name="exemption-scope" value="subaccount" style="width: 18px; height: 18px; accent-color: #1e3a5f;">
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.85rem; color: #343a40;"><i class="fas fa-sitemap me-1" style="color: #6f42c1;"></i>Specific Sub-account(s)</div>
+                                            <div style="font-size: 0.75rem; color: #6c757d;">Exemption applies to selected sub-accounts</div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3" id="exemption-account-group" style="display: none;">
+                                <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Select Account <span class="text-danger">*</span></label>
+                                <select class="form-select" id="exemption-account" style="font-size: 0.9rem;">
+                                    <option value="">Type to search accounts...</option>
+                                    <option value="ACC-1234">Acme Corporation (ACC-1234)</option>
+                                    <option value="ACC-5678">Finance Ltd (ACC-5678)</option>
+                                    <option value="ACC-4001">RetailMax Group (ACC-4001)</option>
+                                    <option value="ACC-4005">HealthPlus Care (ACC-4005)</option>
+                                    <option value="ACC-4008">TechStartup Inc (ACC-4008)</option>
+                                    <option value="ACC-4009">FoodDelivery Pro (ACC-4009)</option>
+                                    <option value="ACC-10045">TechStart Ltd (ACC-10045)</option>
+                                    <option value="ACC-10089">HealthFirst UK (ACC-10089)</option>
+                                    <option value="ACC-10112">E-Commerce Hub (ACC-10112)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3" id="exemption-subaccount-group" style="display: none;">
+                                <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Select Sub-account(s) <span class="text-danger">*</span></label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="exemption-all-subaccounts">
+                                    <label class="form-check-label" for="exemption-all-subaccounts" style="font-size: 0.85rem;">
+                                        <strong>All sub-accounts</strong> (current and future)
+                                    </label>
+                                </div>
+                                <div id="exemption-subaccount-list" style="max-height: 150px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 0.375rem; padding: 0.5rem;">
+                                    <div class="text-muted text-center py-2" style="font-size: 0.8rem;">
+                                        <i class="fas fa-info-circle me-1"></i>Select an account first
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-0">
+                                <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Expiry Date (Optional)</label>
+                                <input type="date" class="form-control" id="exemption-expiry" style="font-size: 0.9rem;">
+                                <small class="text-muted">Leave empty for no expiry</small>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="modal-footer" style="border-top: 1px solid #e9ecef;">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="sec-primary-btn" onclick="saveNewExemption()">
-                    <i class="fas fa-plus me-1"></i>Add Exemption
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; display: flex; justify-content: space-between;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="exemption-back-btn" style="display: none;" onclick="exemptionWizardBack()">
+                    <i class="fas fa-arrow-left me-1"></i>Back
                 </button>
+                <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="sec-primary-btn" id="exemption-next-btn" onclick="exemptionWizardNext()">
+                        Next <i class="fas fa-arrow-right ms-1"></i>
+                    </button>
+                    <button type="button" class="sec-primary-btn" id="exemption-confirm-btn" style="display: none;" onclick="saveNewExemption()">
+                        <i class="fas fa-check me-1"></i>Confirm & Add
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -5662,42 +5782,290 @@ var SecurityComplianceControlsService = (function() {
         }
     }
     
+    var exemptionWizardStep = 1;
+    var mockSubAccounts = {
+        'ACC-1234': [{ id: 'SUB-001', name: 'Marketing Dept' }, { id: 'SUB-002', name: 'Sales Team' }],
+        'ACC-5678': [{ id: 'SUB-003', name: 'Corporate' }, { id: 'SUB-004', name: 'Retail' }],
+        'ACC-4005': [{ id: 'SUB-010', name: 'Clinic A' }, { id: 'SUB-011', name: 'Clinic B' }, { id: 'SUB-012', name: 'Clinic C' }],
+        'ACC-4008': [{ id: 'SUB-020', name: 'Dev Team' }],
+        'ACC-10045': [{ id: 'SUB-030', name: 'Engineering' }, { id: 'SUB-031', name: 'Product' }],
+        'ACC-10089': [{ id: 'SUB-040', name: 'Primary Care' }, { id: 'SUB-041', name: 'Specialists' }],
+        'ACC-10112': [{ id: 'SUB-050', name: 'Fashion' }, { id: 'SUB-051', name: 'Electronics' }, { id: 'SUB-052', name: 'Home' }]
+    };
+    
     function showAddSenderIdExemptionModal() {
+        exemptionWizardStep = 1;
         document.getElementById('addExemptionForm').reset();
+        document.getElementById('exemption-step-1').style.display = 'block';
+        document.getElementById('exemption-step-2').style.display = 'none';
+        document.getElementById('exemption-back-btn').style.display = 'none';
+        document.getElementById('exemption-next-btn').style.display = 'inline-flex';
+        document.getElementById('exemption-confirm-btn').style.display = 'none';
         document.getElementById('exemption-account-group').style.display = 'none';
+        document.getElementById('exemption-subaccount-group').style.display = 'none';
+        document.getElementById('exemption-type').value = 'alphanumeric';
+        document.getElementById('exemption-senderid-charcount').textContent = '0';
         
-        document.getElementById('exemption-scope').addEventListener('change', function() {
-            var accountGroup = document.getElementById('exemption-account-group');
-            accountGroup.style.display = this.value === 'account' ? 'block' : 'none';
+        updateExemptionWizardSteps(1);
+        
+        document.querySelectorAll('.exemption-type-card').forEach(function(card) {
+            card.classList.remove('selected');
+            card.style.borderColor = '#e9ecef';
+            card.style.background = '#fff';
+            card.querySelector('div:first-child').style.background = 'rgba(30, 58, 95, 0.1)';
+            card.querySelector('div:first-child i').style.color = '#1e3a5f';
         });
+        var alphaCard = document.querySelector('.exemption-type-card[data-type="alphanumeric"]');
+        if (alphaCard) {
+            alphaCard.classList.add('selected');
+            alphaCard.style.borderColor = '#1e3a5f';
+            alphaCard.style.background = 'rgba(30, 58, 95, 0.05)';
+            alphaCard.querySelector('div:first-child').style.background = '#1e3a5f';
+            alphaCard.querySelector('div:first-child i').style.color = '#fff';
+        }
+        
+        document.querySelectorAll('.scope-option').forEach(function(opt) {
+            opt.classList.remove('selected');
+            opt.style.borderColor = '#e9ecef';
+            opt.style.background = '#fff';
+        });
+        var globalOpt = document.querySelector('.scope-option input[value="global"]');
+        if (globalOpt) {
+            globalOpt.checked = true;
+            globalOpt.closest('.scope-option').classList.add('selected');
+            globalOpt.closest('.scope-option').style.borderColor = '#1e3a5f';
+            globalOpt.closest('.scope-option').style.background = 'rgba(30, 58, 95, 0.03)';
+        }
+        
+        setupExemptionWizardListeners();
         
         var modal = new bootstrap.Modal(document.getElementById('addSenderIdExemptionModal'));
         modal.show();
         console.log('[SecurityComplianceControls] showAddSenderIdExemptionModal called');
     }
     
-    function saveNewExemption() {
-        var senderId = document.getElementById('exemption-senderid').value.trim().toUpperCase();
-        var scope = document.getElementById('exemption-scope').value;
-        var category = document.getElementById('exemption-category').value;
-        var expiry = document.getElementById('exemption-expiry').value;
-        var notes = document.getElementById('exemption-notes').value.trim();
+    function setupExemptionWizardListeners() {
+        document.querySelectorAll('.exemption-type-card').forEach(function(card) {
+            card.onclick = function() {
+                document.querySelectorAll('.exemption-type-card').forEach(function(c) {
+                    c.classList.remove('selected');
+                    c.style.borderColor = '#e9ecef';
+                    c.style.background = '#fff';
+                    c.querySelector('div:first-child').style.background = 'rgba(30, 58, 95, 0.1)';
+                    c.querySelector('div:first-child i').style.color = '#1e3a5f';
+                });
+                card.classList.add('selected');
+                card.style.borderColor = '#1e3a5f';
+                card.style.background = 'rgba(30, 58, 95, 0.05)';
+                card.querySelector('div:first-child').style.background = '#1e3a5f';
+                card.querySelector('div:first-child i').style.color = '#fff';
+                document.getElementById('exemption-type').value = card.dataset.type;
+                updateSenderIdHint(card.dataset.type);
+            };
+        });
         
-        var validation = validateSenderIdFormat(senderId);
-        if (!validation.valid) {
-            alert(validation.error);
+        document.getElementById('exemption-senderid').oninput = function() {
+            var len = this.value.length;
+            document.getElementById('exemption-senderid-charcount').textContent = len;
+        };
+        
+        document.querySelectorAll('input[name="exemption-scope"]').forEach(function(radio) {
+            radio.onchange = function() {
+                document.querySelectorAll('.scope-option').forEach(function(opt) {
+                    opt.classList.remove('selected');
+                    opt.style.borderColor = '#e9ecef';
+                    opt.style.background = '#fff';
+                });
+                this.closest('.scope-option').classList.add('selected');
+                this.closest('.scope-option').style.borderColor = '#1e3a5f';
+                this.closest('.scope-option').style.background = 'rgba(30, 58, 95, 0.03)';
+                
+                var accountGroup = document.getElementById('exemption-account-group');
+                var subaccountGroup = document.getElementById('exemption-subaccount-group');
+                
+                if (this.value === 'global') {
+                    accountGroup.style.display = 'none';
+                    subaccountGroup.style.display = 'none';
+                } else if (this.value === 'account') {
+                    accountGroup.style.display = 'block';
+                    subaccountGroup.style.display = 'none';
+                } else if (this.value === 'subaccount') {
+                    accountGroup.style.display = 'block';
+                    subaccountGroup.style.display = 'block';
+                }
+            };
+        });
+        
+        document.getElementById('exemption-account').onchange = function() {
+            loadSubAccountsForExemption(this.value);
+        };
+        
+        document.getElementById('exemption-all-subaccounts').onchange = function() {
+            var checkboxes = document.querySelectorAll('#exemption-subaccount-list input[type="checkbox"]');
+            checkboxes.forEach(function(cb) {
+                cb.checked = this.checked;
+                cb.disabled = this.checked;
+            }.bind(this));
+        };
+    }
+    
+    function updateSenderIdHint(type) {
+        var hint = document.getElementById('exemption-senderid-hint');
+        var input = document.getElementById('exemption-senderid');
+        if (type === 'alphanumeric') {
+            hint.textContent = '3-11 characters: A-Z a-z 0-9';
+            input.maxLength = 11;
+            input.placeholder = 'e.g. MYCOMPANY';
+        } else if (type === 'numeric') {
+            hint.textContent = 'UK mobile format: 447XXXXXXXXX';
+            input.maxLength = 15;
+            input.placeholder = 'e.g. 447700900123';
+        } else if (type === 'shortcode') {
+            hint.textContent = '5-6 digit shortcode';
+            input.maxLength = 6;
+            input.placeholder = 'e.g. 60123';
+        }
+    }
+    
+    function loadSubAccountsForExemption(accountId) {
+        var listContainer = document.getElementById('exemption-subaccount-list');
+        var subAccounts = mockSubAccounts[accountId] || [];
+        
+        if (subAccounts.length === 0) {
+            listContainer.innerHTML = '<div class="text-muted text-center py-2" style="font-size: 0.8rem;"><i class="fas fa-info-circle me-1"></i>No sub-accounts found for this account</div>';
             return;
         }
-        senderId = validation.normalised;
+        
+        listContainer.innerHTML = subAccounts.map(function(sub) {
+            return '<div class="form-check">' +
+                '<input class="form-check-input exemption-subaccount-cb" type="checkbox" value="' + sub.id + '" id="sub-' + sub.id + '">' +
+                '<label class="form-check-label" for="sub-' + sub.id + '" style="font-size: 0.85rem;">' + sub.name + ' <span class="text-muted">(' + sub.id + ')</span></label>' +
+                '</div>';
+        }).join('');
+        
+        document.getElementById('exemption-all-subaccounts').checked = false;
+    }
+    
+    function updateExemptionWizardSteps(step) {
+        var step1Elem = document.querySelector('.wizard-step[data-step="1"]');
+        var step2Elem = document.querySelector('.wizard-step[data-step="2"]');
+        var connector = document.querySelector('.step-connector');
+        
+        if (step === 1) {
+            step1Elem.querySelector('.step-number').style.background = '#1e3a5f';
+            step1Elem.querySelector('.step-number').style.color = '#fff';
+            step1Elem.querySelector('.step-label').style.color = '#1e3a5f';
+            step2Elem.querySelector('.step-number').style.background = '#e9ecef';
+            step2Elem.querySelector('.step-number').style.color = '#6c757d';
+            step2Elem.querySelector('.step-label').style.color = '#6c757d';
+            connector.style.background = '#e9ecef';
+        } else {
+            step1Elem.querySelector('.step-number').style.background = '#1e3a5f';
+            step1Elem.querySelector('.step-number').style.color = '#fff';
+            step1Elem.querySelector('.step-label').style.color = '#1e3a5f';
+            step2Elem.querySelector('.step-number').style.background = '#1e3a5f';
+            step2Elem.querySelector('.step-number').style.color = '#fff';
+            step2Elem.querySelector('.step-label').style.color = '#1e3a5f';
+            connector.style.background = '#1e3a5f';
+        }
+    }
+    
+    function exemptionWizardNext() {
+        var senderId = document.getElementById('exemption-senderid').value.trim().toUpperCase();
+        var senderType = document.getElementById('exemption-type').value;
+        var category = document.getElementById('exemption-category').value;
+        
+        var validation = validateSenderIdForType(senderId, senderType);
+        if (!validation.valid) {
+            var input = document.getElementById('exemption-senderid');
+            input.classList.add('is-invalid');
+            document.getElementById('exemption-senderid-error').textContent = validation.error;
+            document.getElementById('exemption-senderid-error').style.display = 'block';
+            return;
+        }
+        document.getElementById('exemption-senderid').classList.remove('is-invalid');
+        document.getElementById('exemption-senderid-error').style.display = 'none';
         
         if (!category) {
             alert('Please select a category');
             return;
         }
         
+        exemptionWizardStep = 2;
+        document.getElementById('exemption-step-1').style.display = 'none';
+        document.getElementById('exemption-step-2').style.display = 'block';
+        document.getElementById('exemption-back-btn').style.display = 'inline-flex';
+        document.getElementById('exemption-next-btn').style.display = 'none';
+        document.getElementById('exemption-confirm-btn').style.display = 'inline-flex';
+        
+        updateExemptionWizardSteps(2);
+        
+        var categoryLabels = {
+            'government_healthcare': 'Govt & Healthcare',
+            'banking_finance': 'Banking & Finance',
+            'delivery_logistics': 'Delivery & Logistics',
+            'miscellaneous': 'Miscellaneous',
+            'generic': 'Generic'
+        };
+        var typeLabels = { 'alphanumeric': 'Alphanumeric', 'numeric': 'Numeric', 'shortcode': 'Shortcode' };
+        
+        document.getElementById('exemption-summary-senderid').textContent = senderId;
+        document.getElementById('exemption-summary-type').textContent = typeLabels[senderType] || senderType;
+        document.getElementById('exemption-summary-category').textContent = categoryLabels[category] || category;
+    }
+    
+    function exemptionWizardBack() {
+        exemptionWizardStep = 1;
+        document.getElementById('exemption-step-1').style.display = 'block';
+        document.getElementById('exemption-step-2').style.display = 'none';
+        document.getElementById('exemption-back-btn').style.display = 'none';
+        document.getElementById('exemption-next-btn').style.display = 'inline-flex';
+        document.getElementById('exemption-confirm-btn').style.display = 'none';
+        
+        updateExemptionWizardSteps(1);
+    }
+    
+    function validateSenderIdForType(senderId, type) {
+        if (!senderId) return { valid: false, error: 'SenderID is required' };
+        senderId = senderId.trim();
+        
+        if (type === 'alphanumeric') {
+            if (senderId.length < 3) return { valid: false, error: 'SenderID must be at least 3 characters' };
+            if (senderId.length > 11) return { valid: false, error: 'SenderID must be 11 characters or less' };
+            if (!/^[A-Za-z0-9]+$/.test(senderId)) return { valid: false, error: 'SenderID must contain only alphanumeric characters' };
+            if (/^\d+$/.test(senderId)) return { valid: false, error: 'Alphanumeric SenderID cannot be all numeric' };
+        } else if (type === 'numeric') {
+            if (!/^\d+$/.test(senderId)) return { valid: false, error: 'Numeric SenderID must contain only digits' };
+            if (senderId.length < 10) return { valid: false, error: 'Numeric SenderID must be at least 10 digits' };
+        } else if (type === 'shortcode') {
+            if (!/^\d+$/.test(senderId)) return { valid: false, error: 'Shortcode must contain only digits' };
+            if (senderId.length < 5 || senderId.length > 6) return { valid: false, error: 'Shortcode must be 5-6 digits' };
+        }
+        
+        return { valid: true, normalised: senderId.toUpperCase() };
+    }
+    
+    function saveNewExemption() {
+        var senderId = document.getElementById('exemption-senderid').value.trim().toUpperCase();
+        var senderType = document.getElementById('exemption-type').value;
+        var category = document.getElementById('exemption-category').value;
+        var expiry = document.getElementById('exemption-expiry').value;
+        var notes = document.getElementById('exemption-notes').value.trim();
+        var scopeRadio = document.querySelector('input[name="exemption-scope"]:checked');
+        var scope = scopeRadio ? scopeRadio.value : 'global';
+        
+        var validation = validateSenderIdForType(senderId, senderType);
+        if (!validation.valid) {
+            alert(validation.error);
+            return;
+        }
+        senderId = validation.normalised;
+        
         var accountId = 'global';
         var accountName = 'All Accounts';
-        if (scope === 'account') {
+        var selectedSubAccounts = [];
+        
+        if (scope === 'account' || scope === 'subaccount') {
             accountId = document.getElementById('exemption-account').value;
             if (!accountId) {
                 alert('Please select an account');
@@ -5705,6 +6073,21 @@ var SecurityComplianceControlsService = (function() {
             }
             var accountSelect = document.getElementById('exemption-account');
             accountName = accountSelect.options[accountSelect.selectedIndex].text.split(' (')[0];
+            
+            if (scope === 'subaccount') {
+                var allSubsChecked = document.getElementById('exemption-all-subaccounts').checked;
+                if (allSubsChecked) {
+                    selectedSubAccounts = (mockSubAccounts[accountId] || []).map(function(s) { return s.id; });
+                } else {
+                    document.querySelectorAll('.exemption-subaccount-cb:checked').forEach(function(cb) {
+                        selectedSubAccounts.push(cb.value);
+                    });
+                }
+                if (selectedSubAccounts.length === 0) {
+                    alert('Please select at least one sub-account or check "All sub-accounts"');
+                    return;
+                }
+            }
         }
         
         var existingApproval = mockData.senderIdApprovals.find(function(a) {
@@ -5728,12 +6111,16 @@ var SecurityComplianceControlsService = (function() {
         var newManualExemption = {
             id: 'MAN-' + String(mockData.manualExemptions.length + 1).padStart(3, '0'),
             senderId: senderId,
+            type: senderType,
             normalisedValue: normaliseSenderId(senderId),
-            accountId: accountId,
-            accountName: accountName,
+            accountId: scope === 'global' ? 'global' : accountId,
+            accountName: scope === 'global' ? 'All Accounts' : accountName,
+            scope: scope,
+            subAccounts: selectedSubAccounts,
             category: category,
             addedBy: currentAdmin.email,
             addedAt: formatDateTime(new Date()),
+            updatedAt: formatDateTime(new Date()),
             expiry: expiry ? expiry.split('-').reverse().join('-') + ' 00:00' : null,
             notes: notes || 'Manual exemption added by admin'
         };
@@ -5744,6 +6131,9 @@ var SecurityComplianceControlsService = (function() {
         logAuditEvent('MANUAL_EXEMPTION_CREATED', { 
             exemptionId: newManualExemption.id, 
             senderId: senderId, 
+            type: senderType,
+            scope: scope,
+            subAccounts: selectedSubAccounts,
             normalisedValue: newManualExemption.normalisedValue,
             accountId: accountId 
         });
