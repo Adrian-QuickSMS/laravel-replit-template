@@ -1436,10 +1436,18 @@
                                         <span>Filter</span>
                                         <span class="badge bg-primary" id="senderid-filter-count" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem;">0</span>
                                     </button>
-                                    <button class="sec-primary-btn" type="button" onclick="showAddSenderIdRuleModal()">
-                                        <i class="fas fa-plus"></i>
-                                        <span>Add Rule</span>
-                                    </button>
+                                    <div class="btn-group">
+                                        <button class="sec-primary-btn" type="button" onclick="showAddSenderIdRuleModal()">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Add Rule</span>
+                                        </button>
+                                        <button type="button" class="sec-primary-btn dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false" style="padding-left: 0.5rem; padding-right: 0.5rem; border-left: 1px solid rgba(255,255,255,0.3);">
+                                            <span class="visually-hidden">Toggle Dropdown</span>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="#" onclick="showImportRulesModal(); return false;"><i class="fas fa-file-import me-2"></i>Import Rules (CSV/XLSX)</a></li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -2371,6 +2379,123 @@
     </div>
 </div>
 
+<!-- Import Rules Modal -->
+<div class="modal fade" id="importRulesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #f8f9fc; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #1e3a5f; font-weight: 600;">
+                    <i class="fas fa-file-import me-2"></i>Import SenderID Rules
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Step 1: Upload -->
+                <div id="import-step-upload">
+                    <div class="alert alert-info" style="font-size: 0.85rem;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Supported formats:</strong> CSV, XLSX
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 500; color: #1e3a5f;">Required Columns</label>
+                        <div class="p-3 rounded" style="background: #f8f9fc; border: 1px solid #e9ecef; font-size: 0.8rem;">
+                            <table class="table table-sm mb-0" style="font-size: 0.8rem;">
+                                <thead>
+                                    <tr style="background: #e9ecef;">
+                                        <th style="padding: 0.4rem;">Column</th>
+                                        <th style="padding: 0.4rem;">Values</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><code>rule_name</code></td><td>Text (required)</td></tr>
+                                    <tr><td><code>base_senderid</code></td><td>Text (required)</td></tr>
+                                    <tr><td><code>rule_type</code></td><td><code>block</code> | <code>flag</code></td></tr>
+                                    <tr><td><code>category</code></td><td><code>government_healthcare</code> | <code>banking_finance</code> | <code>delivery_logistics</code> | <code>miscellaneous</code> | <code>generic</code></td></tr>
+                                    <tr><td><code>normalisation_applied</code></td><td><code>true</code> | <code>false</code></td></tr>
+                                    <tr><td><code>status</code></td><td><code>enabled</code> | <code>disabled</code></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 500; color: #1e3a5f;">Upload File</label>
+                        <input type="file" class="form-control" id="import-file-input" accept=".csv,.xlsx">
+                        <div class="invalid-feedback" id="import-file-error">Please select a valid CSV or XLSX file</div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn" style="background: #1e3a5f; color: #fff;" onclick="parseImportFile()">
+                            <i class="fas fa-upload me-1"></i> Upload & Validate
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Step 2: Preview -->
+                <div id="import-step-preview" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <span class="badge bg-success me-2" id="import-valid-count">0 Valid</span>
+                            <span class="badge bg-danger" id="import-invalid-count">0 Invalid</span>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetImportModal()">
+                            <i class="fas fa-arrow-left me-1"></i> Back
+                        </button>
+                    </div>
+                    
+                    <!-- Valid Rows -->
+                    <div class="mb-3" id="import-valid-section">
+                        <h6 style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f;">
+                            <i class="fas fa-check-circle text-success me-1"></i> Valid Rules
+                        </h6>
+                        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-striped" style="font-size: 0.75rem;">
+                                <thead style="position: sticky; top: 0; background: #f8f9fa;">
+                                    <tr>
+                                        <th style="padding: 0.3rem;">Rule Name</th>
+                                        <th style="padding: 0.3rem;">SenderID</th>
+                                        <th style="padding: 0.3rem;">Type</th>
+                                        <th style="padding: 0.3rem;">Category</th>
+                                        <th style="padding: 0.3rem;">Norm.</th>
+                                        <th style="padding: 0.3rem;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="import-valid-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Invalid Rows -->
+                    <div class="mb-3" id="import-invalid-section" style="display: none;">
+                        <h6 style="font-size: 0.85rem; font-weight: 600; color: #991b1b;">
+                            <i class="fas fa-times-circle text-danger me-1"></i> Invalid Rows (will be skipped)
+                        </h6>
+                        <div class="table-responsive" style="max-height: 150px; overflow-y: auto;">
+                            <table class="table table-sm" style="font-size: 0.75rem; background: #fef2f2;">
+                                <thead style="position: sticky; top: 0; background: #fee2e2;">
+                                    <tr>
+                                        <th style="padding: 0.3rem;">Row</th>
+                                        <th style="padding: 0.3rem;">Data</th>
+                                        <th style="padding: 0.3rem;">Error</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="import-invalid-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background: #f8f9fc; border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" style="background: #1e3a5f; color: #fff; display: none;" id="import-confirm-btn" onclick="confirmImportRules()">
+                    <i class="fas fa-check me-1"></i> <span id="import-confirm-text">Import 0 Rules</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
@@ -3177,6 +3302,8 @@ console.log('[SecurityComplianceControls] Initialized');
 @endsection
 
 @push('scripts')
+<!-- SheetJS for XLSX parsing -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 @include('shared.services.message-enforcement-service')
 <script>
 var currentAdmin = {
@@ -9657,6 +9784,274 @@ function showSuccessToast(message) {
     toastEl.addEventListener('hidden.bs.toast', function() {
         toastEl.remove();
     });
+}
+
+// ===== Import Rules Functions =====
+var pendingImportRules = [];
+var VALID_CATEGORIES = ['government_healthcare', 'banking_finance', 'delivery_logistics', 'miscellaneous', 'generic'];
+var VALID_RULE_TYPES = ['block', 'flag'];
+
+function showImportRulesModal() {
+    resetImportModal();
+    var modal = new bootstrap.Modal(document.getElementById('importRulesModal'));
+    modal.show();
+}
+
+function resetImportModal() {
+    pendingImportRules = [];
+    document.getElementById('import-step-upload').style.display = 'block';
+    document.getElementById('import-step-preview').style.display = 'none';
+    document.getElementById('import-confirm-btn').style.display = 'none';
+    document.getElementById('import-file-input').value = '';
+    document.getElementById('import-file-input').classList.remove('is-invalid');
+    document.getElementById('import-valid-tbody').innerHTML = '';
+    document.getElementById('import-invalid-tbody').innerHTML = '';
+}
+
+function parseImportFile() {
+    var fileInput = document.getElementById('import-file-input');
+    var file = fileInput.files[0];
+    
+    if (!file) {
+        fileInput.classList.add('is-invalid');
+        document.getElementById('import-file-error').textContent = 'Please select a file';
+        return;
+    }
+    
+    var fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.csv') && !fileName.endsWith('.xlsx')) {
+        fileInput.classList.add('is-invalid');
+        document.getElementById('import-file-error').textContent = 'Please select a valid CSV or XLSX file';
+        return;
+    }
+    
+    fileInput.classList.remove('is-invalid');
+    
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            var data = e.target.result;
+            var workbook;
+            
+            if (fileName.endsWith('.xlsx')) {
+                workbook = XLSX.read(data, { type: 'array' });
+            } else {
+                var csvText = new TextDecoder('utf-8').decode(new Uint8Array(data));
+                workbook = XLSX.read(csvText, { type: 'string' });
+            }
+            
+            var firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            var jsonData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+            
+            validateAndPreviewImport(jsonData);
+        } catch (err) {
+            console.error('[Import] Parse error:', err);
+            fileInput.classList.add('is-invalid');
+            document.getElementById('import-file-error').textContent = 'Error parsing file: ' + err.message;
+        }
+    };
+    
+    reader.readAsArrayBuffer(file);
+}
+
+function validateAndPreviewImport(rows) {
+    var validRows = [];
+    var invalidRows = [];
+    
+    rows.forEach(function(row, index) {
+        var errors = [];
+        var normalizedRow = normalizeImportRow(row);
+        
+        if (!normalizedRow.rule_name || normalizedRow.rule_name.trim() === '') {
+            errors.push('Missing rule_name');
+        }
+        
+        if (!normalizedRow.base_senderid || normalizedRow.base_senderid.trim() === '') {
+            errors.push('Missing base_senderid');
+        }
+        
+        if (!normalizedRow.rule_type || VALID_RULE_TYPES.indexOf(normalizedRow.rule_type.toLowerCase()) === -1) {
+            errors.push('Invalid rule_type (must be block or flag)');
+        }
+        
+        if (!normalizedRow.category || VALID_CATEGORIES.indexOf(normalizedRow.category.toLowerCase()) === -1) {
+            errors.push('Invalid category');
+        }
+        
+        if (errors.length === 0) {
+            validRows.push({
+                rowNum: index + 2,
+                rule_name: normalizedRow.rule_name.trim(),
+                base_senderid: normalizedRow.base_senderid.trim().toUpperCase(),
+                rule_type: normalizedRow.rule_type.toLowerCase(),
+                category: normalizedRow.category.toLowerCase(),
+                normalisation_applied: parseBooleanValue(normalizedRow.normalisation_applied),
+                status: normalizedRow.status && normalizedRow.status.toLowerCase() === 'disabled' ? 'disabled' : 'active'
+            });
+        } else {
+            invalidRows.push({
+                rowNum: index + 2,
+                data: JSON.stringify(row).substring(0, 60) + '...',
+                errors: errors.join('; ')
+            });
+        }
+    });
+    
+    pendingImportRules = validRows;
+    renderImportPreview(validRows, invalidRows);
+}
+
+function normalizeImportRow(row) {
+    var normalized = {};
+    Object.keys(row).forEach(function(key) {
+        var lowerKey = key.toLowerCase().trim().replace(/\s+/g, '_');
+        normalized[lowerKey] = row[key];
+    });
+    return normalized;
+}
+
+function parseBooleanValue(val) {
+    if (val === true || val === 1) return true;
+    if (val === false || val === 0) return false;
+    if (typeof val === 'string') {
+        var lower = val.toLowerCase().trim();
+        return lower === 'true' || lower === 'yes' || lower === '1';
+    }
+    return true;
+}
+
+function renderImportPreview(validRows, invalidRows) {
+    document.getElementById('import-step-upload').style.display = 'none';
+    document.getElementById('import-step-preview').style.display = 'block';
+    
+    document.getElementById('import-valid-count').textContent = validRows.length + ' Valid';
+    document.getElementById('import-invalid-count').textContent = invalidRows.length + ' Invalid';
+    
+    var validTbody = document.getElementById('import-valid-tbody');
+    validTbody.innerHTML = validRows.map(function(row) {
+        var typeBadge = row.rule_type === 'block' 
+            ? '<span class="badge bg-danger" style="font-size: 0.65rem;">Block</span>' 
+            : '<span class="badge bg-warning text-dark" style="font-size: 0.65rem;">Flag</span>';
+        var statusBadge = row.status === 'active'
+            ? '<span class="badge bg-success" style="font-size: 0.65rem;">Enabled</span>'
+            : '<span class="badge bg-secondary" style="font-size: 0.65rem;">Disabled</span>';
+        var normIcon = row.normalisation_applied 
+            ? '<i class="fas fa-check text-success"></i>' 
+            : '<i class="fas fa-times text-muted"></i>';
+        
+        return '<tr>' +
+            '<td style="padding: 0.3rem;">' + escapeHtml(row.rule_name) + '</td>' +
+            '<td style="padding: 0.3rem;"><code>' + escapeHtml(row.base_senderid) + '</code></td>' +
+            '<td style="padding: 0.3rem;">' + typeBadge + '</td>' +
+            '<td style="padding: 0.3rem;">' + getCategoryDisplayName(row.category) + '</td>' +
+            '<td style="padding: 0.3rem;">' + normIcon + '</td>' +
+            '<td style="padding: 0.3rem;">' + statusBadge + '</td>' +
+            '</tr>';
+    }).join('');
+    
+    if (validRows.length === 0) {
+        validTbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No valid rows found</td></tr>';
+    }
+    
+    var invalidSection = document.getElementById('import-invalid-section');
+    var invalidTbody = document.getElementById('import-invalid-tbody');
+    
+    if (invalidRows.length > 0) {
+        invalidSection.style.display = 'block';
+        invalidTbody.innerHTML = invalidRows.map(function(row) {
+            return '<tr>' +
+                '<td style="padding: 0.3rem;">' + row.rowNum + '</td>' +
+                '<td style="padding: 0.3rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">' + escapeHtml(row.data) + '</td>' +
+                '<td style="padding: 0.3rem; color: #991b1b;">' + escapeHtml(row.errors) + '</td>' +
+                '</tr>';
+        }).join('');
+    } else {
+        invalidSection.style.display = 'none';
+    }
+    
+    var confirmBtn = document.getElementById('import-confirm-btn');
+    if (validRows.length > 0) {
+        confirmBtn.style.display = 'inline-block';
+        document.getElementById('import-confirm-text').textContent = 'Import ' + validRows.length + ' Rule' + (validRows.length > 1 ? 's' : '');
+    } else {
+        confirmBtn.style.display = 'none';
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function confirmImportRules() {
+    if (pendingImportRules.length === 0) {
+        console.error('[Import] No rules to import');
+        return;
+    }
+    
+    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
+    if (rules.length === 0) {
+        rules = [
+            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
+            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
+            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government_healthcare', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
+            { id: 'SID-004', name: 'Block DPD Sender', baseSenderId: 'DPD', ruleType: 'block', category: 'delivery_logistics', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
+            { id: 'SID-005', name: 'Flag Generic Sender', baseSenderId: 'INFO', ruleType: 'flag', category: 'generic', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
+        ];
+    }
+    
+    var now = new Date();
+    var timestamp = now.toLocaleDateString('en-GB').replace(/\//g, '-') + ' ' + now.toTimeString().slice(0, 5);
+    var createdCount = 0;
+    var failedCount = 0;
+    var createdIds = [];
+    
+    pendingImportRules.forEach(function(importRow) {
+        try {
+            var newId = 'SID-' + String(rules.length + 1).padStart(3, '0');
+            rules.push({
+                id: newId,
+                name: importRow.rule_name,
+                baseSenderId: importRow.base_senderid,
+                ruleType: importRow.rule_type,
+                category: importRow.category,
+                applyNormalisation: importRow.normalisation_applied,
+                status: importRow.status,
+                createdBy: currentAdmin.email,
+                createdAt: timestamp,
+                updatedAt: timestamp
+            });
+            createdCount++;
+            createdIds.push(newId);
+        } catch (err) {
+            console.error('[Import] Failed to create rule:', err);
+            failedCount++;
+        }
+    });
+    
+    localStorage.setItem('senderIdRules', JSON.stringify(rules));
+    
+    logAuditEvent('SENDERID_RULES_BULK_IMPORT', {
+        createdCount: createdCount,
+        failedCount: failedCount,
+        createdIds: createdIds,
+        totalAttempted: pendingImportRules.length,
+        entityType: 'senderid_rule'
+    });
+    
+    bootstrap.Modal.getInstance(document.getElementById('importRulesModal')).hide();
+    SecurityComplianceControlsService.renderAllTabs();
+    
+    var message = createdCount + ' rule' + (createdCount !== 1 ? 's' : '') + ' imported successfully';
+    if (failedCount > 0) {
+        message += ' (' + failedCount + ' failed)';
+    }
+    showSuccessToast(message);
+    
+    pendingImportRules = [];
+    console.log('[Import] Bulk import complete:', { created: createdCount, failed: failedCount });
 }
 
 function toggleSenderIdRuleStatus(ruleId, newStatus) {
