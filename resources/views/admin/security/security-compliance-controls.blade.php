@@ -2167,93 +2167,149 @@
 </div>
 
 <div class="modal fade" id="quarantineViewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-xl">
-        <div class="modal-content">
-            <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
-                <h5 class="modal-title text-white">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 1100px;">
+        <div class="modal-content" style="display: flex; flex-direction: column; max-height: 85vh;">
+            <div class="modal-header py-2" style="background: #1e3a5f; border-bottom: none; flex-shrink: 0;">
+                <h6 class="modal-title text-white mb-0">
                     <i class="fas fa-shield-alt me-2"></i>Quarantine Review: <span id="qrn-view-id-header"></span>
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </h6>
+                <div class="d-flex align-items-center gap-2">
+                    <span id="qrn-view-status-header"></span>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
-            <div class="modal-body" style="padding: 1.5rem; max-height: 70vh; overflow-y: auto;">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card mb-3" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
-                                <i class="fas fa-info-circle me-1" style="color: #1e3a5f;"></i> Message Details
+            <div class="modal-body" style="padding: 1rem; overflow-y: auto; flex: 1;">
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
+                                <i class="fas fa-envelope me-1" style="color: #1e3a5f;"></i> Message Content
+                                <span class="badge bg-warning text-dark float-end" style="font-size: 0.6rem;">PII GATED</span>
                             </div>
-                            <div class="card-body py-2">
-                                <table class="table table-sm table-borderless mb-0" style="font-size: 0.8rem;">
-                                    <tr><td style="font-weight: 600; width: 120px;">Quarantine ID:</td><td id="qrn-view-id"></td></tr>
-                                    <tr><td style="font-weight: 600;">Timestamp:</td><td id="qrn-view-timestamp"></td></tr>
-                                    <tr><td style="font-weight: 600;">Account:</td><td id="qrn-view-account"></td></tr>
-                                    <tr><td style="font-weight: 600;">Sub-Account:</td><td id="qrn-view-subaccount"></td></tr>
-                                    <tr><td style="font-weight: 600;">SenderID:</td><td><code id="qrn-view-senderid" style="background: #f8f9fa; padding: 0.15rem 0.35rem; border-radius: 3px;"></code></td></tr>
-                                    <tr><td style="font-weight: 600;">Recipient:</td><td id="qrn-view-recipient"></td></tr>
-                                    <tr><td style="font-weight: 600;">URL Present:</td><td id="qrn-view-hasurl"></td></tr>
-                                </table>
+                            <div class="card-body py-2 px-2">
+                                <div class="d-flex gap-2 mb-2" style="font-size: 0.75rem;">
+                                    <span><strong>From:</strong> <code id="qrn-view-senderid" style="background: #e9ecef; padding: 0.1rem 0.25rem; border-radius: 2px; font-size: 0.7rem;"></code></span>
+                                    <span><strong>To:</strong> <span id="qrn-view-recipient" style="font-family: monospace;"></span></span>
+                                    <span id="qrn-view-hasurl"></span>
+                                </div>
+                                <div class="p-2 bg-light rounded" style="font-size: 0.8rem; border: 1px solid #dee2e6; min-height: 60px; max-height: 100px; overflow-y: auto;">
+                                    <span id="qrn-view-message"></span>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="card mb-3" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
+                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
                                 <i class="fas fa-exclamation-triangle me-1" style="color: #dc3545;"></i> Triggered Rules
                             </div>
-                            <div class="card-body py-2" id="qrn-view-triggered-rules">
+                            <div class="card-body py-2 px-2" id="qrn-view-triggered-rules" style="max-height: 140px; overflow-y: auto;">
                             </div>
                         </div>
                         
-                        <div class="card" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
-                                <i class="fas fa-magic me-1" style="color: #6b21a8;"></i> Normalised Values
-                            </div>
-                            <div class="card-body py-2" id="qrn-view-normalised">
+                        <div class="accordion accordion-flush" id="qrn-left-accordions">
+                            <div class="accordion-item" style="border: 1px solid #e9ecef; border-radius: 4px;">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-normalisation-collapse" style="font-size: 0.8rem; font-weight: 600; background: #f8f9fa;">
+                                        <i class="fas fa-magic me-1" style="color: #6b21a8;"></i> Normalisation Debug
+                                    </button>
+                                </h2>
+                                <div id="qrn-normalisation-collapse" class="accordion-collapse collapse">
+                                    <div class="accordion-body py-2 px-2" id="qrn-view-normalised" style="font-size: 0.75rem;">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="col-md-6">
-                        <div class="card mb-3" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
-                                <i class="fas fa-envelope me-1" style="color: #1e3a5f;"></i> Message Content
-                                <span class="badge bg-warning text-dark float-end" style="font-size: 0.65rem;">PII GATED</span>
+                    <div class="col-lg-6">
+                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
+                                <i class="fas fa-info-circle me-1" style="color: #1e3a5f;"></i> Metadata
                             </div>
-                            <div class="card-body py-2">
-                                <div class="p-2 bg-light rounded" style="font-size: 0.85rem; border: 1px solid #dee2e6; min-height: 80px;">
-                                    <span id="qrn-view-message"></span>
-                                </div>
-                                <div class="mt-2 text-muted" style="font-size: 0.7rem;">
-                                    <i class="fas fa-lock me-1"></i> Phone numbers and sensitive data are masked for compliance.
+                            <div class="card-body py-2 px-2">
+                                <div class="row g-2" style="font-size: 0.75rem;">
+                                    <div class="col-6">
+                                        <div class="text-muted" style="font-size: 0.65rem;">QUARANTINE ID</div>
+                                        <div id="qrn-view-id" style="font-family: monospace;"></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-muted" style="font-size: 0.65rem;">TIMESTAMP</div>
+                                        <div id="qrn-view-timestamp"></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-muted" style="font-size: 0.65rem;">ACCOUNT</div>
+                                        <div id="qrn-view-account"></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-muted" style="font-size: 0.65rem;">SUB-ACCOUNT</div>
+                                        <div id="qrn-view-subaccount"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="card mb-3" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
+                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
                                 <i class="fas fa-clipboard-check me-1" style="color: #1e3a5f;"></i> Review Status
                             </div>
-                            <div class="card-body py-2">
-                                <table class="table table-sm table-borderless mb-0" style="font-size: 0.8rem;">
-                                    <tr><td style="font-weight: 600; width: 100px;">Status:</td><td id="qrn-view-status"></td></tr>
-                                    <tr><td style="font-weight: 600;">Reviewer:</td><td id="qrn-view-reviewer"></td></tr>
-                                    <tr><td style="font-weight: 600;">Decision At:</td><td id="qrn-view-decisionat"></td></tr>
-                                </table>
+                            <div class="card-body py-2 px-2">
+                                <div class="d-flex align-items-center gap-3" style="font-size: 0.75rem;">
+                                    <div>
+                                        <div class="text-muted" style="font-size: 0.65rem;">STATUS</div>
+                                        <div id="qrn-view-status"></div>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted" style="font-size: 0.65rem;">REVIEWER</div>
+                                        <div id="qrn-view-reviewer"></div>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted" style="font-size: 0.65rem;">DECISION AT</div>
+                                        <div id="qrn-view-decisionat"></div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="card" style="border: 1px solid #e9ecef;">
-                            <div class="card-header py-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.85rem;">
+                        <div class="card mb-2" style="border: 1px solid #e9ecef;">
+                            <div class="card-header py-1 px-2" style="background: #f8f9fa; font-weight: 600; font-size: 0.8rem;">
                                 <i class="fas fa-sticky-note me-1" style="color: #1e3a5f;"></i> Internal Notes
-                                <span class="badge text-white float-end" style="font-size: 0.65rem; background: #1e3a5f;">ADMIN ONLY</span>
+                                <span class="badge text-white float-end" style="font-size: 0.55rem; background: #1e3a5f;">ADMIN ONLY</span>
                             </div>
-                            <div class="card-body py-2">
-                                <div id="qrn-view-notes-list" style="max-height: 100px; overflow-y: auto; font-size: 0.8rem;"></div>
-                                <div class="mt-2" id="qrn-add-note-section">
+                            <div class="card-body py-2 px-2">
+                                <div id="qrn-view-notes-list" style="max-height: 60px; overflow-y: auto; font-size: 0.75rem;"></div>
+                                <div class="mt-1" id="qrn-add-note-section">
                                     <div class="input-group input-group-sm">
-                                        <input type="text" class="form-control" id="qrn-new-note" placeholder="Add internal note...">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="addQuarantineNote()">
+                                        <input type="text" class="form-control form-control-sm" id="qrn-new-note" placeholder="Add internal note..." style="font-size: 0.75rem;">
+                                        <button class="btn btn-outline-secondary btn-sm" type="button" onclick="addQuarantineNote()" style="font-size: 0.75rem;">
                                             <i class="fas fa-plus"></i>
                                         </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion accordion-flush" id="qrn-right-accordions">
+                            <div class="accordion-item mb-1" style="border: 1px solid #e9ecef; border-radius: 4px;">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-raw-metadata-collapse" style="font-size: 0.8rem; font-weight: 600; background: #f8f9fa;">
+                                        <i class="fas fa-code me-1" style="color: #6c757d;"></i> Raw Metadata JSON
+                                    </button>
+                                </h2>
+                                <div id="qrn-raw-metadata-collapse" class="accordion-collapse collapse">
+                                    <div class="accordion-body py-2 px-2">
+                                        <pre id="qrn-view-raw-json" style="font-size: 0.65rem; background: #f8f9fa; padding: 0.5rem; border-radius: 4px; max-height: 120px; overflow: auto; margin: 0;"></pre>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item" style="border: 1px solid #e9ecef; border-radius: 4px;">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed py-1 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#qrn-routing-collapse" style="font-size: 0.8rem; font-weight: 600; background: #f8f9fa;">
+                                        <i class="fas fa-route me-1" style="color: #6c757d;"></i> Routing / Supplier Info
+                                    </button>
+                                </h2>
+                                <div id="qrn-routing-collapse" class="accordion-collapse collapse">
+                                    <div class="accordion-body py-2 px-2" id="qrn-view-routing" style="font-size: 0.75rem;">
+                                        <span class="text-muted">No routing info available (message blocked before routing)</span>
                                     </div>
                                 </div>
                             </div>
@@ -2261,15 +2317,15 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem; background: #f8f9fa;">
-                <div id="qrn-view-actions" class="d-flex gap-2 flex-wrap">
+            <div class="modal-footer py-2 px-3" style="border-top: 1px solid #e9ecef; background: #f8f9fa; flex-shrink: 0;">
+                <div id="qrn-view-actions" class="d-flex gap-2 align-items-center">
                 </div>
-                <div class="ms-auto d-flex gap-2">
-                    <div class="form-check form-switch" id="qrn-notify-customer-section" style="display: none;">
+                <div class="ms-auto d-flex gap-2 align-items-center">
+                    <div class="form-check form-switch mb-0" id="qrn-notify-customer-section" style="display: none;">
                         <input class="form-check-input" type="checkbox" id="qrn-notify-customer">
-                        <label class="form-check-label" for="qrn-notify-customer" style="font-size: 0.8rem;">Notify Customer Admin</label>
+                        <label class="form-check-label" for="qrn-notify-customer" style="font-size: 0.75rem;">Notify Customer</label>
                     </div>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal" style="font-size: 0.8rem;">Close</button>
                 </div>
             </div>
         </div>
@@ -4194,39 +4250,73 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('qrn-view-senderid').textContent = msg.senderId;
         document.getElementById('qrn-view-recipient').textContent = msg.recipient || '—';
         document.getElementById('qrn-view-hasurl').innerHTML = msg.hasUrl 
-            ? '<span class="badge bg-success" style="font-size: 0.7rem;">Yes</span>' 
-            : '<span class="badge bg-secondary" style="font-size: 0.7rem;">No</span>';
+            ? '<span class="badge bg-info text-white" style="font-size: 0.6rem;"><i class="fas fa-link me-1"></i>URL</span>' 
+            : '';
         
         document.getElementById('qrn-view-message').innerHTML = escapeHtml(msg.fullMessage || msg.messageSnippet);
         
         var statusBadge = msg.status === 'pending' 
-            ? '<span class="badge bg-warning text-dark">Pending</span>'
+            ? '<span class="badge bg-warning text-dark" style="font-size: 0.7rem;">Pending</span>'
             : msg.status === 'released'
-                ? '<span class="badge bg-success">Released</span>'
-                : '<span class="badge bg-danger">Blocked</span>';
+                ? '<span class="badge bg-success" style="font-size: 0.7rem;">Released</span>'
+                : '<span class="badge bg-danger" style="font-size: 0.7rem;">Blocked</span>';
         document.getElementById('qrn-view-status').innerHTML = statusBadge;
+        document.getElementById('qrn-view-status-header').innerHTML = statusBadge;
         document.getElementById('qrn-view-reviewer').textContent = msg.reviewer || '—';
         document.getElementById('qrn-view-decisionat').textContent = msg.decisionAt || '—';
         
         var triggeredRulesHtml = '';
         if (msg.triggeredRules && msg.triggeredRules.length > 0) {
-            triggeredRulesHtml = '<div class="list-group list-group-flush" style="font-size: 0.8rem;">';
+            triggeredRulesHtml = '<div class="d-flex flex-column gap-1">';
             msg.triggeredRules.forEach(function(rule) {
                 var engineColor = rule.engine === 'SenderIdEnforcementEngine' ? '#6b21a8' 
                     : rule.engine === 'MessageContentEngine' ? '#1e3a5f'
                     : rule.engine === 'UrlEnforcementEngine' ? '#0d6efd'
                     : '#dc3545';
-                triggeredRulesHtml += '<div class="list-group-item px-2 py-2" style="border-left: 3px solid ' + engineColor + ';">' +
-                    '<div><strong>' + rule.ruleName + '</strong> <code style="font-size: 0.7rem; background: #f8f9fa; padding: 0.1rem 0.3rem;">' + rule.ruleId + '</code></div>' +
-                    '<small class="text-muted">Engine: ' + rule.engine + '</small><br>' +
-                    '<small>Match: <span class="badge bg-light text-dark">' + rule.matchType + '</span> ' + escapeHtml(rule.matchedValue) + '</small>' +
+                var engineShort = rule.engine === 'SenderIdEnforcementEngine' ? 'SID' 
+                    : rule.engine === 'MessageContentEngine' ? 'CNT'
+                    : rule.engine === 'UrlEnforcementEngine' ? 'URL'
+                    : 'OTH';
+                triggeredRulesHtml += '<div class="px-2 py-1" style="border-left: 3px solid ' + engineColor + '; background: #fafafa; border-radius: 2px; font-size: 0.75rem;">' +
+                    '<div class="d-flex align-items-center gap-1">' +
+                    '<span class="badge" style="background: ' + engineColor + '; font-size: 0.55rem;">' + engineShort + '</span>' +
+                    '<strong style="font-size: 0.7rem;">' + rule.ruleName + '</strong>' +
+                    '<code style="font-size: 0.6rem; background: #e9ecef; padding: 0 0.2rem;">' + rule.ruleId + '</code>' +
+                    '</div>' +
+                    '<small class="text-muted" style="font-size: 0.65rem;">Match: ' + rule.matchType + ' → ' + escapeHtml(rule.matchedValue).substring(0, 50) + (rule.matchedValue.length > 50 ? '...' : '') + '</small>' +
                 '</div>';
             });
             triggeredRulesHtml += '</div>';
         } else {
-            triggeredRulesHtml = '<span class="text-muted" style="font-size: 0.8rem;">No rule details available</span>';
+            triggeredRulesHtml = '<span class="text-muted" style="font-size: 0.75rem;">No rule details available</span>';
         }
         document.getElementById('qrn-view-triggered-rules').innerHTML = triggeredRulesHtml;
+        
+        var rawMetadata = {
+            id: msg.id,
+            idempotencyKey: msg.idempotencyKey,
+            timestamp: msg.timestamp,
+            accountId: msg.accountId,
+            subAccountId: msg.subAccountId || null,
+            senderId: msg.senderId,
+            recipient: msg.recipient,
+            hasUrl: msg.hasUrl,
+            ruleTriggered: msg.ruleTriggered,
+            triggeredRules: msg.triggeredRules ? msg.triggeredRules.map(function(r) { return r.ruleId; }) : [],
+            status: msg.status,
+            reviewer: msg.reviewer || null,
+            decisionAt: msg.decisionAt || null
+        };
+        document.getElementById('qrn-view-raw-json').textContent = JSON.stringify(rawMetadata, null, 2);
+        
+        var routingHtml = msg.routingInfo 
+            ? '<table class="table table-sm table-borderless mb-0" style="font-size: 0.7rem;">' +
+              '<tr><td><strong>Supplier:</strong></td><td>' + (msg.routingInfo.supplier || '—') + '</td></tr>' +
+              '<tr><td><strong>Route:</strong></td><td>' + (msg.routingInfo.route || '—') + '</td></tr>' +
+              '<tr><td><strong>Cost:</strong></td><td>' + (msg.routingInfo.cost || '—') + '</td></tr>' +
+              '</table>'
+            : '<span class="text-muted" style="font-size: 0.7rem;">No routing info (message blocked before routing)</span>';
+        document.getElementById('qrn-view-routing').innerHTML = routingHtml;
         
         var normHtml = '';
         if (msg.normalisedValues) {
