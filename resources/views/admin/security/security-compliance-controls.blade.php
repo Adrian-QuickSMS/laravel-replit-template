@@ -301,6 +301,101 @@
     color: #1e3a5f;
 }
 
+/* URL Controls Filter Pill Button (matches Quarantine Review) */
+.url-filter-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid #1e3a5f;
+    color: #1e3a5f;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.375rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.url-filter-pill-btn:hover {
+    background: rgba(30, 58, 95, 0.08);
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.url-filter-pill-btn.active {
+    background: rgba(30, 58, 95, 0.12);
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.url-filter-pill-btn i {
+    font-size: 0.8rem;
+    color: #1e3a5f;
+}
+
+/* URL Controls Filter Panel (matches Quarantine Review) */
+.url-controls-filter-panel {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+.url-controls-filter-panel .filter-body {
+    padding: 1rem;
+}
+.url-controls-filter-panel .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.url-controls-filter-panel .filter-group {
+    flex: 1;
+    min-width: 150px;
+}
+.url-controls-filter-panel .filter-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.35rem;
+}
+.url-controls-filter-panel .filter-group select {
+    width: 100%;
+    padding: 0.375rem 0.5rem;
+    font-size: 0.85rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+.url-controls-filter-panel .filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e9ecef;
+}
+.url-controls-filter-panel .btn-reset {
+    background: transparent;
+    border: 1px solid #6c757d;
+    color: #6c757d;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+}
+.url-controls-filter-panel .btn-reset:hover {
+    background: #f1f3f5;
+}
+.url-controls-filter-panel .btn-apply {
+    background: #1e3a5f;
+    border: 1px solid #1e3a5f;
+    color: white;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+}
+.url-controls-filter-panel .btn-apply:hover {
+    background: #152a47;
+}
+
 /* Generic transparent dark blue accent button */
 .sec-pill-btn {
     display: inline-flex;
@@ -1974,12 +2069,69 @@
             </div>
 
             <div class="tab-pane fade" id="url-controls" role="tabpanel">
-                <!-- URL Controls Toolbar -->
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div></div>
-                    <button class="btn btn-sm" style="background: transparent; border: 1px solid #1e3a5f; color: #1e3a5f; font-size: 0.8rem; padding: 0.35rem 0.75rem;" onclick="showAddUrlExemptionGlobalModal()">
-                        <i class="fas fa-plus me-1"></i> Add Exemption
-                    </button>
+                <!-- URL Controls Toolbar (matches Quarantine Review styling) -->
+                <div class="sec-toolbar">
+                    <div class="sec-search-box-left">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-control" placeholder="Search domains, patterns, accounts..." id="url-controls-search">
+                    </div>
+                    <div class="sec-toolbar-actions">
+                        <button class="url-filter-pill-btn" type="button" id="url-controls-filter-btn" onclick="toggleUrlControlsFilterPanel()">
+                            <i class="fas fa-filter"></i>
+                            <span>Filter</span>
+                            <span class="badge bg-primary" id="url-controls-filter-count" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem;">0</span>
+                        </button>
+                        <button class="url-filter-pill-btn" type="button" onclick="showAddUrlExemptionGlobalModal()">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Exemption</span>
+                        </button>
+                        <button class="btn btn-sm text-white" id="url-add-rule-btn" style="background: #1e3a5f; display: none;" onclick="showAddUrlRuleModal()">
+                            <i class="fas fa-plus me-1"></i> Add Rule
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- URL Controls Filter Panel (hidden by default) -->
+                <div class="url-controls-filter-panel" id="url-controls-filter-panel" style="display: none;">
+                    <div class="filter-body">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label>Status</label>
+                                <select id="url-controls-filter-status">
+                                    <option value="">All Statuses</option>
+                                    <option value="active">Active</option>
+                                    <option value="disabled">Disabled</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Type</label>
+                                <select id="url-controls-filter-type">
+                                    <option value="">All Types</option>
+                                    <option value="exact">Exact Domain</option>
+                                    <option value="wildcard">Wildcard</option>
+                                    <option value="regex">Regex</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Action</label>
+                                <select id="url-controls-filter-action">
+                                    <option value="">All Actions</option>
+                                    <option value="block">Block</option>
+                                    <option value="flag">Flag</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Account</label>
+                                <select id="url-controls-filter-account">
+                                    <option value="">All Accounts</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-reset" onclick="resetUrlControlsFilters()"><i class="fas fa-undo me-1"></i> Reset</button>
+                            <button class="btn btn-apply" onclick="applyUrlControlsFilters()"><i class="fas fa-check me-1"></i> Apply Filters</button>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Sub-tabs for URL Controls -->
@@ -7539,6 +7691,135 @@ var SecurityComplianceControlsService = (function() {
         renderUrlTab();
     }
     
+    function toggleUrlControlsFilterPanel() {
+        var panel = document.getElementById('url-controls-filter-panel');
+        var btn = document.getElementById('url-controls-filter-btn');
+        if (panel && btn) {
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                btn.classList.add('active');
+                updateUrlControlsFilterPanelContext();
+            } else {
+                panel.style.display = 'none';
+                btn.classList.remove('active');
+            }
+        }
+    }
+    
+    function updateUrlControlsFilterPanelContext() {
+        // Show/hide filter groups based on active sub-tab
+        var urlRulesTab = document.getElementById('url-rules-tab');
+        var urlExemptionsTab = document.getElementById('url-exemptions-tab');
+        
+        var typeGroup = document.querySelector('#url-controls-filter-panel .filter-group:nth-child(2)');
+        var actionGroup = document.querySelector('#url-controls-filter-panel .filter-group:nth-child(3)');
+        var accountGroup = document.querySelector('#url-controls-filter-panel .filter-group:nth-child(4)');
+        
+        if (urlRulesTab && urlRulesTab.classList.contains('active')) {
+            if (typeGroup) typeGroup.style.display = 'block';
+            if (actionGroup) actionGroup.style.display = 'block';
+            if (accountGroup) accountGroup.style.display = 'none';
+        } else if (urlExemptionsTab && urlExemptionsTab.classList.contains('active')) {
+            if (typeGroup) typeGroup.style.display = 'none';
+            if (actionGroup) actionGroup.style.display = 'none';
+            if (accountGroup) {
+                accountGroup.style.display = 'block';
+                populateUrlControlsAccountFilter();
+            }
+        } else {
+            // Domain Age tab - minimal filters
+            if (typeGroup) typeGroup.style.display = 'none';
+            if (actionGroup) actionGroup.style.display = 'none';
+            if (accountGroup) accountGroup.style.display = 'none';
+        }
+    }
+    
+    function populateUrlControlsAccountFilter() {
+        var accountSelect = document.getElementById('url-controls-filter-account');
+        if (!accountSelect || accountSelect.options.length > 1) return;
+        
+        var uniqueAccounts = [];
+        mockData.urlExemptions.forEach(function(ex) {
+            if (!uniqueAccounts.find(function(a) { return a.id === ex.accountId; })) {
+                uniqueAccounts.push({ id: ex.accountId, name: ex.accountName });
+            }
+        });
+        
+        uniqueAccounts.sort(function(a, b) { return a.name.localeCompare(b.name); });
+        uniqueAccounts.forEach(function(acc) {
+            var opt = document.createElement('option');
+            opt.value = acc.id;
+            opt.textContent = acc.name;
+            accountSelect.appendChild(opt);
+        });
+    }
+    
+    function applyUrlControlsFilters() {
+        var statusFilter = document.getElementById('url-controls-filter-status').value;
+        var typeFilter = document.getElementById('url-controls-filter-type').value;
+        var actionFilter = document.getElementById('url-controls-filter-action').value;
+        var accountFilter = document.getElementById('url-controls-filter-account').value;
+        
+        var urlRulesTab = document.getElementById('url-rules-tab');
+        var urlExemptionsTab = document.getElementById('url-exemptions-tab');
+        
+        var count = 0;
+        if (statusFilter) count++;
+        
+        if (urlRulesTab && urlRulesTab.classList.contains('active')) {
+            // Apply to URL Rule Library filters
+            document.getElementById('url-filter-status').value = statusFilter;
+            document.getElementById('url-filter-matchtype').value = typeFilter;
+            document.getElementById('url-filter-ruletype').value = actionFilter;
+            if (typeFilter) count++;
+            if (actionFilter) count++;
+            renderUrlTab();
+        } else if (urlExemptionsTab && urlExemptionsTab.classList.contains('active')) {
+            // Apply to Exemptions tab filters
+            var exemptionsStatusFilter = document.getElementById('url-exemptions-filter-status');
+            var exemptionsAccountFilter = document.getElementById('url-exemptions-filter-account');
+            if (exemptionsStatusFilter) exemptionsStatusFilter.value = statusFilter;
+            if (exemptionsAccountFilter) exemptionsAccountFilter.value = accountFilter;
+            if (accountFilter) count++;
+            renderUrlExemptionsTab();
+        }
+        
+        var badge = document.getElementById('url-controls-filter-count');
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        toggleUrlControlsFilterPanel();
+    }
+    
+    function resetUrlControlsFilters() {
+        document.getElementById('url-controls-filter-status').value = '';
+        document.getElementById('url-controls-filter-type').value = '';
+        document.getElementById('url-controls-filter-action').value = '';
+        document.getElementById('url-controls-filter-account').value = '';
+        document.getElementById('url-controls-search').value = '';
+        
+        var badge = document.getElementById('url-controls-filter-count');
+        if (badge) badge.style.display = 'none';
+        
+        // Reset based on active tab
+        var urlRulesTab = document.getElementById('url-rules-tab');
+        var urlExemptionsTab = document.getElementById('url-exemptions-tab');
+        
+        if (urlRulesTab && urlRulesTab.classList.contains('active')) {
+            resetUrlFilters();
+        } else if (urlExemptionsTab && urlExemptionsTab.classList.contains('active')) {
+            resetUrlExemptionsFilters();
+        }
+        
+        toggleUrlControlsFilterPanel();
+    }
+    
     var domainAgeOriginalSettings = null;
     
     function initDomainAgeSettings() {
@@ -8143,6 +8424,49 @@ var SecurityComplianceControlsService = (function() {
             updateDomainAgeStatusBadge();
         });
         
+        // URL Controls main search
+        var urlControlsSearch = document.getElementById('url-controls-search');
+        if (urlControlsSearch) {
+            urlControlsSearch.addEventListener('input', function() {
+                // Apply search to currently visible sub-tab
+                var urlRulesTab = document.getElementById('url-rules-tab');
+                var urlExemptionsTab = document.getElementById('url-exemptions-tab');
+                if (urlRulesTab && urlRulesTab.classList.contains('active')) {
+                    document.getElementById('url-search').value = urlControlsSearch.value;
+                    renderUrlTab();
+                } else if (urlExemptionsTab && urlExemptionsTab.classList.contains('active')) {
+                    document.getElementById('url-exemptions-search').value = urlControlsSearch.value;
+                    renderUrlExemptionsTab();
+                }
+            });
+        }
+        
+        // Show/hide Add Rule button based on active sub-tab
+        var urlRulesTab = document.getElementById('url-rules-tab');
+        if (urlRulesTab) {
+            urlRulesTab.addEventListener('shown.bs.tab', function() {
+                var addRuleBtn = document.getElementById('url-add-rule-btn');
+                if (addRuleBtn) addRuleBtn.style.display = 'inline-flex';
+            });
+        }
+        
+        var urlDomainAgeTab = document.getElementById('url-domain-age-tab');
+        if (urlDomainAgeTab) {
+            urlDomainAgeTab.addEventListener('shown.bs.tab', function() {
+                var addRuleBtn = document.getElementById('url-add-rule-btn');
+                if (addRuleBtn) addRuleBtn.style.display = 'none';
+            });
+        }
+        
+        var urlExemptionsTabBtn = document.getElementById('url-exemptions-tab');
+        if (urlExemptionsTabBtn) {
+            urlExemptionsTabBtn.addEventListener('shown.bs.tab', function() {
+                var addRuleBtn = document.getElementById('url-add-rule-btn');
+                if (addRuleBtn) addRuleBtn.style.display = 'none';
+                renderUrlExemptionsTab();
+            });
+        }
+        
         // URL Exemptions tab listeners
         var urlExemptionsSearch = document.getElementById('url-exemptions-search');
         if (urlExemptionsSearch) {
@@ -8155,14 +8479,6 @@ var SecurityComplianceControlsService = (function() {
         var urlExemptionsFilterType = document.getElementById('url-exemptions-filter-type');
         if (urlExemptionsFilterType) {
             urlExemptionsFilterType.addEventListener('change', renderUrlExemptionsTab);
-        }
-        
-        // Render URL exemptions when tab is shown
-        var urlExemptionsTab = document.getElementById('url-exemptions-tab');
-        if (urlExemptionsTab) {
-            urlExemptionsTab.addEventListener('shown.bs.tab', function() {
-                renderUrlExemptionsTab();
-            });
         }
         
         // URL Exemption modal account search
@@ -9879,6 +10195,11 @@ var SecurityComplianceControlsService = (function() {
         saveUrlRule: saveUrlRule,
         updateUrlPatternLabel: updateUrlPatternLabel,
         resetUrlFilters: resetUrlFilters,
+        toggleUrlControlsFilterPanel: toggleUrlControlsFilterPanel,
+        updateUrlControlsFilterPanelContext: updateUrlControlsFilterPanelContext,
+        populateUrlControlsAccountFilter: populateUrlControlsAccountFilter,
+        applyUrlControlsFilters: applyUrlControlsFilters,
+        resetUrlControlsFilters: resetUrlControlsFilters,
         toggleUrlActionMenu: toggleUrlActionMenu,
         setupUrlTabListeners: setupUrlTabListeners,
         saveDomainAgeSettings: saveDomainAgeSettings,
@@ -13575,6 +13896,18 @@ function updateUrlPatternLabel() {
 
 function resetUrlFilters() {
     SecurityComplianceControlsService.resetUrlFilters();
+}
+
+function toggleUrlControlsFilterPanel() {
+    SecurityComplianceControlsService.toggleUrlControlsFilterPanel();
+}
+
+function applyUrlControlsFilters() {
+    SecurityComplianceControlsService.applyUrlControlsFilters();
+}
+
+function resetUrlControlsFilters() {
+    SecurityComplianceControlsService.resetUrlControlsFilters();
 }
 
 function toggleUrlActionMenu(btn, ruleId) {
