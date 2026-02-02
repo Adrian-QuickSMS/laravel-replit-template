@@ -57,7 +57,7 @@
             <li class="{{ request()->routeIs('admin.billing.*') ? 'mm-active' : '' }}">
                 <a href="{{ route('admin.billing.invoices') }}" aria-expanded="false">
                     <i class="fas fa-file-invoice-dollar"></i>
-                    <span class="nav-text">Invoices and Payments</span>
+                    <span class="nav-text">Invoices</span>
                 </a>
             </li>
             
