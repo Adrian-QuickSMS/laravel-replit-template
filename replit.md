@@ -79,6 +79,14 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - **Unified Normalisation Map:** Single `NormalisationEnforcementAPI` provides cached character mappings for all engines with 60s TTL
   - **Bulk Operations:** Bulk status changes only (no import/export functionality)
   - **Audit Integration:** All changes logged via `logAuditEvent()` with BASE_CHARACTER_UPDATED, BASE_CHARACTER_STATUS_CHANGED events
+- **MessageEnforcementService (PHP):** Backend service for unified message security enforcement:
+  - **Location:** `app/Services/Admin/MessageEnforcementService.php`
+  - **Endpoints:** POST `/admin/enforcement/test`, POST `/admin/enforcement/normalise`, POST `/admin/enforcement/reload`
+  - **Shared Logic:** Both test endpoint and production use the same `testEnforcement()`, `normalise()`, and `evaluateRules()` methods
+  - **Normalisation:** UTF-8 safe character equivalence using `preg_split('//u')` for proper Unicode handling
+  - **Rule Evaluation:** Supports exact, contains, regex, startswith, endswith match types
+  - **Caching:** 60-second TTL for rules and normalisation library via Laravel Cache
+  - **Hot Reload:** `hotReloadRules()` invalidates cache for all engines
 - **Design Principles:** Typed JSDoc objects, mock data modes for development, clean separation of UI and API, and robust error handling.
 
 ## External Dependencies

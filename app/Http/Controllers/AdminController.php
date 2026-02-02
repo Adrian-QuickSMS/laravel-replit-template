@@ -6,17 +6,23 @@ use Illuminate\Http\Request;
 use App\Services\Admin\ImpersonationService;
 use App\Services\Admin\AdminLoginPolicyService;
 use App\Services\Admin\AdminAuditService;
+use App\Services\Admin\MessageEnforcementService;
 use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
     protected ImpersonationService $impersonationService;
     protected AdminLoginPolicyService $loginPolicyService;
+    protected MessageEnforcementService $enforcementService;
     
-    public function __construct(ImpersonationService $impersonationService, AdminLoginPolicyService $loginPolicyService)
-    {
+    public function __construct(
+        ImpersonationService $impersonationService, 
+        AdminLoginPolicyService $loginPolicyService,
+        MessageEnforcementService $enforcementService
+    ) {
         $this->impersonationService = $impersonationService;
         $this->loginPolicyService = $loginPolicyService;
+        $this->enforcementService = $enforcementService;
     }
     
     public function startImpersonation(Request $request)
@@ -722,5 +728,116 @@ class AdminController extends Controller
             'account' => ['id' => $accountId, 'name' => $accountName],
             'template' => $template
         ]);
+    }
+    
+    /**
+     * Test enforcement rules against input
+     * 
+     * POST /admin/enforcement/test
+     * 
+     * This endpoint uses the SAME shared enforcement logic as production.
+     * It normalises the input and evaluates it against the selected engine's rules.
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function testEnforcement(Request $request)
+    {
+        $request->validate([
+            'engine' => 'required|string|in:senderid,content,url',
+            'input' => 'required|string|max:1000',
+        ]);
+        
+        $engine = $request->input('engine');
+        $input = $request->input('input');
+        
+        try {
+            $result = $this->enforcementService->testEnforcement($engine, $input);
+            
+            Log::info('[AdminController] Enforcement test executed', [
+                'engine' => $engine,
+                'input' => $input,
+                'result' => $result['result'],
+                'admin_email' => session('admin_email', 'unknown'),
+            ]);
+            
+            return response()->json($result);
+        } catch (\Exception $e) {
+            Log::error('[AdminController] Enforcement test failed', [
+                'engine' => $engine,
+                'input' => $input,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return response()->json([
+                'error' => 'Enforcement test failed',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    /**
+     * Normalise input only (without rule evaluation)
+     * 
+     * POST /admin/enforcement/normalise
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function normaliseInput(Request $request)
+    {
+        $request->validate([
+            'input' => 'required|string|max:1000',
+        ]);
+        
+        $input = $request->input('input');
+        
+        try {
+            $result = $this->enforcementService->normalise($input);
+            
+            return response()->json([
+                'normalised' => $result['normalised'],
+                'mappingHits' => $result['mappingHits'],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('[AdminController] Normalisation failed', [
+                'input' => $input,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return response()->json([
+                'error' => 'Normalisation failed',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    /**
+     * Hot reload enforcement rules
+     * 
+     * POST /admin/enforcement/reload
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function reloadEnforcementRules(Request $request)
+    {
+        try {
+            $this->enforcementService->hotReloadRules();
+            
+            Log::info('[AdminController] Enforcement rules reloaded', [
+                'admin_email' => session('admin_email', 'unknown'),
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Enforcement rules reloaded successfully',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to reload rules',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

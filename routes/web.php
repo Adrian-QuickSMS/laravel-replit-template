@@ -177,6 +177,10 @@ Route::prefix('admin')->group(function () {
             Route::post('/api/login-policy/validate', 'validateLoginPolicy')->name('admin.api.login-policy.validate');
             Route::post('/api/admin-users/audit', 'logAdminUserEvent')->name('admin.api.admin-users.audit');
             
+            Route::post('/enforcement/test', 'testEnforcement')->name('admin.enforcement.test');
+            Route::post('/enforcement/normalise', 'normaliseInput')->name('admin.enforcement.normalise');
+            Route::post('/enforcement/reload', 'reloadEnforcementRules')->name('admin.enforcement.reload');
+            
             Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
             Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');
             Route::get('/system/flags', 'systemFlags')->name('admin.system.flags');

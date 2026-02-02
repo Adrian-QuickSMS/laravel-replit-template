@@ -12110,24 +12110,75 @@ function runNormalisationTest() {
 }
 
 function runNormaliseOnlyTest(input) {
-    var result = NormalisationEnforcementAPI.normalise(input);
-    
     document.getElementById('normTestNormaliseResults').style.display = 'block';
     document.getElementById('normTestEnforceResults').style.display = 'none';
+    document.getElementById('normTestSubstitutions').innerHTML = '<div class="text-center text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading...</div>';
     
-    document.getElementById('normTestOriginal').innerHTML = result.highlightedOriginal || escapeHtml(input);
-    document.getElementById('normTestNormalised').innerHTML = result.highlightedNormalised || escapeHtml(result.normalised);
+    fetch('/admin/enforcement/normalise', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify({ input: input })
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('API request failed');
+        return response.json();
+    })
+    .then(function(data) {
+        renderNormaliseResults(input, data);
+    })
+    .catch(function(error) {
+        console.warn('[NormaliseTest] API call failed, falling back to client-side:', error);
+        var result = NormalisationEnforcementAPI.normalise(input);
+        var mappingHits = result.substitutions ? result.substitutions.map(function(s) {
+            return { from: s.original, to: s.base, index: s.position, base: s.base };
+        }) : [];
+        renderNormaliseResults(input, { normalised: result.normalised, mappingHits: mappingHits });
+    });
+}
+
+function renderNormaliseResults(input, data) {
+    var normalised = data.normalised || input;
+    var mappingHits = data.mappingHits || [];
+    
+    var highlightedOriginal = escapeHtml(input);
+    var highlightedNormalised = escapeHtml(normalised);
+    
+    if (mappingHits.length > 0) {
+        var originalChars = Array.from(input);
+        var normalisedChars = Array.from(normalised);
+        var mappingsByIndex = {};
+        mappingHits.forEach(function(m) { mappingsByIndex[m.index] = m; });
+        
+        highlightedOriginal = '';
+        highlightedNormalised = '';
+        
+        for (var i = 0; i < originalChars.length; i++) {
+            if (mappingsByIndex[i]) {
+                highlightedOriginal += '<span class="norm-highlight-sub">' + escapeHtml(originalChars[i]) + '</span>';
+                highlightedNormalised += '<span class="norm-highlight-base">' + escapeHtml(mappingsByIndex[i].to) + '</span>';
+            } else {
+                highlightedOriginal += escapeHtml(originalChars[i]);
+                highlightedNormalised += escapeHtml(normalisedChars[i] || '');
+            }
+        }
+    }
+    
+    document.getElementById('normTestOriginal').innerHTML = highlightedOriginal;
+    document.getElementById('normTestNormalised').innerHTML = highlightedNormalised;
     
     var subsHtml = '';
-    if (result.substitutions && result.substitutions.length > 0) {
+    if (mappingHits.length > 0) {
         subsHtml = '<div class="d-flex flex-wrap">';
-        result.substitutions.forEach(function(s) {
-            var codepoint = s.original.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
-            var encoding = getCharEncoding(s.original);
+        mappingHits.forEach(function(m) {
+            var codepoint = m.from.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+            var encoding = getCharEncoding(m.from);
             subsHtml += '<div class="norm-mapping-chip">' +
-                '<span class="norm-mapping-original">' + escapeHtml(s.original) + '</span>' +
+                '<span class="norm-mapping-original">' + escapeHtml(m.from) + '</span>' +
                 '<i class="fas fa-arrow-right mx-2 text-muted" style="font-size: 0.7rem;"></i>' +
-                '<span class="norm-mapping-base">' + escapeHtml(s.base) + '</span>' +
+                '<span class="norm-mapping-base">' + escapeHtml(m.to) + '</span>' +
                 '<span class="norm-mapping-codepoint">U+' + codepoint + ' (' + encoding + ')</span>' +
             '</div>';
         });
@@ -12141,20 +12192,57 @@ function runNormaliseOnlyTest(input) {
         entityType: 'normalisation_test',
         mode: 'normalise_only',
         input: input,
-        output: result.normalised,
-        substitutionsCount: result.substitutions ? result.substitutions.length : 0
+        output: normalised,
+        substitutionsCount: mappingHits.length
     });
 }
 
 function runEnforcementTest(input, engine) {
-    var normResult = NormalisationEnforcementAPI.normalise(input);
-    var enforcementResult = evaluateEnforcementRules(normResult.normalised, engine);
-    
     document.getElementById('normTestNormaliseResults').style.display = 'none';
     document.getElementById('normTestEnforceResults').style.display = 'block';
+    document.getElementById('normTestDecisionBanner').innerHTML = '<div class="text-center text-muted p-4"><i class="fas fa-spinner fa-spin me-2"></i>Evaluating enforcement rules...</div>';
+    document.getElementById('normTestEnforceSteps').innerHTML = '';
+    document.getElementById('normTestMatchedRuleSection').style.display = 'none';
+    
+    fetch('/admin/enforcement/test', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify({ engine: engine, input: input })
+    })
+    .then(function(response) {
+        if (!response.ok) throw new Error('API request failed');
+        return response.json();
+    })
+    .then(function(data) {
+        renderEnforcementResults(input, engine, data);
+    })
+    .catch(function(error) {
+        console.warn('[EnforcementTest] API call failed, falling back to client-side:', error);
+        var normResult = NormalisationEnforcementAPI.normalise(input);
+        var enforcementResult = evaluateEnforcementRules(normResult.normalised, engine);
+        var mappingHits = normResult.substitutions ? normResult.substitutions.map(function(s) {
+            return { from: s.original, to: s.base, index: s.position, base: s.base };
+        }) : [];
+        renderEnforcementResults(input, engine, {
+            normalised: normResult.normalised,
+            result: enforcementResult.decision.toLowerCase(),
+            matchedRule: enforcementResult.matchedRule,
+            mappingHits: mappingHits
+        });
+    });
+}
+
+function renderEnforcementResults(input, engine, data) {
+    var normalised = data.normalised || input;
+    var result = (data.result || 'allow').toUpperCase();
+    var matchedRule = data.matchedRule;
+    var mappingHits = data.mappingHits || [];
     
     var decisionHtml = '';
-    if (enforcementResult.decision === 'ALLOW') {
+    if (result === 'ALLOW') {
         decisionHtml = '<div class="norm-decision-allow d-flex align-items-center">' +
             '<div class="me-3"><i class="fas fa-check-circle fa-2x" style="color: #065f46;"></i></div>' +
             '<div>' +
@@ -12162,32 +12250,68 @@ function runEnforcementTest(input, engine) {
                 '<div class="text-muted">This message would be allowed through the ' + engine.toUpperCase() + ' engine</div>' +
             '</div>' +
         '</div>';
-    } else if (enforcementResult.decision === 'BLOCK') {
+    } else if (result === 'BLOCK') {
         decisionHtml = '<div class="norm-decision-block d-flex align-items-center">' +
             '<div class="me-3"><i class="fas fa-ban fa-2x" style="color: #991b1b;"></i></div>' +
             '<div>' +
                 '<div class="fw-bold fs-5" style="color: #991b1b;">BLOCK</div>' +
                 '<div class="text-muted">This message would be blocked by the ' + engine.toUpperCase() + ' engine</div>' +
-                (enforcementResult.matchedRule ? '<div class="mt-1"><strong>Rule:</strong> ' + enforcementResult.matchedRule.name + '</div>' : '') +
+                (matchedRule ? '<div class="mt-1"><strong>Rule:</strong> ' + matchedRule.name + '</div>' : '') +
             '</div>' +
         '</div>';
-    } else if (enforcementResult.decision === 'QUARANTINE') {
+    } else if (result === 'QUARANTINE') {
         decisionHtml = '<div class="norm-decision-quarantine d-flex align-items-center">' +
             '<div class="me-3"><i class="fas fa-exclamation-triangle fa-2x" style="color: #92400e;"></i></div>' +
             '<div>' +
                 '<div class="fw-bold fs-5" style="color: #92400e;">QUARANTINE</div>' +
                 '<div class="text-muted">This message would be quarantined for review</div>' +
-                (enforcementResult.matchedRule ? '<div class="mt-1"><strong>Rule:</strong> ' + enforcementResult.matchedRule.name + '</div>' : '') +
+                (matchedRule ? '<div class="mt-1"><strong>Rule:</strong> ' + matchedRule.name + '</div>' : '') +
             '</div>' +
         '</div>';
     }
     document.getElementById('normTestDecisionBanner').innerHTML = decisionHtml;
     
-    document.getElementById('normTestEnforceOriginal').innerHTML = normResult.highlightedOriginal || escapeHtml(input);
-    document.getElementById('normTestEnforceNormalised').innerHTML = normResult.highlightedNormalised || escapeHtml(normResult.normalised);
+    var highlightedOriginal = escapeHtml(input);
+    var highlightedNormalised = escapeHtml(normalised);
+    
+    if (mappingHits.length > 0) {
+        var originalChars = Array.from(input);
+        var normalisedChars = Array.from(normalised);
+        var mappingsByIndex = {};
+        mappingHits.forEach(function(m) { mappingsByIndex[m.index] = m; });
+        
+        highlightedOriginal = '';
+        highlightedNormalised = '';
+        
+        for (var i = 0; i < originalChars.length; i++) {
+            if (mappingsByIndex[i]) {
+                highlightedOriginal += '<span class="norm-highlight-sub">' + escapeHtml(originalChars[i]) + '</span>';
+                highlightedNormalised += '<span class="norm-highlight-base">' + escapeHtml(mappingsByIndex[i].to) + '</span>';
+            } else {
+                highlightedOriginal += escapeHtml(originalChars[i]);
+                highlightedNormalised += escapeHtml(normalisedChars[i] || '');
+            }
+        }
+    }
+    
+    document.getElementById('normTestEnforceOriginal').innerHTML = highlightedOriginal;
+    document.getElementById('normTestEnforceNormalised').innerHTML = highlightedNormalised;
+    
+    var steps = [
+        { name: 'Step 1: Normalisation', description: 'Input canonicalised using character equivalence library (' + mappingHits.length + ' substitutions)', status: 'pass' },
+        { name: 'Step 2: Load ' + engine.toUpperCase() + ' Rules', description: 'Rules loaded for ' + engine + ' enforcement engine', status: 'pass' }
+    ];
+    
+    if (matchedRule) {
+        steps.push({ name: 'Step 3: Rule Evaluation', description: 'Matched rule: ' + matchedRule.name + ' (ID: ' + matchedRule.id + ')', status: 'fail' });
+        steps.push({ name: 'Step 4: Decision', description: result + ' - Pattern "' + (matchedRule.pattern || '') + '" matched', status: result === 'QUARANTINE' ? 'warn' : 'fail' });
+    } else {
+        steps.push({ name: 'Step 3: Rule Evaluation', description: 'No rules matched the normalised input', status: 'pass' });
+        steps.push({ name: 'Step 4: Decision', description: 'ALLOW - No blocking or quarantine rules triggered', status: 'pass' });
+    }
     
     var stepsHtml = '';
-    enforcementResult.steps.forEach(function(step) {
+    steps.forEach(function(step) {
         var stepClass = step.status === 'pass' ? 'step-pass' : (step.status === 'fail' ? 'step-fail' : 'step-warn');
         var stepIcon = step.status === 'pass' ? 'fa-check' : (step.status === 'fail' ? 'fa-times' : 'fa-exclamation');
         stepsHtml += '<div class="norm-step ' + stepClass + '">' +
@@ -12200,26 +12324,26 @@ function runEnforcementTest(input, engine) {
     });
     document.getElementById('normTestEnforceSteps').innerHTML = stepsHtml;
     
-    if (enforcementResult.matchedRule) {
+    if (matchedRule) {
         document.getElementById('normTestMatchedRuleSection').style.display = 'block';
         var ruleHtml = '<div class="p-3" style="background: #f1f5f9; border-radius: 8px;">' +
             '<div class="row">' +
                 '<div class="col-md-6 mb-2">' +
-                    '<strong>Rule ID:</strong> ' + (enforcementResult.matchedRule.id || 'N/A') +
+                    '<strong>Rule ID:</strong> ' + (matchedRule.id || 'N/A') +
                 '</div>' +
                 '<div class="col-md-6 mb-2">' +
-                    '<strong>Rule Name:</strong> ' + (enforcementResult.matchedRule.name || 'Unnamed Rule') +
+                    '<strong>Rule Name:</strong> ' + (matchedRule.name || 'Unnamed Rule') +
                 '</div>' +
                 '<div class="col-md-6 mb-2">' +
-                    '<strong>Pattern:</strong> <code>' + escapeHtml(enforcementResult.matchedRule.pattern || '') + '</code>' +
+                    '<strong>Pattern:</strong> <code>' + escapeHtml(matchedRule.pattern || '') + '</code>' +
                 '</div>' +
                 '<div class="col-md-6 mb-2">' +
-                    '<strong>Action:</strong> <span class="badge ' + (enforcementResult.matchedRule.action === 'block' ? 'bg-danger' : 'bg-warning text-dark') + '">' + 
-                        (enforcementResult.matchedRule.action || 'block').toUpperCase() + 
+                    '<strong>Action:</strong> <span class="badge ' + (matchedRule.action === 'block' ? 'bg-danger' : 'bg-warning text-dark') + '">' + 
+                        (matchedRule.action || 'block').toUpperCase() + 
                     '</span>' +
                 '</div>' +
             '</div>' +
-            (enforcementResult.matchExplanation ? '<div class="mt-2 pt-2 border-top"><strong>Match Explanation:</strong> ' + enforcementResult.matchExplanation + '</div>' : '') +
+            (matchedRule.matchType ? '<div class="mt-2 pt-2 border-top"><strong>Match Type:</strong> ' + matchedRule.matchType + '</div>' : '') +
         '</div>';
         document.getElementById('normTestMatchedRuleDetails').innerHTML = ruleHtml;
     } else {
@@ -12231,10 +12355,10 @@ function runEnforcementTest(input, engine) {
         mode: 'enforcement',
         engine: engine,
         input: input,
-        normalised: normResult.normalised,
-        decision: enforcementResult.decision,
-        matchedRule: enforcementResult.matchedRule ? enforcementResult.matchedRule.id : null,
-        substitutionsCount: normResult.substitutions ? normResult.substitutions.length : 0
+        normalised: normalised,
+        decision: result,
+        matchedRule: matchedRule ? matchedRule.id : null,
+        substitutionsCount: mappingHits.length
     });
 }
 
