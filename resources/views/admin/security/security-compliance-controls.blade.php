@@ -3420,6 +3420,22 @@ var SecurityComplianceControlsService = (function() {
     
     function rebuildExemptions() {
         mockData.senderIdExemptions = buildExemptionsList();
+        
+        // Sync exemptions with MessageEnforcementService for real-time enforcement
+        if (typeof window.MessageEnforcementService !== 'undefined' && 
+            typeof window.MessageEnforcementService.loadSenderIdExemptions === 'function') {
+            window.MessageEnforcementService.loadSenderIdExemptions(mockData.senderIdExemptions);
+            console.log('[SecurityComplianceControls] Synced exemptions with MessageEnforcementService:', 
+                window.MessageEnforcementService.getExemptionStats());
+        }
+        
+        // Emit audit event for exemption sync
+        logAuditEvent('EXEMPTIONS_SYNC_COMPLETED', {
+            totalExemptions: mockData.senderIdExemptions.length,
+            globalCount: mockData.senderIdExemptions.filter(function(e) { return e.scope === 'global'; }).length,
+            accountCount: mockData.senderIdExemptions.filter(function(e) { return e.scope === 'account'; }).length,
+            subAccountCount: mockData.senderIdExemptions.filter(function(e) { return e.scope === 'subaccount'; }).length
+        });
     }
     
     function normaliseSenderId(senderId) {
@@ -3514,6 +3530,14 @@ var SecurityComplianceControlsService = (function() {
         mockData.enforcementOverrides = {};
         
         mockData.senderIdExemptions = buildExemptionsList();
+        
+        // Sync exemptions with MessageEnforcementService on initialization
+        if (typeof window.MessageEnforcementService !== 'undefined' && 
+            typeof window.MessageEnforcementService.loadSenderIdExemptions === 'function') {
+            window.MessageEnforcementService.loadSenderIdExemptions(mockData.senderIdExemptions);
+            console.log('[SecurityComplianceControls] Initial exemptions sync:', 
+                window.MessageEnforcementService.getExemptionStats());
+        }
 
         mockData.urlRules = [
             { id: 'URL-001', pattern: 'bit.ly', matchType: 'exact', ruleType: 'flag', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },

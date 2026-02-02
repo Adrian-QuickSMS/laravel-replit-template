@@ -56,6 +56,21 @@ var MessageEnforcementService = (function() {
     };
     
     var recentMessageCache = {};
+    
+    // SenderID Exemptions cache - populated from Admin module
+    var senderIdExemptions = {
+        global: [],      // Exemptions that apply to all accounts
+        byAccount: {},   // { accountId: [exemptions] }
+        bySubAccount: {} // { subAccountId: [exemptions] }
+    };
+    
+    // Exemption enforcement audit events
+    var EXEMPTION_AUDIT_EVENTS = {
+        EXEMPTION_APPLIED: 'EXEMPTION_APPLIED',
+        EXEMPTION_OVERRIDE_BLOCK: 'EXEMPTION_OVERRIDE_BLOCK',
+        EXEMPTION_OVERRIDE_QUARANTINE: 'EXEMPTION_OVERRIDE_QUARANTINE',
+        EXEMPTION_SCOPE_MISMATCH: 'EXEMPTION_SCOPE_MISMATCH'
+    };
 
     // Current tenant context for isolation
     var currentTenantId = null;
@@ -448,11 +463,201 @@ var MessageEnforcementService = (function() {
         return normalised;
     }
 
+    /**
+     * Check if a SenderID has an active exemption for the given context.
+     * Exemption hierarchy: Global > Account > Sub-account
+     * 
+     * @param {string} senderId - The normalized SenderID to check
+     * @param {object} context - Message context with accountId and subAccountId
+     * @returns {object} { exempt: boolean, exemption: object|null, scope: string|null }
+     */
+    function checkSenderIdExemption(senderId, context) {
+        var accountId = context.accountId || null;
+        var subAccountId = context.subAccountId || null;
+        var normalisedSenderId = senderId.toUpperCase();
+        
+        // Priority 1: Check global exemptions (override all accounts)
+        var globalExemption = senderIdExemptions.global.find(function(ex) {
+            return ex.normalisedValue === normalisedSenderId && 
+                   ex.enforcementStatus === 'active';
+        });
+        
+        if (globalExemption) {
+            return {
+                exempt: true,
+                exemption: globalExemption,
+                scope: 'global',
+                reason: 'Global exemption applied: ' + globalExemption.senderId
+            };
+        }
+        
+        // Priority 2: Check account-scoped exemptions
+        if (accountId && senderIdExemptions.byAccount[accountId]) {
+            var accountExemption = senderIdExemptions.byAccount[accountId].find(function(ex) {
+                return ex.normalisedValue === normalisedSenderId && 
+                       ex.enforcementStatus === 'active' &&
+                       ex.scope === 'account';
+            });
+            
+            if (accountExemption) {
+                return {
+                    exempt: true,
+                    exemption: accountExemption,
+                    scope: 'account',
+                    reason: 'Account exemption applied: ' + accountExemption.senderId + ' for ' + accountId
+                };
+            }
+        }
+        
+        // Priority 3: Check sub-account scoped exemptions
+        if (subAccountId && senderIdExemptions.bySubAccount[subAccountId]) {
+            var subAccountExemption = senderIdExemptions.bySubAccount[subAccountId].find(function(ex) {
+                return ex.normalisedValue === normalisedSenderId && 
+                       ex.enforcementStatus === 'active' &&
+                       ex.scope === 'subaccount';
+            });
+            
+            if (subAccountExemption) {
+                return {
+                    exempt: true,
+                    exemption: subAccountExemption,
+                    scope: 'subaccount',
+                    reason: 'Sub-account exemption applied: ' + subAccountExemption.senderId + ' for ' + subAccountId
+                };
+            }
+        }
+        
+        // Also check account-level exemptions with subAccounts array containing this subAccountId
+        if (subAccountId && accountId && senderIdExemptions.byAccount[accountId]) {
+            var subAccountArrayExemption = senderIdExemptions.byAccount[accountId].find(function(ex) {
+                return ex.normalisedValue === normalisedSenderId && 
+                       ex.enforcementStatus === 'active' &&
+                       ex.scope === 'subaccount' &&
+                       ex.subAccounts && ex.subAccounts.indexOf(subAccountId) !== -1;
+            });
+            
+            if (subAccountArrayExemption) {
+                return {
+                    exempt: true,
+                    exemption: subAccountArrayExemption,
+                    scope: 'subaccount',
+                    reason: 'Sub-account exemption applied: ' + subAccountArrayExemption.senderId + ' for ' + subAccountId
+                };
+            }
+        }
+        
+        return { exempt: false, exemption: null, scope: null, reason: null };
+    }
+    
+    /**
+     * Emit internal admin audit event for exemption enforcement
+     */
+    function emitExemptionAuditEvent(eventType, details) {
+        var auditEvent = {
+            timestamp: new Date().toISOString(),
+            eventType: eventType,
+            engine: ENGINES.SENDERID,
+            details: details
+        };
+        
+        console.log('[MessageEnforcementService][AUDIT] ' + eventType + ':', auditEvent);
+        
+        // Emit to global audit logger if available
+        if (typeof window !== 'undefined' && window.AdminAuditLogger && typeof window.AdminAuditLogger.log === 'function') {
+            window.AdminAuditLogger.log(eventType, details);
+        }
+        
+        // Store in context for response
+        if (details.context && details.context.auditEvents) {
+            details.context.auditEvents.push(auditEvent);
+        }
+        
+        return auditEvent;
+    }
+    
+    /**
+     * Load exemptions from Admin module data
+     */
+    function loadSenderIdExemptions(exemptionsList) {
+        senderIdExemptions = {
+            global: [],
+            byAccount: {},
+            bySubAccount: {}
+        };
+        
+        (exemptionsList || []).forEach(function(ex) {
+            if (ex.enforcementStatus !== 'active') return;
+            
+            if (ex.scope === 'global' || ex.accountId === 'global') {
+                senderIdExemptions.global.push(ex);
+            } else if (ex.scope === 'account') {
+                if (!senderIdExemptions.byAccount[ex.accountId]) {
+                    senderIdExemptions.byAccount[ex.accountId] = [];
+                }
+                senderIdExemptions.byAccount[ex.accountId].push(ex);
+            } else if (ex.scope === 'subaccount') {
+                // Store under account for lookup
+                if (!senderIdExemptions.byAccount[ex.accountId]) {
+                    senderIdExemptions.byAccount[ex.accountId] = [];
+                }
+                senderIdExemptions.byAccount[ex.accountId].push(ex);
+                
+                // Also index by individual sub-accounts
+                (ex.subAccounts || []).forEach(function(subId) {
+                    if (!senderIdExemptions.bySubAccount[subId]) {
+                        senderIdExemptions.bySubAccount[subId] = [];
+                    }
+                    senderIdExemptions.bySubAccount[subId].push(ex);
+                });
+            }
+        });
+        
+        console.log('[MessageEnforcementService] Loaded exemptions:', {
+            global: senderIdExemptions.global.length,
+            accounts: Object.keys(senderIdExemptions.byAccount).length,
+            subAccounts: Object.keys(senderIdExemptions.bySubAccount).length
+        });
+    }
+
     function evaluateSenderIdRules(message, context) {
-        var result = { decision: DECISIONS.ALLOW, reason: null };
+        var result = { decision: DECISIONS.ALLOW, reason: null, exemptionApplied: null };
         var senderId = (message.senderId || '').toUpperCase();
 
         if (!senderId) {
+            return result;
+        }
+        
+        // Initialize audit events array in context
+        if (!context.auditEvents) {
+            context.auditEvents = [];
+        }
+        
+        // FIRST: Check for exemptions BEFORE applying blocking rules
+        // Exemptions always take precedence over Flag/Quarantine and Block rules
+        var exemptionCheck = checkSenderIdExemption(senderId, context);
+        
+        if (exemptionCheck.exempt) {
+            result.exemptionApplied = {
+                exemptionId: exemptionCheck.exemption.id,
+                senderId: exemptionCheck.exemption.senderId,
+                scope: exemptionCheck.scope,
+                reason: exemptionCheck.reason
+            };
+            
+            // Emit audit event for exemption application
+            emitExemptionAuditEvent(EXEMPTION_AUDIT_EVENTS.EXEMPTION_APPLIED, {
+                senderId: senderId,
+                exemptionId: exemptionCheck.exemption.id,
+                exemptionScope: exemptionCheck.scope,
+                accountId: context.accountId,
+                subAccountId: context.subAccountId,
+                source: exemptionCheck.exemption.source,
+                context: context
+            });
+            
+            // Return ALLOW - exemption overrides all blocking rules
+            result.decision = DECISIONS.ALLOW;
+            result.reason = exemptionCheck.reason;
             return result;
         }
 
@@ -994,6 +1199,7 @@ var MessageEnforcementService = (function() {
     return {
         DECISIONS: DECISIONS,
         ENGINES: ENGINES,
+        EXEMPTION_AUDIT_EVENTS: EXEMPTION_AUDIT_EVENTS,
         initialize: initialize,
         evaluate: evaluate,
         updateRules: updateRules,
@@ -1018,6 +1224,16 @@ var MessageEnforcementService = (function() {
         isEngineEnabled: isEngineEnabled,
         setFeatureFlag: setFeatureFlag,
         getFeatureFlags: function() { return Object.assign({}, featureFlags); },
+        // SenderID Exemption APIs
+        loadSenderIdExemptions: loadSenderIdExemptions,
+        checkSenderIdExemption: checkSenderIdExemption,
+        getExemptionStats: function() {
+            return {
+                global: senderIdExemptions.global.length,
+                accounts: Object.keys(senderIdExemptions.byAccount).length,
+                subAccounts: Object.keys(senderIdExemptions.bySubAccount).length
+            };
+        },
         /**
          * Evaluate normalised text against SenderID/Content/URL rules
          * Called by NormalisationEnforcementAPI after normalisation is applied
