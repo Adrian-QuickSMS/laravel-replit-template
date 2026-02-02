@@ -2245,7 +2245,7 @@
                                 <span style="font-size: 0.7rem; font-weight: 600; color: #dc3545;"><i class="fas fa-exclamation-triangle me-1"></i>TRIGGERED RULES</span>
                                 <span id="qrn-rules-count" class="badge bg-danger" style="font-size: 0.55rem;">0</span>
                             </div>
-                            <div id="qrn-view-triggered-rules" style="max-height: 50px; overflow-y: auto;"></div>
+                            <div id="qrn-view-triggered-rules" style="max-height: 150px; overflow-y: auto;"></div>
                         </div>
                         
                         <div class="accordion accordion-flush" id="qrn-left-accordions" style="font-size: 0.7rem;">
@@ -4290,20 +4290,33 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('qrn-rules-count').textContent = rulesCount;
         
         if (msg.triggeredRules && msg.triggeredRules.length > 0) {
-            triggeredRulesHtml = '<div class="d-flex flex-wrap gap-1">';
-            msg.triggeredRules.forEach(function(rule) {
+            triggeredRulesHtml = '<div class="d-flex flex-column gap-2">';
+            msg.triggeredRules.forEach(function(rule, idx) {
                 var engineColor = rule.engine === 'SenderIdEnforcementEngine' ? '#6b21a8' 
                     : rule.engine === 'MessageContentEngine' ? '#1e3a5f'
                     : rule.engine === 'UrlEnforcementEngine' ? '#0d6efd'
                     : '#dc3545';
-                var engineShort = rule.engine === 'SenderIdEnforcementEngine' ? 'SID' 
-                    : rule.engine === 'MessageContentEngine' ? 'CNT'
+                var engineLabel = rule.engine === 'SenderIdEnforcementEngine' ? 'SenderID' 
+                    : rule.engine === 'MessageContentEngine' ? 'Content'
                     : rule.engine === 'UrlEnforcementEngine' ? 'URL'
-                    : 'OTH';
-                var truncatedMatch = escapeHtml(rule.matchedValue).substring(0, 25) + (rule.matchedValue.length > 25 ? '...' : '');
-                triggeredRulesHtml += '<span class="badge d-inline-flex align-items-center" style="background: ' + engineColor + '; font-size: 0.6rem; font-weight: 500; padding: 0.2rem 0.4rem;" title="' + escapeHtml(rule.matchedValue) + '">' +
-                    engineShort + ': ' + rule.ruleName.substring(0, 15) + (rule.ruleName.length > 15 ? '...' : '') +
-                '</span>';
+                    : 'Other';
+                
+                // Determine what to display as the blocked value
+                var blockedValue = rule.matchedValue || '';
+                if (rule.engine === 'UrlEnforcementEngine' && msg.extractedUrls && msg.extractedUrls.length > 0) {
+                    blockedValue = msg.extractedUrls[0];
+                } else if (rule.engine === 'SenderIdEnforcementEngine') {
+                    blockedValue = msg.senderId || rule.matchedValue;
+                }
+                
+                triggeredRulesHtml += '<div class="triggered-rule-item" style="background: #f8f9fa; border-radius: 6px; padding: 0.5rem; border-left: 3px solid ' + engineColor + ';">';
+                triggeredRulesHtml += '<div class="d-flex align-items-center gap-2 mb-1">';
+                triggeredRulesHtml += '<span class="badge" style="background: ' + engineColor + '; font-size: 0.65rem;">' + engineLabel + '</span>';
+                triggeredRulesHtml += '<span style="font-size: 0.75rem; font-weight: 600; color: #333;">' + escapeHtml(rule.ruleName) + '</span>';
+                triggeredRulesHtml += '</div>';
+                triggeredRulesHtml += '<div style="font-size: 0.7rem; color: #666; margin-bottom: 0.25rem;">Matched Pattern: <code style="background: #fff3cd; color: #856404; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.65rem;">' + escapeHtml(rule.matchedValue) + '</code></div>';
+                triggeredRulesHtml += '<div style="font-size: 0.7rem; color: #dc3545; font-weight: 500;"><i class="fas fa-ban me-1"></i>Blocked: <span style="font-family: monospace; background: #f8d7da; padding: 0.1rem 0.3rem; border-radius: 3px;">' + escapeHtml(blockedValue) + '</span></div>';
+                triggeredRulesHtml += '</div>';
             });
             triggeredRulesHtml += '</div>';
         } else {
