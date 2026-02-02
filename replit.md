@@ -57,7 +57,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - **Test Rule Accordion:** Collapsible test section (collapsed by default) with detailed output showing match highlighting, normalised version, and action outcomes (Block/Quarantine)
   - **Exemption Audit Events:** CONTENT_EXEMPTION_ADDED/UPDATED/REMOVED, ANTISPAM_OVERRIDE_ADDED/UPDATED/REMOVED with before/after snapshots, adminUser, timestamp, accountId, subAccountsAffected, ruleIdsAffected, and optional reason field stored in metadata_json
   - **URL Controls Sub-tabs:** Refactored into 3 sub-tabs following Content Controls pattern:
-    - **Domain Age (default):** Settings card with enable/disable toggle, hours threshold, and action selection
+    - **Domain Age (default):** Compact collapsible Fillow card (collapsed by default) with status badge, editable fields (enable toggle, hours threshold, action), Save/Cancel buttons, and confirmation modal showing before/after diff with audit logging (DOMAIN_AGE_SETTINGS_UPDATED)
     - **URL Rule Library:** Rules table with search/filter, add/edit modal, and CRUD operations
     - **Exemptions:** Per-account URL exemptions table with search/filter, type selection (domain_age/url_rule), rules checklist, and full CRUD with audit logging (URL_DOMAIN_AGE_EXEMPTION_*, URL_RULE_EXEMPTION_*, URL_EXEMPTION_STATUS_CHANGED)
 - **NormalisationLibrary:** Fixed base character library (62 immutable characters) for character equivalence:

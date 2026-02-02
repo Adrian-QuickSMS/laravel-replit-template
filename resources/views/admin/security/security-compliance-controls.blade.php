@@ -1996,43 +1996,51 @@
                 <div class="tab-content" id="urlSubTabContent">
                     <!-- Domain Age Tab -->
                     <div class="tab-pane fade show active" id="url-domain-age" role="tabpanel">
-                        <div class="sec-table-card">
-                            <div class="sec-table-header" style="border-bottom: 1px solid #e9ecef; padding-bottom: 0.75rem; margin-bottom: 1rem;">
-                                <h6 style="margin: 0;"><i class="fas fa-clock me-2" style="color: #1e3a5f;"></i>Domain Age Control</h6>
+                        <div class="card mb-3" style="border: 1px solid #e9ecef; border-radius: 6px; box-shadow: none;">
+                            <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #f8f9fa; cursor: pointer; border-bottom: 1px solid #e9ecef;" data-bs-toggle="collapse" data-bs-target="#domain-age-collapse" aria-expanded="false">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-clock" style="color: #1e3a5f; font-size: 0.85rem;"></i>
+                                    <span style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f;">Domain Age Settings</span>
+                                    <span class="badge" id="domain-age-status-badge" style="font-size: 0.65rem; background: #dc3545; color: white;">Disabled</span>
+                                </div>
+                                <i class="fas fa-chevron-down" id="domain-age-collapse-icon" style="font-size: 0.65rem; color: #6c757d; transition: transform 0.2s;"></i>
                             </div>
-                            <div class="row align-items-center">
-                                <div class="col-md-6">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="domain-age-enabled" style="width: 2.5rem; height: 1.25rem;">
-                                            <label class="form-check-label" for="domain-age-enabled" style="font-weight: 600; margin-left: 0.5rem;">
-                                                Enable Domain Age Check
-                                            </label>
+                            <div class="collapse" id="domain-age-collapse">
+                                <div class="card-body" style="padding: 1rem;">
+                                    <div class="row g-3 align-items-end">
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input" type="checkbox" id="domain-age-enabled" style="width: 2.25rem; height: 1.1rem;">
+                                                <label class="form-check-label" for="domain-age-enabled" style="font-weight: 600; font-size: 0.8rem; margin-left: 0.25rem;">
+                                                    Enable Enforcement
+                                                </label>
+                                            </div>
+                                            <small class="text-muted d-block" style="font-size: 0.7rem; margin-top: 0.25rem;">Block or flag URLs with newly registered domains</small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">Threshold (hours)</label>
+                                            <input type="number" class="form-control form-control-sm" id="domain-age-hours" value="72" min="1" max="8760" style="font-size: 0.85rem;">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">Action on Trigger</label>
+                                            <select class="form-select form-select-sm" id="domain-age-action" style="font-size: 0.85rem;">
+                                                <option value="block">Block</option>
+                                                <option value="flag">Flag to Quarantine</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <button class="btn btn-sm btn-outline-secondary me-1" onclick="cancelDomainAgeSettings()" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                                                Cancel
+                                            </button>
+                                            <button class="btn btn-sm text-white" style="background: #1e3a5f; font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="confirmSaveDomainAgeSettings()">
+                                                <i class="fas fa-save me-1"></i> Save
+                                            </button>
                                         </div>
                                     </div>
-                                    <small class="text-muted d-block mt-1">When enabled, newly registered domains will be blocked or flagged based on their age.</small>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Block domains younger than</label>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control" id="domain-age-hours" value="72" min="1" max="8760" disabled>
-                                        <span class="input-group-text">hours</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Action</label>
-                                    <select class="form-select" id="domain-age-action" disabled>
-                                        <option value="block">Block</option>
-                                        <option value="flag">Flag (Quarantine)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mt-3 text-end">
-                                <button class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveDomainAgeSettings()">
-                                    <i class="fas fa-save me-1"></i> Save Settings
-                                </button>
                             </div>
                         </div>
+                        <p class="text-muted mb-0" style="font-size: 0.75rem;"><i class="fas fa-info-circle me-1"></i>Domain age checking helps prevent phishing by blocking URLs from recently registered domains.</p>
                     </div>
 
                     <!-- URL Rule Library Tab -->
@@ -3306,6 +3314,39 @@
     </div>
 </div>
 
+<div class="modal fade" id="domainAgeConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header py-2" style="background: #1e3a5f; border-bottom: none;">
+                <h6 class="modal-title text-white mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Changes
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1rem;">
+                <p style="font-size: 0.85rem; margin-bottom: 0.75rem;">You are about to update the domain age settings:</p>
+                <table class="table table-sm mb-0" style="font-size: 0.8rem;">
+                    <thead>
+                        <tr style="background: #f8f9fa;">
+                            <th style="width: 40%; padding: 0.35rem;">Setting</th>
+                            <th style="width: 30%; padding: 0.35rem;">Before</th>
+                            <th style="width: 30%; padding: 0.35rem;">After</th>
+                        </tr>
+                    </thead>
+                    <tbody id="domain-age-confirm-diff">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer py-2" style="border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="executeSaveDomainAgeSettings()">
+                    <i class="fas fa-check me-1"></i> Confirm Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="quarantineViewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width: 1100px;">
         <div class="modal-content" style="display: flex; flex-direction: column; max-height: 85vh;">
@@ -4168,6 +4209,7 @@ var SecurityComplianceControlsService = (function() {
         loadMockData();
         renderAllTabs();
         setupEventListeners();
+        initDomainAgeSettings();
         console.log('[SecurityComplianceControls] Initialized');
     }
     
@@ -7067,7 +7109,101 @@ var SecurityComplianceControlsService = (function() {
         renderUrlTab();
     }
     
-    function saveDomainAgeSettings() {
+    var domainAgeOriginalSettings = null;
+    
+    function initDomainAgeSettings() {
+        domainAgeOriginalSettings = JSON.parse(JSON.stringify(mockData.domainAgeSettings));
+        
+        document.getElementById('domain-age-enabled').checked = mockData.domainAgeSettings.enabled;
+        document.getElementById('domain-age-hours').value = mockData.domainAgeSettings.minAgeHours || 72;
+        document.getElementById('domain-age-action').value = mockData.domainAgeSettings.action || 'block';
+        
+        updateDomainAgeStatusBadge();
+        
+        // Collapse icon rotation
+        var collapseEl = document.getElementById('domain-age-collapse');
+        if (collapseEl) {
+            collapseEl.addEventListener('show.bs.collapse', function() {
+                document.getElementById('domain-age-collapse-icon').style.transform = 'rotate(180deg)';
+            });
+            collapseEl.addEventListener('hide.bs.collapse', function() {
+                document.getElementById('domain-age-collapse-icon').style.transform = 'rotate(0deg)';
+            });
+        }
+    }
+    
+    function updateDomainAgeStatusBadge() {
+        var badge = document.getElementById('domain-age-status-badge');
+        if (!badge) return;
+        
+        var enabled = document.getElementById('domain-age-enabled').checked;
+        if (enabled) {
+            badge.textContent = 'Enabled';
+            badge.style.background = '#198754';
+        } else {
+            badge.textContent = 'Disabled';
+            badge.style.background = '#dc3545';
+        }
+    }
+    
+    function cancelDomainAgeSettings() {
+        if (!domainAgeOriginalSettings) return;
+        
+        document.getElementById('domain-age-enabled').checked = domainAgeOriginalSettings.enabled;
+        document.getElementById('domain-age-hours').value = domainAgeOriginalSettings.minAgeHours || 72;
+        document.getElementById('domain-age-action').value = domainAgeOriginalSettings.action || 'block';
+        
+        updateDomainAgeStatusBadge();
+        
+        var collapseEl = bootstrap.Collapse.getInstance(document.getElementById('domain-age-collapse'));
+        if (collapseEl) collapseEl.hide();
+        
+        showToast('Changes cancelled', 'info');
+    }
+    
+    function confirmSaveDomainAgeSettings() {
+        var enabled = document.getElementById('domain-age-enabled').checked;
+        var hours = parseInt(document.getElementById('domain-age-hours').value) || 72;
+        var action = document.getElementById('domain-age-action').value;
+        
+        var diffHtml = '';
+        
+        // Enabled
+        var beforeEnabled = domainAgeOriginalSettings.enabled ? 'Enabled' : 'Disabled';
+        var afterEnabled = enabled ? 'Enabled' : 'Disabled';
+        var enabledChanged = domainAgeOriginalSettings.enabled !== enabled;
+        diffHtml += '<tr' + (enabledChanged ? ' style="background: #fff3cd;"' : '') + '>' +
+            '<td style="padding: 0.35rem;">Enforcement</td>' +
+            '<td style="padding: 0.35rem;">' + beforeEnabled + '</td>' +
+            '<td style="padding: 0.35rem;">' + afterEnabled + '</td>' +
+        '</tr>';
+        
+        // Hours
+        var beforeHours = domainAgeOriginalSettings.minAgeHours || 72;
+        var hoursChanged = beforeHours !== hours;
+        diffHtml += '<tr' + (hoursChanged ? ' style="background: #fff3cd;"' : '') + '>' +
+            '<td style="padding: 0.35rem;">Threshold</td>' +
+            '<td style="padding: 0.35rem;">' + beforeHours + ' hrs</td>' +
+            '<td style="padding: 0.35rem;">' + hours + ' hrs</td>' +
+        '</tr>';
+        
+        // Action
+        var beforeAction = domainAgeOriginalSettings.action === 'flag' ? 'Flag to Quarantine' : 'Block';
+        var afterAction = action === 'flag' ? 'Flag to Quarantine' : 'Block';
+        var actionChanged = domainAgeOriginalSettings.action !== action;
+        diffHtml += '<tr' + (actionChanged ? ' style="background: #fff3cd;"' : '') + '>' +
+            '<td style="padding: 0.35rem;">Action</td>' +
+            '<td style="padding: 0.35rem;">' + beforeAction + '</td>' +
+            '<td style="padding: 0.35rem;">' + afterAction + '</td>' +
+        '</tr>';
+        
+        document.getElementById('domain-age-confirm-diff').innerHTML = diffHtml;
+        
+        var modal = new bootstrap.Modal(document.getElementById('domainAgeConfirmModal'));
+        modal.show();
+    }
+    
+    function executeSaveDomainAgeSettings() {
         var enabled = document.getElementById('domain-age-enabled').checked;
         var hours = parseInt(document.getElementById('domain-age-hours').value) || 72;
         var action = document.getElementById('domain-age-action').value;
@@ -7077,12 +7213,26 @@ var SecurityComplianceControlsService = (function() {
         mockData.domainAgeSettings.minAgeHours = hours;
         mockData.domainAgeSettings.action = action;
         
+        domainAgeOriginalSettings = JSON.parse(JSON.stringify(mockData.domainAgeSettings));
+        
         logAuditEvent('DOMAIN_AGE_SETTINGS_UPDATED', {
             before: beforeSettings,
-            after: mockData.domainAgeSettings
+            after: mockData.domainAgeSettings,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString()
         });
         
+        bootstrap.Modal.getInstance(document.getElementById('domainAgeConfirmModal')).hide();
+        updateDomainAgeStatusBadge();
+        
+        var collapseEl = bootstrap.Collapse.getInstance(document.getElementById('domain-age-collapse'));
+        if (collapseEl) collapseEl.hide();
+        
         showToast('Domain age settings saved successfully', 'success');
+    }
+    
+    function saveDomainAgeSettings() {
+        confirmSaveDomainAgeSettings();
     }
     
     function showAddDomainAgeExceptionModal() {
@@ -7167,8 +7317,7 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('url-search').addEventListener('input', renderUrlTab);
         
         document.getElementById('domain-age-enabled').addEventListener('change', function() {
-            document.getElementById('domain-age-hours').disabled = !this.checked;
-            document.getElementById('domain-age-action').disabled = !this.checked;
+            updateDomainAgeStatusBadge();
         });
         
         // URL Exemptions tab listeners
@@ -8896,6 +9045,11 @@ var SecurityComplianceControlsService = (function() {
         toggleUrlActionMenu: toggleUrlActionMenu,
         setupUrlTabListeners: setupUrlTabListeners,
         saveDomainAgeSettings: saveDomainAgeSettings,
+        initDomainAgeSettings: initDomainAgeSettings,
+        updateDomainAgeStatusBadge: updateDomainAgeStatusBadge,
+        cancelDomainAgeSettings: cancelDomainAgeSettings,
+        confirmSaveDomainAgeSettings: confirmSaveDomainAgeSettings,
+        executeSaveDomainAgeSettings: executeSaveDomainAgeSettings,
         showAddDomainAgeExceptionModal: showAddDomainAgeExceptionModal,
         saveException: saveException,
         removeDomainAgeException: removeDomainAgeException,
@@ -12615,6 +12769,18 @@ function selectUrlExemptionAccount(accountId, accountName) {
 
 function saveDomainAgeSettings() {
     SecurityComplianceControlsService.saveDomainAgeSettings();
+}
+
+function cancelDomainAgeSettings() {
+    SecurityComplianceControlsService.cancelDomainAgeSettings();
+}
+
+function confirmSaveDomainAgeSettings() {
+    SecurityComplianceControlsService.confirmSaveDomainAgeSettings();
+}
+
+function executeSaveDomainAgeSettings() {
+    SecurityComplianceControlsService.executeSaveDomainAgeSettings();
 }
 
 function showAddDomainAgeExceptionModal() {
