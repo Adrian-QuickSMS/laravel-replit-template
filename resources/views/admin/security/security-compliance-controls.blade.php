@@ -1751,57 +1751,44 @@
                 <div class="tab-content" id="contentSubTabContent">
                     <!-- Rules Tab -->
                     <div class="tab-pane fade show active" id="content-rules" role="tabpanel">
-                        <!-- Collapsible Anti-Spam Controls Card -->
+                        <!-- Collapsible Anti-Spam Controls Card (Global Default) -->
                         <div class="card mb-3" style="border: 1px solid #e9ecef; border-left: 3px solid #1e3a5f;">
                             <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #f8f9fa; cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#antispam-collapse" aria-expanded="false">
-                                <h6 class="mb-0" style="font-size: 0.9rem; font-weight: 600;">
-                                    <i class="fas fa-shield-virus me-2" style="color: #1e3a5f;"></i>Anti-Spam Controls
-                                    <i class="fas fa-chevron-down ms-2" id="antispam-collapse-icon" style="font-size: 0.7rem; transition: transform 0.2s;"></i>
+                                <h6 class="mb-0" style="font-size: 0.85rem; font-weight: 600;">
+                                    <i class="fas fa-shield-virus me-2" style="color: #1e3a5f;"></i>Anti-Spam Protection
+                                    <span class="badge bg-light text-dark ms-2" style="font-size: 0.6rem; font-weight: 500;">GLOBAL DEFAULT</span>
+                                    <i class="fas fa-chevron-down ms-2" id="antispam-collapse-icon" style="font-size: 0.65rem; transition: transform 0.2s;"></i>
                                 </h6>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div id="antispam-status-badge">
-                                        <span class="badge bg-secondary" style="font-size: 0.65rem;">
-                                            <i class="fas fa-toggle-off me-1"></i> Disabled
-                                        </span>
-                                    </div>
-                                    <span class="badge text-white" style="background: #1e3a5f; font-size: 0.65rem;">SUPPLEMENTARY</span>
+                                <div id="antispam-status-badge">
+                                    <span class="badge bg-secondary" style="font-size: 0.65rem;">
+                                        <i class="fas fa-toggle-off me-1"></i> Off
+                                    </span>
                                 </div>
                             </div>
                             <div class="collapse" id="antispam-collapse">
-                                <div class="card-body py-3">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-6">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="antispam-repeat-toggle" onchange="toggleAntiSpamRepeat()">
-                                                <label class="form-check-label" for="antispam-repeat-toggle" style="font-size: 0.85rem;">
-                                                    <strong>Prevent identical content to same MSISDN within window</strong>
-                                                </label>
-                                            </div>
-                                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                                When enabled, blocks duplicate messages sent to the same recipient within the configured time window.
-                                            </small>
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input" type="checkbox" id="antispam-repeat-toggle" onchange="toggleAntiSpamRepeat()" style="width: 2.25rem; height: 1.125rem;">
+                                            <label class="form-check-label" for="antispam-repeat-toggle" style="font-size: 0.8rem; font-weight: 600;">
+                                                Enable Anti-Spam Protection
+                                            </label>
                                         </div>
-                                        <div class="col-md-3">
-                                            <label for="antispam-window" class="form-label mb-1" style="font-size: 0.8rem; font-weight: 600;">Time Window</label>
-                                            <select class="form-select form-select-sm" id="antispam-window" onchange="updateAntiSpamWindow()" disabled>
-                                                <option value="15">15 minutes</option>
-                                                <option value="30">30 minutes</option>
-                                                <option value="60">1 hour</option>
-                                                <option value="120" selected>2 hours</option>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <label for="antispam-window" class="form-label mb-0" style="font-size: 0.75rem; white-space: nowrap;">Window:</label>
+                                            <select class="form-select form-select-sm" id="antispam-window" onchange="updateAntiSpamWindow()" disabled style="width: auto; font-size: 0.8rem; padding: 0.25rem 1.75rem 0.25rem 0.5rem;">
+                                                <option value="15">15 min</option>
+                                                <option value="30">30 min</option>
+                                                <option value="60">60 min</option>
+                                                <option value="120" selected>120 min</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-3 text-end">
-                                            <div id="antispam-status" class="d-inline-block">
-                                                <span class="badge bg-secondary" style="font-size: 0.75rem;">
-                                                    <i class="fas fa-toggle-off me-1"></i> Disabled
-                                                </span>
-                                            </div>
-                                        </div>
                                     </div>
-                                    <div class="mt-3 p-2 bg-light rounded" style="font-size: 0.75rem; border: 1px solid #e9ecef;" id="antispam-info">
-                                        <i class="fas fa-info-circle me-1 text-muted"></i>
-                                        <span class="text-muted">Enforcement is handled globally via the shared Message Enforcement Service. Customers can override in Account > Security Settings. Blocked events will include reason: "Repeated content within window".</span>
-                                    </div>
+                                    <p class="text-muted mb-0 mt-2" style="font-size: 0.7rem; line-height: 1.4;">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Blocks identical message content sent to the same MSISDN within the configured window. 
+                                        <strong>Per-account overrides</strong> can be configured in the Exemptions tab.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -2952,24 +2939,24 @@
                     
                     <!-- Anti-Spam Override Section -->
                     <div id="content-exemption-antispam-section" style="display: none;">
-                        <div class="mb-3">
-                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Anti-Spam Setting Override <span class="text-danger">*</span></label>
-                            <select class="form-select" id="content-exemption-antispam-override">
-                                <option value="disabled">Disable Anti-Spam (allow repeated content)</option>
-                                <option value="enabled">Force Enable Anti-Spam</option>
-                                <option value="strict">Strict Mode (shorter time window)</option>
+                        <div class="p-3 mb-3" style="background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
+                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Anti-Spam Override <span class="text-danger">*</span></label>
+                            <select class="form-select" id="content-exemption-antispam-override" onchange="updateAntispamOverrideWindow()">
+                                <option value="disabled">Disabled - Allow repeated content</option>
+                                <option value="enabled">Enabled - Use global window setting</option>
+                                <option value="strict">Strict - Custom shorter window</option>
                             </select>
-                            <small class="text-muted">Override the global anti-spam setting for this account</small>
-                        </div>
-                        <div class="mb-3" id="antispam-window-override-group" style="display: none;">
-                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Custom Time Window</label>
-                            <select class="form-select" id="content-exemption-antispam-window">
-                                <option value="15">15 minutes</option>
-                                <option value="30">30 minutes</option>
-                                <option value="60">1 hour</option>
-                                <option value="120">2 hours</option>
-                            </select>
-                            <small class="text-muted">Custom time window for strict mode</small>
+                            <small class="text-muted d-block mt-1">Override the global anti-spam protection for this account</small>
+                            
+                            <div class="mt-2" id="antispam-window-override-group" style="display: none;">
+                                <label class="form-label mb-1" style="font-weight: 600; font-size: 0.8rem;">Custom Window</label>
+                                <select class="form-select form-select-sm" id="content-exemption-antispam-window" style="width: auto;">
+                                    <option value="15">15 minutes</option>
+                                    <option value="30">30 minutes</option>
+                                    <option value="60">60 minutes</option>
+                                    <option value="120">120 minutes</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     
@@ -5527,7 +5514,10 @@ var SecurityComplianceControlsService = (function() {
             antispamSection.style.display = 'block';
         }
         
-        // Show/hide custom window based on override selection
+        updateAntispamOverrideWindow();
+    }
+    
+    function updateAntispamOverrideWindow() {
         var override = document.getElementById('content-exemption-antispam-override').value;
         document.getElementById('antispam-window-override-group').style.display = override === 'strict' ? 'block' : 'none';
     }
@@ -7853,6 +7843,7 @@ var SecurityComplianceControlsService = (function() {
         executeDeleteContentExemption: executeDeleteContentExemption,
         saveContentExemption: saveContentExemption,
         toggleContentExemptionType: toggleContentExemptionType,
+        updateAntispamOverrideWindow: updateAntispamOverrideWindow,
         loadContentExemptionSubaccounts: loadContentExemptionSubaccounts,
         toggleContentExemptionActionMenu: toggleContentExemptionActionMenu,
         toggleContentExemptionsFilterPanel: toggleContentExemptionsFilterPanel,
@@ -11434,6 +11425,10 @@ function saveContentExemption() {
 
 function toggleContentExemptionType() {
     SecurityComplianceControlsService.toggleContentExemptionType();
+}
+
+function updateAntispamOverrideWindow() {
+    SecurityComplianceControlsService.updateAntispamOverrideWindow();
 }
 
 function loadContentExemptionSubaccounts() {
