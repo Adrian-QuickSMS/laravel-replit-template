@@ -227,6 +227,102 @@
     align-items: center;
     gap: 0.5rem;
 }
+
+/* Quarantine Filter Panel - matching Numbers page pattern */
+.quarantine-filter-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid #1e3a5f;
+    color: #1e3a5f;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.375rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.quarantine-filter-pill-btn:hover {
+    background: rgba(30, 58, 95, 0.08);
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.quarantine-filter-pill-btn.active {
+    background: rgba(30, 58, 95, 0.12);
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.quarantine-filter-pill-btn i {
+    font-size: 0.8rem;
+    color: #1e3a5f;
+}
+.quarantine-filter-panel {
+    background: #fff;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: none;
+}
+.quarantine-filter-panel .filter-body {
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+}
+.quarantine-filter-panel .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.quarantine-filter-panel .filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+    flex: 1;
+    max-width: 200px;
+}
+.quarantine-filter-panel .filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.375rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.quarantine-filter-panel .filter-group select {
+    font-size: 0.85rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+.quarantine-filter-panel .filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
+}
+.quarantine-filter-panel .btn-reset {
+    background: transparent;
+    border: 1px solid #6c757d;
+    color: #6c757d;
+    font-size: 0.85rem;
+    padding: 0.375rem 1rem;
+}
+.quarantine-filter-panel .btn-reset:hover {
+    background: #f8f9fa;
+}
+.quarantine-filter-panel .btn-apply {
+    background: #1e3a5f;
+    border: 1px solid #1e3a5f;
+    color: #fff;
+    font-size: 0.85rem;
+    padding: 0.375rem 1rem;
+}
+.quarantine-filter-panel .btn-apply:hover {
+    background: #152d4a;
+}
 .sec-table {
     width: 100%;
     margin: 0;
@@ -1686,50 +1782,11 @@
                             <input type="text" class="form-control" placeholder="Search messages, accounts, SenderIDs..." id="quarantine-search">
                         </div>
                         <div class="sec-toolbar-actions">
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="quarantine-filter-btn" style="border-color: #1e3a5f; color: #1e3a5f;">
-                                    <i class="fas fa-filter me-1"></i> Filter
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Status</label>
-                                        <select class="form-select form-select-sm" id="quarantine-filter-status">
-                                            <option value="">All Statuses</option>
-                                            <option value="pending" selected>Pending</option>
-                                            <option value="released">Released</option>
-                                            <option value="blocked">Permanently Blocked</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Rule Triggered</label>
-                                        <select class="form-select form-select-sm" id="quarantine-filter-rule">
-                                            <option value="">All Rules</option>
-                                            <option value="senderid">SenderID Rule</option>
-                                            <option value="content">Content Rule</option>
-                                            <option value="url">URL Rule</option>
-                                            <option value="domain_age">Domain Age</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">URL Present</label>
-                                        <select class="form-select form-select-sm" id="quarantine-filter-url">
-                                            <option value="">All</option>
-                                            <option value="yes">Yes</option>
-                                            <option value="no">No</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Account</label>
-                                        <select class="form-select form-select-sm" id="quarantine-filter-account">
-                                            <option value="">All Accounts</option>
-                                        </select>
-                                    </div>
-                                    <div class="d-flex gap-2 mt-3">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" onclick="resetQuarantineFilters()">Reset</button>
-                                        <button type="button" class="btn btn-sm btn-primary flex-grow-1" onclick="applyQuarantineFilters()">Apply</button>
-                                    </div>
-                                </div>
-                            </div>
+                            <button class="quarantine-filter-pill-btn" type="button" id="quarantine-filter-btn" onclick="toggleQuarantineFilterPanel()">
+                                <i class="fas fa-filter"></i>
+                                <span>Filter</span>
+                                <span class="badge bg-primary" id="quarantine-filter-count" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem;">0</span>
+                            </button>
                             <button class="btn btn-outline-danger btn-sm" onclick="bulkBlockQuarantine()">
                                 <i class="fas fa-ban me-1"></i> Block Selected
                             </button>
@@ -1738,6 +1795,51 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="quarantine-filter-panel" id="quarantine-filter-panel">
+                        <div class="filter-body">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Status</label>
+                                    <select id="quarantine-filter-status">
+                                        <option value="">All Statuses</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="released">Released</option>
+                                        <option value="blocked">Permanently Blocked</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Rule Triggered</label>
+                                    <select id="quarantine-filter-rule">
+                                        <option value="">All Rules</option>
+                                        <option value="senderid">SenderID Rule</option>
+                                        <option value="content">Content Rule</option>
+                                        <option value="url">URL Rule</option>
+                                        <option value="domain_age">Domain Age</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>URL Present</label>
+                                    <select id="quarantine-filter-url">
+                                        <option value="">All</option>
+                                        <option value="yes">Yes</option>
+                                        <option value="no">No</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Account</label>
+                                    <select id="quarantine-filter-account">
+                                        <option value="">All Accounts</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="filter-actions">
+                                <button class="btn btn-reset" onclick="resetQuarantineFilters()"><i class="fas fa-undo me-1"></i> Reset</button>
+                                <button class="btn btn-apply" onclick="applyQuarantineFilters()"><i class="fas fa-check me-1"></i> Apply Filters</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="sec-table-header">
                         <h6>Quarantine Inbox</h6>
                     </div>
@@ -4362,11 +4464,59 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function setupQuarantineTabListeners() {
-        document.getElementById('quarantine-filter-status').addEventListener('change', renderQuarantineTab);
-        document.getElementById('quarantine-filter-rule').addEventListener('change', renderQuarantineTab);
-        document.getElementById('quarantine-filter-url').addEventListener('change', renderQuarantineTab);
-        document.getElementById('quarantine-filter-account').addEventListener('change', renderQuarantineTab);
         document.getElementById('quarantine-search').addEventListener('input', renderQuarantineTab);
+    }
+    
+    function toggleQuarantineFilterPanel() {
+        var panel = document.getElementById('quarantine-filter-panel');
+        var btn = document.getElementById('quarantine-filter-btn');
+        
+        if (!panel || !btn) return;
+        
+        if (panel.style.display === 'none' || panel.style.display === '') {
+            panel.style.display = 'block';
+            btn.classList.add('active');
+        } else {
+            panel.style.display = 'none';
+            btn.classList.remove('active');
+        }
+    }
+    
+    function applyQuarantineFilters() {
+        var filterCount = 0;
+        var status = document.getElementById('quarantine-filter-status').value;
+        var rule = document.getElementById('quarantine-filter-rule').value;
+        var url = document.getElementById('quarantine-filter-url').value;
+        var account = document.getElementById('quarantine-filter-account').value;
+        
+        if (status) filterCount++;
+        if (rule) filterCount++;
+        if (url) filterCount++;
+        if (account) filterCount++;
+        
+        var badge = document.getElementById('quarantine-filter-count');
+        if (filterCount > 0) {
+            badge.textContent = filterCount;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+        
+        renderQuarantineTab();
+        
+        toggleQuarantineFilterPanel();
+    }
+    
+    function resetQuarantineFilters() {
+        document.getElementById('quarantine-filter-status').value = '';
+        document.getElementById('quarantine-filter-rule').value = '';
+        document.getElementById('quarantine-filter-url').value = '';
+        document.getElementById('quarantine-filter-account').value = '';
+        
+        var badge = document.getElementById('quarantine-filter-count');
+        badge.style.display = 'none';
+        
+        renderQuarantineTab();
     }
 
     function setupEventListeners() {
@@ -4603,7 +4753,10 @@ var SecurityComplianceControlsService = (function() {
         addExceptionFromQuarantine: addExceptionFromQuarantine,
         createRuleFromQuarantine: createRuleFromQuarantine,
         releaseQuarantinedMessageFromModal: releaseQuarantinedMessageFromModal,
-        blockQuarantinedMessageFromModal: blockQuarantinedMessageFromModal
+        blockQuarantinedMessageFromModal: blockQuarantinedMessageFromModal,
+        toggleQuarantineFilterPanel: toggleQuarantineFilterPanel,
+        applyQuarantineFilters: applyQuarantineFilters,
+        resetQuarantineFilters: resetQuarantineFilters
     };
 })();
 
@@ -7649,6 +7802,18 @@ function resetUrlFilters() {
     document.getElementById('url-filter-type').value = '';
     document.getElementById('url-filter-category').value = '';
     document.getElementById('url-search').value = '';
+}
+
+function toggleQuarantineFilterPanel() {
+    SecurityComplianceControlsService.toggleQuarantineFilterPanel();
+}
+
+function applyQuarantineFilters() {
+    SecurityComplianceControlsService.applyQuarantineFilters();
+}
+
+function resetQuarantineFilters() {
+    SecurityComplianceControlsService.resetQuarantineFilters();
 }
 
 function resetNormFilters() {
