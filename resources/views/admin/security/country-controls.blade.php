@@ -1743,6 +1743,44 @@
     </div>
 </div>
 
+<div class="modal fade" id="removeOverrideConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #dc2626; color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-trash-alt me-2"></i>Remove Override</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-light border mb-3">
+                    <div class="small text-muted">Removing override for:</div>
+                    <div><strong id="removeOverrideAccountName"></strong></div>
+                    <div class="mt-1">
+                        <span class="badge" id="removeOverrideTypeBadge"></span>
+                        <span class="text-muted ms-2">&rarr;</span>
+                        <strong class="ms-2" id="removeOverrideCountryName"></strong>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>What will happen:</strong>
+                    <ul class="mb-0 mt-2" style="padding-left: 1.2rem;">
+                        <li>This account-level override will be permanently removed</li>
+                        <li>The account will revert to the global default status: <strong id="removeOverrideGlobalStatus"></strong></li>
+                        <li>This action will be logged in the audit trail</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveOverrideBtn" onclick="executeRemoveOverride()">
+                    <i class="fas fa-trash-alt me-1"></i>Remove Override
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="countryActionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -3218,6 +3256,7 @@ function updateReviewStats() {
 
 var pendingApprovalRequest = null;
 var pendingRejectionRequest = null;
+var pendingOverrideRemoval = null;
 
 function approveRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
@@ -4425,16 +4464,39 @@ function confirmRemoveOverrideFromModal(countryCode, overrideIndex) {
         override.accountName + ' / ' + override.subAccount : 
         override.accountName;
     var typeLabel = override.overrideType === 'allowed' ? 'Allowed' : 'Blocked';
+    var typeBadgeClass = override.overrideType === 'allowed' ? 'bg-success' : 'bg-danger';
+    var globalStatus = country.status === 'allowed' ? 'Allowed' : 'Blocked';
 
-    var confirmMessage = 'Remove this override?\n\n' +
-        'Account: ' + scopeText + '\n' +
-        'Override Type: ' + typeLabel + '\n\n' +
-        'After removal, this account will follow the global default status (' + 
-        (country.status === 'allowed' ? 'Allowed' : 'Blocked') + ') for ' + country.name + '.';
+    pendingOverrideRemoval = {
+        countryCode: countryCode,
+        overrideIndex: overrideIndex,
+        country: country,
+        override: override,
+        scopeText: scopeText
+    };
 
-    if (!confirm(confirmMessage)) {
-        return;
-    }
+    document.getElementById('removeOverrideAccountName').textContent = scopeText;
+    document.getElementById('removeOverrideCountryName').textContent = country.name;
+    document.getElementById('removeOverrideGlobalStatus').textContent = globalStatus;
+    
+    var typeBadge = document.getElementById('removeOverrideTypeBadge');
+    typeBadge.textContent = typeLabel;
+    typeBadge.className = 'badge ' + typeBadgeClass;
+
+    var modal = new bootstrap.Modal(document.getElementById('removeOverrideConfirmModal'));
+    modal.show();
+}
+
+function executeRemoveOverride() {
+    if (!pendingOverrideRemoval) return;
+
+    var countryCode = pendingOverrideRemoval.countryCode;
+    var overrideIndex = pendingOverrideRemoval.overrideIndex;
+    var country = pendingOverrideRemoval.country;
+    var override = pendingOverrideRemoval.override;
+    var scopeText = pendingOverrideRemoval.scopeText;
+
+    var overrides = mockOverridesData[countryCode] || [];
 
     CountryReviewAuditService.emit('COUNTRY_OVERRIDE_REMOVED', {
         countryIso: country.code,
@@ -4449,6 +4511,9 @@ function confirmRemoveOverrideFromModal(countryCode, overrideIndex) {
     overrides.splice(overrideIndex, 1);
     mockOverridesData[countryCode] = overrides;
     country.overrides = overrides.length;
+
+    bootstrap.Modal.getInstance(document.getElementById('removeOverrideConfirmModal')).hide();
+    pendingOverrideRemoval = null;
 
     renderOverridesTable(countryCode);
     renderCountryTable();
