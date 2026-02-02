@@ -169,6 +169,44 @@
     align-items: center;
     background: #f8f9fc;
 }
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    background-color: rgba(30, 58, 95, 0.12);
+    color: #1e3a5f;
+    border-radius: 1rem;
+    font-size: 0.7rem;
+    font-weight: 500;
+    margin-right: 0.35rem;
+    margin-bottom: 0.25rem;
+}
+.filter-chip .chip-label {
+    margin-right: 0.2rem;
+    color: #6c757d;
+}
+.filter-chip .remove-chip {
+    margin-left: 0.35rem;
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 0.6rem;
+}
+.filter-chip .remove-chip:hover {
+    opacity: 1;
+    color: #dc3545;
+}
+.active-filters-row {
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    display: none;
+}
+.active-filters-row.has-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
 .sec-table-header h6 {
     margin: 0;
     font-weight: 600;
@@ -1837,6 +1875,11 @@
                         </div>
                     </div>
 
+                    <div class="active-filters-row" id="quarantine-active-filters">
+                        <span class="text-muted me-2" style="font-size: 0.7rem;">Active filters:</span>
+                        <div id="quarantine-filter-chips" class="d-flex flex-wrap"></div>
+                        <button class="btn btn-link btn-sm p-0 ms-2" style="font-size: 0.65rem;" onclick="clearAllQuarantineFilters()">Clear all</button>
+                    </div>
                     <div class="sec-table-header">
                         <h6>Quarantine Inbox</h6>
                     </div>
@@ -4728,7 +4771,10 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function setupQuarantineTabListeners() {
-        document.getElementById('quarantine-search').addEventListener('input', renderQuarantineTab);
+        document.getElementById('quarantine-search').addEventListener('input', function() {
+            renderQuarantineTab();
+            renderActiveFilterChips();
+        });
     }
     
     function toggleQuarantineFilterPanel() {
@@ -4767,6 +4813,7 @@ var SecurityComplianceControlsService = (function() {
         }
         
         renderQuarantineTab();
+        renderActiveFilterChips();
         
         toggleQuarantineFilterPanel();
     }
@@ -4781,6 +4828,115 @@ var SecurityComplianceControlsService = (function() {
         badge.style.display = 'none';
         
         renderQuarantineTab();
+        renderActiveFilterChips();
+    }
+    
+    function clearAllQuarantineFilters() {
+        document.getElementById('quarantine-filter-status').value = '';
+        document.getElementById('quarantine-filter-rule').value = '';
+        document.getElementById('quarantine-filter-url').value = '';
+        document.getElementById('quarantine-filter-account').value = '';
+        document.getElementById('quarantine-search').value = '';
+        
+        activeTileFilter = null;
+        document.getElementById('tile-awaiting-review').classList.remove('selected');
+        document.getElementById('tile-released-today').classList.remove('selected');
+        
+        var badge = document.getElementById('quarantine-filter-count');
+        badge.style.display = 'none';
+        
+        renderQuarantineTab();
+        renderActiveFilterChips();
+    }
+    
+    function removeQuarantineFilter(filterType, value) {
+        if (filterType === 'search') {
+            document.getElementById('quarantine-search').value = '';
+        } else if (filterType === 'status') {
+            document.getElementById('quarantine-filter-status').value = '';
+        } else if (filterType === 'rule') {
+            document.getElementById('quarantine-filter-rule').value = '';
+        } else if (filterType === 'url') {
+            document.getElementById('quarantine-filter-url').value = '';
+        } else if (filterType === 'account') {
+            document.getElementById('quarantine-filter-account').value = '';
+        } else if (filterType === 'tile') {
+            activeTileFilter = null;
+            document.getElementById('tile-awaiting-review').classList.remove('selected');
+            document.getElementById('tile-released-today').classList.remove('selected');
+        }
+        
+        var filterCount = 0;
+        if (document.getElementById('quarantine-filter-status').value) filterCount++;
+        if (document.getElementById('quarantine-filter-rule').value) filterCount++;
+        if (document.getElementById('quarantine-filter-url').value) filterCount++;
+        if (document.getElementById('quarantine-filter-account').value) filterCount++;
+        
+        var badge = document.getElementById('quarantine-filter-count');
+        if (filterCount > 0) {
+            badge.textContent = filterCount;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+        
+        renderQuarantineTab();
+        renderActiveFilterChips();
+    }
+    
+    function renderActiveFilterChips() {
+        var container = document.getElementById('quarantine-active-filters');
+        var chipsContainer = document.getElementById('quarantine-filter-chips');
+        chipsContainer.innerHTML = '';
+        
+        var hasFilters = false;
+        var searchTerm = document.getElementById('quarantine-search').value.trim();
+        var status = document.getElementById('quarantine-filter-status').value;
+        var rule = document.getElementById('quarantine-filter-rule').value;
+        var url = document.getElementById('quarantine-filter-url').value;
+        var account = document.getElementById('quarantine-filter-account').value;
+        
+        if (activeTileFilter) {
+            hasFilters = true;
+            var tileLabel = activeTileFilter === 'pending' ? 'Awaiting Review' : 'Released Today';
+            chipsContainer.innerHTML += '<span class="filter-chip" style="background: rgba(30, 58, 95, 0.2);"><span class="chip-label">View:</span>' + tileLabel + '<span class="remove-chip" onclick="removeQuarantineFilter(\'tile\')"><i class="fas fa-times"></i></span></span>';
+        }
+        
+        if (searchTerm) {
+            hasFilters = true;
+            chipsContainer.innerHTML += '<span class="filter-chip"><span class="chip-label">Search:</span>' + escapeHtml(searchTerm.substring(0, 20)) + (searchTerm.length > 20 ? '...' : '') + '<span class="remove-chip" onclick="removeQuarantineFilter(\'search\')"><i class="fas fa-times"></i></span></span>';
+        }
+        
+        if (status) {
+            hasFilters = true;
+            var statusLabels = { 'pending': 'Pending', 'released': 'Released', 'blocked': 'Blocked' };
+            chipsContainer.innerHTML += '<span class="filter-chip"><span class="chip-label">Status:</span>' + (statusLabels[status] || status) + '<span class="remove-chip" onclick="removeQuarantineFilter(\'status\')"><i class="fas fa-times"></i></span></span>';
+        }
+        
+        if (rule) {
+            hasFilters = true;
+            var ruleLabels = { 'senderid': 'SenderID', 'content': 'Content', 'url': 'URL', 'domain_age': 'Domain Age', 'antispam': 'Anti-Spam' };
+            chipsContainer.innerHTML += '<span class="filter-chip"><span class="chip-label">Rule:</span>' + (ruleLabels[rule] || rule) + '<span class="remove-chip" onclick="removeQuarantineFilter(\'rule\')"><i class="fas fa-times"></i></span></span>';
+        }
+        
+        if (url) {
+            hasFilters = true;
+            var urlLabels = { 'yes': 'Has URL', 'no': 'No URL' };
+            chipsContainer.innerHTML += '<span class="filter-chip"><span class="chip-label">URL:</span>' + (urlLabels[url] || url) + '<span class="remove-chip" onclick="removeQuarantineFilter(\'url\')"><i class="fas fa-times"></i></span></span>';
+        }
+        
+        if (account) {
+            hasFilters = true;
+            var msg = mockData.quarantinedMessages.find(function(m) { return m.accountId === account; });
+            var accountLabel = msg ? msg.accountName : account;
+            chipsContainer.innerHTML += '<span class="filter-chip"><span class="chip-label">Account:</span>' + accountLabel.substring(0, 15) + (accountLabel.length > 15 ? '...' : '') + '<span class="remove-chip" onclick="removeQuarantineFilter(\'account\')"><i class="fas fa-times"></i></span></span>';
+        }
+        
+        if (hasFilters) {
+            container.classList.add('has-filters');
+        } else {
+            container.classList.remove('has-filters');
+        }
     }
     
     var activeTileFilter = null;
@@ -4806,6 +4962,7 @@ var SecurityComplianceControlsService = (function() {
         }
         
         renderQuarantineTab();
+        renderActiveFilterChips();
     }
     
     function getActiveTileFilter() {
@@ -5064,6 +5221,9 @@ var SecurityComplianceControlsService = (function() {
         toggleQuarantineFilterPanel: toggleQuarantineFilterPanel,
         applyQuarantineFilters: applyQuarantineFilters,
         resetQuarantineFilters: resetQuarantineFilters,
+        clearAllQuarantineFilters: clearAllQuarantineFilters,
+        removeQuarantineFilter: removeQuarantineFilter,
+        renderActiveFilterChips: renderActiveFilterChips,
         toggleQuarantineTileFilter: toggleQuarantineTileFilter,
         getActiveTileFilter: getActiveTileFilter,
         showBulkReleaseConfirmation: showBulkReleaseConfirmation,
@@ -8127,6 +8287,14 @@ function applyQuarantineFilters() {
 
 function resetQuarantineFilters() {
     SecurityComplianceControlsService.resetQuarantineFilters();
+}
+
+function clearAllQuarantineFilters() {
+    SecurityComplianceControlsService.clearAllQuarantineFilters();
+}
+
+function removeQuarantineFilter(filterType, value) {
+    SecurityComplianceControlsService.removeQuarantineFilter(filterType, value);
 }
 
 function toggleQuarantineTileFilter(filterType) {
