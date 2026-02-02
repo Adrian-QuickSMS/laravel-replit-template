@@ -2,6 +2,8 @@
 
 @section('title', 'Spam Filter')
 
+@section('body_class', 'qsms-fullbleed')
+
 @push('styles')
 <style>
 .sec-controls-header {
