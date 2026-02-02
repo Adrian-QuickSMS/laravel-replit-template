@@ -1931,22 +1931,23 @@
                                 </div>
                             </div>
                             
-                            <div class="sec-table-header">
-                                <h6>Content & Anti-Spam Exemptions</h6>
-                                <small class="text-muted">Account/sub-account exceptions to content rules and anti-spam settings</small>
+                            <div class="filter-chips-row" id="content-exemptions-chips-row" style="display: none; padding: 0.5rem 1rem; background: #f8f9fc; border-bottom: 1px solid #e9ecef;">
+                                <div class="d-flex align-items-center gap-2 flex-wrap" id="content-exemptions-chips-container"></div>
                             </div>
+                            
                             <div class="table-responsive">
-                                <table class="sec-table" id="content-exemptions-table">
+                                <table class="sec-table exemptions-compact-table" id="content-exemptions-table">
                                     <thead>
                                         <tr>
-                                            <th>Account <i class="fas fa-sort"></i></th>
-                                            <th>Sub-Account <i class="fas fa-sort"></i></th>
-                                            <th>Type <i class="fas fa-sort"></i></th>
-                                            <th>Exempt From <i class="fas fa-sort"></i></th>
-                                            <th>Status <i class="fas fa-sort"></i></th>
-                                            <th>Added By <i class="fas fa-sort"></i></th>
-                                            <th>Added At <i class="fas fa-sort"></i></th>
-                                            <th style="width: 80px;">Actions</th>
+                                            <th class="sortable" data-sort="account">Account <i class="fas fa-sort"></i></th>
+                                            <th class="sortable" data-sort="subaccounts">Sub-account(s) <i class="fas fa-sort"></i></th>
+                                            <th class="sortable" data-sort="type">Exemption Type <i class="fas fa-sort"></i></th>
+                                            <th class="sortable" data-sort="rules">Rules Exempted <i class="fas fa-sort"></i></th>
+                                            <th class="sortable" data-sort="antispam">Anti-Spam Override <i class="fas fa-sort"></i></th>
+                                            <th class="sortable" data-sort="appliedBy">Applied By <i class="fas fa-sort"></i></th>
+                                            <th class="sortable" data-sort="appliedDate">Applied Date <i class="fas fa-sort"></i></th>
+                                            <th class="sortable" data-sort="status">Status <i class="fas fa-sort"></i></th>
+                                            <th style="width: 50px;"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="content-exemptions-body">
@@ -4143,10 +4144,13 @@ var SecurityComplianceControlsService = (function() {
         
         // Content Exemptions - accounts exempt from content rules or anti-spam
         mockData.contentExemptions = [
-            { id: 'CEX-001', accountId: 'ACC-10150', accountName: 'HMRC', subAccounts: [], scope: 'account', type: 'rule', exemptRules: ['CNT-001', 'CNT-003'], status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '10-01-2026 14:30', updatedAt: '10-01-2026 14:30', notes: 'Government agency - exempted from phishing and gambling rules' },
-            { id: 'CEX-002', accountId: 'ACC-10200', accountName: 'Royal Bank', subAccounts: [{ id: 'SUB-009', name: 'Fraud Alerts' }], scope: 'subaccount', type: 'rule', exemptRules: ['CNT-001'], status: 'active', addedBy: 'compliance@quicksms.co.uk', addedAt: '15-01-2026 11:00', updatedAt: '20-01-2026 09:15', notes: 'Bank fraud alerts - legitimate phishing-like content' },
-            { id: 'CEX-003', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], scope: 'account', type: 'antispam', antispamOverride: 'disabled', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '18-01-2026 16:45', updatedAt: '18-01-2026 16:45', notes: 'Customer requested - high volume sender' },
-            { id: 'CEX-004', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [{ id: 'SUB-003', name: 'Patient Comms' }], scope: 'subaccount', type: 'antispam', antispamOverride: 'strict', customWindow: 15, status: 'active', addedBy: 'compliance@quicksms.co.uk', addedAt: '22-01-2026 10:30', updatedAt: '22-01-2026 10:30', notes: 'Healthcare - stricter anti-spam for patient safety' }
+            { id: 'CEX-001', accountId: 'ACC-10150', accountName: 'HMRC', subAccounts: [], allSubaccounts: true, scope: 'account', type: 'rule', exemptRules: ['CNT-001', 'CNT-003', 'CNT-004'], status: 'active', appliedBy: 'admin@quicksms.co.uk', appliedAt: '2026-01-10 14:30', addedBy: 'admin@quicksms.co.uk', addedAt: '2026-01-10 14:30', updatedAt: '2026-01-10 14:30', notes: 'Government agency - exempted from phishing and gambling rules' },
+            { id: 'CEX-002', accountId: 'ACC-10200', accountName: 'Royal Bank', subAccounts: [{ id: 'SUB-009', name: 'Fraud Alerts' }, { id: 'SUB-010', name: 'Security Team' }], allSubaccounts: false, scope: 'subaccount', type: 'rule', exemptRules: ['CNT-001'], status: 'active', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '2026-01-15 11:00', addedBy: 'compliance@quicksms.co.uk', addedAt: '2026-01-15 11:00', updatedAt: '2026-01-20 09:15', notes: 'Bank fraud alerts - legitimate phishing-like content' },
+            { id: 'CEX-003', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], allSubaccounts: true, scope: 'account', type: 'antispam', antispamOverride: 'disabled', status: 'active', appliedBy: 'admin@quicksms.co.uk', appliedAt: '2026-01-18 16:45', addedBy: 'admin@quicksms.co.uk', addedAt: '2026-01-18 16:45', updatedAt: '2026-01-18 16:45', notes: 'Customer requested - high volume sender' },
+            { id: 'CEX-004', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [{ id: 'SUB-003', name: 'Patient Comms' }], allSubaccounts: false, scope: 'subaccount', type: 'antispam', antispamOverride: 'strict', customWindow: 15, status: 'active', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '2026-01-22 10:30', addedBy: 'compliance@quicksms.co.uk', addedAt: '2026-01-22 10:30', updatedAt: '2026-01-22 10:30', notes: 'Healthcare - stricter anti-spam for patient safety' },
+            { id: 'CEX-005', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: [{ id: 'SUB-005', name: 'Promotions' }, { id: 'SUB-006', name: 'Order Updates' }, { id: 'SUB-007', name: 'Marketing' }], allSubaccounts: false, scope: 'subaccount', type: 'antispam', antispamOverride: 'relaxed', customWindow: 120, status: 'active', appliedBy: 'admin@quicksms.co.uk', appliedAt: '2026-01-25 09:00', addedBy: 'admin@quicksms.co.uk', addedAt: '2026-01-25 09:00', updatedAt: '2026-01-25 09:00', notes: 'E-commerce customer - relaxed for marketing campaigns' },
+            { id: 'CEX-006', accountId: 'ACC-10300', accountName: 'Global Insurance', subAccounts: [], allSubaccounts: true, scope: 'account', type: 'antispam', antispamOverride: 'enabled', status: 'disabled', appliedBy: 'admin@quicksms.co.uk', appliedAt: '2026-01-28 14:00', addedBy: 'admin@quicksms.co.uk', addedAt: '2026-01-28 14:00', updatedAt: '2026-01-30 11:30', notes: 'Enterprise customer - default anti-spam enabled' },
+            { id: 'CEX-007', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [{ id: 'SUB-001', name: 'Marketing Dept' }], allSubaccounts: false, scope: 'subaccount', type: 'rule', exemptRules: ['CNT-002', 'CNT-005', 'CNT-001', 'CNT-003'], status: 'active', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '2026-01-29 15:30', addedBy: 'compliance@quicksms.co.uk', addedAt: '2026-01-29 15:30', updatedAt: '2026-01-29 15:30', notes: 'Marketing exemption - approved promotional content' }
         ];
         
         // Sync exemptions with MessageEnforcementService on initialization
@@ -5362,6 +5366,7 @@ var SecurityComplianceControlsService = (function() {
     function renderContentExemptionsTab() {
         var tbody = document.getElementById('content-exemptions-body');
         var emptyState = document.getElementById('content-exemptions-empty-state');
+        var table = document.getElementById('content-exemptions-table');
         var searchTerm = document.getElementById('content-exemptions-search').value.toLowerCase();
         
         var scopeFilter = document.getElementById('content-exemptions-filter-scope').value;
@@ -5374,62 +5379,97 @@ var SecurityComplianceControlsService = (function() {
             if (statusFilter && ex.status !== statusFilter) return false;
             if (searchTerm) {
                 var match = (ex.accountName || '').toLowerCase().indexOf(searchTerm) !== -1 ||
-                            (ex.accountId || '').toLowerCase().indexOf(searchTerm) !== -1;
+                            (ex.accountId || '').toLowerCase().indexOf(searchTerm) !== -1 ||
+                            (ex.appliedBy || '').toLowerCase().indexOf(searchTerm) !== -1;
                 if (!match) return false;
             }
             return true;
         });
         
+        updateContentExemptionsFilterChips();
+        
         if (exemptions.length === 0) {
             tbody.innerHTML = '';
+            table.style.display = 'none';
             emptyState.style.display = 'block';
             return;
         }
         
+        table.style.display = 'table';
         emptyState.style.display = 'none';
         tbody.innerHTML = exemptions.map(function(ex) {
+            // Exemption Type badge
             var typeBadge = ex.type === 'rule' 
-                ? '<span class="sec-status-badge" style="background: #e0e7ff; color: #3730a3;"><i class="fas fa-list me-1"></i>Rule</span>'
-                : '<span class="sec-status-badge" style="background: #fef3c7; color: #92400e;"><i class="fas fa-shield-virus me-1"></i>Anti-Spam</span>';
+                ? '<span class="sec-status-badge" style="background: #e0e7ff; color: #3730a3;"><i class="fas fa-list me-1"></i>Rule Exemption</span>'
+                : '<span class="sec-status-badge" style="background: #fef3c7; color: #92400e;"><i class="fas fa-shield-virus me-1"></i>Anti-Spam Override</span>';
             
-            var exemptFromText = '';
-            if (ex.type === 'rule') {
-                var ruleNames = (ex.exemptRules || []).map(function(rId) {
+            // Rules Exempted (chips with "+N more" truncation)
+            var rulesExemptedHtml = '';
+            if (ex.type === 'rule' && ex.exemptRules && ex.exemptRules.length > 0) {
+                var ruleNames = ex.exemptRules.map(function(rId) {
                     var r = mockData.contentRules.find(function(rule) { return rule.id === rId; });
                     return r ? r.name : rId;
                 });
-                exemptFromText = ruleNames.length > 2 
-                    ? ruleNames.slice(0, 2).join(', ') + ' +' + (ruleNames.length - 2) + ' more'
-                    : ruleNames.join(', ');
+                var displayRules = ruleNames.slice(0, 2);
+                var remaining = ruleNames.length - 2;
+                rulesExemptedHtml = displayRules.map(function(name) {
+                    return '<span class="badge bg-light text-dark me-1" style="font-size: 0.7rem; font-weight: 500;">' + escapeHtml(name) + '</span>';
+                }).join('');
+                if (remaining > 0) {
+                    rulesExemptedHtml += '<span class="badge bg-secondary" style="font-size: 0.7rem;">+' + remaining + ' more</span>';
+                }
             } else {
-                var overrideLabels = {
-                    'disabled': 'Anti-Spam OFF',
-                    'enabled': 'Anti-Spam ON (default)',
-                    'strict': 'Stricter (' + (ex.customWindow || 15) + 'min)',
-                    'relaxed': 'Less Strict (' + (ex.customWindow || 120) + 'min)',
-                    'custom': 'Custom (' + (ex.customWindow || 60) + 'min)'
-                };
-                exemptFromText = overrideLabels[ex.antispamOverride] || ex.antispamOverride;
+                rulesExemptedHtml = '<span class="text-muted">—</span>';
             }
             
+            // Anti-Spam Override display
+            var antispamOverrideHtml = '';
+            if (ex.type === 'antispam') {
+                var overrideLabels = {
+                    'disabled': '<span class="badge bg-secondary"><i class="fas fa-times me-1"></i>OFF</span>',
+                    'enabled': '<span class="badge" style="background: #1e3a5f; color: #fff;"><i class="fas fa-check me-1"></i>ON (default)</span>',
+                    'strict': '<span class="badge" style="background: #dc3545; color: #fff;"><i class="fas fa-shield-alt me-1"></i>Stricter (' + (ex.customWindow || 15) + 'min)</span>',
+                    'relaxed': '<span class="badge" style="background: #ffc107; color: #212529;"><i class="fas fa-clock me-1"></i>Less Strict (' + (ex.customWindow || 120) + 'min)</span>',
+                    'custom': '<span class="badge" style="background: #6f42c1; color: #fff;"><i class="fas fa-cog me-1"></i>Custom (' + (ex.customWindow || 60) + 'min)</span>'
+                };
+                antispamOverrideHtml = overrideLabels[ex.antispamOverride] || '<span class="text-muted">—</span>';
+            } else {
+                antispamOverrideHtml = '<span class="text-muted">—</span>';
+            }
+            
+            // Status badge
             var statusBadge = ex.status === 'active'
                 ? '<span class="sec-status-badge active"><i class="fas fa-check-circle me-1"></i>Active</span>'
                 : '<span class="sec-status-badge disabled"><i class="fas fa-pause-circle me-1"></i>Disabled</span>';
             
-            var subAccountText = ex.subAccounts && ex.subAccounts.length > 0
-                ? ex.subAccounts.map(function(s) { return s.name || s.id; }).join(', ')
-                : '<span class="text-muted">All</span>';
+            // Sub-accounts display
+            var subAccountText = '';
+            if (ex.allSubaccounts) {
+                subAccountText = '<span class="text-muted fst-italic">All</span>';
+            } else if (ex.subAccounts && ex.subAccounts.length > 0) {
+                var displaySubs = ex.subAccounts.slice(0, 2);
+                var remainingSubs = ex.subAccounts.length - 2;
+                subAccountText = displaySubs.map(function(s) { return escapeHtml(s.name || s.id); }).join(', ');
+                if (remainingSubs > 0) {
+                    subAccountText += ' <span class="badge bg-secondary" style="font-size: 0.65rem;">+' + remainingSubs + '</span>';
+                }
+            } else {
+                subAccountText = '<span class="text-muted fst-italic">All</span>';
+            }
             
-            var dateOnly = (ex.addedAt || '').split(' ')[0];
+            // Format date as DD-MM-YYYY
+            var appliedDate = ex.appliedAt || ex.addedAt || '';
+            var dateFormatted = appliedDate ? formatDateDDMMYYYY(appliedDate) : '—';
             
             return '<tr data-exemption-id="' + ex.id + '">' +
                 '<td><strong>' + escapeHtml(ex.accountName || '') + '</strong><br><small class="text-muted">' + escapeHtml(ex.accountId || '') + '</small></td>' +
                 '<td>' + subAccountText + '</td>' +
                 '<td>' + typeBadge + '</td>' +
-                '<td>' + escapeHtml(exemptFromText) + '</td>' +
+                '<td>' + rulesExemptedHtml + '</td>' +
+                '<td>' + antispamOverrideHtml + '</td>' +
+                '<td>' + escapeHtml(ex.appliedBy || ex.addedBy || '') + '</td>' +
+                '<td><span style="font-size: 0.8rem;">' + dateFormatted + '</span></td>' +
                 '<td>' + statusBadge + '</td>' +
-                '<td>' + escapeHtml(ex.addedBy || '') + '</td>' +
-                '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
                 '<td>' +
                     '<div class="action-menu-container">' +
                         '<button class="action-menu-btn" onclick="toggleContentExemptionActionMenu(this, \'' + ex.id + '\')"><i class="fas fa-ellipsis-v"></i></button>' +
@@ -5444,6 +5484,73 @@ var SecurityComplianceControlsService = (function() {
                 '</td>' +
                 '</tr>';
         }).join('');
+    }
+    
+    function formatDateDDMMYYYY(dateStr) {
+        if (!dateStr) return '—';
+        var parts = dateStr.split(' ')[0].split('-');
+        if (parts.length === 3) {
+            return parts[2] + '-' + parts[1] + '-' + parts[0];
+        }
+        return dateStr.split(' ')[0];
+    }
+    
+    function updateContentExemptionsFilterChips() {
+        var chipsRow = document.getElementById('content-exemptions-chips-row');
+        var chipsContainer = document.getElementById('content-exemptions-chips-container');
+        var chips = [];
+        
+        var scopeFilter = document.getElementById('content-exemptions-filter-scope').value;
+        var typeFilter = document.getElementById('content-exemptions-filter-type').value;
+        var statusFilter = document.getElementById('content-exemptions-filter-status').value;
+        var searchTerm = document.getElementById('content-exemptions-search').value;
+        
+        if (scopeFilter) {
+            var scopeLabels = { 'account': 'Account-level', 'subaccount': 'Sub-account-level' };
+            chips.push({ key: 'scope', label: 'Scope: ' + (scopeLabels[scopeFilter] || scopeFilter) });
+        }
+        if (typeFilter) {
+            var typeLabels = { 'rule': 'Rule Exemption', 'antispam': 'Anti-Spam Override' };
+            chips.push({ key: 'type', label: 'Type: ' + (typeLabels[typeFilter] || typeFilter) });
+        }
+        if (statusFilter) {
+            chips.push({ key: 'status', label: 'Status: ' + (statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)) });
+        }
+        if (searchTerm) {
+            chips.push({ key: 'search', label: 'Search: "' + searchTerm + '"' });
+        }
+        
+        if (chips.length === 0) {
+            chipsRow.style.display = 'none';
+            return;
+        }
+        
+        chipsRow.style.display = 'block';
+        chipsContainer.innerHTML = chips.map(function(chip) {
+            return '<span class="badge bg-light text-dark d-flex align-items-center gap-1" style="font-size: 0.75rem; padding: 0.35rem 0.5rem;">' +
+                chip.label +
+                '<button type="button" class="btn-close btn-close-sm ms-1" style="font-size: 0.5rem;" onclick="removeContentExemptionsFilter(\'' + chip.key + '\')"></button>' +
+            '</span>';
+        }).join('') +
+        '<button class="btn btn-link btn-sm text-secondary p-0 ms-2" onclick="resetContentExemptionsFilters()">Clear All</button>';
+    }
+    
+    function removeContentExemptionsFilter(filterKey) {
+        switch(filterKey) {
+            case 'scope':
+                document.getElementById('content-exemptions-filter-scope').value = '';
+                break;
+            case 'type':
+                document.getElementById('content-exemptions-filter-type').value = '';
+                break;
+            case 'status':
+                document.getElementById('content-exemptions-filter-status').value = '';
+                break;
+            case 'search':
+                document.getElementById('content-exemptions-search').value = '';
+                break;
+        }
+        renderContentExemptionsTab();
     }
     
     function toggleContentExemptionActionMenu(btn, exemptionId) {
@@ -7979,6 +8086,8 @@ var SecurityComplianceControlsService = (function() {
         filterContentExemptionsTable: filterContentExemptionsTable,
         applyContentExemptionsFilters: applyContentExemptionsFilters,
         resetContentExemptionsFilters: resetContentExemptionsFilters,
+        removeContentExemptionsFilter: removeContentExemptionsFilter,
+        updateContentExemptionsFilterChips: updateContentExemptionsFilterChips,
         showAddUrlRuleModal: showAddUrlRuleModal,
         editUrlRule: editUrlRule,
         viewUrlRule: viewUrlRule,
@@ -11758,6 +11867,22 @@ function removeQuarantineFilter(filterType, value) {
 
 function toggleQuarantineTileFilter(filterType) {
     SecurityComplianceControlsService.toggleQuarantineTileFilter(filterType);
+}
+
+function toggleContentExemptionsFilterPanel() {
+    SecurityComplianceControlsService.toggleContentExemptionsFilterPanel();
+}
+
+function applyContentExemptionsFilters() {
+    SecurityComplianceControlsService.applyContentExemptionsFilters();
+}
+
+function resetContentExemptionsFilters() {
+    SecurityComplianceControlsService.resetContentExemptionsFilters();
+}
+
+function removeContentExemptionsFilter(filterKey) {
+    SecurityComplianceControlsService.removeContentExemptionsFilter(filterKey);
 }
 
 function showBulkReleaseConfirmation() {
