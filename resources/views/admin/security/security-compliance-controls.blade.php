@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Security & Compliance Controls')
+@section('title', 'Spam Filter')
 
 @push('styles')
 <style>
@@ -983,14 +983,14 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
                 <li class="breadcrumb-item"><a href="javascript:void(0)">Security & Compliance</a></li>
-                <li class="breadcrumb-item active">Security & Compliance Controls</li>
+                <li class="breadcrumb-item active">Spam Filter</li>
             </ol>
         </div>
 
         <div class="sec-controls-header">
             <div class="sec-controls-title">
-                <h4><i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i> Security & Compliance Controls <span class="admin-internal-badge">ADMIN ONLY</span></h4>
-                <p>Manage security rules, content policies, and compliance controls across the platform</p>
+                <h4><i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i> Spam Filter <span class="admin-internal-badge">ADMIN ONLY</span></h4>
+                <p>Manage spam filtering rules, content policies, and security controls across the platform</p>
             </div>
             <div class="d-flex align-items-center gap-3">
                 <span class="sec-sync-status">
