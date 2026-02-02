@@ -62,6 +62,10 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
       - **Threshold Overrides:** Preview table (last 5 rows) with Account, Sub-accts, Threshold, Action, Updated columns + "Add Override" CTA + "View all" link
     - **URL Rule Library:** Rules table with search/filter, add/edit modal, and CRUD operations
     - **Exemptions:** Per-account URL exemptions table with search/filter, type selection (domain_age/url_rule), rules checklist, and full CRUD with audit logging (URL_DOMAIN_AGE_EXEMPTION_*, URL_RULE_EXEMPTION_*, URL_EXEMPTION_STATUS_CHANGED)
+    - **Global Add Exemption Modal:** Toolbar button (transparent with admin-blue accents) opens comprehensive modal with:
+      - Scope section: Account typeahead + sub-account multi-select with "All sub-accounts" checkbox
+      - Exemption Type (3 radios): A) Domain Age override (disable OR custom threshold/action), B) Allowlisted domains (chip input with paste support, validation, deduplication), C) Rule exemptions (multi-select with "Select all")
+      - Saves immediately, shows success toast, logs typed audit events
 - **NormalisationLibrary:** Fixed base character library (62 immutable characters) for character equivalence:
   - **Fixed Base Characters:** A–Z (26), a–z (26), 0–9 (10) - cannot be deleted
   - **Per-Character Properties:** Equivalents (configurable), applies-to scope (SenderID/Content/URL), enabled/disabled state, notes, computed risk classification

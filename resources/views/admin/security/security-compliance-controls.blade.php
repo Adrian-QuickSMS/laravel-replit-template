@@ -1974,6 +1974,14 @@
             </div>
 
             <div class="tab-pane fade" id="url-controls" role="tabpanel">
+                <!-- URL Controls Toolbar -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div></div>
+                    <button class="btn btn-sm" style="background: transparent; border: 1px solid #1e3a5f; color: #1e3a5f; font-size: 0.8rem; padding: 0.35rem 0.75rem;" onclick="showAddUrlExemptionGlobalModal()">
+                        <i class="fas fa-plus me-1"></i> Add Exemption
+                    </button>
+                </div>
+                
                 <!-- Sub-tabs for URL Controls -->
                 <ul class="nav nav-tabs mb-3" id="urlSubTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
                     <li class="nav-item" role="presentation">
@@ -3407,6 +3415,136 @@
                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="executeSaveDomainAgeSettings()">
                     <i class="fas fa-check me-1"></i> Confirm Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addUrlExemptionGlobalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header py-2" style="background: #1e3a5f; border-bottom: none;">
+                <h6 class="modal-title text-white mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>Add URL Exemption
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem;">
+                <form id="add-url-exemption-global-form">
+                    <!-- Section 1: Scope -->
+                    <div class="mb-3 p-3 rounded" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                        <h6 style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f; margin-bottom: 0.75rem;">
+                            <i class="fas fa-building me-2"></i>Scope
+                        </h6>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">Account <span class="text-danger">*</span></label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control form-control-sm" id="global-exemption-account-search" placeholder="Search account..." autocomplete="off">
+                                    <input type="hidden" id="global-exemption-account-id" value="">
+                                    <div class="dropdown-menu w-100" id="global-exemption-account-dropdown" style="max-height: 180px; overflow-y: auto;"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">Sub-accounts</label>
+                                <div class="form-check mb-1">
+                                    <input class="form-check-input" type="checkbox" id="global-exemption-all-subaccounts" checked onchange="toggleGlobalExemptionSubaccounts()">
+                                    <label class="form-check-label" for="global-exemption-all-subaccounts" style="font-size: 0.8rem;">All sub-accounts</label>
+                                </div>
+                                <select class="form-select form-select-sm" id="global-exemption-subaccounts" multiple disabled style="height: 60px; font-size: 0.8rem;">
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section 2: Exemption Type -->
+                    <div class="mb-3">
+                        <h6 style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f; margin-bottom: 0.75rem;">
+                            <i class="fas fa-cog me-2"></i>Exemption Type
+                        </h6>
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="global-exemption-type" id="global-exemption-type-domain-age" value="domain_age" checked onchange="toggleGlobalExemptionType()">
+                                <label class="form-check-label" for="global-exemption-type-domain-age" style="font-size: 0.85rem;">
+                                    <i class="fas fa-clock me-1" style="color: #1e40af;"></i> Domain Age Override
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="global-exemption-type" id="global-exemption-type-domains" value="domains" onchange="toggleGlobalExemptionType()">
+                                <label class="form-check-label" for="global-exemption-type-domains" style="font-size: 0.85rem;">
+                                    <i class="fas fa-globe me-1" style="color: #059669;"></i> Allowlisted Domains
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="global-exemption-type" id="global-exemption-type-rules" value="rules" onchange="toggleGlobalExemptionType()">
+                                <label class="form-check-label" for="global-exemption-type-rules" style="font-size: 0.85rem;">
+                                    <i class="fas fa-link me-1" style="color: #7c3aed;"></i> Rule Exemptions
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- A) Domain Age Override -->
+                        <div id="global-exemption-domain-age-section" class="p-3 rounded" style="background: #eff6ff; border: 1px solid #bfdbfe;">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-5">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="global-exemption-disable-domain-age" onchange="toggleGlobalExemptionDomainAgeMode()">
+                                        <label class="form-check-label" for="global-exemption-disable-domain-age" style="font-size: 0.8rem; font-weight: 600;">Disable domain-age enforcement</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3" id="global-exemption-threshold-group">
+                                    <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">Custom Threshold (hours)</label>
+                                    <input type="number" class="form-control form-control-sm" id="global-exemption-threshold-hours" value="24" min="0" max="8760">
+                                </div>
+                                <div class="col-md-4" id="global-exemption-action-group">
+                                    <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">Action Override</label>
+                                    <select class="form-select form-select-sm" id="global-exemption-action-override">
+                                        <option value="">Use default</option>
+                                        <option value="block">Block</option>
+                                        <option value="flag">Flag to Quarantine</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- B) Allowlisted Domains -->
+                        <div id="global-exemption-domains-section" class="p-3 rounded" style="background: #ecfdf5; border: 1px solid #a7f3d0; display: none;">
+                            <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">Domains <span class="text-danger">*</span></label>
+                            <div class="form-control" id="global-exemption-domains-container" style="min-height: 60px; display: flex; flex-wrap: wrap; gap: 4px; padding: 0.5rem; cursor: text;" onclick="document.getElementById('global-exemption-domains-input').focus()">
+                                <input type="text" id="global-exemption-domains-input" class="border-0" style="flex: 1; min-width: 120px; outline: none; font-size: 0.85rem;" placeholder="Type or paste domains..." onkeydown="handleDomainChipInput(event)" onpaste="handleDomainPaste(event)">
+                            </div>
+                            <small class="text-muted" style="font-size: 0.7rem;">Press Enter or comma to add. Paste multiple domains separated by commas, spaces, or newlines.</small>
+                        </div>
+                        
+                        <!-- C) Rule Exemptions -->
+                        <div id="global-exemption-rules-section" class="p-3 rounded" style="background: #f5f3ff; border: 1px solid #ddd6fe; display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0" style="font-size: 0.75rem; font-weight: 600;">URL Rules <span class="text-danger">*</span></label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="global-exemption-select-all-rules" onchange="toggleSelectAllUrlRules()">
+                                    <label class="form-check-label" for="global-exemption-select-all-rules" style="font-size: 0.75rem;">Select all</label>
+                                </div>
+                            </div>
+                            <div id="global-exemption-rules-list" class="border rounded p-2" style="max-height: 150px; overflow-y: auto; background: white;">
+                                <small class="text-muted">Loading rules...</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reason -->
+                    <div class="mb-0">
+                        <label class="form-label mb-1" style="font-size: 0.75rem; font-weight: 600;">
+                            Reason <span class="text-muted" style="font-weight: 400;">(optional)</span>
+                        </label>
+                        <textarea class="form-control form-control-sm" id="global-exemption-reason" rows="2" placeholder="Enter reason for this exemption..." style="font-size: 0.85rem;"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer py-2" style="border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveGlobalUrlExemption()">
+                    <i class="fas fa-check me-1"></i> Apply Exemption
                 </button>
             </div>
         </div>
@@ -7410,6 +7548,305 @@ var SecurityComplianceControlsService = (function() {
         showToast('Showing all Domain Age exemptions', 'info');
     }
     
+    var globalExemptionDomains = [];
+    
+    function showAddUrlExemptionGlobalModal() {
+        document.getElementById('add-url-exemption-global-form').reset();
+        document.getElementById('global-exemption-account-id').value = '';
+        document.getElementById('global-exemption-account-search').value = '';
+        document.getElementById('global-exemption-all-subaccounts').checked = true;
+        document.getElementById('global-exemption-subaccounts').disabled = true;
+        document.getElementById('global-exemption-type-domain-age').checked = true;
+        document.getElementById('global-exemption-disable-domain-age').checked = false;
+        document.getElementById('global-exemption-threshold-hours').value = 24;
+        document.getElementById('global-exemption-action-override').value = '';
+        document.getElementById('global-exemption-reason').value = '';
+        
+        globalExemptionDomains = [];
+        renderDomainChips();
+        toggleGlobalExemptionType();
+        toggleGlobalExemptionDomainAgeMode();
+        populateGlobalExemptionRulesList();
+        
+        var modal = new bootstrap.Modal(document.getElementById('addUrlExemptionGlobalModal'));
+        modal.show();
+    }
+    
+    function toggleGlobalExemptionType() {
+        var type = document.querySelector('input[name="global-exemption-type"]:checked').value;
+        document.getElementById('global-exemption-domain-age-section').style.display = type === 'domain_age' ? 'block' : 'none';
+        document.getElementById('global-exemption-domains-section').style.display = type === 'domains' ? 'block' : 'none';
+        document.getElementById('global-exemption-rules-section').style.display = type === 'rules' ? 'block' : 'none';
+    }
+    
+    function toggleGlobalExemptionSubaccounts() {
+        var allChecked = document.getElementById('global-exemption-all-subaccounts').checked;
+        document.getElementById('global-exemption-subaccounts').disabled = allChecked;
+    }
+    
+    function toggleGlobalExemptionDomainAgeMode() {
+        var disabled = document.getElementById('global-exemption-disable-domain-age').checked;
+        document.getElementById('global-exemption-threshold-group').style.opacity = disabled ? '0.5' : '1';
+        document.getElementById('global-exemption-action-group').style.opacity = disabled ? '0.5' : '1';
+        document.getElementById('global-exemption-threshold-hours').disabled = disabled;
+        document.getElementById('global-exemption-action-override').disabled = disabled;
+    }
+    
+    function handleDomainChipInput(event) {
+        if (event.key === 'Enter' || event.key === ',') {
+            event.preventDefault();
+            var input = event.target;
+            var value = input.value.trim().replace(/,/g, '');
+            if (value) {
+                addDomainChip(value);
+                input.value = '';
+            }
+        }
+    }
+    
+    function handleDomainPaste(event) {
+        event.preventDefault();
+        var paste = (event.clipboardData || window.clipboardData).getData('text');
+        var domains = paste.split(/[\s,;\n]+/).filter(function(d) { return d.trim(); });
+        domains.forEach(function(d) { addDomainChip(d.trim()); });
+    }
+    
+    function addDomainChip(domain) {
+        var canonical = domain.toLowerCase().replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
+        if (!canonical) return;
+        
+        // Validate domain format
+        var domainRegex = /^(\*\.)?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+        if (!domainRegex.test(canonical)) {
+            showToast('Invalid domain format: ' + canonical, 'error');
+            return;
+        }
+        
+        // Dedupe
+        if (globalExemptionDomains.indexOf(canonical) !== -1) return;
+        
+        globalExemptionDomains.push(canonical);
+        renderDomainChips();
+    }
+    
+    function removeDomainChip(index) {
+        globalExemptionDomains.splice(index, 1);
+        renderDomainChips();
+    }
+    
+    function renderDomainChips() {
+        var container = document.getElementById('global-exemption-domains-container');
+        var input = document.getElementById('global-exemption-domains-input');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        globalExemptionDomains.forEach(function(domain, idx) {
+            var chip = document.createElement('span');
+            chip.className = 'badge bg-light text-dark me-1';
+            chip.style.cssText = 'font-size: 0.75rem; padding: 0.25rem 0.5rem; display: inline-flex; align-items: center; gap: 4px;';
+            chip.innerHTML = escapeHtml(domain) + '<i class="fas fa-times" style="cursor: pointer; font-size: 0.6rem;" onclick="removeDomainChip(' + idx + ')"></i>';
+            container.appendChild(chip);
+        });
+        container.appendChild(input);
+    }
+    
+    function populateGlobalExemptionRulesList() {
+        var container = document.getElementById('global-exemption-rules-list');
+        if (!container) return;
+        
+        var rules = mockData.urlRules.filter(function(r) { return r.status === 'active'; });
+        
+        if (rules.length === 0) {
+            container.innerHTML = '<small class="text-muted">No active URL rules available</small>';
+            return;
+        }
+        
+        container.innerHTML = rules.map(function(rule) {
+            return '<div class="form-check">' +
+                '<input class="form-check-input global-url-rule-checkbox" type="checkbox" value="' + rule.id + '" id="global-rule-' + rule.id + '">' +
+                '<label class="form-check-label" for="global-rule-' + rule.id + '" style="font-size: 0.8rem;">' +
+                    '<code style="background: #e9ecef; padding: 1px 4px; border-radius: 2px; font-size: 0.75rem;">' + escapeHtml(rule.pattern) + '</code>' +
+                    '<span class="badge bg-secondary ms-1" style="font-size: 0.6rem;">' + rule.matchType + '</span>' +
+                '</label>' +
+            '</div>';
+        }).join('');
+    }
+    
+    function toggleSelectAllUrlRules() {
+        var selectAll = document.getElementById('global-exemption-select-all-rules').checked;
+        document.querySelectorAll('.global-url-rule-checkbox').forEach(function(cb) {
+            cb.checked = selectAll;
+        });
+    }
+    
+    function filterGlobalExemptionAccounts() {
+        var search = document.getElementById('global-exemption-account-search').value.toLowerCase();
+        var dropdown = document.getElementById('global-exemption-account-dropdown');
+        
+        if (search.length < 2) {
+            dropdown.classList.remove('show');
+            return;
+        }
+        
+        var filtered = mockData.accounts.filter(function(a) {
+            return a.name.toLowerCase().indexOf(search) !== -1 || a.id.toLowerCase().indexOf(search) !== -1;
+        }).slice(0, 10);
+        
+        if (filtered.length === 0) {
+            dropdown.innerHTML = '<div class="dropdown-item text-muted">No accounts found</div>';
+        } else {
+            dropdown.innerHTML = filtered.map(function(a) {
+                return '<div class="dropdown-item" style="cursor: pointer; font-size: 0.85rem;" onclick="selectGlobalExemptionAccount(\'' + a.id + '\', \'' + escapeHtml(a.name).replace(/'/g, "\\'") + '\')">' +
+                    '<div style="font-weight: 500;">' + escapeHtml(a.name) + '</div>' +
+                    '<small class="text-muted">' + a.id + '</small>' +
+                '</div>';
+            }).join('');
+        }
+        
+        dropdown.classList.add('show');
+    }
+    
+    function selectGlobalExemptionAccount(accountId, accountName) {
+        document.getElementById('global-exemption-account-id').value = accountId;
+        document.getElementById('global-exemption-account-search').value = accountName;
+        document.getElementById('global-exemption-account-dropdown').classList.remove('show');
+        
+        // Populate sub-accounts for this account
+        var account = mockData.accounts.find(function(a) { return a.id === accountId; });
+        var subSelect = document.getElementById('global-exemption-subaccounts');
+        subSelect.innerHTML = '';
+        if (account && account.subAccounts && account.subAccounts.length > 0) {
+            account.subAccounts.forEach(function(sub) {
+                var opt = document.createElement('option');
+                opt.value = sub.id;
+                opt.textContent = sub.name;
+                subSelect.appendChild(opt);
+            });
+        } else {
+            var opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'No sub-accounts';
+            opt.disabled = true;
+            subSelect.appendChild(opt);
+        }
+    }
+    
+    function saveGlobalUrlExemption() {
+        var accountId = document.getElementById('global-exemption-account-id').value;
+        if (!accountId) {
+            showToast('Please select an account', 'error');
+            return;
+        }
+        
+        var type = document.querySelector('input[name="global-exemption-type"]:checked').value;
+        var allSubaccounts = document.getElementById('global-exemption-all-subaccounts').checked;
+        var reason = document.getElementById('global-exemption-reason').value.trim();
+        var account = mockData.accounts.find(function(a) { return a.id === accountId; });
+        
+        var exemptionData = {
+            id: 'UEX-' + String(mockData.urlExemptions.length + 1).padStart(3, '0'),
+            accountId: accountId,
+            accountName: account ? account.name : accountId,
+            subAccounts: [],
+            allSubaccounts: allSubaccounts,
+            status: 'active',
+            reason: reason,
+            appliedBy: currentAdmin.email,
+            appliedAt: formatDateTime(new Date())
+        };
+        
+        if (!allSubaccounts) {
+            var selectedSubs = Array.from(document.getElementById('global-exemption-subaccounts').selectedOptions);
+            exemptionData.subAccounts = selectedSubs.map(function(opt) {
+                return { id: opt.value, name: opt.textContent };
+            });
+        }
+        
+        var eventType = '';
+        
+        if (type === 'domain_age') {
+            var disabled = document.getElementById('global-exemption-disable-domain-age').checked;
+            exemptionData.type = 'domain_age';
+            exemptionData.disableEnforcement = disabled;
+            exemptionData.thresholdOverride = disabled ? null : parseInt(document.getElementById('global-exemption-threshold-hours').value) || 24;
+            exemptionData.actionOverride = disabled ? null : (document.getElementById('global-exemption-action-override').value || null);
+            exemptionData.exemptRules = [];
+            eventType = 'URL_DOMAIN_AGE_EXEMPTION_ADDED';
+            
+            // Also add to threshold overrides if custom threshold
+            if (!disabled) {
+                mockData.thresholdOverrides.push({
+                    id: 'THR-' + String(mockData.thresholdOverrides.length + 1).padStart(3, '0'),
+                    accountId: accountId,
+                    accountName: exemptionData.accountName,
+                    subAccounts: exemptionData.subAccounts,
+                    allSubaccounts: allSubaccounts,
+                    thresholdHours: exemptionData.thresholdOverride,
+                    actionOverride: exemptionData.actionOverride || 'default',
+                    status: 'active',
+                    addedBy: currentAdmin.email,
+                    addedAt: formatDateTime(new Date()),
+                    updatedAt: formatDateTime(new Date())
+                });
+            }
+        } else if (type === 'domains') {
+            if (globalExemptionDomains.length === 0) {
+                showToast('Please add at least one domain', 'error');
+                return;
+            }
+            exemptionData.type = 'domains';
+            exemptionData.domains = globalExemptionDomains.slice();
+            exemptionData.exemptRules = [];
+            eventType = 'URL_DOMAIN_ALLOWLIST_ADDED';
+            
+            // Also add to domain allowlist
+            globalExemptionDomains.forEach(function(domain) {
+                mockData.domainAllowlist.push({
+                    id: 'DAL-' + String(mockData.domainAllowlist.length + 1).padStart(3, '0'),
+                    domain: domain,
+                    scope: allSubaccounts ? 'account' : 'subaccount',
+                    scopeDetails: { accountId: accountId, accountName: exemptionData.accountName },
+                    overrideType: 'full',
+                    status: 'active',
+                    addedBy: currentAdmin.email,
+                    addedAt: formatDateTime(new Date()),
+                    updatedAt: formatDateTime(new Date())
+                });
+            });
+        } else if (type === 'rules') {
+            var selectedRules = Array.from(document.querySelectorAll('.global-url-rule-checkbox:checked')).map(function(cb) {
+                return cb.value;
+            });
+            if (selectedRules.length === 0) {
+                showToast('Please select at least one URL rule', 'error');
+                return;
+            }
+            exemptionData.type = 'url_rule';
+            exemptionData.exemptRules = selectedRules;
+            eventType = 'URL_RULE_EXEMPTION_ADDED';
+        }
+        
+        mockData.urlExemptions.push(exemptionData);
+        
+        logAuditEvent(eventType, {
+            exemptionId: exemptionData.id,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
+            accountId: exemptionData.accountId,
+            accountName: exemptionData.accountName,
+            type: exemptionData.type,
+            subAccountsAffected: exemptionData.subAccounts.length > 0 ? exemptionData.subAccounts.map(function(s) { return s.id; }) : ['all'],
+            domains: exemptionData.domains || [],
+            ruleIdsAffected: exemptionData.exemptRules || [],
+            reason: reason
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('addUrlExemptionGlobalModal')).hide();
+        renderUrlExemptionsTab();
+        renderDomainAgeExemptionPreviews();
+        showToast('Exemption added successfully', 'success');
+    }
+    
     function showAddDomainAgeExceptionModal() {
         document.getElementById('exception-form').reset();
         clearExceptionErrors();
@@ -7521,6 +7958,12 @@ var SecurityComplianceControlsService = (function() {
         var urlExemptionAccountSearch = document.getElementById('url-exemption-account-search');
         if (urlExemptionAccountSearch) {
             urlExemptionAccountSearch.addEventListener('input', filterUrlExemptionAccounts);
+        }
+        
+        // Global URL Exemption modal account search
+        var globalExemptionAccountSearch = document.getElementById('global-exemption-account-search');
+        if (globalExemptionAccountSearch) {
+            globalExemptionAccountSearch.addEventListener('input', filterGlobalExemptionAccounts);
         }
     }
 
@@ -9231,6 +9674,18 @@ var SecurityComplianceControlsService = (function() {
         showAddDomainAllowlistModal: showAddDomainAllowlistModal,
         showAddThresholdOverrideModal: showAddThresholdOverrideModal,
         viewAllDomainAgeExemptions: viewAllDomainAgeExemptions,
+        showAddUrlExemptionGlobalModal: showAddUrlExemptionGlobalModal,
+        toggleGlobalExemptionType: toggleGlobalExemptionType,
+        toggleGlobalExemptionSubaccounts: toggleGlobalExemptionSubaccounts,
+        toggleGlobalExemptionDomainAgeMode: toggleGlobalExemptionDomainAgeMode,
+        handleDomainChipInput: handleDomainChipInput,
+        handleDomainPaste: handleDomainPaste,
+        addDomainChip: addDomainChip,
+        removeDomainChip: removeDomainChip,
+        toggleSelectAllUrlRules: toggleSelectAllUrlRules,
+        filterGlobalExemptionAccounts: filterGlobalExemptionAccounts,
+        selectGlobalExemptionAccount: selectGlobalExemptionAccount,
+        saveGlobalUrlExemption: saveGlobalUrlExemption,
         showAddDomainAgeExceptionModal: showAddDomainAgeExceptionModal,
         saveException: saveException,
         removeDomainAgeException: removeDomainAgeException,
@@ -12974,6 +13429,46 @@ function showAddThresholdOverrideModal() {
 
 function viewAllDomainAgeExemptions(filterType) {
     SecurityComplianceControlsService.viewAllDomainAgeExemptions(filterType);
+}
+
+function showAddUrlExemptionGlobalModal() {
+    SecurityComplianceControlsService.showAddUrlExemptionGlobalModal();
+}
+
+function toggleGlobalExemptionType() {
+    SecurityComplianceControlsService.toggleGlobalExemptionType();
+}
+
+function toggleGlobalExemptionSubaccounts() {
+    SecurityComplianceControlsService.toggleGlobalExemptionSubaccounts();
+}
+
+function toggleGlobalExemptionDomainAgeMode() {
+    SecurityComplianceControlsService.toggleGlobalExemptionDomainAgeMode();
+}
+
+function handleDomainChipInput(event) {
+    SecurityComplianceControlsService.handleDomainChipInput(event);
+}
+
+function handleDomainPaste(event) {
+    SecurityComplianceControlsService.handleDomainPaste(event);
+}
+
+function removeDomainChip(index) {
+    SecurityComplianceControlsService.removeDomainChip(index);
+}
+
+function toggleSelectAllUrlRules() {
+    SecurityComplianceControlsService.toggleSelectAllUrlRules();
+}
+
+function selectGlobalExemptionAccount(accountId, accountName) {
+    SecurityComplianceControlsService.selectGlobalExemptionAccount(accountId, accountName);
+}
+
+function saveGlobalUrlExemption() {
+    SecurityComplianceControlsService.saveGlobalUrlExemption();
 }
 
 function showAddDomainAgeExceptionModal() {
