@@ -12,6 +12,10 @@
    Admin Blue Palette (Fillow Admin Console)
    Primary: #1e3a5f | Secondary: #2d5a87 | Accent: #4a90d9
    ========================================= */
+.breadcrumb-item.active {
+    color: #1e3a5f !important;
+    font-weight: 500;
+}
 :root {
     --admin-primary: #1e3a5f;
     --admin-secondary: #2d5a87;
@@ -139,8 +143,8 @@
     align-items: center;
     gap: 0.5rem;
     background: transparent;
-    border: 1px solid #6f42c1;
-    color: #6f42c1;
+    border: 1px solid #1e3a5f;
+    color: #1e3a5f;
     font-weight: 500;
     font-size: 0.875rem;
     padding: 0.5rem 1.25rem;
@@ -149,18 +153,18 @@
     cursor: pointer;
 }
 .filter-pill-btn:hover {
-    background: rgba(111, 66, 193, 0.08);
-    border-color: #6f42c1;
-    color: #6f42c1;
+    background: rgba(30, 58, 95, 0.08);
+    border-color: #1e3a5f;
+    color: #1e3a5f;
 }
 .filter-pill-btn.active {
-    background: rgba(111, 66, 193, 0.12);
-    border-color: #6f42c1;
-    color: #6f42c1;
+    background: rgba(30, 58, 95, 0.12);
+    border-color: #1e3a5f;
+    color: #1e3a5f;
 }
 .filter-pill-btn i {
     font-size: 0.8rem;
-    color: #6f42c1;
+    color: #1e3a5f;
 }
 .filter-count-badge {
     display: inline-flex;
