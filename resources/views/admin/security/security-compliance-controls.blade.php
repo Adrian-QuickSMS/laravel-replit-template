@@ -521,16 +521,76 @@
     vertical-align: middle;
 }
 
+/* Content Filter Panel - matches exemptions filter panel */
+.content-filter-panel,
+.content-exemptions-filter-panel {
+    background: transparent;
+    border-bottom: 1px solid rgba(30, 58, 95, 0.12);
+}
+.content-filter-panel .filter-body,
+.content-exemptions-filter-panel .filter-body {
+    padding: 0.75rem 1rem;
+    background: rgba(30, 58, 95, 0.03);
+}
+.content-filter-panel .filter-row,
+.content-exemptions-filter-panel .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.content-filter-panel .filter-group,
+.content-exemptions-filter-panel .filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+    flex: 1;
+    max-width: 180px;
+}
+.content-filter-panel .filter-group label,
+.content-exemptions-filter-panel .filter-group label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #1e3a5f;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.content-filter-panel .filter-group select,
+.content-exemptions-filter-panel .filter-group select {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid rgba(30, 58, 95, 0.2);
+    border-radius: 4px;
+    background: #fff;
+}
+.content-filter-panel .filter-group select:focus,
+.content-exemptions-filter-panel .filter-group select:focus {
+    border-color: #1e3a5f;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.1);
+}
+.content-filter-panel .filter-actions,
+.content-exemptions-filter-panel .filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+}
+
 /* SenderID Sub-tabs styling */
-#senderidSubTabs .nav-link {
+#senderidSubTabs .nav-link,
+#contentSubTabs .nav-link {
     border-radius: 0;
     transition: all 0.2s;
 }
-#senderidSubTabs .nav-link:hover {
+#senderidSubTabs .nav-link:hover,
+#contentSubTabs .nav-link:hover {
     color: #1e3a5f;
     background: rgba(30, 58, 95, 0.05);
 }
-#senderidSubTabs .nav-link.active {
+#senderidSubTabs .nav-link.active,
+#contentSubTabs .nav-link.active {
     color: #1e3a5f;
     border-bottom: 3px solid #1e3a5f !important;
     background: transparent;
@@ -1630,126 +1690,244 @@
             </div>
 
             <div class="tab-pane fade" id="message-content" role="tabpanel">
-                <div class="card mb-3" style="border: 1px solid #e9ecef; border-left: 3px solid #1e3a5f;">
-                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #f8f9fa;">
-                        <h6 class="mb-0" style="font-size: 0.9rem; font-weight: 600;">
-                            <i class="fas fa-shield-virus me-2" style="color: #1e3a5f;"></i>Anti-Spam Controls
-                        </h6>
-                        <span class="badge text-white" style="background: #1e3a5f; font-size: 0.65rem;">SUPPLEMENTARY</span>
-                    </div>
-                    <div class="card-body py-3">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="antispam-repeat-toggle" onchange="toggleAntiSpamRepeat()">
-                                    <label class="form-check-label" for="antispam-repeat-toggle" style="font-size: 0.85rem;">
-                                        <strong>Prevent identical content to same MSISDN within window</strong>
-                                    </label>
+                <!-- Sub-tabs for Message Content Controls -->
+                <ul class="nav nav-tabs mb-3" id="contentSubTabs" role="tablist" style="border-bottom: 2px solid #e9ecef;">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="content-rules-tab" data-bs-toggle="tab" data-bs-target="#content-rules" type="button" role="tab" style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f; border: none; border-bottom: 3px solid transparent; padding: 0.5rem 1rem;">
+                            <i class="fas fa-list-alt me-1"></i> Rules
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="content-exemptions-tab" data-bs-toggle="tab" data-bs-target="#content-exemptions" type="button" role="tab" style="font-size: 0.85rem; font-weight: 600; color: #6c757d; border: none; border-bottom: 3px solid transparent; padding: 0.5rem 1rem;">
+                            <i class="fas fa-shield-alt me-1"></i> Exemptions
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="contentSubTabContent">
+                    <!-- Rules Tab -->
+                    <div class="tab-pane fade show active" id="content-rules" role="tabpanel">
+                        <!-- Collapsible Anti-Spam Controls Card -->
+                        <div class="card mb-3" style="border: 1px solid #e9ecef; border-left: 3px solid #1e3a5f;">
+                            <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #f8f9fa; cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#antispam-collapse" aria-expanded="false">
+                                <h6 class="mb-0" style="font-size: 0.9rem; font-weight: 600;">
+                                    <i class="fas fa-shield-virus me-2" style="color: #1e3a5f;"></i>Anti-Spam Controls
+                                    <i class="fas fa-chevron-down ms-2" id="antispam-collapse-icon" style="font-size: 0.7rem; transition: transform 0.2s;"></i>
+                                </h6>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div id="antispam-status-badge">
+                                        <span class="badge bg-secondary" style="font-size: 0.65rem;">
+                                            <i class="fas fa-toggle-off me-1"></i> Disabled
+                                        </span>
+                                    </div>
+                                    <span class="badge text-white" style="background: #1e3a5f; font-size: 0.65rem;">SUPPLEMENTARY</span>
                                 </div>
-                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                    When enabled, blocks duplicate messages sent to the same recipient within the configured time window.
-                                </small>
                             </div>
-                            <div class="col-md-3">
-                                <label for="antispam-window" class="form-label mb-1" style="font-size: 0.8rem; font-weight: 600;">Time Window</label>
-                                <select class="form-select form-select-sm" id="antispam-window" onchange="updateAntiSpamWindow()" disabled>
-                                    <option value="2">2 hours</option>
-                                    <option value="4">4 hours</option>
-                                    <option value="12">12 hours</option>
-                                    <option value="24" selected>24 hours</option>
-                                    <option value="48">48 hours</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 text-end">
-                                <div id="antispam-status" class="d-inline-block">
-                                    <span class="badge bg-secondary" style="font-size: 0.75rem;">
-                                        <i class="fas fa-toggle-off me-1"></i> Disabled
-                                    </span>
+                            <div class="collapse" id="antispam-collapse">
+                                <div class="card-body py-3">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="antispam-repeat-toggle" onchange="toggleAntiSpamRepeat()">
+                                                <label class="form-check-label" for="antispam-repeat-toggle" style="font-size: 0.85rem;">
+                                                    <strong>Prevent identical content to same MSISDN within window</strong>
+                                                </label>
+                                            </div>
+                                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                                When enabled, blocks duplicate messages sent to the same recipient within the configured time window.
+                                            </small>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="antispam-window" class="form-label mb-1" style="font-size: 0.8rem; font-weight: 600;">Time Window</label>
+                                            <select class="form-select form-select-sm" id="antispam-window" onchange="updateAntiSpamWindow()" disabled>
+                                                <option value="15">15 minutes</option>
+                                                <option value="30">30 minutes</option>
+                                                <option value="60">1 hour</option>
+                                                <option value="120" selected>2 hours</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 text-end">
+                                            <div id="antispam-status" class="d-inline-block">
+                                                <span class="badge bg-secondary" style="font-size: 0.75rem;">
+                                                    <i class="fas fa-toggle-off me-1"></i> Disabled
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 p-2 bg-light rounded" style="font-size: 0.75rem; border: 1px solid #e9ecef;" id="antispam-info">
+                                        <i class="fas fa-info-circle me-1 text-muted"></i>
+                                        <span class="text-muted">Enforcement is handled globally via the shared Message Enforcement Service. Customers can override in Account > Security Settings. Blocked events will include reason: "Repeated content within window".</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-3 p-2 bg-light rounded" style="font-size: 0.75rem; border: 1px solid #e9ecef;" id="antispam-info">
-                            <i class="fas fa-info-circle me-1 text-muted"></i>
-                            <span class="text-muted">Enforcement is handled globally via the shared Message Enforcement Service. Blocked events will include reason: "Repeated content within window".</span>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="sec-table-card">
-                    <div class="sec-toolbar">
-                        <div class="sec-search-box-left">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search rules..." id="content-search">
-                        </div>
-                        <div class="sec-toolbar-actions">
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="content-filter-btn">
-                                    <i class="fas fa-filter me-1"></i> Filter
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Status</label>
-                                        <select class="form-select form-select-sm" id="content-filter-status">
-                                            <option value="">All Statuses</option>
-                                            <option value="active">Active</option>
-                                            <option value="disabled">Disabled</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Match Type</label>
-                                        <select class="form-select form-select-sm" id="content-filter-matchtype">
-                                            <option value="">All Types</option>
-                                            <option value="keyword">Keyword</option>
-                                            <option value="regex">Regex</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Rule Type</label>
-                                        <select class="form-select form-select-sm" id="content-filter-ruletype">
-                                            <option value="">All Types</option>
-                                            <option value="block">Block</option>
-                                            <option value="flag">Flag (Quarantine)</option>
-                                        </select>
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetContentFilters()">
-                                            <i class="fas fa-undo me-1"></i> Reset
-                                        </button>
-                                        <button class="btn btn-sm btn-primary flex-fill" onclick="applyContentFilters()">
-                                            Apply
-                                        </button>
-                                    </div>
+                        <div class="sec-table-card">
+                            <div class="sec-toolbar">
+                                <div class="sec-search-box-left">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" placeholder="Search rules..." id="content-search">
+                                </div>
+                                <div class="sec-toolbar-actions">
+                                    <button class="sec-pill-btn" type="button" id="content-filter-btn" onclick="toggleContentFilterPanel()">
+                                        <i class="fas fa-filter"></i>
+                                        <span>Filter</span>
+                                        <span class="badge" id="content-filter-count" style="display: none; background: #1e3a5f; font-size: 0.65rem; padding: 0.15rem 0.35rem; margin-left: 0.25rem;">0</span>
+                                    </button>
+                                    <button class="sec-primary-btn" onclick="showAddContentRuleModal()">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Add Rule</span>
+                                    </button>
                                 </div>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="showAddContentRuleModal()">
-                                <i class="fas fa-plus me-1"></i> Add Rule
-                            </button>
+                            
+                            <div class="content-filter-panel" id="content-filter-panel" style="display: none;">
+                                <div class="filter-body">
+                                    <div class="filter-row">
+                                        <div class="filter-group">
+                                            <label>Status</label>
+                                            <select id="content-filter-status">
+                                                <option value="">All Statuses</option>
+                                                <option value="active">Active</option>
+                                                <option value="disabled">Disabled</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Match Type</label>
+                                            <select id="content-filter-matchtype">
+                                                <option value="">All Types</option>
+                                                <option value="keyword">Keyword</option>
+                                                <option value="regex">Regex</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Rule Type</label>
+                                            <select id="content-filter-ruletype">
+                                                <option value="">All Types</option>
+                                                <option value="block">Block</option>
+                                                <option value="flag">Flag (Quarantine)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="filter-actions">
+                                    <button class="btn btn-sm btn-link text-secondary" onclick="resetContentFilters()">Reset</button>
+                                    <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applyContentFilters()">Apply Filters</button>
+                                </div>
+                            </div>
+                            
+                            <div class="sec-table-header">
+                                <h6>Content Rule Library</h6>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="sec-table" id="content-rules-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Rule Name <i class="fas fa-sort"></i></th>
+                                            <th>Match Type <i class="fas fa-sort"></i></th>
+                                            <th>Rule Type <i class="fas fa-sort"></i></th>
+                                            <th>Normalisation <i class="fas fa-sort"></i></th>
+                                            <th>Status <i class="fas fa-sort"></i></th>
+                                            <th>Last Updated <i class="fas fa-sort"></i></th>
+                                            <th style="width: 80px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="content-rules-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="sec-empty-state" id="content-empty-state" style="display: none;">
+                                <i class="fas fa-comment-alt"></i>
+                                <h6>No Content Rules</h6>
+                                <p>Create content filtering rules to manage message compliance.</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="sec-table-header">
-                        <h6>Content Rule Library</h6>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="sec-table" id="content-rules-table">
-                            <thead>
-                                <tr>
-                                    <th>Rule Name <i class="fas fa-sort"></i></th>
-                                    <th>Match Type <i class="fas fa-sort"></i></th>
-                                    <th>Rule Type <i class="fas fa-sort"></i></th>
-                                    <th>Normalisation <i class="fas fa-sort"></i></th>
-                                    <th>Status <i class="fas fa-sort"></i></th>
-                                    <th>Last Updated <i class="fas fa-sort"></i></th>
-                                    <th style="width: 80px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="content-rules-body">
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="sec-empty-state" id="content-empty-state" style="display: none;">
-                        <i class="fas fa-comment-alt"></i>
-                        <h6>No Content Rules</h6>
-                        <p>Create content filtering rules to manage message compliance.</p>
+                    
+                    <!-- Exemptions Tab -->
+                    <div class="tab-pane fade" id="content-exemptions" role="tabpanel">
+                        <div class="sec-table-card">
+                            <div class="sec-toolbar" style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-bottom: 1px solid #e9ecef;">
+                                <div class="sec-search-box-left" style="flex: 0 0 300px;">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" placeholder="Search exemptions..." id="content-exemptions-search" oninput="filterContentExemptionsTable()">
+                                </div>
+                                <div class="sec-toolbar-actions" style="display: flex; gap: 0.5rem; margin-left: auto;">
+                                    <button class="sec-pill-btn" type="button" id="content-exemptions-filter-btn" onclick="toggleContentExemptionsFilterPanel()">
+                                        <i class="fas fa-filter"></i>
+                                        <span>Filter</span>
+                                        <span class="badge" id="content-exemptions-filter-count" style="display: none; background: #1e3a5f; font-size: 0.65rem; padding: 0.15rem 0.35rem; margin-left: 0.25rem;">0</span>
+                                    </button>
+                                    <button class="sec-primary-btn" type="button" onclick="showAddContentExemptionModal()">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Add Exemption</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="content-exemptions-filter-panel" id="content-exemptions-filter-panel" style="display: none;">
+                                <div class="filter-body">
+                                    <div class="filter-row">
+                                        <div class="filter-group">
+                                            <label>Scope</label>
+                                            <select id="content-exemptions-filter-scope">
+                                                <option value="">All Scopes</option>
+                                                <option value="account">Account</option>
+                                                <option value="subaccount">Sub-account</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Type</label>
+                                            <select id="content-exemptions-filter-type">
+                                                <option value="">All Types</option>
+                                                <option value="rule">Rule Exemption</option>
+                                                <option value="antispam">Anti-Spam Override</option>
+                                            </select>
+                                        </div>
+                                        <div class="filter-group">
+                                            <label>Status</label>
+                                            <select id="content-exemptions-filter-status">
+                                                <option value="">All Statuses</option>
+                                                <option value="active">Active</option>
+                                                <option value="disabled">Disabled</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="filter-actions">
+                                    <button class="btn btn-sm btn-link text-secondary" onclick="resetContentExemptionsFilters()">Reset</button>
+                                    <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applyContentExemptionsFilters()">Apply Filters</button>
+                                </div>
+                            </div>
+                            
+                            <div class="sec-table-header">
+                                <h6>Content & Anti-Spam Exemptions</h6>
+                                <small class="text-muted">Account/sub-account exceptions to content rules and anti-spam settings</small>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="sec-table" id="content-exemptions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Account <i class="fas fa-sort"></i></th>
+                                            <th>Sub-Account <i class="fas fa-sort"></i></th>
+                                            <th>Type <i class="fas fa-sort"></i></th>
+                                            <th>Exempt From <i class="fas fa-sort"></i></th>
+                                            <th>Status <i class="fas fa-sort"></i></th>
+                                            <th>Added By <i class="fas fa-sort"></i></th>
+                                            <th>Added At <i class="fas fa-sort"></i></th>
+                                            <th style="width: 80px;">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="content-exemptions-body">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="sec-empty-state" id="content-exemptions-empty-state" style="display: none;">
+                                <i class="fas fa-shield-alt" style="color: #1e3a5f;"></i>
+                                <h6>No Exemptions</h6>
+                                <p>Add exemptions to allow specific accounts to bypass content rules or anti-spam controls.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2609,6 +2787,101 @@
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveContentRule()">
                     <i class="fas fa-save me-1"></i> Save Rule
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Exemption Modal -->
+<div class="modal fade" id="contentExemptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
+                <h5 class="modal-title text-white" id="content-exemption-modal-title">
+                    <i class="fas fa-shield-alt me-2"></i>Add Content Exemption
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <form id="content-exemption-form">
+                    <input type="hidden" id="content-exemption-id" value="">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="content-exemption-account" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Account <span class="text-danger">*</span></label>
+                            <select class="form-select" id="content-exemption-account" required onchange="loadContentExemptionSubaccounts()">
+                                <option value="">Select Account...</option>
+                            </select>
+                            <small class="text-muted">Select the account to exempt</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="content-exemption-subaccount" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Sub-Account(s)</label>
+                            <select class="form-select" id="content-exemption-subaccount" multiple size="3" disabled>
+                                <option value="">Select account first...</option>
+                            </select>
+                            <small class="text-muted">Leave empty to apply to all sub-accounts</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Exemption Type <span class="text-danger">*</span></label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="content-exemption-type" id="content-exemption-type-rule" value="rule" checked onchange="toggleContentExemptionType()">
+                                <label class="form-check-label" for="content-exemption-type-rule">Rule Exemption</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="content-exemption-type" id="content-exemption-type-antispam" value="antispam" onchange="toggleContentExemptionType()">
+                                <label class="form-check-label" for="content-exemption-type-antispam">Anti-Spam Override</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Rule Exemption Section -->
+                    <div id="content-exemption-rules-section">
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Exempt From Rules <span class="text-danger">*</span></label>
+                            <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;" id="content-rules-checklist">
+                                <!-- Rules will be populated here -->
+                            </div>
+                            <small class="text-muted">Select which content rules this account should be exempt from</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Anti-Spam Override Section -->
+                    <div id="content-exemption-antispam-section" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Anti-Spam Setting Override <span class="text-danger">*</span></label>
+                            <select class="form-select" id="content-exemption-antispam-override">
+                                <option value="disabled">Disable Anti-Spam (allow repeated content)</option>
+                                <option value="enabled">Force Enable Anti-Spam</option>
+                                <option value="strict">Strict Mode (shorter time window)</option>
+                            </select>
+                            <small class="text-muted">Override the global anti-spam setting for this account</small>
+                        </div>
+                        <div class="mb-3" id="antispam-window-override-group" style="display: none;">
+                            <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Custom Time Window</label>
+                            <select class="form-select" id="content-exemption-antispam-window">
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="120">2 hours</option>
+                            </select>
+                            <small class="text-muted">Custom time window for strict mode</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="content-exemption-notes" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Notes</label>
+                        <textarea class="form-control" id="content-exemption-notes" rows="2" placeholder="Reason for exemption..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveContentExemption()">
+                    <i class="fas fa-save me-1"></i> <span id="content-exemption-save-btn-text">Save Exemption</span>
                 </button>
             </div>
         </div>
@@ -3549,9 +3822,17 @@ var SecurityComplianceControlsService = (function() {
     var mockData = {
         senderIdRules: [],
         contentRules: [],
+        contentExemptions: [],
         urlRules: [],
         normalisationRules: [],
-        quarantinedMessages: []
+        quarantinedMessages: [],
+        accounts: [
+            { id: 'ACC-10045', name: 'TechStart Ltd', subAccounts: [{ id: 'SUB-001', name: 'Marketing Dept' }, { id: 'SUB-002', name: 'Sales Team' }] },
+            { id: 'ACC-10089', name: 'HealthFirst UK', subAccounts: [{ id: 'SUB-003', name: 'Patient Comms' }] },
+            { id: 'ACC-10112', name: 'E-Commerce Hub', subAccounts: [{ id: 'SUB-005', name: 'Promotions' }, { id: 'SUB-006', name: 'Customer Service' }] },
+            { id: 'ACC-10150', name: 'HMRC', subAccounts: [{ id: 'SUB-007', name: 'Tax Alerts' }, { id: 'SUB-008', name: 'Self Assessment' }] },
+            { id: 'ACC-10200', name: 'Royal Bank', subAccounts: [{ id: 'SUB-009', name: 'Fraud Alerts' }, { id: 'SUB-010', name: 'Transaction Notices' }] }
+        ]
     };
 
     function formatDateTime(date) {
@@ -3745,6 +4026,14 @@ var SecurityComplianceControlsService = (function() {
         mockData.enforcementOverrides = {};
         
         mockData.senderIdExemptions = buildExemptionsList();
+        
+        // Content Exemptions - accounts exempt from content rules or anti-spam
+        mockData.contentExemptions = [
+            { id: 'CEX-001', accountId: 'ACC-10150', accountName: 'HMRC', subAccounts: [], scope: 'account', type: 'rule', exemptRules: ['CNT-001', 'CNT-003'], status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '10-01-2026 14:30', updatedAt: '10-01-2026 14:30', notes: 'Government agency - exempted from phishing and gambling rules' },
+            { id: 'CEX-002', accountId: 'ACC-10200', accountName: 'Royal Bank', subAccounts: [{ id: 'SUB-009', name: 'Fraud Alerts' }], scope: 'subaccount', type: 'rule', exemptRules: ['CNT-001'], status: 'active', addedBy: 'compliance@quicksms.co.uk', addedAt: '15-01-2026 11:00', updatedAt: '20-01-2026 09:15', notes: 'Bank fraud alerts - legitimate phishing-like content' },
+            { id: 'CEX-003', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], scope: 'account', type: 'antispam', antispamOverride: 'disabled', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '18-01-2026 16:45', updatedAt: '18-01-2026 16:45', notes: 'Customer requested - high volume sender' },
+            { id: 'CEX-004', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [{ id: 'SUB-003', name: 'Patient Comms' }], scope: 'subaccount', type: 'antispam', antispamOverride: 'strict', customWindow: 15, status: 'active', addedBy: 'compliance@quicksms.co.uk', addedAt: '22-01-2026 10:30', updatedAt: '22-01-2026 10:30', notes: 'Healthcare - stricter anti-spam for patient safety' }
+        ];
         
         // Sync exemptions with MessageEnforcementService on initialization
         if (typeof window.MessageEnforcementService !== 'undefined' && 
@@ -4058,6 +4347,7 @@ var SecurityComplianceControlsService = (function() {
         renderSenderIdTab();
         renderExemptionsTab();
         renderContentTab();
+        renderContentExemptionsTab();
         renderUrlTab();
         renderNormTab();
         renderQuarantineTab();
@@ -4837,7 +5127,490 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('content-filter-matchtype').value = '';
         document.getElementById('content-filter-ruletype').value = '';
         document.getElementById('content-search').value = '';
+        hideContentFilterPanel();
         renderContentTab();
+    }
+    
+    function toggleContentFilterPanel() {
+        var panel = document.getElementById('content-filter-panel');
+        var btn = document.getElementById('content-filter-btn');
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            btn.classList.add('active');
+        } else {
+            panel.style.display = 'none';
+            btn.classList.remove('active');
+        }
+    }
+    
+    function hideContentFilterPanel() {
+        var panel = document.getElementById('content-filter-panel');
+        var btn = document.getElementById('content-filter-btn');
+        if (panel) panel.style.display = 'none';
+        if (btn) btn.classList.remove('active');
+    }
+    
+    function applyContentFilters() {
+        updateContentFilterCount();
+        hideContentFilterPanel();
+        renderContentTab();
+    }
+    
+    function updateContentFilterCount() {
+        var count = 0;
+        if (document.getElementById('content-filter-status').value) count++;
+        if (document.getElementById('content-filter-matchtype').value) count++;
+        if (document.getElementById('content-filter-ruletype').value) count++;
+        
+        var badge = document.getElementById('content-filter-count');
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+    
+    // ========================
+    // Content Exemptions Functions
+    // ========================
+    
+    function renderContentExemptionsTab() {
+        var tbody = document.getElementById('content-exemptions-body');
+        var emptyState = document.getElementById('content-exemptions-empty-state');
+        var searchTerm = document.getElementById('content-exemptions-search').value.toLowerCase();
+        
+        var scopeFilter = document.getElementById('content-exemptions-filter-scope').value;
+        var typeFilter = document.getElementById('content-exemptions-filter-type').value;
+        var statusFilter = document.getElementById('content-exemptions-filter-status').value;
+        
+        var exemptions = (mockData.contentExemptions || []).filter(function(ex) {
+            if (scopeFilter && ex.scope !== scopeFilter) return false;
+            if (typeFilter && ex.type !== typeFilter) return false;
+            if (statusFilter && ex.status !== statusFilter) return false;
+            if (searchTerm) {
+                var match = (ex.accountName || '').toLowerCase().indexOf(searchTerm) !== -1 ||
+                            (ex.accountId || '').toLowerCase().indexOf(searchTerm) !== -1;
+                if (!match) return false;
+            }
+            return true;
+        });
+        
+        if (exemptions.length === 0) {
+            tbody.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+        
+        emptyState.style.display = 'none';
+        tbody.innerHTML = exemptions.map(function(ex) {
+            var typeBadge = ex.type === 'rule' 
+                ? '<span class="sec-status-badge" style="background: #e0e7ff; color: #3730a3;"><i class="fas fa-list me-1"></i>Rule</span>'
+                : '<span class="sec-status-badge" style="background: #fef3c7; color: #92400e;"><i class="fas fa-shield-virus me-1"></i>Anti-Spam</span>';
+            
+            var exemptFromText = '';
+            if (ex.type === 'rule') {
+                var ruleNames = (ex.exemptRules || []).map(function(rId) {
+                    var r = mockData.contentRules.find(function(rule) { return rule.id === rId; });
+                    return r ? r.name : rId;
+                });
+                exemptFromText = ruleNames.length > 2 
+                    ? ruleNames.slice(0, 2).join(', ') + ' +' + (ruleNames.length - 2) + ' more'
+                    : ruleNames.join(', ');
+            } else {
+                var overrideLabels = {
+                    'disabled': 'Anti-Spam Disabled',
+                    'enabled': 'Anti-Spam Forced On',
+                    'strict': 'Strict Mode (' + (ex.customWindow || 15) + 'min)'
+                };
+                exemptFromText = overrideLabels[ex.antispamOverride] || ex.antispamOverride;
+            }
+            
+            var statusBadge = ex.status === 'active'
+                ? '<span class="sec-status-badge active"><i class="fas fa-check-circle me-1"></i>Active</span>'
+                : '<span class="sec-status-badge disabled"><i class="fas fa-pause-circle me-1"></i>Disabled</span>';
+            
+            var subAccountText = ex.subAccounts && ex.subAccounts.length > 0
+                ? ex.subAccounts.map(function(s) { return s.name || s.id; }).join(', ')
+                : '<span class="text-muted">All</span>';
+            
+            var dateOnly = (ex.addedAt || '').split(' ')[0];
+            
+            return '<tr data-exemption-id="' + ex.id + '">' +
+                '<td><strong>' + escapeHtml(ex.accountName || '') + '</strong><br><small class="text-muted">' + escapeHtml(ex.accountId || '') + '</small></td>' +
+                '<td>' + subAccountText + '</td>' +
+                '<td>' + typeBadge + '</td>' +
+                '<td>' + escapeHtml(exemptFromText) + '</td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' + escapeHtml(ex.addedBy || '') + '</td>' +
+                '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
+                '<td>' +
+                    '<div class="action-menu-container">' +
+                        '<button class="action-menu-btn" onclick="toggleContentExemptionActionMenu(this, \'' + ex.id + '\')"><i class="fas fa-ellipsis-v"></i></button>' +
+                        '<div class="action-menu-dropdown" id="content-exemption-menu-' + ex.id + '">' +
+                            '<a href="#" onclick="viewContentExemption(\'' + ex.id + '\'); return false;"><i class="fas fa-eye"></i> View Details</a>' +
+                            '<a href="#" onclick="editContentExemption(\'' + ex.id + '\'); return false;"><i class="fas fa-edit"></i> Edit</a>' +
+                            '<a href="#" onclick="toggleContentExemptionStatus(\'' + ex.id + '\'); return false;"><i class="fas fa-toggle-on"></i> ' + (ex.status === 'active' ? 'Disable' : 'Enable') + '</a>' +
+                            '<div class="dropdown-divider"></div>' +
+                            '<a href="#" class="text-danger" onclick="deleteContentExemption(\'' + ex.id + '\'); return false;"><i class="fas fa-trash"></i> Delete</a>' +
+                        '</div>' +
+                    '</div>' +
+                '</td>' +
+                '</tr>';
+        }).join('');
+    }
+    
+    function toggleContentExemptionActionMenu(btn, exemptionId) {
+        document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
+            if (menu.id !== 'content-exemption-menu-' + exemptionId) {
+                menu.classList.remove('show');
+            }
+        });
+        var menu = document.getElementById('content-exemption-menu-' + exemptionId);
+        menu.classList.toggle('show');
+    }
+    
+    function showAddContentExemptionModal() {
+        document.getElementById('content-exemption-modal-title').textContent = 'Add Content Exemption';
+        document.getElementById('content-exemption-form').reset();
+        document.getElementById('content-exemption-id').value = '';
+        document.getElementById('content-exemption-save-btn-text').textContent = 'Save Exemption';
+        document.getElementById('content-exemption-type-rule').checked = true;
+        
+        // Populate accounts dropdown
+        var accountSelect = document.getElementById('content-exemption-account');
+        accountSelect.innerHTML = '<option value="">Select Account...</option>' + 
+            mockData.accounts.map(function(acc) {
+                return '<option value="' + acc.id + '">' + escapeHtml(acc.name) + ' (' + acc.id + ')</option>';
+            }).join('');
+        
+        // Reset subaccount
+        var subSelect = document.getElementById('content-exemption-subaccount');
+        subSelect.innerHTML = '<option value="">Select account first...</option>';
+        subSelect.disabled = true;
+        
+        // Populate rules checklist
+        populateContentRulesChecklist();
+        
+        toggleContentExemptionType();
+        
+        var modal = new bootstrap.Modal(document.getElementById('contentExemptionModal'));
+        modal.show();
+    }
+    
+    function populateContentRulesChecklist() {
+        var container = document.getElementById('content-rules-checklist');
+        if (mockData.contentRules.length === 0) {
+            container.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-1"></i>No content rules available</div>';
+            return;
+        }
+        
+        container.innerHTML = mockData.contentRules.map(function(rule) {
+            var matchTypeBadge = rule.matchType === 'keyword' 
+                ? '<span class="badge bg-light text-dark" style="font-size: 0.65rem;">Keyword</span>'
+                : '<span class="badge bg-light text-dark" style="font-size: 0.65rem;">Regex</span>';
+            
+            return '<div class="form-check py-1 border-bottom">' +
+                '<input class="form-check-input content-rule-checkbox" type="checkbox" value="' + rule.id + '" id="rule-check-' + rule.id + '">' +
+                '<label class="form-check-label d-flex justify-content-between align-items-center w-100" for="rule-check-' + rule.id + '">' +
+                    '<span>' + escapeHtml(rule.name) + '</span>' +
+                    matchTypeBadge +
+                '</label>' +
+            '</div>';
+        }).join('');
+    }
+    
+    function loadContentExemptionSubaccounts() {
+        var accountId = document.getElementById('content-exemption-account').value;
+        var subSelect = document.getElementById('content-exemption-subaccount');
+        
+        if (!accountId) {
+            subSelect.innerHTML = '<option value="">Select account first...</option>';
+            subSelect.disabled = true;
+            return;
+        }
+        
+        var account = mockData.accounts.find(function(a) { return a.id === accountId; });
+        if (!account || !account.subAccounts || account.subAccounts.length === 0) {
+            subSelect.innerHTML = '<option value="">No sub-accounts</option>';
+            subSelect.disabled = true;
+            return;
+        }
+        
+        subSelect.innerHTML = account.subAccounts.map(function(sub) {
+            return '<option value="' + sub.id + '">' + escapeHtml(sub.name) + ' (' + sub.id + ')</option>';
+        }).join('');
+        subSelect.disabled = false;
+    }
+    
+    function toggleContentExemptionType() {
+        var type = document.querySelector('input[name="content-exemption-type"]:checked').value;
+        var rulesSection = document.getElementById('content-exemption-rules-section');
+        var antispamSection = document.getElementById('content-exemption-antispam-section');
+        
+        if (type === 'rule') {
+            rulesSection.style.display = 'block';
+            antispamSection.style.display = 'none';
+        } else {
+            rulesSection.style.display = 'none';
+            antispamSection.style.display = 'block';
+        }
+        
+        // Show/hide custom window based on override selection
+        var override = document.getElementById('content-exemption-antispam-override').value;
+        document.getElementById('antispam-window-override-group').style.display = override === 'strict' ? 'block' : 'none';
+    }
+    
+    function saveContentExemption() {
+        var accountId = document.getElementById('content-exemption-account').value;
+        if (!accountId) {
+            showToast('Please select an account', 'error');
+            return;
+        }
+        
+        var type = document.querySelector('input[name="content-exemption-type"]:checked').value;
+        var account = mockData.accounts.find(function(a) { return a.id === accountId; });
+        
+        var selectedSubaccounts = Array.from(document.getElementById('content-exemption-subaccount').selectedOptions).map(function(opt) {
+            var sub = account.subAccounts.find(function(s) { return s.id === opt.value; });
+            return sub || { id: opt.value, name: opt.value };
+        });
+        
+        var exemptionData = {
+            id: document.getElementById('content-exemption-id').value || 'CEX-' + String(mockData.contentExemptions.length + 1).padStart(3, '0'),
+            accountId: accountId,
+            accountName: account ? account.name : accountId,
+            subAccounts: selectedSubaccounts,
+            scope: selectedSubaccounts.length > 0 ? 'subaccount' : 'account',
+            type: type,
+            status: 'active',
+            notes: document.getElementById('content-exemption-notes').value.trim(),
+            addedBy: currentAdmin.email,
+            addedAt: formatDateTime(new Date()),
+            updatedAt: formatDateTime(new Date())
+        };
+        
+        if (type === 'rule') {
+            var selectedRules = Array.from(document.querySelectorAll('.content-rule-checkbox:checked')).map(function(cb) {
+                return cb.value;
+            });
+            if (selectedRules.length === 0) {
+                showToast('Please select at least one rule to exempt from', 'error');
+                return;
+            }
+            exemptionData.exemptRules = selectedRules;
+        } else {
+            exemptionData.antispamOverride = document.getElementById('content-exemption-antispam-override').value;
+            if (exemptionData.antispamOverride === 'strict') {
+                exemptionData.customWindow = parseInt(document.getElementById('content-exemption-antispam-window').value);
+            }
+        }
+        
+        var existingIdx = mockData.contentExemptions.findIndex(function(e) { return e.id === exemptionData.id; });
+        var eventType;
+        if (existingIdx !== -1) {
+            mockData.contentExemptions[existingIdx] = exemptionData;
+            eventType = 'CONTENT_EXEMPTION_UPDATED';
+        } else {
+            mockData.contentExemptions.push(exemptionData);
+            eventType = 'CONTENT_EXEMPTION_CREATED';
+        }
+        
+        logAuditEvent(eventType, {
+            exemptionId: exemptionData.id,
+            accountId: exemptionData.accountId,
+            type: exemptionData.type,
+            exemptRules: exemptionData.exemptRules || null,
+            antispamOverride: exemptionData.antispamOverride || null
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('contentExemptionModal')).hide();
+        renderContentExemptionsTab();
+        showSuccessToast('Content exemption ' + (existingIdx !== -1 ? 'updated' : 'created') + ' successfully');
+    }
+    
+    function viewContentExemption(exemptionId) {
+        editContentExemption(exemptionId);
+    }
+    
+    function editContentExemption(exemptionId) {
+        var ex = mockData.contentExemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        closeAllContentExemptionMenus();
+        
+        document.getElementById('content-exemption-modal-title').textContent = 'Edit Content Exemption';
+        document.getElementById('content-exemption-save-btn-text').textContent = 'Update Exemption';
+        document.getElementById('content-exemption-id').value = ex.id;
+        
+        // Populate accounts
+        var accountSelect = document.getElementById('content-exemption-account');
+        accountSelect.innerHTML = '<option value="">Select Account...</option>' + 
+            mockData.accounts.map(function(acc) {
+                return '<option value="' + acc.id + '"' + (acc.id === ex.accountId ? ' selected' : '') + '>' + escapeHtml(acc.name) + ' (' + acc.id + ')</option>';
+            }).join('');
+        
+        loadContentExemptionSubaccounts();
+        
+        // Set subaccounts
+        if (ex.subAccounts && ex.subAccounts.length > 0) {
+            var subSelect = document.getElementById('content-exemption-subaccount');
+            ex.subAccounts.forEach(function(sub) {
+                var opt = subSelect.querySelector('option[value="' + sub.id + '"]');
+                if (opt) opt.selected = true;
+            });
+        }
+        
+        // Set type
+        if (ex.type === 'rule') {
+            document.getElementById('content-exemption-type-rule').checked = true;
+        } else {
+            document.getElementById('content-exemption-type-antispam').checked = true;
+        }
+        
+        toggleContentExemptionType();
+        
+        // Populate rules checklist
+        populateContentRulesChecklist();
+        
+        // Check selected rules
+        if (ex.exemptRules) {
+            ex.exemptRules.forEach(function(ruleId) {
+                var cb = document.getElementById('rule-check-' + ruleId);
+                if (cb) cb.checked = true;
+            });
+        }
+        
+        // Set antispam override
+        if (ex.antispamOverride) {
+            document.getElementById('content-exemption-antispam-override').value = ex.antispamOverride;
+            if (ex.customWindow) {
+                document.getElementById('content-exemption-antispam-window').value = ex.customWindow;
+            }
+        }
+        
+        document.getElementById('content-exemption-notes').value = ex.notes || '';
+        
+        var modal = new bootstrap.Modal(document.getElementById('contentExemptionModal'));
+        modal.show();
+    }
+    
+    function toggleContentExemptionStatus(exemptionId) {
+        var ex = mockData.contentExemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        closeAllContentExemptionMenus();
+        
+        var beforeStatus = ex.status;
+        ex.status = ex.status === 'active' ? 'disabled' : 'active';
+        ex.updatedAt = formatDateTime(new Date());
+        
+        logAuditEvent('CONTENT_EXEMPTION_STATUS_CHANGED', {
+            exemptionId: exemptionId,
+            accountId: ex.accountId,
+            beforeStatus: beforeStatus,
+            afterStatus: ex.status
+        });
+        
+        renderContentExemptionsTab();
+        showSuccessToast('Exemption ' + (ex.status === 'active' ? 'enabled' : 'disabled'));
+    }
+    
+    function deleteContentExemption(exemptionId) {
+        var ex = mockData.contentExemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        closeAllContentExemptionMenus();
+        
+        showActionConfirmation({
+            id: exemptionId,
+            type: 'content_exemption',
+            action: 'delete',
+            title: 'Delete Exemption',
+            icon: 'fa-trash-alt',
+            iconColor: 'text-danger',
+            message: 'Are you sure you want to delete this exemption?',
+            details: '<table class="table table-sm" style="font-size: 0.85rem;">' +
+                '<tr><td class="text-muted" style="width: 35%;">Account</td><td>' + escapeHtml(ex.accountName) + '</td></tr>' +
+                '<tr><td class="text-muted">Type</td><td>' + (ex.type === 'rule' ? 'Rule Exemption' : 'Anti-Spam Override') + '</td></tr>' +
+                '</table>' +
+                '<div class="alert alert-danger" style="font-size: 0.8rem; padding: 0.5rem;"><i class="fas fa-exclamation-triangle me-1"></i>This action cannot be undone.</div>',
+            btnText: 'Delete Exemption',
+            btnClass: 'btn-danger',
+            showReason: false
+        });
+    }
+    
+    function executeDeleteContentExemption(exemptionId) {
+        var idx = mockData.contentExemptions.findIndex(function(e) { return e.id === exemptionId; });
+        if (idx === -1) return;
+        
+        var ex = mockData.contentExemptions[idx];
+        mockData.contentExemptions.splice(idx, 1);
+        
+        logAuditEvent('CONTENT_EXEMPTION_DELETED', {
+            exemptionId: exemptionId,
+            accountId: ex.accountId,
+            type: ex.type
+        });
+        
+        renderContentExemptionsTab();
+        showSuccessToast('Exemption deleted successfully');
+    }
+    
+    function closeAllContentExemptionMenus() {
+        document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
+            menu.classList.remove('show');
+        });
+    }
+    
+    function toggleContentExemptionsFilterPanel() {
+        var panel = document.getElementById('content-exemptions-filter-panel');
+        var btn = document.getElementById('content-exemptions-filter-btn');
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            btn.classList.add('active');
+        } else {
+            panel.style.display = 'none';
+            btn.classList.remove('active');
+        }
+    }
+    
+    function filterContentExemptionsTable() {
+        renderContentExemptionsTab();
+    }
+    
+    function applyContentExemptionsFilters() {
+        updateContentExemptionsFilterCount();
+        document.getElementById('content-exemptions-filter-panel').style.display = 'none';
+        document.getElementById('content-exemptions-filter-btn').classList.remove('active');
+        renderContentExemptionsTab();
+    }
+    
+    function resetContentExemptionsFilters() {
+        document.getElementById('content-exemptions-filter-scope').value = '';
+        document.getElementById('content-exemptions-filter-type').value = '';
+        document.getElementById('content-exemptions-filter-status').value = '';
+        document.getElementById('content-exemptions-search').value = '';
+        document.getElementById('content-exemptions-filter-panel').style.display = 'none';
+        document.getElementById('content-exemptions-filter-btn').classList.remove('active');
+        document.getElementById('content-exemptions-filter-count').style.display = 'none';
+        renderContentExemptionsTab();
+    }
+    
+    function updateContentExemptionsFilterCount() {
+        var count = 0;
+        if (document.getElementById('content-exemptions-filter-scope').value) count++;
+        if (document.getElementById('content-exemptions-filter-type').value) count++;
+        if (document.getElementById('content-exemptions-filter-status').value) count++;
+        
+        var badge = document.getElementById('content-exemptions-filter-count');
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
     }
 
     function renderUrlTab() {
@@ -6680,6 +7453,28 @@ var SecurityComplianceControlsService = (function() {
         setupQuarantineTabListeners();
         setupNormTableSorting();
         
+        // Anti-spam collapse icon toggle
+        var antispamCollapse = document.getElementById('antispam-collapse');
+        if (antispamCollapse) {
+            antispamCollapse.addEventListener('show.bs.collapse', function() {
+                document.getElementById('antispam-collapse-icon').style.transform = 'rotate(180deg)';
+            });
+            antispamCollapse.addEventListener('hide.bs.collapse', function() {
+                document.getElementById('antispam-collapse-icon').style.transform = 'rotate(0deg)';
+            });
+        }
+        
+        // Content Sub-tabs styling
+        var contentSubTabs = document.querySelectorAll('#contentSubTabs .nav-link');
+        contentSubTabs.forEach(function(tab) {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                contentSubTabs.forEach(function(t) {
+                    t.style.color = '#6c757d';
+                });
+                e.target.style.color = '#1e3a5f';
+            });
+        });
+        
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.action-menu-container')) {
                 document.querySelectorAll('.action-menu-dropdown').forEach(function(menu) {
@@ -6871,11 +7666,28 @@ var SecurityComplianceControlsService = (function() {
         saveContentRule: saveContentRule,
         updateContentMatchInputLabel: updateContentMatchInputLabel,
         resetContentFilters: resetContentFilters,
+        toggleContentFilterPanel: toggleContentFilterPanel,
+        applyContentFilters: applyContentFilters,
         toggleContentActionMenu: toggleContentActionMenu,
         setupContentTabListeners: setupContentTabListeners,
         toggleAntiSpamRepeat: toggleAntiSpamRepeat,
         updateAntiSpamWindow: updateAntiSpamWindow,
         renderAntiSpamControls: renderAntiSpamControls,
+        // Content Exemptions
+        showAddContentExemptionModal: showAddContentExemptionModal,
+        viewContentExemption: viewContentExemption,
+        editContentExemption: editContentExemption,
+        toggleContentExemptionStatus: toggleContentExemptionStatus,
+        deleteContentExemption: deleteContentExemption,
+        executeDeleteContentExemption: executeDeleteContentExemption,
+        saveContentExemption: saveContentExemption,
+        toggleContentExemptionType: toggleContentExemptionType,
+        loadContentExemptionSubaccounts: loadContentExemptionSubaccounts,
+        toggleContentExemptionActionMenu: toggleContentExemptionActionMenu,
+        toggleContentExemptionsFilterPanel: toggleContentExemptionsFilterPanel,
+        filterContentExemptionsTable: filterContentExemptionsTable,
+        applyContentExemptionsFilters: applyContentExemptionsFilters,
+        resetContentExemptionsFilters: resetContentExemptionsFilters,
         showAddUrlRuleModal: showAddUrlRuleModal,
         editUrlRule: editUrlRule,
         viewUrlRule: viewUrlRule,
@@ -10333,6 +11145,10 @@ function executeConfirmedAction() {
         } else if (action === 'delete') {
             executeDeleteExemption(id);
         }
+    } else if (type === 'content_exemption') {
+        if (action === 'delete') {
+            SecurityComplianceControlsService.executeDeleteContentExemption(id);
+        }
     }
 }
 
@@ -10408,8 +11224,69 @@ function resetContentFilters() {
     SecurityComplianceControlsService.resetContentFilters();
 }
 
+function toggleContentFilterPanel() {
+    SecurityComplianceControlsService.toggleContentFilterPanel();
+}
+
+function applyContentFilters() {
+    SecurityComplianceControlsService.applyContentFilters();
+}
+
 function toggleContentActionMenu(btn, ruleId) {
     SecurityComplianceControlsService.toggleContentActionMenu(btn, ruleId);
+}
+
+// Content Exemptions global wrappers
+function showAddContentExemptionModal() {
+    SecurityComplianceControlsService.showAddContentExemptionModal();
+}
+
+function viewContentExemption(exemptionId) {
+    SecurityComplianceControlsService.viewContentExemption(exemptionId);
+}
+
+function editContentExemption(exemptionId) {
+    SecurityComplianceControlsService.editContentExemption(exemptionId);
+}
+
+function toggleContentExemptionStatus(exemptionId) {
+    SecurityComplianceControlsService.toggleContentExemptionStatus(exemptionId);
+}
+
+function deleteContentExemption(exemptionId) {
+    SecurityComplianceControlsService.deleteContentExemption(exemptionId);
+}
+
+function saveContentExemption() {
+    SecurityComplianceControlsService.saveContentExemption();
+}
+
+function toggleContentExemptionType() {
+    SecurityComplianceControlsService.toggleContentExemptionType();
+}
+
+function loadContentExemptionSubaccounts() {
+    SecurityComplianceControlsService.loadContentExemptionSubaccounts();
+}
+
+function toggleContentExemptionActionMenu(btn, exemptionId) {
+    SecurityComplianceControlsService.toggleContentExemptionActionMenu(btn, exemptionId);
+}
+
+function toggleContentExemptionsFilterPanel() {
+    SecurityComplianceControlsService.toggleContentExemptionsFilterPanel();
+}
+
+function filterContentExemptionsTable() {
+    SecurityComplianceControlsService.filterContentExemptionsTable();
+}
+
+function applyContentExemptionsFilters() {
+    SecurityComplianceControlsService.applyContentExemptionsFilters();
+}
+
+function resetContentExemptionsFilters() {
+    SecurityComplianceControlsService.resetContentExemptionsFilters();
 }
 
 function showAddUrlRuleModal() {
