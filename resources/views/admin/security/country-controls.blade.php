@@ -924,6 +924,41 @@
     gap: 0.5rem;
     margin-left: auto;
 }
+.filter-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 1px solid #1e3a5f;
+    border-radius: 6px;
+    color: #1e3a5f;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.filter-toggle-btn:hover {
+    background: rgba(30, 58, 95, 0.08);
+}
+.filter-toggle-btn i {
+    transition: transform 0.2s ease;
+}
+.filter-toggle-btn[aria-expanded="true"] i.fa-chevron-down {
+    transform: rotate(180deg);
+}
+.filter-toggle-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 0.75rem;
+}
+.filter-panel-collapsible {
+    border: 1px solid #e5e9f2;
+    border-radius: 8px;
+    background: #f8f9fc;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
 .queue-table-container {
     background: #fff;
     border: 1px solid #e5e9f2;
@@ -1342,46 +1377,55 @@
                 </div>
             </div>
 
-            <div class="filter-panel">
-                <div class="filter-row">
-                    <div class="filter-group">
-                        <label>Status</label>
-                        <select class="form-select form-select-sm" id="reviewStatusFilter">
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                            <option value="">All Statuses</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Customer</label>
-                        <select class="form-select form-select-sm" id="reviewCustomerFilter">
-                            <option value="">All Customers</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Country</label>
-                        <select class="form-select form-select-sm" id="reviewCountryFilter">
-                            <option value="">All Countries</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Risk Level</label>
-                        <select class="form-select form-select-sm" id="reviewRiskFilter">
-                            <option value="">All Risks</option>
-                            <option value="critical">Critical</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
-                        </select>
-                    </div>
-                    <div class="filter-actions">
-                        <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applyReviewFilters()">
-                            <i class="fas fa-check me-1"></i>Apply
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="clearReviewFilters()">
-                            <i class="fas fa-undo me-1"></i>Reset
-                        </button>
+            <div class="filter-toggle-header">
+                <button class="filter-toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#reviewFiltersCollapse" aria-expanded="false" aria-controls="reviewFiltersCollapse">
+                    <i class="fas fa-filter"></i>
+                    Filters
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="collapse" id="reviewFiltersCollapse">
+                <div class="filter-panel-collapsible">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select class="form-select form-select-sm" id="reviewStatusFilter">
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                                <option value="">All Statuses</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Customer</label>
+                            <select class="form-select form-select-sm" id="reviewCustomerFilter">
+                                <option value="">All Customers</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Country</label>
+                            <select class="form-select form-select-sm" id="reviewCountryFilter">
+                                <option value="">All Countries</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Risk Level</label>
+                            <select class="form-select form-select-sm" id="reviewRiskFilter">
+                                <option value="">All Risks</option>
+                                <option value="critical">Critical</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applyReviewFilters()">
+                                <i class="fas fa-check me-1"></i>Apply
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearReviewFilters()">
+                                <i class="fas fa-undo me-1"></i>Reset
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
