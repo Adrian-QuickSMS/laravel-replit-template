@@ -1784,10 +1784,10 @@
                                 <span>Filter</span>
                                 <span class="badge bg-primary" id="quarantine-filter-count" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem;">0</span>
                             </button>
-                            <button class="btn btn-outline-danger btn-sm" onclick="bulkBlockQuarantine()">
+                            <button class="btn btn-outline-danger btn-sm" id="btn-bulk-block" onclick="showBulkBlockConfirmation()" disabled style="opacity: 0.65; color: #dc3545; border-color: #dc3545;">
                                 <i class="fas fa-ban me-1"></i> Block Selected
                             </button>
-                            <button class="btn btn-primary btn-sm" onclick="bulkReleaseQuarantine()" style="background-color: #1e3a5f; border-color: #1e3a5f;">
+                            <button class="btn btn-primary btn-sm" id="btn-bulk-release" onclick="showBulkReleaseConfirmation()" disabled style="background-color: #1e3a5f; border-color: #1e3a5f; opacity: 0.65;">
                                 <i class="fas fa-check me-1"></i> Release Selected
                             </button>
                         </div>
@@ -2536,6 +2536,30 @@ document.getElementById('featureFlagsModal').addEventListener('show.bs.modal', f
 
 console.log('[SecurityComplianceControls] Initialized');
 </script>
+
+<div class="modal fade" id="bulkActionConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="bulk-confirm-header" style="border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" id="bulk-confirm-title" style="font-weight: 600;">
+                    <i id="bulk-confirm-icon" class="me-2"></i><span id="bulk-confirm-title-text">Confirm Action</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="bulk-confirm-message" style="font-size: 0.95rem; margin-bottom: 1rem;">Are you sure you want to perform this action?</p>
+                <div class="alert alert-warning py-2" style="font-size: 0.85rem;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong id="bulk-confirm-count">0</strong> message(s) will be affected. This action will be logged.
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-sm" id="bulk-confirm-btn" onclick="executeBulkAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -4444,32 +4468,134 @@ var SecurityComplianceControlsService = (function() {
         showToast('Message permanently blocked', 'success');
     }
     
-    function bulkReleaseQuarantine() {
-        var selectedIds = getSelectedQuarantineIds();
-        if (selectedIds.length === 0) {
-            showToast('Please select messages to release', 'warning');
-            return;
-        }
+    var pendingBulkAction = null;
+    var pendingBulkIds = [];
+    
+    function updateBulkActionButtons() {
+        var selectedCount = getSelectedQuarantineIds().length;
+        var blockBtn = document.getElementById('btn-bulk-block');
+        var releaseBtn = document.getElementById('btn-bulk-release');
         
-        selectedIds.forEach(function(msgId) {
-            releaseQuarantinedMessage(msgId);
+        if (blockBtn) {
+            blockBtn.disabled = selectedCount === 0;
+            blockBtn.style.opacity = selectedCount === 0 ? '0.65' : '1';
+        }
+        if (releaseBtn) {
+            releaseBtn.disabled = selectedCount === 0;
+            releaseBtn.style.opacity = selectedCount === 0 ? '0.65' : '1';
+        }
+    }
+    
+    function showBulkReleaseConfirmation() {
+        var selectedIds = getSelectedQuarantineIds();
+        if (selectedIds.length === 0) return;
+        
+        pendingBulkAction = 'release';
+        pendingBulkIds = selectedIds;
+        
+        document.getElementById('bulk-confirm-header').style.background = '#f0f4f8';
+        document.getElementById('bulk-confirm-icon').className = 'fas fa-check-circle me-2';
+        document.getElementById('bulk-confirm-icon').style.color = '#1e3a5f';
+        document.getElementById('bulk-confirm-title-text').textContent = 'Release Messages';
+        document.getElementById('bulk-confirm-message').textContent = 'Are you sure you want to release the selected messages? They will be allowed through for delivery.';
+        document.getElementById('bulk-confirm-count').textContent = selectedIds.length;
+        document.getElementById('bulk-confirm-btn').className = 'btn btn-sm btn-primary';
+        document.getElementById('bulk-confirm-btn').style.background = '#1e3a5f';
+        document.getElementById('bulk-confirm-btn').style.borderColor = '#1e3a5f';
+        document.getElementById('bulk-confirm-btn').innerHTML = '<i class="fas fa-check me-1"></i> Release';
+        
+        var modal = new bootstrap.Modal(document.getElementById('bulkActionConfirmModal'));
+        modal.show();
+    }
+    
+    function showBulkBlockConfirmation() {
+        var selectedIds = getSelectedQuarantineIds();
+        if (selectedIds.length === 0) return;
+        
+        pendingBulkAction = 'block';
+        pendingBulkIds = selectedIds;
+        
+        document.getElementById('bulk-confirm-header').style.background = '#fef2f2';
+        document.getElementById('bulk-confirm-icon').className = 'fas fa-ban me-2';
+        document.getElementById('bulk-confirm-icon').style.color = '#dc3545';
+        document.getElementById('bulk-confirm-title-text').textContent = 'Block Messages';
+        document.getElementById('bulk-confirm-message').textContent = 'Are you sure you want to permanently block the selected messages? They will be rejected and not delivered.';
+        document.getElementById('bulk-confirm-count').textContent = selectedIds.length;
+        document.getElementById('bulk-confirm-btn').className = 'btn btn-sm btn-danger';
+        document.getElementById('bulk-confirm-btn').style.background = '';
+        document.getElementById('bulk-confirm-btn').style.borderColor = '';
+        document.getElementById('bulk-confirm-btn').innerHTML = '<i class="fas fa-ban me-1"></i> Block';
+        
+        var modal = new bootstrap.Modal(document.getElementById('bulkActionConfirmModal'));
+        modal.show();
+    }
+    
+    function executeBulkAction() {
+        if (!pendingBulkAction || pendingBulkIds.length === 0) return;
+        
+        var successCount = 0;
+        var failedIds = [];
+        
+        pendingBulkIds.forEach(function(msgId) {
+            try {
+                if (pendingBulkAction === 'release') {
+                    releaseQuarantinedMessage(msgId, false);
+                    logAdminAuditEvent('QUARANTINE_BULK_RELEASE', { messageId: msgId });
+                } else if (pendingBulkAction === 'block') {
+                    blockQuarantinedMessage(msgId);
+                    logAdminAuditEvent('QUARANTINE_BULK_BLOCK', { messageId: msgId });
+                }
+                successCount++;
+            } catch (e) {
+                failedIds.push(msgId);
+                console.error('[Quarantine] Failed to process message:', msgId, e);
+            }
         });
         
-        showToast(selectedIds.length + ' message(s) released', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('bulkActionConfirmModal')).hide();
+        
+        if (failedIds.length > 0) {
+            showToast(successCount + ' processed, ' + failedIds.length + ' failed. Selection kept.', 'warning');
+        } else {
+            var actionText = pendingBulkAction === 'release' ? 'released' : 'blocked';
+            showToast(successCount + ' message(s) ' + actionText + ' successfully', 'success');
+            
+            document.getElementById('quarantine-select-all').checked = false;
+            updateBulkActionButtons();
+        }
+        
+        logAdminAuditEvent('QUARANTINE_BULK_ACTION_COMPLETE', { 
+            action: pendingBulkAction.toUpperCase(),
+            totalSelected: pendingBulkIds.length,
+            successCount: successCount,
+            failedCount: failedIds.length
+        });
+        
+        pendingBulkAction = null;
+        pendingBulkIds = [];
+        
+        renderQuarantineTab();
+    }
+    
+    function logAdminAuditEvent(eventType, details) {
+        var auditEntry = {
+            timestamp: new Date().toISOString(),
+            eventType: eventType,
+            adminId: currentAdmin ? currentAdmin.id : 'unknown',
+            adminEmail: currentAdmin ? currentAdmin.email : 'unknown',
+            details: details,
+            sourceIP: 'internal',
+            userAgent: navigator.userAgent
+        };
+        console.log('[AdminAudit]', JSON.stringify(auditEntry));
+    }
+    
+    function bulkReleaseQuarantine() {
+        showBulkReleaseConfirmation();
     }
     
     function bulkBlockQuarantine() {
-        var selectedIds = getSelectedQuarantineIds();
-        if (selectedIds.length === 0) {
-            showToast('Please select messages to block', 'warning');
-            return;
-        }
-        
-        selectedIds.forEach(function(msgId) {
-            blockQuarantinedMessage(msgId);
-        });
-        
-        showToast(selectedIds.length + ' message(s) blocked', 'success');
+        showBulkBlockConfirmation();
     }
     
     function getSelectedQuarantineIds() {
@@ -4572,6 +4698,18 @@ var SecurityComplianceControlsService = (function() {
             checkboxes.forEach(function(cb) {
                 cb.checked = this.checked;
             }.bind(this));
+            updateBulkActionButtons();
+        });
+        
+        document.getElementById('quarantine-body').addEventListener('change', function(e) {
+            if (e.target.classList.contains('quarantine-checkbox')) {
+                updateBulkActionButtons();
+                
+                var allCheckboxes = document.querySelectorAll('.quarantine-checkbox');
+                var checkedCheckboxes = document.querySelectorAll('.quarantine-checkbox:checked');
+                document.getElementById('quarantine-select-all').checked = 
+                    allCheckboxes.length > 0 && allCheckboxes.length === checkedCheckboxes.length;
+            }
         });
         
         setupContentTabListeners();
@@ -4805,7 +4943,11 @@ var SecurityComplianceControlsService = (function() {
         applyQuarantineFilters: applyQuarantineFilters,
         resetQuarantineFilters: resetQuarantineFilters,
         toggleQuarantineTileFilter: toggleQuarantineTileFilter,
-        getActiveTileFilter: getActiveTileFilter
+        getActiveTileFilter: getActiveTileFilter,
+        showBulkReleaseConfirmation: showBulkReleaseConfirmation,
+        showBulkBlockConfirmation: showBulkBlockConfirmation,
+        executeBulkAction: executeBulkAction,
+        updateBulkActionButtons: updateBulkActionButtons
     };
 })();
 
@@ -7867,6 +8009,18 @@ function resetQuarantineFilters() {
 
 function toggleQuarantineTileFilter(filterType) {
     SecurityComplianceControlsService.toggleQuarantineTileFilter(filterType);
+}
+
+function showBulkReleaseConfirmation() {
+    SecurityComplianceControlsService.showBulkReleaseConfirmation();
+}
+
+function showBulkBlockConfirmation() {
+    SecurityComplianceControlsService.showBulkBlockConfirmation();
+}
+
+function executeBulkAction() {
+    SecurityComplianceControlsService.executeBulkAction();
 }
 
 function resetNormFilters() {
