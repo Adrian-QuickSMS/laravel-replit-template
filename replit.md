@@ -52,6 +52,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - **Tenant Isolation:** `getRulesForTenant(tenantId, engine)` guarantees no cross-tenant reads; global rules apply to all tenants
   - **Feature Flags:** Per-engine toggles (`senderid_controls_enabled`, `content_controls_enabled`, `url_controls_enabled`, `quarantine_enabled`, `normalisation_enabled`, `anti_spam_enabled`, `domain_age_check_enabled`)
   - **Admin Access Enforcement:** `AdminAccessControl` validates admin context at UI layer; `setFeatureFlag()` requires admin context
+- **Spam Filter Module (Admin > Security & Compliance > Spam Filter):** Previously named "Security & Compliance Controls", provides centralized message security enforcement.
 - **NormalisationLibrary:** Fixed base character library (62 immutable characters) for character equivalence:
   - **Fixed Base Characters:** A–Z (26), a–z (26), 0–9 (10) - cannot be deleted
   - **Per-Character Properties:** Equivalents (configurable), applies-to scope (SenderID/Content/URL), enabled/disabled state, notes, computed risk classification
