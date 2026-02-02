@@ -67,11 +67,13 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
       - Exemption Type (3 radios): A) Domain Age override (disable OR custom threshold/action), B) Allowlisted domains (chip input with paste support, validation, deduplication), C) Rule exemptions (multi-select with "Select all")
       - Saves immediately, shows success toast, logs typed audit events
 - **NormalisationLibrary:** Fixed base character library (36 immutable characters) for unified character equivalence:
-  - **Fixed Base Characters:** A–Z (26 uppercase letters) + 0–9 (10 digits) = 36 base characters that cannot be deleted
+  - **Fixed Base Characters:** A–Z (26 uppercase letters) + 0–9 (10 digits) = 36 base characters that cannot be deleted or added
+  - **Grid-Based UI:** Clickable card grid layout instead of tables; click any letter/digit to open edit modal
+  - **Edit Modal:** "Edit Normalisation: {Letter}" modal for adding/removing equivalent characters; no separate rule objects exist
   - **Unified Equivalence Sets:** Each base letter (A-Z) contains a single merged equivalence set including: lowercase variant, accented variants, Greek/Cyrillic lookalikes, digit substitutions, and special characters (e.g., Base 'L' → l, 1, I, i, |, ӏ, Ł, Ĺ, Ľ)
   - **Deterministic Deduplication:** `dedupeEquivalents()` helper ensures no duplicate characters within equivalence sets
   - **Scope-Agnostic Design:** Normalisation rules are UNIVERSAL and automatically consumed by ALL enforcement engines (SenderID Controls, Content Controls, URL Controls) - no per-rule scope selection
-  - **Tab Structure:** Two tabs only - "Letters A–Z" (26 rows) and "Digits 0–9" (10 rows)
+  - **Tab Structure:** Two tabs only - "Letters A–Z" (26 cards) and "Digits 0–9" (10 cards)
   - **Per-Character Properties:** Equivalents (configurable), enabled/disabled state, notes, computed risk classification
   - **Risk Classification:** Computed automatically based on equivalent count (high: >8 or has multiple digits with punctuation, medium: >5 or has digits, low: otherwise, none: no equivalents)
   - **Unified Normalisation Map:** Single `NormalisationEnforcementAPI` provides cached character mappings for all engines with 60s TTL

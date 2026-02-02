@@ -824,6 +824,97 @@
     font-size: 0.85rem;
     font-family: 'Courier New', monospace;
 }
+
+.norm-char-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+.norm-char-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px;
+    background: #fff;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.norm-char-card:hover {
+    border-color: #1e3a5f;
+    box-shadow: 0 4px 12px rgba(30, 58, 95, 0.15);
+    transform: translateY(-2px);
+}
+.norm-char-card.disabled {
+    opacity: 0.5;
+    background: #f8fafc;
+}
+.norm-char-card .char-symbol {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+.norm-char-card.disabled .char-symbol {
+    background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+}
+.norm-char-card .char-info {
+    text-align: center;
+    width: 100%;
+}
+.norm-char-card .equiv-count {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+.norm-char-card .equiv-preview {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    max-height: 50px;
+    overflow: hidden;
+}
+.norm-char-card .equiv-preview .equiv-chip {
+    min-width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    padding: 0 3px;
+}
+.norm-char-card .risk-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    margin-top: 8px;
+}
+.norm-char-card .risk-indicator.high {
+    background: #fee2e2;
+    color: #991b1b;
+}
+.norm-char-card .risk-indicator.medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+.norm-char-card .risk-indicator.low {
+    background: #dbeafe;
+    color: #1e40af;
+}
+.norm-char-card .risk-indicator.none {
+    background: #f3f4f6;
+    color: #6b7280;
+}
 .scope-badge {
     display: inline-flex;
     align-items: center;
@@ -2452,9 +2543,6 @@
                             <button class="btn btn-sm btn-outline-secondary" onclick="testNormalisationRule()">
                                 <i class="fas fa-flask me-1"></i>Test
                             </button>
-                            <button class="btn btn-sm" style="background: #1e3a5f; color: white;" onclick="showNormRuleModal()">
-                                <i class="fas fa-plus me-1"></i>Add Rule
-                            </button>
                         </div>
                     </div>
                     
@@ -2509,41 +2597,17 @@
 
                 <div class="tab-content" id="normCharTabsContent">
                     <div class="tab-pane fade show active" id="norm-letters" role="tabpanel">
-                        <div class="sec-table-card">
-                            <div class="table-responsive">
-                                <table class="table table-hover norm-admin-table" id="norm-letters-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="sortable" data-sort="base" style="width: 100px;">Base <i class="fas fa-sort sort-icon"></i></th>
-                                            <th style="min-width: 300px;">Equivalents (includes lowercase, accents, lookalikes)</th>
-                                            <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
-                                            <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
-                                            <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
-                                            <th style="width: 70px;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="norm-letters-body"></tbody>
-                                </table>
+                        <div class="sec-table-card p-4">
+                            <div class="norm-char-grid" id="norm-letters-grid">
+                                <!-- Letters A-Z grid will be rendered here -->
                             </div>
                         </div>
                     </div>
 
                     <div class="tab-pane fade" id="norm-digits" role="tabpanel">
-                        <div class="sec-table-card">
-                            <div class="table-responsive">
-                                <table class="table table-hover norm-admin-table" id="norm-digits-table">
-                                    <thead>
-                                        <tr>
-                                            <th class="sortable" data-sort="base" style="width: 100px;">Base Char <i class="fas fa-sort sort-icon"></i></th>
-                                            <th style="min-width: 200px;">Equivalents</th>
-                                            <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
-                                            <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
-                                            <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
-                                            <th style="width: 70px;">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="norm-digits-body"></tbody>
-                                </table>
+                        <div class="sec-table-card p-4">
+                            <div class="norm-char-grid" id="norm-digits-grid">
+                                <!-- Digits 0-9 grid will be rendered here -->
                             </div>
                         </div>
                     </div>
@@ -9111,69 +9175,41 @@ var SecurityComplianceControlsService = (function() {
         var disabledCount = library.filter(function(c) { return !c.enabled; }).length;
         var totalEquivalents = library.reduce(function(sum, c) { return sum + c.equivalents.length; }, 0);
         
-        renderBaseCharacterTable('letters', letters, riskColors, scopeIcons);
-        renderBaseCharacterTable('digits', digits, riskColors, scopeIcons);
+        renderBaseCharacterGrid('letters', letters, riskColors);
+        renderBaseCharacterGrid('digits', digits, riskColors);
     }
     
-    function renderBaseCharacterTable(type, characters, riskColors, scopeIcons) {
-        var bodyId = type === 'digits' ? 'norm-digits-body' : 'norm-letters-body';
-        var tbody = document.getElementById(bodyId);
-        if (!tbody) return;
+    function renderBaseCharacterGrid(type, characters, riskColors) {
+        var gridId = type === 'digits' ? 'norm-digits-grid' : 'norm-letters-grid';
+        var grid = document.getElementById(gridId);
+        if (!grid) return;
         
-        tbody.innerHTML = characters.map(function(char) {
-            var equivalentsHtml = '';
+        grid.innerHTML = characters.map(function(char) {
+            var equivalentsPreview = '';
             if (char.equivalents.length > 0) {
-                equivalentsHtml = char.equivalents.slice(0, 5).map(function(eq) {
+                equivalentsPreview = char.equivalents.slice(0, 6).map(function(eq) {
                     return '<span class="equiv-chip">' + eq + '</span>';
                 }).join('');
-                if (char.equivalents.length > 5) {
-                    equivalentsHtml += '<span class="text-muted ms-1" style="font-size: 0.7rem; cursor: pointer;" onclick="editBaseCharacter(\'' + char.base + '\')">+' + (char.equivalents.length - 5) + ' more</span>';
+                if (char.equivalents.length > 6) {
+                    equivalentsPreview += '<span style="font-size: 0.65rem; color: #94a3b8;">+' + (char.equivalents.length - 6) + '</span>';
                 }
-            } else {
-                equivalentsHtml = '<span class="text-muted" style="font-size: 0.75rem;">No equivalents</span>';
             }
-            
-            var updatedDate = char.updated || '28-01-2026';
             
             var dataAttrs = 'data-base="' + char.base + '" ' +
                 'data-equivalents="' + char.equivalents.join(',') + '" ' +
                 'data-status="' + (char.enabled ? 'enabled' : 'disabled') + '" ' +
-                'data-risk="' + char.risk + '" ' +
-                'data-updated="' + updatedDate + '" ' +
-                'data-notes="' + (char.notes || '').replace(/"/g, '&quot;') + '"';
+                'data-risk="' + char.risk + '"';
             
-            return '<tr class="expandable" ' + dataAttrs + ' onclick="toggleNormRowExpansion(this, event)">' +
-                '<td>' +
-                    '<span class="base-char-display">' + char.base + '</span>' +
-                    (char.notes ? '<i class="fas fa-sticky-note ms-2 text-muted" style="font-size: 0.7rem;" title="' + char.notes + '"></i>' : '') +
-                '</td>' +
-                '<td>' + equivalentsHtml + '</td>' +
-                '<td>' +
-                    '<span class="norm-status-pill ' + (char.enabled ? 'enabled' : 'disabled') + '">' +
-                        (char.enabled ? 'Enabled' : 'Disabled') +
-                    '</span>' +
-                '</td>' +
-                '<td>' +
-                    '<span class="norm-risk-pill ' + char.risk + '">' + 
-                        char.risk.charAt(0).toUpperCase() + char.risk.slice(1) +
-                    '</span>' +
-                '</td>' +
-                '<td><span class="norm-updated-text">' + updatedDate + '</span></td>' +
-                '<td>' +
-                    '<div class="dropdown">' +
-                        '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
-                        '<ul class="dropdown-menu dropdown-menu-end">' +
-                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editBaseCharacter(\'' + char.base + '\')"><i class="fas fa-edit me-2 text-muted"></i>Edit Equivalents</a></li>' +
-                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="testBaseCharacter(\'' + char.base + '\')"><i class="fas fa-flask me-2 text-muted"></i>Test</a></li>' +
-                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="showNormRuleVersionHistory(\'' + char.base + '\')"><i class="fas fa-history me-2 text-muted"></i>Version History</a></li>' +
-                            '<li><hr class="dropdown-divider"></li>' +
-                            (char.enabled 
-                                ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleBaseCharacterStatus(\'' + char.base + '\', false)"><i class="fas fa-ban me-2 text-warning"></i>Disable</a></li>'
-                                : '<li><a class="dropdown-item" href="javascript:void(0)" onclick="toggleBaseCharacterStatus(\'' + char.base + '\', true)"><i class="fas fa-check me-2 text-success"></i>Enable</a></li>') +
-                        '</ul>' +
+            return '<div class="norm-char-card ' + (char.enabled ? '' : 'disabled') + '" ' + dataAttrs + ' onclick="editBaseCharacter(\'' + char.base + '\')">' +
+                '<div class="char-symbol">' + char.base + '</div>' +
+                '<div class="char-info">' +
+                    '<div class="equiv-count">' + char.equivalents.length + ' equivalent' + (char.equivalents.length !== 1 ? 's' : '') + '</div>' +
+                    (char.equivalents.length > 0 ? '<div class="equiv-preview">' + equivalentsPreview + '</div>' : '<div class="text-muted" style="font-size: 0.7rem;">Click to add</div>') +
+                    '<div class="risk-indicator ' + char.risk + '">' + 
+                        char.risk.charAt(0).toUpperCase() + char.risk.slice(1) + ' Risk' +
                     '</div>' +
-                '</td>' +
-            '</tr>';
+                '</div>' +
+            '</div>';
         }).join('');
     }
     
@@ -9183,11 +9219,11 @@ var SecurityComplianceControlsService = (function() {
         var riskFilter = document.getElementById('norm-filter-risk-' + suffix) ? document.getElementById('norm-filter-risk-' + suffix).value : '';
         var searchText = document.getElementById('norm-search-' + suffix) ? document.getElementById('norm-search-' + suffix).value.toLowerCase() : '';
         
-        var tableId = type === 'digits' ? 'norm-digits-table' : 'norm-letters-table';
-        var rows = document.querySelectorAll('#' + tableId + ' tbody tr');
+        var gridId = type === 'digits' ? 'norm-digits-grid' : 'norm-letters-grid';
+        var cards = document.querySelectorAll('#' + gridId + ' .norm-char-card');
         
-        rows.forEach(function(row) {
-            var base = row.getAttribute('data-base');
+        cards.forEach(function(card) {
+            var base = card.getAttribute('data-base');
             var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
             if (!char) return;
             
@@ -9206,7 +9242,7 @@ var SecurityComplianceControlsService = (function() {
                 show = false;
             }
             
-            row.style.display = show ? '' : 'none';
+            card.style.display = show ? '' : 'none';
         });
     }
 
@@ -10484,7 +10520,6 @@ var SecurityComplianceControlsService = (function() {
         setupContentTabListeners();
         setupUrlTabListeners();
         setupQuarantineTabListeners();
-        setupNormTableSorting();
         
         // Anti-spam collapse icon toggle
         var antispamCollapse = document.getElementById('antispam-collapse');
@@ -10534,89 +10569,6 @@ var SecurityComplianceControlsService = (function() {
         });
     }
     
-    function setupNormTableSorting() {
-        var tables = ['norm-letters-table', 'norm-digits-table'];
-        tables.forEach(function(tableId) {
-            var table = document.getElementById(tableId);
-            if (!table) return;
-            
-            var headers = table.querySelectorAll('thead th.sortable');
-            headers.forEach(function(th) {
-                th.addEventListener('click', function() {
-                    var sortKey = th.getAttribute('data-sort');
-                    var currentDir = th.classList.contains('sort-asc') ? 'asc' : 
-                                     th.classList.contains('sort-desc') ? 'desc' : null;
-                    
-                    table.querySelectorAll('thead th').forEach(function(h) {
-                        h.classList.remove('sort-asc', 'sort-desc');
-                        var icon = h.querySelector('.sort-icon');
-                        if (icon) {
-                            icon.classList.remove('fa-sort-up', 'fa-sort-down');
-                            icon.classList.add('fa-sort');
-                        }
-                    });
-                    
-                    var newDir = currentDir === 'asc' ? 'desc' : 'asc';
-                    th.classList.add('sort-' + newDir);
-                    var icon = th.querySelector('.sort-icon');
-                    if (icon) {
-                        icon.classList.remove('fa-sort');
-                        icon.classList.add(newDir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
-                    }
-                    
-                    sortNormTable(tableId, sortKey, newDir);
-                });
-            });
-        });
-    }
-    
-    function sortNormTable(tableId, sortKey, direction) {
-        var table = document.getElementById(tableId);
-        if (!table) return;
-        
-        var tbody = table.querySelector('tbody');
-        var rows = Array.from(tbody.querySelectorAll('tr'));
-        
-        rows.sort(function(a, b) {
-            var aVal, bVal;
-            
-            switch (sortKey) {
-                case 'base':
-                    aVal = a.getAttribute('data-base') || '';
-                    bVal = b.getAttribute('data-base') || '';
-                    break;
-                case 'scope':
-                    aVal = (a.getAttribute('data-scope') || '').split(',').length;
-                    bVal = (b.getAttribute('data-scope') || '').split(',').length;
-                    return direction === 'asc' ? aVal - bVal : bVal - aVal;
-                case 'status':
-                    aVal = a.getAttribute('data-status') || '';
-                    bVal = b.getAttribute('data-status') || '';
-                    break;
-                case 'risk':
-                    var riskOrder = { 'high': 3, 'medium': 2, 'low': 1, 'none': 0 };
-                    aVal = riskOrder[a.getAttribute('data-risk')] || 0;
-                    bVal = riskOrder[b.getAttribute('data-risk')] || 0;
-                    return direction === 'asc' ? aVal - bVal : bVal - aVal;
-                case 'updated':
-                    aVal = a.getAttribute('data-updated') || '';
-                    bVal = b.getAttribute('data-updated') || '';
-                    break;
-                default:
-                    aVal = '';
-                    bVal = '';
-            }
-            
-            if (typeof aVal === 'string') {
-                return direction === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-            }
-            return 0;
-        });
-        
-        rows.forEach(function(row) {
-            tbody.appendChild(row);
-        });
-    }
 
     function deleteContentRuleById(ruleId) {
         var ruleIndex = mockData.contentRules.findIndex(function(r) { return r.id === ruleId; });
@@ -10961,21 +10913,16 @@ function buildEquivChipHtml(char) {
 }
 
 function showNormRuleModal(base) {
-    var isEdit = !!base;
-    var char = isEdit ? mockData.baseCharacterLibrary.find(function(c) { return c.base === base; }) : null;
+    if (!base) return;
     
-    var title = isEdit 
-        ? '<i class="fas fa-edit me-2"></i>Edit Normalisation Rule: <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; font-size: 1.1rem;">' + base + '</code>'
-        : '<i class="fas fa-plus me-2"></i>Add Normalisation Rule';
+    var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
+    if (!char) return;
     
-    var charOptions = mockData.baseCharacterLibrary.map(function(c) {
-        var selected = (isEdit && c.base === base) ? ' selected' : '';
-        return '<option value="' + c.base + '"' + selected + '>' + c.base + ' (' + c.type + ')</option>';
-    }).join('');
+    var title = '<i class="fas fa-edit me-2"></i>Edit Normalisation: <code style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px; font-size: 1.3rem; font-weight: 700;">' + base + '</code>';
     
-    var existingEquivalents = char ? char.equivalents : [];
-    var existingNotes = char ? (char.notes || '') : '';
-    var existingEnabled = char ? char.enabled : true;
+    var existingEquivalents = char.equivalents || [];
+    var existingNotes = char.notes || '';
+    var existingEnabled = char.enabled;
     
     var equivalentsChipsHtml = existingEquivalents.map(function(eq) {
         return buildEquivChipHtml(eq);
@@ -10991,18 +10938,7 @@ function showNormRuleModal(base) {
                     '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
                 '</div>' +
                 '<div class="modal-body">' +
-                    (isEdit ? '<div class="alert alert-info mb-3" style="background: #e8f4fd; border: 1px solid #1e3a5f; border-radius: 8px;">' +
-                        '<i class="fas fa-lock me-2" style="color: #1e3a5f;"></i><strong>Fixed Base Character:</strong> Base characters cannot be changed or deleted.' +
-                    '</div>' : '') +
-                    
-                    '<div class="mb-4">' +
-                        '<label class="form-label fw-bold"><i class="fas fa-font me-2 text-muted"></i>Base Character</label>' +
-                        '<select class="form-select" id="normRuleBase" ' + (isEdit ? 'disabled' : '') + ' onchange="updateNormRuleBaseContext()" style="' + (isEdit ? 'background: #f8f9fa; font-size: 1.1rem; font-family: monospace;' : 'font-size: 1.1rem; font-family: monospace;') + '">' +
-                            charOptions +
-                        '</select>' +
-                        (isEdit ? '<input type="hidden" id="normRuleBaseHidden" value="' + base + '">' : '') +
-                        '<small class="text-muted">The base character that equivalents will map to</small>' +
-                    '</div>' +
+                    '<input type="hidden" id="normRuleBaseHidden" value="' + base + '">' +
                     
                     '<div class="mb-4">' +
                         '<label class="form-label fw-bold"><i class="fas fa-equals me-2 text-muted"></i>Equivalents</label>' +
@@ -11283,8 +11219,8 @@ function hideEquivError() {
 }
 
 function saveNormRule(originalBase) {
-    var isEdit = !!originalBase;
-    var base = isEdit ? originalBase : document.getElementById('normRuleBase').value;
+    var base = originalBase || document.getElementById('normRuleBaseHidden').value;
+    if (!base) return;
     
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (!char) return;
@@ -11302,8 +11238,7 @@ function saveNormRule(originalBase) {
         base: base,
         equivalents: equivalents,
         notes: notes,
-        enabled: enabled,
-        isEdit: isEdit
+        enabled: enabled
     };
     
     var newRisk = computeRisk({ equivalents: equivalents });
@@ -11442,14 +11377,12 @@ function executeSaveNormRule(changeData) {
     
     var beforeState = {
         equivalents: char.equivalents.slice(),
-        scope: char.scope.slice(),
         notes: char.notes,
         enabled: char.enabled,
         risk: char.risk || 'none'
     };
     
     char.equivalents = NormalisationRulesConfig.deduplicateEquivalents(changeData.equivalents);
-    char.scope = changeData.scope;
     char.notes = changeData.notes;
     char.enabled = changeData.enabled;
     char.updated = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
@@ -11457,7 +11390,6 @@ function executeSaveNormRule(changeData) {
     
     var afterState = {
         equivalents: char.equivalents.slice(),
-        scope: char.scope.slice(),
         notes: char.notes,
         enabled: char.enabled,
         risk: char.risk
@@ -12832,18 +12764,18 @@ function applyGlobalNormFilters() {
     var statusFilter = document.getElementById('norm-global-status').value;
     var riskFilter = document.getElementById('norm-global-risk').value;
     
-    var tables = ['norm-letters-body', 'norm-digits-body'];
+    var grids = ['norm-letters-grid', 'norm-digits-grid'];
     
-    tables.forEach(function(tableId) {
-        var tbody = document.getElementById(tableId);
-        if (!tbody) return;
+    grids.forEach(function(gridId) {
+        var grid = document.getElementById(gridId);
+        if (!grid) return;
         
-        var rows = tbody.querySelectorAll('tr');
-        rows.forEach(function(row) {
-            var baseChar = row.getAttribute('data-base') || '';
-            var equivalents = row.getAttribute('data-equivalents') || '';
-            var status = row.getAttribute('data-status') || '';
-            var risk = row.getAttribute('data-risk') || '';
+        var cards = grid.querySelectorAll('.norm-char-card');
+        cards.forEach(function(card) {
+            var baseChar = card.getAttribute('data-base') || '';
+            var equivalents = card.getAttribute('data-equivalents') || '';
+            var status = card.getAttribute('data-status') || '';
+            var risk = card.getAttribute('data-risk') || '';
             
             var show = true;
             
@@ -12861,7 +12793,7 @@ function applyGlobalNormFilters() {
                 if (risk !== riskFilter) show = false;
             }
             
-            row.style.display = show ? '' : 'none';
+            card.style.display = show ? '' : 'none';
         });
     });
 }
