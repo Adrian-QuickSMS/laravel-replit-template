@@ -2807,18 +2807,29 @@
                         <small class="text-muted" id="content-match-value-help">Enter keywords separated by commas. Matching is case-insensitive.</small>
                     </div>
                     
-                    <!-- Test Rule Section -->
-                    <div class="mb-3 p-3" style="background: #f8f9fa; border-radius: 6px; border: 1px solid #e9ecef;">
-                        <label class="form-label" style="font-weight: 600; font-size: 0.85rem; color: #1e3a5f;">
-                            <i class="fas fa-flask me-1"></i> Test Rule
-                        </label>
-                        <div class="input-group input-group-sm">
-                            <input type="text" class="form-control" id="content-rule-test-input" placeholder="Enter sample text to test against the rule...">
-                            <button type="button" class="btn btn-outline-secondary" onclick="testContentRule()">
-                                <i class="fas fa-play me-1"></i> Test
-                            </button>
+                    <!-- Test Rule Section - Collapsible Accordion -->
+                    <div class="accordion mb-3" id="testRuleAccordion">
+                        <div class="accordion-item" style="border: 1px solid #e9ecef; border-radius: 6px;">
+                            <h2 class="accordion-header" id="testRuleHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#testRuleCollapse" aria-expanded="false" aria-controls="testRuleCollapse" style="padding: 0.75rem 1rem; font-size: 0.85rem; font-weight: 600; color: #1e3a5f; background: #f8f9fa;">
+                                    <i class="fas fa-flask me-2"></i> Test this rule
+                                </button>
+                            </h2>
+                            <div id="testRuleCollapse" class="accordion-collapse collapse" aria-labelledby="testRuleHeading" data-bs-parent="#testRuleAccordion">
+                                <div class="accordion-body" style="padding: 1rem; background: #fafbfc;">
+                                    <div class="mb-3">
+                                        <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Test message content</label>
+                                        <textarea class="form-control" id="content-rule-test-input" rows="3" placeholder="Enter sample message text to test against the rule..." style="font-size: 0.85rem;"></textarea>
+                                    </div>
+                                    <div class="d-flex justify-content-end mb-3">
+                                        <button type="button" class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="testContentRule()">
+                                            <i class="fas fa-play me-1"></i> Run Test
+                                        </button>
+                                    </div>
+                                    <div id="content-rule-test-result" style="display: none;"></div>
+                                </div>
+                            </div>
                         </div>
-                        <div id="content-rule-test-result" class="mt-2" style="display: none;"></div>
                     </div>
                     
                     <div class="mb-3">
@@ -3053,8 +3064,11 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="content-exemption-notes" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Notes</label>
-                        <textarea class="form-control" id="content-exemption-notes" rows="2" placeholder="Reason for exemption..."></textarea>
+                        <label for="content-exemption-reason" class="form-label" style="font-weight: 600; font-size: 0.85rem;">
+                            Reason <span class="text-muted" style="font-weight: 400; font-size: 0.75rem;">(optional)</span>
+                        </label>
+                        <textarea class="form-control" id="content-exemption-reason" rows="2" placeholder="Enter reason for this exemption or override..." style="font-size: 0.85rem;"></textarea>
+                        <small class="text-muted">This will be recorded in the audit log for compliance purposes.</small>
                     </div>
                 </form>
             </div>
@@ -5363,6 +5377,7 @@ var SecurityComplianceControlsService = (function() {
         var matchType = document.getElementById('content-match-type').value;
         var matchValue = document.getElementById('content-match-value').value.trim();
         var applyNorm = document.getElementById('content-apply-normalisation').checked;
+        var ruleType = document.getElementById('content-rule-type').value;
         var resultDiv = document.getElementById('content-rule-test-result');
         
         if (!testInput) {
@@ -5377,26 +5392,45 @@ var SecurityComplianceControlsService = (function() {
             return;
         }
         
-        var testContent = applyNorm ? testInput.toLowerCase() : testInput;
+        // Use MessageEnforcementService normalisation if available
+        var normalisedContent = testInput;
+        if (applyNorm && typeof window.MessageEnforcementService !== 'undefined' && 
+            typeof window.MessageEnforcementService.normaliseText === 'function') {
+            normalisedContent = window.MessageEnforcementService.normaliseText(testInput);
+        } else if (applyNorm) {
+            normalisedContent = testInput.toLowerCase();
+        }
+        
         var matched = false;
         var matchedKeyword = '';
+        var matchStart = -1;
+        var matchEnd = -1;
         
         if (matchType === 'keyword') {
-            var keywords = matchValue.split(',').map(function(k) { return k.trim().toLowerCase(); });
+            var keywords = matchValue.split(',').map(function(k) { return k.trim(); });
+            var searchContent = applyNorm ? normalisedContent.toLowerCase() : testInput;
             for (var i = 0; i < keywords.length; i++) {
-                if (testContent.toLowerCase().includes(keywords[i])) {
+                var kw = applyNorm ? keywords[i].toLowerCase() : keywords[i];
+                var idx = searchContent.indexOf(kw);
+                if (idx !== -1) {
                     matched = true;
                     matchedKeyword = keywords[i];
+                    matchStart = idx;
+                    matchEnd = idx + kw.length;
                     break;
                 }
             }
         } else {
             try {
-                var regex = new RegExp(matchValue, applyNorm ? 'i' : '');
-                var regexMatch = testContent.match(regex);
+                var flags = applyNorm ? 'gi' : 'g';
+                var regex = new RegExp(matchValue, flags);
+                var searchContent = applyNorm ? normalisedContent : testInput;
+                var regexMatch = regex.exec(searchContent);
                 if (regexMatch) {
                     matched = true;
                     matchedKeyword = regexMatch[0];
+                    matchStart = regexMatch.index;
+                    matchEnd = regexMatch.index + regexMatch[0].length;
                 }
             } catch (e) {
                 resultDiv.innerHTML = '<div class="alert alert-danger mb-0 py-2" style="font-size: 0.8rem;"><i class="fas fa-times-circle me-1"></i> Invalid regex pattern: ' + e.message + '</div>';
@@ -5405,11 +5439,61 @@ var SecurityComplianceControlsService = (function() {
             }
         }
         
+        // Build detailed result output
+        var html = '';
         if (matched) {
-            resultDiv.innerHTML = '<div class="alert alert-success mb-0 py-2" style="font-size: 0.8rem;"><i class="fas fa-check-circle me-1"></i> <strong>Match found!</strong> Matched: "<span style="background: #d4edda; padding: 0 4px; border-radius: 2px;">' + matchedKeyword + '</span>"</div>';
+            var actionLabel = ruleType === 'block' 
+                ? '<span class="badge bg-danger"><i class="fas fa-ban me-1"></i>Would be rejected</span>'
+                : '<span class="badge bg-warning text-dark"><i class="fas fa-flag me-1"></i>Would be sent to Quarantine</span>';
+            
+            // Highlight matched substring in original text
+            var highlightedText = escapeHtml(testInput);
+            if (matchStart !== -1 && matchEnd !== -1) {
+                var before = escapeHtml(testInput.substring(0, matchStart));
+                var matchStr = escapeHtml(testInput.substring(matchStart, matchEnd));
+                var after = escapeHtml(testInput.substring(matchEnd));
+                highlightedText = before + '<mark style="background: #ffc107; padding: 0 2px; border-radius: 2px;">' + matchStr + '</mark>' + after;
+            }
+            
+            html = '<div class="p-3" style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px;">' +
+                '<div class="d-flex align-items-center justify-content-between mb-2">' +
+                    '<span style="font-weight: 600; color: #155724;"><i class="fas fa-check-circle me-2"></i>MATCHED</span>' +
+                    actionLabel +
+                '</div>' +
+                '<div class="mb-2" style="font-size: 0.8rem;">' +
+                    '<strong>Matched:</strong> "<span style="background: #fff; padding: 2px 6px; border-radius: 3px;">' + escapeHtml(matchedKeyword) + '</span>"' +
+                '</div>' +
+                '<div class="mb-2" style="font-size: 0.8rem;">' +
+                    '<strong>Original text with match:</strong><br>' +
+                    '<div style="background: #fff; padding: 0.5rem; border-radius: 4px; margin-top: 0.25rem; font-family: monospace; word-break: break-all;">' + highlightedText + '</div>' +
+                '</div>';
+            
+            if (applyNorm && normalisedContent !== testInput) {
+                html += '<div style="font-size: 0.75rem; color: #155724;">' +
+                    '<i class="fas fa-info-circle me-1"></i><strong>Normalised version used:</strong> ' +
+                    '<code style="background: #fff; padding: 2px 4px; border-radius: 2px;">' + escapeHtml(normalisedContent.substring(0, 100)) + (normalisedContent.length > 100 ? '...' : '') + '</code>' +
+                '</div>';
+            }
+            html += '</div>';
         } else {
-            resultDiv.innerHTML = '<div class="alert alert-secondary mb-0 py-2" style="font-size: 0.8rem;"><i class="fas fa-times me-1"></i> No match found in the test input.</div>';
+            html = '<div class="p-3" style="background: #e2e3e5; border: 1px solid #d6d8db; border-radius: 6px;">' +
+                '<div class="d-flex align-items-center mb-2">' +
+                    '<span style="font-weight: 600; color: #383d41;"><i class="fas fa-times-circle me-2"></i>NO MATCH</span>' +
+                '</div>' +
+                '<div style="font-size: 0.8rem; color: #383d41;">' +
+                    'The test message does not match the configured ' + (matchType === 'keyword' ? 'keywords' : 'regex pattern') + '.' +
+                '</div>';
+            
+            if (applyNorm && normalisedContent !== testInput) {
+                html += '<div class="mt-2" style="font-size: 0.75rem; color: #6c757d;">' +
+                    '<i class="fas fa-info-circle me-1"></i><strong>Normalised version tested:</strong> ' +
+                    '<code style="background: #fff; padding: 2px 4px; border-radius: 2px;">' + escapeHtml(normalisedContent.substring(0, 100)) + (normalisedContent.length > 100 ? '...' : '') + '</code>' +
+                '</div>';
+            }
+            html += '</div>';
         }
+        
+        resultDiv.innerHTML = html;
         resultDiv.style.display = 'block';
     }
     
@@ -5745,6 +5829,10 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('antispam-mode-group').style.display = 'block';
         document.getElementById('antispam-window-override-group').style.display = 'none';
         
+        // Reset reason field
+        var reasonField = document.getElementById('content-exemption-reason');
+        if (reasonField) reasonField.value = '';
+        
         // Populate rules checklist
         populateContentRulesChecklist();
         
@@ -5903,17 +5991,32 @@ var SecurityComplianceControlsService = (function() {
             });
         }
         
+        var exemptionId = document.getElementById('content-exemption-id').value;
+        var reason = (document.getElementById('content-exemption-reason') || {}).value || '';
+        reason = reason.trim();
+        
+        // Get before state for audit
+        var beforeState = null;
+        var existingIdx = mockData.contentExemptions.findIndex(function(e) { return e.id === exemptionId; });
+        if (existingIdx !== -1) {
+            beforeState = JSON.parse(JSON.stringify(mockData.contentExemptions[existingIdx]));
+        }
+        
         var exemptionData = {
-            id: document.getElementById('content-exemption-id').value || 'CEX-' + String(mockData.contentExemptions.length + 1).padStart(3, '0'),
+            id: exemptionId || 'CEX-' + String(mockData.contentExemptions.length + 1).padStart(3, '0'),
             accountId: accountId,
             accountName: account ? account.name : accountId,
             subAccounts: selectedSubaccounts,
+            allSubaccounts: allSubaccounts,
             scope: selectedSubaccounts.length > 0 ? 'subaccount' : 'account',
             type: type,
             status: 'active',
-            notes: document.getElementById('content-exemption-notes').value.trim(),
-            addedBy: currentAdmin.email,
-            addedAt: formatDateTime(new Date()),
+            reason: reason,
+            metadata_json: JSON.stringify({ reason: reason, updatedBy: currentAdmin.email }),
+            appliedBy: currentAdmin.email,
+            appliedAt: formatDateTime(new Date()),
+            addedBy: beforeState ? beforeState.addedBy : currentAdmin.email,
+            addedAt: beforeState ? beforeState.addedAt : formatDateTime(new Date()),
             updatedAt: formatDateTime(new Date())
         };
         
@@ -5930,7 +6033,7 @@ var SecurityComplianceControlsService = (function() {
             // Anti-spam override with new ON/OFF toggle and mode
             var isOn = document.getElementById('antispam-toggle-on').checked;
             var mode = document.getElementById('content-exemption-antispam-mode').value;
-            var window = parseInt(document.getElementById('content-exemption-antispam-window').value);
+            var customWindow = parseInt(document.getElementById('content-exemption-antispam-window').value);
             
             if (!isOn) {
                 exemptionData.antispamOverride = 'disabled';
@@ -5938,41 +6041,54 @@ var SecurityComplianceControlsService = (function() {
                 exemptionData.antispamOverride = 'enabled';
             } else if (mode === 'stricter') {
                 exemptionData.antispamOverride = 'strict';
-                exemptionData.customWindow = window;
+                exemptionData.customWindow = customWindow;
             } else if (mode === 'relaxed') {
                 exemptionData.antispamOverride = 'relaxed';
-                exemptionData.customWindow = window;
+                exemptionData.customWindow = customWindow;
             } else {
                 exemptionData.antispamOverride = 'custom';
-                exemptionData.customWindow = window;
+                exemptionData.customWindow = customWindow;
             }
         }
         
-        var existingIdx = mockData.contentExemptions.findIndex(function(e) { return e.id === exemptionData.id; });
+        // Determine audit event type
+        var isNew = existingIdx === -1;
         var eventType;
-        if (existingIdx !== -1) {
-            mockData.contentExemptions[existingIdx] = exemptionData;
-            eventType = 'CONTENT_EXEMPTION_UPDATED';
+        if (type === 'rule') {
+            eventType = isNew ? 'CONTENT_EXEMPTION_ADDED' : 'CONTENT_EXEMPTION_UPDATED';
         } else {
-            mockData.contentExemptions.push(exemptionData);
-            eventType = 'CONTENT_EXEMPTION_CREATED';
+            eventType = isNew ? 'ANTISPAM_OVERRIDE_ADDED' : 'ANTISPAM_OVERRIDE_UPDATED';
         }
         
+        // Save exemption
+        if (existingIdx !== -1) {
+            mockData.contentExemptions[existingIdx] = exemptionData;
+        } else {
+            mockData.contentExemptions.push(exemptionData);
+        }
+        
+        // Log audit event with full before/after snapshot
         logAuditEvent(eventType, {
             exemptionId: exemptionData.id,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
             accountId: exemptionData.accountId,
             accountName: exemptionData.accountName,
+            subAccountsAffected: exemptionData.subAccounts.map(function(s) { return s.id; }),
+            allSubaccounts: exemptionData.allSubaccounts,
             scope: exemptionData.scope,
             type: exemptionData.type,
-            exemptRules: exemptionData.exemptRules || null,
+            ruleIdsAffected: exemptionData.exemptRules || [],
             antispamOverride: exemptionData.antispamOverride || null,
             customWindow: exemptionData.customWindow || null,
-            notes: exemptionData.notes
+            reason: reason,
+            before: beforeState,
+            after: exemptionData
         });
         
         bootstrap.Modal.getInstance(document.getElementById('contentExemptionModal')).hide();
         renderContentExemptionsTab();
-        showToast('Content exemption ' + (existingIdx !== -1 ? 'updated' : 'created') + ' successfully', 'success');
+        showToast('Content exemption ' + (isNew ? 'added' : 'updated') + ' successfully', 'success');
     }
     
     function viewContentExemption(exemptionId) {
@@ -6035,7 +6151,9 @@ var SecurityComplianceControlsService = (function() {
             }
         }
         
-        document.getElementById('content-exemption-notes').value = ex.notes || '';
+        // Set reason field
+        var reasonField = document.getElementById('content-exemption-reason');
+        if (reasonField) reasonField.value = ex.reason || ex.notes || '';
         
         var modal = new bootstrap.Modal(document.getElementById('contentExemptionModal'));
         modal.show();
@@ -6083,21 +6201,34 @@ var SecurityComplianceControlsService = (function() {
                 '<div class="alert alert-danger" style="font-size: 0.8rem; padding: 0.5rem;"><i class="fas fa-exclamation-triangle me-1"></i>This action cannot be undone.</div>',
             btnText: 'Delete Exemption',
             btnClass: 'btn-danger',
-            showReason: false
+            showReason: true,
+            reasonPlaceholder: 'Reason for removing this exemption (optional)...'
         });
     }
     
-    function executeDeleteContentExemption(exemptionId) {
+    function executeDeleteContentExemption(exemptionId, reason) {
         var idx = mockData.contentExemptions.findIndex(function(e) { return e.id === exemptionId; });
         if (idx === -1) return;
         
         var ex = mockData.contentExemptions[idx];
+        var beforeState = JSON.parse(JSON.stringify(ex));
         mockData.contentExemptions.splice(idx, 1);
         
-        logAuditEvent('CONTENT_EXEMPTION_DELETED', {
+        // Determine correct event type based on exemption type
+        var eventType = ex.type === 'rule' ? 'CONTENT_EXEMPTION_REMOVED' : 'ANTISPAM_OVERRIDE_REMOVED';
+        
+        logAuditEvent(eventType, {
             exemptionId: exemptionId,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString(),
             accountId: ex.accountId,
-            type: ex.type
+            accountName: ex.accountName,
+            subAccountsAffected: (ex.subAccounts || []).map(function(s) { return s.id; }),
+            ruleIdsAffected: ex.exemptRules || [],
+            antispamOverride: ex.antispamOverride || null,
+            reason: reason || '',
+            before: beforeState,
+            after: null
         });
         
         renderContentExemptionsTab();
@@ -11668,6 +11799,7 @@ function showActionConfirmation(opts) {
     document.getElementById('action-confirm-details').innerHTML = opts.details || '';
     document.getElementById('action-confirm-btn-text').textContent = opts.btnText || 'Confirm';
     document.getElementById('action-confirm-reason').value = '';
+    document.getElementById('action-confirm-reason').placeholder = opts.reasonPlaceholder || 'Enter reason (optional)...';
     
     var header = document.getElementById('action-confirm-header');
     var iconEl = document.getElementById('action-confirm-icon');
@@ -11710,7 +11842,7 @@ function executeConfirmedAction() {
         }
     } else if (type === 'content_exemption') {
         if (action === 'delete') {
-            SecurityComplianceControlsService.executeDeleteContentExemption(id);
+            SecurityComplianceControlsService.executeDeleteContentExemption(id, reason);
         }
     }
 }
