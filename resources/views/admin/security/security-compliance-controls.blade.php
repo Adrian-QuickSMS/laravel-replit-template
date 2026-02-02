@@ -300,6 +300,56 @@
     font-size: 0.8rem;
     color: #1e3a5f;
 }
+
+/* Generic transparent dark blue accent button */
+.sec-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid #1e3a5f;
+    color: #1e3a5f;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.375rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.sec-pill-btn:hover {
+    background: rgba(30, 58, 95, 0.08);
+    border-color: #1e3a5f;
+    color: #1e3a5f;
+}
+.sec-pill-btn i {
+    font-size: 0.8rem;
+    color: #1e3a5f;
+}
+
+/* Primary CTA dark blue button */
+.sec-primary-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #1e3a5f;
+    border: 1px solid #1e3a5f;
+    color: #fff;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.375rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.sec-primary-btn:hover {
+    background: #162d4a;
+    border-color: #162d4a;
+    color: #fff;
+}
+.sec-primary-btn i {
+    font-size: 0.8rem;
+}
+
 .quarantine-filter-panel {
     background: #fff;
     border-radius: 0.5rem;
@@ -356,6 +406,55 @@
 .quarantine-filter-panel .btn-reset:hover {
     background: #f8f9fa;
 }
+
+/* SenderID Filter Panel - matching Quarantine pattern */
+.senderid-filter-panel {
+    background: #fff;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: none;
+}
+.senderid-filter-panel .filter-body {
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+    border-radius: 0.5rem;
+}
+.senderid-filter-panel .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+.senderid-filter-panel .filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 160px;
+    flex: 1;
+    max-width: 200px;
+}
+.senderid-filter-panel .filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 0.375rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.senderid-filter-panel .filter-group select {
+    font-size: 0.85rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+.senderid-filter-panel .filter-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e9ecef;
+}
+
 .quarantine-filter-panel .btn-apply {
     background: #1e3a5f;
     border: 1px solid #1e3a5f;
@@ -1234,51 +1333,57 @@
                             <input type="text" class="form-control" placeholder="Search rules..." id="senderid-search">
                         </div>
                         <div class="sec-toolbar-actions">
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="senderid-filter-btn">
-                                    <i class="fas fa-filter me-1"></i> Filter
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Status</label>
-                                        <select class="form-select form-select-sm" id="senderid-filter-status">
-                                            <option value="">All Statuses</option>
-                                            <option value="active">Active</option>
-                                            <option value="disabled">Disabled</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Rule Type</label>
-                                        <select class="form-select form-select-sm" id="senderid-filter-type">
-                                            <option value="">All Types</option>
-                                            <option value="block">Block</option>
-                                            <option value="flag">Flag (Quarantine)</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-semibold">Category</label>
-                                        <select class="form-select form-select-sm" id="senderid-filter-category">
-                                            <option value="">All Categories</option>
-                                            <option value="government_healthcare">Government and Healthcare</option>
-                                            <option value="banking_finance">Banking and Finance</option>
-                                            <option value="delivery_logistics">Delivery and logistics</option>
-                                            <option value="miscellaneous">Miscellaneous</option>
-                                            <option value="generic">Generic</option>
-                                        </select>
-                                    </div>
-                                    <div class="d-flex gap-2">
-                                        <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="resetSenderIdFilters()">
-                                            <i class="fas fa-undo me-1"></i> Reset
-                                        </button>
-                                        <button class="btn btn-sm btn-primary flex-fill" onclick="applySenderIdFilters()">
-                                            Apply
-                                        </button>
-                                    </div>
+                            <button class="sec-pill-btn" type="button" id="senderid-filter-btn" onclick="toggleSenderIdFilterPanel()">
+                                <i class="fas fa-filter"></i>
+                                <span>Filter</span>
+                                <span class="badge bg-primary" id="senderid-filter-count" style="display: none; font-size: 0.7rem; padding: 0.2rem 0.4rem;">0</span>
+                            </button>
+                            <button class="sec-pill-btn" type="button" onclick="showAddSenderIdExemptionModal()">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Add Exemption</span>
+                            </button>
+                            <button class="sec-primary-btn" type="button" onclick="showAddSenderIdRuleModal()">
+                                <i class="fas fa-plus"></i>
+                                <span>Add Rule</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="senderid-filter-panel" id="senderid-filter-panel">
+                        <div class="filter-body">
+                            <div class="filter-row">
+                                <div class="filter-group">
+                                    <label>Status</label>
+                                    <select id="senderid-filter-status">
+                                        <option value="">All Statuses</option>
+                                        <option value="active">Active</option>
+                                        <option value="disabled">Disabled</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Rule Type</label>
+                                    <select id="senderid-filter-type">
+                                        <option value="">All Types</option>
+                                        <option value="block">Block</option>
+                                        <option value="flag">Flag (Quarantine)</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Category</label>
+                                    <select id="senderid-filter-category">
+                                        <option value="">All Categories</option>
+                                        <option value="government_healthcare">Government and Healthcare</option>
+                                        <option value="banking_finance">Banking and Finance</option>
+                                        <option value="delivery_logistics">Delivery and logistics</option>
+                                        <option value="miscellaneous">Miscellaneous</option>
+                                        <option value="generic">Generic</option>
+                                    </select>
                                 </div>
                             </div>
-                            <button class="btn btn-primary btn-sm" onclick="showAddSenderIdRuleModal()">
-                                <i class="fas fa-plus me-1"></i> Add Rule
-                            </button>
+                            <div class="filter-actions">
+                                <button class="btn btn-sm btn-link text-secondary" onclick="resetSenderIdFilters()">Reset</button>
+                                <button class="btn btn-sm" style="background: #1e3a5f; color: #fff;" onclick="applySenderIdFilters()">Apply Filters</button>
+                            </div>
                         </div>
                     </div>
                     <div class="sec-table-header">
@@ -4786,6 +4891,27 @@ var SecurityComplianceControlsService = (function() {
         }
     }
     
+    function toggleSenderIdFilterPanel() {
+        var panel = document.getElementById('senderid-filter-panel');
+        var btn = document.getElementById('senderid-filter-btn');
+        
+        if (!panel || !btn) return;
+        
+        if (panel.style.display === 'none' || panel.style.display === '') {
+            panel.style.display = 'block';
+            btn.classList.add('active');
+        } else {
+            panel.style.display = 'none';
+            btn.classList.remove('active');
+        }
+    }
+    
+    function showAddSenderIdExemptionModal() {
+        // TODO: Implement exemption modal
+        alert('Add Exemption functionality coming soon');
+        console.log('[SecurityComplianceControls] showAddSenderIdExemptionModal called');
+    }
+    
     function applyQuarantineFilters() {
         var filterCount = 0;
         var status = document.getElementById('quarantine-filter-status').value;
@@ -8272,6 +8398,14 @@ function resetUrlFilters() {
 
 function toggleQuarantineFilterPanel() {
     SecurityComplianceControlsService.toggleQuarantineFilterPanel();
+}
+
+function toggleSenderIdFilterPanel() {
+    SecurityComplianceControlsService.toggleSenderIdFilterPanel();
+}
+
+function showAddSenderIdExemptionModal() {
+    SecurityComplianceControlsService.showAddSenderIdExemptionModal();
 }
 
 function applyQuarantineFilters() {
