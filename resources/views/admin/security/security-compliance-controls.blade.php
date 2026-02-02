@@ -2778,6 +2778,12 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" style="padding: 1.5rem;">
+                <!-- Validation Alert -->
+                <div id="content-rule-validation-alert" class="alert alert-danger d-flex align-items-center mb-3" role="alert" style="display: none !important;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <div>Please complete all required fields before saving.</div>
+                </div>
+                
                 <form id="content-rule-form">
                     <input type="hidden" id="content-rule-id" value="">
                     
@@ -2882,6 +2888,59 @@
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" data-bs-dismiss="modal" onclick="showAddContentRuleModal()">
                     <i class="fas fa-plus me-1"></i> Add Another Rule
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Rule Confirmation Modal -->
+<div class="modal fade" id="contentRuleConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; border-bottom: none;">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-check-circle me-2"></i>Confirm Rule Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <p class="text-muted mb-3" style="font-size: 0.9rem;">Please review the rule details before saving:</p>
+                <div class="p-3" style="background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                    <div class="row mb-2">
+                        <div class="col-4 text-muted" style="font-size: 0.8rem;">Rule Name</div>
+                        <div class="col-8" style="font-weight: 600;" id="confirm-rule-name">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 text-muted" style="font-size: 0.8rem;">Match Type</div>
+                        <div class="col-8" id="confirm-rule-matchtype">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 text-muted" style="font-size: 0.8rem;">Rule Type</div>
+                        <div class="col-8" id="confirm-rule-type">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 text-muted" style="font-size: 0.8rem;">Normalisation</div>
+                        <div class="col-8" id="confirm-rule-norm">-</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-4 text-muted" style="font-size: 0.8rem;">Status</div>
+                        <div class="col-8" id="confirm-rule-status">-</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4 text-muted" style="font-size: 0.8rem;">Match Value</div>
+                        <div class="col-8">
+                            <code id="confirm-rule-value" style="font-size: 0.8rem; background: #e9ecef; padding: 0.25rem 0.5rem; border-radius: 4px; word-break: break-all;">-</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Edit
+                </button>
+                <button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="confirmSaveContentRule()">
+                    <i class="fas fa-save me-1"></i> Confirm & Save
                 </button>
             </div>
         </div>
@@ -5069,6 +5128,11 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('content-apply-normalisation').checked = true;
         updateContentMatchInputLabel();
         clearContentRuleErrors();
+        // Hide validation alert
+        var alertDiv = document.getElementById('content-rule-validation-alert');
+        if (alertDiv) {
+            alertDiv.style.cssText = 'display: none !important;';
+        }
         var modal = new bootstrap.Modal(document.getElementById('contentRuleModal'));
         modal.show();
     }
@@ -5116,6 +5180,7 @@ var SecurityComplianceControlsService = (function() {
     function validateContentRuleForm() {
         clearContentRuleErrors();
         var isValid = true;
+        var alertDiv = document.getElementById('content-rule-validation-alert');
         
         var name = document.getElementById('content-rule-name').value.trim();
         if (!name) {
@@ -5136,6 +5201,15 @@ var SecurityComplianceControlsService = (function() {
                 showContentFieldError('content-match-value', regexError);
                 isValid = false;
             }
+        }
+        
+        // Show/hide validation alert
+        if (!isValid && alertDiv) {
+            alertDiv.style.display = 'flex';
+            alertDiv.style.cssText = 'display: flex !important;';
+        } else if (alertDiv) {
+            alertDiv.style.display = 'none';
+            alertDiv.style.cssText = 'display: none !important;';
         }
         
         return isValid;
@@ -5171,6 +5245,37 @@ var SecurityComplianceControlsService = (function() {
     function saveContentRule() {
         if (!validateContentRuleForm()) return;
         
+        // Populate confirmation modal with rule details
+        var ruleId = document.getElementById('content-rule-id').value;
+        var name = document.getElementById('content-rule-name').value.trim();
+        var matchType = document.getElementById('content-match-type').value;
+        var matchValue = document.getElementById('content-match-value').value.trim();
+        var ruleType = document.getElementById('content-rule-type').value;
+        var applyNorm = document.getElementById('content-apply-normalisation').checked;
+        
+        document.getElementById('confirm-rule-name').textContent = name;
+        document.getElementById('confirm-rule-matchtype').innerHTML = matchType === 'keyword' 
+            ? '<span class="badge bg-primary">Keyword</span>' 
+            : '<span class="badge bg-info">Regex</span>';
+        document.getElementById('confirm-rule-type').innerHTML = ruleType === 'block' 
+            ? '<span class="badge bg-danger"><i class="fas fa-ban me-1"></i>Block</span>' 
+            : '<span class="badge bg-warning text-dark"><i class="fas fa-flag me-1"></i>Flag</span>';
+        document.getElementById('confirm-rule-norm').innerHTML = applyNorm 
+            ? '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Enabled</span>' 
+            : '<span class="text-muted"><i class="fas fa-times-circle me-1"></i>Disabled</span>';
+        document.getElementById('confirm-rule-status').innerHTML = '<span class="badge bg-success"><i class="fas fa-check me-1"></i>Enabled</span>';
+        
+        // Truncate match value for display if too long
+        var displayValue = matchValue.length > 100 ? matchValue.substring(0, 100) + '...' : matchValue;
+        document.getElementById('confirm-rule-value').textContent = displayValue;
+        
+        // Hide the add/edit modal and show confirmation modal
+        bootstrap.Modal.getInstance(document.getElementById('contentRuleModal')).hide();
+        var confirmModal = new bootstrap.Modal(document.getElementById('contentRuleConfirmModal'));
+        confirmModal.show();
+    }
+    
+    function confirmSaveContentRule() {
         var ruleId = document.getElementById('content-rule-id').value;
         var ruleData = {
             name: document.getElementById('content-rule-name').value.trim(),
@@ -5183,6 +5288,7 @@ var SecurityComplianceControlsService = (function() {
         };
         
         var eventType, beforeState = null;
+        var isNewRule = !ruleId;
         
         if (ruleId) {
             var existingRule = mockData.contentRules.find(function(r) { return r.id === ruleId; });
@@ -5208,11 +5314,48 @@ var SecurityComplianceControlsService = (function() {
             after: ruleData
         });
         
-        bootstrap.Modal.getInstance(document.getElementById('contentRuleModal')).hide();
+        // Hide confirmation modal
+        bootstrap.Modal.getInstance(document.getElementById('contentRuleConfirmModal')).hide();
+        
+        // Refresh Rules table immediately
         renderContentTab();
         
-        // Show success confirmation modal
-        showContentRuleSuccessModal(ruleId ? 'updated' : 'created', ruleData.name, ruleData.matchType, ruleData.ruleType);
+        // Show success toast
+        showContentRuleToast(isNewRule ? 'Rule added successfully.' : 'Rule updated successfully.');
+    }
+    
+    function showContentRuleToast(message) {
+        // Create toast container if it doesn't exist
+        var toastContainer = document.getElementById('content-toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'content-toast-container';
+            toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '1100';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Create toast element
+        var toastId = 'toast-' + Date.now();
+        var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">' +
+            '<div class="d-flex">' +
+                '<div class="toast-body">' +
+                    '<i class="fas fa-check-circle me-2"></i>' + message +
+                '</div>' +
+                '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+            '</div>' +
+        '</div>';
+        
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+        
+        var toastEl = document.getElementById(toastId);
+        var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+        toast.show();
+        
+        // Remove toast element after it's hidden
+        toastEl.addEventListener('hidden.bs.toast', function() {
+            toastEl.remove();
+        });
     }
     
     function testContentRule() {
@@ -8073,6 +8216,8 @@ var SecurityComplianceControlsService = (function() {
         deleteContentRule: deleteContentRule,
         deleteContentRuleById: deleteContentRuleById,
         saveContentRule: saveContentRule,
+        confirmSaveContentRule: confirmSaveContentRule,
+        showContentRuleToast: showContentRuleToast,
         updateContentMatchInputLabel: updateContentMatchInputLabel,
         resetContentFilters: resetContentFilters,
         toggleContentFilterPanel: toggleContentFilterPanel,
@@ -11632,6 +11777,10 @@ function deleteContentRule(ruleId) {
 
 function saveContentRule() {
     SecurityComplianceControlsService.saveContentRule();
+}
+
+function confirmSaveContentRule() {
+    SecurityComplianceControlsService.confirmSaveContentRule();
 }
 
 function updateContentMatchInputLabel() {
