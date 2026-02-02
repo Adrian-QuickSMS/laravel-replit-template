@@ -1527,10 +1527,9 @@
                                         <div class="filter-group">
                                             <label>Status</label>
                                             <select id="exemptions-filter-status">
-                                                <option value="">All Statuses</option>
-                                                <option value="active">Active</option>
-                                                <option value="expired">Expired</option>
-                                                <option value="revoked">Revoked</option>
+                                                <option value="">All</option>
+                                                <option value="active">Enforced</option>
+                                                <option value="disabled">Disabled</option>
                                             </select>
                                         </div>
                                         <div class="filter-group">
@@ -1562,7 +1561,7 @@
                                             <th>Approved By <i class="fas fa-sort"></i></th>
                                             <th>Approved Date <i class="fas fa-sort"></i></th>
                                             <th>Expiry <i class="fas fa-sort"></i></th>
-                                            <th>Status <i class="fas fa-sort"></i></th>
+                                            <th>Enforcement <i class="fas fa-sort"></i></th>
                                             <th style="width: 80px;">Actions</th>
                                         </tr>
                                     </thead>
@@ -3194,6 +3193,118 @@ var SecurityComplianceControlsService = (function() {
         setupEventListeners();
         console.log('[SecurityComplianceControls] Initialized');
     }
+    
+    function buildExemptionsList() {
+        var exemptions = [];
+        
+        var approvedSenderIds = (mockData.senderIdApprovals || []).filter(function(appr) {
+            return appr.approvalStatus === 'approved';
+        });
+        
+        approvedSenderIds.forEach(function(appr) {
+            var override = mockData.enforcementOverrides[appr.id];
+            var enforcementStatus = override ? override.status : 'active';
+            
+            exemptions.push({
+                id: 'EXM-' + appr.id,
+                sourceId: appr.id,
+                senderId: appr.senderId,
+                normalisedValue: appr.normalisedValue || appr.senderId.toUpperCase(),
+                accountId: appr.accountId,
+                accountName: appr.accountName,
+                source: 'approval',
+                category: appr.category,
+                approvedBy: appr.approvedBy,
+                approvedAt: appr.approvedAt,
+                expiry: null,
+                approvalStatus: appr.approvalStatus,
+                enforcementStatus: enforcementStatus,
+                notes: appr.notes
+            });
+        });
+        
+        (mockData.manualExemptions || []).forEach(function(man) {
+            var override = mockData.enforcementOverrides[man.id];
+            var enforcementStatus = override ? override.status : 'active';
+            
+            exemptions.push({
+                id: 'EXM-' + man.id,
+                sourceId: man.id,
+                senderId: man.senderId,
+                normalisedValue: man.normalisedValue || man.senderId.toUpperCase(),
+                accountId: man.accountId,
+                accountName: man.accountName,
+                source: 'manual',
+                category: man.category,
+                approvedBy: man.addedBy,
+                approvedAt: man.addedAt,
+                expiry: man.expiry,
+                approvalStatus: 'n/a',
+                enforcementStatus: enforcementStatus,
+                notes: man.notes
+            });
+        });
+        
+        return exemptions;
+    }
+    
+    function rebuildExemptions() {
+        mockData.senderIdExemptions = buildExemptionsList();
+    }
+    
+    function normaliseSenderId(senderId) {
+        if (!senderId) return '';
+        var normalised = senderId.toUpperCase().trim();
+        
+        if (typeof window.MessageEnforcementService !== 'undefined' && 
+            typeof window.MessageEnforcementService.evaluateAgainstRules === 'function') {
+            return normalised;
+        }
+        
+        return normalised;
+    }
+    
+    function validateSenderIdFormat(senderId) {
+        if (!senderId) return { valid: false, error: 'SenderID is required' };
+        
+        senderId = senderId.trim();
+        
+        if (senderId.length < 3) {
+            return { valid: false, error: 'SenderID must be at least 3 characters' };
+        }
+        if (senderId.length > 11) {
+            return { valid: false, error: 'SenderID must be 11 characters or less' };
+        }
+        
+        if (!/^[A-Za-z0-9]+$/.test(senderId)) {
+            return { valid: false, error: 'SenderID must contain only alphanumeric characters' };
+        }
+        
+        if (/^\d+$/.test(senderId)) {
+            return { valid: false, error: 'SenderID cannot be all numeric' };
+        }
+        
+        return { valid: true, normalised: senderId.toUpperCase() };
+    }
+    
+    function setEnforcementOverride(sourceId, status, reason) {
+        mockData.enforcementOverrides[sourceId] = {
+            status: status,
+            reason: reason,
+            setBy: currentAdmin.email,
+            setAt: formatDateTime(new Date())
+        };
+        
+        rebuildExemptions();
+        
+        logAuditEvent('EXEMPTION_ENFORCEMENT_OVERRIDE', {
+            sourceId: sourceId,
+            newStatus: status,
+            reason: reason
+        });
+        
+        console.log('[SecurityComplianceControls] Enforcement override set:', sourceId, status);
+    }
 
     function loadMockData() {
         mockData.senderIdRules = [
@@ -3212,14 +3323,26 @@ var SecurityComplianceControlsService = (function() {
             { id: 'CNT-005', name: 'Premium Rate Numbers', matchType: 'regex', matchValue: '(call|text|dial)\\s*(09\\d{8,}|118\\d+)', ruleType: 'flag', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
         ];
 
-        mockData.senderIdExemptions = [
-            { id: 'EXM-001', senderId: 'MYBANK', accountId: 'ACC-10045', accountName: 'TechStart Ltd', source: 'approval', category: 'banking_finance', approvedBy: 'admin@quicksms.co.uk', approvedAt: '10-01-2026 09:30', expiry: null, status: 'active', notes: 'Approved via SenderID Registration' },
-            { id: 'EXM-002', senderId: 'HEALTHUK', accountId: 'ACC-10089', accountName: 'HealthFirst UK', source: 'approval', category: 'government_healthcare', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '12-01-2026 14:00', expiry: '12-01-2027 14:00', status: 'active', notes: 'NHS partner verification complete' },
-            { id: 'EXM-003', senderId: 'ROYALMAIL', accountId: 'global', accountName: 'All Accounts', source: 'manual', category: 'delivery_logistics', approvedBy: 'admin@quicksms.co.uk', approvedAt: '05-01-2026 11:15', expiry: null, status: 'active', notes: 'Global exemption for Royal Mail notifications' },
-            { id: 'EXM-004', senderId: 'PARCELFORCE', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', source: 'approval', category: 'delivery_logistics', approvedBy: 'admin@quicksms.co.uk', approvedAt: '08-01-2026 16:45', expiry: '08-07-2026 16:45', status: 'active', notes: 'Delivery notification SenderID' },
-            { id: 'EXM-005', senderId: 'GOVUK', accountId: 'global', accountName: 'All Accounts', source: 'manual', category: 'government_healthcare', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '01-01-2026 10:00', expiry: null, status: 'active', notes: 'Official government SenderID' },
-            { id: 'EXM-006', senderId: 'OLDPROMO', accountId: 'ACC-10045', accountName: 'TechStart Ltd', source: 'approval', category: 'miscellaneous', approvedBy: 'admin@quicksms.co.uk', approvedAt: '15-06-2025 09:00', expiry: '15-12-2025 09:00', status: 'expired', notes: 'Promotional campaign - expired' }
+        mockData.senderIdApprovals = [
+            { id: 'APPR-001', senderId: 'ACMECO', accountId: 'ACC-1234', accountName: 'Acme Corporation', category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '15-01-2026 09:30', submittedAt: '10-01-2026 14:00', notes: 'Standard business SenderID', normalisedValue: 'ACMECO' },
+            { id: 'APPR-002', senderId: 'FINLTD', accountId: 'ACC-5678', accountName: 'Finance Ltd', category: 'banking_finance', approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '12-01-2026 14:00', submittedAt: '08-01-2026 10:15', notes: 'Financial services - verified', normalisedValue: 'FINLTD' },
+            { id: 'APPR-003', senderId: 'RETAILMX', accountId: 'ACC-4001', accountName: 'RetailMax Group', category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '20-01-2026 11:00', submittedAt: '18-01-2026 09:00', notes: 'Retail notifications', normalisedValue: 'RETAILMX' },
+            { id: 'APPR-004', senderId: 'HLTHPLUS', accountId: 'ACC-4005', accountName: 'HealthPlus Care', category: 'government_healthcare', approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '08-01-2026 16:45', submittedAt: '05-01-2026 11:30', notes: 'Healthcare provider - NHS verified', normalisedValue: 'HLTHPLUS' },
+            { id: 'APPR-005', senderId: 'TECHSTRT', accountId: 'ACC-4008', accountName: 'TechStartup Inc', category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '25-01-2026 10:20', submittedAt: '22-01-2026 15:00', notes: 'Tech startup notifications', normalisedValue: 'TECHSTRT' },
+            { id: 'APPR-006', senderId: 'FOODDLVR', accountId: 'ACC-4009', accountName: 'FoodDelivery Pro', category: 'delivery_logistics', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '18-01-2026 14:30', submittedAt: '15-01-2026 09:45', notes: 'Food delivery updates', normalisedValue: 'FOODDLVR' },
+            { id: 'APPR-007', senderId: 'EDULEARN', accountId: 'ACC-4006', accountName: 'EduLearn Academy', category: 'miscellaneous', approvalStatus: 'pending', approvedBy: null, approvedAt: null, submittedAt: '28-01-2026 10:00', notes: 'Pending review', normalisedValue: 'EDULEARN' },
+            { id: 'APPR-008', senderId: 'SECBANK', accountId: 'ACC-4012', accountName: 'SecureBank Financial', category: 'banking_finance', approvalStatus: 'rejected', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '05-01-2026 16:00', submittedAt: '02-01-2026 11:00', notes: 'Rejected - conflicts with existing bank SenderID', normalisedValue: 'SECBANK' }
         ];
+        
+        mockData.manualExemptions = [
+            { id: 'MAN-001', senderId: 'ROYALMAIL', accountId: 'global', accountName: 'All Accounts', category: 'delivery_logistics', addedBy: 'admin@quicksms.co.uk', addedAt: '05-01-2026 11:15', expiry: null, notes: 'Global exemption for Royal Mail notifications', normalisedValue: 'ROYALMAIL' },
+            { id: 'MAN-002', senderId: 'GOVUK', accountId: 'global', accountName: 'All Accounts', category: 'government_healthcare', addedBy: 'compliance@quicksms.co.uk', addedAt: '01-01-2026 10:00', expiry: null, notes: 'Official government SenderID', normalisedValue: 'GOVUK' },
+            { id: 'MAN-003', senderId: 'NHSUK', accountId: 'global', accountName: 'All Accounts', category: 'government_healthcare', addedBy: 'compliance@quicksms.co.uk', addedAt: '01-01-2026 10:00', expiry: null, notes: 'National Health Service official', normalisedValue: 'NHSUK' }
+        ];
+        
+        mockData.enforcementOverrides = {};
+        
+        mockData.senderIdExemptions = buildExemptionsList();
 
         mockData.urlRules = [
             { id: 'URL-001', pattern: 'bit.ly', matchType: 'exact', ruleType: 'flag', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
@@ -3603,12 +3726,6 @@ var SecurityComplianceControlsService = (function() {
             'generic': 'Generic'
         };
 
-        var sourceLabels = {
-            'approval': 'SenderID Approvals',
-            'manual': 'Manual Exemption'
-        };
-
-        // Apply filters
         var sourceFilter = document.getElementById('exemptions-filter-source') ? document.getElementById('exemptions-filter-source').value : '';
         var statusFilter = document.getElementById('exemptions-filter-status') ? document.getElementById('exemptions-filter-status').value : '';
         var accountFilter = document.getElementById('exemptions-filter-account') ? document.getElementById('exemptions-filter-account').value : '';
@@ -3616,7 +3733,7 @@ var SecurityComplianceControlsService = (function() {
 
         var filteredExemptions = exemptions.filter(function(ex) {
             if (sourceFilter && ex.source !== sourceFilter) return false;
-            if (statusFilter && ex.status !== statusFilter) return false;
+            if (statusFilter && ex.enforcementStatus !== statusFilter) return false;
             if (accountFilter === 'global' && ex.accountId !== 'global') return false;
             if (searchTerm && ex.senderId.toLowerCase().indexOf(searchTerm) === -1 && 
                 ex.accountName.toLowerCase().indexOf(searchTerm) === -1) return false;
@@ -3631,11 +3748,9 @@ var SecurityComplianceControlsService = (function() {
 
         emptyState.style.display = 'none';
         tbody.innerHTML = filteredExemptions.map(function(ex) {
-            var statusBadge = ex.status === 'active'
-                ? '<span class="sec-status-badge active">Active</span>'
-                : ex.status === 'expired'
-                ? '<span class="sec-status-badge draft">Expired</span>'
-                : '<span class="sec-status-badge blocked">Revoked</span>';
+            var enforcementBadge = ex.enforcementStatus === 'active'
+                ? '<span class="sec-status-badge active"><i class="fas fa-shield-alt me-1"></i>Enforced</span>'
+                : '<span class="sec-status-badge blocked"><i class="fas fa-pause-circle me-1"></i>Disabled</span>';
             
             var sourceBadge = ex.source === 'approval'
                 ? '<span class="badge" style="background: #198754; font-size: 0.65rem;"><i class="fas fa-check-circle me-1"></i>Approved</span>'
@@ -3647,30 +3762,35 @@ var SecurityComplianceControlsService = (function() {
             
             var expiryDisplay = ex.expiry 
                 ? ex.expiry.split(' ')[0]
-                : '<span class="text-muted">No expiry</span>';
+                : '<span class="text-muted">-</span>';
             
             var isSuperAdmin = currentAdmin.role === 'super_admin';
             
-            return '<tr data-exemption-id="' + ex.id + '">' +
-                '<td><code style="background: #d4edda; padding: 0.15rem 0.4rem; border-radius: 3px; color: #155724;">' + ex.senderId + '</code></td>' +
+            var approvalLink = ex.source === 'approval' 
+                ? '<a href="/admin/assets/sender-ids?id=' + ex.sourceId + '" class="text-decoration-none" title="View in SenderID Approvals"><i class="fas fa-external-link-alt ms-1" style="font-size: 0.6rem; opacity: 0.6;"></i></a>'
+                : '';
+            
+            return '<tr data-exemption-id="' + ex.id + '" data-source-id="' + ex.sourceId + '">' +
+                '<td><code style="background: ' + (ex.enforcementStatus === 'active' ? '#d4edda' : '#f8d7da') + '; padding: 0.15rem 0.4rem; border-radius: 3px; color: ' + (ex.enforcementStatus === 'active' ? '#155724' : '#721c24') + ';">' + ex.senderId + '</code></td>' +
                 '<td>' + accountDisplay + '</td>' +
-                '<td>' + sourceBadge + '</td>' +
+                '<td>' + sourceBadge + approvalLink + '</td>' +
                 '<td>' + (categoryLabels[ex.category] || ex.category) + '</td>' +
-                '<td><small>' + ex.approvedBy.split('@')[0] + '</small></td>' +
-                '<td><small>' + ex.approvedAt.split(' ')[0] + '</small></td>' +
+                '<td><small>' + (ex.approvedBy ? ex.approvedBy.split('@')[0] : '-') + '</small></td>' +
+                '<td><small>' + (ex.approvedAt ? ex.approvedAt.split(' ')[0] : '-') + '</small></td>' +
                 '<td><small>' + expiryDisplay + '</small></td>' +
-                '<td>' + statusBadge + '</td>' +
+                '<td>' + enforcementBadge + '</td>' +
                 '<td>' +
                     '<div class="dropdown">' +
                         '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>' +
                         '<ul class="dropdown-menu dropdown-menu-end">' +
-                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewExemption(\'' + ex.id + '\')"><i class="fas fa-eye me-2 text-muted"></i>View</a></li>' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewExemption(\'' + ex.id + '\')"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>' +
+                            (ex.source === 'approval' ? '<li><a class="dropdown-item" href="/admin/assets/sender-ids?id=' + ex.sourceId + '"><i class="fas fa-external-link-alt me-2 text-muted"></i>View Approval</a></li>' : '') +
                             (ex.source === 'manual' ? '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editExemption(\'' + ex.id + '\')"><i class="fas fa-edit me-2 text-muted"></i>Edit</a></li>' : '') +
                             '<li><hr class="dropdown-divider"></li>' +
-                            (ex.status === 'active' 
-                                ? '<li><a class="dropdown-item text-warning" href="javascript:void(0)" onclick="revokeExemption(\'' + ex.id + '\')"><i class="fas fa-ban me-2"></i>Revoke</a></li>'
-                                : '') +
-                            (isSuperAdmin && ex.source === 'manual' ? '<li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteExemption(\'' + ex.id + '\')"><i class="fas fa-trash me-2"></i>Delete</a></li>' : '') +
+                            (ex.enforcementStatus === 'active' 
+                                ? '<li><a class="dropdown-item text-warning" href="javascript:void(0)" onclick="disableExemptionEnforcement(\'' + ex.sourceId + '\')"><i class="fas fa-pause-circle me-2"></i>Disable Enforcement</a></li>'
+                                : '<li><a class="dropdown-item text-success" href="javascript:void(0)" onclick="enableExemptionEnforcement(\'' + ex.sourceId + '\')"><i class="fas fa-play-circle me-2"></i>Enable Enforcement</a></li>') +
+                            (isSuperAdmin && ex.source === 'manual' ? '<li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteExemption(\'' + ex.id + '\')"><i class="fas fa-trash me-2"></i>Delete</a></li>' : '') +
                         '</ul>' +
                     '</div>' +
                 '</td>' +
@@ -3741,19 +3861,39 @@ var SecurityComplianceControlsService = (function() {
             'generic': 'Generic'
         };
         
+        var enforcementStatusBadge = ex.enforcementStatus === 'active'
+            ? '<span class="badge bg-success"><i class="fas fa-shield-alt me-1"></i>Enforced</span>'
+            : '<span class="badge bg-danger"><i class="fas fa-pause-circle me-1"></i>Disabled</span>';
+        
+        var sourceBadge = ex.source === 'approval'
+            ? '<span class="badge bg-success">SenderID Approvals</span>'
+            : '<span class="badge" style="background: #1e3a5f;">Manual Exemption</span>';
+        
+        var override = mockData.enforcementOverrides[ex.sourceId];
+        var overrideInfo = override 
+            ? '<tr><td class="text-muted">Override Reason</td><td class="text-danger">' + override.reason + '</td></tr>' +
+              '<tr><td class="text-muted">Override Set By</td><td>' + override.setBy + '</td></tr>' +
+              '<tr><td class="text-muted">Override Set At</td><td>' + override.setAt + '</td></tr>'
+            : '';
+        
         var html = '<div class="mb-3"><strong style="color: #1e3a5f;">Exemption Details</strong></div>' +
             '<table class="table table-sm">' +
-            '<tr><td class="text-muted" style="width: 40%;">Exemption ID</td><td>' + ex.id + '</td></tr>' +
-            '<tr><td class="text-muted">SenderID</td><td><code style="background: #d4edda; padding: 0.15rem 0.4rem; border-radius: 3px; color: #155724;">' + ex.senderId + '</code></td></tr>' +
-            '<tr><td class="text-muted">Account</td><td>' + (ex.accountId === 'global' ? 'Global (All Accounts)' : ex.accountName + ' (' + ex.accountId + ')') + '</td></tr>' +
-            '<tr><td class="text-muted">Source</td><td>' + (ex.source === 'approval' ? 'SenderID Approvals' : 'Manual Exemption') + '</td></tr>' +
+            '<tr><td class="text-muted" style="width: 40%;">Source Record</td><td>' + ex.sourceId + '</td></tr>' +
+            '<tr><td class="text-muted">SenderID</td><td><code style="background: ' + (ex.enforcementStatus === 'active' ? '#d4edda; color: #155724' : '#f8d7da; color: #721c24') + '; padding: 0.15rem 0.4rem; border-radius: 3px;">' + ex.senderId + '</code></td></tr>' +
+            '<tr><td class="text-muted">Normalised Value</td><td><code>' + ex.normalisedValue + '</code></td></tr>' +
+            '<tr><td class="text-muted">Account</td><td>' + (ex.accountId === 'global' ? '<span class="badge bg-info"><i class="fas fa-globe me-1"></i>Global (All Accounts)</span>' : ex.accountName + ' (' + ex.accountId + ')') + '</td></tr>' +
+            '<tr><td class="text-muted">Source</td><td>' + sourceBadge + (ex.source === 'approval' ? ' <a href="/admin/assets/sender-ids?id=' + ex.sourceId + '" class="ms-2"><i class="fas fa-external-link-alt"></i> View Approval</a>' : '') + '</td></tr>' +
             '<tr><td class="text-muted">Category</td><td>' + (categoryLabels[ex.category] || ex.category) + '</td></tr>' +
-            '<tr><td class="text-muted">Status</td><td>' + ex.status.charAt(0).toUpperCase() + ex.status.slice(1) + '</td></tr>' +
-            '<tr><td class="text-muted">Approved By</td><td>' + ex.approvedBy + '</td></tr>' +
-            '<tr><td class="text-muted">Approved Date</td><td>' + ex.approvedAt + '</td></tr>' +
+            '<tr><td class="text-muted">Enforcement Status</td><td>' + enforcementStatusBadge + '</td></tr>' +
+            overrideInfo +
+            '<tr><td class="text-muted">Approved By</td><td>' + (ex.approvedBy || '-') + '</td></tr>' +
+            '<tr><td class="text-muted">Approved Date</td><td>' + (ex.approvedAt || '-') + '</td></tr>' +
             '<tr><td class="text-muted">Expiry</td><td>' + (ex.expiry || 'No expiry') + '</td></tr>' +
             '<tr><td class="text-muted">Notes</td><td>' + (ex.notes || '-') + '</td></tr>' +
-            '</table>';
+            '</table>' +
+            '<div class="mt-3 pt-3 border-top">' +
+            '<small class="text-muted"><i class="fas fa-info-circle me-1"></i>Disabling enforcement will immediately block this SenderID without changing the approval record.</small>' +
+            '</div>';
         
         document.getElementById('generic-view-content').innerHTML = html;
         document.getElementById('generic-view-title').textContent = 'View Exemption: ' + ex.senderId;
@@ -3767,29 +3907,49 @@ var SecurityComplianceControlsService = (function() {
         alert('Edit exemption functionality coming soon');
     }
 
-    function revokeExemption(exemptionId) {
-        if (!confirm('Are you sure you want to revoke this exemption? The SenderID will no longer be allowed.')) return;
+    function disableExemptionEnforcement(sourceId) {
+        var reason = prompt('Enter reason for disabling enforcement (this SenderID will be blocked):');
+        if (reason === null) return;
         
+        setEnforcementOverride(sourceId, 'disabled', reason || 'No reason provided');
+        renderExemptionsTab();
+        showToast('Enforcement disabled - SenderID will now be blocked', 'warning');
+    }
+    
+    function enableExemptionEnforcement(sourceId) {
+        delete mockData.enforcementOverrides[sourceId];
+        rebuildExemptions();
+        
+        logAuditEvent('EXEMPTION_ENFORCEMENT_ENABLED', { sourceId: sourceId });
+        renderExemptionsTab();
+        showToast('Enforcement enabled - SenderID is now allowed', 'success');
+    }
+    
+    function revokeExemption(exemptionId) {
         var exemptions = mockData.senderIdExemptions || [];
-        var exIndex = exemptions.findIndex(function(e) { return e.id === exemptionId; });
-        if (exIndex !== -1) {
-            exemptions[exIndex].status = 'revoked';
-            logAuditEvent('EXEMPTION_REVOKED', { exemptionId: exemptionId, senderId: exemptions[exIndex].senderId });
-            renderExemptionsTab();
-            showToast('Exemption revoked successfully', 'warning');
-        }
+        var ex = exemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        disableExemptionEnforcement(ex.sourceId);
     }
 
     function deleteExemption(exemptionId) {
-        if (!confirm('Are you sure you want to permanently delete this exemption?')) return;
+        if (!confirm('Are you sure you want to permanently delete this manual exemption?')) return;
         
         var exemptions = mockData.senderIdExemptions || [];
-        var exIndex = exemptions.findIndex(function(e) { return e.id === exemptionId; });
-        if (exIndex !== -1) {
-            var deleted = exemptions.splice(exIndex, 1)[0];
-            logAuditEvent('EXEMPTION_DELETED', { exemptionId: exemptionId, senderId: deleted.senderId });
+        var ex = exemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex || ex.source !== 'manual') {
+            showToast('Only manual exemptions can be deleted', 'error');
+            return;
+        }
+        
+        var manIndex = mockData.manualExemptions.findIndex(function(m) { return m.id === ex.sourceId; });
+        if (manIndex !== -1) {
+            var deleted = mockData.manualExemptions.splice(manIndex, 1)[0];
+            rebuildExemptions();
+            logAuditEvent('EXEMPTION_DELETED', { exemptionId: exemptionId, sourceId: ex.sourceId, senderId: deleted.senderId });
             renderExemptionsTab();
-            showToast('Exemption deleted successfully', 'success');
+            showToast('Manual exemption deleted successfully', 'success');
         }
     }
 
@@ -5368,10 +5528,13 @@ var SecurityComplianceControlsService = (function() {
         var expiry = document.getElementById('exemption-expiry').value;
         var notes = document.getElementById('exemption-notes').value.trim();
         
-        if (!senderId) {
-            alert('Please enter a SenderID');
+        var validation = validateSenderIdFormat(senderId);
+        if (!validation.valid) {
+            alert(validation.error);
             return;
         }
+        senderId = validation.normalised;
+        
         if (!category) {
             alert('Please select a category');
             return;
@@ -5389,26 +5552,50 @@ var SecurityComplianceControlsService = (function() {
             accountName = accountSelect.options[accountSelect.selectedIndex].text.split(' (')[0];
         }
         
-        var newExemption = {
-            id: 'EXM-' + String(mockData.senderIdExemptions.length + 1).padStart(3, '0'),
+        var existingApproval = mockData.senderIdApprovals.find(function(a) {
+            return a.normalisedValue === senderId && 
+                   (accountId === 'global' || a.accountId === accountId);
+        });
+        if (existingApproval) {
+            alert('A SenderID approval already exists for ' + senderId + '. Use the existing approval record instead.');
+            return;
+        }
+        
+        var existingManual = mockData.manualExemptions.find(function(m) {
+            return m.normalisedValue === senderId && 
+                   (m.accountId === 'global' || accountId === 'global' || m.accountId === accountId);
+        });
+        if (existingManual) {
+            alert('A manual exemption already exists for ' + senderId);
+            return;
+        }
+        
+        var newManualExemption = {
+            id: 'MAN-' + String(mockData.manualExemptions.length + 1).padStart(3, '0'),
             senderId: senderId,
+            normalisedValue: normaliseSenderId(senderId),
             accountId: accountId,
             accountName: accountName,
-            source: 'manual',
             category: category,
-            approvedBy: currentAdmin.email,
-            approvedAt: new Date().toLocaleDateString('en-GB').split('/').join('-') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+            addedBy: currentAdmin.email,
+            addedAt: formatDateTime(new Date()),
             expiry: expiry ? expiry.split('-').reverse().join('-') + ' 00:00' : null,
-            status: 'active',
             notes: notes || 'Manual exemption added by admin'
         };
         
-        mockData.senderIdExemptions.push(newExemption);
-        logAuditEvent('EXEMPTION_CREATED', { exemptionId: newExemption.id, senderId: senderId, accountId: accountId });
+        mockData.manualExemptions.push(newManualExemption);
+        rebuildExemptions();
+        
+        logAuditEvent('MANUAL_EXEMPTION_CREATED', { 
+            exemptionId: newManualExemption.id, 
+            senderId: senderId, 
+            normalisedValue: newManualExemption.normalisedValue,
+            accountId: accountId 
+        });
         
         bootstrap.Modal.getInstance(document.getElementById('addSenderIdExemptionModal')).hide();
         renderExemptionsTab();
-        showToast('Exemption added successfully for ' + senderId, 'success');
+        showToast('Manual exemption added for ' + senderId, 'success');
     }
     
     function applyQuarantineFilters() {
@@ -8941,6 +9128,14 @@ function revokeExemption(exemptionId) {
 
 function deleteExemption(exemptionId) {
     SecurityComplianceControlsService.deleteExemption(exemptionId);
+}
+
+function disableExemptionEnforcement(sourceId) {
+    SecurityComplianceControlsService.disableExemptionEnforcement(sourceId);
+}
+
+function enableExemptionEnforcement(sourceId) {
+    SecurityComplianceControlsService.enableExemptionEnforcement(sourceId);
 }
 
 function applyQuarantineFilters() {
