@@ -2162,13 +2162,19 @@
                     <!-- Domain Age Tab -->
                     <div class="tab-pane fade show active" id="url-domain-age" role="tabpanel">
                         <div class="card mb-3" style="border: 1px solid #e9ecef; border-radius: 6px; box-shadow: none;">
-                            <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #f8f9fa; cursor: pointer; border-bottom: 1px solid #e9ecef;" data-bs-toggle="collapse" data-bs-target="#domain-age-collapse" aria-expanded="false">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="fas fa-clock" style="color: #1e3a5f; font-size: 0.85rem;"></i>
-                                    <span style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f;">Domain Age Settings</span>
-                                    <span class="badge" id="domain-age-status-badge" style="font-size: 0.65rem; background: #dc3545; color: white;">Disabled</span>
+                            <div class="card-header py-2" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                                <div class="d-flex justify-content-between align-items-center" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#domain-age-collapse" aria-expanded="false">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="fas fa-clock" style="color: #1e3a5f; font-size: 0.85rem;"></i>
+                                        <span style="font-size: 0.85rem; font-weight: 600; color: #1e3a5f;">Domain Age Settings</span>
+                                        <span class="badge" id="domain-age-status-badge" style="font-size: 0.65rem; background: #dc3545; color: white;">Disabled</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down" id="domain-age-collapse-icon" style="font-size: 0.65rem; color: #6c757d; transition: transform 0.2s;"></i>
                                 </div>
-                                <i class="fas fa-chevron-down" id="domain-age-collapse-icon" style="font-size: 0.65rem; color: #6c757d; transition: transform 0.2s;"></i>
+                                <div class="d-flex gap-3 mt-1" id="domain-age-meta" style="font-size: 0.7rem; color: #6c757d;">
+                                    <span><i class="fas fa-calendar-alt me-1"></i> Last updated: <span id="domain-age-updated-at">-</span></span>
+                                    <span><i class="fas fa-user me-1"></i> By: <span id="domain-age-updated-by">-</span></span>
+                                </div>
                             </div>
                             <div class="collapse" id="domain-age-collapse">
                                 <div class="card-body" style="padding: 1rem;">
@@ -4882,7 +4888,9 @@ var SecurityComplianceControlsService = (function() {
         mockData.domainAgeSettings = {
             enabled: false,
             minAgeHours: 72,
-            action: 'block'
+            action: 'block',
+            updatedAt: '28-01-2026 14:30',
+            updatedBy: 'admin@quicksms.co.uk'
         };
         
         mockData.domainAllowlist = [
@@ -8078,6 +8086,7 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('domain-age-action').value = mockData.domainAgeSettings.action || 'block';
         
         updateDomainAgeStatusBadge();
+        updateDomainAgeMeta();
         renderDomainAgeExemptionPreviews();
         
         // Collapse icon rotation
@@ -8169,9 +8178,25 @@ var SecurityComplianceControlsService = (function() {
         var action = document.getElementById('domain-age-action').value;
         
         var beforeSettings = JSON.parse(JSON.stringify(mockData.domainAgeSettings));
+        
+        // Simulate API call with potential failure (for demo - always succeeds in mock mode)
+        var simulateFailure = false; // Set to true to test error handling
+        
+        if (simulateFailure) {
+            bootstrap.Modal.getInstance(document.getElementById('domainAgeConfirmModal')).hide();
+            showDomainAgeSaveError('Failed to save settings. Please check your connection and try again.');
+            return;
+        }
+        
+        // Update settings with timestamp and user
+        var now = new Date();
+        var timestamp = formatDateTime(now);
+        
         mockData.domainAgeSettings.enabled = enabled;
         mockData.domainAgeSettings.minAgeHours = hours;
         mockData.domainAgeSettings.action = action;
+        mockData.domainAgeSettings.updatedAt = timestamp;
+        mockData.domainAgeSettings.updatedBy = currentAdmin.email;
         
         domainAgeOriginalSettings = JSON.parse(JSON.stringify(mockData.domainAgeSettings));
         
@@ -8179,16 +8204,63 @@ var SecurityComplianceControlsService = (function() {
             before: beforeSettings,
             after: mockData.domainAgeSettings,
             adminUser: currentAdmin.email,
-            timestamp: new Date().toISOString()
+            timestamp: now.toISOString()
         });
         
         bootstrap.Modal.getInstance(document.getElementById('domainAgeConfirmModal')).hide();
         updateDomainAgeStatusBadge();
+        updateDomainAgeMeta();
+        hideDomainAgeSaveError();
         
         var collapseEl = bootstrap.Collapse.getInstance(document.getElementById('domain-age-collapse'));
         if (collapseEl) collapseEl.hide();
         
         showToast('Domain age settings saved successfully', 'success');
+    }
+    
+    function updateDomainAgeMeta() {
+        var updatedAtEl = document.getElementById('domain-age-updated-at');
+        var updatedByEl = document.getElementById('domain-age-updated-by');
+        
+        if (updatedAtEl) {
+            updatedAtEl.textContent = mockData.domainAgeSettings.updatedAt || '-';
+        }
+        if (updatedByEl) {
+            updatedByEl.textContent = mockData.domainAgeSettings.updatedBy || '-';
+        }
+    }
+    
+    function showDomainAgeSaveError(message) {
+        var errorContainer = document.getElementById('domain-age-error-alert');
+        if (!errorContainer) {
+            // Create error alert if it doesn't exist
+            var cardBody = document.querySelector('#domain-age-collapse .card-body');
+            if (cardBody) {
+                var alertHtml = '<div id="domain-age-error-alert" class="alert alert-danger d-flex align-items-center justify-content-between mb-3" role="alert" style="font-size: 0.85rem;">' +
+                    '<div><i class="fas fa-exclamation-circle me-2"></i><span id="domain-age-error-message"></span></div>' +
+                    '<button class="btn btn-sm btn-outline-danger" onclick="retryDomainAgeSave()"><i class="fas fa-redo me-1"></i> Retry</button>' +
+                    '</div>';
+                cardBody.insertAdjacentHTML('afterbegin', alertHtml);
+                errorContainer = document.getElementById('domain-age-error-alert');
+            }
+        }
+        
+        if (errorContainer) {
+            errorContainer.style.display = 'flex';
+            document.getElementById('domain-age-error-message').textContent = message;
+        }
+    }
+    
+    function hideDomainAgeSaveError() {
+        var errorContainer = document.getElementById('domain-age-error-alert');
+        if (errorContainer) {
+            errorContainer.style.display = 'none';
+        }
+    }
+    
+    function retryDomainAgeSave() {
+        hideDomainAgeSaveError();
+        confirmSaveDomainAgeSettings();
     }
     
     function saveDomainAgeSettings() {
@@ -10460,6 +10532,10 @@ var SecurityComplianceControlsService = (function() {
         cancelDomainAgeSettings: cancelDomainAgeSettings,
         confirmSaveDomainAgeSettings: confirmSaveDomainAgeSettings,
         executeSaveDomainAgeSettings: executeSaveDomainAgeSettings,
+        updateDomainAgeMeta: updateDomainAgeMeta,
+        showDomainAgeSaveError: showDomainAgeSaveError,
+        hideDomainAgeSaveError: hideDomainAgeSaveError,
+        retryDomainAgeSave: retryDomainAgeSave,
         renderDomainAgeExemptionPreviews: renderDomainAgeExemptionPreviews,
         renderDomainAllowlistPreview: renderDomainAllowlistPreview,
         renderThresholdOverridesPreview: renderThresholdOverridesPreview,
@@ -14241,6 +14317,10 @@ function confirmSaveDomainAgeSettings() {
 
 function executeSaveDomainAgeSettings() {
     SecurityComplianceControlsService.executeSaveDomainAgeSettings();
+}
+
+function retryDomainAgeSave() {
+    SecurityComplianceControlsService.retryDomainAgeSave();
 }
 
 function showAddDomainAllowlistModal() {
