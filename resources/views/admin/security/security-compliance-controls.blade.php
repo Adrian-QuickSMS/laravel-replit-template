@@ -8489,11 +8489,187 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function showAddDomainAllowlistModal() {
-        showToast('Add Domain Exemption - TODO: Implement modal with domain input, scope selection, and override type', 'info');
+        var modalHtml = 
+            '<div class="modal fade" id="addDomainAllowlistModal" tabindex="-1" data-bs-backdrop="static">' +
+                '<div class="modal-dialog modal-dialog-centered">' +
+                    '<div class="modal-content">' +
+                        '<div class="modal-header py-2" style="background: #1e3a5f; border-bottom: none;">' +
+                            '<h6 class="modal-title text-white mb-0"><i class="fas fa-globe me-2"></i>Add Domain to Allowlist</h6>' +
+                            '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                        '</div>' +
+                        '<div class="modal-body py-3">' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Domain <span class="text-danger">*</span></label>' +
+                                '<input type="text" class="form-control form-control-sm" id="allowlist-domain" placeholder="e.g. example.com or *.example.com" style="font-size: 0.85rem;">' +
+                                '<small class="text-muted" style="font-size: 0.7rem;">Enter a domain or use wildcard (*) for subdomains</small>' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Scope</label>' +
+                                '<select class="form-select form-select-sm" id="allowlist-scope" style="font-size: 0.85rem;" onchange="toggleAllowlistAccountSelect()">' +
+                                    '<option value="all">Global (all accounts)</option>' +
+                                    '<option value="account">Specific Account</option>' +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="mb-3" id="allowlist-account-group" style="display: none;">' +
+                                '<label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Account</label>' +
+                                '<select class="form-select form-select-sm" id="allowlist-account" style="font-size: 0.85rem;">' +
+                                    '<option value="">Select account...</option>' +
+                                    mockData.accounts.map(function(acc) { return '<option value="' + acc.id + '">' + escapeHtml(acc.name) + '</option>'; }).join('') +
+                                '</select>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="modal-footer py-2" style="border-top: 1px solid #e9ecef;">' +
+                            '<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>' +
+                            '<button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveAddDomainAllowlist()"><i class="fas fa-plus me-1"></i>Add Domain</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        
+        var existingModal = document.getElementById('addDomainAllowlistModal');
+        if (existingModal) existingModal.remove();
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        var modal = new bootstrap.Modal(document.getElementById('addDomainAllowlistModal'));
+        modal.show();
+    }
+    
+    function toggleAllowlistAccountSelect() {
+        var scope = document.getElementById('allowlist-scope').value;
+        document.getElementById('allowlist-account-group').style.display = scope === 'account' ? 'block' : 'none';
+    }
+    
+    function saveAddDomainAllowlist() {
+        var domain = document.getElementById('allowlist-domain').value.trim();
+        if (!domain) {
+            showToast('Please enter a domain', 'error');
+            return;
+        }
+        
+        var scope = document.getElementById('allowlist-scope').value;
+        var accountId = scope === 'account' ? document.getElementById('allowlist-account').value : null;
+        var account = accountId ? mockData.accounts.find(function(a) { return a.id === accountId; }) : null;
+        
+        if (scope === 'account' && !accountId) {
+            showToast('Please select an account', 'error');
+            return;
+        }
+        
+        var newEntry = {
+            id: 'DAL-' + String(mockData.domainAllowlist.length + 1).padStart(3, '0'),
+            domain: domain.toLowerCase(),
+            scope: scope,
+            scopeDetails: account ? { accountId: account.id, accountName: account.name } : null,
+            overrideType: 'full',
+            status: 'active',
+            addedBy: currentAdmin.email,
+            addedAt: formatDateTime(new Date()),
+            updatedAt: formatDateTime(new Date())
+        };
+        
+        mockData.domainAllowlist.push(newEntry);
+        
+        logAuditEvent('URL_DOMAIN_ALLOWLIST_ADDED', {
+            entityType: 'domain_allowlist',
+            domain: domain,
+            scope: scope,
+            accountId: accountId,
+            accountName: account ? account.name : null,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString()
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('addDomainAllowlistModal')).hide();
+        renderDomainAgeExemptionPreviews();
+        showToast('Domain "' + domain + '" added to allowlist', 'success');
     }
     
     function showAddThresholdOverrideModal() {
-        showToast('Add Threshold Override - TODO: Implement modal with account search, threshold hours, and action override', 'info');
+        var modalHtml = 
+            '<div class="modal fade" id="addThresholdOverrideModal" tabindex="-1" data-bs-backdrop="static">' +
+                '<div class="modal-dialog modal-dialog-centered">' +
+                    '<div class="modal-content">' +
+                        '<div class="modal-header py-2" style="background: #1e3a5f; border-bottom: none;">' +
+                            '<h6 class="modal-title text-white mb-0"><i class="fas fa-clock me-2"></i>Add Threshold Override</h6>' +
+                            '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
+                        '</div>' +
+                        '<div class="modal-body py-3">' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Account <span class="text-danger">*</span></label>' +
+                                '<select class="form-select form-select-sm" id="override-account" style="font-size: 0.85rem;">' +
+                                    '<option value="">Select account...</option>' +
+                                    mockData.accounts.map(function(acc) { return '<option value="' + acc.id + '">' + escapeHtml(acc.name) + '</option>'; }).join('') +
+                                '</select>' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Threshold (hours)</label>' +
+                                '<input type="number" class="form-control form-control-sm" id="override-threshold" value="24" min="1" max="8760" style="font-size: 0.85rem;">' +
+                                '<small class="text-muted" style="font-size: 0.7rem;">Custom threshold for this account (overrides global setting)</small>' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                                '<label class="form-label" style="font-size: 0.8rem; font-weight: 600;">Action Override</label>' +
+                                '<select class="form-select form-select-sm" id="override-action" style="font-size: 0.85rem;">' +
+                                    '<option value="block">Block</option>' +
+                                    '<option value="flag">Flag to Quarantine</option>' +
+                                '</select>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="modal-footer py-2" style="border-top: 1px solid #e9ecef;">' +
+                            '<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>' +
+                            '<button type="button" class="btn btn-sm text-white" style="background: #1e3a5f;" onclick="saveAddThresholdOverride()"><i class="fas fa-plus me-1"></i>Add Override</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        
+        var existingModal = document.getElementById('addThresholdOverrideModal');
+        if (existingModal) existingModal.remove();
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        var modal = new bootstrap.Modal(document.getElementById('addThresholdOverrideModal'));
+        modal.show();
+    }
+    
+    function saveAddThresholdOverride() {
+        var accountId = document.getElementById('override-account').value;
+        if (!accountId) {
+            showToast('Please select an account', 'error');
+            return;
+        }
+        
+        var account = mockData.accounts.find(function(a) { return a.id === accountId; });
+        var threshold = parseInt(document.getElementById('override-threshold').value) || 24;
+        var action = document.getElementById('override-action').value;
+        
+        var newEntry = {
+            id: 'TOR-' + String(mockData.thresholdOverrides.length + 1).padStart(3, '0'),
+            accountId: accountId,
+            accountName: account ? account.name : accountId,
+            allSubaccounts: true,
+            subAccounts: [],
+            thresholdHours: threshold,
+            actionOverride: action,
+            status: 'active',
+            addedBy: currentAdmin.email,
+            addedAt: formatDateTime(new Date()),
+            updatedAt: formatDateTime(new Date())
+        };
+        
+        mockData.thresholdOverrides.push(newEntry);
+        
+        logAuditEvent('URL_DOMAIN_AGE_OVERRIDE_ADDED', {
+            entityType: 'threshold_override',
+            accountId: accountId,
+            accountName: account ? account.name : null,
+            thresholdHours: threshold,
+            actionOverride: action,
+            adminUser: currentAdmin.email,
+            timestamp: new Date().toISOString()
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('addThresholdOverrideModal')).hide();
+        renderDomainAgeExemptionPreviews();
+        showToast('Threshold override added for ' + (account ? account.name : accountId), 'success');
     }
     
     function viewAllDomainAgeExemptions(filterType) {
@@ -10799,7 +10975,10 @@ var SecurityComplianceControlsService = (function() {
         renderDomainAllowlistPreview: renderDomainAllowlistPreview,
         renderThresholdOverridesPreview: renderThresholdOverridesPreview,
         showAddDomainAllowlistModal: showAddDomainAllowlistModal,
+        toggleAllowlistAccountSelect: toggleAllowlistAccountSelect,
+        saveAddDomainAllowlist: saveAddDomainAllowlist,
         showAddThresholdOverrideModal: showAddThresholdOverrideModal,
+        saveAddThresholdOverride: saveAddThresholdOverride,
         viewAllDomainAgeExemptions: viewAllDomainAgeExemptions,
         showAddUrlExemptionGlobalModal: showAddUrlExemptionGlobalModal,
         toggleGlobalExemptionType: toggleGlobalExemptionType,
@@ -14590,8 +14769,20 @@ function showAddDomainAllowlistModal() {
     SecurityComplianceControlsService.showAddDomainAllowlistModal();
 }
 
+function toggleAllowlistAccountSelect() {
+    SecurityComplianceControlsService.toggleAllowlistAccountSelect();
+}
+
+function saveAddDomainAllowlist() {
+    SecurityComplianceControlsService.saveAddDomainAllowlist();
+}
+
 function showAddThresholdOverrideModal() {
     SecurityComplianceControlsService.showAddThresholdOverrideModal();
+}
+
+function saveAddThresholdOverride() {
+    SecurityComplianceControlsService.saveAddThresholdOverride();
 }
 
 function viewAllDomainAgeExemptions(filterType) {
