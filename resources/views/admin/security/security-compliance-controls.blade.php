@@ -10928,6 +10928,8 @@ var SecurityComplianceControlsService = (function() {
     return {
         initialize: initialize,
         renderAllTabs: renderAllTabs,
+        renderQuarantineTab: renderQuarantineTab,
+        updateQuarantineFilterChips: updateQuarantineFilterChips,
         showAddContentRuleModal: showAddContentRuleModal,
         editContentRule: editContentRule,
         viewContentRule: viewContentRule,
@@ -15082,6 +15084,12 @@ function updateAntiSpamWindow() {
 
 document.addEventListener('DOMContentLoaded', function() {
     SecurityComplianceControlsService.initialize();
+    
+    // Ensure Quarantine tab renders after DOM is fully ready
+    setTimeout(function() {
+        SecurityComplianceControlsService.renderQuarantineTab();
+        SecurityComplianceControlsService.updateQuarantineFilterChips();
+    }, 100);
     
     // Enter key to run URL rule test
     var testInput = document.getElementById('url-rule-test-input');
