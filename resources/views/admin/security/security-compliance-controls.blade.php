@@ -6755,7 +6755,110 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function viewContentExemption(exemptionId) {
-        editContentExemption(exemptionId);
+        var ex = mockData.contentExemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        closeAllContentExemptionMenus();
+        
+        // Get account and subaccount names
+        var account = mockData.accounts.find(function(a) { return a.id === ex.accountId; });
+        var accountName = account ? account.name : ex.accountName || ex.accountId;
+        
+        var subAccountsHtml = '';
+        if (ex.allSubaccounts) {
+            subAccountsHtml = '<span class="badge bg-info" style="font-size: 0.7rem;">All Sub-accounts</span>';
+        } else if (ex.subAccounts && ex.subAccounts.length > 0) {
+            subAccountsHtml = ex.subAccounts.map(function(sub) {
+                return '<span class="badge bg-secondary me-1 mb-1" style="font-size: 0.65rem;">' + escapeHtml(sub.name || sub.id) + '</span>';
+            }).join('');
+        } else {
+            subAccountsHtml = '<span class="text-muted" style="font-size: 0.75rem;">Account only</span>';
+        }
+        
+        // Build exemption type display
+        var typeHtml = '';
+        if (ex.type === 'rule') {
+            typeHtml = '<span class="badge" style="background: #6366f1; color: white; font-size: 0.7rem;"><i class="fas fa-list me-1"></i>Rule Exemption</span>';
+        } else {
+            typeHtml = '<span class="badge" style="background: #f59e0b; color: white; font-size: 0.7rem;"><i class="fas fa-shield-alt me-1"></i>Anti-Spam Override</span>';
+        }
+        
+        // Build rules exempted list
+        var rulesHtml = '';
+        if (ex.exemptRules && ex.exemptRules.length > 0) {
+            rulesHtml = ex.exemptRules.map(function(ruleId) {
+                var rule = mockData.contentRules.find(function(r) { return r.id === ruleId; });
+                return '<span class="badge bg-primary me-1 mb-1" style="font-size: 0.65rem;">' + escapeHtml(rule ? rule.name : ruleId) + '</span>';
+            }).join('');
+        } else {
+            rulesHtml = '<span class="text-muted" style="font-size: 0.75rem;">None</span>';
+        }
+        
+        // Build anti-spam override display
+        var antispamHtml = '';
+        if (ex.antispamOverride) {
+            var overrideLabels = {
+                'enabled': '<span class="badge bg-success">ON (default)</span>',
+                'disabled': '<span class="badge bg-danger">OFF</span>',
+                'stricter': '<span class="badge" style="background: #dc3545;">Stricter (' + (ex.customWindow || 15) + 'min)</span>',
+                'less_strict': '<span class="badge" style="background: #ffc107; color: #212529;">Less Strict (' + (ex.customWindow || 120) + 'min)</span>'
+            };
+            antispamHtml = overrideLabels[ex.antispamOverride] || '<span class="text-muted">-</span>';
+        } else {
+            antispamHtml = '<span class="text-muted" style="font-size: 0.75rem;">No override</span>';
+        }
+        
+        // Status badge
+        var statusHtml = ex.status === 'active' ? 
+            '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Active</span>' : 
+            '<span class="badge bg-secondary"><i class="fas fa-pause-circle me-1"></i>Disabled</span>';
+        
+        var modalHtml = 
+            '<div class="modal fade" id="viewContentExemptionModal" tabindex="-1">' +
+                '<div class="modal-dialog modal-lg modal-dialog-centered">' +
+                    '<div class="modal-content">' +
+                        '<div class="modal-header py-2" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">' +
+                            '<h6 class="modal-title" style="font-size: 0.9rem; color: #1e3a5f;"><i class="fas fa-eye me-2"></i>View Exemption Details</h6>' +
+                            '<button type="button" class="btn-close" data-bs-dismiss="modal" style="font-size: 0.7rem;"></button>' +
+                        '</div>' +
+                        '<div class="modal-body py-3">' +
+                            '<div class="row g-3">' +
+                                '<div class="col-md-6">' +
+                                    '<table class="table table-sm mb-0" style="font-size: 0.8rem;">' +
+                                        '<tr><td style="width: 35%; font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Exemption ID</td><td style="padding: 0.4rem;"><code style="font-size: 0.75rem;">' + escapeHtml(ex.id) + '</code></td></tr>' +
+                                        '<tr><td style="font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Account</td><td style="padding: 0.4rem;">' + escapeHtml(accountName) + '</td></tr>' +
+                                        '<tr><td style="font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Sub-accounts</td><td style="padding: 0.4rem;">' + subAccountsHtml + '</td></tr>' +
+                                        '<tr><td style="font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Type</td><td style="padding: 0.4rem;">' + typeHtml + '</td></tr>' +
+                                        '<tr><td style="font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Status</td><td style="padding: 0.4rem;">' + statusHtml + '</td></tr>' +
+                                    '</table>' +
+                                '</div>' +
+                                '<div class="col-md-6">' +
+                                    '<table class="table table-sm mb-0" style="font-size: 0.8rem;">' +
+                                        '<tr><td style="width: 40%; font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Rules Exempted</td><td style="padding: 0.4rem;">' + rulesHtml + '</td></tr>' +
+                                        '<tr><td style="font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Anti-Spam Override</td><td style="padding: 0.4rem;">' + antispamHtml + '</td></tr>' +
+                                        '<tr><td style="font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Applied By</td><td style="padding: 0.4rem;">' + escapeHtml(ex.appliedBy || ex.addedBy || '-') + '</td></tr>' +
+                                        '<tr><td style="font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Applied Date</td><td style="padding: 0.4rem;">' + (ex.appliedAt || ex.addedAt || '-') + '</td></tr>' +
+                                        '<tr><td style="font-weight: 600; padding: 0.4rem; background: #f8f9fa;">Last Updated</td><td style="padding: 0.4rem;">' + (ex.updatedAt || '-') + '</td></tr>' +
+                                    '</table>' +
+                                '</div>' +
+                            '</div>' +
+                            (ex.notes || ex.reason ? '<div class="mt-3 p-2" style="background: #f8f9fa; border-radius: 4px; font-size: 0.8rem;"><strong>Notes:</strong> ' + escapeHtml(ex.notes || ex.reason) + '</div>' : '') +
+                        '</div>' +
+                        '<div class="modal-footer py-2" style="border-top: 1px solid #e9ecef;">' +
+                            '<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal" style="font-size: 0.8rem;">Close</button>' +
+                            '<button type="button" class="btn btn-sm text-white" style="background: #1e3a5f; font-size: 0.8rem;" onclick="bootstrap.Modal.getInstance(document.getElementById(\'viewContentExemptionModal\')).hide(); editContentExemption(\'' + escapeHtml(ex.id) + '\');"><i class="fas fa-edit me-1"></i>Edit</button>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        
+        // Remove existing modal if any
+        var existingModal = document.getElementById('viewContentExemptionModal');
+        if (existingModal) existingModal.remove();
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        var modal = new bootstrap.Modal(document.getElementById('viewContentExemptionModal'));
+        modal.show();
     }
     
     function editContentExemption(exemptionId) {
