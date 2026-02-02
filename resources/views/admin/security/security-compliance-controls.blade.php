@@ -2209,21 +2209,45 @@
                                         <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="url-exemptions-filter-btn">
                                             <i class="fas fa-filter me-1"></i> Filter
                                         </button>
-                                        <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
+                                        <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 320px;" onclick="event.stopPropagation()">
                                             <div class="mb-3">
-                                                <label class="form-label small fw-semibold">Status</label>
-                                                <select class="form-select form-select-sm" id="url-exemptions-filter-status">
-                                                    <option value="">All Statuses</option>
-                                                    <option value="active">Active</option>
-                                                    <option value="disabled">Disabled</option>
+                                                <label class="form-label small fw-semibold">Account</label>
+                                                <select class="form-select form-select-sm" id="url-exemptions-filter-account">
+                                                    <option value="">All Accounts</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Sub-account</label>
+                                                <select class="form-select form-select-sm" id="url-exemptions-filter-subaccount">
+                                                    <option value="">All Sub-accounts</option>
                                                 </select>
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label small fw-semibold">Exemption Type</label>
                                                 <select class="form-select form-select-sm" id="url-exemptions-filter-type">
                                                     <option value="">All Types</option>
-                                                    <option value="domain_age">Domain Age</option>
-                                                    <option value="url_rule">URL Rules</option>
+                                                    <option value="domain_age">Domain Age Override</option>
+                                                    <option value="domains">Allowlisted Domains</option>
+                                                    <option value="url_rule">Rule Exemption</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Date Range</label>
+                                                <div class="row g-2">
+                                                    <div class="col-6">
+                                                        <input type="date" class="form-control form-control-sm" id="url-exemptions-filter-date-from" placeholder="From">
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <input type="date" class="form-control form-control-sm" id="url-exemptions-filter-date-to" placeholder="To">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-semibold">Status</label>
+                                                <select class="form-select form-select-sm" id="url-exemptions-filter-status">
+                                                    <option value="">All Statuses</option>
+                                                    <option value="active">Active</option>
+                                                    <option value="disabled">Disabled</option>
                                                 </select>
                                             </div>
                                             <div class="d-flex gap-2">
@@ -2245,13 +2269,13 @@
                                 <table class="sec-table" id="url-exemptions-table">
                                     <thead>
                                         <tr>
-                                            <th>Account <i class="fas fa-sort"></i></th>
-                                            <th>Sub-accounts <i class="fas fa-sort"></i></th>
-                                            <th>Exemption Type <i class="fas fa-sort"></i></th>
-                                            <th>Rules Exempted <i class="fas fa-sort"></i></th>
-                                            <th>Applied By <i class="fas fa-sort"></i></th>
-                                            <th>Applied Date <i class="fas fa-sort"></i></th>
-                                            <th>Status <i class="fas fa-sort"></i></th>
+                                            <th onclick="sortUrlExemptionsTable('accountName')" style="cursor: pointer;">Account <i class="fas fa-sort"></i></th>
+                                            <th>Sub-account(s)</th>
+                                            <th onclick="sortUrlExemptionsTable('type')" style="cursor: pointer;">Exemption Type <i class="fas fa-sort"></i></th>
+                                            <th style="max-width: 220px;">Details</th>
+                                            <th onclick="sortUrlExemptionsTable('appliedBy')" style="cursor: pointer;">Applied By <i class="fas fa-sort"></i></th>
+                                            <th onclick="sortUrlExemptionsTable('appliedAt')" style="cursor: pointer;">Applied Date <i class="fas fa-sort"></i></th>
+                                            <th onclick="sortUrlExemptionsTable('status')" style="cursor: pointer;">Status <i class="fas fa-sort"></i></th>
                                             <th style="width: 80px;">Actions</th>
                                         </tr>
                                     </thead>
@@ -4646,9 +4670,13 @@ var SecurityComplianceControlsService = (function() {
         ];
         
         mockData.urlExemptions = [
-            { id: 'UEX-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], allSubaccounts: true, type: 'domain_age', exemptRules: [], status: 'active', reason: 'Enterprise customer with verified domains', appliedBy: 'admin@quicksms.co.uk', appliedAt: '18-01-2026 14:30' },
+            { id: 'UEX-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], allSubaccounts: true, type: 'domain_age', disableEnforcement: false, thresholdOverride: 12, actionOverride: 'flag', exemptRules: [], status: 'active', reason: 'Enterprise customer with verified domains', appliedBy: 'admin@quicksms.co.uk', appliedAt: '18-01-2026 14:30' },
             { id: 'UEX-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [{ id: 'SUB-001', name: 'Marketing Dept' }], allSubaccounts: false, type: 'url_rule', exemptRules: ['URL-001', 'URL-003'], status: 'active', reason: 'Marketing uses approved URL shorteners', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '22-01-2026 09:15' },
-            { id: 'UEX-003', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: [], allSubaccounts: true, type: 'domain_age', exemptRules: [], status: 'disabled', reason: 'Temporary exemption for product launch', appliedBy: 'admin@quicksms.co.uk', appliedAt: '25-01-2026 16:45' }
+            { id: 'UEX-003', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: [], allSubaccounts: true, type: 'domain_age', disableEnforcement: true, thresholdOverride: null, actionOverride: null, exemptRules: [], status: 'disabled', reason: 'Temporary exemption for product launch', appliedBy: 'admin@quicksms.co.uk', appliedAt: '25-01-2026 16:45' },
+            { id: 'UEX-004', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [{ id: 'SUB-002', name: 'Customer Support' }, { id: 'SUB-003', name: 'Sales Team' }], allSubaccounts: false, type: 'domains', domains: ['techstart.com', 'techstart.co.uk', 'techstart-support.com'], exemptRules: [], status: 'active', reason: 'Company owned domains', appliedBy: 'admin@quicksms.co.uk', appliedAt: '20-01-2026 11:00' },
+            { id: 'UEX-005', accountId: 'ACC-10156', accountName: 'RetailMax Group', subAccounts: [], allSubaccounts: true, type: 'domains', domains: ['retailmax.com', 'retailmax-promo.co.uk', 'retailmax-shop.com', 'retailmax-deals.net', 'retailmax-offers.co.uk'], exemptRules: [], status: 'active', reason: 'Verified brand domains', appliedBy: 'security@quicksms.co.uk', appliedAt: '28-01-2026 16:20' },
+            { id: 'UEX-006', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [], allSubaccounts: true, type: 'url_rule', exemptRules: ['URL-002', 'URL-004', 'URL-005'], status: 'active', reason: 'Healthcare provider exemption', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '30-01-2026 10:45' },
+            { id: 'UEX-007', accountId: 'ACC-10178', accountName: 'FinServe Partners', subAccounts: [{ id: 'SUB-010', name: 'Compliance Team' }], allSubaccounts: false, type: 'domain_age', disableEnforcement: false, thresholdOverride: 48, actionOverride: 'block', exemptRules: [], status: 'active', reason: 'Extended threshold for regulatory compliance', appliedBy: 'admin@quicksms.co.uk', appliedAt: '01-02-2026 09:30' }
         ];
 
         mockData.baseCharacterLibrary = (function() {
@@ -6788,23 +6816,65 @@ var SecurityComplianceControlsService = (function() {
         }).join('');
     }
     
+    var urlExemptionsSortColumn = 'appliedAt';
+    var urlExemptionsSortDirection = 'desc';
+    
     function renderUrlExemptionsTab() {
         var tbody = document.getElementById('url-exemptions-body');
         var emptyState = document.getElementById('url-exemptions-empty-state');
         
         if (!tbody) return;
         
+        // Populate account filter dropdown
+        populateUrlExemptionsAccountFilter();
+        
+        // Get filter values
         var statusFilter = (document.getElementById('url-exemptions-filter-status') || {}).value || '';
         var typeFilter = (document.getElementById('url-exemptions-filter-type') || {}).value || '';
+        var accountFilter = (document.getElementById('url-exemptions-filter-account') || {}).value || '';
+        var subaccountFilter = (document.getElementById('url-exemptions-filter-subaccount') || {}).value || '';
+        var dateFromFilter = (document.getElementById('url-exemptions-filter-date-from') || {}).value || '';
+        var dateToFilter = (document.getElementById('url-exemptions-filter-date-to') || {}).value || '';
         var searchTerm = (document.getElementById('url-exemptions-search') || {}).value || '';
         searchTerm = searchTerm.toLowerCase();
         
         var exemptions = (mockData.urlExemptions || []).filter(function(ex) {
             if (statusFilter && ex.status !== statusFilter) return false;
             if (typeFilter && ex.type !== typeFilter) return false;
+            if (accountFilter && ex.accountId !== accountFilter) return false;
+            if (subaccountFilter) {
+                if (ex.allSubaccounts) return true;
+                var hasSubaccount = ex.subAccounts && ex.subAccounts.some(function(s) { return s.id === subaccountFilter; });
+                if (!hasSubaccount) return false;
+            }
+            if (dateFromFilter) {
+                var exDateIso = parseExemptionDate(ex.appliedAt);
+                if (!exDateIso || exDateIso < dateFromFilter) return false;
+            }
+            if (dateToFilter) {
+                var exDateIso = parseExemptionDate(ex.appliedAt);
+                if (!exDateIso || exDateIso > dateToFilter) return false;
+            }
             if (searchTerm && ex.accountName.toLowerCase().indexOf(searchTerm) === -1 && 
                 ex.accountId.toLowerCase().indexOf(searchTerm) === -1) return false;
             return true;
+        });
+        
+        // Sort exemptions
+        exemptions.sort(function(a, b) {
+            var aVal, bVal;
+            if (urlExemptionsSortColumn === 'appliedAt') {
+                aVal = parseExemptionDate(a.appliedAt) || '';
+                bVal = parseExemptionDate(b.appliedAt) || '';
+            } else {
+                aVal = a[urlExemptionsSortColumn] || '';
+                bVal = b[urlExemptionsSortColumn] || '';
+            }
+            if (urlExemptionsSortDirection === 'asc') {
+                return aVal > bVal ? 1 : -1;
+            } else {
+                return aVal < bVal ? 1 : -1;
+            }
         });
         
         if (exemptions.length === 0) {
@@ -6818,24 +6888,49 @@ var SecurityComplianceControlsService = (function() {
             var subAccountsHtml = ex.allSubaccounts 
                 ? '<span class="badge bg-info text-white" style="font-size: 0.65rem;">All Sub-accounts</span>'
                 : (ex.subAccounts && ex.subAccounts.length > 0 
-                    ? ex.subAccounts.map(function(s) { return '<span class="badge bg-light text-dark me-1" style="font-size: 0.65rem;">' + escapeHtml(s.name) + '</span>'; }).join('')
+                    ? ex.subAccounts.slice(0, 3).map(function(s) { return '<span class="badge bg-light text-dark me-1" style="font-size: 0.65rem;">' + escapeHtml(s.name) + '</span>'; }).join('') + (ex.subAccounts.length > 3 ? '<span class="badge bg-secondary" style="font-size: 0.65rem;">+' + (ex.subAccounts.length - 3) + '</span>' : '')
                     : '<span class="text-muted" style="font-size: 0.75rem;">Account only</span>');
             
-            var typeBadge = ex.type === 'domain_age'
-                ? '<span class="sec-status-badge" style="background: #dbeafe; color: #1e40af;"><i class="fas fa-clock me-1"></i>Domain Age</span>'
-                : '<span class="sec-status-badge" style="background: #f3e8ff; color: #6b21a8;"><i class="fas fa-link me-1"></i>URL Rules</span>';
+            var typeBadge = '';
+            if (ex.type === 'domain_age') {
+                typeBadge = '<span class="sec-status-badge" style="background: #dbeafe; color: #1e40af;"><i class="fas fa-clock me-1"></i>Domain Age Override</span>';
+            } else if (ex.type === 'domains') {
+                typeBadge = '<span class="sec-status-badge" style="background: #d1fae5; color: #065f46;"><i class="fas fa-globe me-1"></i>Allowlisted Domains</span>';
+            } else {
+                typeBadge = '<span class="sec-status-badge" style="background: #f3e8ff; color: #6b21a8;"><i class="fas fa-link me-1"></i>Rule Exemption</span>';
+            }
             
-            var rulesHtml = '';
-            if (ex.type === 'url_rule' && ex.exemptRules && ex.exemptRules.length > 0) {
-                rulesHtml = ex.exemptRules.map(function(ruleId) {
+            // Details column based on type
+            var detailsHtml = '';
+            if (ex.type === 'domain_age') {
+                if (ex.disableEnforcement) {
+                    detailsHtml = '<span class="badge bg-warning text-dark" style="font-size: 0.7rem;"><i class="fas fa-ban me-1"></i>Enforcement Disabled</span>';
+                } else {
+                    var thresholdText = ex.thresholdOverride ? ex.thresholdOverride + 'h' : 'Default';
+                    var actionText = ex.actionOverride ? ex.actionOverride.charAt(0).toUpperCase() + ex.actionOverride.slice(1) : 'Default';
+                    detailsHtml = '<span class="badge bg-light text-dark me-1" style="font-size: 0.7rem;">Threshold: ' + thresholdText + '</span>' +
+                        '<span class="badge bg-light text-dark" style="font-size: 0.7rem;">Action: ' + actionText + '</span>';
+                }
+            } else if (ex.type === 'domains' && ex.domains && ex.domains.length > 0) {
+                var displayDomains = ex.domains.slice(0, 3);
+                detailsHtml = displayDomains.map(function(d) { 
+                    return '<span class="badge bg-success bg-opacity-25 text-success me-1" style="font-size: 0.65rem;">' + escapeHtml(d) + '</span>'; 
+                }).join('');
+                if (ex.domains.length > 3) {
+                    detailsHtml += '<span class="badge bg-secondary" style="font-size: 0.65rem;">+' + (ex.domains.length - 3) + ' more</span>';
+                }
+            } else if (ex.type === 'url_rule' && ex.exemptRules && ex.exemptRules.length > 0) {
+                var displayRules = ex.exemptRules.slice(0, 2);
+                detailsHtml = displayRules.map(function(ruleId) {
                     var rule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
                     var label = rule ? rule.pattern : ruleId;
-                    return '<span class="badge bg-secondary me-1" style="font-size: 0.65rem;">' + escapeHtml(label) + '</span>';
+                    return '<span class="badge bg-purple-light text-purple me-1" style="font-size: 0.65rem; background: #f3e8ff; color: #7c3aed;">' + escapeHtml(label) + '</span>';
                 }).join('');
-            } else if (ex.type === 'domain_age') {
-                rulesHtml = '<span class="text-muted" style="font-size: 0.75rem;">N/A</span>';
+                if (ex.exemptRules.length > 2) {
+                    detailsHtml += '<span class="badge bg-secondary" style="font-size: 0.65rem;">+' + (ex.exemptRules.length - 2) + ' more</span>';
+                }
             } else {
-                rulesHtml = '<span class="text-muted" style="font-size: 0.75rem;">None</span>';
+                detailsHtml = '<span class="text-muted" style="font-size: 0.75rem;">-</span>';
             }
             
             var statusBadge = '<span class="sec-status-badge ' + ex.status + '">' + 
@@ -6848,7 +6943,7 @@ var SecurityComplianceControlsService = (function() {
                 '<td><strong>' + escapeHtml(ex.accountName) + '</strong><br><small class="text-muted">' + ex.accountId + '</small></td>' +
                 '<td>' + subAccountsHtml + '</td>' +
                 '<td>' + typeBadge + '</td>' +
-                '<td style="max-width: 200px;">' + rulesHtml + '</td>' +
+                '<td style="max-width: 220px;">' + detailsHtml + '</td>' +
                 '<td><span style="font-size: 0.8rem;">' + escapeHtml(ex.appliedBy || '-') + '</span></td>' +
                 '<td><span style="font-size: 0.8rem;">' + dateOnly + '</span></td>' +
                 '<td>' + statusBadge + '</td>' +
@@ -6856,6 +6951,7 @@ var SecurityComplianceControlsService = (function() {
                     '<div class="action-menu-container">' +
                         '<button class="action-menu-btn" onclick="toggleUrlExemptionActionMenu(this, \'' + ex.id + '\', event)"><i class="fas fa-ellipsis-v"></i></button>' +
                         '<div class="action-menu-dropdown" id="url-exemption-menu-' + ex.id + '">' +
+                            '<a href="#" onclick="viewUrlExemptionDetails(\'' + ex.id + '\'); return false;"><i class="fas fa-eye"></i> View Details</a>' +
                             '<a href="#" onclick="editUrlExemption(\'' + ex.id + '\'); return false;"><i class="fas fa-edit"></i> Edit</a>' +
                             '<a href="#" onclick="toggleUrlExemptionStatus(\'' + ex.id + '\'); return false;"><i class="fas fa-toggle-on"></i> ' + (ex.status === 'active' ? 'Disable' : 'Enable') + '</a>' +
                             '<div class="dropdown-divider"></div>' +
@@ -6865,6 +6961,108 @@ var SecurityComplianceControlsService = (function() {
                 '</td>' +
                 '</tr>';
         }).join('');
+    }
+    
+    function populateUrlExemptionsAccountFilter() {
+        var accountSelect = document.getElementById('url-exemptions-filter-account');
+        var subaccountSelect = document.getElementById('url-exemptions-filter-subaccount');
+        
+        if (!accountSelect) return;
+        
+        // Only populate accounts once
+        if (accountSelect.options.length <= 1) {
+            var uniqueAccounts = [];
+            mockData.urlExemptions.forEach(function(ex) {
+                if (!uniqueAccounts.find(function(a) { return a.id === ex.accountId; })) {
+                    uniqueAccounts.push({ id: ex.accountId, name: ex.accountName });
+                }
+            });
+            
+            uniqueAccounts.sort(function(a, b) { return a.name.localeCompare(b.name); });
+            uniqueAccounts.forEach(function(acc) {
+                var opt = document.createElement('option');
+                opt.value = acc.id;
+                opt.textContent = acc.name;
+                accountSelect.appendChild(opt);
+            });
+        }
+        
+        // Populate sub-accounts based on selected account
+        if (subaccountSelect) {
+            var selectedAccountId = accountSelect.value;
+            subaccountSelect.innerHTML = '<option value="">All Sub-accounts</option>';
+            
+            if (selectedAccountId) {
+                var uniqueSubaccounts = [];
+                mockData.urlExemptions.forEach(function(ex) {
+                    if (ex.accountId === selectedAccountId && ex.subAccounts) {
+                        ex.subAccounts.forEach(function(sub) {
+                            if (!uniqueSubaccounts.find(function(s) { return s.id === sub.id; })) {
+                                uniqueSubaccounts.push(sub);
+                            }
+                        });
+                    }
+                });
+                
+                uniqueSubaccounts.sort(function(a, b) { return a.name.localeCompare(b.name); });
+                uniqueSubaccounts.forEach(function(sub) {
+                    var opt = document.createElement('option');
+                    opt.value = sub.id;
+                    opt.textContent = sub.name;
+                    subaccountSelect.appendChild(opt);
+                });
+            }
+        }
+    }
+    
+    function parseExemptionDate(dateStr) {
+        if (!dateStr) return null;
+        var parts = dateStr.split(' ')[0].split('-');
+        if (parts.length !== 3) return null;
+        return parts[2] + '-' + parts[1] + '-' + parts[0];
+    }
+    
+    function sortUrlExemptionsTable(column) {
+        if (urlExemptionsSortColumn === column) {
+            urlExemptionsSortDirection = urlExemptionsSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            urlExemptionsSortColumn = column;
+            urlExemptionsSortDirection = 'asc';
+        }
+        renderUrlExemptionsTab();
+    }
+    
+    function viewUrlExemptionDetails(exemptionId) {
+        var ex = mockData.urlExemptions.find(function(e) { return e.id === exemptionId; });
+        if (!ex) return;
+        
+        var detailsHtml = '<div class="p-3">';
+        detailsHtml += '<p><strong>Account:</strong> ' + escapeHtml(ex.accountName) + ' (' + ex.accountId + ')</p>';
+        detailsHtml += '<p><strong>Type:</strong> ' + ex.type + '</p>';
+        detailsHtml += '<p><strong>Applied By:</strong> ' + escapeHtml(ex.appliedBy || '-') + '</p>';
+        detailsHtml += '<p><strong>Applied At:</strong> ' + (ex.appliedAt || '-') + '</p>';
+        detailsHtml += '<p><strong>Status:</strong> ' + ex.status + '</p>';
+        if (ex.reason) {
+            detailsHtml += '<p><strong>Reason:</strong> ' + escapeHtml(ex.reason) + '</p>';
+        }
+        if (ex.type === 'domains' && ex.domains) {
+            detailsHtml += '<p><strong>Domains:</strong></p><div class="d-flex flex-wrap gap-1">';
+            ex.domains.forEach(function(d) {
+                detailsHtml += '<span class="badge bg-success bg-opacity-25 text-success">' + escapeHtml(d) + '</span>';
+            });
+            detailsHtml += '</div>';
+        }
+        if (ex.type === 'url_rule' && ex.exemptRules) {
+            detailsHtml += '<p><strong>Exempt Rules:</strong></p><div class="d-flex flex-wrap gap-1">';
+            ex.exemptRules.forEach(function(ruleId) {
+                var rule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
+                detailsHtml += '<span class="badge bg-secondary">' + escapeHtml(rule ? rule.pattern : ruleId) + '</span>';
+            });
+            detailsHtml += '</div>';
+        }
+        detailsHtml += '</div>';
+        
+        showToast('View details for ' + ex.id + ' - ' + ex.accountName, 'info');
     }
     
     function toggleUrlExemptionActionMenu(btn, exemptionId, event) {
@@ -7109,9 +7307,22 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function resetUrlExemptionsFilters() {
-        document.getElementById('url-exemptions-filter-status').value = '';
-        document.getElementById('url-exemptions-filter-type').value = '';
-        document.getElementById('url-exemptions-search').value = '';
+        var statusEl = document.getElementById('url-exemptions-filter-status');
+        var typeEl = document.getElementById('url-exemptions-filter-type');
+        var accountEl = document.getElementById('url-exemptions-filter-account');
+        var subaccountEl = document.getElementById('url-exemptions-filter-subaccount');
+        var dateFromEl = document.getElementById('url-exemptions-filter-date-from');
+        var dateToEl = document.getElementById('url-exemptions-filter-date-to');
+        var searchEl = document.getElementById('url-exemptions-search');
+        
+        if (statusEl) statusEl.value = '';
+        if (typeEl) typeEl.value = '';
+        if (accountEl) accountEl.value = '';
+        if (subaccountEl) subaccountEl.value = '';
+        if (dateFromEl) dateFromEl.value = '';
+        if (dateToEl) dateToEl.value = '';
+        if (searchEl) searchEl.value = '';
+        
         renderUrlExemptionsTab();
     }
     
@@ -7964,6 +8175,14 @@ var SecurityComplianceControlsService = (function() {
         var globalExemptionAccountSearch = document.getElementById('global-exemption-account-search');
         if (globalExemptionAccountSearch) {
             globalExemptionAccountSearch.addEventListener('input', filterGlobalExemptionAccounts);
+        }
+        
+        // Account filter change updates sub-account options
+        var urlExemptionsAccountFilter = document.getElementById('url-exemptions-filter-account');
+        if (urlExemptionsAccountFilter) {
+            urlExemptionsAccountFilter.addEventListener('change', function() {
+                populateUrlExemptionsAccountFilter();
+            });
         }
     }
 
@@ -9691,6 +9910,10 @@ var SecurityComplianceControlsService = (function() {
         removeDomainAgeException: removeDomainAgeException,
         // URL Exemptions
         renderUrlExemptionsTab: renderUrlExemptionsTab,
+        populateUrlExemptionsAccountFilter: populateUrlExemptionsAccountFilter,
+        parseExemptionDate: parseExemptionDate,
+        sortUrlExemptionsTable: sortUrlExemptionsTable,
+        viewUrlExemptionDetails: viewUrlExemptionDetails,
         showAddUrlExemptionModal: showAddUrlExemptionModal,
         editUrlExemption: editUrlExemption,
         toggleUrlExemptionStatus: toggleUrlExemptionStatus,
@@ -13385,6 +13608,14 @@ function resetUrlExemptionsFilters() {
 
 function applyUrlExemptionsFilters() {
     SecurityComplianceControlsService.applyUrlExemptionsFilters();
+}
+
+function sortUrlExemptionsTable(column) {
+    SecurityComplianceControlsService.sortUrlExemptionsTable(column);
+}
+
+function viewUrlExemptionDetails(exemptionId) {
+    SecurityComplianceControlsService.viewUrlExemptionDetails(exemptionId);
 }
 
 function toggleUrlExemptionType() {
