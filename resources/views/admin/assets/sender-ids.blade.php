@@ -4,6 +4,10 @@
 
 @push('styles')
 <style>
+.breadcrumb-item.active {
+    color: #1e3a5f !important;
+    font-weight: 500;
+}
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -242,7 +246,7 @@
                     </div>
                     <div id="activeFiltersChips" class="d-flex flex-wrap gap-1"></div>
                 </div>
-                <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border: 1px solid #6f42c1; color: #6f42c1; background: transparent;">
+                <button type="button" class="btn btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel" style="border: 1px solid #1e3a5f; color: #1e3a5f; background: transparent;">
                     <i class="fas fa-filter me-1"></i> Filters
                 </button>
             </div>
