@@ -1680,55 +1680,66 @@
                 </div>
 
                 <div class="sec-table-card">
-                    <div class="sec-filter-row">
-                        <div class="sec-filter-group">
-                            <label>Status</label>
-                            <select id="quarantine-filter-status">
-                                <option value="">All Statuses</option>
-                                <option value="pending" selected>Pending</option>
-                                <option value="released">Released</option>
-                                <option value="blocked">Permanently Blocked</option>
-                            </select>
+                    <div class="sec-toolbar">
+                        <div class="sec-search-box-left">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control" placeholder="Search messages, accounts, SenderIDs..." id="quarantine-search">
                         </div>
-                        <div class="sec-filter-group">
-                            <label>Rule Triggered</label>
-                            <select id="quarantine-filter-rule">
-                                <option value="">All Rules</option>
-                                <option value="senderid">SenderID Rule</option>
-                                <option value="content">Content Rule</option>
-                                <option value="url">URL Rule</option>
-                                <option value="domain_age">Domain Age</option>
-                            </select>
-                        </div>
-                        <div class="sec-filter-group">
-                            <label>URL Present</label>
-                            <select id="quarantine-filter-url">
-                                <option value="">All</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                            </select>
-                        </div>
-                        <div class="sec-filter-group">
-                            <label>Account</label>
-                            <select id="quarantine-filter-account">
-                                <option value="">All Accounts</option>
-                            </select>
-                        </div>
-                        <div class="sec-filter-actions">
-                            <button class="sec-btn-primary" onclick="bulkReleaseQuarantine()">
-                                <i class="fas fa-check"></i> Release Selected
+                        <div class="sec-toolbar-actions">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="quarantine-filter-btn" style="border-color: #1e3a5f; color: #1e3a5f;">
+                                    <i class="fas fa-filter me-1"></i> Filter
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;" onclick="event.stopPropagation()">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Status</label>
+                                        <select class="form-select form-select-sm" id="quarantine-filter-status">
+                                            <option value="">All Statuses</option>
+                                            <option value="pending" selected>Pending</option>
+                                            <option value="released">Released</option>
+                                            <option value="blocked">Permanently Blocked</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Rule Triggered</label>
+                                        <select class="form-select form-select-sm" id="quarantine-filter-rule">
+                                            <option value="">All Rules</option>
+                                            <option value="senderid">SenderID Rule</option>
+                                            <option value="content">Content Rule</option>
+                                            <option value="url">URL Rule</option>
+                                            <option value="domain_age">Domain Age</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">URL Present</label>
+                                        <select class="form-select form-select-sm" id="quarantine-filter-url">
+                                            <option value="">All</option>
+                                            <option value="yes">Yes</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Account</label>
+                                        <select class="form-select form-select-sm" id="quarantine-filter-account">
+                                            <option value="">All Accounts</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary flex-grow-1" onclick="resetQuarantineFilters()">Reset</button>
+                                        <button type="button" class="btn btn-sm btn-primary flex-grow-1" onclick="applyQuarantineFilters()">Apply</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-danger btn-sm" onclick="bulkBlockQuarantine()">
+                                <i class="fas fa-ban me-1"></i> Block Selected
                             </button>
-                            <button class="sec-btn-outline text-danger" style="border-color: #dc3545;" onclick="bulkBlockQuarantine()">
-                                <i class="fas fa-ban"></i> Block Selected
+                            <button class="btn btn-primary btn-sm" onclick="bulkReleaseQuarantine()" style="background-color: #1e3a5f; border-color: #1e3a5f;">
+                                <i class="fas fa-check me-1"></i> Release Selected
                             </button>
                         </div>
                     </div>
                     <div class="sec-table-header">
                         <h6>Quarantine Inbox</h6>
-                        <div class="sec-search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" class="form-control" placeholder="Search messages, accounts, SenderIDs..." id="quarantine-search">
-                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="sec-table" id="quarantine-table">
