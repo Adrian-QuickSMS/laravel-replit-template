@@ -1410,36 +1410,6 @@
         </div>
 
         <div class="tab-pane fade" id="countriesPane" role="tabpanel">
-            <div class="source-of-truth-banner">
-                <div class="sot-icon"><i class="fas fa-database"></i></div>
-                <div class="sot-content">
-                    <h6>Global Country Catalogue — Source of Truth</h6>
-                    <p>This catalogue defines default destination availability for all accounts. Per-account overrides are managed separately and shown in the "Overrides" column.</p>
-                </div>
-            </div>
-            <div class="enforcement-banner">
-                <h6><i class="fas fa-shield-alt"></i>Shared Enforcement Configuration</h6>
-                <p>Changes here immediately apply across all enforcement points. No restart required.</p>
-                <div class="enforcement-points">
-                    <div class="enforcement-point">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Customer Portal Security Settings</span>
-                    </div>
-                    <div class="enforcement-point">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Send Message Validation</span>
-                    </div>
-                    <div class="enforcement-point">
-                        <i class="fas fa-check-circle"></i>
-                        <span>API Submission Validation</span>
-                    </div>
-                    <div class="enforcement-point">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Bulk Campaign Processing</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="country-stats">
                 <div class="country-stat-card allowed">
                     <div class="country-stat-value" id="allowedCount">142</div>
