@@ -2782,6 +2782,16 @@ var SecurityComplianceControlsService = (function() {
         quarantinedMessages: []
     };
 
+    function formatDateTime(date) {
+        var d = date instanceof Date ? date : new Date(date);
+        var day = String(d.getDate()).padStart(2, '0');
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var year = d.getFullYear();
+        var hours = String(d.getHours()).padStart(2, '0');
+        var minutes = String(d.getMinutes()).padStart(2, '0');
+        return day + '-' + month + '-' + year + ' ' + hours + ':' + minutes;
+    }
+    
     function initialize() {
         loadMockData();
         renderAllTabs();
