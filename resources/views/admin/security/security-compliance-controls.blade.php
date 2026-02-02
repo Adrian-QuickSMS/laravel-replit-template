@@ -1313,12 +1313,6 @@
             </div>
 
             <div class="tab-pane fade" id="message-content" role="tabpanel">
-                <div class="tab-description">
-                    <h6><i class="fas fa-comment-alt me-2"></i>Message Content Controls</h6>
-                    <p>Configure content filtering rules, banned keywords, and message scanning policies to ensure compliance.</p>
-                </div>
-
-                
                 <div class="card mb-3" style="border: 1px solid #e9ecef; border-left: 3px solid #1e3a5f;">
                     <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: #f8f9fa;">
                         <h6 class="mb-0" style="font-size: 0.9rem; font-weight: 600;">
