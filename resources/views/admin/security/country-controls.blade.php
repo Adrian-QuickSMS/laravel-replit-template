@@ -3987,30 +3987,50 @@ function openDefaultStatusModal(countryCode, newStatus) {
 }
 
 function confirmDefaultStatusChange() {
-    var countryCode = pendingDefaultStatusChange.countryCode;
-    var newStatus = pendingDefaultStatusChange.newStatus;
-    
-    var country = countries.find(function(c) { return c.code === countryCode; });
-    if (!country) return;
+    try {
+        console.log('[CountryControls] confirmDefaultStatusChange called');
+        var countryCode = pendingDefaultStatusChange.countryCode;
+        var newStatus = pendingDefaultStatusChange.newStatus;
+        console.log('[CountryControls] Pending change:', { countryCode: countryCode, newStatus: newStatus });
+        
+        var country = countries.find(function(c) { return c.code === countryCode; });
+        if (!country) {
+            console.error('[CountryControls] Country not found:', countryCode);
+            return;
+        }
 
-    var oldStatus = country.status;
-    country.status = newStatus;
-    country.lastUpdated = formatDateDDMMYYYY(new Date());
+        var oldStatus = country.status;
+        country.status = newStatus;
+        country.lastUpdated = formatDateDDMMYYYY(new Date());
 
-    CountryReviewAuditService.emit('COUNTRY_DEFAULT_STATUS_CHANGED', {
-        countryIso: country.code,
-        countryName: country.name,
-        oldStatus: oldStatus,
-        newStatus: newStatus,
-        result: 'status_changed'
-    }, { emitToCustomerAudit: false });
+        CountryReviewAuditService.emit('COUNTRY_DEFAULT_STATUS_CHANGED', {
+            countryIso: country.code,
+            countryName: country.name,
+            oldStatus: oldStatus,
+            newStatus: newStatus,
+            result: 'status_changed'
+        }, { emitToCustomerAudit: false });
 
-    bootstrap.Modal.getInstance(document.getElementById('defaultStatusConfirmModal')).hide();
-    
-    renderCountryTable();
-    
-    var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
-    showAdminToast('Default status updated', country.name + ' is now ' + statusLabel + ' by default.', 'success');
+        var modalEl = document.getElementById('defaultStatusConfirmModal');
+        var modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (modalInstance) {
+            modalInstance.hide();
+        } else {
+            console.warn('[CountryControls] No modal instance found, using alternative hide');
+            modalEl.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            var backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) backdrop.remove();
+        }
+        
+        renderCountryTable();
+        
+        var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
+        showAdminToast('Default status updated', country.name + ' is now ' + statusLabel + ' by default.', 'success');
+        console.log('[CountryControls] Status change completed successfully');
+    } catch (error) {
+        console.error('[CountryControls] Error in confirmDefaultStatusChange:', error);
+    }
 }
 
 var mockAccountsData = [
