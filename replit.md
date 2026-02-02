@@ -66,12 +66,13 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
       - Scope section: Account typeahead + sub-account multi-select with "All sub-accounts" checkbox
       - Exemption Type (3 radios): A) Domain Age override (disable OR custom threshold/action), B) Allowlisted domains (chip input with paste support, validation, deduplication), C) Rule exemptions (multi-select with "Select all")
       - Saves immediately, shows success toast, logs typed audit events
-- **NormalisationLibrary:** Fixed base character library (62 immutable characters) for character equivalence:
+- **NormalisationLibrary:** Fixed base character library (62 immutable characters) for unified character equivalence:
   - **Fixed Base Characters:** A–Z (26), a–z (26), 0–9 (10) - cannot be deleted
-  - **Per-Character Properties:** Equivalents (configurable), applies-to scope (SenderID/Content/URL), enabled/disabled state, notes, computed risk classification
-  - **Risk Classification:** Computed automatically based on equivalent count and scope coverage (high/medium/low/none)
-  - **Consuming Engines:** SenderID Matching, Content Matching, URL Matching (guarded via feature flag)
-  - **Bulk Operations:** Bulk edit scope across character groups; JSON export of full library
+  - **Scope-Agnostic Design:** Normalisation rules are UNIVERSAL and automatically consumed by ALL enforcement engines (SenderID Controls, Content Controls, URL Controls) - no per-rule scope selection
+  - **Per-Character Properties:** Equivalents (configurable), enabled/disabled state, notes, computed risk classification
+  - **Risk Classification:** Computed automatically based on equivalent count (high: >8 or has multiple digits with punctuation, medium: >5 or has digits, low: otherwise, none: no equivalents)
+  - **Unified Normalisation Map:** Single `NormalisationEnforcementAPI` provides cached character mappings for all engines with 60s TTL
+  - **Bulk Operations:** Bulk status changes; JSON export of full library
   - **Audit Integration:** All changes logged via `logAuditEvent()` with BASE_CHARACTER_UPDATED, BASE_CHARACTER_STATUS_CHANGED events
 - **Design Principles:** Typed JSDoc objects, mock data modes for development, clean separation of UI and API, and robust error handling.
 

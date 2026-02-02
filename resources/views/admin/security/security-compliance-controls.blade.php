@@ -930,21 +930,6 @@
     font-weight: 500;
     margin-right: 3px;
 }
-.norm-scope-pill.senderid {
-    background: #d9770620;
-    color: #d97706;
-    border: 1px solid #d9770640;
-}
-.norm-scope-pill.content {
-    background: #2563eb20;
-    color: #2563eb;
-    border: 1px solid #2563eb40;
-}
-.norm-scope-pill.url {
-    background: #7c3aed20;
-    color: #7c3aed;
-    border: 1px solid #7c3aed40;
-}
 .norm-updated-text {
     font-size: 0.75rem;
     color: #6b7280;
@@ -2483,15 +2468,6 @@
                                 </div>
                             </div>
                             <div class="col-md-2">
-                                <label class="form-label small fw-bold text-muted mb-1">Applies To</label>
-                                <select class="form-select" id="norm-global-scope" onchange="globalNormFilter()">
-                                    <option value="">All Scopes</option>
-                                    <option value="senderid">SenderID</option>
-                                    <option value="content">Content</option>
-                                    <option value="url">URL</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
                                 <label class="form-label small fw-bold text-muted mb-1">Status</label>
                                 <select class="form-select" id="norm-global-status" onchange="globalNormFilter()">
                                     <option value="">All Statuses</option>
@@ -2545,7 +2521,6 @@
                                         <tr>
                                             <th class="sortable" data-sort="base" style="width: 100px;">Base Char <i class="fas fa-sort sort-icon"></i></th>
                                             <th style="min-width: 200px;">Equivalents</th>
-                                            <th class="sortable" data-sort="scope" style="width: 160px;">Applies To <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
@@ -2566,7 +2541,6 @@
                                         <tr>
                                             <th class="sortable" data-sort="base" style="width: 100px;">Base Char <i class="fas fa-sort sort-icon"></i></th>
                                             <th style="min-width: 200px;">Equivalents</th>
-                                            <th class="sortable" data-sort="scope" style="width: 160px;">Applies To <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
@@ -2587,7 +2561,6 @@
                                         <tr>
                                             <th class="sortable" data-sort="base" style="width: 100px;">Base Char <i class="fas fa-sort sort-icon"></i></th>
                                             <th style="min-width: 200px;">Equivalents</th>
-                                            <th class="sortable" data-sort="scope" style="width: 160px;">Applies To <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="status" style="width: 100px;">Status <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="risk" style="width: 100px;">Risk <i class="fas fa-sort sort-icon"></i></th>
                                             <th class="sortable" data-sort="updated" style="width: 130px;">Updated <i class="fas fa-sort sort-icon"></i></th>
@@ -4891,129 +4864,125 @@ var SecurityComplianceControlsService = (function() {
             var library = [];
             
             var uppercaseEquivalents = {
-                'A': { equivalents: ['a', '4', 'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Α', 'А', 'Ά', '@'], scope: ['senderid', 'content'], notes: 'Safe defaults: accented variants, Greek Alpha, Cyrillic A' },
-                'B': { equivalents: ['Β', 'В', 'ϐ', '8'], scope: ['senderid', 'content'], notes: 'Greek Beta, Cyrillic Ve' },
-                'C': { equivalents: ['С', 'Ϲ', '('], scope: ['senderid', 'content'], notes: 'Cyrillic Es' },
-                'D': { equivalents: [], scope: ['senderid'], notes: '' },
-                'E': { equivalents: ['e', '3', 'È', 'É', 'Ê', 'Ë', 'Ε', 'Е', 'Έ'], scope: ['senderid', 'content'], notes: 'Safe defaults: accented variants, Greek Epsilon, Cyrillic Ie' },
-                'F': { equivalents: [], scope: ['senderid'], notes: '' },
-                'G': { equivalents: ['g', '9'], scope: ['senderid', 'content'], notes: 'Safe defaults: lowercase, digit substitution' },
-                'H': { equivalents: ['Η', 'Н', 'Ή'], scope: ['senderid', 'content'], notes: 'Greek Eta, Cyrillic En' },
-                'I': { equivalents: ['i', '1', 'l', 'Ì', 'Í', 'Î', 'Ï', 'Ι', 'І', 'Ί', '|'], scope: ['senderid', 'content'], notes: 'Safe defaults: accented variants, Greek Iota, Cyrillic I' },
-                'J': { equivalents: ['Ј'], scope: ['senderid'], notes: 'Cyrillic Je' },
-                'K': { equivalents: ['Κ', 'К'], scope: ['senderid', 'content'], notes: 'Greek Kappa, Cyrillic Ka' },
-                'L': { equivalents: ['1', '|'], scope: ['senderid'], notes: 'Common substitution' },
-                'M': { equivalents: ['Μ', 'М'], scope: ['senderid', 'content'], notes: 'Greek Mu, Cyrillic Em' },
-                'N': { equivalents: ['Ν', 'Ň'], scope: ['senderid', 'content'], notes: 'Greek Nu' },
-                'O': { equivalents: ['o', '0', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ο', 'О', 'Ό'], scope: ['senderid', 'content'], notes: 'Safe defaults: accented variants, Greek Omicron, Cyrillic O, zero' },
-                'P': { equivalents: ['Ρ', 'Р'], scope: ['senderid', 'content'], notes: 'Greek Rho, Cyrillic Er' },
-                'Q': { equivalents: [], scope: ['senderid'], notes: '' },
-                'R': { equivalents: [], scope: ['senderid'], notes: '' },
-                'S': { equivalents: ['s', '5', '$', 'Ѕ'], scope: ['senderid', 'content'], notes: 'Safe defaults: lowercase, digit, dollar sign' },
-                'T': { equivalents: ['t', '7', 'Τ', 'Т'], scope: ['senderid', 'content'], notes: 'Safe defaults: lowercase, digit, Greek Tau, Cyrillic Te' },
-                'U': { equivalents: [], scope: ['senderid'], notes: '' },
-                'V': { equivalents: [], scope: ['senderid'], notes: '' },
-                'W': { equivalents: [], scope: ['senderid'], notes: '' },
-                'X': { equivalents: ['Χ', 'Х'], scope: ['senderid', 'content'], notes: 'Greek Chi, Cyrillic Ha' },
-                'Y': { equivalents: ['Υ', 'У', 'Ύ'], scope: ['senderid', 'content'], notes: 'Greek Upsilon, Cyrillic U' },
-                'Z': { equivalents: ['Ζ', '2'], scope: ['senderid', 'content'], notes: 'Greek Zeta' }
+                'A': { equivalents: ['a', '4', 'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Α', 'А', 'Ά', '@'], notes: 'Safe defaults: accented variants, Greek Alpha, Cyrillic A' },
+                'B': { equivalents: ['Β', 'В', 'ϐ', '8'], notes: 'Greek Beta, Cyrillic Ve' },
+                'C': { equivalents: ['С', 'Ϲ', '('], notes: 'Cyrillic Es' },
+                'D': { equivalents: [], notes: '' },
+                'E': { equivalents: ['e', '3', 'È', 'É', 'Ê', 'Ë', 'Ε', 'Е', 'Έ'], notes: 'Safe defaults: accented variants, Greek Epsilon, Cyrillic Ie' },
+                'F': { equivalents: [], notes: '' },
+                'G': { equivalents: ['g', '9'], notes: 'Safe defaults: lowercase, digit substitution' },
+                'H': { equivalents: ['Η', 'Н', 'Ή'], notes: 'Greek Eta, Cyrillic En' },
+                'I': { equivalents: ['i', '1', 'l', 'Ì', 'Í', 'Î', 'Ï', 'Ι', 'І', 'Ί', '|'], notes: 'Safe defaults: accented variants, Greek Iota, Cyrillic I' },
+                'J': { equivalents: ['Ј'], notes: 'Cyrillic Je' },
+                'K': { equivalents: ['Κ', 'К'], notes: 'Greek Kappa, Cyrillic Ka' },
+                'L': { equivalents: ['1', '|'], notes: 'Common substitution' },
+                'M': { equivalents: ['Μ', 'М'], notes: 'Greek Mu, Cyrillic Em' },
+                'N': { equivalents: ['Ν', 'Ň'], notes: 'Greek Nu' },
+                'O': { equivalents: ['o', '0', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ο', 'О', 'Ό'], notes: 'Safe defaults: accented variants, Greek Omicron, Cyrillic O, zero' },
+                'P': { equivalents: ['Ρ', 'Р'], notes: 'Greek Rho, Cyrillic Er' },
+                'Q': { equivalents: [], notes: '' },
+                'R': { equivalents: [], notes: '' },
+                'S': { equivalents: ['s', '5', '$', 'Ѕ'], notes: 'Safe defaults: lowercase, digit, dollar sign' },
+                'T': { equivalents: ['t', '7', 'Τ', 'Т'], notes: 'Safe defaults: lowercase, digit, Greek Tau, Cyrillic Te' },
+                'U': { equivalents: [], notes: '' },
+                'V': { equivalents: [], notes: '' },
+                'W': { equivalents: [], notes: '' },
+                'X': { equivalents: ['Χ', 'Х'], notes: 'Greek Chi, Cyrillic Ha' },
+                'Y': { equivalents: ['Υ', 'У', 'Ύ'], notes: 'Greek Upsilon, Cyrillic U' },
+                'Z': { equivalents: ['Ζ', '2'], notes: 'Greek Zeta' }
             };
             
             var lowercaseEquivalents = {
-                'a': { equivalents: ['A', '4', 'à', 'á', 'â', 'ã', 'ä', 'å', 'α', 'а', '@'], scope: ['senderid', 'content'], notes: 'Safe defaults: accented variants, Greek alpha, Cyrillic a' },
-                'b': { equivalents: ['β', 'ь', 'в'], scope: ['senderid', 'content'], notes: 'Greek beta, Cyrillic soft sign' },
-                'c': { equivalents: ['с', 'ϲ'], scope: ['senderid', 'content'], notes: 'Cyrillic es' },
-                'd': { equivalents: [], scope: ['senderid'], notes: '' },
-                'e': { equivalents: ['E', '3', 'è', 'é', 'ê', 'ë', 'ε', 'е', 'ё'], scope: ['senderid', 'content'], notes: 'Safe defaults: accented variants, Greek epsilon, Cyrillic ie' },
-                'f': { equivalents: [], scope: ['senderid'], notes: '' },
-                'g': { equivalents: ['G', '9', 'ɡ'], scope: ['senderid', 'content'], notes: 'Safe defaults: uppercase, digit substitution' },
-                'h': { equivalents: ['һ'], scope: ['senderid'], notes: 'Cyrillic shha' },
-                'i': { equivalents: ['I', '1', 'l', 'ì', 'í', 'î', 'ï', 'ι', 'і', 'ί', '|'], scope: ['senderid', 'content'], notes: 'Safe defaults: accented variants, Greek iota, Cyrillic i' },
-                'j': { equivalents: ['ј'], scope: ['senderid'], notes: 'Cyrillic je' },
-                'k': { equivalents: ['κ', 'к'], scope: ['senderid', 'content'], notes: 'Greek kappa, Cyrillic ka' },
-                'l': { equivalents: ['1', 'I', '|', 'ӏ'], scope: ['senderid', 'content'], notes: 'Common substitution, Cyrillic palochka' },
-                'm': { equivalents: ['м'], scope: ['senderid'], notes: 'Cyrillic em' },
-                'n': { equivalents: ['ν', 'п'], scope: ['senderid', 'content'], notes: 'Greek nu' },
-                'o': { equivalents: ['O', '0', 'ò', 'ó', 'ô', 'õ', 'ö', 'ο', 'о', 'ό'], scope: ['senderid', 'content'], notes: 'Safe defaults: accented variants, Greek omicron, Cyrillic o, zero' },
-                'p': { equivalents: ['ρ', 'р'], scope: ['senderid', 'content'], notes: 'Greek rho, Cyrillic er' },
-                'q': { equivalents: [], scope: ['senderid'], notes: '' },
-                'r': { equivalents: ['г'], scope: ['senderid'], notes: 'Cyrillic ghe (visual similarity in some fonts)' },
-                's': { equivalents: ['S', '5', '$', 'ѕ'], scope: ['senderid', 'content'], notes: 'Safe defaults: uppercase, digit, dollar sign' },
-                't': { equivalents: ['T', '7', 'τ'], scope: ['senderid', 'content'], notes: 'Safe defaults: uppercase, digit, Greek tau' },
-                'u': { equivalents: ['υ', 'ս'], scope: ['senderid'], notes: 'Greek upsilon, Armenian u' },
-                'v': { equivalents: ['ν'], scope: ['senderid'], notes: 'Greek nu (visual similarity)' },
-                'w': { equivalents: [], scope: ['senderid'], notes: '' },
-                'x': { equivalents: ['χ', 'х'], scope: ['senderid', 'content'], notes: 'Greek chi, Cyrillic ha' },
-                'y': { equivalents: ['у', 'γ'], scope: ['senderid', 'content'], notes: 'Cyrillic u, Greek gamma' },
-                'z': { equivalents: ['ζ'], scope: ['senderid', 'content'], notes: 'Greek zeta' }
+                'a': { equivalents: ['A', '4', 'à', 'á', 'â', 'ã', 'ä', 'å', 'α', 'а', '@'], notes: 'Safe defaults: accented variants, Greek alpha, Cyrillic a' },
+                'b': { equivalents: ['β', 'ь', 'в'], notes: 'Greek beta, Cyrillic soft sign' },
+                'c': { equivalents: ['с', 'ϲ'], notes: 'Cyrillic es' },
+                'd': { equivalents: [], notes: '' },
+                'e': { equivalents: ['E', '3', 'è', 'é', 'ê', 'ë', 'ε', 'е', 'ё'], notes: 'Safe defaults: accented variants, Greek epsilon, Cyrillic ie' },
+                'f': { equivalents: [], notes: '' },
+                'g': { equivalents: ['G', '9', 'ɡ'], notes: 'Safe defaults: uppercase, digit substitution' },
+                'h': { equivalents: ['һ'], notes: 'Cyrillic shha' },
+                'i': { equivalents: ['I', '1', 'l', 'ì', 'í', 'î', 'ï', 'ι', 'і', 'ί', '|'], notes: 'Safe defaults: accented variants, Greek iota, Cyrillic i' },
+                'j': { equivalents: ['ј'], notes: 'Cyrillic je' },
+                'k': { equivalents: ['κ', 'к'], notes: 'Greek kappa, Cyrillic ka' },
+                'l': { equivalents: ['1', 'I', '|', 'ӏ'], notes: 'Common substitution, Cyrillic palochka' },
+                'm': { equivalents: ['м'], notes: 'Cyrillic em' },
+                'n': { equivalents: ['ν', 'п'], notes: 'Greek nu' },
+                'o': { equivalents: ['O', '0', 'ò', 'ó', 'ô', 'õ', 'ö', 'ο', 'о', 'ό'], notes: 'Safe defaults: accented variants, Greek omicron, Cyrillic o, zero' },
+                'p': { equivalents: ['ρ', 'р'], notes: 'Greek rho, Cyrillic er' },
+                'q': { equivalents: [], notes: '' },
+                'r': { equivalents: ['г'], notes: 'Cyrillic ghe (visual similarity in some fonts)' },
+                's': { equivalents: ['S', '5', '$', 'ѕ'], notes: 'Safe defaults: uppercase, digit, dollar sign' },
+                't': { equivalents: ['T', '7', 'τ'], notes: 'Safe defaults: uppercase, digit, Greek tau' },
+                'u': { equivalents: ['υ', 'ս'], notes: 'Greek upsilon, Armenian u' },
+                'v': { equivalents: ['ν'], notes: 'Greek nu (visual similarity)' },
+                'w': { equivalents: [], notes: '' },
+                'x': { equivalents: ['χ', 'х'], notes: 'Greek chi, Cyrillic ha' },
+                'y': { equivalents: ['у', 'γ'], notes: 'Cyrillic u, Greek gamma' },
+                'z': { equivalents: ['ζ'], notes: 'Greek zeta' }
             };
             
             var digitEquivalents = {
-                '0': { equivalents: ['O', 'o', 'Ο', 'ο', 'О', 'о'], scope: ['senderid', 'content', 'url'], notes: 'Latin O, Greek Omicron, Cyrillic O' },
-                '1': { equivalents: ['I', 'i', 'l', 'L', '|', 'Ι', 'ι'], scope: ['senderid', 'content', 'url'], notes: 'Latin I/l, Greek Iota, pipe' },
-                '2': { equivalents: ['Z'], scope: ['url'], notes: 'Visual similarity in some fonts' },
-                '3': { equivalents: ['E', 'e', 'Ε', 'ε'], scope: ['senderid', 'content', 'url'], notes: 'Reversed E appearance' },
-                '4': { equivalents: ['A', 'a'], scope: ['senderid', 'url'], notes: 'Common leet substitution' },
-                '5': { equivalents: ['S', 's', 'Ѕ', 'ѕ'], scope: ['senderid', 'content', 'url'], notes: 'Cyrillic Dze' },
-                '6': { equivalents: ['b', 'G'], scope: ['url'], notes: 'Visual similarity' },
-                '7': { equivalents: ['T', 't', 'Τ', 'τ'], scope: ['senderid', 'url'], notes: 'Common leet substitution' },
-                '8': { equivalents: ['B', 'Β', 'β'], scope: ['senderid', 'content'], notes: 'Greek Beta' },
-                '9': { equivalents: ['g', 'q'], scope: ['url'], notes: 'Visual similarity' }
+                '0': { equivalents: ['O', 'o', 'Ο', 'ο', 'О', 'о'], notes: 'Latin O, Greek Omicron, Cyrillic O' },
+                '1': { equivalents: ['I', 'i', 'l', 'L', '|', 'Ι', 'ι'], notes: 'Latin I/l, Greek Iota, pipe' },
+                '2': { equivalents: ['Z'], notes: 'Visual similarity in some fonts' },
+                '3': { equivalents: ['E', 'e', 'Ε', 'ε'], notes: 'Reversed E appearance' },
+                '4': { equivalents: ['A', 'a'], notes: 'Common leet substitution' },
+                '5': { equivalents: ['S', 's', 'Ѕ', 'ѕ'], notes: 'Cyrillic Dze' },
+                '6': { equivalents: ['b', 'G'], notes: 'Visual similarity' },
+                '7': { equivalents: ['T', 't', 'Τ', 'τ'], notes: 'Common leet substitution' },
+                '8': { equivalents: ['B', 'Β', 'β'], notes: 'Greek Beta' },
+                '9': { equivalents: ['g', 'q'], notes: 'Visual similarity' }
             };
             
-            function computeRiskInternal(equivalents, scope) {
+            function computeRiskInternal(equivalents) {
                 if (equivalents.length === 0) return 'none';
-                var hasUrlScope = scope.indexOf('url') !== -1;
                 var hasDigits = equivalents.some(function(eq) { return /[0-9]/.test(eq); });
                 var hasPunctuation = equivalents.some(function(eq) { return /[!@#$%^&*(),.?":{}|<>]/.test(eq); });
                 var digitCount = equivalents.filter(function(eq) { return /[0-9]/.test(eq); }).length;
                 
-                if (hasUrlScope) return 'high';
                 if (digitCount >= 2 && hasPunctuation) return 'high';
+                if (equivalents.length > 8) return 'high';
                 if (hasDigits || equivalents.length > 5) return 'medium';
                 return 'low';
             }
             
             'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function(char) {
-                var data = uppercaseEquivalents[char] || { equivalents: [], scope: ['senderid'], notes: '' };
+                var data = uppercaseEquivalents[char] || { equivalents: [], notes: '' };
                 library.push({
                     base: char,
                     type: 'uppercase',
                     equivalents: data.equivalents,
-                    scope: data.scope,
                     notes: data.notes,
                     enabled: data.equivalents.length > 0,
-                    risk: computeRiskInternal(data.equivalents, data.scope),
+                    risk: computeRiskInternal(data.equivalents),
                     updatedAt: '28-01-2026',
                     updatedBy: 'admin@quicksms.co.uk'
                 });
             });
             
             'abcdefghijklmnopqrstuvwxyz'.split('').forEach(function(char) {
-                var data = lowercaseEquivalents[char] || { equivalents: [], scope: ['senderid'], notes: '' };
+                var data = lowercaseEquivalents[char] || { equivalents: [], notes: '' };
                 library.push({
                     base: char,
                     type: 'lowercase',
                     equivalents: data.equivalents,
-                    scope: data.scope,
                     notes: data.notes,
                     enabled: data.equivalents.length > 0,
-                    risk: computeRiskInternal(data.equivalents, data.scope),
+                    risk: computeRiskInternal(data.equivalents),
                     updatedAt: '28-01-2026',
                     updatedBy: 'admin@quicksms.co.uk'
                 });
             });
             
             '0123456789'.split('').forEach(function(char) {
-                var data = digitEquivalents[char] || { equivalents: [], scope: ['senderid'], notes: '' };
+                var data = digitEquivalents[char] || { equivalents: [], notes: '' };
                 library.push({
                     base: char,
                     type: 'digit',
                     equivalents: data.equivalents,
-                    scope: data.scope,
                     notes: data.notes,
                     enabled: data.equivalents.length > 0,
-                    risk: computeRiskInternal(data.equivalents, data.scope),
+                    risk: computeRiskInternal(data.equivalents),
                     updatedAt: '28-01-2026',
                     updatedBy: 'admin@quicksms.co.uk'
                 });
@@ -9226,19 +9195,10 @@ var SecurityComplianceControlsService = (function() {
                 equivalentsHtml = '<span class="text-muted" style="font-size: 0.75rem;">No equivalents</span>';
             }
             
-            var scopePillsHtml = char.scope.map(function(s) {
-                var labels = { senderid: 'SenderID', content: 'Content', url: 'URL' };
-                return '<span class="norm-scope-pill ' + s + '">' + (labels[s] || s) + '</span>';
-            }).join('');
-            if (char.scope.length === 0) {
-                scopePillsHtml = '<span class="text-muted" style="font-size: 0.7rem;">None</span>';
-            }
-            
             var updatedDate = char.updated || '28-01-2026';
             
             var dataAttrs = 'data-base="' + char.base + '" ' +
                 'data-equivalents="' + char.equivalents.join(',') + '" ' +
-                'data-scope="' + char.scope.join(',') + '" ' +
                 'data-status="' + (char.enabled ? 'enabled' : 'disabled') + '" ' +
                 'data-risk="' + char.risk + '" ' +
                 'data-updated="' + updatedDate + '" ' +
@@ -9250,7 +9210,6 @@ var SecurityComplianceControlsService = (function() {
                     (char.notes ? '<i class="fas fa-sticky-note ms-2 text-muted" style="font-size: 0.7rem;" title="' + char.notes + '"></i>' : '') +
                 '</td>' +
                 '<td>' + equivalentsHtml + '</td>' +
-                '<td>' + scopePillsHtml + '</td>' +
                 '<td>' +
                     '<span class="norm-status-pill ' + (char.enabled ? 'enabled' : 'disabled') + '">' +
                         (char.enabled ? 'Enabled' : 'Disabled') +
@@ -9282,7 +9241,6 @@ var SecurityComplianceControlsService = (function() {
     
     function filterBaseCharacters(type) {
         var statusFilter = document.getElementById('norm-filter-status-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value;
-        var scopeFilter = document.getElementById('norm-filter-scope-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value;
         var riskFilter = document.getElementById('norm-filter-risk-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value;
         var searchText = document.getElementById('norm-search-' + (type === 'uppercase' ? 'upper' : type === 'lowercase' ? 'lower' : 'digits')).value.toLowerCase();
         
@@ -9300,10 +9258,6 @@ var SecurityComplianceControlsService = (function() {
             if (statusFilter) {
                 if (statusFilter === 'enabled' && !char.enabled) show = false;
                 if (statusFilter === 'disabled' && char.enabled) show = false;
-            }
-            
-            if (scopeFilter && char.scope.indexOf(scopeFilter) === -1) {
-                show = false;
             }
             
             if (riskFilter && char.risk !== riskFilter) {
@@ -11082,10 +11036,8 @@ function showNormRuleModal(base) {
     }).join('');
     
     var existingEquivalents = char ? char.equivalents : [];
-    var existingScope = char ? char.scope : ['senderid', 'content'];
     var existingNotes = char ? (char.notes || '') : '';
     var existingEnabled = char ? char.enabled : true;
-    var hasUrlScope = existingScope.indexOf('url') !== -1;
     
     var equivalentsChipsHtml = existingEquivalents.map(function(eq) {
         return buildEquivChipHtml(eq);
@@ -11112,26 +11064,6 @@ function showNormRuleModal(base) {
                         '</select>' +
                         (isEdit ? '<input type="hidden" id="normRuleBaseHidden" value="' + base + '">' : '') +
                         '<small class="text-muted">The base character that equivalents will map to</small>' +
-                    '</div>' +
-                    
-                    '<div class="mb-4">' +
-                        '<label class="form-label fw-bold"><i class="fas fa-bullseye me-2 text-muted"></i>Applies To</label>' +
-                        '<div class="d-flex gap-2 flex-wrap">' +
-                            '<button type="button" class="btn norm-scope-toggle ' + (existingScope.indexOf('senderid') !== -1 ? 'active' : '') + '" data-scope="senderid" onclick="toggleNormScope(this)">' +
-                                '<i class="fas fa-id-badge me-1"></i>SenderID' +
-                            '</button>' +
-                            '<button type="button" class="btn norm-scope-toggle ' + (existingScope.indexOf('content') !== -1 ? 'active' : '') + '" data-scope="content" onclick="toggleNormScope(this)">' +
-                                '<i class="fas fa-comment-alt me-1"></i>Content' +
-                            '</button>' +
-                            '<button type="button" class="btn norm-scope-toggle ' + (existingScope.indexOf('url') !== -1 ? 'active' : '') + '" data-scope="url" onclick="toggleNormScope(this)">' +
-                                '<i class="fas fa-link me-1"></i>URL' +
-                            '</button>' +
-                        '</div>' +
-                        '<div id="normUrlWarning" class="alert alert-warning mt-2 mb-0" style="display: ' + (hasUrlScope ? 'block' : 'none') + '; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">' +
-                            '<i class="fas fa-exclamation-triangle me-2" style="color: #856404;"></i>' +
-                            '<strong>Warning:</strong> URL normalisation can cause broad matches and false positives.' +
-                        '</div>' +
-                        '<small class="text-muted mt-2 d-block">Select which engines will use this normalisation rule</small>' +
                     '</div>' +
                     
                     '<div class="mb-4">' +
@@ -11195,14 +11127,6 @@ function showNormRuleModal(base) {
     modal.show();
 }
 
-function toggleNormScope(btn) {
-    btn.classList.toggle('active');
-    var urlBtn = document.querySelector('.norm-scope-toggle[data-scope="url"]');
-    var urlWarning = document.getElementById('normUrlWarning');
-    if (urlWarning && urlBtn) {
-        urlWarning.style.display = urlBtn.classList.contains('active') ? 'block' : 'none';
-    }
-}
 
 function updateNormRuleBaseContext() {
     var baseSelect = document.getElementById('normRuleBase');
@@ -11427,13 +11351,6 @@ function saveNormRule(originalBase) {
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (!char) return;
     
-    var scopeButtons = document.querySelectorAll('.norm-scope-toggle.active');
-    var scope = [];
-    scopeButtons.forEach(function(btn) {
-        scope.push(btn.getAttribute('data-scope'));
-    });
-    if (scope.length === 0) scope = ['senderid'];
-    
     var equivTags = document.querySelectorAll('#normEquivTags .norm-equiv-tag');
     var equivalents = [];
     equivTags.forEach(function(tag) {
@@ -11446,13 +11363,12 @@ function saveNormRule(originalBase) {
     var pendingChange = {
         base: base,
         equivalents: equivalents,
-        scope: scope,
         notes: notes,
         enabled: enabled,
         isEdit: isEdit
     };
     
-    var newRisk = computeRisk({ equivalents: equivalents, scope: scope });
+    var newRisk = computeRisk({ equivalents: equivalents });
     var oldRisk = char.risk || 'none';
     
     if (newRisk === 'high' && oldRisk !== 'high') {
@@ -11465,13 +11381,13 @@ function saveNormRule(originalBase) {
 
 function showHighRiskConfirmModal(pendingChange) {
     var reasons = [];
-    if (pendingChange.scope.indexOf('url') !== -1) {
-        reasons.push('URL normalisation is enabled (can cause broad matches and false positives)');
-    }
     var digitCount = pendingChange.equivalents.filter(function(eq) { return /[0-9]/.test(eq); }).length;
     var hasPunctuation = pendingChange.equivalents.some(function(eq) { return /[!@#$%^&*(),.?":{}|<>]/.test(eq); });
     if (digitCount >= 2 && hasPunctuation) {
         reasons.push('Contains multiple digit equivalents with punctuation');
+    }
+    if (pendingChange.equivalents.length > 8) {
+        reasons.push('Large number of equivalents (' + pendingChange.equivalents.length + ' total)');
     }
     
     var reasonsHtml = reasons.map(function(r) {
@@ -11619,7 +11535,6 @@ function executeSaveNormRule(changeData) {
         version: version.version,
         before: beforeState,
         after: afterState,
-        appliesToScope: afterState.scope,
         riskLevel: afterState.risk,
         changeType: beforeState.equivalents.length === 0 ? 'created' : 'updated'
     });
@@ -11839,7 +11754,6 @@ function executeRollback(base, targetVersion) {
         newVersion: version.version,
         before: beforeState,
         after: afterState,
-        appliesToScope: afterState.scope,
         riskLevel: afterState.risk
     });
     
@@ -11858,18 +11772,16 @@ function executeRollback(base, targetVersion) {
 
 function computeRisk(char) {
     var equivalents = char.equivalents || [];
-    var scope = char.scope || [];
     var equivCount = equivalents.length;
     
     if (equivCount === 0) return 'none';
     
-    var hasUrlScope = scope.indexOf('url') !== -1;
     var hasDigits = equivalents.some(function(eq) { return /[0-9]/.test(eq); });
     var hasPunctuation = equivalents.some(function(eq) { return /[!@#$%^&*(),.?":{}|<>]/.test(eq); });
     var digitCount = equivalents.filter(function(eq) { return /[0-9]/.test(eq); }).length;
     
-    if (hasUrlScope) return 'high';
     if (digitCount >= 2 && hasPunctuation) return 'high';
+    if (equivCount > 8) return 'high';
     
     if (hasDigits || equivCount > 5) return 'medium';
     
@@ -11923,7 +11835,6 @@ function toggleBaseCharacterStatus(base, enabled) {
         base: base,
         before: beforeState,
         after: afterState,
-        appliesToScope: char.scope,
         riskLevel: char.risk || 'none',
         statusChange: enabled ? 'enabled' : 'disabled'
     });
@@ -12353,21 +12264,19 @@ function selectNormTestMode(btn) {
 function runNormalisationTest() {
     var input = document.getElementById('normTestInput').value;
     var target = document.getElementById('normTestTarget').value.trim();
-    var modeBtn = document.querySelector('.norm-test-mode-btn.active');
-    var scope = modeBtn ? modeBtn.getAttribute('data-mode') : 'senderid';
     
     if (!input) {
         showToast('Please enter text to test', 'warning');
         return;
     }
     
-    var result = performNormalisation(input, scope);
+    var result = performNormalisation(input);
     
     document.getElementById('normTestOriginal').innerHTML = result.highlightedOriginal;
     document.getElementById('normTestNormalised').innerHTML = result.highlightedNormalised;
     
     if (target) {
-        var targetResult = performNormalisation(target, scope);
+        var targetResult = performNormalisation(target);
         var isMatch = result.normalised.toUpperCase() === targetResult.normalised.toUpperCase();
         
         var matchHtml = isMatch 
@@ -12434,9 +12343,8 @@ function runNormalisationTest() {
         entityType: 'normalisation_test',
         input: input, 
         output: result.normalised, 
-        appliesToScope: scope,
         target: target || null,
-        matched: target ? (result.normalised.toUpperCase() === performNormalisation(target, scope).normalised.toUpperCase()) : null,
+        matched: target ? (result.normalised.toUpperCase() === performNormalisation(target).normalised.toUpperCase()) : null,
         substitutionsCount: result.substitutions.length,
         matchedRulesCount: matchedRules.length,
         riskLevel: matchedRules.length > 0 ? (matchedRules.some(function(r) { return r.risk === 'high'; }) ? 'high' : 'medium') : 'none'
@@ -12456,9 +12364,6 @@ function runNormalisationTest() {
 var NormalisationRulesConfig = {
     FEATURE_FLAGS: {
         normalisation_enabled: true,
-        senderid_scope_enabled: true,
-        content_scope_enabled: true,
-        url_scope_enabled: true,
         audit_logging_enabled: true,
         test_tool_enabled: true
     },
@@ -12566,7 +12471,7 @@ window.NormalisationRulesConfig = NormalisationRulesConfig;
  * NormalisationEnforcementAPI - Internal API for normalisation rules
  * All modules MUST use this service for normalisation.
  * 
- * Internal API: GET /internal/normalisation-rules?scope=senderid|content|url
+ * Internal API: GET /internal/normalisation-rules (returns unified normalisation map for all engines)
  * Cached with 60s TTL
  * 
  * Evaluation order:
@@ -12575,64 +12480,54 @@ window.NormalisationRulesConfig = NormalisationRulesConfig;
  */
 var NormalisationEnforcementAPI = (function() {
     var cache = {
-        rules: {},
-        lastFetch: {},
-        equivIndex: {},
+        rules: null,
+        lastFetch: 0,
+        equivIndex: null,
         TTL_MS: NormalisationRulesConfig.CACHE_TTL_MS
     };
     
-    function isCacheValid(scope) {
-        var lastFetch = cache.lastFetch[scope] || 0;
-        return (Date.now() - lastFetch) < cache.TTL_MS;
+    function isCacheValid() {
+        return (Date.now() - cache.lastFetch) < cache.TTL_MS;
     }
     
-    function fetchRules(scope) {
-        if (isCacheValid(scope) && cache.rules[scope]) {
-            console.log('[NormalisationEnforcementAPI] Cache hit for scope: ' + scope);
-            return cache.rules[scope];
+    function fetchRules() {
+        if (isCacheValid() && cache.rules) {
+            console.log('[NormalisationEnforcementAPI] Cache hit (unified normalisation rules)');
+            return cache.rules;
         }
         
-        console.log('[NormalisationEnforcementAPI] Fetching rules for scope: ' + scope);
+        console.log('[NormalisationEnforcementAPI] Fetching unified normalisation rules');
         
         var rules = mockData.baseCharacterLibrary.filter(function(rule) {
-            if (!rule.enabled) return false;
-            if (scope === 'all') return true;
-            return rule.scope.indexOf(scope) !== -1;
+            return rule.enabled;
         }).map(function(rule) {
             return {
                 base: rule.base,
-                equivalents: rule.equivalents.slice(),
-                scope: rule.scope.slice()
+                equivalents: rule.equivalents.slice()
             };
         });
         
-        cache.rules[scope] = rules;
-        cache.lastFetch[scope] = Date.now();
+        cache.rules = rules;
+        cache.lastFetch = Date.now();
         
-        console.log('[NormalisationEnforcementAPI] Cached ' + rules.length + ' rules for scope: ' + scope + ' (TTL: 60s)');
+        console.log('[NormalisationEnforcementAPI] Cached ' + rules.length + ' unified rules (TTL: 60s)');
         
         return rules;
     }
     
-    function invalidateCache(scope) {
-        if (scope) {
-            delete cache.rules[scope];
-            delete cache.lastFetch[scope];
-            delete cache.equivIndex[scope];
-        } else {
-            cache.rules = {};
-            cache.lastFetch = {};
-            cache.equivIndex = {};
-        }
-        console.log('[NormalisationEnforcementAPI] Cache invalidated' + (scope ? ' for scope: ' + scope : ' (all)'));
+    function invalidateCache() {
+        cache.rules = null;
+        cache.lastFetch = 0;
+        cache.equivIndex = null;
+        console.log('[NormalisationEnforcementAPI] Cache invalidated');
     }
     
-    function buildEquivIndex(scope) {
-        if (cache.equivIndex[scope] && isCacheValid(scope)) {
-            return cache.equivIndex[scope];
+    function buildEquivIndex() {
+        if (cache.equivIndex && isCacheValid()) {
+            return cache.equivIndex;
         }
         
-        var rules = fetchRules(scope);
+        var rules = fetchRules();
         var index = {};
         
         rules.forEach(function(rule) {
@@ -12642,12 +12537,12 @@ var NormalisationEnforcementAPI = (function() {
             });
         });
         
-        cache.equivIndex[scope] = index;
-        console.log('[NormalisationEnforcementAPI] Built equiv index for scope: ' + scope + ' (' + Object.keys(index).length + ' mappings)');
+        cache.equivIndex = index;
+        console.log('[NormalisationEnforcementAPI] Built unified equiv index (' + Object.keys(index).length + ' mappings)');
         return index;
     }
     
-    function normalise(input, scope) {
+    function normalise(input) {
         if (!NormalisationRulesConfig.isFeatureEnabled('normalisation_enabled')) {
             return {
                 normalised: input,
@@ -12658,7 +12553,7 @@ var NormalisationEnforcementAPI = (function() {
             };
         }
         
-        var equivMap = buildEquivIndex(scope);
+        var equivMap = buildEquivIndex();
         
         var normalised = '';
         var substitutions = [];
@@ -12692,17 +12587,17 @@ var NormalisationEnforcementAPI = (function() {
             substitutions: substitutions,
             highlightedOriginal: highlightedOriginal,
             highlightedNormalised: highlightedNormalised,
-            cacheHit: isCacheValid(scope)
+            cacheHit: isCacheValid()
         };
     }
     
-    function evaluate(input, scope) {
-        var normResult = normalise(input, scope);
+    function evaluate(input) {
+        var normResult = normalise(input);
         
         var ruleMatches = [];
         
         if (window.MessageEnforcementService) {
-            ruleMatches = MessageEnforcementService.evaluateAgainstRules(normResult.normalised, scope);
+            ruleMatches = MessageEnforcementService.evaluateAgainstRules(normResult.normalised);
         }
         
         return {
@@ -12717,9 +12612,10 @@ var NormalisationEnforcementAPI = (function() {
     
     function getCacheStats() {
         return {
-            cachedScopes: Object.keys(cache.rules),
+            rulesCount: cache.rules ? cache.rules.length : 0,
             ttlMs: cache.TTL_MS,
-            lastFetch: cache.lastFetch
+            lastFetch: cache.lastFetch,
+            cacheValid: isCacheValid()
         };
     }
     
@@ -12734,13 +12630,13 @@ var NormalisationEnforcementAPI = (function() {
 
 window.NormalisationEnforcementAPI = NormalisationEnforcementAPI;
 
-function performNormalisation(input, scope) {
-    return NormalisationEnforcementAPI.normalise(input, scope);
+function performNormalisation(input) {
+    return NormalisationEnforcementAPI.normalise(input);
 }
 
-function findMatchingRules(normalisedText, scope) {
+function findMatchingRules(normalisedText) {
     if (window.MessageEnforcementService) {
-        return MessageEnforcementService.evaluateAgainstRules(normalisedText, scope);
+        return MessageEnforcementService.evaluateAgainstRules(normalisedText);
     }
     return [];
 }
@@ -12978,39 +12874,6 @@ function showBulkEditModal() {
     modal.show();
 }
 
-function applyBulkScope() {
-    var target = document.getElementById('bulkEditTarget').value;
-    var scope = [];
-    if (document.getElementById('bulkScopeSenderid').checked) scope.push('senderid');
-    if (document.getElementById('bulkScopeContent').checked) scope.push('content');
-    if (document.getElementById('bulkScopeUrl').checked) scope.push('url');
-    
-    if (scope.length === 0) scope = ['senderid'];
-    
-    var count = 0;
-    mockData.baseCharacterLibrary.forEach(function(char) {
-        var shouldUpdate = false;
-        if (target === 'all') shouldUpdate = true;
-        else if (target === 'uppercase' && char.type === 'uppercase') shouldUpdate = true;
-        else if (target === 'lowercase' && char.type === 'lowercase') shouldUpdate = true;
-        else if (target === 'digits' && char.type === 'digit') shouldUpdate = true;
-        else if (target === 'with_equivalents' && char.equivalents.length > 0) shouldUpdate = true;
-        
-        if (shouldUpdate) {
-            char.scope = scope.slice();
-            count++;
-        }
-    });
-    
-    logAuditEvent('BULK_SCOPE_UPDATED', { target: target, scope: scope, count: count });
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('bulkEditModal'));
-    modal.hide();
-    
-    MessageEnforcementService.hotReloadRules();
-    SecurityComplianceControlsService.renderAllTabs();
-}
-
 function globalNormSearch() {
     var searchTerm = document.getElementById('norm-global-search').value.toLowerCase().trim();
     applyGlobalNormFilters();
@@ -13022,7 +12885,6 @@ function globalNormFilter() {
 
 function resetGlobalNormFilters() {
     document.getElementById('norm-global-search').value = '';
-    document.getElementById('norm-global-scope').value = '';
     document.getElementById('norm-global-status').value = '';
     document.getElementById('norm-global-risk').value = '';
     applyGlobalNormFilters();
@@ -13030,7 +12892,6 @@ function resetGlobalNormFilters() {
 
 function applyGlobalNormFilters() {
     var searchTerm = document.getElementById('norm-global-search').value.toLowerCase().trim();
-    var scopeFilter = document.getElementById('norm-global-scope').value;
     var statusFilter = document.getElementById('norm-global-status').value;
     var riskFilter = document.getElementById('norm-global-risk').value;
     
@@ -13044,7 +12905,6 @@ function applyGlobalNormFilters() {
         rows.forEach(function(row) {
             var baseChar = row.getAttribute('data-base') || '';
             var equivalents = row.getAttribute('data-equivalents') || '';
-            var scope = row.getAttribute('data-scope') || '';
             var status = row.getAttribute('data-status') || '';
             var risk = row.getAttribute('data-risk') || '';
             
@@ -13054,10 +12914,6 @@ function applyGlobalNormFilters() {
                 var matchBase = baseChar.toLowerCase().indexOf(searchTerm) !== -1;
                 var matchEquiv = equivalents.toLowerCase().indexOf(searchTerm) !== -1;
                 if (!matchBase && !matchEquiv) show = false;
-            }
-            
-            if (scopeFilter && show) {
-                if (scope.indexOf(scopeFilter) === -1) show = false;
             }
             
             if (statusFilter && show) {
