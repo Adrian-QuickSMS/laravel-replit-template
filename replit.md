@@ -77,7 +77,7 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - **Per-Character Properties:** Equivalents (configurable), enabled/disabled state, notes, computed risk classification
   - **Risk Classification:** Computed automatically based on equivalent count (high: >8 or has multiple digits with punctuation, medium: >5 or has digits, low: otherwise, none: no equivalents)
   - **Unified Normalisation Map:** Single `NormalisationEnforcementAPI` provides cached character mappings for all engines with 60s TTL
-  - **Bulk Operations:** Bulk status changes; JSON export of full library
+  - **Bulk Operations:** Bulk status changes only (no import/export functionality)
   - **Audit Integration:** All changes logged via `logAuditEvent()` with BASE_CHARACTER_UPDATED, BASE_CHARACTER_STATUS_CHANGED events
 - **Design Principles:** Typed JSDoc objects, mock data modes for development, clean separation of UI and API, and robust error handling.
 
