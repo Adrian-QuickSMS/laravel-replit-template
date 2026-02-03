@@ -4956,14 +4956,16 @@ var SecurityComplianceControlsService = (function() {
     }
 
     function renderAllTabs() {
-        renderSenderIdTab();
-        renderExemptionsTab();
-        renderContentTab();
-        renderContentExemptionsTab();
-        renderUrlTab();
-        renderUrlExemptionsTab();
-        renderNormTab();
-        renderQuarantineTab();
+        console.log('[renderAllTabs] Starting...');
+        try { renderSenderIdTab(); console.log('[renderAllTabs] SenderID done'); } catch(e) { console.error('[renderAllTabs] SenderID error:', e); }
+        try { renderExemptionsTab(); console.log('[renderAllTabs] Exemptions done'); } catch(e) { console.error('[renderAllTabs] Exemptions error:', e); }
+        try { renderContentTab(); console.log('[renderAllTabs] Content done'); } catch(e) { console.error('[renderAllTabs] Content error:', e); }
+        try { renderContentExemptionsTab(); console.log('[renderAllTabs] ContentExemptions done'); } catch(e) { console.error('[renderAllTabs] ContentExemptions error:', e); }
+        try { renderUrlTab(); console.log('[renderAllTabs] Url done'); } catch(e) { console.error('[renderAllTabs] Url error:', e); }
+        try { renderUrlExemptionsTab(); console.log('[renderAllTabs] UrlExemptions done'); } catch(e) { console.error('[renderAllTabs] UrlExemptions error:', e); }
+        try { renderNormTab(); console.log('[renderAllTabs] Norm done'); } catch(e) { console.error('[renderAllTabs] Norm error:', e); }
+        try { renderQuarantineTab(); console.log('[renderAllTabs] Quarantine done'); } catch(e) { console.error('[renderAllTabs] Quarantine error:', e); }
+        console.log('[renderAllTabs] Complete');
     }
 
     function renderSenderIdTab() {
@@ -8964,7 +8966,9 @@ var SecurityComplianceControlsService = (function() {
     }
 
     function renderNormTab() {
+        console.log('[NormTab] renderNormTab called');
         var library = mockData.baseCharacterLibrary;
+        console.log('[NormTab] baseCharacterLibrary length:', library ? library.length : 'undefined');
         
         var riskColors = {
             'high': { bg: '#fee2e2', color: '#991b1b', icon: 'fa-exclamation-triangle' },
@@ -8992,7 +8996,9 @@ var SecurityComplianceControlsService = (function() {
     
     function renderBaseCharacterGrid(type, characters, riskColors) {
         var gridId = type === 'digits' ? 'norm-digits-grid' : 'norm-letters-grid';
+        console.log('[NormTab] renderBaseCharacterGrid called for', type, 'with', characters ? characters.length : 0, 'characters');
         var grid = document.getElementById(gridId);
+        console.log('[NormTab] Grid element found:', gridId, grid ? 'YES' : 'NO');
         if (!grid) return;
         
         grid.innerHTML = characters.map(function(char) {
@@ -10384,6 +10390,15 @@ var SecurityComplianceControlsService = (function() {
                 e.target.style.color = '#1e3a5f';
             });
         });
+        
+        // Normalisation tab - ensure grid renders when tab is shown
+        var normTabBtn = document.getElementById('normalisation-rules-tab');
+        if (normTabBtn) {
+            normTabBtn.addEventListener('shown.bs.tab', function() {
+                console.log('[NormTab] Tab shown - triggering render');
+                renderNormTab();
+            });
+        }
         
         document.addEventListener('click', function(e) {
             if (!e.target.closest('.action-menu-container')) {
