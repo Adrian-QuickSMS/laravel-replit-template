@@ -14429,9 +14429,15 @@ window.addEventListener('load', function() {
                 '<td>' + msg.reviewer + '</td>' +
                 '<td>' + msg.decisionAt + '</td>' +
                 '<td>' +
-                    '<button class="btn btn-sm btn-outline-primary me-1" onclick="viewQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-eye"></i></button>' +
-                    '<button class="btn btn-sm btn-outline-success me-1" onclick="releaseQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-check"></i></button>' +
-                    '<button class="btn btn-sm btn-outline-danger" onclick="blockQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-ban"></i></button>' +
+                    '<div class="dropdown">' +
+                        '<button class="action-menu-btn" data-bs-toggle="dropdown" aria-expanded="false" style="background: none; border: none; color: #6c757d; cursor: pointer;"><i class="fas fa-ellipsis-v"></i></button>' +
+                        '<ul class="dropdown-menu dropdown-menu-end">' +
+                            '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>' +
+                            '<li><hr class="dropdown-divider"></li>' +
+                            '<li><a class="dropdown-item text-success" href="javascript:void(0)" onclick="releaseQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-check-circle me-2"></i>Release Message</a></li>' +
+                            '<li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="blockQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-ban me-2"></i>Block Message</a></li>' +
+                        '</ul>' +
+                    '</div>' +
                 '</td>' +
                 '</tr>';
         });
