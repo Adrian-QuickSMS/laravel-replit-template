@@ -1,0 +1,144 @@
+PLAN PROMPT — Admin Portal as the Superset (Source of Truth + Hard Locks)
+
+You are working on the QuickSMS platform. The Admin Portal is the definitive “superset control plane”. Do NOT rebuild duplicate logic. Reuse the same data models, validations, and shared UI components from the customer portal (Fillow), with only admin-blue theme tokens swapped in. Admin extends capabilities and scope; it must never diverge in definitions, statuses, or calculations.
+
+GOALS
+1) Admin Portal is the single operational control plane:
+   - Global visibility across ALL customer accounts.
+   - Approval queues and request workflows are owned by Admin.
+   - Admin actions can override customer state, apply restrictions, and enforce platform safety.
+
+2) Customer Portal is always a constrained view:
+   - Customers can request, configure, and operate only within allowed boundaries.
+   - Customer users cannot override any Admin-enforced suspension/lock/restriction.
+   - Where Admin has applied a lock, the Customer Portal must show the lock reason and prevent action.
+
+3) All “request/approval” objects must appear in Admin:
+   - SenderID Registration requests
+   - RCS Agent Registration requests
+   - Country destination requests
+   - Any other review queue items
+   These must be visible in Admin with the same workflow states and audit logging.
+
+4) Any Admin account-level rules MUST be reflected everywhere:
+   - API suspended / API connection disabled
+   - Spam rule override / exemptions
+   - Country allow/deny overrides
+   - SenderID controls exemptions / blocks
+   - Any “forced” enforcement state
+   These must be enforced consistently across Portal, API, Email-to-SMS, Templates, Inbox, Campaign sending.
+
+HARD RULES (NON-NEGOTIABLE)
+A) Shared Logic Only
+- All business rules must be implemented once in shared services/helpers and consumed by both Admin + Customer portals.
+- Admin portal should not implement “similar” logic; it must call the same functions/endpoints used by Customer Portal.
+- Same definitions: message parts, delivery statuses, billable flags, pricing basis, etc.
+
+B) Admin Locks Override Customer Actions
+- If an entity is Admin-suspended/locked (template, email-to-sms config, campaign, API connection, number, senderID, RCS agent):
+  - Customer UI must be read-only for that entity’s critical controls.
+  - Customer actions that attempt to bypass MUST fail server-side.
+  - Show a Fillow info/warning strip: “Disabled by QuickSMS Admin — contact support.”
+  - Customer cannot re-enable/reactivate/unsuspend anything locked by Admin.
+
+C) Enforcement Must Be Server-Side
+- UI disabling is not sufficient. All enforcement rules must be checked and blocked in backend/API layer.
+- Admin portal is allowed to set the lock; customer portal is not allowed to remove it.
+
+D) Single Source of Truth + Propagation
+- Any request submitted in customer portal must write to a single shared datastore and be queryable globally by Admin.
+- Any Admin state change must immediately update the authoritative store and reflect in customer portal views.
+- No duplicated “mock-only” states that diverge.
+
+DATA MODEL PRINCIPLES
+1) Every “governed object” must have:
+   - status: Active / Suspended / Archived (plus workflow states where relevant)
+   - lock_source: NONE | CUSTOMER | ADMIN
+   - lock_reason: text / enum
+   - locked_at, locked_by (admin user)
+   - audit trail events (immutable)
+
+2) Requests/approvals (SenderID, RCS agent, Country) must have:
+   - workflow_status: Submitted / In Review / Returned / Resubmitted / Validation In Progress / Approved / Rejected / Provisioning / Live
+   - customer-visible status mirrors Admin workflow status (but customer cannot force progress)
+   - versioning for resubmissions + diff view (admin)
+
+3) Account-level enforcement settings must have:
+   - defaults (global policy)
+   - overrides per account
+   - overrides per sub-account (only where explicitly allowed)
+   - precedence rule: explicit override > default policy
+   - audit event on every change
+
+APPROVAL FLOW REQUIREMENTS
+- Customer portal can ONLY submit requests (SenderID/RCS/Country) and view their status.
+- Admin portal owns review/approve/reject/provision/override steps.
+- Admin actions must update the request record and the resulting “approved/usable” state objects.
+- Approved items become part of “Exemptions/Allowed Lists” where applicable (e.g., SenderID exemptions tab fed by approvals).
+
+SUSPENSION / LOCK BEHAVIOUR (EXAMPLES)
+1) API Connection Suspended by Admin:
+   - Customer sees connection status “Suspended by Admin”
+   - Customer cannot re-enable
+   - All API calls using that key fail with explicit error
+   - Admin can reactivate
+
+2) Template Suspended by Admin:
+   - Customer cannot send using it
+   - Customer cannot unsuspend
+   - Customer can view but cannot modify critical fields unless allowed (read-only by default)
+   - Admin can re-enable
+
+3) Email-to-SMS Config Suspended by Admin:
+   - Customer cannot reactivate
+   - Inbound parsing rejects mail with reason “Disabled by Admin”
+   - Admin can reactivate
+
+4) Country blocked by Admin override:
+   - Customer send attempts fail validation (portal + API + email-to-sms)
+   - Customer sees blocked reason and “Request access” path if allowed
+
+UI GUARDRAILS
+- Use Fillow only. Do not redesign components.
+- Admin uses admin-blue theme tokens; customer uses purple.
+- Shared components (previews, wizards, message logs, finance tables) must be identical except:
+  - Admin adds Account column / Account filter for global scope
+  - Admin adds additional read-only columns where required
+- Rows/colours/badges follow existing Fillow semantics (do not invent new styling).
+
+IMPLEMENTATION PLAN (DO THIS FIRST)
+1) Create/confirm a shared “Governance & Enforcement” service:
+   - isActionAllowed(accountId, subAccountId, entityType, entityId, action, context)
+   - returns { allowed: bool, reason, lock_source, lock_reason, blocking_rule_id }
+   Use this in all send flows, wizard saves, and state transitions.
+
+2) Add lock fields to governed entities and enforce in backend:
+   - templates, email-to-sms configs, api connections, numbers, senderIDs, rcs agents, campaigns
+   - ensure customer endpoints reject action if lock_source=ADMIN
+
+3) Centralise approval request storage and admin queues:
+   - senderid_requests, rcs_agent_requests, country_requests
+   - customer portal submits -> admin portal reviews -> status updates propagate
+
+4) Update customer portal UI to respect locks:
+   - show “Disabled by Admin” banners
+   - disable actions
+   - ensure backend enforcement still blocks if UI missed it
+
+5) Audit logging:
+   - every admin action that changes customer state logs to INTERNAL ADMIN AUDIT
+   - customer audit viewer shows only customer-facing actions + system events in customer context
+   - support impersonation logs internally only
+
+ACCEPTANCE TESTS (MUST PASS)
+- Any customer request appears in Admin queue within seconds.
+- Admin approving a request updates customer portal status and enables the feature.
+- Admin suspending any governed object prevents customer from reversing it (UI + backend).
+- All enforcement is consistent across Portal, API, Email-to-SMS, Templates, Inbox, Campaign sending.
+- Shared wizards/previews remain identical (no drift) between Admin and Customer.
+- All admin actions are auditable with before/after values.
+
+DO NOT
+- Do not create parallel logic or new status enums.
+- Do not implement customer-side “override” paths for admin locks.
+- Do not change shared component layouts beyond admin-blue theming + global Account scope.

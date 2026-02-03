@@ -1741,7 +1741,7 @@
                                 </div>
                             </div>
                             
-                            <div class="senderid-filter-panel" id="senderid-filter-panel">
+                            <div class="senderid-filter-panel" id="senderid-filter-panel" style="display: none;">
                                 <div class="filter-body">
                                     <div class="filter-row">
                                         <div class="filter-group">
@@ -1829,7 +1829,7 @@
                                 </div>
                             </div>
                             
-                            <div class="exemptions-filter-panel" id="exemptions-filter-panel">
+                            <div class="exemptions-filter-panel" id="exemptions-filter-panel" style="display: none;">
                                 <div class="filter-body">
                                     <div class="filter-row">
                                         <div class="filter-group">
@@ -2605,7 +2605,7 @@
                         </div>
                     </div>
 
-                    <div class="quarantine-filter-panel" id="quarantine-filter-panel">
+                    <div class="quarantine-filter-panel" id="quarantine-filter-panel" style="display: none;">
                         <div class="filter-body">
                             <div class="filter-row">
                                 <div class="filter-group">
@@ -4757,108 +4757,30 @@ var SecurityComplianceControlsService = (function() {
     }
 
     function loadMockData() {
-        mockData.senderIdRules = [
-            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
-            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
-            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government_healthcare', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
-            { id: 'SID-004', name: 'Block DPD Sender', baseSenderId: 'DPD', ruleType: 'block', category: 'delivery_logistics', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
-            { id: 'SID-005', name: 'Flag Generic Sender', baseSenderId: 'INFO', ruleType: 'flag', category: 'generic', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
-        ];
+        // TODO: Backend integration - fetch data from API endpoints
+        // All arrays initialized as empty - no mock data
+        mockData.senderIdRules = [];
 
-        mockData.contentRules = [
-            { id: 'CNT-001', name: 'Phishing Keywords', matchType: 'keyword', matchValue: 'verify your account, click here immediately, suspended account, urgent action', ruleType: 'block', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
-            { id: 'CNT-002', name: 'Adult Content Filter', matchType: 'regex', matchValue: '(18\\+|xxx|adult\\s?content)', ruleType: 'flag', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '12-01-2026 14:00', updatedAt: '20-01-2026 11:45' },
-            { id: 'CNT-003', name: 'Gambling Promotion', matchType: 'keyword', matchValue: 'bet now, free spins, casino bonus, jackpot winner', ruleType: 'flag', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
-            { id: 'CNT-004', name: 'Cryptocurrency Scam', matchType: 'regex', matchValue: '(bitcoin|crypto|eth)\\s*(giveaway|airdrop|double)', ruleType: 'block', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '08-01-2026 10:20', updatedAt: '08-01-2026 10:20' },
-            { id: 'CNT-005', name: 'Premium Rate Numbers', matchType: 'regex', matchValue: '(call|text|dial)\\s*(09\\d{8,}|118\\d+)', ruleType: 'flag', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
-        ];
+        mockData.contentRules = [];
 
-        mockData.senderIdApprovals = [
-            { id: 'APPR-001', senderId: 'ACMECO', type: 'alphanumeric', accountId: 'ACC-1234', accountName: 'Acme Corporation', scope: 'account', subAccounts: [], category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30', notes: 'Standard business SenderID', normalisedValue: 'ACMECO' },
-            { id: 'APPR-002', senderId: 'FINLTD', type: 'alphanumeric', accountId: 'ACC-5678', accountName: 'Finance Ltd', scope: 'account', subAccounts: ['SUB-001', 'SUB-002'], category: 'banking_finance', approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '12-01-2026 14:00', updatedAt: '20-01-2026 11:45', notes: 'Financial services - verified', normalisedValue: 'FINLTD' },
-            { id: 'APPR-003', senderId: 'RETAILMX', type: 'alphanumeric', accountId: 'ACC-4001', accountName: 'RetailMax Group', scope: 'account', subAccounts: [], category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '20-01-2026 11:00', updatedAt: '20-01-2026 11:00', notes: 'Retail notifications', normalisedValue: 'RETAILMX' },
-            { id: 'APPR-004', senderId: 'HLTHPLUS', type: 'alphanumeric', accountId: 'ACC-4005', accountName: 'HealthPlus Care', scope: 'subaccount', subAccounts: ['SUB-010', 'SUB-011', 'SUB-012'], category: 'government_healthcare', approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '08-01-2026 16:45', updatedAt: '25-01-2026 09:15', notes: 'Healthcare provider - NHS verified', normalisedValue: 'HLTHPLUS' },
-            { id: 'APPR-005', senderId: 'TECHSTRT', type: 'alphanumeric', accountId: 'ACC-4008', accountName: 'TechStartup Inc', scope: 'account', subAccounts: [], category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '25-01-2026 10:20', updatedAt: '25-01-2026 10:20', notes: 'Tech startup notifications', normalisedValue: 'TECHSTRT' },
-            { id: 'APPR-006', senderId: 'FOODDLVR', type: 'alphanumeric', accountId: 'ACC-4009', accountName: 'FoodDelivery Pro', scope: 'account', subAccounts: [], category: 'delivery_logistics', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '18-01-2026 14:30', updatedAt: '18-01-2026 14:30', notes: 'Food delivery updates', normalisedValue: 'FOODDLVR' },
-            { id: 'APPR-007', senderId: '88001', type: 'shortcode', accountId: 'ACC-4010', accountName: 'PromoMax Ltd', scope: 'account', subAccounts: [], category: 'miscellaneous', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '28-01-2026 10:00', updatedAt: '28-01-2026 10:00', notes: 'Shortcode for promotions', normalisedValue: '88001' },
-            { id: 'APPR-008', senderId: '447700900123', type: 'numeric', accountId: 'ACC-4011', accountName: 'DirectCall Ltd', scope: 'account', subAccounts: [], category: 'generic', approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '30-01-2026 09:00', updatedAt: '30-01-2026 09:00', notes: 'Numeric sender for callbacks', normalisedValue: '447700900123' }
-        ];
-        
-        mockData.manualExemptions = [
-            { id: 'MAN-001', senderId: 'ROYALMAIL', type: 'alphanumeric', accountId: 'global', accountName: 'All Accounts', scope: 'global', subAccounts: [], category: 'delivery_logistics', addedBy: 'admin@quicksms.co.uk', addedAt: '05-01-2026 11:15', updatedAt: '05-01-2026 11:15', expiry: null, notes: 'Global exemption for Royal Mail notifications', normalisedValue: 'ROYALMAIL' },
-            { id: 'MAN-002', senderId: 'GOVUK', type: 'alphanumeric', accountId: 'global', accountName: 'All Accounts', scope: 'global', subAccounts: [], category: 'government_healthcare', addedBy: 'compliance@quicksms.co.uk', addedAt: '01-01-2026 10:00', updatedAt: '01-01-2026 10:00', expiry: null, notes: 'Official government SenderID', normalisedValue: 'GOVUK' },
-            { id: 'MAN-003', senderId: 'NHSUK', type: 'alphanumeric', accountId: 'global', accountName: 'All Accounts', scope: 'global', subAccounts: [], category: 'government_healthcare', addedBy: 'compliance@quicksms.co.uk', addedAt: '01-01-2026 10:00', updatedAt: '15-01-2026 14:30', expiry: null, notes: 'National Health Service official', normalisedValue: 'NHSUK' },
-            { id: 'MAN-004', senderId: '82222', type: 'shortcode', accountId: 'global', accountName: 'All Accounts', scope: 'global', subAccounts: [], category: 'generic', addedBy: 'admin@quicksms.co.uk', addedAt: '20-01-2026 09:00', updatedAt: '20-01-2026 09:00', expiry: null, notes: 'Platform shared shortcode', normalisedValue: '82222' }
-        ];
-        
+        mockData.senderIdApprovals = [];
+        mockData.manualExemptions = [];
         mockData.enforcementOverrides = {};
-        
         mockData.senderIdExemptions = buildExemptionsList();
-        
-        // Content Exemptions - accounts exempt from content rules or anti-spam
-        mockData.contentExemptions = [
-            { id: 'CEX-001', accountId: 'ACC-10150', accountName: 'HMRC', subAccounts: [], allSubaccounts: true, scope: 'account', type: 'rule', exemptRules: ['CNT-001', 'CNT-003', 'CNT-004'], status: 'active', appliedBy: 'admin@quicksms.co.uk', appliedAt: '2026-01-10 14:30', addedBy: 'admin@quicksms.co.uk', addedAt: '2026-01-10 14:30', updatedAt: '2026-01-10 14:30', notes: 'Government agency - exempted from phishing and gambling rules' },
-            { id: 'CEX-002', accountId: 'ACC-10200', accountName: 'Royal Bank', subAccounts: [{ id: 'SUB-009', name: 'Fraud Alerts' }, { id: 'SUB-010', name: 'Security Team' }], allSubaccounts: false, scope: 'subaccount', type: 'rule', exemptRules: ['CNT-001'], status: 'active', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '2026-01-15 11:00', addedBy: 'compliance@quicksms.co.uk', addedAt: '2026-01-15 11:00', updatedAt: '2026-01-20 09:15', notes: 'Bank fraud alerts - legitimate phishing-like content' },
-            { id: 'CEX-003', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], allSubaccounts: true, scope: 'account', type: 'antispam', antispamOverride: 'disabled', status: 'active', appliedBy: 'admin@quicksms.co.uk', appliedAt: '2026-01-18 16:45', addedBy: 'admin@quicksms.co.uk', addedAt: '2026-01-18 16:45', updatedAt: '2026-01-18 16:45', notes: 'Customer requested - high volume sender' },
-            { id: 'CEX-004', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [{ id: 'SUB-003', name: 'Patient Comms' }], allSubaccounts: false, scope: 'subaccount', type: 'antispam', antispamOverride: 'strict', customWindow: 15, status: 'active', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '2026-01-22 10:30', addedBy: 'compliance@quicksms.co.uk', addedAt: '2026-01-22 10:30', updatedAt: '2026-01-22 10:30', notes: 'Healthcare - stricter anti-spam for patient safety' },
-            { id: 'CEX-005', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: [{ id: 'SUB-005', name: 'Promotions' }, { id: 'SUB-006', name: 'Order Updates' }, { id: 'SUB-007', name: 'Marketing' }], allSubaccounts: false, scope: 'subaccount', type: 'antispam', antispamOverride: 'relaxed', customWindow: 120, status: 'active', appliedBy: 'admin@quicksms.co.uk', appliedAt: '2026-01-25 09:00', addedBy: 'admin@quicksms.co.uk', addedAt: '2026-01-25 09:00', updatedAt: '2026-01-25 09:00', notes: 'E-commerce customer - relaxed for marketing campaigns' },
-            { id: 'CEX-006', accountId: 'ACC-10300', accountName: 'Global Insurance', subAccounts: [], allSubaccounts: true, scope: 'account', type: 'antispam', antispamOverride: 'enabled', status: 'disabled', appliedBy: 'admin@quicksms.co.uk', appliedAt: '2026-01-28 14:00', addedBy: 'admin@quicksms.co.uk', addedAt: '2026-01-28 14:00', updatedAt: '2026-01-30 11:30', notes: 'Enterprise customer - default anti-spam enabled' },
-            { id: 'CEX-007', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [{ id: 'SUB-001', name: 'Marketing Dept' }], allSubaccounts: false, scope: 'subaccount', type: 'rule', exemptRules: ['CNT-002', 'CNT-005', 'CNT-001', 'CNT-003'], status: 'active', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '2026-01-29 15:30', addedBy: 'compliance@quicksms.co.uk', addedAt: '2026-01-29 15:30', updatedAt: '2026-01-29 15:30', notes: 'Marketing exemption - approved promotional content' }
-        ];
-        
-        // Sync exemptions with MessageEnforcementService on initialization
-        if (typeof window.MessageEnforcementService !== 'undefined' && 
-            typeof window.MessageEnforcementService.loadSenderIdExemptions === 'function') {
-            window.MessageEnforcementService.loadSenderIdExemptions(mockData.senderIdExemptions);
-            console.log('[SecurityComplianceControls] Initial exemptions sync:', 
-                window.MessageEnforcementService.getExemptionStats());
-        }
-
-        mockData.urlRules = [
-            { id: 'URL-001', name: 'Block bit.ly shortlinks', pattern: 'bit.ly', matchType: 'exact', ruleType: 'flag', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
-            { id: 'URL-002', name: 'Block malicious-site.com', pattern: 'malicious-site.com', matchType: 'exact', ruleType: 'block', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 14:00', updatedAt: '20-01-2026 11:45' },
-            { id: 'URL-003', name: 'Flag tinyurl subdomains', pattern: '*.tinyurl.com', matchType: 'wildcard', ruleType: 'flag', applyDomainAge: false, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '08-01-2026 10:20', updatedAt: '25-01-2026 16:30' },
-            { id: 'URL-004', name: 'Block phishing domains', pattern: 'phish\\d+\\.com', matchType: 'regex', ruleType: 'block', applyDomainAge: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 08:45', updatedAt: '05-01-2026 08:45' },
-            { id: 'URL-005', name: 'Block suspicious domain', pattern: 'suspicious-domain.net', matchType: 'exact', ruleType: 'block', applyDomainAge: true, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '01-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
-        ];
-        
+        mockData.contentExemptions = [];
+        mockData.urlRules = [];
         mockData.domainAgeSettings = {
             enabled: false,
             minAgeHours: 72,
             action: 'block',
-            updatedAt: '28-01-2026 14:30',
-            updatedBy: 'admin@quicksms.co.uk'
+            updatedAt: null,
+            updatedBy: null
         };
+        mockData.domainAllowlist = [];
         
-        mockData.domainAllowlist = [
-            { id: 'DAL-001', domain: 'trusted-shortlinks.com', scope: 'all', scopeDetails: null, overrideType: 'full', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '18-01-2026 10:30', updatedAt: '18-01-2026 10:30' },
-            { id: 'DAL-002', domain: 'partner-links.io', scope: 'account', scopeDetails: { accountId: 'ACC-10045', accountName: 'TechStart Ltd' }, overrideType: 'full', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '20-01-2026 14:15', updatedAt: '20-01-2026 14:15' },
-            { id: 'DAL-003', domain: '*.approved-cdn.net', scope: 'all', scopeDetails: null, overrideType: 'partial', status: 'active', addedBy: 'compliance@quicksms.co.uk', addedAt: '22-01-2026 09:00', updatedAt: '22-01-2026 09:00' },
-            { id: 'DAL-004', domain: 'marketing-links.uk', scope: 'subaccount', scopeDetails: { accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccountId: 'SUB-001', subAccountName: 'Marketing Dept' }, overrideType: 'full', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '25-01-2026 16:45', updatedAt: '25-01-2026 16:45' },
-            { id: 'DAL-005', domain: 'legacy-tracker.com', scope: 'account', scopeDetails: { accountId: 'ACC-10112', accountName: 'E-Commerce Hub' }, overrideType: 'full', status: 'disabled', addedBy: 'admin@quicksms.co.uk', addedAt: '28-01-2026 11:20', updatedAt: '30-01-2026 09:00' }
-        ];
-        
-        mockData.thresholdOverrides = [
-            { id: 'THR-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], allSubaccounts: true, thresholdHours: 24, actionOverride: 'flag', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '19-01-2026 11:00', updatedAt: '19-01-2026 11:00' },
-            { id: 'THR-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [{ id: 'SUB-001', name: 'Marketing Dept' }], allSubaccounts: false, thresholdHours: 48, actionOverride: 'block', status: 'active', addedBy: 'compliance@quicksms.co.uk', addedAt: '21-01-2026 15:30', updatedAt: '21-01-2026 15:30' },
-            { id: 'THR-003', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: [], allSubaccounts: true, thresholdHours: 12, actionOverride: 'flag', status: 'active', addedBy: 'admin@quicksms.co.uk', addedAt: '26-01-2026 09:45', updatedAt: '26-01-2026 09:45' },
-            { id: 'THR-004', accountId: 'ACC-10156', accountName: 'Retail Pro', subAccounts: [], allSubaccounts: true, thresholdHours: 0, actionOverride: 'none', status: 'disabled', addedBy: 'admin@quicksms.co.uk', addedAt: '29-01-2026 14:00', updatedAt: '31-01-2026 10:00' }
-        ];
-        
-        mockData.domainAgeExceptions = [
-            { id: 'EXC-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', reason: 'Approved marketing partner - verified shortlinks', addedBy: 'admin@quicksms.co.uk', addedAt: '15-01-2026 10:30' },
-            { id: 'EXC-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', reason: 'Enterprise customer - internal domain rotation', addedBy: 'compliance@quicksms.co.uk', addedAt: '20-01-2026 14:15' }
-        ];
-        
-        mockData.urlExemptions = [
-            { id: 'UEX-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], allSubaccounts: true, type: 'domain_age', disableEnforcement: false, thresholdOverride: 12, actionOverride: 'flag', exemptRules: [], status: 'active', reason: 'Enterprise customer with verified domains', appliedBy: 'admin@quicksms.co.uk', appliedAt: '18-01-2026 14:30' },
-            { id: 'UEX-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [{ id: 'SUB-001', name: 'Marketing Dept' }], allSubaccounts: false, type: 'url_rule', exemptRules: ['URL-001', 'URL-003'], status: 'active', reason: 'Marketing uses approved URL shorteners', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '22-01-2026 09:15' },
-            { id: 'UEX-003', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: [], allSubaccounts: true, type: 'domain_age', disableEnforcement: true, thresholdOverride: null, actionOverride: null, exemptRules: [], status: 'disabled', reason: 'Temporary exemption for product launch', appliedBy: 'admin@quicksms.co.uk', appliedAt: '25-01-2026 16:45' },
-            { id: 'UEX-004', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [{ id: 'SUB-002', name: 'Customer Support' }, { id: 'SUB-003', name: 'Sales Team' }], allSubaccounts: false, type: 'domains', domains: ['techstart.com', 'techstart.co.uk', 'techstart-support.com'], exemptRules: [], status: 'active', reason: 'Company owned domains', appliedBy: 'admin@quicksms.co.uk', appliedAt: '20-01-2026 11:00' },
-            { id: 'UEX-005', accountId: 'ACC-10156', accountName: 'RetailMax Group', subAccounts: [], allSubaccounts: true, type: 'domains', domains: ['retailmax.com', 'retailmax-promo.co.uk', 'retailmax-shop.com', 'retailmax-deals.net', 'retailmax-offers.co.uk'], exemptRules: [], status: 'active', reason: 'Verified brand domains', appliedBy: 'security@quicksms.co.uk', appliedAt: '28-01-2026 16:20' },
-            { id: 'UEX-006', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [], allSubaccounts: true, type: 'url_rule', exemptRules: ['URL-002', 'URL-004', 'URL-005'], status: 'active', reason: 'Healthcare provider exemption', appliedBy: 'compliance@quicksms.co.uk', appliedAt: '30-01-2026 10:45' },
-            { id: 'UEX-007', accountId: 'ACC-10178', accountName: 'FinServe Partners', subAccounts: [{ id: 'SUB-010', name: 'Compliance Team' }], allSubaccounts: false, type: 'domain_age', disableEnforcement: false, thresholdOverride: 48, actionOverride: 'block', exemptRules: [], status: 'active', reason: 'Extended threshold for regulatory compliance', appliedBy: 'admin@quicksms.co.uk', appliedAt: '01-02-2026 09:30' }
-        ];
+        mockData.thresholdOverrides = [];
+        mockData.domainAgeExceptions = [];
+        mockData.urlExemptions = [];
 
         mockData.baseCharacterLibrary = (function() {
             var library = [];
@@ -4959,136 +4881,7 @@ var SecurityComplianceControlsService = (function() {
             return library;
         })();
 
-        mockData.quarantinedMessages = [
-            { 
-                id: 'QRN-001', timestamp: '29-01-2026 10:15:32', accountId: 'ACC-10045', accountName: 'TechStart Ltd', 
-                subAccountId: 'SUB-001', subAccountName: 'Marketing Dept', senderId: 'TECHPROMO', 
-                recipient: '+44****7890', recipientFull: '+447700900890',
-                messageSnippet: 'Congratulations! You have won a prize...', 
-                fullMessage: 'Congratulations! You have won a prize of £1000! Click here to claim: http://win-prize-now.xyz/claim?ref=123',
-                hasUrl: true, extractedUrls: ['http://win-prize-now.xyz/claim?ref=123'],
-                ruleTriggered: 'content', ruleName: 'Lottery Keywords', ruleId: 'CONT-002',
-                triggeredRules: [
-                    { engine: 'MessageContentEngine', ruleId: 'CONT-002', ruleName: 'Lottery Keywords', matchType: 'Keyword', matchedValue: 'won a prize' }
-                ],
-                normalisedValues: { senderId: 'TECHPROMO', senderIdNormalised: 'techpromo', messageNormalised: 'congratulations! you have won a prize of £1000! click here to claim: http://win-prize-now.xyz/claim?ref=123' },
-                status: 'pending', reviewer: null, decisionAt: null,
-                notes: [], idempotencyKey: 'idem-001-abc', releaseAttempts: 0
-            },
-            { 
-                id: 'QRN-002', timestamp: '29-01-2026 09:45:18', accountId: 'ACC-10089', accountName: 'HealthFirst UK', 
-                subAccountId: null, subAccountName: null, senderId: 'HEALTH', 
-                recipient: '+44****1234', recipientFull: '+447700901234',
-                messageSnippet: 'Click here to verify your account immediately...', 
-                fullMessage: 'URGENT: Click here to verify your account immediately or it will be suspended: http://verify-now.tk/urgent',
-                hasUrl: true, extractedUrls: ['http://verify-now.tk/urgent'],
-                ruleTriggered: 'url', ruleName: 'Suspicious URL Pattern', ruleId: 'URL-003',
-                triggeredRules: [
-                    { engine: 'UrlEnforcementEngine', ruleId: 'URL-003', ruleName: 'Suspicious URL Pattern', matchType: 'Wildcard', matchedValue: '*.tk/*' }
-                ],
-                normalisedValues: { senderId: 'HEALTH', senderIdNormalised: 'health', messageNormalised: 'urgent: click here to verify your account immediately or it will be suspended: http://verify-now.tk/urgent' },
-                status: 'pending', reviewer: null, decisionAt: null,
-                notes: [{ author: 'admin@quicksms.co.uk', timestamp: '29-01-2026 10:00:00', text: 'Appears to be phishing attempt - investigate account' }],
-                idempotencyKey: 'idem-002-def', releaseAttempts: 0
-            },
-            { 
-                id: 'QRN-003', timestamp: '29-01-2026 08:30:45', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', 
-                subAccountId: 'SUB-005', subAccountName: 'Promotions', senderId: 'ECOMDEALS', 
-                recipient: '+44****5678', recipientFull: '+447700905678',
-                messageSnippet: 'Limited time offer! Free casino bonus...', 
-                fullMessage: 'Limited time offer! Free casino bonus when you sign up. Visit our site for more gaming deals!',
-                hasUrl: false, extractedUrls: [],
-                ruleTriggered: 'content', ruleName: 'Gambling Keywords', ruleId: 'CONT-003',
-                triggeredRules: [
-                    { engine: 'MessageContentEngine', ruleId: 'CONT-003', ruleName: 'Gambling Keywords', matchType: 'Keyword', matchedValue: 'casino bonus' }
-                ],
-                normalisedValues: { senderId: 'ECOMDEALS', senderIdNormalised: 'ecomdeals', messageNormalised: 'limited time offer! free casino bonus when you sign up. visit our site for more gaming deals!' },
-                status: 'pending', reviewer: null, decisionAt: null,
-                notes: [], idempotencyKey: 'idem-003-ghi', releaseAttempts: 0
-            },
-            { 
-                id: 'QRN-004', timestamp: '29-01-2026 07:22:11', accountId: 'ACC-10045', accountName: 'TechStart Ltd', 
-                subAccountId: null, subAccountName: null, senderId: 'HMRC', 
-                recipient: '+44****9999', recipientFull: '+447700909999',
-                messageSnippet: 'Your tax refund is ready. Click to claim...', 
-                fullMessage: 'HMRC: Your tax refund of £450.32 is ready. Click to claim within 24 hours: http://hmrc-refund.net/claim',
-                hasUrl: true, extractedUrls: ['http://hmrc-refund.net/claim'],
-                ruleTriggered: 'senderid', ruleName: 'Block HMRC Impersonation', ruleId: 'SID-001',
-                triggeredRules: [
-                    { engine: 'SenderIdEnforcementEngine', ruleId: 'SID-001', ruleName: 'Block HMRC Impersonation', matchType: 'Exact', matchedValue: 'HMRC' },
-                    { engine: 'UrlEnforcementEngine', ruleId: 'URL-005', ruleName: 'Suspicious Domain', matchType: 'Exact', matchedValue: 'hmrc-refund.net' }
-                ],
-                normalisedValues: { senderId: 'HMRC', senderIdNormalised: 'hmrc', messageNormalised: 'hmrc: your tax refund of £450.32 is ready. click to claim within 24 hours: http://hmrc-refund.net/claim' },
-                status: 'pending', reviewer: null, decisionAt: null,
-                notes: [], idempotencyKey: 'idem-004-jkl', releaseAttempts: 0
-            },
-            { 
-                id: 'QRN-005', timestamp: '28-01-2026 16:45:00', accountId: 'ACC-10200', accountName: 'FastLoans Ltd', 
-                subAccountId: null, subAccountName: null, senderId: 'LOANS', 
-                recipient: '+44****4321', recipientFull: '+447700904321',
-                messageSnippet: 'Instant approval! Get cash now at bit.ly/xxx', 
-                fullMessage: 'Instant approval! Get cash now. No credit check needed. Apply at bit.ly/fastcash-now',
-                hasUrl: true, extractedUrls: ['bit.ly/fastcash-now'],
-                ruleTriggered: 'domain_age', ruleName: 'Domain Age Check', ruleId: 'DAGE-001',
-                triggeredRules: [
-                    { engine: 'DomainAgeEngine', ruleId: 'DAGE-001', ruleName: 'Domain Age Check', matchType: 'Age', matchedValue: 'Domain registered 2 hours ago (threshold: 72 hours)' }
-                ],
-                normalisedValues: { senderId: 'LOANS', senderIdNormalised: 'loans', messageNormalised: 'instant approval! get cash now. no credit check needed. apply at bit.ly/fastcash-now' },
-                status: 'pending', reviewer: null, decisionAt: null,
-                notes: [], idempotencyKey: 'idem-005-mno', releaseAttempts: 0
-            },
-            { 
-                id: 'QRN-006', timestamp: '28-01-2026 14:30:22', accountId: 'ACC-10089', accountName: 'HealthFirst UK', 
-                subAccountId: 'SUB-003', subAccountName: 'Patient Comms', senderId: 'NHSALERT', 
-                recipient: '+44****8765', recipientFull: '+447700908765',
-                messageSnippet: 'Important health notice regarding...', 
-                fullMessage: 'Important health notice regarding your upcoming appointment on 30th January. Please confirm attendance.',
-                hasUrl: false, extractedUrls: [],
-                ruleTriggered: 'senderid', ruleName: 'Block NHS Impersonation', ruleId: 'SID-002',
-                triggeredRules: [
-                    { engine: 'SenderIdEnforcementEngine', ruleId: 'SID-002', ruleName: 'Block NHS Impersonation', matchType: 'Fuzzy', matchedValue: 'NHSALERT (variant of NHS)' }
-                ],
-                normalisedValues: { senderId: 'NHSALERT', senderIdNormalised: 'nhsalert', messageNormalised: 'important health notice regarding your upcoming appointment on 30th january. please confirm attendance.' },
-                status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '28-01-2026 15:10:00',
-                notes: [{ author: 'admin@quicksms.co.uk', timestamp: '28-01-2026 15:08:00', text: 'Verified with HealthFirst - legitimate NHS partnership communication' }],
-                idempotencyKey: 'idem-006-pqr', releaseAttempts: 1
-            },
-            { 
-                id: 'QRN-007', timestamp: '28-01-2026 11:15:33', accountId: 'ACC-10150', accountName: 'CryptoTraders', 
-                subAccountId: null, subAccountName: null, senderId: 'CRYPTO', 
-                recipient: '+44****2222', recipientFull: '+447700902222',
-                messageSnippet: 'Bitcoin giveaway! Double your crypto...', 
-                fullMessage: 'Bitcoin giveaway! Double your crypto instantly. Send 0.1 BTC to wallet xyz and receive 0.2 BTC back!',
-                hasUrl: true, extractedUrls: [],
-                ruleTriggered: 'content', ruleName: 'Cryptocurrency Scam', ruleId: 'CONT-005',
-                triggeredRules: [
-                    { engine: 'MessageContentEngine', ruleId: 'CONT-005', ruleName: 'Cryptocurrency Scam', matchType: 'Regex', matchedValue: 'double.*crypto|send.*btc.*receive' }
-                ],
-                normalisedValues: { senderId: 'CRYPTO', senderIdNormalised: 'crypto', messageNormalised: 'bitcoin giveaway! double your crypto instantly. send 0.1 btc to wallet xyz and receive 0.2 btc back!' },
-                status: 'blocked', reviewer: 'compliance@quicksms.co.uk', decisionAt: '28-01-2026 12:00:00',
-                notes: [
-                    { author: 'compliance@quicksms.co.uk', timestamp: '28-01-2026 11:45:00', text: 'Classic crypto doubling scam pattern' },
-                    { author: 'compliance@quicksms.co.uk', timestamp: '28-01-2026 12:00:00', text: 'Blocked permanently - account flagged for review' }
-                ],
-                idempotencyKey: 'idem-007-stu', releaseAttempts: 0
-            },
-            { 
-                id: 'QRN-008', timestamp: '27-01-2026 09:00:15', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', 
-                subAccountId: 'SUB-005', subAccountName: 'Promotions', senderId: 'SHOP', 
-                recipient: '+44****3333', recipientFull: '+447700903333',
-                messageSnippet: 'Flash sale! 50% off everything...', 
-                fullMessage: 'Flash sale! 50% off everything this weekend only. Shop now at bit.ly/shop-sale',
-                hasUrl: true, extractedUrls: ['bit.ly/shop-sale'],
-                ruleTriggered: 'url', ruleName: 'URL Shortener Flag', ruleId: 'URL-002',
-                triggeredRules: [
-                    { engine: 'UrlEnforcementEngine', ruleId: 'URL-002', ruleName: 'URL Shortener Flag', matchType: 'Wildcard', matchedValue: 'bit.ly/*' }
-                ],
-                normalisedValues: { senderId: 'SHOP', senderIdNormalised: 'shop', messageNormalised: 'flash sale! 50% off everything this weekend only. shop now at bit.ly/shop-sale' },
-                status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '27-01-2026 09:30:00',
-                notes: [{ author: 'admin@quicksms.co.uk', timestamp: '27-01-2026 09:28:00', text: 'Verified shortened URL points to legitimate e-commerce site' }],
-                idempotencyKey: 'idem-008-vwx', releaseAttempts: 1
-            }
-        ];
+        mockData.quarantinedMessages = [];
         
         mockData.quarantineFeatureFlags = {
             notifyCustomerAdminOnRelease: true,
