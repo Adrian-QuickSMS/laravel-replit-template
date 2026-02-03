@@ -2056,7 +2056,6 @@ window.handleConfirmRejection = function() {
 document.addEventListener('DOMContentLoaded', function() {
     initCountryControls();
     initAccountTypeahead();
-    console.log('[CountryControls] Page initialized, global handlers ready');
 });
 
 var CountryControlsService = (function() {
@@ -3072,19 +3071,27 @@ function viewAccount(customerId) {
     window.location.href = '/admin/accounts/' + customerId;
 }
 
-window.renderRequestsList = function renderRequestsList() {
+function renderRequestsList() {
     var tbody = document.getElementById('reviewTableBody');
     var emptyState = document.getElementById('emptyReviewState');
     var tableContainer = document.querySelector('.queue-table-container');
-    var statusFilter = document.getElementById('reviewStatusFilter').value;
-    var customerFilter = document.getElementById('reviewCustomerFilter').value;
-    var countryFilter = document.getElementById('reviewCountryFilter').value;
+    
+    if (!tbody || !tableContainer) {
+        return;
+    }
+    
+    var statusFilter = document.getElementById('reviewStatusFilter') ? document.getElementById('reviewStatusFilter').value : '';
+    var customerFilter = document.getElementById('reviewCustomerFilter') ? document.getElementById('reviewCustomerFilter').value : '';
+    var countryFilter = document.getElementById('reviewCountryFilter') ? document.getElementById('reviewCountryFilter').value : '';
     var riskFilter = document.getElementById('reviewRiskFilter') ? document.getElementById('reviewRiskFilter').value : '';
 
     var filtered = countryRequests.filter(function(r) {
+        if (!r || !r.status) {
+            return false;
+        }
         var matchesStatus = !statusFilter || r.status === statusFilter;
-        var matchesCustomer = !customerFilter || r.customer.id === customerFilter;
-        var matchesCountry = !countryFilter || r.country.code === countryFilter;
+        var matchesCustomer = !customerFilter || (r.customer && r.customer.id === customerFilter);
+        var matchesCountry = !countryFilter || (r.country && r.country.code === countryFilter);
         var matchesRisk = !riskFilter || r.risk === riskFilter;
         return matchesStatus && matchesCustomer && matchesCountry && matchesRisk;
     });
@@ -3269,7 +3276,7 @@ function getAccountAllowedCountries(customerId) {
     return html;
 }
 
-window.updateReviewStats = function updateReviewStats() {
+function updateReviewStats() {
     var pending = countryRequests.filter(function(r) { return r.status === 'pending'; }).length;
     var approved = countryRequests.filter(function(r) { return r.status === 'approved'; }).length;
     var rejected = countryRequests.filter(function(r) { return r.status === 'rejected'; }).length;
@@ -3287,6 +3294,8 @@ window.updateReviewStats = function updateReviewStats() {
         document.getElementById('pendingRequestsBadge').style.display = 'inline';
     }
 }
+window.updateReviewStats = updateReviewStats;
+window.renderRequestsList = renderRequestsList;
 
 // Make these accessible globally for modal handlers
 window.pendingApprovalRequest = null;
