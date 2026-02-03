@@ -4761,19 +4761,19 @@ var SecurityComplianceControlsService = (function() {
         
         // SenderID Rules mock data
         mockData.senderIdRules = [
-            { id: 'SID-001', pattern: 'HSBC', matchType: 'exact', action: 'block', scope: 'global', reason: 'Protected brand - financial institution', status: 'active', createdAt: '15-01-2026 09:30', createdBy: 'admin@quicksms.co.uk' },
-            { id: 'SID-002', pattern: 'Barclays', matchType: 'exact', action: 'block', scope: 'global', reason: 'Protected brand - financial institution', status: 'active', createdAt: '15-01-2026 09:32', createdBy: 'admin@quicksms.co.uk' },
-            { id: 'SID-003', pattern: 'HMRC', matchType: 'exact', action: 'block', scope: 'global', reason: 'Government entity - fraud prevention', status: 'active', createdAt: '16-01-2026 10:15', createdBy: 'admin@quicksms.co.uk' },
-            { id: 'SID-004', pattern: 'NHS', matchType: 'startswith', action: 'quarantine', scope: 'global', reason: 'Healthcare provider - requires verification', status: 'active', createdAt: '17-01-2026 14:20', createdBy: 'compliance@quicksms.co.uk' }
+            { id: 'SID-001', name: 'HSBC Banking Brand', baseSenderId: 'HSBC', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', updatedAt: '15-01-2026 09:30' },
+            { id: 'SID-002', name: 'Barclays Banking Brand', baseSenderId: 'Barclays', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', updatedAt: '15-01-2026 09:32' },
+            { id: 'SID-003', name: 'HMRC Government', baseSenderId: 'HMRC', ruleType: 'block', category: 'government_healthcare', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', updatedAt: '16-01-2026 10:15' },
+            { id: 'SID-004', name: 'NHS Healthcare', baseSenderId: 'NHS', ruleType: 'flag', category: 'government_healthcare', applyNormalisation: false, status: 'active', createdBy: 'compliance@quicksms.co.uk', updatedAt: '17-01-2026 14:20' }
         ];
 
         // Content Rules mock data
         mockData.contentRules = [
-            { id: 'CR-001', pattern: 'bitcoin investment', matchType: 'contains', action: 'block', scope: 'global', reason: 'Crypto scam indicator', status: 'active', createdAt: '10-01-2026 11:00', createdBy: 'admin@quicksms.co.uk' },
-            { id: 'CR-002', pattern: 'guaranteed returns', matchType: 'contains', action: 'block', scope: 'global', reason: 'Financial fraud indicator', status: 'active', createdAt: '10-01-2026 11:05', createdBy: 'admin@quicksms.co.uk' },
-            { id: 'CR-003', pattern: 'click here to claim', matchType: 'contains', action: 'quarantine', scope: 'global', reason: 'Potential phishing', status: 'active', createdAt: '12-01-2026 09:45', createdBy: 'compliance@quicksms.co.uk' },
-            { id: 'CR-004', pattern: 'urgent action required', matchType: 'contains', action: 'quarantine', scope: 'global', reason: 'Social engineering indicator', status: 'active', createdAt: '14-01-2026 16:30', createdBy: 'admin@quicksms.co.uk' },
-            { id: 'CR-005', pattern: 'free iphone', matchType: 'contains', action: 'block', scope: 'global', reason: 'Prize scam indicator', status: 'inactive', createdAt: '18-01-2026 10:00', createdBy: 'admin@quicksms.co.uk' }
+            { id: 'CR-001', name: 'Bitcoin Investment Scam', matchType: 'keyword', matchValue: 'bitcoin investment', ruleType: 'block', applyNormalisation: true, status: 'active', updatedAt: '10-01-2026 11:00' },
+            { id: 'CR-002', name: 'Guaranteed Returns Fraud', matchType: 'keyword', matchValue: 'guaranteed returns', ruleType: 'block', applyNormalisation: true, status: 'active', updatedAt: '10-01-2026 11:05' },
+            { id: 'CR-003', name: 'Click to Claim Phishing', matchType: 'keyword', matchValue: 'click here to claim', ruleType: 'flag', applyNormalisation: false, status: 'active', updatedAt: '12-01-2026 09:45' },
+            { id: 'CR-004', name: 'Urgency Scam Indicator', matchType: 'regex', matchValue: 'urgent.*action.*required', ruleType: 'flag', applyNormalisation: true, status: 'active', updatedAt: '14-01-2026 16:30' },
+            { id: 'CR-005', name: 'Free Prize Scam', matchType: 'keyword', matchValue: 'free iphone', ruleType: 'block', applyNormalisation: false, status: 'inactive', updatedAt: '18-01-2026 10:00' }
         ];
 
         mockData.senderIdApprovals = [];
@@ -4788,12 +4788,12 @@ var SecurityComplianceControlsService = (function() {
         
         // URL Rules mock data
         mockData.urlRules = [
-            { id: 'URL-001', pattern: 'bit.ly', matchType: 'contains', action: 'quarantine', scope: 'global', reason: 'URL shortener - potential phishing', status: 'active', createdAt: '08-01-2026 10:00', createdBy: 'admin@quicksms.co.uk' },
-            { id: 'URL-002', pattern: 'tinyurl.com', matchType: 'contains', action: 'quarantine', scope: 'global', reason: 'URL shortener - potential phishing', status: 'active', createdAt: '08-01-2026 10:05', createdBy: 'admin@quicksms.co.uk' },
-            { id: 'URL-003', pattern: '.xyz', matchType: 'endswith', action: 'block', scope: 'global', reason: 'High-risk TLD', status: 'active', createdAt: '09-01-2026 11:30', createdBy: 'compliance@quicksms.co.uk' },
-            { id: 'URL-004', pattern: '.tk', matchType: 'endswith', action: 'block', scope: 'global', reason: 'High-risk TLD - commonly used for phishing', status: 'active', createdAt: '09-01-2026 11:35', createdBy: 'compliance@quicksms.co.uk' },
-            { id: 'URL-005', pattern: 'verify-account', matchType: 'contains', action: 'block', scope: 'global', reason: 'Phishing indicator in URL', status: 'active', createdAt: '11-01-2026 09:00', createdBy: 'admin@quicksms.co.uk' },
-            { id: 'URL-006', pattern: 'login-secure', matchType: 'contains', action: 'block', scope: 'global', reason: 'Phishing indicator in URL', status: 'active', createdAt: '11-01-2026 09:05', createdBy: 'admin@quicksms.co.uk' }
+            { id: 'URL-001', name: 'Bit.ly Shortener', pattern: 'bit.ly', matchType: 'wildcard', ruleType: 'flag', status: 'active', updatedAt: '08-01-2026 10:00' },
+            { id: 'URL-002', name: 'TinyURL Shortener', pattern: 'tinyurl.com', matchType: 'wildcard', ruleType: 'flag', status: 'active', updatedAt: '08-01-2026 10:05' },
+            { id: 'URL-003', name: 'High-Risk TLD .xyz', pattern: '*.xyz', matchType: 'wildcard', ruleType: 'block', status: 'active', updatedAt: '09-01-2026 11:30' },
+            { id: 'URL-004', name: 'High-Risk TLD .tk', pattern: '*.tk', matchType: 'wildcard', ruleType: 'block', status: 'active', updatedAt: '09-01-2026 11:35' },
+            { id: 'URL-005', name: 'Verify Account Phishing', pattern: 'verify-account', matchType: 'exact', ruleType: 'block', status: 'active', updatedAt: '11-01-2026 09:00' },
+            { id: 'URL-006', name: 'Login Secure Phishing', pattern: 'login-secure', matchType: 'regex', ruleType: 'block', status: 'active', updatedAt: '11-01-2026 09:05' }
         ];
         
         mockData.domainAgeSettings = {
