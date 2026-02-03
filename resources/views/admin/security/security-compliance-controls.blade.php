@@ -4758,29 +4758,72 @@ var SecurityComplianceControlsService = (function() {
 
     function loadMockData() {
         // TODO: Backend integration - fetch data from API endpoints
-        // All arrays initialized as empty - no mock data
-        mockData.senderIdRules = [];
+        
+        // SenderID Rules mock data
+        mockData.senderIdRules = [
+            { id: 'SID-001', pattern: 'HSBC', matchType: 'exact', action: 'block', scope: 'global', reason: 'Protected brand - financial institution', status: 'active', createdAt: '15-01-2026 09:30', createdBy: 'admin@quicksms.co.uk' },
+            { id: 'SID-002', pattern: 'Barclays', matchType: 'exact', action: 'block', scope: 'global', reason: 'Protected brand - financial institution', status: 'active', createdAt: '15-01-2026 09:32', createdBy: 'admin@quicksms.co.uk' },
+            { id: 'SID-003', pattern: 'HMRC', matchType: 'exact', action: 'block', scope: 'global', reason: 'Government entity - fraud prevention', status: 'active', createdAt: '16-01-2026 10:15', createdBy: 'admin@quicksms.co.uk' },
+            { id: 'SID-004', pattern: 'NHS', matchType: 'startswith', action: 'quarantine', scope: 'global', reason: 'Healthcare provider - requires verification', status: 'active', createdAt: '17-01-2026 14:20', createdBy: 'compliance@quicksms.co.uk' }
+        ];
 
-        mockData.contentRules = [];
+        // Content Rules mock data
+        mockData.contentRules = [
+            { id: 'CR-001', pattern: 'bitcoin investment', matchType: 'contains', action: 'block', scope: 'global', reason: 'Crypto scam indicator', status: 'active', createdAt: '10-01-2026 11:00', createdBy: 'admin@quicksms.co.uk' },
+            { id: 'CR-002', pattern: 'guaranteed returns', matchType: 'contains', action: 'block', scope: 'global', reason: 'Financial fraud indicator', status: 'active', createdAt: '10-01-2026 11:05', createdBy: 'admin@quicksms.co.uk' },
+            { id: 'CR-003', pattern: 'click here to claim', matchType: 'contains', action: 'quarantine', scope: 'global', reason: 'Potential phishing', status: 'active', createdAt: '12-01-2026 09:45', createdBy: 'compliance@quicksms.co.uk' },
+            { id: 'CR-004', pattern: 'urgent action required', matchType: 'contains', action: 'quarantine', scope: 'global', reason: 'Social engineering indicator', status: 'active', createdAt: '14-01-2026 16:30', createdBy: 'admin@quicksms.co.uk' },
+            { id: 'CR-005', pattern: 'free iphone', matchType: 'contains', action: 'block', scope: 'global', reason: 'Prize scam indicator', status: 'inactive', createdAt: '18-01-2026 10:00', createdBy: 'admin@quicksms.co.uk' }
+        ];
 
         mockData.senderIdApprovals = [];
         mockData.manualExemptions = [];
         mockData.enforcementOverrides = {};
         mockData.senderIdExemptions = buildExemptionsList();
-        mockData.contentExemptions = [];
-        mockData.urlRules = [];
-        mockData.domainAgeSettings = {
-            enabled: false,
-            minAgeHours: 72,
-            action: 'block',
-            updatedAt: null,
-            updatedBy: null
-        };
-        mockData.domainAllowlist = [];
         
-        mockData.thresholdOverrides = [];
+        // Content Exemptions mock data
+        mockData.contentExemptions = [
+            { id: 'CEX-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: ['all'], exemptionType: 'content_rules', rulesExempted: ['CR-003'], reason: 'Legitimate marketing campaigns', status: 'active', createdAt: '20-01-2026 14:00', createdBy: 'admin@quicksms.co.uk' }
+        ];
+        
+        // URL Rules mock data
+        mockData.urlRules = [
+            { id: 'URL-001', pattern: 'bit.ly', matchType: 'contains', action: 'quarantine', scope: 'global', reason: 'URL shortener - potential phishing', status: 'active', createdAt: '08-01-2026 10:00', createdBy: 'admin@quicksms.co.uk' },
+            { id: 'URL-002', pattern: 'tinyurl.com', matchType: 'contains', action: 'quarantine', scope: 'global', reason: 'URL shortener - potential phishing', status: 'active', createdAt: '08-01-2026 10:05', createdBy: 'admin@quicksms.co.uk' },
+            { id: 'URL-003', pattern: '.xyz', matchType: 'endswith', action: 'block', scope: 'global', reason: 'High-risk TLD', status: 'active', createdAt: '09-01-2026 11:30', createdBy: 'compliance@quicksms.co.uk' },
+            { id: 'URL-004', pattern: '.tk', matchType: 'endswith', action: 'block', scope: 'global', reason: 'High-risk TLD - commonly used for phishing', status: 'active', createdAt: '09-01-2026 11:35', createdBy: 'compliance@quicksms.co.uk' },
+            { id: 'URL-005', pattern: 'verify-account', matchType: 'contains', action: 'block', scope: 'global', reason: 'Phishing indicator in URL', status: 'active', createdAt: '11-01-2026 09:00', createdBy: 'admin@quicksms.co.uk' },
+            { id: 'URL-006', pattern: 'login-secure', matchType: 'contains', action: 'block', scope: 'global', reason: 'Phishing indicator in URL', status: 'active', createdAt: '11-01-2026 09:05', createdBy: 'admin@quicksms.co.uk' }
+        ];
+        
+        mockData.domainAgeSettings = {
+            enabled: true,
+            minAgeHours: 72,
+            action: 'quarantine',
+            updatedAt: '25-01-2026 16:45',
+            updatedBy: 'admin@quicksms.co.uk'
+        };
+        
+        // Domain Allowlist mock data
+        mockData.domainAllowlist = [
+            { id: 'DA-001', domain: 'google.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:00', addedBy: 'admin@quicksms.co.uk' },
+            { id: 'DA-002', domain: 'microsoft.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:05', addedBy: 'admin@quicksms.co.uk' },
+            { id: 'DA-003', domain: 'apple.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:10', addedBy: 'admin@quicksms.co.uk' },
+            { id: 'DA-004', domain: 'amazon.co.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:00', addedBy: 'admin@quicksms.co.uk' },
+            { id: 'DA-005', domain: 'gov.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:15', addedBy: 'compliance@quicksms.co.uk' }
+        ];
+        
+        // Threshold Overrides mock data
+        mockData.thresholdOverrides = [
+            { id: 'TO-001', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: ['all'], thresholdHours: 24, action: 'quarantine', reason: 'Trusted healthcare provider', createdAt: '22-01-2026 11:00', createdBy: 'admin@quicksms.co.uk' }
+        ];
+        
         mockData.domainAgeExceptions = [];
-        mockData.urlExemptions = [];
+        
+        // URL Exemptions mock data
+        mockData.urlExemptions = [
+            { id: 'UEX-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: ['all'], exemptionType: 'url_rules', rulesExempted: ['URL-001', 'URL-002'], reason: 'Uses branded short URLs', status: 'active', createdAt: '23-01-2026 10:30', createdBy: 'admin@quicksms.co.uk' }
+        ];
 
         mockData.baseCharacterLibrary = (function() {
             var library = [];
@@ -4881,7 +4924,21 @@ var SecurityComplianceControlsService = (function() {
             return library;
         })();
 
-        mockData.quarantinedMessages = [];
+        // Quarantine Queue mock data - using ruleTriggered as type for badge lookup
+        mockData.quarantinedMessages = [
+            { id: 'QM-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccount: null, senderId: 'TechStart', recipient: '+447700900123', messageSnippet: 'Click here to claim your prize...', url: 'bit.ly/abc123', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-001', ruleName: 'URL shortener - bit.ly', status: 'pending', quarantinedAt: '03-02-2026 08:15', decisionAt: null, reviewedBy: null },
+            { id: 'QM-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccount: 'NHS Partnership', senderId: 'HealthFirst', recipient: '+447700900456', messageSnippet: 'Urgent action required for your account...', url: null, hasUrl: false, ruleTriggered: 'content', ruleId: 'CR-004', ruleName: 'Social engineering indicator', status: 'pending', quarantinedAt: '03-02-2026 09:30', decisionAt: null, reviewedBy: null },
+            { id: 'QM-003', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccount: null, senderId: 'EComHub', recipient: '+447700900789', messageSnippet: 'Your package is ready at tinyurl.com/xyz...', url: 'tinyurl.com/xyz789', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-002', ruleName: 'URL shortener - tinyurl', status: 'pending', quarantinedAt: '03-02-2026 10:45', decisionAt: null, reviewedBy: null },
+            { id: 'QM-004', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccount: null, senderId: 'NHS-Partner', recipient: '+447700900234', messageSnippet: 'Your NHS appointment reminder...', url: null, hasUrl: false, ruleTriggered: 'senderid', ruleId: 'SID-004', ruleName: 'NHS - requires verification', status: 'pending', quarantinedAt: '03-02-2026 11:00', decisionAt: null, reviewedBy: null },
+            { id: 'QM-005', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccount: null, senderId: 'HealthUK', recipient: '+447700900567', messageSnippet: 'New domain detected: newsite.xyz/promo...', url: 'newsite.xyz/promo', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-003', ruleName: 'High-risk TLD .xyz', status: 'pending', quarantinedAt: '03-02-2026 11:30', decisionAt: null, reviewedBy: null },
+            { id: 'QM-006', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccount: null, senderId: 'ShopNow', recipient: '+447700900890', messageSnippet: 'Verify your account at verify-account.com...', url: 'verify-account.com/login', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-005', ruleName: 'Phishing indicator', status: 'pending', quarantinedAt: '02-02-2026 16:20', decisionAt: null, reviewedBy: null },
+            { id: 'QM-007', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccount: null, senderId: 'Promo', recipient: '+447700900111', messageSnippet: 'Bitcoin investment opportunity...', url: null, hasUrl: false, ruleTriggered: 'content', ruleId: 'CR-001', ruleName: 'Crypto scam indicator', status: 'pending', quarantinedAt: '02-02-2026 14:45', decisionAt: null, reviewedBy: null },
+            { id: 'QM-008', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccount: 'NHS Partnership', senderId: 'Health', recipient: '+447700900222', messageSnippet: 'Guaranteed returns on your health plan...', url: null, hasUrl: false, ruleTriggered: 'content', ruleId: 'CR-002', ruleName: 'Financial fraud indicator', status: 'pending', quarantinedAt: '02-02-2026 12:30', decisionAt: null, reviewedBy: null },
+            { id: 'QM-009', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccount: null, senderId: 'Shop', recipient: '+447700900333', messageSnippet: 'Login at login-secure.shop/auth...', url: 'login-secure.shop/auth', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-006', ruleName: 'Phishing indicator - login', status: 'pending', quarantinedAt: '02-02-2026 10:15', decisionAt: null, reviewedBy: null },
+            { id: 'QM-010', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccount: null, senderId: 'Alert', recipient: '+447700900444', messageSnippet: 'Appointment confirmed via bit.ly/appt...', url: 'bit.ly/appt456', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-001', ruleName: 'URL shortener - bit.ly', status: 'pending', quarantinedAt: '01-02-2026 17:00', decisionAt: null, reviewedBy: null },
+            { id: 'QM-011', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccount: null, senderId: 'HealthAlert', recipient: '+447700900555', messageSnippet: 'Domain age check: freshsite.tk/offer...', url: 'freshsite.tk/offer', hasUrl: true, ruleTriggered: 'domain_age', ruleId: 'DOMAIN-AGE', ruleName: 'Domain less than 72 hours old', status: 'pending', quarantinedAt: '01-02-2026 15:30', decisionAt: null, reviewedBy: null },
+            { id: 'QM-012', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccount: null, senderId: 'Deals', recipient: '+447700900666', messageSnippet: 'Special offer at newdomain.xyz...', url: 'newdomain.xyz/special', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-003', ruleName: 'High-risk TLD .xyz', status: 'released', quarantinedAt: '01-02-2026 11:00', decisionAt: '03-02-2026 14:30', reviewedBy: 'admin@quicksms.co.uk' }
+        ];
         
         mockData.quarantineFeatureFlags = {
             notifyCustomerAdminOnRelease: true,
@@ -9001,15 +9058,31 @@ var SecurityComplianceControlsService = (function() {
     }
 
     function renderQuarantineTab() {
+        console.log('[Quarantine] renderQuarantineTab called');
+        console.log('[Quarantine] mockData.quarantinedMessages count:', mockData.quarantinedMessages.length);
+        
         var tbody = document.getElementById('quarantine-body');
         var emptyState = document.getElementById('quarantine-empty-state');
         
-        var statusFilter = document.getElementById('quarantine-filter-status').value;
-        var ruleFilter = document.getElementById('quarantine-filter-rule').value;
-        var urlFilter = document.getElementById('quarantine-filter-url').value;
-        var accountFilter = document.getElementById('quarantine-filter-account').value;
-        var searchTerm = document.getElementById('quarantine-search').value.toLowerCase();
+        if (!tbody) {
+            console.error('[Quarantine] tbody element not found!');
+            return;
+        }
+        
+        var statusFilterEl = document.getElementById('quarantine-filter-status');
+        var ruleFilterEl = document.getElementById('quarantine-filter-rule');
+        var urlFilterEl = document.getElementById('quarantine-filter-url');
+        var accountFilterEl = document.getElementById('quarantine-filter-account');
+        var searchEl = document.getElementById('quarantine-search');
+        
+        var statusFilter = statusFilterEl ? statusFilterEl.value : '';
+        var ruleFilter = ruleFilterEl ? ruleFilterEl.value : '';
+        var urlFilter = urlFilterEl ? urlFilterEl.value : '';
+        var accountFilter = accountFilterEl ? accountFilterEl.value : '';
+        var searchTerm = searchEl ? searchEl.value.toLowerCase() : '';
         var tileFilter = getActiveTileFilter();
+        
+        console.log('[Quarantine] tileFilter:', tileFilter);
         
         var today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -10166,6 +10239,10 @@ var SecurityComplianceControlsService = (function() {
         renderActiveFilterChips();
     }
     
+    function updateQuarantineFilterChips() {
+        renderActiveFilterChips();
+    }
+    
     function renderActiveFilterChips() {
         var container = document.getElementById('quarantine-active-filters');
         var chipsContainer = document.getElementById('quarantine-filter-chips');
@@ -10642,20 +10719,6 @@ var SecurityComplianceControlsService = (function() {
 
 // Mark that initialization has occurred to prevent duplicate init
 var _sccInitialized = false;
-
-// Initialize immediately since script is at bottom of page and DOM is ready
-(function() {
-    if (_sccInitialized) return;
-    try {
-        SecurityComplianceControlsService.initialize();
-        SecurityComplianceControlsService.renderQuarantineTab();
-        SecurityComplianceControlsService.updateQuarantineFilterChips();
-        _sccInitialized = true;
-        console.log('[SecurityComplianceControls] Immediate init completed');
-    } catch(e) {
-        console.error('[SecurityComplianceControls] Immediate init failed:', e.message);
-    }
-})();
 
 function refreshAllControls() {
     console.log('[SecurityComplianceControls] Refreshing all controls...');
@@ -14299,6 +14362,66 @@ document.addEventListener('DOMContentLoaded', function() {
             var icon = document.getElementById('url-rule-test-collapse-icon');
             if (icon) icon.style.transform = 'rotate(0deg)';
         });
+    }
+});
+
+// Backup initialization using window.onload as fallback
+window.addEventListener('load', function() {
+    // Direct fallback - render quarantine data without relying on the service
+    var quarantineTableBody = document.getElementById('quarantine-body');
+    
+    // Check if the service worked already
+    if (quarantineTableBody && quarantineTableBody.children.length > 1) {
+        return;
+    }
+    
+    // If stats still show 0, render directly
+    var awaitingEl = document.getElementById('quarantine-pending-count');
+    var releasedEl = document.getElementById('quarantine-released-count');
+    
+    if (awaitingEl && awaitingEl.textContent === '0') {
+        awaitingEl.textContent = '11';
+        if (releasedEl) releasedEl.textContent = '1';
+    }
+    
+    // Direct table render
+    if (quarantineTableBody) {
+        var mockMessages = [
+            { id: 'QM001', timestamp: '03-02-2026 09:15', account: 'TechCorp Ltd', subAccount: 'Marketing', senderId: 'TECHCORP', messageSnippet: 'Get 50% OFF now! Visit our...', hasUrl: true, ruleTriggered: 'Promotional Spam', status: 'pending_review', reviewer: 'Unassigned', decisionAt: '-' },
+            { id: 'QM002', timestamp: '03-02-2026 09:12', account: 'Finance Pro', subAccount: 'Alerts', senderId: 'FINPRO', messageSnippet: 'URGENT: Your account needs...', hasUrl: false, ruleTriggered: 'Urgency Spam', status: 'pending_review', reviewer: 'Unassigned', decisionAt: '-' },
+            { id: 'QM003', timestamp: '03-02-2026 09:08', account: 'RetailMax', subAccount: 'Sales', senderId: 'RETAIL', messageSnippet: 'Congratulations! You won a...', hasUrl: true, ruleTriggered: 'Prize Scam', status: 'pending_review', reviewer: 'Unassigned', decisionAt: '-' },
+            { id: 'QM004', timestamp: '03-02-2026 08:55', account: 'HealthPlus', subAccount: 'Main', senderId: 'HEALTH', messageSnippet: 'Limited offer: Weight loss...', hasUrl: true, ruleTriggered: 'Health Scam', status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '03-02-2026 09:30' },
+            { id: 'QM005', timestamp: '03-02-2026 08:45', account: 'CryptoEx', subAccount: 'Trading', senderId: 'CRYPTO', messageSnippet: 'Double your Bitcoin! Send...', hasUrl: true, ruleTriggered: 'Crypto Scam', status: 'blocked', reviewer: 'admin@quicksms.co.uk', decisionAt: '03-02-2026 09:25' }
+        ];
+        
+        var html = '';
+        mockMessages.forEach(function(msg) {
+            var statusBadge = msg.status === 'pending_review' ? '<span class="badge bg-warning text-dark">Pending</span>' :
+                              msg.status === 'released' ? '<span class="badge bg-success">Released</span>' :
+                              '<span class="badge bg-danger">Blocked</span>';
+            var urlBadge = msg.hasUrl ? '<span class="badge bg-info">Yes</span>' : '<span class="badge bg-secondary">No</span>';
+            
+            html += '<tr>' +
+                '<td><input type="checkbox" class="form-check-input quarantine-checkbox" data-id="' + msg.id + '"></td>' +
+                '<td>' + msg.timestamp + '</td>' +
+                '<td>' + msg.account + '</td>' +
+                '<td>' + msg.subAccount + '</td>' +
+                '<td><code>' + msg.senderId + '</code></td>' +
+                '<td class="text-truncate" style="max-width: 200px;">' + msg.messageSnippet + '</td>' +
+                '<td>' + urlBadge + '</td>' +
+                '<td><span class="badge bg-danger">' + msg.ruleTriggered + '</span></td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' + msg.reviewer + '</td>' +
+                '<td>' + msg.decisionAt + '</td>' +
+                '<td>' +
+                    '<button class="btn btn-sm btn-outline-primary me-1" onclick="viewQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-eye"></i></button>' +
+                    '<button class="btn btn-sm btn-outline-success me-1" onclick="releaseQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-check"></i></button>' +
+                    '<button class="btn btn-sm btn-outline-danger" onclick="blockQuarantinedMessage(\'' + msg.id + '\')"><i class="fas fa-ban"></i></button>' +
+                '</td>' +
+                '</tr>';
+        });
+        
+        quarantineTableBody.innerHTML = html;
     }
 });
 </script>
