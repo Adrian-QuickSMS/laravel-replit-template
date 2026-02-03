@@ -1691,7 +1691,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" id="confirmApproveBtn">
+                <button type="button" class="btn btn-success" id="confirmApproveBtn" onclick="window.handleConfirmApproval()">
                     <i class="fas fa-check-circle me-1"></i>Confirm Approval
                 </button>
             </div>
@@ -1735,7 +1735,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmRejectBtn" disabled>
+                <button type="button" class="btn btn-danger" id="confirmRejectBtn" onclick="window.handleConfirmRejection()" disabled>
                     <i class="fas fa-times-circle me-1"></i>Confirm Rejection
                 </button>
             </div>
@@ -2020,29 +2020,43 @@
 
 @push('scripts')
 <script>
+// Global handler functions for modal buttons - accessible via onclick
+window.handleConfirmApproval = function() {
+    console.log('[CountryControls] handleConfirmApproval called');
+    console.log('[CountryControls] window.pendingApprovalRequest:', window.pendingApprovalRequest);
+    
+    var request = window.pendingApprovalRequest;
+    if (!request) {
+        console.error('[CountryControls] No pending approval request!');
+        return;
+    }
+    try {
+        confirmApproval();
+    } catch (err) {
+        console.error('[CountryControls] Error in confirmApproval:', err);
+    }
+};
+
+window.handleConfirmRejection = function() {
+    console.log('[CountryControls] handleConfirmRejection called');
+    console.log('[CountryControls] window.pendingRejectionRequest:', window.pendingRejectionRequest);
+    
+    var request = window.pendingRejectionRequest;
+    if (!request) {
+        console.error('[CountryControls] No pending rejection request!');
+        return;
+    }
+    try {
+        confirmRejection();
+    } catch (err) {
+        console.error('[CountryControls] Error in confirmRejection:', err);
+    }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     initCountryControls();
     initAccountTypeahead();
-    
-    // Bind confirm approval button click handler
-    var confirmApproveBtn = document.getElementById('confirmApproveBtn');
-    if (confirmApproveBtn) {
-        confirmApproveBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            confirmApproval();
-        });
-    }
-    
-    // Bind confirm rejection button click handler
-    var confirmRejectBtn = document.getElementById('confirmRejectBtn');
-    if (confirmRejectBtn) {
-        confirmRejectBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            confirmRejection();
-        });
-    }
+    console.log('[CountryControls] Page initialized, global handlers ready');
 });
 
 var CountryControlsService = (function() {
@@ -3274,15 +3288,22 @@ function updateReviewStats() {
     }
 }
 
-var pendingApprovalRequest = null;
-var pendingRejectionRequest = null;
+// Make these accessible globally for modal handlers
+window.pendingApprovalRequest = null;
+window.pendingRejectionRequest = null;
+var pendingApprovalRequest = window.pendingApprovalRequest;
+var pendingRejectionRequest = window.pendingRejectionRequest;
 var pendingOverrideRemoval = null;
 
 function approveRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) return;
 
+    // Set both local and window scope for cross-context access
     pendingApprovalRequest = request;
+    window.pendingApprovalRequest = request;
+    console.log('[CountryControls] approveRequest: set pendingApprovalRequest to:', request.id);
+    
     document.getElementById('approvalCustomerName').textContent = request.customer.name;
     document.getElementById('approvalCountryName').textContent = request.country.name;
     
@@ -3291,8 +3312,10 @@ function approveRequest(requestId) {
 }
 
 function confirmApproval() {
-    console.log('[CountryControls] confirmApproval called, pendingApprovalRequest:', pendingApprovalRequest);
-    var request = pendingApprovalRequest;
+    console.log('[CountryControls] confirmApproval called');
+    // Use window scope to ensure cross-context accessibility
+    var request = window.pendingApprovalRequest || pendingApprovalRequest;
+    console.log('[CountryControls] Request to approve:', request);
     if (!request) {
         console.error('[CountryControls] confirmApproval: No pending request found');
         return;
@@ -3301,9 +3324,11 @@ function confirmApproval() {
     var now = new Date();
     var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
 
+    console.log('[CountryControls] Updating request status to approved for:', request.id);
     request.status = 'approved';
     request.reviewedBy = currentAdmin.email;
     request.reviewedAt = formattedDate;
+    console.log('[CountryControls] Request after update:', JSON.stringify(request));
 
     addAccountOverride(request.customer.id, request.country.code, 'allow');
 
@@ -3323,9 +3348,23 @@ function confirmApproval() {
         countryCode: request.country.code
     });
 
-    bootstrap.Modal.getInstance(document.getElementById('approvalConfirmModal')).hide();
+    // Hide modal
+    var modalEl = document.getElementById('approvalConfirmModal');
+    console.log('[CountryControls] Modal element:', modalEl);
+    var modalInstance = bootstrap.Modal.getInstance(modalEl);
+    console.log('[CountryControls] Modal instance:', modalInstance);
+    if (modalInstance) {
+        modalInstance.hide();
+    } else {
+        // Fallback: create new instance and hide
+        var newModal = new bootstrap.Modal(modalEl);
+        newModal.hide();
+    }
+    // Clear both scopes
     pendingApprovalRequest = null;
+    window.pendingApprovalRequest = null;
 
+    console.log('[CountryControls] Calling renderRequestsList');
     renderRequestsList();
     updateReviewStats();
     showAdminToast('Country access approved', request.customer.name + ' can now send SMS to ' + request.country.name + '. Account-level override has been added.', 'success');
@@ -3335,7 +3374,11 @@ function rejectRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) return;
 
+    // Set both local and window scope for cross-context access
     pendingRejectionRequest = request;
+    window.pendingRejectionRequest = request;
+    console.log('[CountryControls] rejectRequest: set pendingRejectionRequest to:', request.id);
+    
     document.getElementById('rejectionCustomerName').textContent = request.customer.name;
     document.getElementById('rejectionCountryName').textContent = request.country.name;
     document.getElementById('rejectionReasonCategory').value = '';
@@ -3347,8 +3390,14 @@ function rejectRequest(requestId) {
 }
 
 function confirmRejection() {
-    var request = pendingRejectionRequest;
-    if (!request) return;
+    console.log('[CountryControls] confirmRejection called');
+    // Use window scope to ensure cross-context accessibility
+    var request = window.pendingRejectionRequest || pendingRejectionRequest;
+    console.log('[CountryControls] Request to reject:', request);
+    if (!request) {
+        console.error('[CountryControls] confirmRejection: No pending request found');
+        return;
+    }
 
     var category = document.getElementById('rejectionReasonCategory').value;
     var additionalText = document.getElementById('rejectionReasonText').value.trim();
@@ -3361,11 +3410,13 @@ function confirmRejection() {
     var now = new Date();
     var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
 
+    console.log('[CountryControls] Updating request status to rejected for:', request.id);
     request.status = 'rejected';
     request.reviewedBy = currentAdmin.email;
     request.reviewedAt = formattedDate;
     request.rejectionReason = category + (additionalText ? ': ' + additionalText : '');
     request.rejectionCategory = category;
+    console.log('[CountryControls] Request after update:', JSON.stringify(request));
 
     logAuditEvent('COUNTRY_REQUEST_REJECTED', {
         requestId: request.id,
@@ -3384,9 +3435,23 @@ function confirmRejection() {
         reason: request.rejectionReason
     });
 
-    bootstrap.Modal.getInstance(document.getElementById('rejectionReasonModal')).hide();
+    // Hide modal
+    var modalEl = document.getElementById('rejectionReasonModal');
+    console.log('[CountryControls] Modal element:', modalEl);
+    var modalInstance = bootstrap.Modal.getInstance(modalEl);
+    console.log('[CountryControls] Modal instance:', modalInstance);
+    if (modalInstance) {
+        modalInstance.hide();
+    } else {
+        // Fallback: create new instance and hide
+        var newModal = new bootstrap.Modal(modalEl);
+        newModal.hide();
+    }
+    // Clear both scopes
     pendingRejectionRequest = null;
+    window.pendingRejectionRequest = null;
 
+    console.log('[CountryControls] Calling renderRequestsList');
     renderRequestsList();
     updateReviewStats();
     showAdminToast('Request rejected', 'The customer has been notified of the decision.', 'info');
