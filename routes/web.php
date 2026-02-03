@@ -181,6 +181,17 @@ Route::prefix('admin')->group(function () {
             Route::post('/enforcement/normalise', 'normaliseInput')->name('admin.enforcement.normalise');
             Route::post('/enforcement/reload', 'reloadEnforcementRules')->name('admin.enforcement.reload');
             
+            Route::prefix('api/governance')->controller(\App\Http\Controllers\Admin\ApprovalQueueController::class)->group(function () {
+                Route::get('/queue-counts', 'getQueueCounts')->name('admin.api.governance.queue-counts');
+                Route::get('/senderid-requests', 'getSenderIdRequests')->name('admin.api.governance.senderid-requests');
+                Route::get('/rcs-agent-requests', 'getRcsAgentRequests')->name('admin.api.governance.rcs-agent-requests');
+                Route::get('/country-requests', 'getCountryRequests')->name('admin.api.governance.country-requests');
+                Route::post('/requests/{type}/{id}/status', 'updateRequestStatus')->name('admin.api.governance.update-request-status');
+                Route::post('/entity/lock', 'applyEntityLock')->name('admin.api.governance.apply-lock');
+                Route::post('/entity/unlock', 'removeEntityLock')->name('admin.api.governance.remove-lock');
+                Route::get('/locked-entities', 'getLockedEntities')->name('admin.api.governance.locked-entities');
+            });
+            
             Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
             Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');
             Route::get('/system/flags', 'systemFlags')->name('admin.system.flags');
