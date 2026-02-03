@@ -2023,6 +2023,26 @@
 document.addEventListener('DOMContentLoaded', function() {
     initCountryControls();
     initAccountTypeahead();
+    
+    // Bind confirm approval button click handler
+    var confirmApproveBtn = document.getElementById('confirmApproveBtn');
+    if (confirmApproveBtn) {
+        confirmApproveBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            confirmApproval();
+        });
+    }
+    
+    // Bind confirm rejection button click handler
+    var confirmRejectBtn = document.getElementById('confirmRejectBtn');
+    if (confirmRejectBtn) {
+        confirmRejectBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            confirmRejection();
+        });
+    }
 });
 
 var CountryControlsService = (function() {
@@ -3271,8 +3291,12 @@ function approveRequest(requestId) {
 }
 
 function confirmApproval() {
+    console.log('[CountryControls] confirmApproval called, pendingApprovalRequest:', pendingApprovalRequest);
     var request = pendingApprovalRequest;
-    if (!request) return;
+    if (!request) {
+        console.error('[CountryControls] confirmApproval: No pending request found');
+        return;
+    }
 
     var now = new Date();
     var formattedDate = formatDateDDMMYYYY(now) + ' ' + padZero(now.getHours()) + ':' + padZero(now.getMinutes());
