@@ -10486,6 +10486,16 @@ var SecurityComplianceControlsService = (function() {
         renderAllTabs: renderAllTabs,
         renderQuarantineTab: renderQuarantineTab,
         updateQuarantineFilterChips: updateQuarantineFilterChips,
+        toggleSenderIdFilterPanel: toggleSenderIdFilterPanel,
+        toggleExemptionsFilterPanel: toggleExemptionsFilterPanel,
+        showAddSenderIdExemptionModal: showAddSenderIdExemptionModal,
+        saveNewExemption: saveNewExemption,
+        applyExemptionsFilters: applyExemptionsFilters,
+        resetExemptionsFilters: resetExemptionsFilters,
+        filterExemptionsTable: filterExemptionsTable,
+        viewExemption: viewExemption,
+        editExemption: editExemption,
+        revokeExemption: revokeExemption,
         showAddContentRuleModal: showAddContentRuleModal,
         editContentRule: editContentRule,
         viewContentRule: viewContentRule,
@@ -13781,17 +13791,6 @@ function updateContentMatchInputLabel() {
     SecurityComplianceControlsService.updateContentMatchInputLabel();
 }
 
-function resetContentFilters() {
-    SecurityComplianceControlsService.resetContentFilters();
-}
-
-function toggleContentFilterPanel() {
-    SecurityComplianceControlsService.toggleContentFilterPanel();
-}
-
-function applyContentFilters() {
-    SecurityComplianceControlsService.applyContentFilters();
-}
 
 function toggleContentActionMenu(btn, ruleId, event) {
     SecurityComplianceControlsService.toggleContentActionMenu(btn, ruleId, event);
@@ -14111,41 +14110,6 @@ function resetUrlFilters() {
     document.getElementById('url-search').value = '';
 }
 
-function toggleQuarantineFilterPanel() {
-    SecurityComplianceControlsService.toggleQuarantineFilterPanel();
-}
-
-function toggleSenderIdFilterPanel() {
-    SecurityComplianceControlsService.toggleSenderIdFilterPanel();
-}
-
-function showAddSenderIdExemptionModal() {
-    SecurityComplianceControlsService.showAddSenderIdExemptionModal();
-}
-
-function saveNewExemption() {
-    SecurityComplianceControlsService.saveNewExemption();
-}
-
-function toggleExemptionsFilterPanel() {
-    SecurityComplianceControlsService.toggleExemptionsFilterPanel();
-}
-
-function applyExemptionsFilters() {
-    SecurityComplianceControlsService.applyExemptionsFilters();
-}
-
-function resetExemptionsFilters() {
-    SecurityComplianceControlsService.resetExemptionsFilters();
-}
-
-function filterExemptionsTable() {
-    SecurityComplianceControlsService.filterExemptionsTable();
-}
-
-function viewExemption(exemptionId) {
-    SecurityComplianceControlsService.viewExemption(exemptionId);
-}
 
 function editExemption(exemptionId) {
     SecurityComplianceControlsService.editExemption(exemptionId);
