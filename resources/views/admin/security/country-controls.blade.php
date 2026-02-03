@@ -1691,7 +1691,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-success" id="confirmApproveBtn" onclick="confirmApproval()">
+                <button type="button" class="btn btn-success" id="confirmApproveBtn">
                     <i class="fas fa-check-circle me-1"></i>Confirm Approval
                 </button>
             </div>
@@ -1735,7 +1735,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmRejectBtn" onclick="confirmRejection()" disabled>
+                <button type="button" class="btn btn-danger" id="confirmRejectBtn" disabled>
                     <i class="fas fa-times-circle me-1"></i>Confirm Rejection
                 </button>
             </div>
