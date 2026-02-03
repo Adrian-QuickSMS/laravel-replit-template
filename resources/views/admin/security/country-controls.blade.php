@@ -3072,7 +3072,7 @@ function viewAccount(customerId) {
     window.location.href = '/admin/accounts/' + customerId;
 }
 
-function renderRequestsList() {
+window.renderRequestsList = function renderRequestsList() {
     var tbody = document.getElementById('reviewTableBody');
     var emptyState = document.getElementById('emptyReviewState');
     var tableContainer = document.querySelector('.queue-table-container');
@@ -3177,7 +3177,7 @@ function clearReviewFilters() {
     filterByStatus('pending');
 }
 
-function openReviewModal(requestId) {
+window.openReviewModal = function openReviewModal(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) return;
     selectedRequest = request;
@@ -3269,7 +3269,7 @@ function getAccountAllowedCountries(customerId) {
     return html;
 }
 
-function updateReviewStats() {
+window.updateReviewStats = function updateReviewStats() {
     var pending = countryRequests.filter(function(r) { return r.status === 'pending'; }).length;
     var approved = countryRequests.filter(function(r) { return r.status === 'approved'; }).length;
     var rejected = countryRequests.filter(function(r) { return r.status === 'rejected'; }).length;
@@ -3295,7 +3295,7 @@ var pendingApprovalRequest = window.pendingApprovalRequest;
 var pendingRejectionRequest = window.pendingRejectionRequest;
 var pendingOverrideRemoval = null;
 
-function approveRequest(requestId) {
+window.approveRequest = function approveRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) return;
 
@@ -3311,7 +3311,7 @@ function approveRequest(requestId) {
     modal.show();
 }
 
-function confirmApproval() {
+window.confirmApproval = function confirmApproval() {
     console.log('[CountryControls] confirmApproval called');
     // Use window scope to ensure cross-context accessibility
     var request = window.pendingApprovalRequest || pendingApprovalRequest;
@@ -3370,7 +3370,7 @@ function confirmApproval() {
     showAdminToast('Country access approved', request.customer.name + ' can now send SMS to ' + request.country.name + '. Account-level override has been added.', 'success');
 }
 
-function rejectRequest(requestId) {
+window.rejectRequest = function rejectRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) return;
 
@@ -3389,7 +3389,7 @@ function rejectRequest(requestId) {
     modal.show();
 }
 
-function confirmRejection() {
+window.confirmRejection = function confirmRejection() {
     console.log('[CountryControls] confirmRejection called');
     // Use window scope to ensure cross-context accessibility
     var request = window.pendingRejectionRequest || pendingRejectionRequest;
