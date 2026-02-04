@@ -5142,6 +5142,24 @@ function bindEvents() {
     console.log('[CountryControls] Event listeners attached:');
     console.log('  - reviewTableBody found:', !!document.getElementById('reviewTableBody'));
     console.log('  - countryTableBody found:', !!document.getElementById('countryTableBody'));
+
+    // DEBUG: Capture-phase listeners to catch ALL clicks before any other handlers
+    var debugReviewBody = document.getElementById('reviewTableBody');
+    if (debugReviewBody) {
+        debugReviewBody.addEventListener('click', function(e) {
+            console.log('[DEBUG] Click on reviewTableBody - target:', e.target.tagName, 'class:', e.target.className);
+            console.log('[DEBUG] Closest .btn-review:', e.target.closest('.btn-review'));
+        }, true); // capture phase = true
+    }
+
+    var debugCountryBody = document.getElementById('countryTableBody');
+    if (debugCountryBody) {
+        debugCountryBody.addEventListener('click', function(e) {
+            console.log('[DEBUG] Click on countryTableBody - target:', e.target.tagName, 'class:', e.target.className);
+            console.log('[DEBUG] Closest .action-menu-btn:', e.target.closest('.action-menu-btn'));
+            console.log('[DEBUG] Closest .action-dropdown-item:', e.target.closest('.action-dropdown-item'));
+        }, true); // capture phase = true
+    }
 }
 
 function openActionModal(countryCode, newStatus) {
