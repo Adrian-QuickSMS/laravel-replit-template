@@ -4227,23 +4227,23 @@ function renderCountryTable() {
                 '</button>' +
                 '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
                     '<div class="action-dropdown-section">Account Overrides</div>' +
-                    '<div class="action-dropdown-item" data-action="add-override" data-country-code="' + country.code + '">' +
+                    '<div class="action-dropdown-item" onclick="window.handleActionClick(\'add-override\', \'' + country.code + '\')">' +
                         '<i class="fas fa-plus-circle"></i>Add Account Override' +
                     '</div>' +
-                    '<div class="action-dropdown-item" data-action="remove-override" data-country-code="' + country.code + '">' +
+                    '<div class="action-dropdown-item" onclick="window.handleActionClick(\'remove-override\', \'' + country.code + '\')">' +
                         '<i class="fas fa-minus-circle"></i>Remove Account Override' +
                     '</div>' +
-                    '<div class="action-dropdown-item view" data-action="view-overrides" data-country-code="' + country.code + '">' +
+                    '<div class="action-dropdown-item view" onclick="window.handleActionClick(\'view-overrides\', \'' + country.code + '\')">' +
                         '<i class="fas fa-users"></i>View Overrides (' + country.overrides + ')' +
                     '</div>' +
                     '<div class="action-dropdown-divider"></div>' +
                     '<div class="action-dropdown-section">Default Status</div>' +
                     (country.status !== 'allowed' ? 
-                        '<div class="action-dropdown-item approve" data-action="set-status" data-country-code="' + country.code + '" data-status="allowed">' +
+                        '<div class="action-dropdown-item approve" onclick="window.handleActionClick(\'set-status\', \'' + country.code + '\', \'allowed\')">' +
                             '<i class="fas fa-check-circle"></i>Allow Country (Default)' +
                         '</div>' : '') +
                     (country.status !== 'blocked' ? 
-                        '<div class="action-dropdown-item reject" data-action="set-status" data-country-code="' + country.code + '" data-status="blocked">' +
+                        '<div class="action-dropdown-item reject" onclick="window.handleActionClick(\'set-status\', \'' + country.code + '\', \'blocked\')">' +
                             '<i class="fas fa-ban"></i>Block Country (Default)' +
                         '</div>' : '') +
                 '</div>' +
@@ -4385,6 +4385,34 @@ window.openAddOverrideModal = openAddOverrideModal;
 window.openRemoveOverrideModal = openRemoveOverrideModal;
 window.viewOverrides = viewOverrides;
 window.toggleCountryActionMenu = toggleCountryActionMenu;
+
+window.handleActionClick = function(action, countryCode, status) {
+    console.log('[CountryControls] handleActionClick:', action, countryCode, status);
+    
+    // Close all dropdowns
+    document.querySelectorAll('.action-dropdown.show').forEach(function(d) {
+        d.classList.remove('show');
+    });
+    
+    switch(action) {
+        case 'add-override':
+            openAddOverrideModal(countryCode);
+            break;
+        case 'remove-override':
+            openRemoveOverrideModal(countryCode);
+            break;
+        case 'view-overrides':
+            viewOverrides(countryCode);
+            break;
+        case 'set-status':
+            if (status) {
+                openDefaultStatusModal(countryCode, status);
+            }
+            break;
+        default:
+            console.warn('[CountryControls] Unknown action:', action);
+    }
+};
 window.confirmAddOverride = confirmAddOverride;
 window.confirmRemoveOverride = confirmRemoveOverride;
 window.toggleAccountDropdown = toggleAccountDropdown;
