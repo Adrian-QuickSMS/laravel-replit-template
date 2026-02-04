@@ -1,0 +1,81 @@
+REPLIT PROMPT: Fix Country Controls Review Buttons Using Event Delegation
+
+File: /resources/views/admin/security/country-controls.blade.php
+
+ROOT CAUSE:
+
+The Review buttons use inline onclick handlers with complex quote escaping:
+
+onclick="event.stopPropagation(); window.openReviewModal(\'' + request.id + '\')"
+
+This is fragile and can break due to quote escaping issues, especially when the HTML is dynamically generated. Inline event handlers are also considered bad practice for security and maintainability.
+
+SOLUTION: Use Event Delegation
+
+STEP 1: Find line ~3320 where the Review button HTML is generated. Change FROM:
+
+var reviewBtn = '<button class="btn btn-sm btn-review" data-request-id="' + request.id + '" onclick="event.stopPropagation(); window.openReviewModal(\'' + request.id + '\')">' +
+    '<i class="fas fa-eye me-1"></i>Review</button>';
+
+TO (remove the onclick attribute completely):
+
+var reviewBtn = '<button class="btn btn-sm btn-review" data-request-id="' + request.id + '">' +
+    '<i class="fas fa-eye me-1"></i>Review</button>';
+
+STEP 2: Find the bindEvents() function (around line 3180-3186) or create it if it doesn't exist properly. Add this event delegation code:
+
+function bindEvents() {
+    // Event delegation for Review buttons
+    var reviewTableBody = document.getElementById('reviewQueueBody');
+    if (reviewTableBody) {
+        reviewTableBody.addEventListener('click', function(e) {
+            // Check if the click was on a Review button or its child elements
+            var reviewBtn = e.target.closest('.btn-review');
+            if (reviewBtn) {
+                e.stopPropagation(); // Prevent row click from firing
+                var requestId = reviewBtn.getAttribute('data-request-id');
+                if (requestId) {
+                    console.log('[CountryControls] Review button clicked, requestId:', requestId);
+                    window.openReviewModal(requestId);
+                }
+            }
+        });
+    }
+}
+
+WHY THIS WORKS:
+
+Event Delegation: Instead of attaching individual onclick handlers to each button, we attach ONE listener to the parent table body
+No Quote Escaping Issues: The request ID is stored in a data-request-id attribute, not in JavaScript code
+Cleaner HTML: No inline JavaScript in the HTML
+Better Performance: One event listener instead of many
+More Secure: Avoids inline event handlers which can be XSS vectors
+Easier Debugging: Event handlers are in one place, not scattered in HTML strings
+VERIFICATION STEPS:
+
+After making changes:
+
+Open browser DevTools Console
+Navigate to Admin > Security > Country Controls > Review tab
+Click any "Review" button
+You should see: [CountryControls] Review button clicked, requestId: REQ-001
+Followed by: [CountryControls] openReviewModal called with: REQ-001
+The review modal should open
+BONUS FIX: If the modal still doesn't appear after clicking, it might be a Bootstrap modal initialization issue. Update the openReviewModal function (line ~3444) to dispose of existing instances first:
+
+Change FROM:
+
+var modal = new bootstrap.Modal(document.getElementById('reviewDetailModal'));
+modal.show();
+
+TO:
+
+var modalEl = document.getElementById('reviewDetailModal');
+var existingModal = bootstrap.Modal.getInstance(modalEl);
+if (existingModal) {
+    existingModal.dispose();
+}
+var modal = new bootstrap.Modal(modalEl);
+modal.show();
+
+This ensures clean modal instances and prevents conflicts from previous modal instances.

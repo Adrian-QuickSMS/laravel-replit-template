@@ -4222,28 +4222,28 @@ function renderCountryTable() {
 
         var actionMenu = 
             '<div class="action-menu">' +
-                '<button class="action-menu-btn" onclick="toggleCountryActionMenu(event, \'' + country.code + '\')">' +
+                '<button class="action-menu-btn" data-action="toggle-menu" data-country-code="' + country.code + '">' +
                     '<i class="fas fa-ellipsis-v"></i>' +
                 '</button>' +
                 '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
                     '<div class="action-dropdown-section">Account Overrides</div>' +
-                    '<div class="action-dropdown-item" onclick="event.stopPropagation(); window.openAddOverrideModal(\'' + country.code + '\')">' +
+                    '<div class="action-dropdown-item" data-action="add-override" data-country-code="' + country.code + '">' +
                         '<i class="fas fa-plus-circle"></i>Add Account Override' +
                     '</div>' +
-                    '<div class="action-dropdown-item" onclick="event.stopPropagation(); window.openRemoveOverrideModal(\'' + country.code + '\')">' +
+                    '<div class="action-dropdown-item" data-action="remove-override" data-country-code="' + country.code + '">' +
                         '<i class="fas fa-minus-circle"></i>Remove Account Override' +
                     '</div>' +
-                    '<div class="action-dropdown-item view" onclick="event.stopPropagation(); window.viewOverrides(\'' + country.code + '\')">' +
+                    '<div class="action-dropdown-item view" data-action="view-overrides" data-country-code="' + country.code + '">' +
                         '<i class="fas fa-users"></i>View Overrides (' + country.overrides + ')' +
                     '</div>' +
                     '<div class="action-dropdown-divider"></div>' +
                     '<div class="action-dropdown-section">Default Status</div>' +
                     (country.status !== 'allowed' ? 
-                        '<div class="action-dropdown-item approve" onclick="event.stopPropagation(); window.openDefaultStatusModal(\'' + country.code + '\', \'allowed\')">' +
+                        '<div class="action-dropdown-item approve" data-action="set-status" data-country-code="' + country.code + '" data-status="allowed">' +
                             '<i class="fas fa-check-circle"></i>Allow Country (Default)' +
                         '</div>' : '') +
                     (country.status !== 'blocked' ? 
-                        '<div class="action-dropdown-item reject" onclick="event.stopPropagation(); window.openDefaultStatusModal(\'' + country.code + '\', \'blocked\')">' +
+                        '<div class="action-dropdown-item reject" data-action="set-status" data-country-code="' + country.code + '" data-status="blocked">' +
                             '<i class="fas fa-ban"></i>Block Country (Default)' +
                         '</div>' : '') +
                 '</div>' +
@@ -4379,6 +4379,7 @@ window.openDefaultStatusModal = openDefaultStatusModal;
 window.openAddOverrideModal = openAddOverrideModal;
 window.openRemoveOverrideModal = openRemoveOverrideModal;
 window.viewOverrides = viewOverrides;
+window.toggleCountryActionMenu = toggleCountryActionMenu;
 window.confirmAddOverride = confirmAddOverride;
 window.confirmRemoveOverride = confirmRemoveOverride;
 window.toggleAccountDropdown = toggleAccountDropdown;
@@ -5059,6 +5060,40 @@ function bindEvents() {
                     console.log('[CountryControls] Review button clicked, requestId:', requestId);
                     window.openReviewModal(requestId);
                 }
+            }
+        });
+    }
+
+    // Event delegation for Country Table action menu items
+    var countryTableBody = document.getElementById('countryTableBody');
+    if (countryTableBody) {
+        countryTableBody.addEventListener('click', function(e) {
+            var target = e.target.closest('[data-action]');
+            if (!target) return;
+            
+            e.stopPropagation();
+            var action = target.getAttribute('data-action');
+            var countryCode = target.getAttribute('data-country-code');
+            
+            console.log('[CountryControls] Action clicked:', action, 'countryCode:', countryCode);
+            
+            switch(action) {
+                case 'toggle-menu':
+                    window.toggleCountryActionMenu(e, countryCode);
+                    break;
+                case 'add-override':
+                    window.openAddOverrideModal(countryCode);
+                    break;
+                case 'remove-override':
+                    window.openRemoveOverrideModal(countryCode);
+                    break;
+                case 'view-overrides':
+                    window.viewOverrides(countryCode);
+                    break;
+                case 'set-status':
+                    var newStatus = target.getAttribute('data-status');
+                    window.openDefaultStatusModal(countryCode, newStatus);
+                    break;
             }
         });
     }
