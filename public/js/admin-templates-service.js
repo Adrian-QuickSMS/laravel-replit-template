@@ -208,7 +208,7 @@ const AdminTemplatesService = (function() {
             contentType: 'rich_card',
             accessScope: 'Marketing Team',
             subAccounts: ['marketing'],
-            status: 'paused',
+            status: 'suspended',
             version: 2,
             lastUpdated: '2026-01-01',
             createdBy: 'Marketing Lead',
@@ -465,7 +465,7 @@ const AdminTemplatesService = (function() {
                 return { success: false, error: 'Template not found' };
             }
 
-            template.status = 'paused';
+            template.status = 'suspended';
             template.suspendReason = reason;
             template.suspendedAt = new Date().toISOString();
             template.suspendedBy = 'Admin User';

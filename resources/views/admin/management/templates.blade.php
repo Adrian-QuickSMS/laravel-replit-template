@@ -263,7 +263,7 @@
     background: rgba(28, 187, 140, 0.15);
     color: #1cbb8c;
 }
-.badge-paused {
+.badge-suspended {
     background: rgba(255, 191, 0, 0.15);
     color: #cc9900;
 }
@@ -628,7 +628,7 @@
                                 </div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="draft" id="statusDraft"><label class="form-check-label small" for="statusDraft">Draft</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="live" id="statusLive"><label class="form-check-label small" for="statusLive">Live</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="paused" id="statusPaused"><label class="form-check-label small" for="statusPaused">Paused</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="suspended" id="statusSuspended"><label class="form-check-label small" for="statusSuspended">Suspended</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="archived" id="statusArchived"><label class="form-check-label small" for="statusArchived">Archived</label></div>
                             </div>
                         </div>
@@ -873,7 +873,7 @@ var pendingFilters = {
 var filterLabels = {
     channels: { 'sms': 'SMS', 'basic_rcs': 'Basic RCS', 'rich_rcs': 'Rich RCS' },
     triggers: { 'api': 'API', 'portal': 'Portal', 'email': 'Email-to-SMS' },
-    statuses: { 'draft': 'Draft', 'live': 'Live', 'paused': 'Paused', 'archived': 'Archived' }
+    statuses: { 'draft': 'Draft', 'live': 'Live', 'suspended': 'Suspended', 'archived': 'Archived' }
 };
 
 var currentActionTemplate = null;
@@ -1259,7 +1259,7 @@ function renderTemplates(templates) {
                 html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
             }
             
-            if (template.status === 'paused' && AdminPermissions.canReactivate()) {
+            if (template.status === 'suspended' && AdminPermissions.canReactivate()) {
                 html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
             }
             
@@ -1420,7 +1420,7 @@ function getStatusBadgeClass(status) {
     switch(status) {
         case 'draft': return 'badge-draft';
         case 'live': return 'badge-live';
-        case 'paused': return 'badge-paused';
+        case 'suspended': return 'badge-suspended';
         case 'archived': return 'badge-archived';
         default: return 'badge-draft';
     }
@@ -1503,7 +1503,7 @@ async function confirmSuspendTemplate() {
             templateName: currentActionTemplate.name,
             reason: reason,
             beforeSnapshot: { status: 'live' },
-            afterSnapshot: { status: 'paused' }
+            afterSnapshot: { status: 'suspended' }
         });
         
         bootstrap.Modal.getInstance(document.getElementById('suspendTemplateModal')).hide();
@@ -1526,7 +1526,7 @@ function reactivateTemplate(accountId, templateId, name, accountName) {
 async function confirmReactivateTemplate() {
     if (!currentActionTemplate) return;
     
-    var beforeStatus = 'paused';
+    var beforeStatus = 'suspended';
     
     var result = await AdminTemplatesService.reactivateTemplate(
         currentActionTemplate.accountId,
