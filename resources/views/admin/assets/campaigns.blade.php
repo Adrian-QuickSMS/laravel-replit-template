@@ -609,8 +609,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
 @endphp
 
 @section('content')
-<div class="container-fluid" style="padding: 1.5rem;">
-    <div class="row page-titles">
+<div class="row page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
             <li class="breadcrumb-item"><a href="#">Assets</a></li>

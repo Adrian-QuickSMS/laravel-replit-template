@@ -16,22 +16,6 @@ body.admin-control-plane {
     background: #f1f5f9;
 }
 
-/* Admin content containment - prevent horizontal overflow */
-body.admin-control-plane .content-body {
-    overflow-x: hidden;
-}
-
-body.admin-control-plane .qsms-main {
-    width: 100%;
-    min-width: 0;
-}
-
-body.admin-control-plane .qsms-content-wrap {
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-}
-
 .admin-nav-header {
     background: var(--admin-bg) !important;
     border-bottom: 1px solid var(--admin-border);
