@@ -5054,7 +5054,7 @@ function bindEvents() {
     document.getElementById('reviewCountryFilter').addEventListener('change', renderRequestsList);
 
     // Event delegation for Review buttons - more reliable than inline onclick handlers
-    var reviewTableBody = document.getElementById('reviewQueueBody');
+    var reviewTableBody = document.getElementById('reviewTableBody');
     if (reviewTableBody) {
         reviewTableBody.addEventListener('click', function(e) {
             var reviewBtn = e.target.closest('.btn-review');
@@ -5137,6 +5137,11 @@ function bindEvents() {
         console.log('[CountryControls] Countries tab activated');
         renderCountryTable();
     });
+
+    // Diagnostic logging for event delegation
+    console.log('[CountryControls] Event listeners attached:');
+    console.log('  - reviewTableBody found:', !!document.getElementById('reviewTableBody'));
+    console.log('  - countryTableBody found:', !!document.getElementById('countryTableBody'));
 }
 
 function openActionModal(countryCode, newStatus) {
