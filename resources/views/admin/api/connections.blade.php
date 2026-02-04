@@ -645,7 +645,12 @@
 
             <div class="card mb-3">
                 <div class="card-body p-3">
-                    <h6 class="card-title mb-3"><i class="fas fa-link me-2" style="color: #1e3a5f;"></i>Endpoints</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0"><i class="fas fa-link me-2" style="color: #1e3a5f;"></i>Endpoints</h6>
+                        <button class="btn btn-sm btn-outline-primary" onclick="openEditEndpointsModal()" title="Edit Endpoints">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
                     <div class="row mb-2">
                         <div class="col-4 text-muted small">Base URL</div>
                         <div class="col-8 small d-flex align-items-center">
@@ -672,7 +677,12 @@
 
             <div class="card mb-3">
                 <div class="card-body p-3">
-                    <h6 class="card-title mb-3"><i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i>Security</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="card-title mb-0"><i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i>Security</h6>
+                        <button class="btn btn-sm btn-outline-primary" onclick="openEditSecurityModal()" title="Edit Security">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                    </div>
                     <div class="row mb-2">
                         <div class="col-5 text-muted small">IP Allowlist</div>
                         <div class="col-7 small" id="drawerIpAllowStatus">-</div>
@@ -745,6 +755,106 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Endpoints Modal -->
+<div class="modal fade" id="editEndpointsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-link me-2"></i>Edit Endpoints</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Base URL</label>
+                    <input type="url" class="form-control" id="editBaseUrl" placeholder="https://api.quicksms.co.uk/v2">
+                    <small class="text-muted">The base URL for this API connection</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">DLR Webhook URL</label>
+                    <div class="input-group">
+                        <input type="url" class="form-control" id="editDlrUrl" placeholder="https://example.com/webhooks/dlr">
+                        <button class="btn btn-outline-danger" type="button" onclick="clearField('editDlrUrl')" title="Clear">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Delivery receipts will be sent to this URL</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Inbound Webhook URL</label>
+                    <div class="input-group">
+                        <input type="url" class="form-control" id="editInboundUrl" placeholder="https://example.com/webhooks/inbound">
+                        <button class="btn btn-outline-danger" type="button" onclick="clearField('editInboundUrl')" title="Clear">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Inbound messages will be forwarded to this URL</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn text-white" style="background: var(--admin-primary);" onclick="saveEndpointsChanges()">
+                    <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Security Modal -->
+<div class="modal fade" id="editSecurityModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-shield-alt me-2"></i>Edit Security Settings</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="editIpAllowlistEnabled" onchange="toggleIpAllowlistSection()">
+                        <label class="form-check-label fw-bold" for="editIpAllowlistEnabled">Enable IP Allowlist</label>
+                    </div>
+                    <small class="text-muted">When enabled, only requests from allowed IP addresses will be accepted</small>
+                </div>
+                
+                <div id="ipAllowlistSection" style="display: none;">
+                    <hr>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Allowed IP Addresses</label>
+                        <div class="alert alert-info small py-2">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Enter one IP address per line. Supports IPv4 addresses and CIDR notation (e.g., 192.168.1.0/24)
+                        </div>
+                        <textarea class="form-control font-monospace" id="editAllowedIps" rows="5" placeholder="192.168.1.1
+10.0.0.0/8
+203.0.113.50"></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addCurrentIp()">
+                            <i class="fas fa-plus me-1"></i> Add Current IP
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllIps()">
+                            <i class="fas fa-trash me-1"></i> Clear All
+                        </button>
+                    </div>
+                    
+                    <div id="ipValidationErrors" class="alert alert-danger small py-2" style="display: none;">
+                        <i class="fas fa-exclamation-circle me-1"></i>
+                        <span id="ipValidationErrorText"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn text-white" style="background: var(--admin-primary);" onclick="saveSecurityChanges()">
+                    <i class="fas fa-save me-1"></i> Save Changes
+                </button>
             </div>
         </div>
     </div>
@@ -1398,6 +1508,223 @@ $(document).ready(function() {
             'This will change the API endpoint to the production server.'
         );
     };
+    
+    // Edit Endpoints Modal Functions
+    window.openEditEndpointsModal = function() {
+        if (!currentConnection) return;
+        
+        document.getElementById('editBaseUrl').value = currentConnection.baseUrl || '';
+        document.getElementById('editDlrUrl').value = currentConnection.dlrUrl || '';
+        document.getElementById('editInboundUrl').value = currentConnection.inboundUrl || '';
+        
+        var modal = new bootstrap.Modal(document.getElementById('editEndpointsModal'));
+        modal.show();
+    };
+    
+    window.clearField = function(fieldId) {
+        document.getElementById(fieldId).value = '';
+    };
+    
+    window.saveEndpointsChanges = function() {
+        if (!currentConnection) return;
+        
+        var baseUrl = document.getElementById('editBaseUrl').value.trim();
+        var dlrUrl = document.getElementById('editDlrUrl').value.trim();
+        var inboundUrl = document.getElementById('editInboundUrl').value.trim();
+        
+        // Basic URL validation
+        if (baseUrl && !isValidUrl(baseUrl)) {
+            showToast('Invalid Base URL format', 'error');
+            return;
+        }
+        if (dlrUrl && !isValidUrl(dlrUrl)) {
+            showToast('Invalid DLR Webhook URL format', 'error');
+            return;
+        }
+        if (inboundUrl && !isValidUrl(inboundUrl)) {
+            showToast('Invalid Inbound Webhook URL format', 'error');
+            return;
+        }
+        
+        // Store before values for audit
+        var before = {
+            baseUrl: currentConnection.baseUrl,
+            dlrUrl: currentConnection.dlrUrl,
+            inboundUrl: currentConnection.inboundUrl
+        };
+        
+        // Update the connection
+        currentConnection.baseUrl = baseUrl || null;
+        currentConnection.dlrUrl = dlrUrl || null;
+        currentConnection.inboundUrl = inboundUrl || null;
+        
+        // Log audit event
+        if (typeof ADMIN_AUDIT !== 'undefined') {
+            ADMIN_AUDIT.logEvent('API_CONNECTION_ENDPOINTS_UPDATED', {
+                connectionId: currentConnection.id,
+                connectionName: currentConnection.name,
+                accountId: currentConnection.accountId,
+                before: before,
+                after: { baseUrl: baseUrl || null, dlrUrl: dlrUrl || null, inboundUrl: inboundUrl || null }
+            });
+        }
+        
+        // Update drawer display
+        updateDrawerEndpoints();
+        renderTable();
+        
+        bootstrap.Modal.getInstance(document.getElementById('editEndpointsModal')).hide();
+        showToast('Endpoints updated successfully', 'success');
+    };
+    
+    function updateDrawerEndpoints() {
+        if (!currentConnection) return;
+        document.getElementById('drawerBaseUrl').textContent = currentConnection.baseUrl || 'Not configured';
+        document.getElementById('drawerDlrUrl').innerHTML = currentConnection.dlrUrl 
+            ? currentConnection.dlrUrl 
+            : '<span class="badge bg-secondary">Not configured</span>';
+        document.getElementById('drawerInboundUrl').innerHTML = currentConnection.inboundUrl 
+            ? currentConnection.inboundUrl 
+            : '<span class="badge bg-secondary">Not configured</span>';
+    }
+    
+    function isValidUrl(string) {
+        try {
+            new URL(string);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+    
+    // Edit Security Modal Functions
+    window.openEditSecurityModal = function() {
+        if (!currentConnection) return;
+        
+        var enabled = currentConnection.ipAllowList || false;
+        document.getElementById('editIpAllowlistEnabled').checked = enabled;
+        
+        var ips = currentConnection.allowedIps || [];
+        document.getElementById('editAllowedIps').value = ips.join('\n');
+        
+        toggleIpAllowlistSection();
+        document.getElementById('ipValidationErrors').style.display = 'none';
+        
+        var modal = new bootstrap.Modal(document.getElementById('editSecurityModal'));
+        modal.show();
+    };
+    
+    window.toggleIpAllowlistSection = function() {
+        var enabled = document.getElementById('editIpAllowlistEnabled').checked;
+        document.getElementById('ipAllowlistSection').style.display = enabled ? 'block' : 'none';
+    };
+    
+    window.addCurrentIp = function() {
+        // In a real implementation, this would detect the current IP
+        // For now, add a placeholder
+        var textarea = document.getElementById('editAllowedIps');
+        var currentIps = textarea.value.trim();
+        var mockCurrentIp = '203.0.113.' + Math.floor(Math.random() * 255);
+        textarea.value = currentIps ? currentIps + '\n' + mockCurrentIp : mockCurrentIp;
+        showToast('Added IP: ' + mockCurrentIp, 'info');
+    };
+    
+    window.clearAllIps = function() {
+        document.getElementById('editAllowedIps').value = '';
+    };
+    
+    window.saveSecurityChanges = function() {
+        if (!currentConnection) return;
+        
+        var enabled = document.getElementById('editIpAllowlistEnabled').checked;
+        var ipsText = document.getElementById('editAllowedIps').value.trim();
+        
+        // Parse and validate IPs
+        var ips = [];
+        var invalidIps = [];
+        
+        if (enabled && ipsText) {
+            var lines = ipsText.split('\n').map(function(line) { return line.trim(); }).filter(Boolean);
+            lines.forEach(function(ip) {
+                if (isValidIpOrCidr(ip)) {
+                    ips.push(ip);
+                } else {
+                    invalidIps.push(ip);
+                }
+            });
+            
+            if (invalidIps.length > 0) {
+                document.getElementById('ipValidationErrors').style.display = 'block';
+                document.getElementById('ipValidationErrorText').textContent = 'Invalid IP addresses: ' + invalidIps.join(', ');
+                return;
+            }
+            
+            if (ips.length === 0) {
+                document.getElementById('ipValidationErrors').style.display = 'block';
+                document.getElementById('ipValidationErrorText').textContent = 'Please add at least one IP address when enabling the allowlist';
+                return;
+            }
+        }
+        
+        document.getElementById('ipValidationErrors').style.display = 'none';
+        
+        // Store before values for audit
+        var before = {
+            ipAllowList: currentConnection.ipAllowList,
+            allowedIps: currentConnection.allowedIps ? [...currentConnection.allowedIps] : []
+        };
+        
+        // Update the connection
+        currentConnection.ipAllowList = enabled;
+        currentConnection.allowedIps = enabled ? ips : [];
+        
+        // Log audit event
+        if (typeof ADMIN_AUDIT !== 'undefined') {
+            ADMIN_AUDIT.logEvent('API_CONNECTION_SECURITY_UPDATED', {
+                connectionId: currentConnection.id,
+                connectionName: currentConnection.name,
+                accountId: currentConnection.accountId,
+                before: before,
+                after: { ipAllowList: enabled, allowedIps: ips }
+            });
+        }
+        
+        // Update drawer display
+        updateDrawerSecurity();
+        renderTable();
+        
+        bootstrap.Modal.getInstance(document.getElementById('editSecurityModal')).hide();
+        showToast('Security settings updated successfully', 'success');
+    };
+    
+    function updateDrawerSecurity() {
+        if (!currentConnection) return;
+        
+        var statusEl = document.getElementById('drawerIpAllowStatus');
+        var listRowEl = document.getElementById('drawerIpListRow');
+        var listEl = document.getElementById('drawerIpList');
+        
+        if (currentConnection.ipAllowList) {
+            statusEl.innerHTML = '<span class="badge bg-success">Enabled</span>';
+            listRowEl.style.display = 'flex';
+            var ips = currentConnection.allowedIps || [];
+            listEl.innerHTML = ips.length > 0 
+                ? ips.map(function(ip) { return '<code class="me-1">' + ip + '</code>'; }).join(', ')
+                : '<span class="text-muted">No IPs configured</span>';
+        } else {
+            statusEl.innerHTML = '<span class="badge bg-secondary">Disabled</span>';
+            listRowEl.style.display = 'none';
+        }
+    }
+    
+    function isValidIpOrCidr(ip) {
+        // IPv4 validation
+        var ipv4Pattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        // IPv4 CIDR validation
+        var cidrPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/(?:[0-9]|[1-2][0-9]|3[0-2])$/;
+        
+        return ipv4Pattern.test(ip) || cidrPattern.test(ip);
+    }
     
     console.log('[Admin API Connections] Module loaded - Global view of all customer API connections');
 });
