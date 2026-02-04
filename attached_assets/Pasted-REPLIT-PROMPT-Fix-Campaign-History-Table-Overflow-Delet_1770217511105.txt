@@ -1,0 +1,60 @@
+REPLIT PROMPT: Fix Campaign History Table Overflow - Delete CSS Overrides
+
+File: resources/views/admin/assets/campaigns.blade.php
+
+ROOT CAUSE ANALYSIS:
+
+You attempted to fix table overflow by ADDING CSS constraints to parent containers, but this approach is fundamentally wrong. You're fighting against the existing global layout system defined in /public/css/quicksms-global-layout.css which already provides a correct 1280px centered content wrapper.
+
+CRITICAL ERRORS IN CURRENT CODE:
+
+Line 27: max-width: calc(100vw - 260px) - Wrong! The actual sidebar width is --dz-sidebar-width: 16.5rem = 264px (from style.css:92), not 260px. This 4px discrepancy causes overflow.
+
+Lines 29-32: .qsms-main, .qsms-content-wrap { max-width: 100% !important; } - Wrong! This overrides the global layout's max-width: 1280px centered container system.
+
+Lines 26, 31, 36: overflow-x: hidden !important - Wrong! This MASKS the overflow instead of fixing the root cause.
+
+Line 82: min-width: 800px - Too large, forces horizontal scroll.
+
+Line 84: table-layout: fixed - Prevents flexible column sizing.
+
+Lines 86-92: Column widths total 90%, but with padding/borders they exceed 100%.
+
+REQUIRED CHANGES:
+
+STEP 1: DELETE lines 24-49 entirely. These CSS overrides are causing the problem, not fixing it.
+
+STEP 2: Replace the .api-table CSS (lines 80-93) with this:
+
+.api-table {
+    width: 100%;
+    min-width: 700px;
+    margin: 0;
+}
+.api-table th:nth-child(1) { width: 15%; } /* Account */
+.api-table th:nth-child(2) { width: 25%; } /* Campaign */
+.api-table th:nth-child(3) { width: 10%; } /* Channel */
+.api-table th:nth-child(4) { width: 12%; } /* Status */
+.api-table th:nth-child(5) { width: 13%; } /* Recipients */
+.api-table th:nth-child(6) { width: 15%; } /* Send Date */
+.api-table th:nth-child(7) { width: 10%; } /* Actions */
+.api-table thead th:last-child { text-align: center; }
+
+STEP 3: Keep lines 94-99 unchanged (the white-space, overflow, text-overflow rules for td/th).
+
+WHY THIS WORKS:
+
+The global layout system (quicksms-global-layout.css:43-48) already defines .qsms-content-wrap { max-width: 1280px; margin: 0 auto; } which creates a perfectly centered 1280px container.
+By DELETING the overrides, you allow the global system to work correctly.
+The .table-responsive wrapper (lines 72-79) handles horizontal scrolling naturally if the 700px table exceeds available space.
+Column widths now total 100% (15+25+10+12+13+15+10=100).
+No table-layout: fixed allows flexible column sizing.
+DO NOT:
+
+Add any max-width constraints to .content-body, .qsms-main, .qsms-content-wrap, or .container-fluid
+Use overflow-x: hidden anywhere
+Use !important flags
+Calculate viewport widths with calc(100vw - 260px)
+VERIFY:
+After making changes, the table should fit within the centered 1280px content area with horizontal scroll appearing only when the 700px table exceeds the available width on smaller screens.
+
