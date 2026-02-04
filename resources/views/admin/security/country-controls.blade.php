@@ -4234,23 +4234,23 @@ function renderCountryTable() {
                 '</button>' +
                 '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
                     '<div class="action-dropdown-section">Account Overrides</div>' +
-                    '<button type="button" class="action-dropdown-item" onclick="event.stopPropagation(); window.handleActionClick(\'add-override\', \'' + country.code + '\'); return false;">' +
+                    '<button type="button" class="action-dropdown-item" data-action="add-override" data-country-code="' + country.code + '">' +
                         '<i class="fas fa-plus-circle"></i>Add Account Override' +
                     '</button>' +
-                    '<button type="button" class="action-dropdown-item" onclick="event.stopPropagation(); window.handleActionClick(\'remove-override\', \'' + country.code + '\'); return false;">' +
+                    '<button type="button" class="action-dropdown-item" data-action="remove-override" data-country-code="' + country.code + '">' +
                         '<i class="fas fa-minus-circle"></i>Remove Account Override' +
                     '</button>' +
-                    '<button type="button" class="action-dropdown-item view" onclick="event.stopPropagation(); window.handleActionClick(\'view-overrides\', \'' + country.code + '\'); return false;">' +
+                    '<button type="button" class="action-dropdown-item view" data-action="view-overrides" data-country-code="' + country.code + '">' +
                         '<i class="fas fa-users"></i>View Overrides (' + country.overrides + ')' +
                     '</button>' +
                     '<div class="action-dropdown-divider"></div>' +
                     '<div class="action-dropdown-section">Default Status</div>' +
                     (country.status !== 'allowed' ? 
-                        '<button type="button" class="action-dropdown-item approve" onclick="event.stopPropagation(); window.handleActionClick(\'set-status\', \'' + country.code + '\', \'allowed\'); return false;">' +
+                        '<button type="button" class="action-dropdown-item approve" data-action="set-status" data-country-code="' + country.code + '" data-status="allowed">' +
                             '<i class="fas fa-check-circle"></i>Allow Country (Default)' +
                         '</button>' : '') +
                     (country.status !== 'blocked' ? 
-                        '<button type="button" class="action-dropdown-item reject" onclick="event.stopPropagation(); window.handleActionClick(\'set-status\', \'' + country.code + '\', \'blocked\'); return false;">' +
+                        '<button type="button" class="action-dropdown-item reject" data-action="set-status" data-country-code="' + country.code + '" data-status="blocked">' +
                             '<i class="fas fa-ban"></i>Block Country (Default)' +
                         '</button>' : '') +
                 '</div>' +
