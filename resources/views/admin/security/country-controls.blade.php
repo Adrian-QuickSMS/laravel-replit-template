@@ -3379,7 +3379,7 @@ function clearReviewFilters() {
     filterByStatus('pending');
 }
 
-window.openReviewModal = function openReviewModal(requestId) {
+function openReviewModal(requestId) {
     console.log('[CountryControls] openReviewModal called with:', requestId);
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) {
@@ -5063,12 +5063,7 @@ function bindEvents() {
                 var requestId = reviewBtn.getAttribute('data-request-id');
                 if (requestId) {
                     console.log('[CountryControls] Review button clicked, requestId:', requestId);
-                    try {
-                        window.openReviewModal(requestId);
-                    } catch (err) {
-                        alert('Error opening modal: ' + err.message);
-                        console.error('[CountryControls] Error:', err);
-                    }
+                    openReviewModal(requestId);
                 }
             }
         });
@@ -5085,7 +5080,7 @@ function bindEvents() {
                 var countryCode = menuBtn.getAttribute('data-country-code');
                 if (countryCode) {
                     console.log('[CountryControls] Menu toggle clicked for:', countryCode);
-                    window.toggleCountryActionMenu(e, countryCode);
+                    toggleCountryActionMenu(e, countryCode);
                 }
                 return;
             }
@@ -5106,18 +5101,18 @@ function bindEvents() {
 
                 switch(action) {
                     case 'add-override':
-                        window.openAddOverrideModal(countryCode);
+                        openAddOverrideModal(countryCode);
                         break;
                     case 'remove-override':
-                        window.openRemoveOverrideModal(countryCode);
+                        openRemoveOverrideModal(countryCode);
                         break;
                     case 'view-overrides':
-                        window.viewOverrides(countryCode);
+                        viewOverrides(countryCode);
                         break;
                     case 'set-status':
                         var newStatus = actionItem.getAttribute('data-status');
                         if (newStatus) {
-                            window.openDefaultStatusModal(countryCode, newStatus);
+                            openDefaultStatusModal(countryCode, newStatus);
                         }
                         break;
                     default:
