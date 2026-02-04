@@ -3319,7 +3319,7 @@ function renderRequestsList() {
              request.status === 'approved' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>') + 
             ' ' + capitalize(request.status) + '</span>';
 
-        var reviewBtn = '<button class="btn btn-sm btn-review" data-request-id="' + request.id + '" onclick="event.stopPropagation(); window.openReviewModal(\'' + request.id + '\')">' +
+        var reviewBtn = '<button class="btn btn-sm btn-review" data-request-id="' + request.id + '">' +
             '<i class="fas fa-eye me-1"></i>Review</button>';
 
         row.innerHTML = 
@@ -3443,7 +3443,12 @@ window.openReviewModal = function openReviewModal(requestId) {
             ' on ' + request.reviewedAt;
     }
     
-    var modal = new bootstrap.Modal(document.getElementById('reviewDetailModal'));
+    var modalEl = document.getElementById('reviewDetailModal');
+    var existingModal = bootstrap.Modal.getInstance(modalEl);
+    if (existingModal) {
+        existingModal.dispose();
+    }
+    var modal = new bootstrap.Modal(modalEl);
     modal.show();
 }
 
@@ -5041,6 +5046,22 @@ function bindEvents() {
     document.getElementById('reviewStatusFilter').addEventListener('change', renderRequestsList);
     document.getElementById('reviewCustomerFilter').addEventListener('change', renderRequestsList);
     document.getElementById('reviewCountryFilter').addEventListener('change', renderRequestsList);
+
+    // Event delegation for Review buttons - more reliable than inline onclick handlers
+    var reviewTableBody = document.getElementById('reviewQueueBody');
+    if (reviewTableBody) {
+        reviewTableBody.addEventListener('click', function(e) {
+            var reviewBtn = e.target.closest('.btn-review');
+            if (reviewBtn) {
+                e.stopPropagation();
+                var requestId = reviewBtn.getAttribute('data-request-id');
+                if (requestId) {
+                    console.log('[CountryControls] Review button clicked, requestId:', requestId);
+                    window.openReviewModal(requestId);
+                }
+            }
+        });
+    }
 
     document.getElementById('confirmStatusChange').addEventListener('click', function() {
         applyStatusChange();
