@@ -5109,6 +5109,11 @@ function bindEvents() {
     var countryTableBody = document.getElementById('countryTableBody');
     if (countryTableBody) {
         countryTableBody.addEventListener('click', function(e) {
+            console.log('[CountryControls] CLICK detected in countryTableBody!');
+            console.log('[CountryControls] Clicked element:', e.target);
+            console.log('[CountryControls] Clicked element classes:', e.target.className);
+            console.log('[CountryControls] Clicked element tagName:', e.target.tagName);
+            
             // Handle action menu toggle button clicks
             var menuBtn = e.target.closest('.action-menu-btn');
             if (menuBtn) {
