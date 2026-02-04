@@ -38,6 +38,8 @@
     overflow: hidden;
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     margin-top: 0.5rem;
+    max-width: 100%;
+    width: 100%;
 }
 .table-container .dropdown-menu {
     z-index: 1050;
@@ -46,25 +48,27 @@
 .table-container .dropdown {
     position: static;
 }
-.table-container {
-    background: #fff;
-    border-radius: 8px;
-    border: 1px solid #e0e6ed;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    margin-top: 0.75rem;
-}
-.table-container .table-responsive {
+.table-container .table-responsive,
+#campaignsTableContainer .table-responsive {
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
 }
 .api-table {
     width: 100%;
-    min-width: 100%;
+    min-width: 800px;
     margin: 0;
-    table-layout: auto;
+    table-layout: fixed;
 }
+.api-table th:nth-child(1) { width: 12%; } /* Account */
+.api-table th:nth-child(2) { width: 22%; } /* Campaign */
+.api-table th:nth-child(3) { width: 10%; } /* Channel */
+.api-table th:nth-child(4) { width: 12%; } /* Status */
+.api-table th:nth-child(5) { width: 12%; } /* Recipients */
+.api-table th:nth-child(6) { width: 14%; } /* Send Date */
+.api-table th:nth-child(7) { width: 8%; } /* Actions */
 .api-table thead th:last-child { text-align: center; width: 70px; } /* Actions */
 .api-table td,
 .api-table th {
