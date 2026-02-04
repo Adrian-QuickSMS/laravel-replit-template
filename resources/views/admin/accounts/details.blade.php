@@ -281,7 +281,7 @@
                                     </div>
                                     
                                     <div class="section-actions">
-                                        <button type="button" class="btn btn-admin-primary btn-sm">
+                                        <button type="button" class="btn btn-admin-primary btn-sm" onclick="showSaveConfirmModal('Sign Up Details')">
                                             <i class="fas fa-save me-1"></i>Save Changes
                                         </button>
                                     </div>
@@ -408,7 +408,7 @@
                                     </div>
                                     
                                     <div class="section-actions">
-                                        <button type="button" class="btn btn-admin-primary btn-sm">
+                                        <button type="button" class="btn btn-admin-primary btn-sm" onclick="showSaveConfirmModal('Company Information')">
                                             <i class="fas fa-save me-1"></i>Save Changes
                                         </button>
                                     </div>
@@ -452,7 +452,7 @@
                                     </div>
                                     
                                     <div class="section-actions">
-                                        <button type="button" class="btn btn-admin-primary btn-sm">
+                                        <button type="button" class="btn btn-admin-primary btn-sm" onclick="showSaveConfirmModal('Support & Operations')">
                                             <i class="fas fa-save me-1"></i>Save Changes
                                         </button>
                                     </div>
@@ -494,7 +494,7 @@
                                     </div>
                                     
                                     <div class="section-actions">
-                                        <button type="button" class="btn btn-admin-primary btn-sm">
+                                        <button type="button" class="btn btn-admin-primary btn-sm" onclick="showSaveConfirmModal('Contract Signatory')">
                                             <i class="fas fa-save me-1"></i>Save Changes
                                         </button>
                                     </div>
@@ -574,7 +574,7 @@
                                     </div>
                                     
                                     <div class="section-actions">
-                                        <button type="button" class="btn btn-admin-primary btn-sm">
+                                        <button type="button" class="btn btn-admin-primary btn-sm" onclick="showSaveConfirmModal('Billing, VAT and Tax Information')">
                                             <i class="fas fa-save me-1"></i>Save Changes
                                         </button>
                                     </div>
@@ -628,6 +628,56 @@
 </div>
 
 @include('admin.accounts.partials.account-structure-modal')
+
+<!-- Save Changes Confirmation Modal -->
+<div class="modal fade" id="saveConfirmModal" tabindex="-1" aria-labelledby="saveConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; color: white;">
+                <h5 class="modal-title" id="saveConfirmModalLabel">
+                    <i class="fas fa-save me-2"></i>Confirm Save Changes
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center py-3">
+                    <div class="mb-3">
+                        <i class="fas fa-exclamation-circle text-warning" style="font-size: 3rem;"></i>
+                    </div>
+                    <h6 class="mb-2">Are you sure you want to save these changes?</h6>
+                    <p class="text-muted mb-0" id="saveConfirmSectionName">Changes to this section will be applied immediately.</p>
+                </div>
+                
+                <div class="alert alert-info d-flex align-items-start mt-3" style="background: rgba(30, 58, 95, 0.08); border-color: rgba(30, 58, 95, 0.2);">
+                    <i class="fas fa-info-circle me-2 mt-1" style="color: #1e3a5f;"></i>
+                    <div style="font-size: 0.85rem;">
+                        <strong>Note:</strong> Data entered here is automatically shared with RCS Agent Registration, SMS SenderID Registration, Billing, VAT handling, Support tickets, and Compliance records.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-admin-primary" id="confirmSaveBtn" onclick="confirmSaveChanges()">
+                    <i class="fas fa-check me-1"></i>Confirm Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+    <div id="saveSuccessToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fas fa-check-circle me-2"></i>Changes saved successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -748,5 +798,47 @@ document.querySelectorAll('.selectable-tile').forEach(function(tile) {
         this.classList.add('selected');
     });
 });
+
+// Save Changes Confirmation Modal Functions
+var currentSectionName = '';
+var saveConfirmModal = null;
+
+function showSaveConfirmModal(sectionName) {
+    currentSectionName = sectionName;
+    document.getElementById('saveConfirmSectionName').innerHTML = 
+        'Changes to <strong>' + sectionName + '</strong> will be applied immediately.';
+    
+    if (!saveConfirmModal) {
+        saveConfirmModal = new bootstrap.Modal(document.getElementById('saveConfirmModal'));
+    }
+    saveConfirmModal.show();
+}
+
+function confirmSaveChanges() {
+    // Close the modal
+    if (saveConfirmModal) {
+        saveConfirmModal.hide();
+    }
+    
+    // TODO: Backend integration - Save changes to database
+    // This is where the actual save API call would go
+    console.log('[AccountDetails] Saving changes for section:', currentSectionName);
+    
+    // Show success toast
+    var toastEl = document.getElementById('saveSuccessToast');
+    toastEl.querySelector('.toast-body').innerHTML = 
+        '<i class="fas fa-check-circle me-2"></i>' + currentSectionName + ' saved successfully!';
+    var toast = new bootstrap.Toast(toastEl);
+    toast.show();
+    
+    // Log audit event
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAction({
+            eventType: 'ACCOUNT_DETAILS_UPDATED',
+            section: currentSectionName,
+            accountId: accountId
+        });
+    }
+}
 </script>
 @endpush
