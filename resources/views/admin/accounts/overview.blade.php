@@ -3369,10 +3369,11 @@ window.executeSuspendAccount = function() {
     // Update UI - change status badge to Suspended
     var row = document.querySelector('tr[data-account="' + currentSuspendAccountId + '"]');
     if (row) {
-        var statusCell = row.querySelector('td:nth-child(2)');
+        var statusCell = row.querySelector('td:nth-child(5)');
         if (statusCell) {
             statusCell.innerHTML = '<span class="badge light badge-danger">Suspended</span>';
         }
+        row.setAttribute('data-status', 'suspended');
         // Update menu to show Reactivate instead of Suspend
         var menu = row.querySelector('.dropdown-menu');
         if (menu) {
@@ -3420,10 +3421,11 @@ window.executeReactivateAccount = function() {
     // Update UI - change status badge back to Live
     var row = document.querySelector('tr[data-account="' + currentReactivateAccountId + '"]');
     if (row) {
-        var statusCell = row.querySelector('td:nth-child(2)');
+        var statusCell = row.querySelector('td:nth-child(5)');
         if (statusCell) {
             statusCell.innerHTML = '<span class="badge light badge-success">Live</span>';
         }
+        row.setAttribute('data-status', 'live');
         // Update menu to show Suspend instead of Reactivate
         var menu = row.querySelector('.dropdown-menu');
         if (menu) {
