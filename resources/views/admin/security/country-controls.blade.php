@@ -4428,7 +4428,7 @@ window.toggleSelectAllAccounts = toggleSelectAllAccounts;
 window.filterAccountOptions = filterAccountOptions;
 window.removeAccountFromSelection = removeAccountFromSelection;
 
-var mockAccounts = [
+window.mockAccounts = [
     { id: 'ACC-10045', name: 'TechStart Ltd', accountNumber: 'ACC-10045', status: 'live', subAccounts: [] },
     { id: 'ACC-10089', name: 'HealthFirst UK', accountNumber: 'ACC-10089', status: 'live', subAccounts: ['NHS Partnership', 'Private Clinics'] },
     { id: 'ACC-10112', name: 'E-Commerce Hub', accountNumber: 'ACC-10112', status: 'test', subAccounts: [] },
@@ -4440,6 +4440,7 @@ var mockAccounts = [
     { id: 'ACC-10102', name: 'FinServe Solutions', accountNumber: 'ACC-10102', status: 'live', subAccounts: ['Investments', 'Insurance'] },
     { id: 'ACC-10199', name: 'Digital Media Co', accountNumber: 'ACC-10199', status: 'live', subAccounts: [] }
 ];
+var mockAccounts = window.mockAccounts;
 
 function initAccountTypeahead() {
     var searchInput = document.getElementById('addOverrideAccountSearch');

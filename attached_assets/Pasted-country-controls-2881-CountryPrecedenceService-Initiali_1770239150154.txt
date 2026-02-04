@@ -1,0 +1,29 @@
+country-controls:2881 [CountryPrecedenceService] Initialized with rules: Array(6)
+country-controls:2896  Uncaught TypeError: Cannot read properties of undefined (reading 'forEach')
+    at Object.initialize (country-controls:2896:19)
+    at country-controls:3244:19
+admin-control-plane.js:675 [AdminControlPlane] Initialized for: admin@quicksms.co.uk
+admin-control-plane.js:676 [AdminControlPlane] Access Rules: Object
+admin-control-plane.js:677 [AdminControlPlane] Global Rules: Object
+admin-control-plane.js:733 [AdminControlPlane][ACCESS] {"timestamp":"2026-02-04T21:05:26.768Z","eventType":"ADMIN_SESSION_START","adminEmail":"admin@quicksms.co.uk","adminRole":"super_admin","path":"/admin/security/country-controls","referrer":"https://9771bfe5-9e72-4b2b-897f-c3853184d479-00-1k4qkfuahfmm1.riker.replit.dev/admin/security/country-controls","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36 Edg/144.0.0.0","accessRulesEnforced":["internalRoutingOnly","noSharedRoutes","noDeepLinksFromCustomer","mandatoryMfa","adminUsersOnly"]}
+country-controls:5473 [CountryControls] Event listeners attached:
+country-controls:5474   - reviewTableBody found: true
+country-controls:5475   - countryTableBody found: true
+country-controls:3449 [CountryControls] Initialized with shared enforcement service
+country-controls:3450 [CountryControls] Config version: 0
+country-controls:5468 [CountryControls] Countries tab activated
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+country-controls:5411 [CountryControls] Menu toggle clicked for: GB
+country-controls:5486 [CountryControls] Document-level action item clicked: add-override GB
+country-controls:4812 [CountryControls] openAddOverrideModal called for: GB
+country-controls:4855  Uncaught TypeError: Cannot read properties of undefined (reading 'forEach')
+    at populateAccountOptions (country-controls:4855:18)
+    at openAddOverrideModal (country-controls:4832:5)
+    at HTMLDocument.<anonymous> (country-controls:5500:21)
+populateAccountOptions @ country-controls:4855
+openAddOverrideModal @ country-controls:4832
+(anonymous) @ country-controls:5500
