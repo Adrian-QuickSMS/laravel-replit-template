@@ -568,6 +568,178 @@
     color: #6c757d;
     font-size: 0.8rem;
 }
+
+/* Multi-select dropdown styles */
+.account-multiselect-wrapper {
+    position: relative;
+}
+.multiselect-dropdown {
+    min-height: 42px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    background: white;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.multiselect-dropdown:hover {
+    border-color: #1e3a5f;
+}
+.multiselect-dropdown.open {
+    border-color: #1e3a5f;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.multiselect-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+.multiselect-placeholder i {
+    transition: transform 0.2s;
+}
+.multiselect-dropdown.open .multiselect-placeholder i {
+    transform: rotate(180deg);
+}
+.selected-accounts-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    width: 100%;
+}
+.account-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: #e0f2fe;
+    border: 1px solid #7dd3fc;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: #1e3a5f;
+    font-weight: 500;
+}
+.account-chip .remove-chip {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #6c757d;
+    cursor: pointer;
+    font-size: 0.65rem;
+    line-height: 1;
+    transition: color 0.15s;
+}
+.account-chip .remove-chip:hover {
+    color: #dc2626;
+}
+.multiselect-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #1e3a5f;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1050;
+    display: none;
+    max-height: 300px;
+    overflow: hidden;
+}
+.multiselect-menu.show {
+    display: block;
+}
+.multiselect-search-wrapper {
+    padding: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+    position: relative;
+}
+.multiselect-search-wrapper i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 0.75rem;
+}
+.multiselect-search {
+    width: 100%;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 0.4rem 0.5rem 0.4rem 2rem;
+    font-size: 0.8rem;
+}
+.multiselect-search:focus {
+    outline: none;
+    border-color: #1e3a5f;
+}
+.multiselect-select-all {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+    background: #f8f9fa;
+}
+.multiselect-options {
+    max-height: 200px;
+    overflow-y: auto;
+}
+.multiselect-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin: 0;
+    font-weight: normal;
+}
+.multiselect-option:hover {
+    background: #f8f9fa;
+}
+.multiselect-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #1e3a5f;
+    cursor: pointer;
+}
+.multiselect-option .option-label {
+    flex: 1;
+    font-size: 0.8rem;
+    color: #374151;
+}
+.multiselect-option .option-sublabel {
+    font-size: 0.7rem;
+    color: #6c757d;
+    font-family: monospace;
+}
+.multiselect-option .account-status-badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+}
+.multiselect-option .account-status-badge.live {
+    background: #dcfce7;
+    color: #16a34a;
+}
+.multiselect-option .account-status-badge.test {
+    background: #fef3c7;
+    color: #d97706;
+}
+.multiselect-no-results {
+    padding: 1rem;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
 .selected-account-badge {
     display: inline-flex;
     align-items: center;
@@ -1874,20 +2046,31 @@
                     <div class="fw-bold" id="addOverrideCountryName"></div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Search Account <span class="text-danger">*</span></label>
-                    <div class="account-typeahead-wrapper">
-                        <input type="text" class="form-control" id="addOverrideAccountSearch" 
-                               placeholder="Type to search accounts..." autocomplete="off">
-                        <div class="typeahead-results" id="accountTypeaheadResults"></div>
-                        <input type="hidden" id="addOverrideAccountId">
-                        <input type="hidden" id="addOverrideAccountName">
+                    <label class="form-label fw-bold">Select Accounts <span class="text-danger">*</span></label>
+                    <div class="account-multiselect-wrapper">
+                        <div class="multiselect-dropdown" id="accountMultiselectDropdown" onclick="toggleAccountDropdown(event)">
+                            <div class="multiselect-placeholder" id="accountMultiselectPlaceholder">
+                                <span>Select accounts...</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="selected-accounts-chips" id="selectedAccountsChips"></div>
+                        </div>
+                        <div class="multiselect-menu" id="accountMultiselectMenu">
+                            <div class="multiselect-search-wrapper">
+                                <i class="fas fa-search"></i>
+                                <input type="text" class="multiselect-search" id="accountMultiselectSearch" 
+                                       placeholder="Search accounts..." oninput="filterAccountOptions()">
+                            </div>
+                            <div class="multiselect-select-all">
+                                <label class="multiselect-option">
+                                    <input type="checkbox" id="selectAllAccounts" onchange="toggleSelectAllAccounts()">
+                                    <span class="option-label">Select All</span>
+                                </label>
+                            </div>
+                            <div class="multiselect-options" id="accountMultiselectOptions"></div>
+                        </div>
                     </div>
-                    <div id="selectedAccountDisplay" class="selected-account-badge" style="display: none;">
-                        <span class="account-info"></span>
-                        <button type="button" class="clear-selection" onclick="clearAccountSelection()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+                    <div class="form-text text-muted small">Select one or more accounts to apply this override.</div>
                 </div>
                 <div class="mb-3" id="subAccountSection" style="display: none;">
                     <label class="form-label fw-bold">Sub-Account <span class="text-muted fw-normal">(Optional)</span></label>
@@ -4274,14 +4457,17 @@ function selectAccount(accountId) {
     document.getElementById('confirmAddOverrideBtn').disabled = false;
 }
 
+var selectedAccountsForOverride = [];
+var accountDropdownOpen = false;
+
 function clearAccountSelection() {
-    document.getElementById('addOverrideAccountId').value = '';
-    document.getElementById('addOverrideAccountName').value = '';
-    document.getElementById('selectedAccountDisplay').style.display = 'none';
-    document.querySelector('.account-typeahead-wrapper').style.display = 'block';
-    document.getElementById('addOverrideAccountSearch').value = '';
+    selectedAccountsForOverride = [];
+    document.getElementById('selectedAccountsChips').innerHTML = '';
+    document.getElementById('accountMultiselectPlaceholder').style.display = 'flex';
     document.getElementById('subAccountSection').style.display = 'none';
     document.getElementById('confirmAddOverrideBtn').disabled = true;
+    document.getElementById('selectAllAccounts').checked = false;
+    closeAccountDropdown();
 }
 
 function openAddOverrideModal(countryCode) {
@@ -4297,21 +4483,195 @@ function openAddOverrideModal(countryCode) {
     document.getElementById('addOverrideCountryName').textContent = country.name + ' (' + country.code + ')';
     
     clearAccountSelection();
+    populateAccountOptions();
     document.querySelector('input[name="overrideType"][value="allowed"]').checked = true;
 
     var modal = new bootstrap.Modal(document.getElementById('addOverrideModal'));
     modal.show();
 }
 
+function populateAccountOptions() {
+    var optionsContainer = document.getElementById('accountMultiselectOptions');
+    optionsContainer.innerHTML = '';
+    
+    mockAccounts.forEach(function(account) {
+        var isSelected = selectedAccountsForOverride.some(function(a) { return a.id === account.id; });
+        var statusClass = account.status === 'live' ? 'live' : 'test';
+        
+        var option = document.createElement('label');
+        option.className = 'multiselect-option';
+        option.innerHTML = 
+            '<input type="checkbox" ' + (isSelected ? 'checked' : '') + ' onchange="toggleAccountSelection(\'' + account.id + '\')">' +
+            '<div style="flex: 1;">' +
+                '<div class="option-label">' + account.name + 
+                    '<span class="account-status-badge ' + statusClass + '" style="margin-left: 0.5rem;">' + account.status.toUpperCase() + '</span>' +
+                '</div>' +
+                '<div class="option-sublabel">' + account.accountNumber + '</div>' +
+            '</div>';
+        optionsContainer.appendChild(option);
+    });
+}
+
+function toggleAccountDropdown(event) {
+    if (event.target.closest('.remove-chip')) return;
+    
+    var dropdown = document.getElementById('accountMultiselectDropdown');
+    var menu = document.getElementById('accountMultiselectMenu');
+    
+    if (accountDropdownOpen) {
+        closeAccountDropdown();
+    } else {
+        dropdown.classList.add('open');
+        menu.classList.add('show');
+        accountDropdownOpen = true;
+        document.getElementById('accountMultiselectSearch').focus();
+    }
+}
+
+function closeAccountDropdown() {
+    var dropdown = document.getElementById('accountMultiselectDropdown');
+    var menu = document.getElementById('accountMultiselectMenu');
+    dropdown.classList.remove('open');
+    menu.classList.remove('show');
+    accountDropdownOpen = false;
+    document.getElementById('accountMultiselectSearch').value = '';
+    filterAccountOptions();
+}
+
+function toggleAccountSelection(accountId) {
+    var account = mockAccounts.find(function(a) { return a.id === accountId; });
+    if (!account) return;
+    
+    var existingIndex = selectedAccountsForOverride.findIndex(function(a) { return a.id === accountId; });
+    
+    if (existingIndex >= 0) {
+        selectedAccountsForOverride.splice(existingIndex, 1);
+    } else {
+        selectedAccountsForOverride.push(account);
+    }
+    
+    updateSelectedAccountsDisplay();
+    updateSelectAllCheckbox();
+    updateAddOverrideButtonState();
+}
+
+function removeAccountFromSelection(accountId, event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    
+    var existingIndex = selectedAccountsForOverride.findIndex(function(a) { return a.id === accountId; });
+    if (existingIndex >= 0) {
+        selectedAccountsForOverride.splice(existingIndex, 1);
+    }
+    
+    updateSelectedAccountsDisplay();
+    populateAccountOptions();
+    updateSelectAllCheckbox();
+    updateAddOverrideButtonState();
+}
+
+function updateSelectedAccountsDisplay() {
+    var chipsContainer = document.getElementById('selectedAccountsChips');
+    var placeholder = document.getElementById('accountMultiselectPlaceholder');
+    
+    if (selectedAccountsForOverride.length === 0) {
+        chipsContainer.innerHTML = '';
+        placeholder.style.display = 'flex';
+    } else {
+        placeholder.style.display = 'none';
+        chipsContainer.innerHTML = selectedAccountsForOverride.map(function(account) {
+            return '<span class="account-chip">' + account.name + 
+                '<button type="button" class="remove-chip" onclick="removeAccountFromSelection(\'' + account.id + '\', event)">' +
+                '<i class="fas fa-times"></i></button></span>';
+        }).join('');
+    }
+}
+
+function toggleSelectAllAccounts() {
+    var selectAllCheckbox = document.getElementById('selectAllAccounts');
+    var visibleAccounts = getVisibleAccounts();
+    
+    if (selectAllCheckbox.checked) {
+        visibleAccounts.forEach(function(account) {
+            if (!selectedAccountsForOverride.some(function(a) { return a.id === account.id; })) {
+                selectedAccountsForOverride.push(account);
+            }
+        });
+    } else {
+        var visibleIds = visibleAccounts.map(function(a) { return a.id; });
+        selectedAccountsForOverride = selectedAccountsForOverride.filter(function(a) {
+            return visibleIds.indexOf(a.id) === -1;
+        });
+    }
+    
+    updateSelectedAccountsDisplay();
+    populateAccountOptions();
+    updateAddOverrideButtonState();
+}
+
+function getVisibleAccounts() {
+    var searchTerm = document.getElementById('accountMultiselectSearch').value.toLowerCase();
+    return mockAccounts.filter(function(account) {
+        return account.name.toLowerCase().indexOf(searchTerm) >= 0 || 
+               account.accountNumber.toLowerCase().indexOf(searchTerm) >= 0;
+    });
+}
+
+function updateSelectAllCheckbox() {
+    var visibleAccounts = getVisibleAccounts();
+    var allSelected = visibleAccounts.length > 0 && visibleAccounts.every(function(account) {
+        return selectedAccountsForOverride.some(function(a) { return a.id === account.id; });
+    });
+    document.getElementById('selectAllAccounts').checked = allSelected;
+}
+
+function filterAccountOptions() {
+    var searchTerm = document.getElementById('accountMultiselectSearch').value.toLowerCase();
+    var optionsContainer = document.getElementById('accountMultiselectOptions');
+    optionsContainer.innerHTML = '';
+    
+    var filteredAccounts = mockAccounts.filter(function(account) {
+        return account.name.toLowerCase().indexOf(searchTerm) >= 0 || 
+               account.accountNumber.toLowerCase().indexOf(searchTerm) >= 0;
+    });
+    
+    if (filteredAccounts.length === 0) {
+        optionsContainer.innerHTML = '<div class="multiselect-no-results"><i class="fas fa-search me-1"></i>No accounts found</div>';
+        return;
+    }
+    
+    filteredAccounts.forEach(function(account) {
+        var isSelected = selectedAccountsForOverride.some(function(a) { return a.id === account.id; });
+        var statusClass = account.status === 'live' ? 'live' : 'test';
+        
+        var option = document.createElement('label');
+        option.className = 'multiselect-option';
+        option.innerHTML = 
+            '<input type="checkbox" ' + (isSelected ? 'checked' : '') + ' onchange="toggleAccountSelection(\'' + account.id + '\')">' +
+            '<div style="flex: 1;">' +
+                '<div class="option-label">' + account.name + 
+                    '<span class="account-status-badge ' + statusClass + '" style="margin-left: 0.5rem;">' + account.status.toUpperCase() + '</span>' +
+                '</div>' +
+                '<div class="option-sublabel">' + account.accountNumber + '</div>' +
+            '</div>';
+        optionsContainer.appendChild(option);
+    });
+    
+    updateSelectAllCheckbox();
+}
+
+function updateAddOverrideButtonState() {
+    document.getElementById('confirmAddOverrideBtn').disabled = selectedAccountsForOverride.length === 0;
+}
+
 function confirmAddOverride() {
     var countryCode = pendingAddOverride.countryCode;
-    var accountId = document.getElementById('addOverrideAccountId').value;
-    var accountName = document.getElementById('addOverrideAccountName').value;
     var subAccount = document.getElementById('addOverrideSubAccount').value || null;
     var overrideType = document.querySelector('input[name="overrideType"]:checked').value;
 
-    if (!accountId) {
-        alert('Please select an account.');
+    if (selectedAccountsForOverride.length === 0) {
+        alert('Please select at least one account.');
         return;
     }
 
@@ -4322,42 +4682,62 @@ function confirmAddOverride() {
         mockOverridesData[countryCode] = [];
     }
     
-    var existingOverride = mockOverridesData[countryCode].find(function(o) {
-        return o.accountId === accountId && o.subAccount === subAccount;
+    var addedCount = 0;
+    var skippedCount = 0;
+    
+    selectedAccountsForOverride.forEach(function(account) {
+        var existingOverride = mockOverridesData[countryCode].find(function(o) {
+            return o.accountId === account.id && o.subAccount === subAccount;
+        });
+        
+        if (existingOverride) {
+            skippedCount++;
+            return;
+        }
+
+        mockOverridesData[countryCode].push({
+            accountName: account.name,
+            accountId: account.id,
+            subAccount: subAccount,
+            overrideType: overrideType,
+            dateApplied: formatDateDDMMYYYY(new Date()),
+            appliedBy: 'admin@quicksms.co.uk'
+        });
+        addedCount++;
+
+        CountryReviewAuditService.emit('COUNTRY_OVERRIDE_ADDED', {
+            countryIso: country.code,
+            countryName: country.name,
+            accountId: account.id,
+            accountName: account.name,
+            subAccount: subAccount,
+            overrideType: overrideType,
+            adminUser: 'admin@quicksms.co.uk',
+            timestamp: new Date().toISOString()
+        });
     });
     
-    if (existingOverride) {
-        alert('An override already exists for this account' + (subAccount ? ' and sub-account' : '') + '.');
-        return;
-    }
-
-    mockOverridesData[countryCode].push({
-        accountName: accountName,
-        accountId: accountId,
-        subAccount: subAccount,
-        overrideType: overrideType,
-        dateApplied: formatDateDDMMYYYY(new Date()),
-        appliedBy: 'admin@quicksms.co.uk'
-    });
     country.overrides = mockOverridesData[countryCode].length;
 
-    CountryReviewAuditService.emit('COUNTRY_OVERRIDE_ADDED', {
-        countryIso: country.code,
-        countryName: country.name,
-        accountId: accountId,
-        accountName: accountName,
-        subAccount: subAccount,
-        overrideType: overrideType,
-        result: 'override_added'
-    }, { emitToCustomerAudit: true });
-
-    bootstrap.Modal.getInstance(document.getElementById('addOverrideModal')).hide();
-    renderCountryTable();
+    var message = addedCount + ' override' + (addedCount !== 1 ? 's' : '') + ' added successfully.';
+    if (skippedCount > 0) {
+        message += ' ' + skippedCount + ' skipped (already exist).';
+    }
     
-    var typeLabel = overrideType === 'allowed' ? 'Allowed' : 'Blocked';
-    var scopeText = subAccount ? accountName + ' / ' + subAccount : accountName;
-    showAdminToast('Override added', scopeText + ' is now ' + typeLabel + ' for ' + country.name + '.', 'success');
+    var modalEl = document.getElementById('addOverrideModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+    
+    showToast(message, 'success');
+    renderCountriesTab();
 }
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    if (accountDropdownOpen && !e.target.closest('.account-multiselect-wrapper')) {
+        closeAccountDropdown();
+    }
+});
 
 function openRemoveOverrideModal(countryCode) {
     var country = countries.find(function(c) { return c.code === countryCode; });
