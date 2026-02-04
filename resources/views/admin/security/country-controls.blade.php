@@ -3293,7 +3293,7 @@ function renderRequestsList() {
         var row = document.createElement('tr');
         row.onclick = function(e) { 
             if (!e.target.closest('.btn-review')) {
-                openReviewModal(request.id);
+                window.openReviewModal(request.id);
             }
         };
 
@@ -3307,7 +3307,7 @@ function renderRequestsList() {
              request.status === 'approved' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>') + 
             ' ' + capitalize(request.status) + '</span>';
 
-        var reviewBtn = '<button class="btn btn-sm btn-review" data-request-id="' + request.id + '" onclick="window.openReviewModal(this.getAttribute(\'data-request-id\'))">' +
+        var reviewBtn = '<button class="btn btn-sm btn-review" data-request-id="' + request.id + '" onclick="event.stopPropagation(); window.openReviewModal(\'' + request.id + '\')">' +
             '<i class="fas fa-eye me-1"></i>Review</button>';
 
         row.innerHTML = 
