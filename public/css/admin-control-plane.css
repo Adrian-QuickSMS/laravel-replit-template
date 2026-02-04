@@ -395,7 +395,7 @@ body.admin-control-plane {
 .admin-alert-bar.info i { color: var(--admin-accent); }
 
 .admin-impersonate-banner {
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
     color: #fff;
     padding: 10px 20px;
     display: flex;
@@ -545,9 +545,9 @@ body.admin-control-plane {
 }
 
 .admin-responsibility-govern {
-    background: rgba(139, 92, 246, 0.15);
-    color: #8b5cf6;
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    background: rgba(74, 144, 217, 0.15);
+    color: #4a90d9;
+    border: 1px solid rgba(74, 144, 217, 0.3);
 }
 
 .admin-responsibilities-container {
@@ -576,7 +576,7 @@ body.admin-control-plane {
 }
 
 .admin-action-section.govern {
-    border-color: #8b5cf6;
+    border-color: #4a90d9;
 }
 
 .admin-action-header {
@@ -926,8 +926,8 @@ body.admin-control-plane {
 }
 
 .nfr-badge.cached {
-    background: rgba(139, 92, 246, 0.1);
-    color: #8b5cf6;
+    background: rgba(74, 144, 217, 0.1);
+    color: #4a90d9;
 }
 
 .admin-warehouse-badge {
@@ -1521,8 +1521,8 @@ body.admin-control-plane {
 }
 
 .senderid-type-badge.shortcode {
-    background: rgba(168, 85, 247, 0.1);
-    color: #a855f7;
+    background: rgba(74, 144, 217, 0.1);
+    color: #4a90d9;
 }
 
 /* RCS Agent Type Badges */
@@ -1664,4 +1664,43 @@ body.admin-control-plane {
 .approval-bulk-bar .bulk-btn.cancel {
     background: transparent;
     color: rgba(255, 255, 255, 0.7);
+}
+
+/* =========================================
+   ADMIN SIDEBAR - Blue Theme Override
+   Replace purple accents with admin blue
+   ========================================= */
+
+/* Active menu item text color */
+body.admin-console .dlabnav .metismenu > li.mm-active > a,
+body.admin-console .dlabnav .metismenu > li:hover > a {
+    color: var(--admin-accent, #4a90d9) !important;
+}
+
+body.admin-console .dlabnav .metismenu > li.mm-active > a i,
+body.admin-console .dlabnav .metismenu > li:hover > a i {
+    color: var(--admin-accent, #4a90d9) !important;
+}
+
+/* Submenu active/hover states */
+body.admin-console .dlabnav .metismenu ul a:hover,
+body.admin-console .dlabnav .metismenu ul a:focus,
+body.admin-console .dlabnav .metismenu ul a.mm-active {
+    color: var(--admin-accent, #4a90d9) !important;
+}
+
+/* Active indicator bar */
+body.admin-console .dlabnav .metismenu > li.mm-active > a:before {
+    background: var(--admin-accent, #4a90d9) !important;
+}
+
+/* Arrow indicator for active items */
+body.admin-console .dlabnav .metismenu .mm-active > .has-arrow:after {
+    border-color: var(--admin-accent, #4a90d9) !important;
+}
+
+/* Override any inline primary color variables */
+body.admin-console .dlabnav .metismenu > li.mm-active > a g [fill],
+body.admin-console .dlabnav .metismenu > li:hover > a g [fill] {
+    fill: var(--admin-accent, #4a90d9) !important;
 }
