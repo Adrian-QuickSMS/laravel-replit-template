@@ -5063,7 +5063,12 @@ function bindEvents() {
                 var requestId = reviewBtn.getAttribute('data-request-id');
                 if (requestId) {
                     console.log('[CountryControls] Review button clicked, requestId:', requestId);
-                    window.openReviewModal(requestId);
+                    try {
+                        window.openReviewModal(requestId);
+                    } catch (err) {
+                        alert('Error opening modal: ' + err.message);
+                        console.error('[CountryControls] Error:', err);
+                    }
                 }
             }
         });
