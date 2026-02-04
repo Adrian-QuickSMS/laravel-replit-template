@@ -1,3 +1,9 @@
+REPLIT PROMPT: Update Admin Modal Design System - Button Refinements
+
+UPDATE FILE: /public/css/admin-modal-design-system.css
+
+Replace the entire file contents with this refined version:
+
 /* =========================================
    ADMIN MODAL DESIGN SYSTEM
    Standardizes all modal pop-ups across Admin Console
@@ -304,8 +310,9 @@ body.admin-console .modal .btn:active {
 
 /* =========================================
    9. BUTTON USAGE GUIDE (Comments for developers)
-   =========================================
+   ========================================= */
 
+/*
 BUTTON CLASS USAGE:
 
 PRIMARY CANCEL/REJECT/BLOCK (Destructive action):
@@ -338,5 +345,46 @@ INFORMATION BOX IN MODAL BODY:
     <i class="fas fa-info-circle"></i>
     This is important information for the user.
 </div>
-
 */
+
+BUTTON USAGE EXAMPLES:
+
+Example 1: Confirmation Modal (Secondary cancel)
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-primary" onclick="confirmAction()">
+        <i class="fas fa-check me-1"></i> Confirm
+    </button>
+</div>
+
+Example 2: Destructive Action Modal (Primary cancel)
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button type="button" class="btn btn-danger" onclick="blockAccount()">
+        <i class="fas fa-ban me-1"></i> Block Account
+    </button>
+</div>
+
+Example 3: Approval Modal
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-danger" onclick="rejectRequest()">
+        <i class="fas fa-times me-1"></i> Reject
+    </button>
+    <button type="button" class="btn btn-success" onclick="approveRequest()">
+        <i class="fas fa-check-circle me-1"></i> Approve
+    </button>
+</div>
+
+SUMMARY OF CHANGES:
+
+✅ All buttons now have matching border colors (border same color as background)
+✅ Two types of Cancel:
+
+btn-danger = Pastel red (primary destructive action like Block/Reject)
+btn-secondary = Transparent with dark blue border (just close modal)
+✅ Consistent hover and focus states
+✅ No conflicting borders - borders blend with button background
