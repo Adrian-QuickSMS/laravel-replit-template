@@ -10596,6 +10596,8 @@ var SecurityComplianceControlsService = (function() {
         toggleExemptionsFilterPanel: toggleExemptionsFilterPanel,
         showAddSenderIdExemptionModal: showAddSenderIdExemptionModal,
         saveNewExemption: saveNewExemption,
+        exemptionWizardNext: exemptionWizardNext,
+        exemptionWizardBack: exemptionWizardBack,
         applyExemptionsFilters: applyExemptionsFilters,
         resetExemptionsFilters: resetExemptionsFilters,
         filterExemptionsTable: filterExemptionsTable,
@@ -10776,6 +10778,9 @@ window.toggleExemptionsFilterPanel = SecurityComplianceControlsService.toggleExe
 window.applyExemptionsFilters = SecurityComplianceControlsService.applyExemptionsFilters;
 window.resetExemptionsFilters = SecurityComplianceControlsService.resetExemptionsFilters;
 window.showAddSenderIdExemptionModal = SecurityComplianceControlsService.showAddSenderIdExemptionModal;
+window.exemptionWizardNext = SecurityComplianceControlsService.exemptionWizardNext;
+window.exemptionWizardBack = SecurityComplianceControlsService.exemptionWizardBack;
+window.saveNewExemption = SecurityComplianceControlsService.saveNewExemption;
 window.saveExemption = SecurityComplianceControlsService.saveExemption;
 window.editExemption = SecurityComplianceControlsService.editExemption;
 window.toggleExemptionStatus = SecurityComplianceControlsService.toggleExemptionStatus;
