@@ -21,100 +21,83 @@
     --admin-secondary: #2d5a87;
     --admin-accent: #4a90d9;
 }
-.admin-page { padding: 0; max-width: 100%; box-sizing: border-box; }
-.content-body { 
-    overflow-x: hidden !important; 
-    max-width: calc(100vw - 260px) !important;
-}
-.qsms-main, .qsms-content-wrap { 
-    max-width: 100% !important; 
-    overflow-x: hidden !important; 
-    width: 100% !important;
-}
-.container-fluid {
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-    width: 100% !important;
-    padding-right: 15px !important;
-    padding-left: 15px !important;
-    box-sizing: border-box !important;
-}
-#campaignsTableContainer {
-    max-width: 100% !important;
-    overflow-x: auto !important;
-}
-#campaignsTableContainer .table-responsive {
-    max-width: 100% !important;
-    overflow-x: auto !important;
-}
 
 /* =========================================
-   Table Container Fixes
+   Table Container - Trust Global Layout
    ========================================= */
 .table-container,
 #campaignsTableContainer {
     background: #fff;
     border-radius: 12px;
     border: 1px solid #dde4ea;
-    overflow: hidden;
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     margin-top: 0.5rem;
-    max-width: 100%;
     width: 100%;
 }
+
 .table-container .dropdown-menu {
     z-index: 1050;
     position: absolute !important;
 }
+
 .table-container .dropdown {
     position: static;
 }
-.table-container .table-responsive,
-#campaignsTableContainer .table-responsive {
+
+.table-responsive {
     width: 100%;
-    max-width: 100%;
     overflow-x: auto;
     overflow-y: visible;
     -webkit-overflow-scrolling: touch;
 }
+
 .api-table {
     width: 100%;
-    min-width: 800px;
+    min-width: 700px;
     margin: 0;
-    table-layout: fixed;
 }
-.api-table th:nth-child(1) { width: 12%; } /* Account */
-.api-table th:nth-child(2) { width: 22%; } /* Campaign */
-.api-table th:nth-child(3) { width: 10%; } /* Channel */
-.api-table th:nth-child(4) { width: 12%; } /* Status */
-.api-table th:nth-child(5) { width: 12%; } /* Recipients */
-.api-table th:nth-child(6) { width: 14%; } /* Send Date */
-.api-table th:nth-child(7) { width: 8%; } /* Actions */
-.api-table thead th:last-child { text-align: center; width: 70px; } /* Actions */
+
+/* Flexible column widths that total 100% */
+.api-table th:nth-child(1) { width: 13%; min-width: 90px; }
+.api-table th:nth-child(2) { width: 25%; min-width: 150px; }
+.api-table th:nth-child(3) { width: 11%; min-width: 80px; }
+.api-table th:nth-child(4) { width: 12%; min-width: 90px; }
+.api-table th:nth-child(5) { width: 14%; min-width: 100px; }
+.api-table th:nth-child(6) { width: 15%; min-width: 110px; }
+.api-table th:nth-child(7) { width: 10%; min-width: 70px; }
+
+.api-table thead th:last-child { 
+    text-align: center; 
+    width: 70px; 
+}
+
 .api-table td,
 .api-table th {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding: 0.75rem 0.5rem;
 }
+
 .api-table thead th {
     background: #f8f9fa;
-    padding: 0.75rem 0.5rem;
     font-weight: 600;
     font-size: 0.8rem;
     color: #495057;
     border-bottom: 1px solid #e9ecef;
     cursor: pointer;
-    white-space: nowrap;
     user-select: none;
 }
+
 .api-table thead th:hover {
     background: #e9ecef;
 }
+
 .api-table thead th i.sort-icon {
     margin-left: 0.25rem;
     opacity: 0.5;
 }
+
 .api-table thead th.sorted i.sort-icon {
     opacity: 1;
     color: #1e3a5f;
