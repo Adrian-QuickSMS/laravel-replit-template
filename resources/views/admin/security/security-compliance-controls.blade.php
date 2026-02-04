@@ -10732,6 +10732,40 @@ var SecurityComplianceControlsService = (function() {
     };
 })();
 
+// Global bindings for filter toggle functions (required for onclick handlers)
+// Quarantine filters
+window.toggleQuarantineFilterPanel = SecurityComplianceControlsService.toggleQuarantineFilterPanel;
+window.applyQuarantineFilters = SecurityComplianceControlsService.applyQuarantineFilters;
+window.resetQuarantineFilters = SecurityComplianceControlsService.resetQuarantineFilters;
+window.clearAllQuarantineFilters = SecurityComplianceControlsService.clearAllQuarantineFilters;
+window.removeQuarantineFilter = SecurityComplianceControlsService.removeQuarantineFilter;
+window.toggleQuarantineTileFilter = SecurityComplianceControlsService.toggleQuarantineTileFilter;
+window.showBulkReleaseConfirmation = SecurityComplianceControlsService.showBulkReleaseConfirmation;
+window.showBulkBlockConfirmation = SecurityComplianceControlsService.showBulkBlockConfirmation;
+window.executeBulkAction = SecurityComplianceControlsService.executeBulkAction;
+window.updateBulkActionButtons = SecurityComplianceControlsService.updateBulkActionButtons;
+
+// SenderID filters
+window.toggleSenderIdFilterPanel = SecurityComplianceControlsService.toggleSenderIdFilterPanel;
+window.applySenderIdFilters = SecurityComplianceControlsService.applySenderIdFilters;
+window.resetSenderIdFilters = SecurityComplianceControlsService.resetSenderIdFilters;
+window.toggleExemptionsFilterPanel = SecurityComplianceControlsService.toggleExemptionsFilterPanel;
+window.applyExemptionsFilters = SecurityComplianceControlsService.applyExemptionsFilters;
+window.resetExemptionsFilters = SecurityComplianceControlsService.resetExemptionsFilters;
+
+// Content filters
+window.toggleContentFilterPanel = SecurityComplianceControlsService.toggleContentFilterPanel;
+window.applyContentFilters = SecurityComplianceControlsService.applyContentFilters;
+window.resetContentFilters = SecurityComplianceControlsService.resetContentFilters;
+window.toggleContentExemptionsFilterPanel = SecurityComplianceControlsService.toggleContentExemptionsFilterPanel;
+window.applyContentExemptionsFilters = SecurityComplianceControlsService.applyContentExemptionsFilters;
+window.resetContentExemptionsFilters = SecurityComplianceControlsService.resetContentExemptionsFilters;
+
+// URL Controls filters
+window.toggleUrlControlsFilterPanel = SecurityComplianceControlsService.toggleUrlControlsFilterPanel;
+window.applyUrlControlsFilters = SecurityComplianceControlsService.applyUrlControlsFilters;
+window.resetUrlControlsFilters = SecurityComplianceControlsService.resetUrlControlsFilters;
+
 // Mark that initialization has occurred to prevent duplicate init
 var _sccInitialized = false;
 
