@@ -151,3 +151,35 @@ body.admin-console .page-titles {
 body.admin-console .breadcrumb-item.active {
     color: #1e3a5f !important;
 }
+
+/* Ensure styles work within any wrapper containers */
+.spam-filter-page .page-titles,
+.spam-filter-page .row.page-titles,
+.admin-page .page-titles,
+.admin-page .row.page-titles,
+.admin-dashboard .page-titles,
+.admin-dashboard .row.page-titles,
+.invoices-container .page-titles,
+.invoices-container .row.page-titles {
+    background: #ffffff !important;
+    border-radius: 0.625rem !important;
+    padding: 0.9375rem 1.5rem !important;
+    margin-bottom: 1.25rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+}
+
+/* Global catch-all for any page-titles */
+[class*="-page"] .page-titles,
+[class*="-page"] .row.page-titles,
+[class*="-container"] .page-titles,
+[class*="-container"] .row.page-titles {
+    background: #ffffff !important;
+    border-radius: 0.625rem !important;
+    padding: 0.9375rem 1.5rem !important;
+    margin-bottom: 1.25rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+}
