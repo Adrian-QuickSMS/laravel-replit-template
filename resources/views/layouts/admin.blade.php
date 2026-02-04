@@ -38,10 +38,11 @@
 
     <link href="{{ asset('css/quicksms-global-layout.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('css/admin-control-plane.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('css/admin-modal-design-system.css') }}" rel="stylesheet" type="text/css"/>
     
     @stack('styles')
 </head>
-<body class="admin-control-plane">
+<body class="admin-control-plane admin-console">
 
     <div id="preloader" style="display: none;">
         <div class="lds-ripple">
