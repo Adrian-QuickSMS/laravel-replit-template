@@ -327,8 +327,8 @@
     color: #6c757d; 
 }
 
-.badge-admin-active { background: rgba(30, 58, 95, 0.15); color: var(--admin-primary); }
-.badge-admin-suspended { background: rgba(30, 58, 95, 0.08); color: #6c757d; }
+.badge-admin-active { background: rgba(28, 187, 140, 0.15); color: #1cbb8c; }
+.badge-admin-suspended { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
 .badge-admin-pending { background: rgba(74, 144, 217, 0.15); color: var(--admin-accent); }
 .badge-admin-portal { background: rgba(74, 144, 217, 0.15); color: var(--admin-accent); }
 .badge-admin-api { background: rgba(30, 58, 95, 0.15); color: var(--admin-primary); }
