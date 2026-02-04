@@ -9571,7 +9571,7 @@ var SecurityComplianceControlsService = (function() {
             senderId: msg.senderId,
             recipient: msg.recipient,
             ruleTriggered: msg.ruleTriggered,
-            triggeredRules: msg.triggeredRules.map(function(r) { return r.ruleId; }),
+            triggeredRules: msg.triggeredRules ? msg.triggeredRules.map(function(r) { return r.ruleId; }) : [],
             reviewer: currentAdmin.email,
             notifyCustomer: notifyCustomer || false,
             releaseAttempts: msg.releaseAttempts
