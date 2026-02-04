@@ -10759,6 +10759,15 @@ window.showBulkBlockConfirmation = SecurityComplianceControlsService.showBulkBlo
 window.executeBulkAction = SecurityComplianceControlsService.executeBulkAction;
 window.updateBulkActionButtons = SecurityComplianceControlsService.updateBulkActionButtons;
 
+// Quarantine message actions
+window.releaseQuarantinedMessage = SecurityComplianceControlsService.releaseQuarantinedMessage;
+window.blockQuarantinedMessage = SecurityComplianceControlsService.blockQuarantinedMessage;
+window.viewQuarantinedMessage = SecurityComplianceControlsService.viewQuarantinedMessage;
+window.releaseQuarantinedMessageFromModal = SecurityComplianceControlsService.releaseQuarantinedMessageFromModal;
+window.blockQuarantinedMessageFromModal = SecurityComplianceControlsService.blockQuarantinedMessageFromModal;
+window.addExceptionFromQuarantine = SecurityComplianceControlsService.addExceptionFromQuarantine;
+window.createRuleFromQuarantine = SecurityComplianceControlsService.createRuleFromQuarantine;
+
 // SenderID filters
 window.toggleSenderIdFilterPanel = SecurityComplianceControlsService.toggleSenderIdFilterPanel;
 window.applySenderIdFilters = SecurityComplianceControlsService.applySenderIdFilters;
