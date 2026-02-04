@@ -273,6 +273,36 @@ body.admin-console .modal-footer .btn-warning:hover {
     color: #e56b0a !important;
 }
 
+/* Outline-secondary = Transparent with dark blue (same as btn-secondary) */
+body.admin-console .modal-footer .btn-outline-secondary,
+body.admin-console .modal .btn-outline-secondary {
+    background-color: transparent !important;
+    border: 1px solid #1e3a5f !important;
+    color: #1e3a5f !important;
+}
+
+body.admin-console .modal-footer .btn-outline-secondary:hover,
+body.admin-console .modal .btn-outline-secondary:hover {
+    background-color: rgba(30, 58, 95, 0.05) !important;
+    border-color: #16304d !important;
+    color: #16304d !important;
+}
+
+/* Light button = Transparent with dark blue (same as secondary) */
+body.admin-console .modal-footer .btn-light,
+body.admin-console .modal .btn-light {
+    background-color: transparent !important;
+    border: 1px solid #1e3a5f !important;
+    color: #1e3a5f !important;
+}
+
+body.admin-console .modal-footer .btn-light:hover,
+body.admin-console .modal .btn-light:hover {
+    background-color: rgba(30, 58, 95, 0.05) !important;
+    border-color: #16304d !important;
+    color: #16304d !important;
+}
+
 /* Success/approve = Pastel green */
 body.admin-console .modal-footer .btn-success {
     background-color: #d4f4dd !important;
