@@ -33,6 +33,8 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     margin-top: 0.5rem;
     width: 100%;
+    min-width: 0;
+    overflow-x: auto;
 }
 
 .table-container .dropdown-menu {
