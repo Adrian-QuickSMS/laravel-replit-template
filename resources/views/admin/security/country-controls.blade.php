@@ -2023,7 +2023,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn" id="confirmDefaultStatusBtn" onclick="event.preventDefault(); event.stopPropagation(); window.confirmDefaultStatusChange();">
+                <button type="button" class="btn" id="confirmDefaultStatusBtn">
                     <i class="fas fa-check me-1"></i>Confirm Change
                 </button>
             </div>
@@ -2239,6 +2239,16 @@ window.handleConfirmRejection = function() {
 document.addEventListener('DOMContentLoaded', function() {
     initCountryControls();
     initAccountTypeahead();
+    
+    // Attach confirm button listener
+    var confirmBtn = document.getElementById('confirmDefaultStatusBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.confirmDefaultStatusChange();
+        });
+    }
 });
 
 var CountryControlsService = (function() {

@@ -1,0 +1,127 @@
+File: resources/views/admin/assets/campaigns.blade.php
+Lines: 24-93
+
+PROBLEM ROOT CAUSES:
+1. Overriding global .qsms-content-wrap max-width system (should be 1280px centered)
+2. Wrong sidebar width calc: using 260px instead of actual 264px (16.5rem)
+3. overflow-x: hidden masks problem instead of fixing it
+4. Table column percentages total 90% + padding/borders = exceeds 100%
+5. min-width: 800px forces overflow on narrower viewports
+
+SOLUTION:
+Delete lines 24-49 entirely (all the override CSS fighting against global layout).
+Replace lines 50-93 with this:
+
+/* =========================================
+   Table Container - Trust Global Layout
+   ========================================= */
+.table-container,
+#campaignsTableContainer {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #dde4ea;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+.table-container .dropdown-menu {
+    z-index: 1050;
+    position: absolute !important;
+}
+
+.table-container .dropdown {
+    position: static;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+}
+
+.api-table {
+    width: 100%;
+    min-width: 700px;
+    margin: 0;
+}
+
+/* Flexible column widths that total 100% */
+.api-table th:nth-child(1) { width: 13%; min-width: 90px; }
+.api-table th:nth-child(2) { width: 25%; min-width: 150px; }
+.api-table th:nth-child(3) { width: 11%; min-width: 80px; }
+.api-table th:nth-child(4) { width: 12%; min-width: 90px; }
+.api-table th:nth-child(5) { width: 14%; min-width: 100px; }
+.api-table th:nth-child(6) { width: 15%; min-width: 110px; }
+.api-table th:nth-child(7) { width: 10%; min-width: 70px; }
+
+.api-table thead th:last-child { 
+    text-align: center; 
+    width: 70px; 
+}
+
+.api-table td,
+.api-table th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0.75rem 0.5rem;
+}
+
+.api-table thead th {
+    background: #f8f9fa;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: #495057;
+    border-bottom: 1px solid #e9ecef;
+    cursor: pointer;
+    user-select: none;
+}
+
+.api-table thead th:hover {
+    background: #e9ecef;
+}
+
+.api-table thead th i.sort-icon {
+    margin-left: 0.25rem;
+    opacity: 0.5;
+}
+
+.api-table thead th.sorted i.sort-icon {
+    opacity: 1;
+    color: #1e3a5f;
+}
+
+.api-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+}
+
+.api-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.api-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.api-table tbody td {
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+WHY THIS WORKS:
+✅ Removes all !important rules fighting against global layout
+✅ Lets .qsms-content-wrap center content at 1280px max-width
+✅ Column percentages total 100% (not 90%)
+✅ Removed table-layout: fixed for flexible sizing
+✅ Reduced min-width from 800px to 700px
+✅ .table-responsive handles horizontal scroll naturally
+✅ No overflow-x: hidden masking problems
+✅ Trusts the existing global layout system
+
+RESULT:
+- Table will be centered and contained within 1280px on wide screens
+- Natural horizontal scroll on narrow screens
+- No overflow beyond container
+- Consistent with rest of admin portal
