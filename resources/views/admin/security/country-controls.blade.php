@@ -5147,19 +5147,20 @@ function bindEvents() {
     var debugReviewBody = document.getElementById('reviewTableBody');
     if (debugReviewBody) {
         debugReviewBody.addEventListener('click', function(e) {
-            alert('[DEBUG] Click detected on Review table!\nTarget: ' + e.target.tagName + '\nClass: ' + e.target.className);
-            console.log('[DEBUG] Click on reviewTableBody - target:', e.target.tagName, 'class:', e.target.className);
-            console.log('[DEBUG] Closest .btn-review:', e.target.closest('.btn-review'));
+            var hasBtn = e.target.closest('.btn-review');
+            alert('[DEBUG] Review Table Click\n\nTarget: ' + e.target.tagName + '\nClass: ' + e.target.className + '\nParent: ' + (e.target.parentElement ? e.target.parentElement.className : 'none') + '\n\n.btn-review found: ' + (hasBtn ? 'YES' : 'NO'));
+            if (hasBtn) {
+                alert('[DEBUG] btn-review FOUND!\nRequestId: ' + hasBtn.getAttribute('data-request-id'));
+            }
         }, true); // capture phase = true
     }
 
     var debugCountryBody = document.getElementById('countryTableBody');
     if (debugCountryBody) {
         debugCountryBody.addEventListener('click', function(e) {
-            alert('[DEBUG] Click detected on Country table!\nTarget: ' + e.target.tagName + '\nClass: ' + e.target.className);
-            console.log('[DEBUG] Click on countryTableBody - target:', e.target.tagName, 'class:', e.target.className);
-            console.log('[DEBUG] Closest .action-menu-btn:', e.target.closest('.action-menu-btn'));
-            console.log('[DEBUG] Closest .action-dropdown-item:', e.target.closest('.action-dropdown-item'));
+            var hasMenuBtn = e.target.closest('.action-menu-btn');
+            var hasActionItem = e.target.closest('.action-dropdown-item');
+            alert('[DEBUG] Country Table Click\n\nTarget: ' + e.target.tagName + '\nClass: ' + e.target.className + '\nParent: ' + (e.target.parentElement ? e.target.parentElement.className : 'none') + '\n\n.action-menu-btn found: ' + (hasMenuBtn ? 'YES - ' + hasMenuBtn.getAttribute('data-country-code') : 'NO') + '\n.action-dropdown-item found: ' + (hasActionItem ? 'YES - ' + hasActionItem.getAttribute('data-action') : 'NO'));
         }, true); // capture phase = true
     }
 }
