@@ -126,11 +126,16 @@
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
     overflow-x: auto;
+    overflow-y: visible;
 }
 .api-table-container .dropdown-menu {
     z-index: 1060;
     min-width: 180px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    position: absolute !important;
+}
+.api-table td:last-child {
+    overflow: visible;
 }
 .api-table {
     width: 100%;

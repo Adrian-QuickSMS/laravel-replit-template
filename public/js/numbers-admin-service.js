@@ -593,6 +593,56 @@ const NumbersAdminService = (function() {
         };
     }
 
+    async function returnToPool(id, reason = '') {
+        if (!config.useMockData) {
+            const response = await fetch(`${config.apiBaseUrl}/${id}/return-to-pool`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ reason })
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            return response.json();
+        }
+
+        await simulateDelay();
+
+        const number = mockDatabase.numbers.find(n => n.id === id);
+        if (!number) {
+            return { success: false, error: 'Number not found', code: 'NOT_FOUND' };
+        }
+
+        const previousAccount = number.account;
+        const previousSubAccount = number.subAccount;
+        const previousStatus = number.status;
+
+        // Return to pool - clear assignment
+        number.account = null;
+        number.accountId = null;
+        number.accountName = null;
+        number.subAccount = null;
+        number.status = 'available';
+        number.modified = new Date().toISOString().split('T')[0];
+
+        addAuditEntry(id, 'RETURNED_TO_POOL', {
+            before: { account: previousAccount, subAccount: previousSubAccount, status: previousStatus },
+            after: { account: null, subAccount: null, status: 'available' },
+            reason: reason
+        });
+
+        return { 
+            success: true, 
+            data: deepClone(number),
+            changes: {
+                before: { account: previousAccount, subAccount: previousSubAccount, status: previousStatus },
+                after: { account: null, subAccount: null, status: 'available' }
+            }
+        };
+    }
+
     async function updateOptoutRouting(id, routingConfig, reason = '') {
         if (!config.useMockData) {
             const response = await fetch(`${config.apiBaseUrl}/${id}/optout-routing`, {
@@ -1014,6 +1064,7 @@ const NumbersAdminService = (function() {
         updateCapabilities: updateCapabilities,
         updateApiWebhook: updateApiWebhook,
         disableKeyword: disableKeyword,
+        returnToPool: returnToPool,
         updateOptoutRouting: updateOptoutRouting,
         getAuditHistory: getAuditHistory,
         getAccounts: getAccounts,

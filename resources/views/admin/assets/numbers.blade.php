@@ -2542,7 +2542,16 @@ function confirmDisableKeyword(numberId) {
 async function executeConfirmedAction() {
     if (!pendingAction) return;
     
-    const reason = document.getElementById('actionReason')?.value || '';
+    let reason = document.getElementById('actionReason')?.value || '';
+    
+    // For return_to_pool, get reason from specific field
+    if (pendingAction.type === 'return_to_pool') {
+        reason = document.getElementById('returnToPoolReason')?.value || '';
+        if (!reason.trim()) {
+            showToast('Please provide a reason for returning to pool.', 'error');
+            return;
+        }
+    }
     
     if (['suspend', 'disableKeyword'].includes(pendingAction.type) && !reason.trim()) {
         alert('Please provide a reason for this action.');
@@ -2565,6 +2574,9 @@ async function executeConfirmedAction() {
                 break;
             case 'disableKeyword':
                 result = await NumbersAdminService.disableKeyword(pendingAction.numberId, reason);
+                break;
+            case 'return_to_pool':
+                result = await NumbersAdminService.returnToPool(pendingAction.numberId, reason);
                 break;
         }
         
@@ -2606,6 +2618,17 @@ async function executeConfirmedAction() {
                             number: num.number,
                             accountId: num.account,
                             accountName: num.account,
+                            before: result.changes.before,
+                            after: result.changes.after,
+                            reason: reason
+                        });
+                        break;
+                    case 'return_to_pool':
+                        ADMIN_AUDIT.logNumberAction('RETURNED_TO_POOL', {
+                            numberId: pendingAction.numberId,
+                            number: num.number,
+                            accountId: result.changes.before.account,
+                            accountName: result.changes.before.account,
                             before: result.changes.before,
                             after: result.changes.after,
                             reason: reason
