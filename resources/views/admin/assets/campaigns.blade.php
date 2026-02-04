@@ -22,9 +22,30 @@
     --admin-accent: #4a90d9;
 }
 .admin-page { padding: 0; max-width: 100%; box-sizing: border-box; }
+.content-body { 
+    overflow-x: hidden !important; 
+    max-width: calc(100vw - 260px) !important;
+}
+.qsms-main, .qsms-content-wrap { 
+    max-width: 100% !important; 
+    overflow-x: hidden !important; 
+    width: 100% !important;
+}
 .container-fluid {
-    max-width: 100%;
-    overflow: hidden;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    padding-right: 15px !important;
+    padding-left: 15px !important;
+    box-sizing: border-box !important;
+}
+#campaignsTableContainer {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+}
+#campaignsTableContainer .table-responsive {
+    max-width: 100% !important;
+    overflow-x: auto !important;
 }
 
 /* =========================================
