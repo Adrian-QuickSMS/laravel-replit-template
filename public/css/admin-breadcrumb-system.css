@@ -5,18 +5,29 @@
 
 /* Breadcrumb Container - White card with rounded corners */
 .page-titles {
-    background: #ffffff;
-    border-radius: 0.625rem;
-    padding: 0.9375rem 1.5rem;
-    margin-bottom: 1.25rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: #ffffff !important;
+    border-radius: 0.625rem !important;
+    padding: 0.9375rem 1.5rem !important;
+    margin-bottom: 1.25rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Breadcrumb List - Remove Bootstrap row negative margins */
 .page-titles.row {
-    margin-right: 0;
-    margin-left: 0;
-    margin-bottom: 1.25rem;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 1.25rem !important;
+}
+
+/* Override any inline or local styles */
+div.page-titles,
+div.row.page-titles {
+    background: #ffffff !important;
+    border-radius: 0.625rem !important;
+    padding: 0.9375rem 1.5rem !important;
+    margin-bottom: 1.25rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Bootstrap Breadcrumb Styling */
