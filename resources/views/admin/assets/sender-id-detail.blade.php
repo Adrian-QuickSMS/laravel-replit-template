@@ -542,12 +542,12 @@ html, body {
         <i class="fas fa-arrow-left"></i> Back to Approval Queue
     </a>
 
-    <div class="admin-breadcrumb">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <a href="{{ route('admin.approval-queue') }}">Approval Queue</a>
-        <span class="separator">/</span>
-        <span>SenderID Detail</span>
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.approval-queue') }}">Approval Queue</a></li>
+            <li class="breadcrumb-item active">SenderID Detail</li>
+        </ol>
     </div>
 
     <div class="status-header">

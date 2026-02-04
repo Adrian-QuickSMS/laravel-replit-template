@@ -39,6 +39,7 @@
     <link href="{{ asset('css/quicksms-global-layout.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('css/admin-control-plane.css') }}" rel="stylesheet" type="text/css"/>
     <link href="{{ asset('css/admin-modal-design-system.css') }}" rel="stylesheet" type="text/css"/>
+    <link href="{{ asset('css/admin-breadcrumb-system.css') }}" rel="stylesheet" type="text/css"/>
     
     @stack('styles')
 </head>

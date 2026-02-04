@@ -1,0 +1,271 @@
+EPLIT PROMPT: Standardize Admin Breadcrumb Navigation & Page Headers
+
+OBJECTIVE: Make ALL admin pages use the exact same breadcrumb and page header format as shown in the Global Templates Library page (the reference design).
+
+REFERENCE DESIGN ANALYSIS (from Global Templates Library):
+
+<div class="row page-titles">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+        <li class="breadcrumb-item"><a href="#">Assets</a></li>
+        <li class="breadcrumb-item active">Global Templates Library</li>
+    </ol>
+</div>
+
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+        <h2 style="margin: 0; font-weight: 600; color: #1e3a5f;">Global Templates Library</h2>
+        <p style="margin: 0; color: #6c757d;">Manage message templates across all customer accounts</p>
+    </div>
+</div>
+
+DESIGN SPECIFICATIONS:
+
+1. CREATE NEW FILE: /public/css/admin-breadcrumb-system.css
+
+/* =========================================
+   ADMIN BREADCRUMB & PAGE HEADER SYSTEM
+   Standardizes navigation across all admin pages
+   ========================================= */
+
+/* Breadcrumb Container - White card with rounded corners */
+.page-titles {
+    background: #ffffff;
+    border-radius: 0.625rem;
+    padding: 0.9375rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Breadcrumb List - Remove Bootstrap row negative margins */
+.page-titles.row {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+/* Bootstrap Breadcrumb Styling */
+.page-titles .breadcrumb {
+    margin-bottom: 0;
+    background-color: transparent;
+    padding: 0;
+    font-size: 0.9375rem;
+}
+
+/* Breadcrumb Links - Medium gray */
+.page-titles .breadcrumb-item a {
+    color: #6c757d;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.page-titles .breadcrumb-item a:hover {
+    color: #1e3a5f;
+    text-decoration: none;
+}
+
+/* Active Breadcrumb Item - Admin primary color */
+.page-titles .breadcrumb-item.active {
+    color: #1e3a5f;
+    font-weight: 500;
+}
+
+/* Breadcrumb Separator */
+.page-titles .breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    color: #6c757d;
+    padding: 0 0.5rem;
+}
+
+/* Page Header Container */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Page Title - Large, bold, admin primary color */
+.page-header h2,
+.page-header .page-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.75rem;
+    color: #1e3a5f;
+    line-height: 1.2;
+}
+
+/* Page Subtitle/Description - Smaller, gray text */
+.page-header p,
+.page-header .page-description {
+    margin: 0.25rem 0 0 0;
+    color: #6c757d;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+}
+
+/* Legacy admin-breadcrumb compatibility - will be replaced */
+.admin-breadcrumb {
+    background: #ffffff;
+    border-radius: 0.625rem;
+    padding: 0.9375rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    font-size: 0.9375rem;
+}
+
+.admin-breadcrumb a {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.admin-breadcrumb a:hover {
+    color: #1e3a5f;
+}
+
+.admin-breadcrumb .separator {
+    color: #6c757d;
+    padding: 0 0.5rem;
+}
+
+.admin-breadcrumb span:last-child {
+    color: #1e3a5f;
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .page-titles {
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .page-header {
+        margin-bottom: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .page-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .page-header p {
+        font-size: 0.875rem;
+    }
+}
+
+/* Override any Fillow template inconsistencies */
+body.admin-console .page-titles {
+    background: #ffffff !important;
+    border: none !important;
+}
+
+body.admin-console .breadcrumb-item.active {
+    color: #1e3a5f !important;
+}
+
+2. ADD TO ADMIN LAYOUT:
+
+Edit /resources/views/layouts/admin.blade.php - add this line in the <head> section after other CSS:
+
+<link rel="stylesheet" href="{{ asset('css/admin-breadcrumb-system.css') }}">
+
+3. STANDARDIZE ALL ADMIN PAGES:
+
+Search for ALL files in /resources/views/admin/ that contain breadcrumbs or page headers and replace them with this standard structure:
+
+FIND AND REPLACE PATTERN 1 (Custom admin-breadcrumb):
+
+FIND:
+
+<div class="admin-breadcrumb">
+    <a href="{{ route('admin.dashboard') }}">Admin</a>
+    <span class="separator">/</span>
+    <span>PAGE_NAME</span>
+</div>
+
+REPLACE WITH:
+
+<div class="row page-titles">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+        <li class="breadcrumb-item active">PAGE_NAME</li>
+    </ol>
+</div>
+
+FIND AND REPLACE PATTERN 2 (Inconsistent page headers):
+
+FIND variations like:
+
+<h4 style="color: #1e3a5f; font-weight: 600;">Title</h4>
+<h2 style="margin: 0; font-weight: 600; color: #1e3a5f;">Title</h2>
+<h3>Title</h3>
+REPLACE ALL WITH:
+
+<div class="page-header">
+    <div>
+        <h2>PAGE_TITLE</h2>
+        <p>Page description here</p>
+    </div>
+</div>
+
+4. SPECIFIC FILES TO UPDATE:
+
+Apply the standard structure to these files (at minimum):
+
+/resources/views/admin/accounts/overview.blade.php - Replace custom .admin-breadcrumb
+/resources/views/admin/approval-queue.blade.php - Replace custom .admin-breadcrumb
+/resources/views/admin/placeholder.blade.php - Replace custom .admin-breadcrumb
+/resources/views/admin/assets/campaigns.blade.php - Ensure h2 (not h4) for title
+/resources/views/admin/dashboard.blade.php - Standardize if needed
+All files in /resources/views/admin/security/ - Check and standardize
+All files in /resources/views/admin/reporting/ - Check and standardize
+All files in /resources/views/admin/api/ - Check and standardize
+5. STANDARD BREADCRUMB PATTERNS TO USE:
+
+Two-level (Admin > Page):
+
+<div class="row page-titles">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+        <li class="breadcrumb-item active">Page Name</li>
+    </ol>
+</div>
+
+Three-level (Admin > Section > Page):
+
+<div class="row page-titles">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+        <li class="breadcrumb-item"><a href="#">Section</a></li>
+        <li class="breadcrumb-item active">Page Name</li>
+    </ol>
+</div>
+
+6. VERIFY CONSISTENCY:
+
+After updates, check these pages to ensure identical styling:
+
+Admin > Dashboard
+Admin > Accounts > Overview
+Admin > Assets > Campaign History
+Admin > Assets > Global Templates Library
+Admin > Reporting > Client Reporting
+Admin > Security > Admin Users
+Admin > API & Integrations > Connections
+All should have:
+
+✅ White breadcrumb card with rounded corners
+✅ Gray links (hex: #6c757d)
+✅ Dark blue active item (hex: #1e3a5f)
+✅ "/" separator with proper spacing
+✅ Page title as h2, bold, dark blue (#1e3a5f)
+✅ Subtitle as p tag, gray (#6c757d)
+✅ Consistent padding and margins throughout
+DO NOT:
+
+Use inline styles for colors or fonts
+Mix h2, h3, h4 for page titles (always use h2)
+Use custom breadcrumb markup (always use Bootstrap's breadcrumb component)
+Add .container-fluid wrapper around breadcrumbs

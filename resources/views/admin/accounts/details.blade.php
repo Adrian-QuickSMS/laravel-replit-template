@@ -5,10 +5,6 @@
 @push('styles')
 <style>
 .admin-page { padding: 1.5rem; }
-.admin-breadcrumb { margin-bottom: 1rem; }
-.admin-breadcrumb a { color: #6c757d; text-decoration: none; }
-.admin-breadcrumb a:hover { color: #1e3a5f; }
-.admin-breadcrumb .separator { margin: 0 0.5rem; color: #adb5bd; }
 
 .account-header {
     display: flex;
@@ -168,12 +164,12 @@
 
 @section('content')
 <div class="admin-page">
-    <div class="admin-breadcrumb">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <a href="{{ route('admin.accounts.overview') }}">Accounts</a>
-        <span class="separator">/</span>
-        <span>{{ $account_id }}</span>
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.accounts.overview') }}">Accounts</a></li>
+            <li class="breadcrumb-item active">{{ $account_id }}</li>
+        </ol>
     </div>
 
     <div class="account-header">

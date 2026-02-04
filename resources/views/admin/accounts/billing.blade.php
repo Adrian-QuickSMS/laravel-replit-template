@@ -11,10 +11,6 @@
 }
 
 .admin-page { padding: 1.5rem; }
-.admin-breadcrumb { margin-bottom: 1rem; }
-.admin-breadcrumb a { color: #6c757d; text-decoration: none; }
-.admin-breadcrumb a:hover { color: var(--admin-primary); }
-.admin-breadcrumb .separator { margin: 0 0.5rem; color: #adb5bd; }
 
 .billing-header {
     display: flex;
@@ -498,14 +494,13 @@
 
 @section('content')
 <div class="admin-page" id="billingPageContent">
-    <div class="admin-breadcrumb">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <a href="{{ route('admin.accounts.overview') }}">Accounts</a>
-        <span class="separator">/</span>
-        <a href="{{ route('admin.accounts.details', ['accountId' => $account_id]) }}">{{ $account_id }}</a>
-        <span class="separator">/</span>
-        <span>Billing</span>
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.accounts.overview') }}">Accounts</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.accounts.details', ['accountId' => $account_id]) }}">{{ $account_id }}</a></li>
+            <li class="breadcrumb-item active">Billing</li>
+        </ol>
     </div>
 
     <div class="billing-header">

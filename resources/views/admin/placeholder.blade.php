@@ -3,11 +3,12 @@
 @section('title', $page_title ?? 'Admin')
 
 @section('content')
-<div class="container-fluid" style="padding: 1.5rem;">
-    <div class="admin-breadcrumb">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <span>{{ $page_title ?? 'Page' }}</span>
+<div class="admin-page">
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item active">{{ $page_title ?? 'Page' }}</li>
+        </ol>
     </div>
 
     <div class="admin-card">

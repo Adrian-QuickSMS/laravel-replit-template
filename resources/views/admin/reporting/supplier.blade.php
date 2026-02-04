@@ -339,12 +339,12 @@
 
 @section('content')
 <div class="admin-page">
-    <div class="admin-breadcrumb mb-3">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <a href="#">Reporting</a>
-        <span class="separator">/</span>
-        <span>Supplier Reporting</span>
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="#">Reporting</a></li>
+            <li class="breadcrumb-item active">Supplier Reporting</li>
+        </ol>
     </div>
 
     <div class="d-flex justify-content-between align-items-start mb-3">

@@ -150,16 +150,17 @@
 
 @section('content')
 <div class="admin-page">
-    <div class="admin-breadcrumb">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <span>Accounts</span>
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item active">Accounts</li>
+        </ol>
     </div>
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-header">
         <div>
-            <h4 style="color: #1e3a5f; font-weight: 600;">Accounts</h4>
-            <p class="text-muted mb-0">Manage all client accounts across the platform</p>
+            <h2>Accounts</h2>
+            <p>Manage all client accounts across the platform</p>
         </div>
     </div>
 

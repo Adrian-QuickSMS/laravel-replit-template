@@ -482,13 +482,13 @@
 @endpush
 
 @section('content')
-<div class="container-fluid invoices-container" style="padding: 1.5rem;">
-    <div class="admin-breadcrumb mb-3" style="flex-shrink: 0;">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <a href="#">Invoices & Payments</a>
-        <span class="separator">/</span>
-        <span>Invoices</span>
+<div class="admin-page invoices-container">
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item"><a href="#">Invoices & Payments</a></li>
+            <li class="breadcrumb-item active">Invoices</li>
+        </ol>
     </div>
 
     <div id="globalSummaryStrip" class="global-summary-strip mb-3 p-3" style="flex-shrink: 0;">

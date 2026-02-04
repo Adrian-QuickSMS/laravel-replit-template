@@ -595,15 +595,16 @@
 
 @section('content')
 <div class="admin-page">
-    <div class="admin-breadcrumb">
-        <a href="{{ route('admin.dashboard') }}">Admin</a>
-        <span class="separator">/</span>
-        <span>Approval Queue</span>
+    <div class="row page-titles">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
+            <li class="breadcrumb-item active">Approval Queue</li>
+        </ol>
     </div>
 
     <div class="page-header">
         <div>
-            <h4><i class="fas fa-inbox me-2"></i>Approval Queue</h4>
+            <h2><i class="fas fa-inbox me-2"></i>Approval Queue</h2>
             <p>Unified view of all pending SenderID and RCS Agent registration requests</p>
         </div>
         <div class="card-header-actions">

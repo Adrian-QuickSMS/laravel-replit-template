@@ -1,0 +1,141 @@
+/* =========================================
+   ADMIN BREADCRUMB & PAGE HEADER SYSTEM
+   Standardizes navigation across all admin pages
+   ========================================= */
+
+/* Breadcrumb Container - White card with rounded corners */
+.page-titles {
+    background: #ffffff;
+    border-radius: 0.625rem;
+    padding: 0.9375rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Breadcrumb List - Remove Bootstrap row negative margins */
+.page-titles.row {
+    margin-right: 0;
+    margin-left: 0;
+}
+
+/* Bootstrap Breadcrumb Styling */
+.page-titles .breadcrumb {
+    margin-bottom: 0;
+    background-color: transparent;
+    padding: 0;
+    font-size: 0.9375rem;
+}
+
+/* Breadcrumb Links - Medium gray */
+.page-titles .breadcrumb-item a {
+    color: #6c757d;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.page-titles .breadcrumb-item a:hover {
+    color: #1e3a5f;
+    text-decoration: none;
+}
+
+/* Active Breadcrumb Item - Admin primary color */
+.page-titles .breadcrumb-item.active {
+    color: #1e3a5f;
+    font-weight: 500;
+}
+
+/* Breadcrumb Separator */
+.page-titles .breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    color: #6c757d;
+    padding: 0 0.5rem;
+}
+
+/* Page Header Container */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Page Title - Large, bold, admin primary color */
+.page-header h2,
+.page-header .page-title {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.75rem;
+    color: #1e3a5f;
+    line-height: 1.2;
+}
+
+/* Page Subtitle/Description - Smaller, gray text */
+.page-header p,
+.page-header .page-description {
+    margin: 0.25rem 0 0 0;
+    color: #6c757d;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+}
+
+/* Legacy admin-breadcrumb compatibility - will be replaced */
+.admin-breadcrumb {
+    background: #ffffff;
+    border-radius: 0.625rem;
+    padding: 0.9375rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    font-size: 0.9375rem;
+}
+
+.admin-breadcrumb a {
+    color: #6c757d;
+    text-decoration: none;
+}
+
+.admin-breadcrumb a:hover {
+    color: #1e3a5f;
+}
+
+.admin-breadcrumb .separator {
+    color: #6c757d;
+    padding: 0 0.5rem;
+}
+
+.admin-breadcrumb span:last-child {
+    color: #1e3a5f;
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .page-titles {
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .page-header {
+        margin-bottom: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .page-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .page-header p {
+        font-size: 0.875rem;
+    }
+}
+
+/* Override any Fillow template inconsistencies */
+body.admin-console .page-titles {
+    background: #ffffff !important;
+    border: none !important;
+}
+
+body.admin-console .breadcrumb-item.active {
+    color: #1e3a5f !important;
+}
