@@ -61,16 +61,11 @@
 }
 .api-table {
     width: 100%;
+    min-width: 100%;
     margin: 0;
-    table-layout: fixed;
+    table-layout: auto;
 }
-.api-table thead th:first-child { width: 12%; }  /* Account */
-.api-table thead th:nth-child(2) { width: 24%; } /* Campaign */
-.api-table thead th:nth-child(3) { width: 12%; } /* Channel */
-.api-table thead th:nth-child(4) { width: 12%; } /* Status */
-.api-table thead th:nth-child(5) { width: 14%; } /* Recipients */
-.api-table thead th:nth-child(6) { width: 18%; } /* Send Date */
-.api-table thead th:last-child { width: 8%; text-align: center; } /* Actions */
+.api-table thead th:last-child { text-align: center; width: 70px; } /* Actions */
 .api-table td,
 .api-table th {
     white-space: nowrap;
@@ -604,7 +599,7 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
 @endphp
 
 @section('content')
-<div class="container-fluid">
+<div class="container-fluid" style="padding: 1.5rem;">
     <div class="row page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
