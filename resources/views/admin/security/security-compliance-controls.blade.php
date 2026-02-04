@@ -4776,8 +4776,17 @@ var SecurityComplianceControlsService = (function() {
             { id: 'CR-005', name: 'Free Prize Scam', matchType: 'keyword', matchValue: 'free iphone', ruleType: 'block', applyNormalisation: false, status: 'inactive', updatedAt: '18-01-2026 10:00' }
         ];
 
-        mockData.senderIdApprovals = [];
-        mockData.manualExemptions = [];
+        mockData.senderIdApprovals = [
+            { id: 'SID-001', senderId: 'NHSUK', normalisedValue: 'NHSUK', type: 'alphanumeric', category: 'government_healthcare', scope: 'global', accountId: null, accountName: '-', subAccounts: [], approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '15-01-2026 09:00', updatedAt: '15-01-2026 09:00', notes: 'NHS official sender' },
+            { id: 'SID-002', senderId: 'Barclays', normalisedValue: 'BARCLAYS', type: 'alphanumeric', category: 'banking_finance', scope: 'account', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [], approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '16-01-2026 11:30', updatedAt: '16-01-2026 11:30', notes: 'Banking alerts' },
+            { id: 'SID-003', senderId: 'DPD', normalisedValue: 'DPD', type: 'alphanumeric', category: 'delivery_logistics', scope: 'account', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: ['SUB-001', 'SUB-002'], approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '17-01-2026 14:00', updatedAt: '17-01-2026 14:00', notes: 'Delivery notifications' },
+            { id: 'SID-004', senderId: 'HMRC', normalisedValue: 'HMRC', type: 'alphanumeric', category: 'government_healthcare', scope: 'global', accountId: null, accountName: '-', subAccounts: [], approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '18-01-2026 10:15', updatedAt: '18-01-2026 10:15', notes: 'Government tax authority' },
+            { id: 'SID-005', senderId: 'RoyalMail', normalisedValue: 'ROYALMAIL', type: 'alphanumeric', category: 'delivery_logistics', scope: 'global', accountId: null, accountName: '-', subAccounts: [], approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '19-01-2026 09:45', updatedAt: '19-01-2026 09:45', notes: 'Postal service notifications' }
+        ];
+        mockData.manualExemptions = [
+            { id: 'MAN-001', senderId: 'Amazon', normalisedValue: 'AMAZON', type: 'alphanumeric', category: 'delivery_logistics', scope: 'global', accountId: null, accountName: '-', subAccounts: [], addedBy: 'admin@quicksms.co.uk', addedAt: '10-01-2026 15:00', updatedAt: '10-01-2026 15:00', notes: 'Manual exemption for Amazon delivery alerts' },
+            { id: 'MAN-002', senderId: '82345', normalisedValue: '82345', type: 'shortcode', category: 'miscellaneous', scope: 'account', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], addedBy: 'compliance@quicksms.co.uk', addedAt: '12-01-2026 11:30', updatedAt: '12-01-2026 11:30', notes: 'Approved shortcode for TechStart' }
+        ];
         mockData.enforcementOverrides = {};
         mockData.senderIdExemptions = buildExemptionsList();
         
@@ -10752,6 +10761,12 @@ window.resetSenderIdFilters = SecurityComplianceControlsService.resetSenderIdFil
 window.toggleExemptionsFilterPanel = SecurityComplianceControlsService.toggleExemptionsFilterPanel;
 window.applyExemptionsFilters = SecurityComplianceControlsService.applyExemptionsFilters;
 window.resetExemptionsFilters = SecurityComplianceControlsService.resetExemptionsFilters;
+window.showAddSenderIdExemptionModal = SecurityComplianceControlsService.showAddSenderIdExemptionModal;
+window.saveExemption = SecurityComplianceControlsService.saveExemption;
+window.editExemption = SecurityComplianceControlsService.editExemption;
+window.toggleExemptionStatus = SecurityComplianceControlsService.toggleExemptionStatus;
+window.deleteExemption = SecurityComplianceControlsService.deleteExemption;
+window.filterExemptionsTable = SecurityComplianceControlsService.filterExemptionsTable;
 
 // Content filters
 window.toggleContentFilterPanel = SecurityComplianceControlsService.toggleContentFilterPanel;
