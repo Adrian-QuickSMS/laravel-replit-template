@@ -1699,9 +1699,9 @@
 <div class="modal fade" id="reviewDetailModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header" style="background: #1e3a5f; color: #fff;">
+            <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-clipboard-check me-2"></i>Country Access Review</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
                 <div class="review-panel-content">
@@ -1841,9 +1841,9 @@
 <div class="modal fade" id="approvalConfirmModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background: #16a34a; color: #fff;">
+            <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-check-circle me-2"></i>Approve Request</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-light border mb-3">
@@ -1874,9 +1874,9 @@
 <div class="modal fade" id="rejectionReasonModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background: #dc2626; color: #fff;">
+            <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-times-circle me-2"></i>Reject Request</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-light border mb-3">
@@ -1918,9 +1918,9 @@
 <div class="modal fade" id="removeOverrideConfirmModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background: #dc2626; color: #fff;">
+            <div class="modal-header">
                 <h5 class="modal-title"><i class="fas fa-trash-alt me-2"></i>Remove Override</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-light border mb-3">
@@ -2003,7 +2003,7 @@
                 <h5 class="modal-title" id="defaultStatusModalTitle">
                     <i class="fas fa-globe me-2"></i>Change Default Status
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
@@ -2034,11 +2034,11 @@
 <div class="modal fade" id="addOverrideModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background: #1e3a5f; color: #fff;">
+            <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="fas fa-plus-circle me-2"></i>Add Account Override
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
@@ -2122,11 +2122,11 @@
 <div class="modal fade" id="removeOverrideModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background: #dc2626; color: #fff;">
+            <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="fas fa-minus-circle me-2"></i>Remove Account Override
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
@@ -2157,12 +2157,12 @@
 <div class="modal fade" id="customerOverridesModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header" style="background: #1e3a5f; color: #fff;">
+            <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="fas fa-users me-2"></i>Customer Overrides
-                    <span id="overridesModalCountryName" class="ms-2 fw-normal" style="opacity: 0.8;"></span>
+                    <span id="overridesModalCountryName" class="ms-2 fw-normal text-muted"></span>
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
                 <div class="overrides-modal-info">
@@ -4289,25 +4289,23 @@ function openDefaultStatusModal(countryCode, newStatus) {
     var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
     var statusIcon = newStatus === 'allowed' ? 'fa-check-circle' : 'fa-ban';
     var statusClass = newStatus === 'allowed' ? 'allowed' : 'blocked';
-    var headerColor = newStatus === 'allowed' ? '#16a34a' : '#dc2626';
     var description = newStatus === 'allowed' ? 
         'Any customer will be able to send to this country without needing approval.' : 
         'No customer can send to this country unless they have an explicit account override.';
-    var alertClass = newStatus === 'allowed' ? 'alert-success' : 'alert-danger';
 
-    document.getElementById('defaultStatusModalHeader').style.background = headerColor;
-    document.getElementById('defaultStatusModalHeader').style.color = '#fff';
+    document.getElementById('defaultStatusModalHeader').style.background = '';
+    document.getElementById('defaultStatusModalHeader').style.color = '';
     document.getElementById('defaultStatusCountryName').textContent = country.name + ' (' + country.code + ')';
     document.getElementById('defaultStatusNewStatus').innerHTML = 
         '<span class="status-badge ' + statusClass + '">' +
             '<i class="fas ' + statusIcon + '"></i>' + statusLabel +
         '</span>';
-    document.getElementById('defaultStatusDescription').className = 'alert mb-3 ' + alertClass;
+    document.getElementById('defaultStatusDescription').className = 'admin-info-box';
     document.getElementById('defaultStatusDescription').innerHTML = 
         '<i class="fas fa-info-circle me-1"></i>' + description;
     
     var confirmBtn = document.getElementById('confirmDefaultStatusBtn');
-    confirmBtn.className = newStatus === 'allowed' ? 'btn btn-success' : 'btn btn-danger';
+    confirmBtn.className = newStatus === 'allowed' ? 'btn btn-success' : 'btn btn-primary';
 
     var overrideWarning = document.getElementById('defaultStatusOverrideWarning');
     if (country.overrides > 0) {
