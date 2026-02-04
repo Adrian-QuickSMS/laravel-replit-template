@@ -1485,9 +1485,16 @@
     font-size: 0.875rem;
     color: #495057;
     transition: background 0.15s;
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
 }
 .action-dropdown-item:hover {
     background: #f8f9fc;
+}
+button.action-dropdown-item:focus {
+    outline: none;
 }
 .action-dropdown-item i {
     width: 16px;
@@ -4227,25 +4234,25 @@ function renderCountryTable() {
                 '</button>' +
                 '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
                     '<div class="action-dropdown-section">Account Overrides</div>' +
-                    '<div class="action-dropdown-item" onclick="window.handleActionClick(\'add-override\', \'' + country.code + '\')">' +
+                    '<button type="button" class="action-dropdown-item" onclick="event.stopPropagation(); window.handleActionClick(\'add-override\', \'' + country.code + '\'); return false;">' +
                         '<i class="fas fa-plus-circle"></i>Add Account Override' +
-                    '</div>' +
-                    '<div class="action-dropdown-item" onclick="window.handleActionClick(\'remove-override\', \'' + country.code + '\')">' +
+                    '</button>' +
+                    '<button type="button" class="action-dropdown-item" onclick="event.stopPropagation(); window.handleActionClick(\'remove-override\', \'' + country.code + '\'); return false;">' +
                         '<i class="fas fa-minus-circle"></i>Remove Account Override' +
-                    '</div>' +
-                    '<div class="action-dropdown-item view" onclick="window.handleActionClick(\'view-overrides\', \'' + country.code + '\')">' +
+                    '</button>' +
+                    '<button type="button" class="action-dropdown-item view" onclick="event.stopPropagation(); window.handleActionClick(\'view-overrides\', \'' + country.code + '\'); return false;">' +
                         '<i class="fas fa-users"></i>View Overrides (' + country.overrides + ')' +
-                    '</div>' +
+                    '</button>' +
                     '<div class="action-dropdown-divider"></div>' +
                     '<div class="action-dropdown-section">Default Status</div>' +
                     (country.status !== 'allowed' ? 
-                        '<div class="action-dropdown-item approve" onclick="window.handleActionClick(\'set-status\', \'' + country.code + '\', \'allowed\')">' +
+                        '<button type="button" class="action-dropdown-item approve" onclick="event.stopPropagation(); window.handleActionClick(\'set-status\', \'' + country.code + '\', \'allowed\'); return false;">' +
                             '<i class="fas fa-check-circle"></i>Allow Country (Default)' +
-                        '</div>' : '') +
+                        '</button>' : '') +
                     (country.status !== 'blocked' ? 
-                        '<div class="action-dropdown-item reject" onclick="window.handleActionClick(\'set-status\', \'' + country.code + '\', \'blocked\')">' +
+                        '<button type="button" class="action-dropdown-item reject" onclick="event.stopPropagation(); window.handleActionClick(\'set-status\', \'' + country.code + '\', \'blocked\'); return false;">' +
                             '<i class="fas fa-ban"></i>Block Country (Default)' +
-                        '</div>' : '') +
+                        '</button>' : '') +
                 '</div>' +
             '</div>';
 
