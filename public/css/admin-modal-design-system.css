@@ -34,18 +34,26 @@ body.admin-console .modal-dialog-centered {
 
 /* =============================================================================
    2. MODAL HEADER (White background, black text)
+   Override all Bootstrap bg-* classes
    ============================================================================= */
 .admin-modal-header,
-body.admin-console .modal-header {
-    background-color: #ffffff;
-    border-bottom: 1px solid #dee2e6;
-    color: #212529;
+body.admin-console .modal-header,
+body.admin-console .modal .modal-header,
+body.admin-console .modal-header.bg-warning,
+body.admin-console .modal-header.bg-danger,
+body.admin-console .modal-header.bg-success,
+body.admin-console .modal-header.bg-info,
+body.admin-console .modal-header.bg-primary {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    color: #212529 !important;
     padding: 1rem 1.5rem;
 }
 
 .admin-modal-header .modal-title,
-body.admin-console .modal-header .modal-title {
-    color: #212529;
+body.admin-console .modal-header .modal-title,
+body.admin-console .modal .modal-header .modal-title {
+    color: #212529 !important;
     font-weight: 600;
     font-size: 1.1rem;
 }
@@ -173,6 +181,27 @@ body.admin-console .modal-header .btn-close:hover {
     margin-right: 0.5rem;
 }
 
+/* Override yellow/warning alerts in modals to use admin pastel blue */
+body.admin-console .modal-body .alert-warning,
+body.admin-console .modal .modal-body .alert-warning {
+    background-color: #e8f0f8 !important;
+    border-color: #b8d4e8 !important;
+    color: #212529 !important;
+}
+
+body.admin-console .modal-body .alert-warning i,
+body.admin-console .modal .modal-body .alert-warning i {
+    color: #1e3a5f !important;
+}
+
+/* Override any inline-styled alerts */
+body.admin-console .modal-body .alert[style],
+body.admin-console .modal .modal-body .alert[style] {
+    background-color: #e8f0f8 !important;
+    border-color: #b8d4e8 !important;
+    color: #212529 !important;
+}
+
 /* =============================================================================
    5. MODAL FOOTER
    ============================================================================= */
@@ -240,16 +269,47 @@ body.admin-console .modal-footer .btn-success:hover {
 }
 
 /* Secondary button -> Pastel red (cancel action) */
-body.admin-console .modal-footer .btn-secondary {
+body.admin-console .modal-footer .btn-secondary,
+body.admin-console .modal .modal-footer .btn-secondary {
     background-color: #ffe0e0 !important;
     border-color: #dc3545 !important;
     color: #dc3545 !important;
 }
 
-body.admin-console .modal-footer .btn-secondary:hover {
+body.admin-console .modal-footer .btn-secondary:hover,
+body.admin-console .modal .modal-footer .btn-secondary:hover {
     background-color: #ffcccc !important;
     border-color: #c82333 !important;
     color: #c82333 !important;
+}
+
+/* Outline buttons -> Convert to solid admin style */
+body.admin-console .modal-footer .btn-outline-secondary,
+body.admin-console .modal .modal-footer .btn-outline-secondary {
+    background-color: #ffe0e0 !important;
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+}
+
+body.admin-console .modal-footer .btn-outline-secondary:hover,
+body.admin-console .modal .modal-footer .btn-outline-secondary:hover {
+    background-color: #ffcccc !important;
+    border-color: #c82333 !important;
+    color: #c82333 !important;
+}
+
+body.admin-console .modal-footer .btn-outline-warning,
+body.admin-console .modal .modal-footer .btn-outline-warning {
+    background-color: #fff4e0 !important;
+    border-color: #fd7e14 !important;
+    color: #fd7e14 !important;
+}
+
+body.admin-console .modal-footer .btn-outline-warning:hover,
+body.admin-console .modal .modal-footer .btn-outline-warning:hover {
+    background-color: #ffe8c1 !important;
+    border-color: #e56b0a !important;
+    color: #e56b0a !important;
 }
 
 /* =============================================================================
