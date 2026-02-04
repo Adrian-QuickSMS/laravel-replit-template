@@ -10582,8 +10582,13 @@ var SecurityComplianceControlsService = (function() {
         showToast('Anti-spam window updated to ' + windowHours + ' hours', 'success');
     }
 
+    function getMockData() {
+        return mockData;
+    }
+    
     return {
         initialize: initialize,
+        getMockData: getMockData,
         renderAllTabs: renderAllTabs,
         renderQuarantineTab: renderQuarantineTab,
         updateQuarantineFilterChips: updateQuarantineFilterChips,
@@ -10823,6 +10828,7 @@ function buildEquivChipHtml(char) {
 function showNormRuleModal(base) {
     if (!base) return;
     
+    var mockData = SecurityComplianceControlsService.getMockData();
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (!char) return;
     
@@ -11169,6 +11175,7 @@ function saveNormRule(originalBase) {
     var base = originalBase || document.getElementById('normRuleBaseHidden').value;
     if (!base) return;
     
+    var mockData = SecurityComplianceControlsService.getMockData();
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (!char) return;
     
@@ -11319,6 +11326,7 @@ function getLatestNormRuleVersion(base) {
 }
 
 function executeSaveNormRule(changeData) {
+    var mockData = SecurityComplianceControlsService.getMockData();
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === changeData.base; });
     if (!char) return;
     
@@ -11370,6 +11378,7 @@ function executeSaveNormRule(changeData) {
 }
 
 function showNormRuleVersionHistory(base) {
+    var mockData = SecurityComplianceControlsService.getMockData();
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (!char) return;
     
@@ -11533,6 +11542,7 @@ function executeRollback(base, targetVersion) {
         return;
     }
     
+    var mockData = SecurityComplianceControlsService.getMockData();
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (!char) return;
     
@@ -11618,6 +11628,7 @@ function getRiskBadgeHtml(risk) {
 }
 
 function testBaseCharacter(base) {
+    var mockData = SecurityComplianceControlsService.getMockData();
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (char) {
         showTestNormalisationModal({ base: base, equivalents: char.equivalents });
@@ -11625,6 +11636,7 @@ function testBaseCharacter(base) {
 }
 
 function toggleBaseCharacterStatus(base, enabled) {
+    var mockData = SecurityComplianceControlsService.getMockData();
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (!char) return;
     
@@ -11686,6 +11698,7 @@ function toggleNormRowExpansion(row, event) {
     
     row.classList.add('expanded');
     
+    var mockData = SecurityComplianceControlsService.getMockData();
     var char = mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     if (!char) return;
     
@@ -12551,6 +12564,7 @@ var NormalisationEnforcementAPI = (function() {
         
         console.log('[NormalisationEnforcementAPI] Fetching unified normalisation rules');
         
+        var mockData = SecurityComplianceControlsService.getMockData();
         var rules = mockData.baseCharacterLibrary.filter(function(rule) {
             return rule.enabled;
         }).map(function(rule) {
@@ -12823,6 +12837,7 @@ function saveNewNormRule() {
         'url': 'URL Only'
     };
     
+    var mockData = SecurityComplianceControlsService.getMockData();
     var newRule = {
         id: mockData.normalisationRules.length + 1,
         name: name,
@@ -12933,6 +12948,7 @@ var NormalisationLibrary = (function() {
         var scope = options.scope || 'all';
         var targetBase = options.base || null;
         
+        var mockData = SecurityComplianceControlsService.getMockData();
         var chars = mockData.baseCharacterLibrary.filter(function(c) {
             if (!c.enabled) return false;
             if (targetBase !== null) return c.base === targetBase;
@@ -12976,6 +12992,7 @@ var NormalisationLibrary = (function() {
     }
     
     function getEnabledCharacters(scope) {
+        var mockData = SecurityComplianceControlsService.getMockData();
         return mockData.baseCharacterLibrary.filter(function(c) {
             if (!c.enabled) return false;
             if (!scope || scope === 'all') return true;
@@ -12984,12 +13001,14 @@ var NormalisationLibrary = (function() {
     }
     
     function getTotalEquivalents() {
+        var mockData = SecurityComplianceControlsService.getMockData();
         return mockData.baseCharacterLibrary.reduce(function(sum, char) {
             return sum + char.equivalents.length;
         }, 0);
     }
     
     function getCharacter(base) {
+        var mockData = SecurityComplianceControlsService.getMockData();
         return mockData.baseCharacterLibrary.find(function(c) { return c.base === base; });
     }
     
