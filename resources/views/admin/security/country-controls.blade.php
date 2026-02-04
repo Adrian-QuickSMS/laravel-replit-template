@@ -4394,7 +4394,6 @@ window.viewOverrides = viewOverrides;
 window.toggleCountryActionMenu = toggleCountryActionMenu;
 
 window.handleActionClick = function(action, countryCode, status) {
-    alert('handleActionClick called: ' + action + ' - ' + countryCode);
     console.log('[CountryControls] handleActionClick:', action, countryCode, status);
     
     // Close all dropdowns
@@ -4538,11 +4537,17 @@ var accountDropdownOpen = false;
 
 function clearAccountSelection() {
     selectedAccountsForOverride = [];
-    document.getElementById('selectedAccountsChips').innerHTML = '';
-    document.getElementById('accountMultiselectPlaceholder').style.display = 'flex';
-    document.getElementById('subAccountSection').style.display = 'none';
-    document.getElementById('confirmAddOverrideBtn').disabled = true;
-    document.getElementById('selectAllAccounts').checked = false;
+    var chipsEl = document.getElementById('selectedAccountsChips');
+    var placeholderEl = document.getElementById('accountMultiselectPlaceholder');
+    var subAccountEl = document.getElementById('subAccountSection');
+    var confirmBtn = document.getElementById('confirmAddOverrideBtn');
+    var selectAllEl = document.getElementById('selectAllAccounts');
+    
+    if (chipsEl) chipsEl.innerHTML = '';
+    if (placeholderEl) placeholderEl.style.display = 'flex';
+    if (subAccountEl) subAccountEl.style.display = 'none';
+    if (confirmBtn) confirmBtn.disabled = true;
+    if (selectAllEl) selectAllEl.checked = false;
     closeAccountDropdown();
 }
 
@@ -4607,11 +4612,15 @@ function toggleAccountDropdown(event) {
 function closeAccountDropdown() {
     var dropdown = document.getElementById('accountMultiselectDropdown');
     var menu = document.getElementById('accountMultiselectMenu');
-    dropdown.classList.remove('open');
-    menu.classList.remove('show');
+    var searchInput = document.getElementById('accountMultiselectSearch');
+    
+    if (dropdown) dropdown.classList.remove('open');
+    if (menu) menu.classList.remove('show');
     accountDropdownOpen = false;
-    document.getElementById('accountMultiselectSearch').value = '';
-    filterAccountOptions();
+    if (searchInput) {
+        searchInput.value = '';
+        filterAccountOptions();
+    }
 }
 
 function toggleAccountSelection(accountId) {
@@ -4703,8 +4712,15 @@ function updateSelectAllCheckbox() {
 }
 
 function filterAccountOptions() {
-    var searchTerm = document.getElementById('accountMultiselectSearch').value.toLowerCase();
+    var searchInput = document.getElementById('accountMultiselectSearch');
     var optionsContainer = document.getElementById('accountMultiselectOptions');
+    
+    // Guard against null elements or undefined mockAccounts
+    if (!searchInput || !optionsContainer || !mockAccounts) {
+        return;
+    }
+    
+    var searchTerm = searchInput.value.toLowerCase();
     optionsContainer.innerHTML = '';
     
     var filteredAccounts = mockAccounts.filter(function(account) {
@@ -5109,11 +5125,6 @@ function bindEvents() {
     var countryTableBody = document.getElementById('countryTableBody');
     if (countryTableBody) {
         countryTableBody.addEventListener('click', function(e) {
-            console.log('[CountryControls] CLICK detected in countryTableBody!');
-            console.log('[CountryControls] Clicked element:', e.target);
-            console.log('[CountryControls] Clicked element classes:', e.target.className);
-            console.log('[CountryControls] Clicked element tagName:', e.target.tagName);
-            
             // Handle action menu toggle button clicks
             var menuBtn = e.target.closest('.action-menu-btn');
             if (menuBtn) {
@@ -5188,11 +5199,8 @@ function bindEvents() {
 
     // Document-level handler for action dropdown items (CAPTURE PHASE - runs first)
     document.addEventListener('click', function(e) {
-        console.log('[CountryControls] CAPTURE PHASE - clicked:', e.target.tagName, e.target.className);
         var actionItem = e.target.closest('.action-dropdown-item');
         if (actionItem) {
-            console.log('[CountryControls] FOUND action-dropdown-item in capture phase!');
-            alert('ACTION ITEM CLICKED: ' + actionItem.getAttribute('data-action'));
             e.stopPropagation();
             e.preventDefault();
             var action = actionItem.getAttribute('data-action');
