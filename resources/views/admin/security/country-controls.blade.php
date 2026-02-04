@@ -1505,13 +1505,15 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
-            <li class="breadcrumb-item"><a href="/admin/security">Security & Compliance</a></li>
-            <li class="breadcrumb-item active">Country Controls</li>
-        </ol>
-    </nav>
+    <div class="page-titles">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/admin">Admin</a></li>
+                <li class="breadcrumb-item"><a href="/admin/security">Security & Compliance</a></li>
+                <li class="breadcrumb-item active">Country Controls</li>
+            </ol>
+        </nav>
+    </div>
 
     <div class="country-controls-header">
         <div class="country-controls-title">
