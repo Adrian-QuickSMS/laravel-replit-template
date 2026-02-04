@@ -5145,6 +5145,47 @@ function bindEvents() {
     console.log('  - reviewTableBody found:', !!document.getElementById('reviewTableBody'));
     console.log('  - countryTableBody found:', !!document.getElementById('countryTableBody'));
 
+    // Document-level handler for action dropdown items (absolute positioned dropdowns may not bubble to tbody)
+    document.addEventListener('click', function(e) {
+        var actionItem = e.target.closest('.action-dropdown-item');
+        if (actionItem) {
+            e.stopPropagation();
+            var action = actionItem.getAttribute('data-action');
+            var countryCode = actionItem.getAttribute('data-country-code');
+            
+            console.log('[CountryControls] Document-level action item clicked:', action, countryCode);
+            
+            if (!action || !countryCode) {
+                console.warn('[CountryControls] Action item missing data attributes');
+                return;
+            }
+
+            // Close all dropdowns
+            document.querySelectorAll('.action-dropdown.show').forEach(function(d) {
+                d.classList.remove('show');
+            });
+
+            switch(action) {
+                case 'add-override':
+                    openAddOverrideModal(countryCode);
+                    break;
+                case 'remove-override':
+                    openRemoveOverrideModal(countryCode);
+                    break;
+                case 'view-overrides':
+                    viewOverrides(countryCode);
+                    break;
+                case 'set-status':
+                    var newStatus = actionItem.getAttribute('data-status');
+                    if (newStatus) {
+                        openDefaultStatusModal(countryCode, newStatus);
+                    }
+                    break;
+                default:
+                    console.warn('[CountryControls] Unknown action:', action);
+            }
+        }
+    });
 }
 
 function openActionModal(countryCode, newStatus) {
