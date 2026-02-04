@@ -2023,7 +2023,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn" id="confirmDefaultStatusBtn" onclick="confirmDefaultStatusChange()">
+                <button type="button" class="btn" id="confirmDefaultStatusBtn" onclick="event.preventDefault(); event.stopPropagation(); window.confirmDefaultStatusChange();">
                     <i class="fas fa-check me-1"></i>Confirm Change
                 </button>
             </div>
