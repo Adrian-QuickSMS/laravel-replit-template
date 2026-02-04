@@ -3307,7 +3307,7 @@ function renderRequestsList() {
              request.status === 'approved' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-times"></i>') + 
             ' ' + capitalize(request.status) + '</span>';
 
-        var reviewBtn = '<button class="btn btn-sm btn-review" onclick="openReviewModal(\'' + request.id + '\')">' +
+        var reviewBtn = '<button class="btn btn-sm btn-review" data-request-id="' + request.id + '" onclick="window.openReviewModal(this.getAttribute(\'data-request-id\'))">' +
             '<i class="fas fa-eye me-1"></i>Review</button>';
 
         row.innerHTML = 
@@ -3368,8 +3368,13 @@ function clearReviewFilters() {
 }
 
 window.openReviewModal = function openReviewModal(requestId) {
+    console.log('[CountryControls] openReviewModal called with:', requestId);
     var request = countryRequests.find(function(r) { return r.id === requestId; });
-    if (!request) return;
+    if (!request) {
+        console.error('[CountryControls] Request not found:', requestId, 'Available:', countryRequests.map(r => r.id));
+        return;
+    }
+    console.log('[CountryControls] Found request:', request);
     selectedRequest = request;
     
     document.getElementById('modalAccountName').textContent = request.customer.name;
