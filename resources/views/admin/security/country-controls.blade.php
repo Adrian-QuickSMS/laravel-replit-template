@@ -5147,6 +5147,7 @@ function bindEvents() {
     var debugReviewBody = document.getElementById('reviewTableBody');
     if (debugReviewBody) {
         debugReviewBody.addEventListener('click', function(e) {
+            alert('[DEBUG] Click detected on Review table!\nTarget: ' + e.target.tagName + '\nClass: ' + e.target.className);
             console.log('[DEBUG] Click on reviewTableBody - target:', e.target.tagName, 'class:', e.target.className);
             console.log('[DEBUG] Closest .btn-review:', e.target.closest('.btn-review'));
         }, true); // capture phase = true
@@ -5155,6 +5156,7 @@ function bindEvents() {
     var debugCountryBody = document.getElementById('countryTableBody');
     if (debugCountryBody) {
         debugCountryBody.addEventListener('click', function(e) {
+            alert('[DEBUG] Click detected on Country table!\nTarget: ' + e.target.tagName + '\nClass: ' + e.target.className);
             console.log('[DEBUG] Click on countryTableBody - target:', e.target.tagName, 'class:', e.target.className);
             console.log('[DEBUG] Closest .action-menu-btn:', e.target.closest('.action-menu-btn'));
             console.log('[DEBUG] Closest .action-dropdown-item:', e.target.closest('.action-dropdown-item'));
