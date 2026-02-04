@@ -137,6 +137,32 @@
 .bg-success-light {
     background-color: rgba(28, 187, 140, 0.1);
 }
+
+.inline-summary-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+.inline-summary-stats .summary-stat {
+    color: #166534;
+}
+.inline-summary-stats .summary-stat strong {
+    font-weight: 600;
+    color: #15803d;
+}
+.inline-summary-stats .stat-label {
+    font-weight: 400;
+    color: #4ade80;
+}
+.inline-summary-stats .summary-divider {
+    color: #86efac;
+    font-weight: 300;
+}
 .drag-handle {
     cursor: grab;
     opacity: 0.5;
@@ -609,48 +635,16 @@
                                 </div>
                             </div>
 
-                            <div class="mb-4" id="summaryBar" style="display: none;">
-                            <div class="row g-3">
-                                <div class="col-6 col-md-4 col-lg-3">
-                                    <div class="card shadow-sm">
-                                        <div class="card-body p-4">
-                                            <div class="d-flex align-items-center">
-                                                <div class="me-3">
-                                                    <span class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
-                                                        <i class="fas fa-envelope fs-5" style="color: var(--admin-primary, #1e3a5f);"></i>
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <p class="mb-1 text-muted">Total Messages</p>
-                                                    <h3 class="mb-0 fw-bold" id="summaryTotal">0</h3>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-4 col-lg-3">
-                                    <div class="card shadow-sm">
-                                        <div class="card-body p-4">
-                                            <div class="d-flex align-items-center">
-                                                <div class="me-3">
-                                                    <span class="bg-success-light rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
-                                                        <i class="fas fa-puzzle-piece text-success fs-5"></i>
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <p class="mb-1 text-muted">Total Parts/Fragments</p>
-                                                    <h3 class="mb-0 fw-bold" id="summaryParts">0</h3>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                </div>
-                            </div>
-
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <div class="text-muted small" id="rowCountInfo">
                                     <span id="renderedCount">0</span> rows loaded (max 10,000)
+                                </div>
+                                <div class="inline-summary-stats" id="summaryBar" style="display: none;">
+                                    <span class="summary-stat"><strong id="summaryParts">0</strong> <span class="stat-label">parts</span></span>
+                                    <span class="summary-divider">|</span>
+                                    <span class="summary-stat"><strong id="summaryTotal">0</strong> <span class="stat-label">messages</span></span>
+                                    <span class="summary-divider">|</span>
+                                    <span class="summary-stat"><strong id="summaryAvgParts">0.00</strong> <span class="stat-label">parts/msg avg</span></span>
                                 </div>
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="table-style-toggle">
@@ -1760,10 +1754,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const summaryTotalEl = document.getElementById('summaryTotal');
                 const summaryPartsEl = document.getElementById('summaryParts');
+                const summaryAvgPartsEl = document.getElementById('summaryAvgParts');
                 const renderedCountEl = document.getElementById('renderedCount');
+                const totalParts = Math.floor(totalMessages * 1.15);
+                const avgPartsPerMsg = totalMessages > 0 ? (totalParts / totalMessages).toFixed(2) : '0.00';
                 if (summaryTotalEl) summaryTotalEl.textContent = totalMessages.toLocaleString();
-                if (summaryPartsEl) summaryPartsEl.textContent = Math.floor(totalMessages * 1.15).toLocaleString();
-                if (summaryBar) summaryBar.style.display = 'block';
+                if (summaryPartsEl) summaryPartsEl.textContent = totalParts.toLocaleString();
+                if (summaryAvgPartsEl) summaryAvgPartsEl.textContent = avgPartsPerMsg;
+                if (summaryBar) summaryBar.style.display = 'flex';
             }
             
             const currentRows = tableBody.querySelectorAll('tr').length;
