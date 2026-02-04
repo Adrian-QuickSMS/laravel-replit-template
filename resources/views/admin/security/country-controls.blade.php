@@ -4210,23 +4210,23 @@ function renderCountryTable() {
                 '</button>' +
                 '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
                     '<div class="action-dropdown-section">Account Overrides</div>' +
-                    '<div class="action-dropdown-item" onclick="openAddOverrideModal(\'' + country.code + '\')">' +
+                    '<div class="action-dropdown-item" onclick="event.stopPropagation(); window.openAddOverrideModal(\'' + country.code + '\')">' +
                         '<i class="fas fa-plus-circle"></i>Add Account Override' +
                     '</div>' +
-                    '<div class="action-dropdown-item" onclick="openRemoveOverrideModal(\'' + country.code + '\')">' +
+                    '<div class="action-dropdown-item" onclick="event.stopPropagation(); window.openRemoveOverrideModal(\'' + country.code + '\')">' +
                         '<i class="fas fa-minus-circle"></i>Remove Account Override' +
                     '</div>' +
-                    '<div class="action-dropdown-item view" onclick="viewOverrides(\'' + country.code + '\')">' +
+                    '<div class="action-dropdown-item view" onclick="event.stopPropagation(); window.viewOverrides(\'' + country.code + '\')">' +
                         '<i class="fas fa-users"></i>View Overrides (' + country.overrides + ')' +
                     '</div>' +
                     '<div class="action-dropdown-divider"></div>' +
                     '<div class="action-dropdown-section">Default Status</div>' +
                     (country.status !== 'allowed' ? 
-                        '<div class="action-dropdown-item approve" onclick="openDefaultStatusModal(\'' + country.code + '\', \'allowed\')">' +
+                        '<div class="action-dropdown-item approve" onclick="event.stopPropagation(); window.openDefaultStatusModal(\'' + country.code + '\', \'allowed\')">' +
                             '<i class="fas fa-check-circle"></i>Allow Country (Default)' +
                         '</div>' : '') +
                     (country.status !== 'blocked' ? 
-                        '<div class="action-dropdown-item reject" onclick="openDefaultStatusModal(\'' + country.code + '\', \'blocked\')">' +
+                        '<div class="action-dropdown-item reject" onclick="event.stopPropagation(); window.openDefaultStatusModal(\'' + country.code + '\', \'blocked\')">' +
                             '<i class="fas fa-ban"></i>Block Country (Default)' +
                         '</div>' : '') +
                 '</div>' +
