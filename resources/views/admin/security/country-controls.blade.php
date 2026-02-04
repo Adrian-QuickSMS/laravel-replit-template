@@ -5186,12 +5186,15 @@ function bindEvents() {
     console.log('  - reviewTableBody found:', !!document.getElementById('reviewTableBody'));
     console.log('  - countryTableBody found:', !!document.getElementById('countryTableBody'));
 
-    // Document-level handler for action dropdown items (absolute positioned dropdowns may not bubble to tbody)
+    // Document-level handler for action dropdown items (CAPTURE PHASE - runs first)
     document.addEventListener('click', function(e) {
+        console.log('[CountryControls] CAPTURE PHASE - clicked:', e.target.tagName, e.target.className);
         var actionItem = e.target.closest('.action-dropdown-item');
         if (actionItem) {
+            console.log('[CountryControls] FOUND action-dropdown-item in capture phase!');
             alert('ACTION ITEM CLICKED: ' + actionItem.getAttribute('data-action'));
             e.stopPropagation();
+            e.preventDefault();
             var action = actionItem.getAttribute('data-action');
             var countryCode = actionItem.getAttribute('data-country-code');
             
@@ -5227,7 +5230,7 @@ function bindEvents() {
                     console.warn('[CountryControls] Unknown action:', action);
             }
         }
-    });
+    }, true); // Use capture phase
 }
 
 function openActionModal(countryCode, newStatus) {
