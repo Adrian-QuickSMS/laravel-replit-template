@@ -1167,6 +1167,27 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
         </div>
     </div>
 </div>
+
+<!-- Campaign Action Confirmation Modal -->
+<div class="modal fade" id="campaignActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #f0f4f8; border-bottom: 1px solid #d0d9e3;">
+                <h5 class="modal-title" id="actionModalTitle">
+                    <i class="fas fa-question-circle me-2" id="actionModalIcon"></i>
+                    Confirm Action
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="actionModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="actionModalConfirmBtn" onclick="executeCampaignAction()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -2057,25 +2078,4 @@ function exportCampaigns() {
     showComingSoon('Campaign export functionality will be available when backend integration is complete.');
 }
 </script>
-
-<!-- Campaign Action Confirmation Modal -->
-<div class="modal fade" id="campaignActionModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="actionModalTitle">
-                    <i class="fas fa-question-circle me-2" id="actionModalIcon"></i>
-                    Confirm Action
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="actionModalBody">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="actionModalConfirmBtn" onclick="executeCampaignAction()">Confirm</button>
-            </div>
-        </div>
-    </div>
-</div>
 @endpush
