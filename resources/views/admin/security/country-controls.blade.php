@@ -5149,6 +5149,7 @@ function bindEvents() {
     document.addEventListener('click', function(e) {
         var actionItem = e.target.closest('.action-dropdown-item');
         if (actionItem) {
+            alert('ACTION ITEM CLICKED: ' + actionItem.getAttribute('data-action'));
             e.stopPropagation();
             var action = actionItem.getAttribute('data-action');
             var countryCode = actionItem.getAttribute('data-country-code');
