@@ -1385,6 +1385,49 @@ tr.selected-row:hover {
         </div>
     </div>
 </div>
+
+<!-- Sub-Account Assignment Modal -->
+<div class="modal fade" id="subAccountAssignModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-sitemap me-2"></i>Assign / Remove Sub-Accounts</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Number</label>
+                    <div class="fw-bold" id="subAccountNumber">-</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">Customer Account</label>
+                    <div id="subAccountCustomer">-</div>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Sub-Accounts with Access</label>
+                    <p class="text-muted small mb-2">Choose which sub-accounts can use this number in the Portal.</p>
+                    <div id="subAccountCheckboxes" class="border rounded p-3 bg-light">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Default Sub-Account</label>
+                    <select class="form-select" id="subAccountDefault">
+                        <option value="">Select default...</option>
+                    </select>
+                    <small class="text-muted">The default sub-account for messages sent from this number.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn text-white" style="background: var(--admin-primary);" onclick="saveSubAccountAssignment()">
+                    <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -2813,11 +2856,95 @@ async function saveOptoutRouting() {
     }
 }
 
+var currentSubAccountNumber = null;
+
 function openSubAccountAssign(numberId) {
     const num = numbersData.find(n => n.id === numberId);
     if (!num) return;
     
-    alert(`TODO: Open Sub-Account assignment modal for ${num.number}\nThis would allow assigning/removing sub-accounts in Portal mode.`);
+    currentSubAccountNumber = num;
+    
+    // Populate modal
+    document.getElementById('subAccountNumber').textContent = num.number;
+    document.getElementById('subAccountCustomer').innerHTML = `${num.accountName} <span class="text-muted small">(${num.accountId})</span>`;
+    
+    // Mock sub-accounts for this account
+    const availableSubAccounts = ['Marketing', 'Sales', 'Support', 'Operations', 'Retail', 'Corporate'];
+    const assignedSubAccounts = num.subAccounts || ['Marketing'];
+    const defaultSubAccount = num.defaultSubAccount || assignedSubAccounts[0] || '';
+    
+    // Build checkboxes
+    let checkboxHtml = '';
+    availableSubAccounts.forEach((sa, idx) => {
+        const isChecked = assignedSubAccounts.includes(sa) ? 'checked' : '';
+        checkboxHtml += `
+            <div class="form-check">
+                <input class="form-check-input sub-account-check" type="checkbox" value="${sa}" id="sa_check_${idx}" ${isChecked} onchange="updateDefaultSubAccountOptions()">
+                <label class="form-check-label" for="sa_check_${idx}">${sa}</label>
+            </div>
+        `;
+    });
+    document.getElementById('subAccountCheckboxes').innerHTML = checkboxHtml;
+    
+    // Build default dropdown
+    updateDefaultSubAccountOptions();
+    document.getElementById('subAccountDefault').value = defaultSubAccount;
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('subAccountAssignModal'));
+    modal.show();
+}
+
+function updateDefaultSubAccountOptions() {
+    const checkedBoxes = document.querySelectorAll('.sub-account-check:checked');
+    const defaultSelect = document.getElementById('subAccountDefault');
+    const currentValue = defaultSelect.value;
+    
+    let optionsHtml = '<option value="">Select default...</option>';
+    checkedBoxes.forEach(cb => {
+        const selected = cb.value === currentValue ? 'selected' : '';
+        optionsHtml += `<option value="${cb.value}" ${selected}>${cb.value}</option>`;
+    });
+    defaultSelect.innerHTML = optionsHtml;
+}
+
+function saveSubAccountAssignment() {
+    if (!currentSubAccountNumber) return;
+    
+    const checkedBoxes = document.querySelectorAll('.sub-account-check:checked');
+    const assignedSubAccounts = Array.from(checkedBoxes).map(cb => cb.value);
+    const defaultSubAccount = document.getElementById('subAccountDefault').value;
+    
+    if (assignedSubAccounts.length === 0) {
+        showToast('Please select at least one sub-account', 'error');
+        return;
+    }
+    
+    if (!defaultSubAccount) {
+        showToast('Please select a default sub-account', 'error');
+        return;
+    }
+    
+    // Log audit event
+    ADMIN_AUDIT.logNumberDetailsUpdated(
+        currentSubAccountNumber.number,
+        currentSubAccountNumber.accountId,
+        currentSubAccountNumber.accountName,
+        {
+            subAccounts: { before: currentSubAccountNumber.subAccounts || [], after: assignedSubAccounts },
+            defaultSubAccount: { before: currentSubAccountNumber.defaultSubAccount || '', after: defaultSubAccount }
+        }
+    );
+    
+    // Update local data
+    currentSubAccountNumber.subAccounts = assignedSubAccounts;
+    currentSubAccountNumber.defaultSubAccount = defaultSubAccount;
+    
+    // Close modal and show success
+    bootstrap.Modal.getInstance(document.getElementById('subAccountAssignModal')).hide();
+    showToast(`Sub-account assignment updated for ${currentSubAccountNumber.number}`, 'success');
+    
+    currentSubAccountNumber = null;
 }
 
 function openOverrideUsage(numberId) {
