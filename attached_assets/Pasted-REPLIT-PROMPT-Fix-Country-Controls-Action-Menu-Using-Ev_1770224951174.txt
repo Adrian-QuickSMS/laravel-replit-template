@@ -1,0 +1,209 @@
+REPLIT PROMPT: Fix Country Controls Action Menu Using Event Delegation
+
+File: /resources/views/admin/security/country-controls.blade.php
+
+ROOT CAUSE:
+
+The action menu items (lines 4223-4241) use inline onclick handlers with complex quote escaping that can fail:
+
+onclick="event.stopPropagation(); window.openAddOverrideModal(\'' + country.code + '\')"
+
+This is the same problem that affected the Review buttons. Inline onclick handlers are fragile and prone to breaking.
+
+SOLUTION: Use Event Delegation (Same Pattern as Review Button Fix)
+
+STEP 1: Remove Inline onclick from Action Menu Items
+
+Find lines 4223-4241 where the action menu HTML is generated.
+
+CHANGE FROM:
+
+var actionMenu = 
+    '<div class="action-menu">' +
+        '<button class="action-menu-btn" onclick="toggleCountryActionMenu(event, \'' + country.code + '\')">' +
+            '<i class="fas fa-ellipsis-v"></i>' +
+        '</button>' +
+        '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
+            '<div class="action-dropdown-section">Account Overrides</div>' +
+            '<div class="action-dropdown-item" onclick="event.stopPropagation(); window.openAddOverrideModal(\'' + country.code + '\')">' +
+                '<i class="fas fa-plus-circle"></i>Add Account Override' +
+            '</div>' +
+            '<div class="action-dropdown-item" onclick="event.stopPropagation(); window.openRemoveOverrideModal(\'' + country.code + '\')">' +
+                '<i class="fas fa-minus-circle"></i>Remove Account Override' +
+            '</div>' +
+            '<div class="action-dropdown-item view" onclick="event.stopPropagation(); window.viewOverrides(\'' + country.code + '\')">' +
+                '<i class="fas fa-users"></i>View Overrides (' + country.overrides + ')' +
+            '</div>' +
+            '<div class="action-dropdown-divider"></div>' +
+            '<div class="action-dropdown-section">Default Status</div>' +
+            (country.status !== 'allowed' ? 
+                '<div class="action-dropdown-item approve" onclick="event.stopPropagation(); window.openDefaultStatusModal(\'' + country.code + '\', \'allowed\')">' +
+                    '<i class="fas fa-check-circle"></i>Allow Country (Default)' +
+                '</div>' : '') +
+            (country.status !== 'blocked' ? 
+                '<div class="action-dropdown-item reject" onclick="event.stopPropagation(); window.openDefaultStatusModal(\'' + country.code + '\', \'blocked\')">' +
+                    '<i class="fas fa-ban"></i>Block Country (Default)' +
+                '</div>' : '') +
+        '</div>' +
+    '</div>';
+
+CHANGE TO (remove all onclick attributes, add data attributes instead):
+
+var actionMenu = 
+    '<div class="action-menu">' +
+        '<button class="action-menu-btn" data-country-code="' + country.code + '">' +
+            '<i class="fas fa-ellipsis-v"></i>' +
+        '</button>' +
+        '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
+            '<div class="action-dropdown-section">Account Overrides</div>' +
+            '<div class="action-dropdown-item" data-action="add-override" data-country-code="' + country.code + '">' +
+                '<i class="fas fa-plus-circle"></i>Add Account Override' +
+            '</div>' +
+            '<div class="action-dropdown-item" data-action="remove-override" data-country-code="' + country.code + '">' +
+                '<i class="fas fa-minus-circle"></i>Remove Account Override' +
+            '</div>' +
+            '<div class="action-dropdown-item view" data-action="view-overrides" data-country-code="' + country.code + '">' +
+                '<i class="fas fa-users"></i>View Overrides (' + country.overrides + ')' +
+            '</div>' +
+            '<div class="action-dropdown-divider"></div>' +
+            '<div class="action-dropdown-section">Default Status</div>' +
+            (country.status !== 'allowed' ? 
+                '<div class="action-dropdown-item approve" data-action="set-default-status" data-country-code="' + country.code + '" data-new-status="allowed">' +
+                    '<i class="fas fa-check-circle"></i>Allow Country (Default)' +
+                '</div>' : '') +
+            (country.status !== 'blocked' ? 
+                '<div class="action-dropdown-item reject" data-action="set-default-status" data-country-code="' + country.code + '" data-new-status="blocked">' +
+                    '<i class="fas fa-ban"></i>Block Country (Default)' +
+                '</div>' : '') +
+        '</div>' +
+    '</div>';
+
+STEP 2: Update bindEvents() Function
+
+Find the bindEvents() function at line 5036. Add event delegation code at the end of the function (before the closing brace on line 5060):
+
+ADD THIS CODE inside bindEvents() function:
+
+    // Event delegation for Country Controls action menus
+    var countriesTableBody = document.getElementById('countriesBody');
+    if (countriesTableBody) {
+        // Handle action menu toggle button clicks
+        countriesTableBody.addEventListener('click', function(e) {
+            var menuBtn = e.target.closest('.action-menu-btn');
+            if (menuBtn) {
+                e.stopPropagation();
+                var countryCode = menuBtn.getAttribute('data-country-code');
+                if (countryCode) {
+                    toggleCountryActionMenu(e, countryCode);
+                }
+                return;
+            }
+
+            // Handle action menu item clicks
+            var actionItem = e.target.closest('.action-dropdown-item');
+            if (actionItem) {
+                e.stopPropagation();
+                var action = actionItem.getAttribute('data-action');
+                var countryCode = actionItem.getAttribute('data-country-code');
+                
+                if (!action || !countryCode) {
+                    console.warn('[CountryControls] Action item missing data attributes:', actionItem);
+                    return;
+                }
+
+                console.log('[CountryControls] Action menu item clicked:', action, countryCode);
+
+                // Route to appropriate function based on action
+                switch(action) {
+                    case 'add-override':
+                        window.openAddOverrideModal(countryCode);
+                        break;
+                    case 'remove-override':
+                        window.openRemoveOverrideModal(countryCode);
+                        break;
+                    case 'view-overrides':
+                        window.viewOverrides(countryCode);
+                        break;
+                    case 'set-default-status':
+                        var newStatus = actionItem.getAttribute('data-new-status');
+                        if (newStatus) {
+                            window.openDefaultStatusModal(countryCode, newStatus);
+                        }
+                        break;
+                    default:
+                        console.warn('[CountryControls] Unknown action:', action);
+                }
+            }
+        });
+    }
+
+    // Event delegation for Review buttons
+    var reviewTableBody = document.getElementById('reviewQueueBody');
+    if (reviewTableBody) {
+        reviewTableBody.addEventListener('click', function(e) {
+            var reviewBtn = e.target.closest('.btn-review');
+            if (reviewBtn) {
+                e.stopPropagation();
+                var requestId = reviewBtn.getAttribute('data-request-id');
+                if (requestId) {
+                    console.log('[CountryControls] Review button clicked, requestId:', requestId);
+                    window.openReviewModal(requestId);
+                }
+            }
+        });
+    }
+
+STEP 3: Update toggleCountryActionMenu Function
+
+Find the toggleCountryActionMenu function at line 4265. The function signature needs to handle both event object and string countryCode:
+
+CHANGE FROM:
+
+function toggleCountryActionMenu(event, countryCode) {
+    event.stopPropagation();
+    document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
+        if (menu.id !== 'countryActionMenu-' + countryCode) {
+            menu.classList.remove('show');
+        }
+    });
+    document.getElementById('countryActionMenu-' + countryCode).classList.toggle('show');
+}
+
+CHANGE TO (add null check for event):
+
+function toggleCountryActionMenu(event, countryCode) {
+    if (event) {
+        event.stopPropagation();
+    }
+    document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
+        if (menu.id !== 'countryActionMenu-' + countryCode) {
+            menu.classList.remove('show');
+        }
+    });
+    var menuEl = document.getElementById('countryActionMenu-' + countryCode);
+    if (menuEl) {
+        menuEl.classList.toggle('show');
+    }
+}
+
+WHY THIS WORKS:
+
+No Quote Escaping: Country codes stored in data-country-code attributes, not JavaScript strings
+Event Delegation: One listener on table body instead of individual onclick handlers
+Action Routing: Uses data-action attribute to determine which function to call
+Cleaner Code: All event handling logic in one place (bindEvents)
+More Secure: No inline JavaScript
+Easier Debugging: Console logs show exactly which action was triggered
+VERIFICATION:
+
+After making changes:
+
+Open Admin > Security > Country Controls > Countries tab
+Click the three-dot menu on any country row
+Click "Add Account Override" - should open Add Override modal
+Click "Remove Account Override" - should open Remove Override modal
+Click "View Overrides (0)" - should open Overrides modal
+Click "Allow Country (Default)" or "Block Country (Default)" - should open confirmation modal
+Check browser console for:
+
+[CountryControls] Action menu item clicked: add-override US

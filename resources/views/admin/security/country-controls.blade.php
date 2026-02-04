@@ -4222,7 +4222,7 @@ function renderCountryTable() {
 
         var actionMenu = 
             '<div class="action-menu">' +
-                '<button class="action-menu-btn" data-action="toggle-menu" data-country-code="' + country.code + '">' +
+                '<button class="action-menu-btn" data-country-code="' + country.code + '">' +
                     '<i class="fas fa-ellipsis-v"></i>' +
                 '</button>' +
                 '<div class="action-dropdown" id="countryActionMenu-' + country.code + '">' +
@@ -4270,13 +4270,18 @@ function renderCountryTable() {
 }
 
 function toggleCountryActionMenu(event, countryCode) {
-    event.stopPropagation();
+    if (event) {
+        event.stopPropagation();
+    }
     document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
         if (menu.id !== 'countryActionMenu-' + countryCode) {
             menu.classList.remove('show');
         }
     });
-    document.getElementById('countryActionMenu-' + countryCode).classList.toggle('show');
+    var menuEl = document.getElementById('countryActionMenu-' + countryCode);
+    if (menuEl) {
+        menuEl.classList.toggle('show');
+    }
 }
 
 var pendingDefaultStatusChange = { countryCode: null, newStatus: null };
@@ -5068,32 +5073,51 @@ function bindEvents() {
     var countryTableBody = document.getElementById('countryTableBody');
     if (countryTableBody) {
         countryTableBody.addEventListener('click', function(e) {
-            var target = e.target.closest('[data-action]');
-            if (!target) return;
-            
-            e.stopPropagation();
-            var action = target.getAttribute('data-action');
-            var countryCode = target.getAttribute('data-country-code');
-            
-            console.log('[CountryControls] Action clicked:', action, 'countryCode:', countryCode);
-            
-            switch(action) {
-                case 'toggle-menu':
+            // Handle action menu toggle button clicks
+            var menuBtn = e.target.closest('.action-menu-btn');
+            if (menuBtn) {
+                e.stopPropagation();
+                var countryCode = menuBtn.getAttribute('data-country-code');
+                if (countryCode) {
+                    console.log('[CountryControls] Menu toggle clicked for:', countryCode);
                     window.toggleCountryActionMenu(e, countryCode);
-                    break;
-                case 'add-override':
-                    window.openAddOverrideModal(countryCode);
-                    break;
-                case 'remove-override':
-                    window.openRemoveOverrideModal(countryCode);
-                    break;
-                case 'view-overrides':
-                    window.viewOverrides(countryCode);
-                    break;
-                case 'set-status':
-                    var newStatus = target.getAttribute('data-status');
-                    window.openDefaultStatusModal(countryCode, newStatus);
-                    break;
+                }
+                return;
+            }
+
+            // Handle action menu item clicks
+            var actionItem = e.target.closest('.action-dropdown-item');
+            if (actionItem) {
+                e.stopPropagation();
+                var action = actionItem.getAttribute('data-action');
+                var countryCode = actionItem.getAttribute('data-country-code');
+                
+                if (!action || !countryCode) {
+                    console.warn('[CountryControls] Action item missing data attributes:', actionItem);
+                    return;
+                }
+
+                console.log('[CountryControls] Action menu item clicked:', action, countryCode);
+
+                switch(action) {
+                    case 'add-override':
+                        window.openAddOverrideModal(countryCode);
+                        break;
+                    case 'remove-override':
+                        window.openRemoveOverrideModal(countryCode);
+                        break;
+                    case 'view-overrides':
+                        window.viewOverrides(countryCode);
+                        break;
+                    case 'set-status':
+                        var newStatus = actionItem.getAttribute('data-status');
+                        if (newStatus) {
+                            window.openDefaultStatusModal(countryCode, newStatus);
+                        }
+                        break;
+                    default:
+                        console.warn('[CountryControls] Unknown action:', action);
+                }
             }
         });
     }
