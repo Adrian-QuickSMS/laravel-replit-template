@@ -5057,8 +5057,10 @@ function bindEvents() {
     var reviewTableBody = document.getElementById('reviewTableBody');
     if (reviewTableBody) {
         reviewTableBody.addEventListener('click', function(e) {
+            alert('[BUBBLE] Review handler reached!');
             var reviewBtn = e.target.closest('.btn-review');
             if (reviewBtn) {
+                alert('[BUBBLE] .btn-review FOUND! Opening modal...');
                 e.stopPropagation();
                 var requestId = reviewBtn.getAttribute('data-request-id');
                 if (requestId) {
@@ -5073,9 +5075,11 @@ function bindEvents() {
     var countryTableBody = document.getElementById('countryTableBody');
     if (countryTableBody) {
         countryTableBody.addEventListener('click', function(e) {
+            alert('[BUBBLE] Country handler reached!');
             // Handle action menu toggle button clicks
             var menuBtn = e.target.closest('.action-menu-btn');
             if (menuBtn) {
+                alert('[BUBBLE] .action-menu-btn FOUND! Toggling menu...');
                 e.stopPropagation();
                 var countryCode = menuBtn.getAttribute('data-country-code');
                 if (countryCode) {
