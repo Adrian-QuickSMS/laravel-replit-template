@@ -532,10 +532,10 @@
                         <button type="button" class="btn btn-outline-admin btn-sm" id="exportBtn">
                             <i class="fas fa-download me-1"></i> Export
                         </button>
-                        <button type="button" class="btn btn-outline-admin btn-sm" id="createCreditBtn">
+                        <button type="button" class="btn btn-outline-admin btn-sm" id="createCreditBtn" onclick="openCreateModalDirect('credit')">
                             <i class="fas fa-plus me-1"></i> Create Credit
                         </button>
-                        <button type="button" class="btn btn-admin-primary btn-sm" id="createInvoiceBtn">
+                        <button type="button" class="btn btn-admin-primary btn-sm" id="createInvoiceBtn" onclick="openCreateModalDirect('invoice')">
                             <i class="fas fa-plus me-1"></i> Create Invoice
                         </button>
                     </div>
@@ -2014,6 +2014,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         createInvoiceCreditModal.show();
     }
+    
+    // Expose openCreateModal globally for onclick handlers
+    window.openCreateModalDirect = function(mode) {
+        openCreateModal(mode);
+    };
     
     document.getElementById('createInvoiceBtn').addEventListener('click', function() {
         openCreateModal('invoice');
