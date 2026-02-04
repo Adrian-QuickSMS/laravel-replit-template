@@ -5087,10 +5087,12 @@ function bindEvents() {
 
             // Handle action menu item clicks
             var actionItem = e.target.closest('.action-dropdown-item');
+            console.log('[CountryControls] Click in countryTableBody, actionItem:', actionItem);
             if (actionItem) {
                 e.stopPropagation();
                 var action = actionItem.getAttribute('data-action');
                 var countryCode = actionItem.getAttribute('data-country-code');
+                console.log('[CountryControls] Action item clicked - action:', action, 'countryCode:', countryCode);
                 
                 if (!action || !countryCode) {
                     console.warn('[CountryControls] Action item missing data attributes:', actionItem);
