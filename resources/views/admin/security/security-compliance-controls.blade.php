@@ -15,10 +15,7 @@
 .spam-filter-page {
     width: 100%;
 }
-.spam-filter-page .page-titles {
-    padding: 0;
-    margin-bottom: 1rem;
-}
+/* page-titles styling now handled by admin-breadcrumb-system.css */
 .sec-controls-header {
     display: flex;
     justify-content: space-between;
@@ -1639,7 +1636,7 @@
 
 @section('content')
 <div class="spam-filter-page">
-        <div class="page-titles">
+        <div class="row page-titles">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
                 <li class="breadcrumb-item"><a href="javascript:void(0)">Security & Compliance</a></li>
