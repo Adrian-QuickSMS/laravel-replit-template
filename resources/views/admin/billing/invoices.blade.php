@@ -2216,6 +2216,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Check for URL query parameters to pre-select account filter
+    const urlParams = new URLSearchParams(window.location.search);
+    const accountIdParam = urlParams.get('account');
+    const accountNameParam = urlParams.get('accountName');
+    
+    if (accountIdParam) {
+        // Set the filter values
+        appliedFilters.accountId = accountIdParam;
+        appliedFilters.accountName = accountNameParam || accountIdParam;
+        pendingFilters.accountId = accountIdParam;
+        pendingFilters.accountName = accountNameParam || accountIdParam;
+        
+        // Update the UI to show the selected account
+        const accountInput = document.getElementById('accountSearchInput');
+        if (accountInput) {
+            accountInput.value = accountNameParam || accountIdParam;
+        }
+        
+        // Show the active filter badge
+        updateActiveFiltersBadge();
+        
+        console.log('[Invoices] Pre-selected account filter from URL:', { 
+            accountId: accountIdParam, 
+            accountName: accountNameParam 
+        });
+    }
+    
     loadInvoices();
 });
 </script>

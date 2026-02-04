@@ -2616,6 +2616,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.openBillingModal = function(accountId, clientName) {
+    // Navigate to Invoices module with account filter pre-selected
+    var invoicesUrl = '{{ route("admin.billing.invoices") }}?account=' + encodeURIComponent(accountId) + '&accountName=' + encodeURIComponent(clientName);
+    
+    // Audit log before navigation
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('NAVIGATE_TO_INVOICES', 'BILLING', {
+            accountId: accountId,
+            clientName: clientName,
+            source: 'accounts_overview'
+        });
+    }
+    
+    window.location.href = invoicesUrl;
+    return;
+    
+    // Legacy modal code (deprecated)
     currentBillingAccountId = accountId;
     currentBillingClientName = clientName;
     
