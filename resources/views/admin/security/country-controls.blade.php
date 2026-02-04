@@ -4387,6 +4387,7 @@ window.viewOverrides = viewOverrides;
 window.toggleCountryActionMenu = toggleCountryActionMenu;
 
 window.handleActionClick = function(action, countryCode, status) {
+    alert('handleActionClick called: ' + action + ' - ' + countryCode);
     console.log('[CountryControls] handleActionClick:', action, countryCode, status);
     
     // Close all dropdowns
