@@ -2984,7 +2984,7 @@ var CustomerPortalCountryService = (function() {
     };
 })();
 
-SharedPolicyStore.initialize();
+// SharedPolicyStore.initialize() is called later in initCountryControls() after countries array is populated
 window.SharedPolicyStore = SharedPolicyStore;
 window.CustomerPortalCountryService = CustomerPortalCountryService;
 
@@ -3184,6 +3184,12 @@ var selectedRequest = null;
 function initCountryControls() {
     countries = generateMockCountries();
     countryRequests = generateMockRequests();
+    
+    // Initialize SharedPolicyStore now that countries array is populated
+    if (window.SharedPolicyStore && typeof window.SharedPolicyStore.initialize === 'function') {
+        window.SharedPolicyStore.initialize();
+    }
+    
     renderCountryTable();
     renderRequestsList();
     bindEvents();
