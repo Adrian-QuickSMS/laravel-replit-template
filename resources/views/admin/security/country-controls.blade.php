@@ -4372,17 +4372,17 @@ window.toggleSelectAllAccounts = toggleSelectAllAccounts;
 window.filterAccountOptions = filterAccountOptions;
 window.removeAccountFromSelection = removeAccountFromSelection;
 
-var mockAccountsData = [
-    { id: 'ACC-10045', name: 'TechStart Ltd', status: 'live', subAccounts: [] },
-    { id: 'ACC-10089', name: 'HealthFirst UK', status: 'live', subAccounts: ['NHS Partnership', 'Private Clinics'] },
-    { id: 'ACC-10112', name: 'E-Commerce Hub', status: 'test', subAccounts: [] },
-    { id: 'ACC-10156', name: 'MediCare Global', status: 'live', subAccounts: ['UK Division', 'EU Division'] },
-    { id: 'ACC-10034', name: 'RetailMax Corp', status: 'live', subAccounts: ['APAC Operations', 'EMEA Operations'] },
-    { id: 'ACC-10078', name: 'Global Comms Inc', status: 'live', subAccounts: ['Marketing Division', 'Sales Division'] },
-    { id: 'ACC-10098', name: 'TravelWise Ltd', status: 'live', subAccounts: [] },
-    { id: 'ACC-10067', name: 'Logistics Pro', status: 'test', subAccounts: [] },
-    { id: 'ACC-10102', name: 'FinServe Solutions', status: 'live', subAccounts: ['Investments', 'Insurance'] },
-    { id: 'ACC-10199', name: 'Digital Media Co', status: 'live', subAccounts: [] }
+var mockAccounts = [
+    { id: 'ACC-10045', name: 'TechStart Ltd', accountNumber: 'ACC-10045', status: 'live', subAccounts: [] },
+    { id: 'ACC-10089', name: 'HealthFirst UK', accountNumber: 'ACC-10089', status: 'live', subAccounts: ['NHS Partnership', 'Private Clinics'] },
+    { id: 'ACC-10112', name: 'E-Commerce Hub', accountNumber: 'ACC-10112', status: 'test', subAccounts: [] },
+    { id: 'ACC-10156', name: 'MediCare Global', accountNumber: 'ACC-10156', status: 'live', subAccounts: ['UK Division', 'EU Division'] },
+    { id: 'ACC-10034', name: 'RetailMax Corp', accountNumber: 'ACC-10034', status: 'live', subAccounts: ['APAC Operations', 'EMEA Operations'] },
+    { id: 'ACC-10078', name: 'Global Comms Inc', accountNumber: 'ACC-10078', status: 'live', subAccounts: ['Marketing Division', 'Sales Division'] },
+    { id: 'ACC-10098', name: 'TravelWise Ltd', accountNumber: 'ACC-10098', status: 'live', subAccounts: [] },
+    { id: 'ACC-10067', name: 'Logistics Pro', accountNumber: 'ACC-10067', status: 'test', subAccounts: [] },
+    { id: 'ACC-10102', name: 'FinServe Solutions', accountNumber: 'ACC-10102', status: 'live', subAccounts: ['Investments', 'Insurance'] },
+    { id: 'ACC-10199', name: 'Digital Media Co', accountNumber: 'ACC-10199', status: 'live', subAccounts: [] }
 ];
 
 function initAccountTypeahead() {
@@ -4410,11 +4410,11 @@ function initAccountTypeahead() {
         var query = this.value.toLowerCase().trim();
         
         if (query.length === 0) {
-            renderAccountList(mockAccountsData);
+            renderAccountList(mockAccounts);
             return;
         }
 
-        var filtered = mockAccountsData.filter(function(account) {
+        var filtered = mockAccounts.filter(function(account) {
             return account.name.toLowerCase().includes(query) || 
                    account.id.toLowerCase().includes(query);
         });
@@ -4431,9 +4431,9 @@ function initAccountTypeahead() {
     searchInput.addEventListener('focus', function() {
         var query = this.value.toLowerCase().trim();
         if (query.length === 0) {
-            renderAccountList(mockAccountsData);
+            renderAccountList(mockAccounts);
         } else {
-            var filtered = mockAccountsData.filter(function(account) {
+            var filtered = mockAccounts.filter(function(account) {
                 return account.name.toLowerCase().includes(query) || 
                        account.id.toLowerCase().includes(query);
             });
@@ -4443,7 +4443,7 @@ function initAccountTypeahead() {
 }
 
 function selectAccount(accountId) {
-    var account = mockAccountsData.find(function(a) { return a.id === accountId; });
+    var account = mockAccounts.find(function(a) { return a.id === accountId; });
     if (!account) return;
 
     document.getElementById('addOverrideAccountId').value = account.id;
