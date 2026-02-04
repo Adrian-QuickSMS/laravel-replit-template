@@ -3425,10 +3425,10 @@ function openReviewModal(requestId) {
         actionsDiv.style.display = 'flex';
         reviewedInfoDiv.style.display = 'none';
         actionsDiv.innerHTML = 
-            '<button class="btn btn-approve" onclick="approveRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
+            '<button class="btn btn-approve" onclick="window.approveRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
                 '<i class="fas fa-check-circle"></i>Approve Request' +
             '</button>' +
-            '<button class="btn btn-reject" onclick="rejectRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
+            '<button class="btn btn-reject" onclick="window.rejectRequest(\'' + request.id + '\'); bootstrap.Modal.getInstance(document.getElementById(\'reviewDetailModal\')).hide();">' +
                 '<i class="fas fa-times-circle"></i>Reject Request' +
             '</button>';
     } else {
