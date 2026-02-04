@@ -5053,14 +5053,12 @@ function bindEvents() {
     document.getElementById('reviewCustomerFilter').addEventListener('change', renderRequestsList);
     document.getElementById('reviewCountryFilter').addEventListener('change', renderRequestsList);
 
-    // Event delegation for Review buttons - more reliable than inline onclick handlers
+    // Event delegation for Review buttons
     var reviewTableBody = document.getElementById('reviewTableBody');
     if (reviewTableBody) {
         reviewTableBody.addEventListener('click', function(e) {
-            alert('[BUBBLE] Review handler reached!');
             var reviewBtn = e.target.closest('.btn-review');
             if (reviewBtn) {
-                alert('[BUBBLE] .btn-review FOUND! Opening modal...');
                 e.stopPropagation();
                 var requestId = reviewBtn.getAttribute('data-request-id');
                 if (requestId) {
@@ -5075,11 +5073,9 @@ function bindEvents() {
     var countryTableBody = document.getElementById('countryTableBody');
     if (countryTableBody) {
         countryTableBody.addEventListener('click', function(e) {
-            alert('[BUBBLE] Country handler reached!');
             // Handle action menu toggle button clicks
             var menuBtn = e.target.closest('.action-menu-btn');
             if (menuBtn) {
-                alert('[BUBBLE] .action-menu-btn FOUND! Toggling menu...');
                 e.stopPropagation();
                 var countryCode = menuBtn.getAttribute('data-country-code');
                 if (countryCode) {
@@ -5147,26 +5143,6 @@ function bindEvents() {
     console.log('  - reviewTableBody found:', !!document.getElementById('reviewTableBody'));
     console.log('  - countryTableBody found:', !!document.getElementById('countryTableBody'));
 
-    // DEBUG: Capture-phase listeners to catch ALL clicks before any other handlers
-    var debugReviewBody = document.getElementById('reviewTableBody');
-    if (debugReviewBody) {
-        debugReviewBody.addEventListener('click', function(e) {
-            var hasBtn = e.target.closest('.btn-review');
-            alert('[DEBUG] Review Table Click\n\nTarget: ' + e.target.tagName + '\nClass: ' + e.target.className + '\nParent: ' + (e.target.parentElement ? e.target.parentElement.className : 'none') + '\n\n.btn-review found: ' + (hasBtn ? 'YES' : 'NO'));
-            if (hasBtn) {
-                alert('[DEBUG] btn-review FOUND!\nRequestId: ' + hasBtn.getAttribute('data-request-id'));
-            }
-        }, true); // capture phase = true
-    }
-
-    var debugCountryBody = document.getElementById('countryTableBody');
-    if (debugCountryBody) {
-        debugCountryBody.addEventListener('click', function(e) {
-            var hasMenuBtn = e.target.closest('.action-menu-btn');
-            var hasActionItem = e.target.closest('.action-dropdown-item');
-            alert('[DEBUG] Country Table Click\n\nTarget: ' + e.target.tagName + '\nClass: ' + e.target.className + '\nParent: ' + (e.target.parentElement ? e.target.parentElement.className : 'none') + '\n\n.action-menu-btn found: ' + (hasMenuBtn ? 'YES - ' + hasMenuBtn.getAttribute('data-country-code') : 'NO') + '\n.action-dropdown-item found: ' + (hasActionItem ? 'YES - ' + hasActionItem.getAttribute('data-action') : 'NO'));
-        }, true); // capture phase = true
-    }
 }
 
 function openActionModal(countryCode, newStatus) {
