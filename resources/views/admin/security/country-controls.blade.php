@@ -4355,6 +4355,17 @@ function confirmDefaultStatusChange() {
 }
 
 window.confirmDefaultStatusChange = confirmDefaultStatusChange;
+window.openDefaultStatusModal = openDefaultStatusModal;
+window.openAddOverrideModal = openAddOverrideModal;
+window.openRemoveOverrideModal = openRemoveOverrideModal;
+window.viewOverrides = viewOverrides;
+window.confirmAddOverride = confirmAddOverride;
+window.confirmRemoveOverride = confirmRemoveOverride;
+window.toggleAccountDropdown = toggleAccountDropdown;
+window.toggleAccountSelection = toggleAccountSelection;
+window.toggleSelectAllAccounts = toggleSelectAllAccounts;
+window.filterAccountOptions = filterAccountOptions;
+window.removeAccountFromSelection = removeAccountFromSelection;
 
 var mockAccountsData = [
     { id: 'ACC-10045', name: 'TechStart Ltd', status: 'live', subAccounts: [] },
