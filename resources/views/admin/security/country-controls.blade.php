@@ -4552,8 +4552,13 @@ function clearAccountSelection() {
 }
 
 function openAddOverrideModal(countryCode) {
+    console.log('[CountryControls] openAddOverrideModal called for:', countryCode);
+    
     var country = countries.find(function(c) { return c.code === countryCode; });
-    if (!country) return;
+    if (!country) {
+        console.error('[CountryControls] Country not found:', countryCode);
+        return;
+    }
 
     document.querySelectorAll('.action-dropdown.show').forEach(function(menu) {
         menu.classList.remove('show');
@@ -4561,14 +4566,29 @@ function openAddOverrideModal(countryCode) {
 
     pendingAddOverride = { countryCode: countryCode };
     
-    document.getElementById('addOverrideCountryName').textContent = country.name + ' (' + country.code + ')';
+    var countryNameEl = document.getElementById('addOverrideCountryName');
+    if (countryNameEl) {
+        countryNameEl.textContent = country.name + ' (' + country.code + ')';
+    }
     
     clearAccountSelection();
     populateAccountOptions();
-    document.querySelector('input[name="overrideType"][value="allowed"]').checked = true;
+    
+    var overrideRadio = document.querySelector('input[name="overrideType"][value="allowed"]');
+    if (overrideRadio) {
+        overrideRadio.checked = true;
+    }
 
-    var modal = new bootstrap.Modal(document.getElementById('addOverrideModal'));
-    modal.show();
+    var modalEl = document.getElementById('addOverrideModal');
+    console.log('[CountryControls] Modal element found:', !!modalEl);
+    
+    if (modalEl) {
+        var modal = new bootstrap.Modal(modalEl);
+        modal.show();
+        console.log('[CountryControls] Modal show() called');
+    } else {
+        console.error('[CountryControls] addOverrideModal element not found!');
+    }
 }
 
 function populateAccountOptions() {
