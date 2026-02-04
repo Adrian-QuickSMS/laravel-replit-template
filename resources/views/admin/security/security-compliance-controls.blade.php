@@ -3531,11 +3531,23 @@
                     <input type="hidden" id="url-exemption-id" value="">
                     
                     <div class="mb-3">
-                        <label for="url-exemption-account-search" class="form-label" style="font-weight: 600; font-size: 0.85rem;">Account <span class="text-danger">*</span></label>
+                        <label class="form-label" style="font-weight: 600; font-size: 0.85rem;">Account <span class="text-danger">*</span></label>
                         <div class="position-relative">
-                            <input type="text" class="form-control" id="url-exemption-account-search" placeholder="Search by account name or ID..." autocomplete="off">
+                            <div class="url-exemption-multiselect" id="url-exemption-account-multiselect" onclick="toggleUrlExemptionAccountDropdown(event)" style="min-height: 38px; border: 1px solid #ced4da; border-radius: 0.375rem; padding: 0.375rem 0.75rem; display: flex; flex-wrap: wrap; gap: 0.25rem; cursor: pointer; background: #fff; align-items: center;">
+                                <div id="url-exemption-selected-accounts" style="display: flex; flex-wrap: wrap; gap: 0.25rem;"></div>
+                                <input type="text" class="border-0" id="url-exemption-account-search" placeholder="Search accounts..." style="flex: 1; min-width: 120px; outline: none; font-size: 0.85rem; background: transparent;" onclick="event.stopPropagation(); toggleUrlExemptionAccountDropdown(event);" oninput="filterUrlExemptionAccounts()">
+                            </div>
+                            <div class="dropdown-menu w-100" id="url-exemption-account-dropdown" style="max-height: 250px; overflow-y: auto; padding: 0;">
+                                <div class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef;">
+                                    <span style="font-size: 0.75rem; font-weight: 600;">Select Accounts</span>
+                                    <div>
+                                        <button type="button" class="btn btn-link btn-sm p-0 me-2" onclick="selectAllUrlExemptionAccounts()" style="font-size: 0.7rem;">Select All</button>
+                                        <button type="button" class="btn btn-link btn-sm p-0" onclick="clearAllUrlExemptionAccounts()" style="font-size: 0.7rem;">Clear</button>
+                                    </div>
+                                </div>
+                                <div id="url-exemption-account-options" style="max-height: 200px; overflow-y: auto;"></div>
+                            </div>
                             <input type="hidden" id="url-exemption-account" value="">
-                            <div class="dropdown-menu w-100" id="url-exemption-account-dropdown" style="max-height: 200px; overflow-y: auto;"></div>
                         </div>
                     </div>
                     
@@ -7202,6 +7214,11 @@ var SecurityComplianceControlsService = (function() {
         document.getElementById('url-exemption-account').value = '';
         document.getElementById('url-exemption-reason').value = '';
         
+        selectedUrlExemptionAccounts = [];
+        updateUrlExemptionSelectedDisplay();
+        urlExemptionDropdownOpen = false;
+        document.getElementById('url-exemption-account-dropdown').classList.remove('show');
+        
         populateUrlRulesChecklist();
         toggleUrlExemptionType();
         
@@ -7354,37 +7371,144 @@ var SecurityComplianceControlsService = (function() {
         showToast('URL exemption ' + (isNew ? 'added' : 'updated') + ' successfully', 'success');
     }
     
-    function filterUrlExemptionAccounts() {
-        var search = document.getElementById('url-exemption-account-search').value.toLowerCase();
+    var selectedUrlExemptionAccounts = [];
+    var urlExemptionDropdownOpen = false;
+    
+    function toggleUrlExemptionAccountDropdown(event) {
+        if (event) event.stopPropagation();
         var dropdown = document.getElementById('url-exemption-account-dropdown');
         
-        if (search.length < 2) {
+        if (urlExemptionDropdownOpen) {
             dropdown.classList.remove('show');
+            urlExemptionDropdownOpen = false;
+        } else {
+            renderUrlExemptionAccountOptions();
+            dropdown.classList.add('show');
+            urlExemptionDropdownOpen = true;
+            document.getElementById('url-exemption-account-search').focus();
+        }
+    }
+    
+    function renderUrlExemptionAccountOptions(searchTerm) {
+        var optionsContainer = document.getElementById('url-exemption-account-options');
+        var accounts = mockData.accounts || [];
+        
+        if (searchTerm) {
+            accounts = accounts.filter(function(a) {
+                return a.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1 || 
+                       a.id.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1;
+            });
+        }
+        
+        if (accounts.length === 0) {
+            optionsContainer.innerHTML = '<div class="px-3 py-2 text-muted" style="font-size: 0.8rem;">No accounts found</div>';
             return;
         }
         
-        var filtered = mockData.accounts.filter(function(a) {
-            return a.name.toLowerCase().indexOf(search) !== -1 || a.id.toLowerCase().indexOf(search) !== -1;
-        }).slice(0, 10);
+        optionsContainer.innerHTML = accounts.map(function(account) {
+            var isSelected = selectedUrlExemptionAccounts.some(function(a) { return a.id === account.id; });
+            var statusBadge = account.status === 'live' 
+                ? '<span class="badge" style="background: rgba(28,187,140,0.15); color: #1cbb8c; font-size: 0.65rem;">LIVE</span>'
+                : '<span class="badge" style="background: rgba(108,117,125,0.15); color: #6c757d; font-size: 0.65rem;">TEST</span>';
+            
+            return '<label class="d-flex align-items-center px-3 py-2" style="cursor: pointer; border-bottom: 1px solid #f1f3f5;' + (isSelected ? ' background: rgba(30,58,95,0.05);' : '') + '" onmouseover="this.style.background=\'#f8f9fa\'" onmouseout="this.style.background=\'' + (isSelected ? 'rgba(30,58,95,0.05)' : '#fff') + '\'">' +
+                '<input type="checkbox" class="form-check-input me-2" ' + (isSelected ? 'checked' : '') + ' onchange="toggleUrlExemptionAccountSelection(\'' + account.id + '\', \'' + escapeHtml(account.name).replace(/'/g, "\\'") + '\')" style="margin-top: 0;">' +
+                '<div style="flex: 1;">' +
+                    '<div style="font-weight: 500; font-size: 0.85rem;">' + escapeHtml(account.name) + ' ' + statusBadge + '</div>' +
+                    '<small class="text-muted">' + account.id + '</small>' +
+                '</div>' +
+            '</label>';
+        }).join('');
+    }
+    
+    function filterUrlExemptionAccounts() {
+        var search = document.getElementById('url-exemption-account-search').value;
+        renderUrlExemptionAccountOptions(search);
+        if (!urlExemptionDropdownOpen) {
+            document.getElementById('url-exemption-account-dropdown').classList.add('show');
+            urlExemptionDropdownOpen = true;
+        }
+    }
+    
+    function toggleUrlExemptionAccountSelection(accountId, accountName) {
+        var existingIndex = selectedUrlExemptionAccounts.findIndex(function(a) { return a.id === accountId; });
         
-        if (filtered.length === 0) {
-            dropdown.innerHTML = '<div class="dropdown-item text-muted">No accounts found</div>';
+        if (existingIndex !== -1) {
+            selectedUrlExemptionAccounts.splice(existingIndex, 1);
         } else {
-            dropdown.innerHTML = filtered.map(function(a) {
-                return '<div class="dropdown-item" style="cursor: pointer;" onclick="selectUrlExemptionAccount(\'' + a.id + '\', \'' + escapeHtml(a.name).replace(/'/g, "\\'") + '\')">' +
-                    '<div style="font-weight: 500;">' + escapeHtml(a.name) + '</div>' +
-                    '<small class="text-muted">' + a.id + '</small>' +
-                '</div>';
-            }).join('');
+            selectedUrlExemptionAccounts.push({ id: accountId, name: accountName });
         }
         
-        dropdown.classList.add('show');
+        updateUrlExemptionSelectedDisplay();
+        updateUrlExemptionHiddenField();
+        renderUrlExemptionAccountOptions(document.getElementById('url-exemption-account-search').value);
+    }
+    
+    function updateUrlExemptionSelectedDisplay() {
+        var container = document.getElementById('url-exemption-selected-accounts');
+        
+        if (selectedUrlExemptionAccounts.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        container.innerHTML = selectedUrlExemptionAccounts.map(function(account) {
+            return '<span class="badge" style="background: #1e3a5f; color: #fff; font-size: 0.75rem; padding: 0.35rem 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem;">' +
+                escapeHtml(account.name) +
+                '<i class="fas fa-times" style="cursor: pointer; font-size: 0.65rem;" onclick="event.stopPropagation(); removeUrlExemptionAccount(\'' + account.id + '\')"></i>' +
+            '</span>';
+        }).join('');
+    }
+    
+    function removeUrlExemptionAccount(accountId) {
+        selectedUrlExemptionAccounts = selectedUrlExemptionAccounts.filter(function(a) { return a.id !== accountId; });
+        updateUrlExemptionSelectedDisplay();
+        updateUrlExemptionHiddenField();
+        renderUrlExemptionAccountOptions(document.getElementById('url-exemption-account-search').value);
+    }
+    
+    function updateUrlExemptionHiddenField() {
+        var ids = selectedUrlExemptionAccounts.map(function(a) { return a.id; });
+        document.getElementById('url-exemption-account').value = ids.join(',');
+    }
+    
+    function selectAllUrlExemptionAccounts() {
+        var searchTerm = document.getElementById('url-exemption-account-search').value.toLowerCase();
+        var accounts = mockData.accounts || [];
+        
+        if (searchTerm) {
+            accounts = accounts.filter(function(a) {
+                return a.name.toLowerCase().indexOf(searchTerm) !== -1 || a.id.toLowerCase().indexOf(searchTerm) !== -1;
+            });
+        }
+        
+        accounts.forEach(function(account) {
+            if (!selectedUrlExemptionAccounts.some(function(a) { return a.id === account.id; })) {
+                selectedUrlExemptionAccounts.push({ id: account.id, name: account.name });
+            }
+        });
+        
+        updateUrlExemptionSelectedDisplay();
+        updateUrlExemptionHiddenField();
+        renderUrlExemptionAccountOptions(searchTerm);
+    }
+    
+    function clearAllUrlExemptionAccounts() {
+        selectedUrlExemptionAccounts = [];
+        updateUrlExemptionSelectedDisplay();
+        updateUrlExemptionHiddenField();
+        renderUrlExemptionAccountOptions(document.getElementById('url-exemption-account-search').value);
     }
     
     function selectUrlExemptionAccount(accountId, accountName) {
-        document.getElementById('url-exemption-account').value = accountId;
-        document.getElementById('url-exemption-account-search').value = accountName;
-        document.getElementById('url-exemption-account-dropdown').classList.remove('show');
+        toggleUrlExemptionAccountSelection(accountId, accountName);
+    }
+    
+    function resetUrlExemptionAccountSelection() {
+        selectedUrlExemptionAccounts = [];
+        updateUrlExemptionSelectedDisplay();
+        updateUrlExemptionHiddenField();
+        document.getElementById('url-exemption-account-search').value = '';
     }
     
     function toggleUrlExemptionStatus(exemptionId) {
@@ -8940,11 +9064,17 @@ var SecurityComplianceControlsService = (function() {
             urlExemptionsFilterType.addEventListener('change', renderUrlExemptionsTab);
         }
         
-        // URL Exemption modal account search
-        var urlExemptionAccountSearch = document.getElementById('url-exemption-account-search');
-        if (urlExemptionAccountSearch) {
-            urlExemptionAccountSearch.addEventListener('input', filterUrlExemptionAccounts);
-        }
+        // URL Exemption modal account search - close dropdown on click outside
+        document.addEventListener('click', function(e) {
+            var dropdown = document.getElementById('url-exemption-account-dropdown');
+            var multiselect = document.getElementById('url-exemption-account-multiselect');
+            if (dropdown && multiselect) {
+                if (!multiselect.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('show');
+                    urlExemptionDropdownOpen = false;
+                }
+            }
+        });
         
         // Global URL Exemption modal account search
         var globalExemptionAccountSearch = document.getElementById('global-exemption-account-search');
@@ -10720,6 +10850,12 @@ var SecurityComplianceControlsService = (function() {
         saveUrlExemption: saveUrlExemption,
         filterUrlExemptionAccounts: filterUrlExemptionAccounts,
         selectUrlExemptionAccount: selectUrlExemptionAccount,
+        toggleUrlExemptionAccountDropdown: toggleUrlExemptionAccountDropdown,
+        toggleUrlExemptionAccountSelection: toggleUrlExemptionAccountSelection,
+        removeUrlExemptionAccount: removeUrlExemptionAccount,
+        selectAllUrlExemptionAccounts: selectAllUrlExemptionAccounts,
+        clearAllUrlExemptionAccounts: clearAllUrlExemptionAccounts,
+        resetUrlExemptionAccountSelection: resetUrlExemptionAccountSelection,
         viewQuarantinedMessage: viewQuarantinedMessage,
         releaseQuarantinedMessage: releaseQuarantinedMessage,
         blockQuarantinedMessage: blockQuarantinedMessage,
@@ -14120,6 +14256,30 @@ function resetUrlExemptionsFilters() {
 
 function applyUrlExemptionsFilters() {
     SecurityComplianceControlsService.applyUrlExemptionsFilters();
+}
+
+function toggleUrlExemptionAccountDropdown(event) {
+    SecurityComplianceControlsService.toggleUrlExemptionAccountDropdown(event);
+}
+
+function filterUrlExemptionAccounts() {
+    SecurityComplianceControlsService.filterUrlExemptionAccounts();
+}
+
+function toggleUrlExemptionAccountSelection(accountId, accountName) {
+    SecurityComplianceControlsService.toggleUrlExemptionAccountSelection(accountId, accountName);
+}
+
+function removeUrlExemptionAccount(accountId) {
+    SecurityComplianceControlsService.removeUrlExemptionAccount(accountId);
+}
+
+function selectAllUrlExemptionAccounts() {
+    SecurityComplianceControlsService.selectAllUrlExemptionAccounts();
+}
+
+function clearAllUrlExemptionAccounts() {
+    SecurityComplianceControlsService.clearAllUrlExemptionAccounts();
 }
 
 function sortUrlExemptionsTable(column) {
