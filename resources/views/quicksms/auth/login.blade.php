@@ -231,17 +231,32 @@ body {
         <div id="loginStep1">
             <h4 class="auth-title">Sign in your account</h4>
             
-            <form id="loginForm" novalidate>
+            @if ($errors->any())
+            <div class="alert alert-danger mb-3">
+                @foreach ($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+            @endif
+            
+            <div class="alert alert-info mb-3" style="font-size: 0.85rem;">
+                <strong>Demo Credentials:</strong><br>
+                Email: <code>demo@quicksms.com</code><br>
+                Password: <code>demo123</code>
+            </div>
+            
+            <form id="loginForm" method="POST" action="{{ route('auth.login.submit') }}" novalidate>
+                @csrf
                 <div class="mb-3">
                     <label class="form-label" for="email">Email Address</label>
-                    <input type="email" class="form-control" id="email" placeholder="Enter email address" required autocomplete="email">
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" required autocomplete="email" value="{{ old('email') }}">
                     <div class="invalid-feedback" id="emailError">Please enter a valid email address</div>
                 </div>
                 
                 <div class="mb-3">
                     <label class="form-label" for="password">Password</label>
                     <div class="password-wrapper">
-                        <input type="password" class="form-control" id="password" placeholder="Enter password" required autocomplete="current-password">
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required autocomplete="current-password">
                         <button type="button" class="password-toggle" id="togglePassword" tabindex="-1">
                             <i class="fa fa-eye-slash" id="togglePasswordIcon"></i>
                         </button>

@@ -8,9 +8,43 @@ class QuickSMSController extends Controller
 {
     public function login()
     {
+        // If already logged in, redirect to dashboard
+        if (session('customer_logged_in')) {
+            return redirect()->route('dashboard');
+        }
+        
         return view('quicksms.auth.login', [
             'page_title' => 'Login'
         ]);
+    }
+    
+    public function handleLogin(Request $request)
+    {
+        $email = $request->input('email');
+        $password = $request->input('password');
+        
+        // Demo credentials
+        $demoUsers = [
+            'demo@quicksms.com' => 'demo123',
+            'customer@quicksms.com' => 'customer123',
+            'test@quicksms.com' => 'test123'
+        ];
+        
+        if (isset($demoUsers[$email]) && $demoUsers[$email] === $password) {
+            session(['customer_logged_in' => true]);
+            session(['customer_email' => $email]);
+            session(['customer_name' => explode('@', $email)[0]]);
+            
+            return redirect()->route('dashboard')->with('success', 'Welcome back!');
+        }
+        
+        return back()->withErrors(['email' => 'Invalid email or password. Try: demo@quicksms.com / demo123']);
+    }
+    
+    public function logout()
+    {
+        session()->forget(['customer_logged_in', 'customer_email', 'customer_name']);
+        return redirect()->route('auth.login')->with('success', 'You have been logged out.');
     }
     
     public function signup()

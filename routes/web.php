@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\RcsAssetController;
 // Public auth routes (no authentication required)
 Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/login', 'login')->name('auth.login');
+    Route::post('/login', 'handleLogin')->name('auth.login.submit');
+    Route::get('/logout', 'logout')->name('auth.logout');
     Route::get('/signup', 'signup')->name('auth.signup');
     Route::get('/signup/verify', 'verifyEmail')->name('auth.verify-email');
     Route::get('/signup/security', 'signupSecurity')->name('auth.security');
