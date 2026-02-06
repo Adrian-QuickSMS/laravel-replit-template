@@ -199,3 +199,5 @@ Route::prefix('admin')->group(function () {
             Route::get('/system/flags', 'systemFlags')->name('admin.system.flags');
         });
 });
+
+require __DIR__ . '/../package/routes/supplier-management.php';
