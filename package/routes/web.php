@@ -99,3 +99,6 @@ Route::controller(FillowAdminController::class)->group(function () {
     Route::post('/ajax/seller-menus', 'ajax_seller_menus')->name('ajax_seller_menus');
     Route::post('/ajax/order-request', 'ajax_order_request')->name('ajax_order_request');
 });
+
+// Supplier Management Routes
+require __DIR__ . '/supplier-management.php';
