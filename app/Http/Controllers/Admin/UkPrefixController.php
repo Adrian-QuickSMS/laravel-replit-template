@@ -112,7 +112,7 @@ class UkPrefixController extends Controller
             'network_name' => 'required|string|max:255',
             'mnc' => 'required|string|max:3',
             'mcc' => 'required|string|size:3',
-            'network_type' => 'required|in:mobile,fixed,virtual',
+            'country_prefix' => 'nullable|string|max:10',
             'cp_name' => 'required|string',
         ]);
 
@@ -122,7 +122,7 @@ class UkPrefixController extends Controller
             'country_name' => 'United Kingdom',
             'country_iso' => 'GB',
             'network_name' => $request->network_name,
-            'network_type' => $request->network_type,
+            'country_prefix' => $request->country_prefix ?? '44',
             'active' => true,
         ]);
 

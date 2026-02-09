@@ -46,6 +46,7 @@ Route::prefix('admin')->middleware([
 
         // MCC/MNC Master Reference
         Route::get('/mcc-mnc', [MccMncController::class, 'index'])->name('admin.mcc-mnc.index');
+        Route::get('/mcc-mnc/{mccMnc}', [MccMncController::class, 'show'])->name('admin.mcc-mnc.show');
         Route::post('/mcc-mnc', [MccMncController::class, 'store'])->name('admin.mcc-mnc.store');
         Route::put('/mcc-mnc/{mccMnc}', [MccMncController::class, 'update'])->name('admin.mcc-mnc.update');
         Route::post('/mcc-mnc/{mccMnc}/toggle-status', [MccMncController::class, 'toggleStatus'])->name('admin.mcc-mnc.toggle-status');

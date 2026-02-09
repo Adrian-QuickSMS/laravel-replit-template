@@ -43,6 +43,11 @@ class MccMncController extends Controller
         return view('admin.supplier-management.mcc-mnc', compact('mccMncList', 'countries'));
     }
 
+    public function show(MccMnc $mccMnc)
+    {
+        return response()->json($mccMnc);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
