@@ -1,7 +1,7 @@
 # QuickSMS Web Application
 
 ## Overview
-QuickSMS is a Laravel-based SMS messaging platform designed to provide efficient communication management for businesses. It offers comprehensive tools for message handling, contact management, reporting, purchasing, and account administration, with a focus on an intuitive user experience. The project aims to empower businesses to effectively engage with their audience.
+QuickSMS is a Laravel-based SMS messaging platform designed to provide efficient communication management for businesses. It offers comprehensive tools for message handling, contact management, reporting, purchasing, and account administration, with a focus on an intuitive user experience. The project aims to empower businesses to effectively engage with their audience through an intuitive and feature-rich platform.
 
 ## User Preferences
 The user prefers detailed explanations when new concepts or features are introduced. The user wants the agent to prioritize developing the UI and front-end interactions before implementing backend logic. When making changes, the agent should clearly mark areas requiring backend integration with `TODO` comments. The user prefers an iterative development approach, focusing on completing one module's UI before moving to the next.
@@ -10,93 +10,28 @@ The user prefers detailed explanations when new concepts or features are introdu
 QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin Template (Bootstrap 5) and MetisMenu for its UI/UX. The system employs Laravel Blade templating, maintaining a consistent layout, a pastel color scheme, and a global density system for responsive design.
 
 **UI/UX and Design Decisions:**
-- **Consistent UI/UX:** Responsive sidebar, standardized data tables with client-side features, and uniform forms/modals.
-- **Table Standardization (Management Section):** All Management section tables use consistent styling:
-  - Headers: padding 0.5rem 0.35rem, font-size 0.75rem, font-weight 600, background #f8f9fa, border-bottom 1px solid #e9ecef
-  - Body cells: padding 0.5rem 0.35rem, font-size 0.8rem, border-bottom 1px solid #f1f3f5
-  - Date format: DD-MM-YYYY across all tables
-  - Status badges: Consistent color scheme (green for active/approved, yellow for pending, gray for draft, red for rejected, blue for conversational)
-  - Sort icons: fa-sort icons with click-to-sort functionality on all table headers
-  - Action buttons: .action-menu-btn class with gray (#6c757d) color, purple on hover
-- **Interactive Elements:** Mobile number masking, dynamic validation, real-time character counting, and enhanced content editors with personalization and emoji support.
-- **Wizards and Previews:** Multi-step wizards for RCS Agent Registration, Message Templates, and Email-to-SMS, alongside an RCS preview system with an Android-style phone UI.
-- **Shared Components:** Reusable JavaScript components for image editing (with fixed aspect ratio), RCS button click tracking with UTM parameters and conversion tracking, and a shared template-edit-wizard partial (`resources/views/shared/partials/template-edit-wizard.blade.php`) that supports both admin and customer contexts via `$wizardMode` parameter, theme customization, and Rich RCS availability controls.
+- **Consistent UI/UX:** Responsive sidebar, standardized data tables with client-side features, uniform forms/modals, consistent date formats (DD-MM-YYYY), and standardized status badges.
+- **Interactive Elements:** Mobile number masking, dynamic validation, real-time character counting, enhanced content editors, multi-step wizards for RCS Agent Registration, Message Templates, and Email-to-SMS, and an RCS preview system.
+- **Shared Components:** Reusable JavaScript components for image editing, RCS button click tracking, and a shared template-edit-wizard partial (`resources/views/shared/partials/template-edit-wizard.blade.php`).
 
 **Technical Implementations & Feature Specifications:**
-- **Core Modules:** Dashboard, Messages, Contact Book, Reporting, Purchase, Management, Account, and Support, with a focus on granular features within each.
-- **Account Management:** Single source of truth for customer information with inline validation and audit logging, robust Role-Based Access Control (RBAC) with JavaScript-based UI visibility, and a comprehensive Account Hierarchy View with sub-account enforcement rules and mandatory audit logging.
-- **Communication Features:** Email-to-SMS module with tabbed interface and multi-step wizards, SMS SenderID registration (UK-compliant), and Numbers Management for owned numbers.
-- **Enterprise Capabilities:** Unified Approval Framework for SenderID and RCS Agent entities, Campaign Approval Inbox, Contact Activity Timeline, and an enterprise-grade Audit Logs Module with 7-year retention and cryptographic integrity.
+- **Core Modules:** Dashboard, Messages, Contact Book, Reporting, Purchase, Management, Account, and Support.
+- **Account Management:** Single source of truth for customer information, robust Role-Based Access Control (RBAC) with JavaScript-based UI visibility, and a comprehensive Account Hierarchy View with audit logging.
+- **Communication Features:** Email-to-SMS module, SMS SenderID registration (UK-compliant), and Numbers Management.
+- **Enterprise Capabilities:** Unified Approval Framework for SenderID and RCS Agent entities, Campaign Approval Inbox, Contact Activity Timeline, and an enterprise-grade Audit Logs Module with 7-year retention.
 - **Admin Control Plane:** A separate, highly secured internal interface for QuickSMS employees with distinct authentication, RBAC, and features including:
-    - **Admin Accounts, Email-to-SMS, Campaign History, and Invoices Modules:** Global views and management capabilities across customer accounts.
-    - **Admin Global Templates Library:** Cross-tenant template management with an impersonation-safe editing wizard, comprehensive template lifecycle actions (Suspend, Reactivate, Archive), and dedicated admin audit logging.
-    - **Admin Account Billing Page:** Customer-scoped billing view with billing mode toggle, inline credit limit editing, and actions to create invoices/credit notes via a shared modal.
-    - **Admin Users Module:** Comprehensive admin user lifecycle management with:
-      - Status lifecycle (Invited → Active → Suspended ↔ Reactivated → Archived)
-      - Security actions: Password Reset, Force Logout, MFA Reset/Update, Email Update
-      - Impersonation/Support Mode with time-limited sessions and PII masking
-      - Server-side role enforcement via `AdminLoginPolicy` and `ImpersonationGuard` middleware
-    - **Admin Audit Logging:** Immutable audit trail via `AdminAuditService` with 7-year retention, covering:
-      - Event types: ADMIN_USER_INVITED, INVITE_RESENT, ACTIVATED, SUSPENDED, REACTIVATED, ARCHIVED, PASSWORD_RESET, MFA_RESET, MFA_UPDATED, EMAIL_UPDATED, SESSIONS_REVOKED, IMPERSONATION_STARTED, IMPERSONATION_ENDED, LOGIN_BLOCKED_BY_IP
-      - Required fields: actor admin, target admin, timestamp UTC, source IP, action type, before/after values, optional reason
-      - Sensitive data sanitization (passwords, tokens, secrets auto-redacted)
+    - **Global Management:** Admin Accounts, Email-to-SMS, Campaign History, Invoices Modules, and a Global Templates Library.
+    - **Admin Account Billing Page:** Customer-scoped billing view with billing mode toggle, credit limit editing, and invoice/credit note actions.
+    - **Admin Users Module:** Comprehensive admin user lifecycle management with status lifecycle, security actions (password reset, force logout, MFA reset), and Impersonation/Support Mode.
+    - **Admin Audit Logging:** Immutable audit trail with 7-year retention covering various event types and sensitive data sanitization.
     - **Impersonation:** Enhanced security controls including reason requirement, session limits, read-only mode, and critical audit logging.
-
-**Service Layer Architecture:**
-- **Modular Service Layers:** `ContactTimelineService`, `NumbersAdminService`, `BillingServices`, `AdminAuditService`, `AdminLoginPolicyService`, and `ImpersonationService` provide backend-ready abstraction layers.
-- **BillingServices (Unified):** Encompasses `HubSpotBillingService` (source of truth for billing), `InternalBillingLedgerService` (internal balance tracking), `InvoicesService` (invoice/credit note management with Xero integration), and `AccountDetailsService`. Includes a `BillingFacade` for unified data loading and defensive error handling.
-- **MessageEnforcementService:** Unified message security enforcement with:
-  - **Indexed Rule Storage:** O(1) lookups via `ruleIndex.byId`, engine-based grouping via `ruleIndex.byEngine`, tenant isolation via `ruleIndex.byTenant`
-  - **Deterministic Ordering:** Rules sorted by priority with secondary sort by ID for stability
-  - **Hot Reload:** `hotReloadRules()` enables rule updates without service restart; `cacheMetadata` tracks version and last load time
-  - **Tenant Isolation:** `getRulesForTenant(tenantId, engine)` guarantees no cross-tenant reads; global rules apply to all tenants
-  - **Feature Flags:** Per-engine toggles (`senderid_controls_enabled`, `content_controls_enabled`, `url_controls_enabled`, `quarantine_enabled`, `normalisation_enabled`, `anti_spam_enabled`, `domain_age_check_enabled`)
-  - **Admin Access Enforcement:** `AdminAccessControl` validates admin context at UI layer; `setFeatureFlag()` requires admin context
-- **Spam Filter Module (Admin > Security & Compliance > Spam Filter):** Previously named "Security & Compliance Controls", provides centralized message security enforcement.
-  - **Content Exemptions:** Account/sub-account exemptions from content rules or anti-spam protection
-  - **Test Rule Accordion:** Collapsible test section (collapsed by default) with detailed output showing match highlighting, normalised version, and action outcomes (Block/Quarantine)
-  - **Exemption Audit Events:** CONTENT_EXEMPTION_ADDED/UPDATED/REMOVED, ANTISPAM_OVERRIDE_ADDED/UPDATED/REMOVED with before/after snapshots, adminUser, timestamp, accountId, subAccountsAffected, ruleIdsAffected, and optional reason field stored in metadata_json
-  - **URL Controls Sub-tabs:** Refactored into 3 sub-tabs following Content Controls pattern:
-    - **Domain Age (default):** Compact collapsible Fillow card (collapsed by default) with status badge, editable fields (enable toggle, hours threshold, action), Save/Cancel buttons, confirmation modal showing before/after diff with audit logging (DOMAIN_AGE_SETTINGS_UPDATED), and inline Exemptions section showing:
-      - **Domain Allowlist:** Preview table (last 5 rows) with Domain, Scope, Type, Updated columns + "Add Domain" CTA + "View all" link
-      - **Threshold Overrides:** Preview table (last 5 rows) with Account, Sub-accts, Threshold, Action, Updated columns + "Add Override" CTA + "View all" link
-    - **URL Rule Library:** Rules table with search/filter, add/edit modal, and CRUD operations
-    - **Exemptions:** Per-account URL exemptions table with search/filter, type selection (domain_age/url_rule), rules checklist, and full CRUD with audit logging (URL_DOMAIN_AGE_EXEMPTION_*, URL_RULE_EXEMPTION_*, URL_EXEMPTION_STATUS_CHANGED)
-    - **Global Add Exemption Modal:** Toolbar button (transparent with admin-blue accents) opens comprehensive modal with:
-      - Scope section: Account typeahead + sub-account multi-select with "All sub-accounts" checkbox
-      - Exemption Type (3 radios): A) Domain Age override (disable OR custom threshold/action), B) Allowlisted domains (chip input with paste support, validation, deduplication), C) Rule exemptions (multi-select with "Select all")
-      - Saves immediately, shows success toast, logs typed audit events
-- **NormalisationLibrary:** Fixed base character library (36 immutable characters) for unified character equivalence:
-  - **Fixed Base Characters:** A–Z (26 uppercase letters) + 0–9 (10 digits) = 36 base characters that cannot be deleted or added
-  - **Grid-Based UI:** Clickable card grid layout instead of tables; click any letter/digit to open edit modal
-  - **Edit Modal:** "Edit Normalisation: {Letter}" modal for adding/removing equivalent characters; no separate rule objects exist
-  - **Unified Equivalence Sets:** Each base letter (A-Z) contains a single merged equivalence set including: lowercase variant, accented variants, Greek/Cyrillic lookalikes, digit substitutions, and special characters (e.g., Base 'L' → l, 1, I, i, |, ӏ, Ł, Ĺ, Ľ)
-  - **Deterministic Deduplication:** `dedupeEquivalents()` helper ensures no duplicate characters within equivalence sets
-  - **Scope-Agnostic Design:** Normalisation rules are UNIVERSAL and automatically consumed by ALL enforcement engines (SenderID Controls, Content Controls, URL Controls) - no per-rule scope selection
-  - **Tab Structure:** Two tabs only - "Letters A–Z" (26 cards) and "Digits 0–9" (10 cards)
-  - **Per-Character Properties:** Equivalents (configurable), enabled/disabled state, notes, computed risk classification
-  - **Risk Classification:** Computed automatically based on equivalent count (high: >8 or has multiple digits with punctuation, medium: >5 or has digits, low: otherwise, none: no equivalents)
-  - **Unified Normalisation Map:** Single `NormalisationEnforcementAPI` provides cached character mappings for all engines with 60s TTL
-  - **Bulk Operations:** Bulk status changes only (no import/export functionality)
-  - **Audit Integration:** All changes logged via `logAuditEvent()` with BASE_CHARACTER_UPDATED, BASE_CHARACTER_STATUS_CHANGED events
-- **MessageEnforcementService (PHP):** Backend service for unified message security enforcement:
-  - **Location:** `app/Services/Admin/MessageEnforcementService.php`
-  - **Endpoints:** POST `/admin/enforcement/test`, POST `/admin/enforcement/normalise`, POST `/admin/enforcement/reload`
-  - **Shared Logic:** Both test endpoint and production use the same `testEnforcement()`, `normalise()`, and `evaluateRules()` methods
-  - **Normalisation:** UTF-8 safe character equivalence using `preg_split('//u')` for proper Unicode handling
-  - **Rule Evaluation:** Supports exact, contains, regex, startswith, endswith match types
-  - **Caching:** 60-second TTL for rules and normalisation library via Laravel Cache
-  - **Hot Reload:** `hotReloadRules()` invalidates cache for all engines
-- **UK Prefixes Module (Admin > Supplier Management > MCC/MNC Reference > UK Prefixes tab):** Ofcom number range management with network auto-matching:
-  - **Database:** `uk_prefixes` table with prefix, number_block_raw, cp_name, match_status (matched/predicted/unmatched), mcc_mnc_id FK
-  - **Import Wizard:** Multi-step (Upload → Map Columns → Import → Review Matches) for Ofcom CSV/XLSX data
-  - **Data Normalization:** Strips spaces, leading zeros, auto-prepends "44" country code; handles Excel serial date conversion
-  - **Network Auto-Matching:** Fuzzy matching algorithm matches Ofcom operator names to existing MCC/MNC networks using multiple strategies (exact, contains, known aliases like "EE"→"Everything Everywhere")
-  - **Bulk Operations:** Map/re-map all prefixes for an operator to a network; confirm/reject predicted matches; create new MCC/MNC entries
-  - **Security:** Session-based import validation, path traversal protection, 50K row limit, 10MB file limit
-  - **Controller:** `UkPrefixController.php` with index, parseFile, import, confirm, reject, bulkConfirm, createAndMap endpoints
-  - **Routes:** `package/routes/supplier-management.php`
-- **Design Principles:** Typed JSDoc objects, mock data modes for development, clean separation of UI and API, and robust error handling.
+- **Service Layer Architecture:** Modular service layers including `ContactTimelineService`, `NumbersAdminService`, `BillingServices`, `AdminAuditService`, `AdminLoginPolicyService`, and `ImpersonationService`.
+    - **BillingServices:** Unifies `HubSpotBillingService`, `InternalBillingLedgerService`, `InvoicesService` (with Xero integration), and `AccountDetailsService`.
+    - **MessageEnforcementService:** Unified message security enforcement with indexed rule storage, deterministic ordering, hot reload capabilities, tenant isolation, and feature flags.
+    - **Spam Filter Module (Admin > Security & Compliance > Spam Filter):** Provides centralized message security enforcement with content exemptions, a test rule accordion, and URL controls (Domain Age, URL Rule Library, Exemptions).
+    - **NormalisationLibrary:** Fixed base character library (36 immutable characters) for unified character equivalence with a grid-based UI, unified equivalence sets, deterministic deduplication, and scope-agnostic design. All changes are logged via audit events.
+    - **UK Prefixes Module (Admin > Supplier Management > MCC/MNC Reference > UK Prefixes tab):** Ofcom number range management with network auto-matching, import wizard, data normalization, and bulk operations.
+    - **Routing Rules Module (Admin > Routing > Routing Rules):** Manual routing control with tabbed views for UK Routes, International Routes, and Customer Overrides.
 
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
