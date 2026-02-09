@@ -600,7 +600,7 @@ class RateCardController extends Controller
 
             if ($updatedCount > 0) {
                 $gateway = Gateway::find($gatewayId);
-                RateCardAuditLog::logAction('billing_method_updated', [
+                RateCardAuditLog::logAction('billing_method_changed', [
                     'gateway_id' => $gatewayId,
                     'supplier_id' => $gateway ? $gateway->supplier_id : null,
                     'updated_count' => $updatedCount,
