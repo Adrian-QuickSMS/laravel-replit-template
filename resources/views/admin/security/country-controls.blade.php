@@ -3675,6 +3675,31 @@ var pendingApprovalRequest = window.pendingApprovalRequest;
 var pendingRejectionRequest = window.pendingRejectionRequest;
 var pendingOverrideRemoval = null;
 
+function showUpdatedStatus(requestId, newStatus) {
+    var filter = document.getElementById('reviewStatusFilter');
+    if (filter) {
+        filter.value = '';
+    }
+    document.querySelectorAll('.queue-stat-card').forEach(function(card) {
+        card.classList.remove('active');
+    });
+    renderRequestsList();
+
+    var tbody = document.getElementById('reviewTableBody');
+    if (!tbody) return;
+    var rows = tbody.querySelectorAll('tr');
+    rows.forEach(function(row) {
+        var reviewBtn = row.querySelector('.btn-review[data-request-id="' + requestId + '"]');
+        if (reviewBtn) {
+            row.style.transition = 'background-color 0.5s ease';
+            row.style.backgroundColor = newStatus === 'approved' ? 'rgba(217, 249, 157, 0.4)' : 'rgba(254, 202, 202, 0.4)';
+            setTimeout(function() {
+                row.style.backgroundColor = '';
+            }, 2500);
+        }
+    });
+}
+
 window.approveRequest = function approveRequest(requestId) {
     var request = countryRequests.find(function(r) { return r.id === requestId; });
     if (!request) return;
@@ -3736,17 +3761,14 @@ window.confirmApproval = function confirmApproval() {
     if (modalInstance) {
         modalInstance.hide();
     } else {
-        // Fallback: create new instance and hide
         var newModal = new bootstrap.Modal(modalEl);
         newModal.hide();
     }
-    // Clear both scopes
     pendingApprovalRequest = null;
     window.pendingApprovalRequest = null;
 
-    console.log('[CountryControls] Calling renderRequestsList');
-    renderRequestsList();
     updateReviewStats();
+    showUpdatedStatus(request.id, 'approved');
     showAdminToast('Country access approved', request.customer.name + ' can now send SMS to ' + request.country.name + '. Account-level override has been added.', 'success');
 }
 
@@ -3823,17 +3845,14 @@ window.confirmRejection = function confirmRejection() {
     if (modalInstance) {
         modalInstance.hide();
     } else {
-        // Fallback: create new instance and hide
         var newModal = new bootstrap.Modal(modalEl);
         newModal.hide();
     }
-    // Clear both scopes
     pendingRejectionRequest = null;
     window.pendingRejectionRequest = null;
 
-    console.log('[CountryControls] Calling renderRequestsList');
-    renderRequestsList();
     updateReviewStats();
+    showUpdatedStatus(request.id, 'rejected');
     showAdminToast('Request rejected', 'The customer has been notified of the decision.', 'info');
 }
 
