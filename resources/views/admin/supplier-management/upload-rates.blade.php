@@ -428,15 +428,56 @@
                     </div>
                     <div class="mapping-field">
                         <label>Currency <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional)</span></label>
-                        <select class="form-select form-select-sm" id="mapCurrency">
-                            <option value="">-- Not in file (use gateway default) --</option>
+                        <select class="form-select form-select-sm" id="mapCurrencySource">
+                            <option value="manual">Enter manually</option>
+                            <option value="column">Map from file column</option>
                         </select>
+                        <div id="currencyManualWrap" class="mt-1">
+                            <select class="form-select form-select-sm" id="mapCurrencyManual">
+                                <option value="GBP">GBP - British Pound</option>
+                                <option value="USD">USD - US Dollar</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="AED">AED - UAE Dirham</option>
+                                <option value="AUD">AUD - Australian Dollar</option>
+                                <option value="CAD">CAD - Canadian Dollar</option>
+                                <option value="CHF">CHF - Swiss Franc</option>
+                                <option value="CNY">CNY - Chinese Yuan</option>
+                                <option value="DKK">DKK - Danish Krone</option>
+                                <option value="HKD">HKD - Hong Kong Dollar</option>
+                                <option value="INR">INR - Indian Rupee</option>
+                                <option value="JPY">JPY - Japanese Yen</option>
+                                <option value="NOK">NOK - Norwegian Krone</option>
+                                <option value="NZD">NZD - New Zealand Dollar</option>
+                                <option value="SEK">SEK - Swedish Krona</option>
+                                <option value="SGD">SGD - Singapore Dollar</option>
+                                <option value="ZAR">ZAR - South African Rand</option>
+                            </select>
+                        </div>
+                        <div id="currencyColumnWrap" class="mt-1" style="display:none;">
+                            <select class="form-select form-select-sm" id="mapCurrency">
+                                <option value="">-- Select column --</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="mapping-field">
                         <label>Product Type <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional)</span></label>
-                        <select class="form-select form-select-sm" id="mapProductType">
-                            <option value="">-- Not in file (default: SMS) --</option>
+                        <select class="form-select form-select-sm" id="mapProductTypeSource">
+                            <option value="manual">Enter manually</option>
+                            <option value="column">Map from file column</option>
                         </select>
+                        <div id="productManualWrap" class="mt-1">
+                            <select class="form-select form-select-sm" id="mapProductTypeManual">
+                                <option value="SMS">SMS</option>
+                                <option value="MMS">MMS</option>
+                                <option value="RCS">RCS</option>
+                                <option value="Voice">Voice</option>
+                            </select>
+                        </div>
+                        <div id="productColumnWrap" class="mt-1" style="display:none;">
+                            <select class="form-select form-select-sm" id="mapProductType">
+                                <option value="">-- Select column --</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="mapping-field">
                         <label>Country <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional)</span></label>
