@@ -102,3 +102,6 @@ Route::controller(FillowAdminController::class)->group(function () {
 
 // Supplier Management Routes
 require __DIR__ . '/supplier-management.php';
+
+// Routing Rules Routes
+require __DIR__ . '/routing-rules.php';

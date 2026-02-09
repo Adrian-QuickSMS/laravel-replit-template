@@ -74,6 +74,18 @@
                 </ul>
             </li>
 
+            <li class="{{ request()->routeIs('admin.routing.*') ? 'mm-active' : '' }}">
+                <a class="has-arrow" href="javascript:void()" aria-expanded="false">
+                    <i class="fas fa-route"></i>
+                    <span class="nav-text">Routing Rules</span>
+                </a>
+                <ul aria-expanded="false">
+                    <li><a href="{{ route('admin.routing.uk-routes') }}" class="{{ request()->routeIs('admin.routing.uk-routes') ? 'mm-active' : '' }}">UK Routes</a></li>
+                    <li><a href="{{ route('admin.routing.international-routes') }}" class="{{ request()->routeIs('admin.routing.international-routes') ? 'mm-active' : '' }}">International Routes</a></li>
+                    <li><a href="{{ route('admin.routing.customer-overrides') }}" class="{{ request()->routeIs('admin.routing.customer-overrides') ? 'mm-active' : '' }}">Customer Overrides</a></li>
+                </ul>
+            </li>
+
             <li class="{{ request()->routeIs('admin.security.*') ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-shield-alt"></i>
