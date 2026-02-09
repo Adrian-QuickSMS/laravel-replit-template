@@ -17,8 +17,8 @@ class MccMncController extends Controller
         if ($request->filled('country')) {
             $query->where('country_iso', $request->country);
         }
-        if ($request->filled('type')) {
-            $query->where('network_type', $request->type);
+        if ($request->filled('prefix')) {
+            $query->where('country_prefix', $request->prefix);
         }
         if ($request->filled('status')) {
             $query->where('active', $request->status === 'active');
@@ -51,7 +51,7 @@ class MccMncController extends Controller
             'country_name' => 'required|string|max:255',
             'country_iso' => 'required|string|size:2',
             'network_name' => 'required|string|max:255',
-            'network_type' => 'required|in:mobile,fixed,virtual',
+            'country_prefix' => 'required|string|max:10',
         ]);
 
         $existing = MccMnc::where('mcc', $validated['mcc'])
@@ -85,7 +85,7 @@ class MccMncController extends Controller
             'country_name' => 'required|string|max:255',
             'country_iso' => 'required|string|size:2',
             'network_name' => 'required|string|max:255',
-            'network_type' => 'required|in:mobile,fixed,virtual',
+            'country_prefix' => 'required|string|max:10',
         ]);
 
         $mccMnc->update($validated);
@@ -210,8 +210,8 @@ class MccMncController extends Controller
         }
 
         $mapping = $request->mapping;
-        $networkTypeCol = isset($mapping['network_type']) && $mapping['network_type'] !== '' && $mapping['network_type'] !== null
-            ? (int) $mapping['network_type']
+        $countryPrefixCol = isset($mapping['country_prefix']) && $mapping['country_prefix'] !== '' && $mapping['country_prefix'] !== null
+            ? (int) $mapping['country_prefix']
             : null;
 
         $imported = 0;
@@ -229,9 +229,9 @@ class MccMncController extends Controller
                 $countryName = trim($row[$mapping['country_name']] ?? '');
                 $countryIso = strtoupper(trim($row[$mapping['country_iso']] ?? ''));
                 $networkName = trim($row[$mapping['network_name']] ?? '');
-                $networkType = ($networkTypeCol !== null)
-                    ? strtolower(trim($row[$networkTypeCol] ?? 'mobile'))
-                    : 'mobile';
+                $countryPrefix = ($countryPrefixCol !== null)
+                    ? preg_replace('/[^0-9]/', '', trim($row[$countryPrefixCol] ?? ''))
+                    : '';
 
                 if (empty($mcc) || empty($mnc) || empty($countryName) || empty($countryIso) || empty($networkName)) {
                     $errors[] = ['row' => $rowNum, 'error' => 'Missing required fields'];
@@ -280,8 +280,8 @@ class MccMncController extends Controller
                     }
                 }
 
-                if (!in_array($networkType, ['mobile', 'fixed', 'virtual'])) {
-                    $networkType = 'mobile';
+                if (empty($countryPrefix)) {
+                    $countryPrefix = self::isoToDialingCode($countryIso) ?? '';
                 }
 
                 $existing = MccMnc::where('mcc', $mcc)->where('mnc', $mnc)->first();
@@ -290,7 +290,7 @@ class MccMncController extends Controller
                         'country_name' => $countryName,
                         'country_iso' => $countryIso,
                         'network_name' => $networkName,
-                        'network_type' => $networkType,
+                        'country_prefix' => $countryPrefix,
                     ]);
                     $updated++;
                 } else {
@@ -300,7 +300,7 @@ class MccMncController extends Controller
                         'country_name' => $countryName,
                         'country_iso' => $countryIso,
                         'network_name' => $networkName,
-                        'network_type' => $networkType,
+                        'country_prefix' => $countryPrefix,
                         'active' => true,
                     ]);
                     $imported++;
@@ -423,6 +423,47 @@ class MccMncController extends Controller
             '996'=>'KG','998'=>'UZ',
         ];
         return $map[$code] ?? null;
+    }
+
+    private static function isoToDialingCode($iso)
+    {
+        $map = [
+            'US'=>'1','RU'=>'7','EG'=>'20','ZA'=>'27','GR'=>'30','NL'=>'31','BE'=>'32','FR'=>'33',
+            'ES'=>'34','HU'=>'36','IT'=>'39','RO'=>'40','CH'=>'41','AT'=>'43','GB'=>'44','DK'=>'45',
+            'SE'=>'46','NO'=>'47','PL'=>'48','DE'=>'49','PE'=>'51','MX'=>'52','CU'=>'53','AR'=>'54',
+            'BR'=>'55','CL'=>'56','CO'=>'57','VE'=>'58','MY'=>'60','AU'=>'61','ID'=>'62','PH'=>'63',
+            'NZ'=>'64','SG'=>'65','TH'=>'66','JP'=>'81','KR'=>'82','VN'=>'84','CN'=>'86','TR'=>'90',
+            'IN'=>'91','PK'=>'92','AF'=>'93','LK'=>'94','MM'=>'95','IR'=>'98',
+            'SS'=>'211','MA'=>'212','DZ'=>'213','TN'=>'216','LY'=>'218','GM'=>'220','SN'=>'221',
+            'MR'=>'222','ML'=>'223','GN'=>'224','CI'=>'225','BF'=>'226','NE'=>'227','TG'=>'228',
+            'BJ'=>'229','MU'=>'230','LR'=>'231','SL'=>'232','GH'=>'233','NG'=>'234','TD'=>'235',
+            'CF'=>'236','CM'=>'237','CV'=>'238','ST'=>'239','GQ'=>'240','GA'=>'241','CG'=>'242',
+            'CD'=>'243','AO'=>'244','GW'=>'245','IO'=>'246','SC'=>'248','SD'=>'249',
+            'RW'=>'250','ET'=>'251','SO'=>'252','DJ'=>'253','KE'=>'254','TZ'=>'255','UG'=>'256',
+            'BI'=>'257','MZ'=>'258','ZM'=>'260','MG'=>'261','RE'=>'262','ZW'=>'263','NA'=>'264',
+            'MW'=>'265','LS'=>'266','BW'=>'267','SZ'=>'268','KM'=>'269',
+            'SH'=>'290','ER'=>'291','AW'=>'297','FO'=>'298','GL'=>'299',
+            'GI'=>'350','PT'=>'351','LU'=>'352','IE'=>'353','IS'=>'354','AL'=>'355','MT'=>'356',
+            'CY'=>'357','FI'=>'358','BG'=>'359','LT'=>'370','LV'=>'371','EE'=>'372','MD'=>'373',
+            'AM'=>'374','BY'=>'375','AD'=>'376','MC'=>'377','SM'=>'378','UA'=>'380','RS'=>'381',
+            'ME'=>'382','XK'=>'383','HR'=>'385','SI'=>'386','BA'=>'387','MK'=>'389',
+            'CZ'=>'420','SK'=>'421','LI'=>'423',
+            'FK'=>'500','BZ'=>'501','GT'=>'502','SV'=>'503','HN'=>'504','NI'=>'505','CR'=>'506',
+            'PA'=>'507','PM'=>'508','HT'=>'509',
+            'GP'=>'590','BO'=>'591','GY'=>'592','EC'=>'593','GF'=>'594','PY'=>'595','MQ'=>'596',
+            'SR'=>'597','UY'=>'598','CW'=>'599',
+            'TL'=>'670','NF'=>'672','BN'=>'673','NR'=>'674','PG'=>'675','TO'=>'676','SB'=>'677',
+            'VU'=>'678','FJ'=>'679','PW'=>'680','WF'=>'681','CK'=>'682','NU'=>'683','WS'=>'685',
+            'KI'=>'686','NC'=>'687','TV'=>'688','PF'=>'689','TK'=>'690','FM'=>'691','MH'=>'692',
+            'KP'=>'850','HK'=>'852','MO'=>'853','KH'=>'855','LA'=>'856',
+            'BD'=>'880','TW'=>'886',
+            'MV'=>'960','LB'=>'961','JO'=>'962','SY'=>'963','IQ'=>'964','KW'=>'965','SA'=>'966',
+            'YE'=>'967','OM'=>'968','PS'=>'970','AE'=>'971','IL'=>'972','BH'=>'973','QA'=>'974',
+            'BT'=>'975','MN'=>'976','NP'=>'977','TJ'=>'992','TM'=>'993','AZ'=>'994','GE'=>'995',
+            'KG'=>'996','UZ'=>'998',
+            'CA'=>'1','PR'=>'1','GU'=>'1','BS'=>'1','GD'=>'1','IM'=>'44','JE'=>'44',
+        ];
+        return $map[$iso] ?? null;
     }
 
     private static function iso3ToIso2($iso3)
