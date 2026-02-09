@@ -507,9 +507,19 @@ class AdminController extends Controller
         ]);
     }
 
-    public function systemRouting()
+    public function systemRouting(Request $request)
     {
-        return view('admin.system.routing', [
+        $tab = $request->get('tab', 'uk');
+
+        $viewMap = [
+            'uk' => 'admin.routing-rules.uk-routes',
+            'international' => 'admin.routing-rules.international-routes',
+            'overrides' => 'admin.routing-rules.customer-overrides',
+        ];
+
+        $view = $viewMap[$tab] ?? $viewMap['uk'];
+
+        return view($view, [
             'page_title' => 'Routing Rules'
         ]);
     }
