@@ -85,6 +85,51 @@
     padding: 1.5rem;
     margin-bottom: 1.5rem;
 }
+
+.mcc-pagination-wrap {
+    padding: 0.75rem 1rem;
+}
+
+.mcc-pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 4px;
+}
+
+.mcc-page-item .mcc-page-link,
+.mcc-page-item span.mcc-page-link {
+    display: inline-block;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+    color: var(--admin-primary);
+    background: #fff;
+    border: 1px solid #dde4ea;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    line-height: 1.4;
+}
+
+.mcc-page-item .mcc-page-link:hover {
+    background: #f0f4f8;
+    border-color: var(--admin-accent);
+}
+
+.mcc-page-item.active .mcc-page-link {
+    background: var(--admin-primary);
+    color: #fff;
+    border-color: var(--admin-primary);
+}
+
+.mcc-page-item.disabled .mcc-page-link,
+.mcc-page-item.disabled span.mcc-page-link {
+    color: #adb5bd;
+    cursor: not-allowed;
+    background: #f8f9fa;
+    border-color: #e9ecef;
+}
 </style>
 @endpush
 
@@ -212,13 +257,31 @@
 </div>
 
 @if($mccMncList->hasPages())
-<div class="d-flex justify-content-between align-items-center mt-3">
-    <div class="text-muted">
+<div class="d-flex justify-content-between align-items-center mt-3 mcc-pagination-wrap">
+    <div class="text-muted" style="font-size: 0.8rem;">
         Showing {{ $mccMncList->firstItem() }} to {{ $mccMncList->lastItem() }} of {{ $mccMncList->total() }} networks
     </div>
-    <div>
-        {{ $mccMncList->links() }}
-    </div>
+    <nav>
+        <ul class="mcc-pagination">
+            @if($mccMncList->onFirstPage())
+                <li class="mcc-page-item disabled"><span class="mcc-page-link">&laquo; Previous</span></li>
+            @else
+                <li class="mcc-page-item"><a class="mcc-page-link" href="{{ $mccMncList->previousPageUrl() }}">&laquo; Previous</a></li>
+            @endif
+
+            @foreach($mccMncList->getUrlRange(1, $mccMncList->lastPage()) as $page => $url)
+                <li class="mcc-page-item {{ $page == $mccMncList->currentPage() ? 'active' : '' }}">
+                    <a class="mcc-page-link" href="{{ $url }}">{{ $page }}</a>
+                </li>
+            @endforeach
+
+            @if($mccMncList->hasMorePages())
+                <li class="mcc-page-item"><a class="mcc-page-link" href="{{ $mccMncList->nextPageUrl() }}">Next &raquo;</a></li>
+            @else
+                <li class="mcc-page-item disabled"><span class="mcc-page-link">Next &raquo;</span></li>
+            @endif
+        </ul>
+    </nav>
 </div>
 @endif
 
