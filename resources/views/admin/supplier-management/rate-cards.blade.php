@@ -306,17 +306,26 @@
 <script>
 
 function editRate(rateId) {
-    fetch(`/admin/supplier-management/rate-cards/${rateId}`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('editRateId').value = data.id;
-            document.getElementById('editRateNetwork').value = data.network_name;
-            document.getElementById('editRateMcc').value = data.mcc;
-            document.getElementById('editRateMnc').value = data.mnc;
-            document.getElementById('editRateValue').value = data.native_rate;
-            document.getElementById('editRateCurrency').value = data.currency;
-            new bootstrap.Modal(document.getElementById('editRateModal')).show();
-        });
+    fetch(`/admin/supplier-management/rate-cards/${rateId}`, {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to load rate card');
+        return response.json();
+    })
+    .then(data => {
+        document.getElementById('editRateId').value = data.id;
+        document.getElementById('editRateNetwork').value = data.network_name;
+        document.getElementById('editRateMcc').value = data.mcc;
+        document.getElementById('editRateMnc').value = data.mnc;
+        document.getElementById('editRateValue').value = data.native_rate;
+        document.getElementById('editRateCurrency').value = data.currency;
+        new bootstrap.Modal(document.getElementById('editRateModal')).show();
+    })
+    .catch(err => {
+        alert('Could not load rate card details. Please try again.');
+        console.error(err);
+    });
 }
 
 function submitEditRate() {

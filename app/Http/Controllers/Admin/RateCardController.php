@@ -540,6 +540,29 @@ class RateCardController extends Controller
         }
     }
 
+    public function show(RateCard $rateCard)
+    {
+        $rateCard->load(['supplier', 'gateway']);
+
+        return response()->json([
+            'id' => $rateCard->id,
+            'network_name' => $rateCard->network_name,
+            'country_name' => $rateCard->country_name,
+            'country_iso' => $rateCard->country_iso,
+            'mcc' => $rateCard->mcc,
+            'mnc' => $rateCard->mnc,
+            'product_type' => $rateCard->product_type,
+            'native_rate' => $rateCard->native_rate,
+            'gbp_rate' => $rateCard->gbp_rate,
+            'currency' => $rateCard->currency,
+            'billing_method' => $rateCard->billing_method,
+            'supplier_name' => $rateCard->supplier->name ?? '',
+            'gateway_name' => $rateCard->gateway->name ?? '',
+            'valid_from' => $rateCard->valid_from,
+            'valid_to' => $rateCard->valid_to,
+        ]);
+    }
+
     public function update(Request $request, RateCard $rateCard)
     {
         $validated = $request->validate([
