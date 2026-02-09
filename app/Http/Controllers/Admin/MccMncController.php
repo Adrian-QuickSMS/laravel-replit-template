@@ -35,6 +35,15 @@ class MccMncController extends Controller
             'network_type' => 'required|in:mobile,fixed,virtual',
         ]);
 
+        $existing = MccMnc::where('mcc', $validated['mcc'])
+            ->where('mnc', $validated['mnc'])
+            ->first();
+
+        if ($existing) {
+            return redirect()->route('admin.mcc-mnc.index')
+                ->with('error', "MCC {$validated['mcc']} / MNC {$validated['mnc']} already exists as \"{$existing->network_name}\". Please use a different MNC code.");
+        }
+
         $validated['active'] = true;
         MccMnc::create($validated);
 
