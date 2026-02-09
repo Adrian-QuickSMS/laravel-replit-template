@@ -2793,7 +2793,7 @@ var SharedPolicyStore = (function() {
             });
         });
 
-        mockReviewData.forEach(function(request) {
+        (window.mockReviewData || []).forEach(function(request) {
             var key = request.accountId + ':' + request.countryCode;
             policyStore.pendingRequests[key] = {
                 requestId: request.id,
@@ -3318,21 +3318,38 @@ var selectedCountry = null;
 var selectedRequest = null;
 
 function initCountryControls() {
-    countries = generateMockCountries();
     countryRequests = generateMockRequests();
     
-    // Initialize SharedPolicyStore now that countries array is populated
-    if (window.SharedPolicyStore && typeof window.SharedPolicyStore.initialize === 'function') {
-        window.SharedPolicyStore.initialize();
-    }
-    
-    renderCountryTable();
-    renderRequestsList();
-    bindEvents();
-    updateReviewStats();
-    
-    console.log('[CountryControls] Initialized with shared enforcement service');
-    console.log('[CountryControls] Config version:', CountryControlsService.getSharedConfig().version);
+    fetch('/admin/api/country-controls', {
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            countries = data.countries;
+        } else {
+            countries = [];
+        }
+        if (window.SharedPolicyStore && typeof window.SharedPolicyStore.initialize === 'function') {
+            window.SharedPolicyStore.initialize();
+        }
+        renderCountryTable();
+        renderRequestsList();
+        bindEvents();
+        updateReviewStats();
+        console.log('[CountryControls] Initialized with ' + countries.length + ' countries from database');
+    })
+    .catch(function(err) {
+        console.error('[CountryControls] Failed to load countries:', err);
+        countries = [];
+        if (window.SharedPolicyStore && typeof window.SharedPolicyStore.initialize === 'function') {
+            window.SharedPolicyStore.initialize();
+        }
+        renderCountryTable();
+        renderRequestsList();
+        bindEvents();
+        updateReviewStats();
+    });
 }
 
 function generateMockRequests() {
@@ -4501,31 +4518,45 @@ function confirmDefaultStatusChange() {
     }
 
     var oldStatus = country.status;
-    country.status = newStatus;
-    country.lastUpdated = formatDateDDMMYYYY(new Date());
 
-    CountryReviewAuditService.emit('COUNTRY_DEFAULT_STATUS_CHANGED', {
-        countryIso: country.code,
-        countryName: country.name,
-        oldStatus: oldStatus,
-        newStatus: newStatus,
-        result: 'status_changed'
-    }, { emitToCustomerAudit: false });
+    fetch('/admin/api/country-controls/update-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ country_id: country.id, default_status: newStatus })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            country.status = newStatus;
+            country.lastUpdated = formatDateDDMMYYYY(new Date());
 
-    var modalEl = document.getElementById('defaultStatusConfirmModal');
-    var modalInstance = bootstrap.Modal.getInstance(modalEl);
-    if (modalInstance) {
-        modalInstance.hide();
-    } else {
-        console.warn('[CountryControls] No modal instance found, using alternative hide');
-        $(modalEl).modal('hide');
-    }
-    
-    renderCountryTable();
-    
-    var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
-    showToast('Default status updated: ' + country.name + ' is now ' + statusLabel + ' by default.', 'success');
-    console.log('[CountryControls] Status change completed successfully');
+            CountryReviewAuditService.emit('COUNTRY_DEFAULT_STATUS_CHANGED', {
+                countryIso: country.code,
+                countryName: country.name,
+                oldStatus: oldStatus,
+                newStatus: newStatus,
+                result: 'status_changed'
+            }, { emitToCustomerAudit: false });
+
+            var modalEl = document.getElementById('defaultStatusConfirmModal');
+            var modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                modalInstance.hide();
+            } else {
+                $(modalEl).modal('hide');
+            }
+
+            renderCountryTable();
+            var statusLabel = newStatus === 'allowed' ? 'Allowed' : 'Blocked';
+            showToast('Default status updated: ' + country.name + ' is now ' + statusLabel + ' by default.', 'success');
+        } else {
+            showToast(data.message || 'Failed to update status.', 'error');
+        }
+    })
+    .catch(function() { showToast('Network error. Please try again.', 'error'); });
 }
 
 window.confirmDefaultStatusChange = confirmDefaultStatusChange;

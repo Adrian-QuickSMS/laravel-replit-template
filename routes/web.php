@@ -183,6 +183,16 @@ Route::prefix('admin')->group(function () {
             Route::post('/enforcement/normalise', 'normaliseInput')->name('admin.enforcement.normalise');
             Route::post('/enforcement/reload', 'reloadEnforcementRules')->name('admin.enforcement.reload');
             
+            Route::prefix('api/country-controls')->controller(\App\Http\Controllers\Admin\CountryControlController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.country-controls.index');
+                Route::post('/update-status', 'updateStatus')->name('admin.api.country-controls.update-status');
+                Route::post('/update-risk', 'updateRisk')->name('admin.api.country-controls.update-risk');
+                Route::post('/bulk-update-status', 'bulkUpdateStatus')->name('admin.api.country-controls.bulk-update');
+                Route::get('/{countryId}/overrides', 'getOverrides')->name('admin.api.country-controls.overrides');
+                Route::post('/overrides', 'addOverride')->name('admin.api.country-controls.add-override');
+                Route::delete('/overrides/{override}', 'deleteOverride')->name('admin.api.country-controls.delete-override');
+            });
+
             Route::prefix('api/uk-network-controls')->controller(\App\Http\Controllers\Admin\UkNetworkControlController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.uk-network-controls.index');
                 Route::post('/update-status', 'updateStatus')->name('admin.api.uk-network-controls.update-status');
