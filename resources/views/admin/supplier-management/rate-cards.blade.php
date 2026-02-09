@@ -120,7 +120,7 @@
             <select class="form-select" id="filterCountry" onchange="filterRates()">
                 <option value="">All Countries</option>
                 @foreach($countries as $country)
-                <option value="{{ $country }}">{{ $country }}</option>
+                <option value="{{ $country->country_iso }}">{{ $country->country_name }}</option>
                 @endforeach
             </select>
         </div>
