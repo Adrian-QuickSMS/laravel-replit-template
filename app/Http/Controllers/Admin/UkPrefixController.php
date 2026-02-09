@@ -257,16 +257,27 @@ class UkPrefixController extends Controller
                 $rawBlock = trim($row[$mapping['number_block']] ?? '');
                 $cpName = trim($row[$mapping['cp_name']] ?? '');
 
-                if (empty($rawBlock) || empty($cpName)) {
-                    $errors[] = ['row' => $rowNum, 'error' => 'Missing required fields'];
+                if (empty($rawBlock)) {
+                    $errors[] = ['row' => $rowNum, 'error' => 'Missing number block'];
                     continue;
+                }
+
+                if (empty($cpName)) {
+                    $cpName = 'Unallocated';
                 }
 
                 $cleanNumber = preg_replace('/\s+/', '', $rawBlock);
                 $cleanNumber = ltrim($cleanNumber, "'");
 
-                if (!ctype_digit($cleanNumber)) {
-                    $errors[] = ['row' => $rowNum, 'error' => "Non-numeric prefix: {$rawBlock}"];
+                $cleanNumber = preg_replace('/[^0-9]/', '', $cleanNumber);
+
+                if (empty($cleanNumber)) {
+                    $errors[] = ['row' => $rowNum, 'error' => "No digits found in: {$rawBlock}"];
+                    continue;
+                }
+
+                if (strlen($cleanNumber) < 3) {
+                    $errors[] = ['row' => $rowNum, 'error' => "Prefix too short: {$rawBlock}"];
                     continue;
                 }
 

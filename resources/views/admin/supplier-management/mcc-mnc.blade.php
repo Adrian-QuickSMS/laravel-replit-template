@@ -646,6 +646,13 @@
                                 </div>
                             </div>
                         </div>
+                        <div id="ukErrorDetails" class="d-none mt-3">
+                            <p class="text-muted small mb-2">Sample errors (first 20):</p>
+                            <div style="max-height: 150px; overflow-y: auto; font-size: 0.75rem;" id="ukErrorList" class="border rounded p-2 bg-light"></div>
+                        </div>
+                        <div id="ukSkippedInfo" class="d-none mt-2">
+                            <p class="text-muted small mb-0" id="ukSkippedText"></p>
+                        </div>
                     </div>
                 </div>
 
@@ -1763,7 +1770,21 @@ function runUkImport() {
         if (data.success) {
             document.getElementById('ukResultCreated').textContent = data.imported;
             document.getElementById('ukResultUpdated').textContent = data.updated;
-            document.getElementById('ukResultErrors').textContent = data.totalErrors || data.errors.length;
+            const errCount = data.totalErrors || data.errors.length;
+            document.getElementById('ukResultErrors').textContent = errCount;
+
+            if (errCount > 0 && data.errors && data.errors.length > 0) {
+                document.getElementById('ukErrorDetails').classList.remove('d-none');
+                const errorItems = data.errors.slice(0, 20).map(e => `<div class="text-danger mb-1">Row ${e.row}: ${e.error}</div>`).join('');
+                document.getElementById('ukErrorList').innerHTML = errorItems;
+                if (errCount > 20) {
+                    document.getElementById('ukSkippedInfo').classList.remove('d-none');
+                    document.getElementById('ukSkippedText').textContent = `Showing 20 of ${errCount} errors. Most are similar — rows with empty number blocks or very short prefixes were skipped.`;
+                }
+            } else {
+                document.getElementById('ukErrorDetails').classList.add('d-none');
+                document.getElementById('ukSkippedInfo').classList.add('d-none');
+            }
 
             ukImportState.unmatchedCps = data.unmatchedCps || [];
             ukImportState.predictedCps = data.predictedCps || [];
