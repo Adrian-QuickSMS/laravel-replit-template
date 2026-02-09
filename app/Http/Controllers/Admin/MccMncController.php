@@ -201,15 +201,24 @@ class MccMncController extends Controller
                     continue;
                 }
 
-                if (strlen($mcc) !== 3 || !ctype_digit($mcc)) {
-                    $errors[] = ['row' => $rowNum, 'error' => "Invalid MCC: {$mcc}"];
-                    continue;
-                }
+                $mcc = ltrim($mcc, "'");
+                $mnc = ltrim($mnc, "'");
 
-                if (strlen($mnc) < 2 || strlen($mnc) > 3 || !ctype_digit($mnc)) {
-                    $errors[] = ['row' => $rowNum, 'error' => "Invalid MNC: {$mnc}"];
+                if (!ctype_digit($mcc)) {
+                    $errors[] = ['row' => $rowNum, 'error' => "Invalid MCC (non-numeric): {$mcc}"];
                     continue;
                 }
+                $mcc = str_pad($mcc, 3, '0', STR_PAD_LEFT);
+
+                if (!ctype_digit($mnc)) {
+                    $errors[] = ['row' => $rowNum, 'error' => "Invalid MNC (non-numeric): {$mnc}"];
+                    continue;
+                }
+                if (strlen($mnc) > 3) {
+                    $errors[] = ['row' => $rowNum, 'error' => "Invalid MNC (too long): {$mnc}"];
+                    continue;
+                }
+                $mnc = str_pad($mnc, 2, '0', STR_PAD_LEFT);
 
                 if (strlen($countryIso) !== 2) {
                     $errors[] = ['row' => $rowNum, 'error' => "Invalid country ISO: {$countryIso}"];
