@@ -1817,7 +1817,7 @@ function showReviewStep() {
                 <td><span class="match-badge predicted"><i class="fas fa-magic" style="font-size:8px;"></i> ${p.network_name}</span></td>
                 <td><span class="badge bg-light text-dark">${p.prefix_count}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-outline-success me-1" onclick="bulkConfirmCp('${p.cp_name.replace(/'/g, "\\'")}', ${p.mcc_mnc_id})"><i class="fas fa-check me-1"></i>Confirm All</button>
+                    <button class="btn btn-sm btn-outline-success me-1" onclick="bulkConfirmCp('${p.cp_name.replace(/'/g, "\\'")}', ${p.mcc_mnc_id}, this)"><i class="fas fa-check me-1"></i>Confirm All</button>
                     <button class="btn btn-sm btn-outline-warning" onclick="openMapModal('${p.cp_name.replace(/'/g, "\\'")}')"><i class="fas fa-exchange-alt me-1"></i>Change</button>
                 </td>
             </tr>
@@ -1847,7 +1847,9 @@ function showReviewStep() {
     }
 }
 
-function bulkConfirmCp(cpName, mccMncId) {
+function bulkConfirmCp(cpName, mccMncId, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Confirming...';
     fetch('{{ route('admin.uk-prefixes.bulk-confirm') }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
@@ -1856,9 +1858,19 @@ function bulkConfirmCp(cpName, mccMncId) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            event.target.closest('tr').remove();
+            const row = btn.closest('tr');
+            if (row) row.remove();
             loadUkPrefixes();
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm All';
+            alert(data.message || 'Error confirming');
         }
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm All';
+        alert('Network error');
     });
 }
 
