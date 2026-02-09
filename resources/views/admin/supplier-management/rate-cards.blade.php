@@ -143,6 +143,7 @@
             <thead>
                 <tr>
                     <th>Supplier</th>
+                    <th>Country</th>
                     <th>Network</th>
                     <th>Product</th>
                     <th>Rate Updated</th>
@@ -162,6 +163,7 @@
                         <strong>{{ $rate->supplier->name ?? '—' }}</strong>
                         <br><small class="text-muted">{{ $rate->gateway->name ?? '—' }}</small>
                     </td>
+                    <td>{{ $rate->country_name ?? '—' }}</td>
                     <td>
                         <strong>{{ $rate->network_name }}</strong>
                         <br><small class="text-muted">{{ $rate->mcc }}/{{ $rate->mnc }}</small>
@@ -195,7 +197,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-4 text-muted">
+                    <td colspan="8" class="text-center py-4 text-muted">
                         <i class="fas fa-inbox fa-2x mb-2"></i>
                         <p>No rate cards found</p>
                         <a href="{{ route('admin.rate-cards.upload') }}" class="btn btn-sm btn-admin-primary mt-2">
