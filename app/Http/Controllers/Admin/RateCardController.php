@@ -185,7 +185,7 @@ class RateCardController extends Controller
             }
         }
 
-        foreach (['currency', 'product_type', 'country_name', 'network_name'] as $optField) {
+        foreach (['country_name', 'network_name'] as $optField) {
             if (isset($mapping[$optField]) && $mapping[$optField] !== '' && $mapping[$optField] !== null) {
                 if ((int) $mapping[$optField] > $maxColIndex) {
                     return response()->json([
@@ -198,10 +198,8 @@ class RateCardController extends Controller
 
         $dataRows = array_slice($rows, $headerRow + 1);
 
-        $currencyCol = isset($mapping['currency']) && $mapping['currency'] !== '' && $mapping['currency'] !== null
-            ? (int) $mapping['currency'] : null;
-        $productTypeCol = isset($mapping['product_type']) && $mapping['product_type'] !== '' && $mapping['product_type'] !== null
-            ? (int) $mapping['product_type'] : null;
+        $productType = $request->input('product_type', 'SMS');
+        $currency = $gateway->currency ?? 'GBP';
         $countryCol = isset($mapping['country_name']) && $mapping['country_name'] !== '' && $mapping['country_name'] !== null
             ? (int) $mapping['country_name'] : null;
         $networkCol = isset($mapping['network_name']) && $mapping['network_name'] !== '' && $mapping['network_name'] !== null
@@ -217,8 +215,6 @@ class RateCardController extends Controller
             $mcc = trim($row[$mapping['mcc']] ?? '');
             $mnc = trim($row[$mapping['mnc']] ?? '');
             $rate = trim($row[$mapping['rate']] ?? '');
-            $currency = $currencyCol !== null ? trim($row[$currencyCol] ?? '') : ($gateway->currency ?? 'GBP');
-            $productType = $productTypeCol !== null ? trim($row[$productTypeCol] ?? '') : 'SMS';
             $countryName = $countryCol !== null ? trim($row[$countryCol] ?? '') : '';
             $networkName = $networkCol !== null ? trim($row[$networkCol] ?? '') : '';
 

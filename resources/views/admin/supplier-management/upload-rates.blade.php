@@ -427,57 +427,13 @@
                         </select>
                     </div>
                     <div class="mapping-field">
-                        <label>Currency <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional)</span></label>
-                        <select class="form-select form-select-sm" id="mapCurrencySource">
-                            <option value="manual">Enter manually</option>
-                            <option value="column">Map from file column</option>
+                        <label>Product Type <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional - defaults to SMS)</span></label>
+                        <select class="form-select form-select-sm" id="mapProductTypeManual">
+                            <option value="SMS">SMS</option>
+                            <option value="MMS">MMS</option>
+                            <option value="RCS">RCS</option>
+                            <option value="Voice">Voice</option>
                         </select>
-                        <div id="currencyManualWrap" class="mt-1">
-                            <select class="form-select form-select-sm" id="mapCurrencyManual">
-                                <option value="GBP">GBP - British Pound</option>
-                                <option value="USD">USD - US Dollar</option>
-                                <option value="EUR">EUR - Euro</option>
-                                <option value="AED">AED - UAE Dirham</option>
-                                <option value="AUD">AUD - Australian Dollar</option>
-                                <option value="CAD">CAD - Canadian Dollar</option>
-                                <option value="CHF">CHF - Swiss Franc</option>
-                                <option value="CNY">CNY - Chinese Yuan</option>
-                                <option value="DKK">DKK - Danish Krone</option>
-                                <option value="HKD">HKD - Hong Kong Dollar</option>
-                                <option value="INR">INR - Indian Rupee</option>
-                                <option value="JPY">JPY - Japanese Yen</option>
-                                <option value="NOK">NOK - Norwegian Krone</option>
-                                <option value="NZD">NZD - New Zealand Dollar</option>
-                                <option value="SEK">SEK - Swedish Krona</option>
-                                <option value="SGD">SGD - Singapore Dollar</option>
-                                <option value="ZAR">ZAR - South African Rand</option>
-                            </select>
-                        </div>
-                        <div id="currencyColumnWrap" class="mt-1" style="display:none;">
-                            <select class="form-select form-select-sm" id="mapCurrency">
-                                <option value="">-- Select column --</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mapping-field">
-                        <label>Product Type <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional)</span></label>
-                        <select class="form-select form-select-sm" id="mapProductTypeSource">
-                            <option value="manual">Enter manually</option>
-                            <option value="column">Map from file column</option>
-                        </select>
-                        <div id="productManualWrap" class="mt-1">
-                            <select class="form-select form-select-sm" id="mapProductTypeManual">
-                                <option value="SMS">SMS</option>
-                                <option value="MMS">MMS</option>
-                                <option value="RCS">RCS</option>
-                                <option value="Voice">Voice</option>
-                            </select>
-                        </div>
-                        <div id="productColumnWrap" class="mt-1" style="display:none;">
-                            <select class="form-select form-select-sm" id="mapProductType">
-                                <option value="">-- Select column --</option>
-                            </select>
-                        </div>
                     </div>
                     <div class="mapping-field">
                         <label>Country <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional)</span></label>
@@ -668,7 +624,7 @@ function selectHeaderRow(idx) {
 }
 
 function populateMappingDropdowns() {
-    const selects = ['mapMcc', 'mapMnc', 'mapRate', 'mapCurrency', 'mapProductType', 'mapCountry', 'mapNetwork'];
+    const selects = ['mapMcc', 'mapMnc', 'mapRate', 'mapCountry', 'mapNetwork'];
     const requiredSelects = ['mapMcc', 'mapMnc', 'mapRate'];
 
     selects.forEach(id => {
@@ -700,8 +656,6 @@ function autoMapColumns() {
         mapMcc: [/^mcc$/i, /mcc/i, /mobile.country/i],
         mapMnc: [/^mnc$/i, /mnc/i, /mobile.network/i],
         mapRate: [/^rate$/i, /price/i, /cost/i, /charge/i],
-        mapCurrency: [/^currency$/i, /ccy/i, /curr/i],
-        mapProductType: [/^product.type$/i, /product/i, /type/i, /service/i],
         mapCountry: [/^country$/i, /country.name/i, /destination/i],
         mapNetwork: [/^network$/i, /operator/i, /carrier/i, /network.name/i],
     };
@@ -731,8 +685,7 @@ function renderMappingPreview() {
     const mccCol = document.getElementById('mapMcc').value;
     const mncCol = document.getElementById('mapMnc').value;
     const rateCol = document.getElementById('mapRate').value;
-    const currCol = document.getElementById('mapCurrency').value;
-    const prodCol = document.getElementById('mapProductType').value;
+    const productType = document.getElementById('mapProductTypeManual').value;
 
     if (mccCol === '' || mncCol === '' || rateCol === '') {
         document.getElementById('mappingPreviewTable').innerHTML = '<p class="p-3 text-muted">Map the required columns to see a preview.</p>';
@@ -741,9 +694,7 @@ function renderMappingPreview() {
 
     const dataRows = parsedRows.slice(selectedHeaderRow + 1, selectedHeaderRow + 6);
     let html = '<table class="table table-sm table-bordered mb-0">';
-    html += '<thead><tr><th>MCC</th><th>MNC</th><th>Rate</th>';
-    if (currCol !== '') html += '<th>Currency</th>';
-    if (prodCol !== '') html += '<th>Product</th>';
+    html += '<thead><tr><th>MCC</th><th>MNC</th><th>Rate</th><th>Product</th>';
     html += '</tr></thead><tbody>';
 
     dataRows.forEach(row => {
@@ -751,8 +702,7 @@ function renderMappingPreview() {
         html += `<td>${escapeHtml(String(row[parseInt(mccCol)] || ''))}</td>`;
         html += `<td>${escapeHtml(String(row[parseInt(mncCol)] || ''))}</td>`;
         html += `<td>${escapeHtml(String(row[parseInt(rateCol)] || ''))}</td>`;
-        if (currCol !== '') html += `<td>${escapeHtml(String(row[parseInt(currCol)] || ''))}</td>`;
-        if (prodCol !== '') html += `<td>${escapeHtml(String(row[parseInt(prodCol)] || ''))}</td>`;
+        html += `<td>${escapeHtml(productType)}</td>`;
         html += '</tr>';
     });
 
@@ -767,17 +717,13 @@ function validateAndPreview() {
         rate: parseInt(document.getElementById('mapRate').value),
     };
 
-    const currVal = document.getElementById('mapCurrency').value;
-    if (currVal !== '') mapping.currency = parseInt(currVal);
-
-    const prodVal = document.getElementById('mapProductType').value;
-    if (prodVal !== '') mapping.product_type = parseInt(prodVal);
-
     const countryVal = document.getElementById('mapCountry').value;
     if (countryVal !== '') mapping.country_name = parseInt(countryVal);
 
     const networkVal = document.getElementById('mapNetwork').value;
     if (networkVal !== '') mapping.network_name = parseInt(networkVal);
+
+    const productType = document.getElementById('mapProductTypeManual').value;
 
     goToStep(5);
 
@@ -799,6 +745,7 @@ function validateAndPreview() {
             headerRow: selectedHeaderRow,
             mapping: mapping,
             gateway_id: selectedGatewayId,
+            product_type: productType,
         })
     })
     .then(r => r.json())
