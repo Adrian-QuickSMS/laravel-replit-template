@@ -205,20 +205,20 @@
 
 {{-- Product Selector Tabs --}}
 <div class="product-tabs mt-3">
+    @foreach($productTypes as $index => $pt)
+    <button class="product-tab {{ $index === 0 ? 'active' : '' }}" data-product="{{ strtolower($pt) }}" onclick="switchProduct('{{ strtolower($pt) }}', this)">{{ strtoupper($pt) }}</button>
+    @endforeach
+    @if(count($productTypes) === 0)
     <button class="product-tab active" data-product="sms" onclick="switchProduct('sms', this)">SMS</button>
-    <button class="product-tab" data-product="rcs_basic" onclick="switchProduct('rcs_basic', this)">RCS Basic</button>
-    <button class="product-tab" data-product="rcs_single" onclick="switchProduct('rcs_single', this)">RCS Single</button>
+    @endif
 </div>
 
 {{-- A-Z Navigation --}}
 <div class="alpha-nav" id="alphaNav">
-    @php
-    $activeLetters = ['A','B','C','D','F','G','I','J','K','N','S','U'];
-    @endphp
     @foreach(range('A','Z') as $letter)
-    <button class="alpha-nav-btn {{ in_array($letter, $activeLetters) ? '' : 'disabled' }} {{ $letter === 'A' ? 'active' : '' }}"
+    <button class="alpha-nav-btn {{ $activeLetters->contains($letter) ? '' : 'disabled' }} {{ $letter === 'A' ? 'active' : '' }}"
             onclick="filterByLetter('{{ $letter }}', this)"
-            {{ !in_array($letter, $activeLetters) ? 'disabled' : '' }}>
+            {{ !$activeLetters->contains($letter) ? 'disabled' : '' }}>
         {{ $letter }}
     </button>
     @endforeach
@@ -241,13 +241,13 @@
         <div class="col-md-3">
             <select class="form-select form-select-sm" id="filterGateway" onchange="filterRoutes()">
                 <option value="">All Gateways</option>
-                <option value="gw_bics_intl">BICS International</option>
-                <option value="gw_sinch_global">Sinch Global</option>
-                <option value="gw_telnyx_global">Telnyx Global</option>
+                @foreach($gateways as $gw)
+                <option value="{{ $gw->gateway_code }}">{{ $gw->name }} ({{ $gw->supplier->name ?? 'Unknown' }})</option>
+                @endforeach
             </select>
         </div>
         <div class="col-md-2 text-end">
-            <span class="text-muted" style="font-size: 0.75rem;" id="routeCount">Showing 12 routes</span>
+            <span class="text-muted" style="font-size: 0.75rem;" id="routeCount">Showing {{ count($countries) }} routes</span>
         </div>
     </div>
 </div>
@@ -269,85 +269,15 @@
                 </tr>
             </thead>
             <tbody id="routesTableBody">
-                @php
-                $intlRoutes = [
-                    ['id' => 101, 'country' => 'Australia', 'iso' => 'AU', 'letter' => 'A', 'gateway_count' => 2, 'primary_gw' => 'BICS International', 'billing' => 'Per Message', 'rate' => '0.0520', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 70, 'primary' => true, 'status' => 'online', 'delivery_rate' => '97.3%', 'response_time' => '245ms', 'median_dlr' => '2.1s', 'rate' => '0.0520'],
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 30, 'primary' => false, 'status' => 'online', 'delivery_rate' => '96.1%', 'response_time' => '280ms', 'median_dlr' => '2.8s', 'rate' => '0.0545'],
-                        ]],
-                    ['id' => 102, 'country' => 'Austria', 'iso' => 'AT', 'letter' => 'A', 'gateway_count' => 2, 'primary_gw' => 'Sinch Global', 'billing' => 'Per Message', 'rate' => '0.0680', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 60, 'primary' => true, 'status' => 'online', 'delivery_rate' => '98.1%', 'response_time' => '165ms', 'median_dlr' => '1.4s', 'rate' => '0.0680'],
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 40, 'primary' => false, 'status' => 'online', 'delivery_rate' => '97.4%', 'response_time' => '182ms', 'median_dlr' => '1.7s', 'rate' => '0.0695'],
-                        ]],
-                    ['id' => 103, 'country' => 'Brazil', 'iso' => 'BR', 'letter' => 'B', 'gateway_count' => 3, 'primary_gw' => 'Telnyx Global', 'billing' => 'Per Segment', 'rate' => '0.0420', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'Telnyx Global', 'supplier' => 'Telnyx', 'code' => 'gw_telnyx_global', 'weight' => 50, 'primary' => true, 'status' => 'online', 'delivery_rate' => '94.8%', 'response_time' => '310ms', 'median_dlr' => '3.2s', 'rate' => '0.0420'],
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 30, 'primary' => false, 'status' => 'online', 'delivery_rate' => '93.5%', 'response_time' => '340ms', 'median_dlr' => '3.8s', 'rate' => '0.0445'],
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 20, 'primary' => false, 'status' => 'offline', 'delivery_rate' => '92.1%', 'response_time' => '380ms', 'median_dlr' => '4.5s', 'rate' => '0.0460'],
-                        ]],
-                    ['id' => 104, 'country' => 'Canada', 'iso' => 'CA', 'letter' => 'C', 'gateway_count' => 2, 'primary_gw' => 'BICS International', 'billing' => 'Per Message', 'rate' => '0.0180', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 55, 'primary' => true, 'status' => 'online', 'delivery_rate' => '98.9%', 'response_time' => '125ms', 'median_dlr' => '0.8s', 'rate' => '0.0180'],
-                            ['name' => 'Telnyx Global', 'supplier' => 'Telnyx', 'code' => 'gw_telnyx_global', 'weight' => 45, 'primary' => false, 'status' => 'online', 'delivery_rate' => '98.2%', 'response_time' => '142ms', 'median_dlr' => '1.0s', 'rate' => '0.0195'],
-                        ]],
-                    ['id' => 105, 'country' => 'Denmark', 'iso' => 'DK', 'letter' => 'D', 'gateway_count' => 1, 'primary_gw' => 'Sinch Global', 'billing' => 'Per Message', 'rate' => '0.0380', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 100, 'primary' => true, 'status' => 'online', 'delivery_rate' => '99.2%', 'response_time' => '112ms', 'median_dlr' => '0.7s', 'rate' => '0.0380'],
-                        ]],
-                    ['id' => 106, 'country' => 'France', 'iso' => 'FR', 'letter' => 'F', 'gateway_count' => 3, 'primary_gw' => 'BICS International', 'billing' => 'Per Message', 'rate' => '0.0620', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 50, 'primary' => true, 'status' => 'online', 'delivery_rate' => '97.8%', 'response_time' => '155ms', 'median_dlr' => '1.3s', 'rate' => '0.0620'],
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 35, 'primary' => false, 'status' => 'online', 'delivery_rate' => '97.1%', 'response_time' => '172ms', 'median_dlr' => '1.6s', 'rate' => '0.0640'],
-                            ['name' => 'Telnyx Global', 'supplier' => 'Telnyx', 'code' => 'gw_telnyx_global', 'weight' => 15, 'primary' => false, 'status' => 'online', 'delivery_rate' => '96.3%', 'response_time' => '198ms', 'median_dlr' => '2.0s', 'rate' => '0.0665'],
-                        ]],
-                    ['id' => 107, 'country' => 'Germany', 'iso' => 'DE', 'letter' => 'G', 'gateway_count' => 2, 'primary_gw' => 'Sinch Global', 'billing' => 'Per Message', 'rate' => '0.0750', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 65, 'primary' => true, 'status' => 'online', 'delivery_rate' => '98.5%', 'response_time' => '138ms', 'median_dlr' => '1.0s', 'rate' => '0.0750'],
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 35, 'primary' => false, 'status' => 'online', 'delivery_rate' => '97.9%', 'response_time' => '152ms', 'median_dlr' => '1.3s', 'rate' => '0.0770'],
-                        ]],
-                    ['id' => 108, 'country' => 'India', 'iso' => 'IN', 'letter' => 'I', 'gateway_count' => 2, 'primary_gw' => 'Telnyx Global', 'billing' => 'Per Segment', 'rate' => '0.0085', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'Telnyx Global', 'supplier' => 'Telnyx', 'code' => 'gw_telnyx_global', 'weight' => 60, 'primary' => true, 'status' => 'online', 'delivery_rate' => '93.2%', 'response_time' => '420ms', 'median_dlr' => '5.2s', 'rate' => '0.0085'],
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 40, 'primary' => false, 'status' => 'online', 'delivery_rate' => '92.8%', 'response_time' => '445ms', 'median_dlr' => '5.8s', 'rate' => '0.0092'],
-                        ]],
-                    ['id' => 109, 'country' => 'Japan', 'iso' => 'JP', 'letter' => 'J', 'gateway_count' => 1, 'primary_gw' => 'BICS International', 'billing' => 'Per Message', 'rate' => '0.0820', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 100, 'primary' => true, 'status' => 'online', 'delivery_rate' => '99.4%', 'response_time' => '195ms', 'median_dlr' => '1.5s', 'rate' => '0.0820'],
-                        ]],
-                    ['id' => 110, 'country' => 'Kenya', 'iso' => 'KE', 'letter' => 'K', 'gateway_count' => 1, 'primary_gw' => 'Sinch Global', 'billing' => 'Per Message', 'rate' => '0.0280', 'currency' => 'GBP', 'status' => 'blocked',
-                        'gateways' => [
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 100, 'primary' => true, 'status' => 'offline', 'delivery_rate' => '88.5%', 'response_time' => '520ms', 'median_dlr' => '6.8s', 'rate' => '0.0280'],
-                        ]],
-                    ['id' => 111, 'country' => 'Nigeria', 'iso' => 'NG', 'letter' => 'N', 'gateway_count' => 2, 'primary_gw' => 'BICS International', 'billing' => 'Per Message', 'rate' => '0.0350', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 75, 'primary' => true, 'status' => 'online', 'delivery_rate' => '91.8%', 'response_time' => '380ms', 'median_dlr' => '4.2s', 'rate' => '0.0350'],
-                            ['name' => 'Telnyx Global', 'supplier' => 'Telnyx', 'code' => 'gw_telnyx_global', 'weight' => 25, 'primary' => false, 'status' => 'online', 'delivery_rate' => '90.2%', 'response_time' => '410ms', 'median_dlr' => '4.9s', 'rate' => '0.0375'],
-                        ]],
-                    ['id' => 112, 'country' => 'South Africa', 'iso' => 'ZA', 'letter' => 'S', 'gateway_count' => 2, 'primary_gw' => 'Sinch Global', 'billing' => 'Per Message', 'rate' => '0.0220', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 55, 'primary' => true, 'status' => 'online', 'delivery_rate' => '95.6%', 'response_time' => '290ms', 'median_dlr' => '3.0s', 'rate' => '0.0220'],
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 45, 'primary' => false, 'status' => 'online', 'delivery_rate' => '94.8%', 'response_time' => '315ms', 'median_dlr' => '3.5s', 'rate' => '0.0240'],
-                        ]],
-                    ['id' => 113, 'country' => 'United States', 'iso' => 'US', 'letter' => 'U', 'gateway_count' => 3, 'primary_gw' => 'Telnyx Global', 'billing' => 'Per Segment', 'rate' => '0.0150', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'Telnyx Global', 'supplier' => 'Telnyx', 'code' => 'gw_telnyx_global', 'weight' => 45, 'primary' => true, 'status' => 'online', 'delivery_rate' => '98.5%', 'response_time' => '118ms', 'median_dlr' => '0.6s', 'rate' => '0.0150'],
-                            ['name' => 'BICS International', 'supplier' => 'BICS', 'code' => 'gw_bics_intl', 'weight' => 35, 'primary' => false, 'status' => 'online', 'delivery_rate' => '98.1%', 'response_time' => '132ms', 'median_dlr' => '0.9s', 'rate' => '0.0165'],
-                            ['name' => 'Sinch Global', 'supplier' => 'Sinch', 'code' => 'gw_sinch_global', 'weight' => 20, 'primary' => false, 'status' => 'online', 'delivery_rate' => '97.8%', 'response_time' => '145ms', 'median_dlr' => '1.1s', 'rate' => '0.0175'],
-                        ]],
-                ];
-                @endphp
-
-                @foreach($intlRoutes as $route)
-                <tr class="route-row" data-route-id="{{ $route['id'] }}" data-status="{{ $route['status'] }}" data-letter="{{ $route['letter'] }}" data-search="{{ strtolower($route['country'] . ' ' . $route['iso']) }}" onclick="toggleRoutePanel({{ $route['id'] }})">
+                @forelse($countries as $idx => $route)
+                <tr class="route-row" data-route-id="{{ $idx }}" data-status="{{ $route['status'] }}" data-letter="{{ $route['letter'] }}" data-search="{{ strtolower($route['country'] . ' ' . $route['iso']) }}" onclick="toggleRoutePanel({{ $idx }})">
                     <td><i class="fas fa-chevron-right expand-icon"></i></td>
                     <td><strong>{{ $route['country'] }}</strong> <span class="country-iso">{{ $route['iso'] }}</span></td>
                     <td><code style="font-size: 0.75rem;">{{ $route['iso'] }}</code></td>
                     <td><span class="gateway-count-badge">{{ $route['gateway_count'] }} {{ $route['gateway_count'] === 1 ? 'gateway' : 'gateways' }}</span></td>
                     <td style="font-size: 0.8rem;">{{ $route['primary_gw'] }}</td>
                     <td style="font-size: 0.75rem;">{{ $route['billing'] }}</td>
-                    <td><span class="rate-snapshot">£{{ $route['rate'] }}</span></td>
+                    <td><span class="rate-snapshot">{{ $route['rate'] !== '—' ? '£' . $route['rate'] : '—' }}</span></td>
                     <td>
                         <span class="status-badge {{ $route['status'] }}">
                             <i class="fas fa-circle" style="font-size: 5px;"></i>
@@ -355,7 +285,7 @@
                         </span>
                     </td>
                 </tr>
-                <tr class="expand-panel" id="panel-{{ $route['id'] }}">
+                <tr class="expand-panel" id="panel-{{ $idx }}">
                     <td colspan="8" style="padding: 0;">
                         <div class="gateway-cards-container">
                             @foreach($route['gateways'] as $gw)
@@ -376,21 +306,22 @@
                                     </div>
                                 </div>
                                 <div class="weight-display">
-                                    <div class="weight-value">{{ $gw['weight'] }}%</div>
+                                    <div class="weight-value">{{ $gw['weight'] !== null ? $gw['weight'] . '%' : '—' }}</div>
                                     <div class="weight-label">Traffic Weight</div>
                                 </div>
                                 <div class="telemetry-grid">
+                                    {{-- TODO: Pull from telemetry service --}}
                                     <div class="telemetry-stat">
                                         <div class="stat-label">Delivery Rate</div>
-                                        <div class="stat-value">{{ $gw['delivery_rate'] }}</div>
+                                        <div class="stat-value">—</div>
                                     </div>
                                     <div class="telemetry-stat">
                                         <div class="stat-label">Response Time</div>
-                                        <div class="stat-value">{{ $gw['response_time'] }}</div>
+                                        <div class="stat-value">—</div>
                                     </div>
                                     <div class="telemetry-stat">
                                         <div class="stat-label">Median DLR</div>
-                                        <div class="stat-value">{{ $gw['median_dlr'] }}</div>
+                                        <div class="stat-value">—</div>
                                     </div>
                                     <div class="telemetry-stat">
                                         <div class="stat-label">Rate</div>
@@ -399,24 +330,24 @@
                                 </div>
                                 <div class="gw-actions">
                                     @if(!$gw['primary'])
-                                    <button class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation(); setPrimaryGateway({{ $route['id'] }}, '{{ $gw['code'] }}')">
+                                    <button class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation(); setPrimaryGateway({{ $idx }}, '{{ $gw['code'] }}')">
                                         <i class="fas fa-star me-1"></i>Set Primary
                                     </button>
                                     @endif
-                                    <button class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation(); openChangeWeightModal({{ $route['id'] }}, '{{ $gw['code'] }}', '{{ $gw['name'] }}', {{ $gw['weight'] }})">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation(); openChangeWeightModal({{ $idx }}, '{{ $gw['code'] }}', '{{ $gw['name'] }}', {{ $gw['weight'] ?? 0 }})">
                                         <i class="fas fa-balance-scale me-1"></i>Weight
                                     </button>
-                                    <button class="btn btn-outline-{{ $gw['status'] === 'online' ? 'warning' : 'success' }} btn-sm" onclick="event.stopPropagation(); toggleGatewayBlock({{ $route['id'] }}, '{{ $gw['code'] }}')">
+                                    <button class="btn btn-outline-{{ $gw['status'] === 'online' ? 'warning' : 'success' }} btn-sm" onclick="event.stopPropagation(); toggleGatewayBlock({{ $idx }}, '{{ $gw['code'] }}')">
                                         <i class="fas fa-{{ $gw['status'] === 'online' ? 'ban' : 'check' }} me-1"></i>{{ $gw['status'] === 'online' ? 'Block' : 'Allow' }}
                                     </button>
-                                    <button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation(); removeGateway({{ $route['id'] }}, '{{ $gw['code'] }}', '{{ $gw['name'] }}')">
+                                    <button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation(); removeGateway({{ $idx }}, '{{ $gw['code'] }}', '{{ $gw['name'] }}')">
                                         <i class="fas fa-times me-1"></i>Remove
                                     </button>
                                 </div>
                             </div>
                             @endforeach
 
-                            <div class="gateway-card" style="border-style: dashed; display: flex; align-items: center; justify-content: center; min-height: 200px; cursor: pointer;" onclick="event.stopPropagation(); openAddGatewayToRouteModal({{ $route['id'] }})">
+                            <div class="gateway-card" style="border-style: dashed; display: flex; align-items: center; justify-content: center; min-height: 200px; cursor: pointer;" onclick="event.stopPropagation(); openAddGatewayToRouteModal({{ $idx }})">
                                 <div class="text-center text-muted">
                                     <i class="fas fa-plus-circle fa-2x mb-2" style="opacity: 0.4;"></i>
                                     <div style="font-size: 0.8rem;">Add Gateway</div>
@@ -425,7 +356,14 @@
                         </div>
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">
+                        <i class="fas fa-globe fa-2x mb-2" style="opacity: 0.4;"></i>
+                        <p class="mb-0">No international routes configured</p>
+                    </td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -445,9 +383,9 @@
                     <label class="form-label fw-semibold">Select Gateway <span class="text-danger">*</span></label>
                     <select class="form-select" id="addGwSelect">
                         <option value="">Choose a gateway...</option>
-                        <option value="gw_bics_intl">BICS International (BICS)</option>
-                        <option value="gw_sinch_global">Sinch Global (Sinch)</option>
-                        <option value="gw_telnyx_global">Telnyx Global (Telnyx)</option>
+                        @foreach($gateways as $gw)
+                        <option value="{{ $gw->gateway_code }}">{{ $gw->name }} ({{ $gw->supplier->name ?? 'Unknown' }})</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="mb-3">

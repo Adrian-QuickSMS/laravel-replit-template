@@ -8,6 +8,13 @@ use App\Services\Admin\AdminLoginPolicyService;
 use App\Services\Admin\AdminAuditService;
 use App\Services\Admin\MessageEnforcementService;
 use Illuminate\Support\Facades\Log;
+use App\Models\MccMnc;
+use App\Models\Gateway;
+use App\Models\Supplier;
+use App\Models\RateCard;
+use App\Models\RoutingRule;
+use App\Models\RoutingGatewayWeight;
+use App\Models\RoutingCustomerOverride;
 
 class AdminController extends Controller
 {
@@ -518,10 +525,230 @@ class AdminController extends Controller
         ];
 
         $view = $viewMap[$tab] ?? $viewMap['uk'];
+        $data = ['page_title' => 'Routing Rules'];
 
-        return view($view, [
-            'page_title' => 'Routing Rules'
-        ]);
+        $gateways = Gateway::active()->with('supplier')->get();
+        $productTypes = RateCard::active()->distinct()->pluck('product_type')->filter()->values();
+
+        if ($tab === 'uk' || !isset($viewMap[$tab])) {
+            $data = array_merge($data, $this->getUkRoutingData($gateways, $productTypes));
+        } elseif ($tab === 'international') {
+            $data = array_merge($data, $this->getInternationalRoutingData($gateways, $productTypes));
+        } elseif ($tab === 'overrides') {
+            $data = array_merge($data, $this->getOverridesData($gateways));
+        }
+
+        return view($view, $data);
+    }
+
+    private function getUkRoutingData($gateways, $productTypes)
+    {
+        $ukMccMnc = MccMnc::where('country_iso', 'GB')
+            ->where('active', true)
+            ->orderBy('network_name')
+            ->get();
+
+        $ukRateCards = RateCard::active()
+            ->whereIn('mcc', ['234', '235'])
+            ->where('country_iso', 'GB')
+            ->with(['gateway.supplier'])
+            ->get();
+
+        $ratesByNetwork = $ukRateCards->groupBy(function ($rc) {
+            return $rc->mcc . '-' . $rc->mnc;
+        });
+
+        $ukRoutingRules = RoutingRule::where('country_iso', 'GB')
+            ->whereNull('deleted_at')
+            ->with('gatewayWeights')
+            ->get()
+            ->keyBy(function ($rule) {
+                return $rule->mcc . '-' . $rule->mnc;
+            });
+
+        $ukNetworks = $ukMccMnc->map(function ($network) use ($ratesByNetwork, $ukRoutingRules, $gateways) {
+            $key = $network->mcc . '-' . $network->mnc;
+            $rates = $ratesByNetwork->get($key, collect());
+            $routingRule = $ukRoutingRules->get($key);
+
+            $networkGateways = $rates->groupBy('gateway_id')->map(function ($gwRates) use ($routingRule) {
+                $rate = $gwRates->sortBy('gbp_rate')->first();
+                $gateway = $rate->gateway;
+                $supplier = $gateway ? $gateway->supplier : null;
+
+                $weight = null;
+                $isPrimary = false;
+                $gwStatus = 'active';
+
+                if ($routingRule) {
+                    $weightEntry = $routingRule->gatewayWeights
+                        ->where('gateway_id', $rate->gateway_id)
+                        ->first();
+                    if ($weightEntry) {
+                        $weight = $weightEntry->weight;
+                        $isPrimary = $weightEntry->priority_order === 1 && !$weightEntry->is_fallback;
+                        $gwStatus = $weightEntry->status ?? 'active';
+                    }
+                }
+
+                return [
+                    'name' => $gateway ? $gateway->name : 'Unknown',
+                    'supplier' => $supplier ? $supplier->name : 'Unknown',
+                    'code' => $gateway ? $gateway->gateway_code : '',
+                    'weight' => $weight,
+                    'primary' => $isPrimary,
+                    'status' => $gwStatus === 'active' ? 'online' : $gwStatus,
+                    'rate' => number_format($rate->gbp_rate, 4),
+                    'billing' => ucfirst($rate->billing_method ?? 'delivered'),
+                ];
+            })->values();
+
+            if ($networkGateways->isNotEmpty() && !$networkGateways->contains('primary', true)) {
+                $networkGateways = $networkGateways->map(function ($gw, $index) {
+                    if ($index === 0) {
+                        $gw['primary'] = true;
+                    }
+                    return $gw;
+                });
+            }
+
+            $primaryGw = $networkGateways->firstWhere('primary', true);
+            $cheapestRate = $rates->min('gbp_rate');
+
+            return [
+                'id' => $network->id,
+                'network' => $network->network_name,
+                'prefix' => $network->country_prefix ? '+' . $network->country_prefix : $network->mcc . '/' . $network->mnc,
+                'mcc' => $network->mcc,
+                'mnc' => $network->mnc,
+                'gateway_count' => $networkGateways->count(),
+                'primary_gw' => $primaryGw ? $primaryGw['name'] : '—',
+                'billing' => $primaryGw ? $primaryGw['billing'] : '—',
+                'rate' => $cheapestRate !== null ? number_format($cheapestRate, 4) : '—',
+                'status' => $routingRule ? $routingRule->status : 'active',
+                'gateways' => $networkGateways->toArray(),
+            ];
+        });
+
+        return [
+            'ukNetworks' => $ukNetworks,
+            'gateways' => $gateways,
+            'productTypes' => $productTypes,
+        ];
+    }
+
+    private function getInternationalRoutingData($gateways, $productTypes)
+    {
+        $intlRates = RateCard::active()
+            ->where('country_iso', '!=', 'GB')
+            ->with(['gateway.supplier'])
+            ->get();
+
+        $byCountry = $intlRates->groupBy('country_iso');
+
+        $intlRoutingRules = RoutingRule::where('country_iso', '!=', 'GB')
+            ->whereNotNull('country_iso')
+            ->whereNull('deleted_at')
+            ->with('gatewayWeights')
+            ->get()
+            ->keyBy('country_iso');
+
+        $countries = $byCountry->map(function ($rates, $iso) use ($intlRoutingRules) {
+            $countryName = $rates->first()->country_name;
+            $routingRule = $intlRoutingRules->get($iso);
+
+            $countryGateways = $rates->groupBy('gateway_id')->map(function ($gwRates) use ($routingRule) {
+                $rate = $gwRates->sortBy('gbp_rate')->first();
+                $gateway = $rate->gateway;
+                $supplier = $gateway ? $gateway->supplier : null;
+
+                $weight = null;
+                $isPrimary = false;
+                $gwStatus = 'active';
+
+                if ($routingRule) {
+                    $weightEntry = $routingRule->gatewayWeights
+                        ->where('gateway_id', $rate->gateway_id)
+                        ->first();
+                    if ($weightEntry) {
+                        $weight = $weightEntry->weight;
+                        $isPrimary = $weightEntry->priority_order === 1 && !$weightEntry->is_fallback;
+                        $gwStatus = $weightEntry->status ?? 'active';
+                    }
+                }
+
+                return [
+                    'name' => $gateway ? $gateway->name : 'Unknown',
+                    'supplier' => $supplier ? $supplier->name : 'Unknown',
+                    'code' => $gateway ? $gateway->gateway_code : '',
+                    'weight' => $weight,
+                    'primary' => $isPrimary,
+                    'status' => $gwStatus === 'active' ? 'online' : $gwStatus,
+                    'rate' => number_format($rate->gbp_rate, 4),
+                    'billing' => ucfirst($rate->billing_method ?? 'delivered'),
+                ];
+            })->values();
+
+            if ($countryGateways->isNotEmpty() && !$countryGateways->contains('primary', true)) {
+                $countryGateways = $countryGateways->map(function ($gw, $index) {
+                    if ($index === 0) {
+                        $gw['primary'] = true;
+                    }
+                    return $gw;
+                });
+            }
+
+            $primaryGw = $countryGateways->firstWhere('primary', true);
+            $cheapestRate = $rates->min('gbp_rate');
+
+            return [
+                'country' => $countryName,
+                'iso' => $iso,
+                'letter' => strtoupper(substr($countryName, 0, 1)),
+                'gateway_count' => $countryGateways->count(),
+                'primary_gw' => $primaryGw ? $primaryGw['name'] : '—',
+                'billing' => $primaryGw ? $primaryGw['billing'] : '—',
+                'rate' => $cheapestRate !== null ? number_format($cheapestRate, 4) : '—',
+                'status' => $routingRule ? $routingRule->status : 'active',
+                'gateways' => $countryGateways->toArray(),
+            ];
+        })->sortBy('country')->values();
+
+        $activeLetters = $countries->pluck('letter')->unique()->sort()->values();
+
+        return [
+            'countries' => $countries,
+            'activeLetters' => $activeLetters,
+            'gateways' => $gateways,
+            'productTypes' => $productTypes,
+        ];
+    }
+
+    private function getOverridesData($gateways)
+    {
+        $overrides = RoutingCustomerOverride::whereNull('deleted_at')
+            ->with(['forcedGateway.supplier', 'blockedGateway.supplier', 'routingRule'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $ukNetworks = MccMnc::where('country_iso', 'GB')
+            ->where('active', true)
+            ->orderBy('network_name')
+            ->get();
+
+        $countries = RateCard::active()
+            ->where('country_iso', '!=', 'GB')
+            ->select('country_iso', 'country_name')
+            ->distinct()
+            ->orderBy('country_name')
+            ->get();
+
+        return [
+            'overrides' => $overrides,
+            'gateways' => $gateways,
+            'ukNetworks' => $ukNetworks,
+            'countries' => $countries,
+        ];
     }
 
     public function systemFlags()

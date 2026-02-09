@@ -314,9 +314,12 @@
 
 {{-- Product Selector Tabs --}}
 <div class="product-tabs mt-3">
+    @foreach($productTypes as $index => $pt)
+    <button class="product-tab {{ $index === 0 ? 'active' : '' }}" data-product="{{ strtolower($pt) }}" onclick="switchProduct('{{ strtolower($pt) }}', this)">{{ strtoupper($pt) }}</button>
+    @endforeach
+    @if(count($productTypes) === 0)
     <button class="product-tab active" data-product="sms" onclick="switchProduct('sms', this)">SMS</button>
-    <button class="product-tab" data-product="rcs_basic" onclick="switchProduct('rcs_basic', this)">RCS Basic</button>
-    <button class="product-tab" data-product="rcs_single" onclick="switchProduct('rcs_single', this)">RCS Single</button>
+    @endif
 </div>
 
 {{-- Filter Toolbar --}}
@@ -335,14 +338,13 @@
         <div class="col-md-3">
             <select class="form-select form-select-sm" id="filterGateway" onchange="filterRoutes()">
                 <option value="">All Gateways</option>
-                <option value="gw_bics_uk">BICS UK Premium</option>
-                <option value="gw_sinch_uk">Sinch UK</option>
-                <option value="gw_telnyx_uk">Telnyx UK</option>
-                <option value="gw_twilio_uk">Twilio UK</option>
+                @foreach($gateways as $gw)
+                <option value="{{ $gw->gateway_code }}">{{ $gw->name }} ({{ $gw->supplier->name ?? 'Unknown' }})</option>
+                @endforeach
             </select>
         </div>
         <div class="col-md-2 text-end">
-            <span class="text-muted" style="font-size: 0.75rem;" id="routeCount">Showing 5 routes</span>
+            <span class="text-muted" style="font-size: 0.75rem;" id="routeCount">Showing {{ count($ukNetworks) }} routes</span>
         </div>
     </div>
 </div>
@@ -364,58 +366,7 @@
                 </tr>
             </thead>
             <tbody id="routesTableBody">
-                @php
-                $ukRoutes = [
-                    [
-                        'id' => 1, 'network' => 'EE (Everything Everywhere)', 'prefix' => '447400-447499',
-                        'gateway_count' => 3, 'primary_gw' => 'BICS UK Premium', 'billing' => 'Per Message',
-                        'rate' => '0.0320', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'BICS UK Premium', 'supplier' => 'BICS', 'code' => 'gw_bics_uk', 'weight' => 60, 'primary' => true, 'status' => 'online', 'delivery_rate' => '98.7%', 'response_time' => '142ms', 'median_dlr' => '1.2s', 'rate' => '0.0320'],
-                            ['name' => 'Sinch UK Direct', 'supplier' => 'Sinch', 'code' => 'gw_sinch_uk', 'weight' => 30, 'primary' => false, 'status' => 'online', 'delivery_rate' => '97.2%', 'response_time' => '186ms', 'median_dlr' => '1.8s', 'rate' => '0.0335'],
-                            ['name' => 'Telnyx UK Backup', 'supplier' => 'Telnyx', 'code' => 'gw_telnyx_uk', 'weight' => 10, 'primary' => false, 'status' => 'online', 'delivery_rate' => '96.1%', 'response_time' => '210ms', 'median_dlr' => '2.1s', 'rate' => '0.0345'],
-                        ]
-                    ],
-                    [
-                        'id' => 2, 'network' => 'Three (Hutchison 3G)', 'prefix' => '447300-447399',
-                        'gateway_count' => 2, 'primary_gw' => 'Sinch UK Direct', 'billing' => 'Per Message',
-                        'rate' => '0.0335', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'Sinch UK Direct', 'supplier' => 'Sinch', 'code' => 'gw_sinch_uk', 'weight' => 70, 'primary' => true, 'status' => 'online', 'delivery_rate' => '97.8%', 'response_time' => '155ms', 'median_dlr' => '1.4s', 'rate' => '0.0335'],
-                            ['name' => 'BICS UK Premium', 'supplier' => 'BICS', 'code' => 'gw_bics_uk', 'weight' => 30, 'primary' => false, 'status' => 'online', 'delivery_rate' => '96.9%', 'response_time' => '168ms', 'median_dlr' => '1.6s', 'rate' => '0.0340'],
-                        ]
-                    ],
-                    [
-                        'id' => 3, 'network' => 'O2 (Telefónica UK)', 'prefix' => '447500-447599',
-                        'gateway_count' => 3, 'primary_gw' => 'BICS UK Premium', 'billing' => 'Per Message',
-                        'rate' => '0.0310', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'BICS UK Premium', 'supplier' => 'BICS', 'code' => 'gw_bics_uk', 'weight' => 50, 'primary' => true, 'status' => 'online', 'delivery_rate' => '99.1%', 'response_time' => '128ms', 'median_dlr' => '0.9s', 'rate' => '0.0310'],
-                            ['name' => 'Twilio UK Standard', 'supplier' => 'Twilio', 'code' => 'gw_twilio_uk', 'weight' => 35, 'primary' => false, 'status' => 'online', 'delivery_rate' => '97.5%', 'response_time' => '175ms', 'median_dlr' => '1.5s', 'rate' => '0.0325'],
-                            ['name' => 'Telnyx UK Backup', 'supplier' => 'Telnyx', 'code' => 'gw_telnyx_uk', 'weight' => 15, 'primary' => false, 'status' => 'offline', 'delivery_rate' => '95.8%', 'response_time' => '220ms', 'median_dlr' => '2.3s', 'rate' => '0.0350'],
-                        ]
-                    ],
-                    [
-                        'id' => 4, 'network' => 'Vodafone UK', 'prefix' => '447700-447799',
-                        'gateway_count' => 2, 'primary_gw' => 'Sinch UK Direct', 'billing' => 'Per Segment',
-                        'rate' => '0.0295', 'currency' => 'GBP', 'status' => 'active',
-                        'gateways' => [
-                            ['name' => 'Sinch UK Direct', 'supplier' => 'Sinch', 'code' => 'gw_sinch_uk', 'weight' => 65, 'primary' => true, 'status' => 'online', 'delivery_rate' => '98.4%', 'response_time' => '138ms', 'median_dlr' => '1.1s', 'rate' => '0.0295'],
-                            ['name' => 'BICS UK Premium', 'supplier' => 'BICS', 'code' => 'gw_bics_uk', 'weight' => 35, 'primary' => false, 'status' => 'online', 'delivery_rate' => '97.6%', 'response_time' => '162ms', 'median_dlr' => '1.5s', 'rate' => '0.0305'],
-                        ]
-                    ],
-                    [
-                        'id' => 5, 'network' => 'BT Mobile (EE MVNO)', 'prefix' => '447600-447699',
-                        'gateway_count' => 1, 'primary_gw' => 'Telnyx UK Backup', 'billing' => 'Per Message',
-                        'rate' => '0.0360', 'currency' => 'GBP', 'status' => 'blocked',
-                        'gateways' => [
-                            ['name' => 'Telnyx UK Backup', 'supplier' => 'Telnyx', 'code' => 'gw_telnyx_uk', 'weight' => 100, 'primary' => true, 'status' => 'offline', 'delivery_rate' => '91.2%', 'response_time' => '340ms', 'median_dlr' => '4.1s', 'rate' => '0.0360'],
-                        ]
-                    ],
-                ];
-                @endphp
-
-                @foreach($ukRoutes as $route)
+                @forelse($ukNetworks as $route)
                 <tr class="route-row" data-route-id="{{ $route['id'] }}" data-status="{{ $route['status'] }}" data-search="{{ strtolower($route['network'] . ' ' . $route['prefix']) }}" onclick="toggleRoutePanel({{ $route['id'] }})">
                     <td><i class="fas fa-chevron-right expand-icon"></i></td>
                     <td><strong>{{ $route['network'] }}</strong></td>
@@ -423,7 +374,7 @@
                     <td><span class="gateway-count-badge">{{ $route['gateway_count'] }} {{ $route['gateway_count'] === 1 ? 'gateway' : 'gateways' }}</span></td>
                     <td style="font-size: 0.8rem;">{{ $route['primary_gw'] }}</td>
                     <td style="font-size: 0.75rem;">{{ $route['billing'] }}</td>
-                    <td><span class="rate-snapshot">£{{ $route['rate'] }}</span></td>
+                    <td><span class="rate-snapshot">{{ $route['rate'] !== '—' ? '£' . $route['rate'] : '—' }}</span></td>
                     <td>
                         <span class="status-badge {{ $route['status'] }}">
                             <i class="fas fa-circle" style="font-size: 5px;"></i>
@@ -452,21 +403,22 @@
                                     </div>
                                 </div>
                                 <div class="weight-display">
-                                    <div class="weight-value">{{ $gw['weight'] }}%</div>
+                                    <div class="weight-value">{{ $gw['weight'] !== null ? $gw['weight'] . '%' : '—' }}</div>
                                     <div class="weight-label">Traffic Weight</div>
                                 </div>
                                 <div class="telemetry-grid">
+                                    {{-- TODO: Pull from telemetry service --}}
                                     <div class="telemetry-stat">
                                         <div class="stat-label">Delivery Rate</div>
-                                        <div class="stat-value">{{ $gw['delivery_rate'] }}</div>
+                                        <div class="stat-value">—</div>
                                     </div>
                                     <div class="telemetry-stat">
                                         <div class="stat-label">Response Time</div>
-                                        <div class="stat-value">{{ $gw['response_time'] }}</div>
+                                        <div class="stat-value">—</div>
                                     </div>
                                     <div class="telemetry-stat">
                                         <div class="stat-label">Median DLR</div>
-                                        <div class="stat-value">{{ $gw['median_dlr'] }}</div>
+                                        <div class="stat-value">—</div>
                                     </div>
                                     <div class="telemetry-stat">
                                         <div class="stat-label">Rate</div>
@@ -479,7 +431,7 @@
                                         <i class="fas fa-star me-1"></i>Set Primary
                                     </button>
                                     @endif
-                                    <button class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation(); openChangeWeightModal({{ $route['id'] }}, '{{ $gw['code'] }}', '{{ $gw['name'] }}', {{ $gw['weight'] }})">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="event.stopPropagation(); openChangeWeightModal({{ $route['id'] }}, '{{ $gw['code'] }}', '{{ $gw['name'] }}', {{ $gw['weight'] ?? 0 }})">
                                         <i class="fas fa-balance-scale me-1"></i>Change Weight
                                     </button>
                                     <button class="btn btn-outline-{{ $gw['status'] === 'online' ? 'warning' : 'success' }} btn-sm" onclick="event.stopPropagation(); toggleGatewayBlock({{ $route['id'] }}, '{{ $gw['code'] }}')">
@@ -501,7 +453,14 @@
                         </div>
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">
+                        <i class="fas fa-route fa-2x mb-2" style="opacity: 0.4;"></i>
+                        <p class="mb-0">No UK routes configured</p>
+                    </td>
+                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
@@ -521,11 +480,9 @@
                     <label class="form-label fw-semibold">Select Gateway <span class="text-danger">*</span></label>
                     <select class="form-select" id="addGwSelect">
                         <option value="">Choose a gateway...</option>
-                        <option value="gw_bics_uk">BICS UK Premium (BICS)</option>
-                        <option value="gw_sinch_uk">Sinch UK Direct (Sinch)</option>
-                        <option value="gw_telnyx_uk">Telnyx UK Backup (Telnyx)</option>
-                        <option value="gw_twilio_uk">Twilio UK Standard (Twilio)</option>
-                        <option value="gw_vonage_uk">Vonage UK (Vonage)</option>
+                        @foreach($gateways as $gw)
+                        <option value="{{ $gw->gateway_code }}">{{ $gw->name }} ({{ $gw->supplier->name ?? 'Unknown' }})</option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="mb-3">

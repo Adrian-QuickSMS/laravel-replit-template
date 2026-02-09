@@ -228,9 +228,9 @@
 
 {{-- Filter Tabs --}}
 <div class="filter-tabs mt-3">
-    <button class="filter-tab active" data-filter="active" onclick="filterOverrides('active', this)">Active <span class="count">3</span></button>
-    <button class="filter-tab" data-filter="expired" onclick="filterOverrides('expired', this)">Expired <span class="count">2</span></button>
-    <button class="filter-tab" data-filter="all" onclick="filterOverrides('all', this)">All <span class="count">6</span></button>
+    <button class="filter-tab active" data-filter="active" onclick="filterOverrides('active', this)">Active <span class="count">{{ $overrides->where('status', 'active')->count() }}</span></button>
+    <button class="filter-tab" data-filter="expired" onclick="filterOverrides('expired', this)">Expired <span class="count">{{ $overrides->where('status', 'expired')->count() }}</span></button>
+    <button class="filter-tab" data-filter="all" onclick="filterOverrides('all', this)">All <span class="count">{{ $overrides->count() }}</span></button>
 </div>
 
 {{-- Search --}}
@@ -263,141 +263,105 @@
 
 {{-- Override Cards --}}
 <div id="overridesContainer">
+    @forelse($overrides as $override)
     @php
-    $overrides = [
-        [
-            'id' => 'OVR-001', 'customer' => 'Acme Corp', 'status' => 'active',
-            'product' => 'SMS', 'product_code' => 'sms',
-            'scope_type' => 'UK Network', 'scope_code' => 'uk_network', 'scope_value' => 'EE',
-            'forced_gw' => 'BICS UK Premium', 'forced_gw_code' => 'gw_bics_uk',
-            'secondary_gw' => 'Sinch UK Direct', 'secondary_gw_code' => 'gw_sinch_uk',
-            'start' => '2026-01-15 00:00', 'end' => '2026-06-15 23:59',
-            'reason' => 'Customer reported delivery failures on EE via Sinch. Routing through BICS as primary until issue resolved.',
-            'created_by' => 'Sarah Mitchell', 'created_at' => '15-01-2026',
-        ],
-        [
-            'id' => 'OVR-002', 'customer' => 'TechStart Ltd', 'status' => 'active',
-            'product' => 'All', 'product_code' => 'all',
-            'scope_type' => 'Global', 'scope_code' => 'global', 'scope_value' => '—',
-            'forced_gw' => 'Sinch UK Direct', 'forced_gw_code' => 'gw_sinch_uk',
-            'secondary_gw' => '—', 'secondary_gw_code' => '',
-            'start' => '2026-02-01 00:00', 'end' => null,
-            'reason' => 'Enterprise contract with Sinch-exclusive routing. Indefinite until contract review.',
-            'created_by' => 'James Thompson', 'created_at' => '01-02-2026',
-        ],
-        [
-            'id' => 'OVR-003', 'customer' => 'FastDelivery Inc', 'status' => 'active',
-            'product' => 'RCS Basic', 'product_code' => 'rcs_basic',
-            'scope_type' => 'Country', 'scope_code' => 'country', 'scope_value' => 'France (FR)',
-            'forced_gw' => 'BICS International', 'forced_gw_code' => 'gw_bics_intl',
-            'secondary_gw' => 'Telnyx Global', 'secondary_gw_code' => 'gw_telnyx_global',
-            'start' => '2026-02-05 09:00', 'end' => '2026-03-05 09:00',
-            'reason' => 'RCS pilot program for French market. BICS has best RCS coverage in France.',
-            'created_by' => 'Sarah Mitchell', 'created_at' => '05-02-2026',
-        ],
-        [
-            'id' => 'OVR-004', 'customer' => 'GlobalMsg Ltd', 'status' => 'expired',
-            'product' => 'SMS', 'product_code' => 'sms',
-            'scope_type' => 'UK Network', 'scope_code' => 'uk_network', 'scope_value' => 'Vodafone',
-            'forced_gw' => 'Telnyx UK Backup', 'forced_gw_code' => 'gw_telnyx_uk',
-            'secondary_gw' => '—', 'secondary_gw_code' => '',
-            'start' => '2025-11-01 00:00', 'end' => '2026-01-31 23:59',
-            'reason' => 'Temporary routing change during Vodafone network maintenance window.',
-            'created_by' => 'James Thompson', 'created_at' => '01-11-2025',
-        ],
-        [
-            'id' => 'OVR-005', 'customer' => 'MediaBuzz', 'status' => 'expired',
-            'product' => 'SMS', 'product_code' => 'sms',
-            'scope_type' => 'Country', 'scope_code' => 'country', 'scope_value' => 'Germany (DE)',
-            'forced_gw' => 'Sinch Global', 'forced_gw_code' => 'gw_sinch_global',
-            'secondary_gw' => 'BICS International', 'secondary_gw_code' => 'gw_bics_intl',
-            'start' => '2025-12-01 00:00', 'end' => '2026-01-15 23:59',
-            'reason' => 'German regulatory compliance — Sinch certified for transactional SMS in DE.',
-            'created_by' => 'Sarah Mitchell', 'created_at' => '01-12-2025',
-        ],
-        [
-            'id' => 'OVR-006', 'customer' => 'RetailChain PLC', 'status' => 'cancelled',
-            'product' => 'RCS Single', 'product_code' => 'rcs_single',
-            'scope_type' => 'Global', 'scope_code' => 'global', 'scope_value' => '—',
-            'forced_gw' => 'BICS UK Premium', 'forced_gw_code' => 'gw_bics_uk',
-            'secondary_gw' => '—', 'secondary_gw_code' => '',
-            'start' => '2026-01-10 00:00', 'end' => '2026-01-20 00:00',
-            'reason' => 'RCS Single testing. Cancelled — customer downgraded to SMS.',
-            'created_by' => 'James Thompson', 'created_at' => '10-01-2026',
-        ],
-    ];
+        $scopeType = 'Global';
+        $scopeCode = 'global';
+        $scopeValue = '—';
+        if ($override->mcc && $override->mnc) {
+            $scopeType = 'UK Network';
+            $scopeCode = 'uk_network';
+            $matchedNetwork = $ukNetworks->first(function($n) use ($override) { return $n->mcc === $override->mcc && $n->mnc === $override->mnc; });
+            $scopeValue = $matchedNetwork ? $matchedNetwork->network_name : ($override->mcc . '/' . $override->mnc);
+        } elseif ($override->country_iso) {
+            $scopeType = 'Country';
+            $scopeCode = 'country';
+            $matchedCountry = $countries->firstWhere('country_iso', $override->country_iso);
+            $scopeValue = $matchedCountry ? $matchedCountry->country_name . ' (' . $override->country_iso . ')' : $override->country_iso;
+        }
+        $productLabel = $override->product_type ? ucfirst($override->product_type) : 'All';
+        $productCode = $override->product_type ? strtolower($override->product_type) : 'all';
     @endphp
-
-    @foreach($overrides as $override)
-    <div class="override-card" data-status="{{ $override['status'] }}" data-product="{{ $override['product_code'] }}" data-scope="{{ $override['scope_code'] }}" data-search="{{ strtolower($override['customer']) }}">
+    @php
+        $customerLabel = 'Account #' . $override->account_id . ($override->sub_account_id ? ' / Sub #' . $override->sub_account_id : '');
+    @endphp
+    <div class="override-card" data-status="{{ $override->status }}" data-product="{{ $productCode }}" data-scope="{{ $scopeCode }}" data-search="{{ strtolower($customerLabel . ' ovr-' . $override->id . ' ' . $scopeValue) }}">
         <div class="card-header-row">
             <div>
-                <div class="customer-name">{{ $override['customer'] }}</div>
-                <div class="override-id">{{ $override['id'] }}</div>
+                <div class="customer-name">{{ $customerLabel }}</div>
+                <div class="override-id">OVR-{{ str_pad($override->id, 3, '0', STR_PAD_LEFT) }}</div>
             </div>
-            <span class="status-badge {{ $override['status'] }}">
+            <span class="status-badge {{ $override->status }}">
                 <i class="fas fa-circle" style="font-size: 5px;"></i>
-                {{ ucfirst($override['status']) }}
+                {{ ucfirst($override->status) }}
             </span>
         </div>
 
         <div class="scope-badges">
-            <span class="scope-badge"><i class="fas fa-box"></i> {{ $override['product'] }}</span>
-            <span class="scope-badge"><i class="fas fa-crosshairs"></i> {{ $override['scope_type'] }}</span>
-            @if($override['scope_value'] !== '—')
-            <span class="scope-badge"><i class="fas fa-tag"></i> {{ $override['scope_value'] }}</span>
+            <span class="scope-badge"><i class="fas fa-box"></i> {{ $productLabel }}</span>
+            <span class="scope-badge"><i class="fas fa-crosshairs"></i> {{ $scopeType }}</span>
+            @if($scopeValue !== '—')
+            <span class="scope-badge"><i class="fas fa-tag"></i> {{ $scopeValue }}</span>
             @endif
         </div>
 
         <div class="override-details">
             <div class="detail-item">
                 <div class="detail-label">Forced Gateway</div>
-                <div class="detail-value"><code>{{ $override['forced_gw'] }}</code></div>
+                <div class="detail-value"><code>{{ $override->forcedGateway ? $override->forcedGateway->name : '—' }}</code></div>
             </div>
             <div class="detail-item">
-                <div class="detail-label">Secondary Gateway</div>
-                <div class="detail-value">{{ $override['secondary_gw'] !== '—' ? $override['secondary_gw'] : '—' }}</div>
+                <div class="detail-label">Blocked Gateway</div>
+                <div class="detail-value">{{ $override->blockedGateway ? $override->blockedGateway->name : '—' }}</div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">Time Period</div>
                 <div class="detail-value" style="font-size: 0.8rem;">
-                    {{ \Carbon\Carbon::parse($override['start'])->format('d M Y H:i') }}
+                    {{ $override->valid_from ? $override->valid_from->format('d M Y') : '—' }}
                     &rarr;
-                    {{ $override['end'] ? \Carbon\Carbon::parse($override['end'])->format('d M Y H:i') : 'Indefinite' }}
+                    {{ $override->valid_to ? $override->valid_to->format('d M Y') : 'Indefinite' }}
                 </div>
             </div>
             <div class="detail-item">
                 <div class="detail-label">Created By</div>
-                <div class="detail-value">{{ $override['created_by'] }}</div>
+                <div class="detail-value">{{ $override->created_by ?? '—' }}</div>
             </div>
         </div>
 
+        @if($override->reason)
         <div class="reason-text">
             <i class="fas fa-quote-left me-1" style="font-size: 0.6rem; color: var(--admin-primary);"></i>
-            {{ $override['reason'] }}
+            {{ $override->reason }}
         </div>
+        @endif
 
         <div class="override-footer">
             <div class="override-meta">
-                Created {{ $override['created_at'] }}
+                Created {{ $override->created_at ? $override->created_at->format('d-m-Y') : '—' }}
             </div>
             <div class="override-actions">
-                @if($override['status'] === 'active')
-                <button class="btn btn-outline-primary btn-sm" onclick="editOverride('{{ $override['id'] }}')">
+                @if($override->status === 'active')
+                <button class="btn btn-outline-primary btn-sm" onclick="editOverride('OVR-{{ str_pad($override->id, 3, '0', STR_PAD_LEFT) }}')">
                     <i class="fas fa-edit me-1"></i>Edit
                 </button>
-                <button class="btn btn-outline-danger btn-sm" onclick="cancelOverride('{{ $override['id'] }}', '{{ $override['customer'] }}')">
+                <button class="btn btn-outline-danger btn-sm" onclick="cancelOverride('OVR-{{ str_pad($override->id, 3, '0', STR_PAD_LEFT) }}', 'Account #{{ $override->account_id }}')">
                     <i class="fas fa-ban me-1"></i>Cancel
                 </button>
                 @else
-                <button class="btn btn-outline-secondary btn-sm" onclick="viewOverride('{{ $override['id'] }}')">
+                <button class="btn btn-outline-secondary btn-sm" onclick="viewOverride('OVR-{{ str_pad($override->id, 3, '0', STR_PAD_LEFT) }}')">
                     <i class="fas fa-eye me-1"></i>View
                 </button>
                 @endif
             </div>
         </div>
     </div>
-    @endforeach
+    @empty
+    <div class="empty-state">
+        <i class="fas fa-user-cog"></i>
+        <p>No customer overrides found.</p>
+        <p class="text-muted mt-2" style="font-size: 0.8rem;">Create an override to force specific routing for a customer.</p>
+    </div>
+    @endforelse
 </div>
 
 {{-- Create Override Modal --}}
@@ -449,26 +413,18 @@
                             <label class="form-label fw-semibold">Forced Gateway <span class="text-danger">*</span></label>
                             <select class="form-select" id="coForcedGateway">
                                 <option value="">Select gateway...</option>
-                                <option value="gw_bics_uk">BICS UK Premium</option>
-                                <option value="gw_sinch_uk">Sinch UK Direct</option>
-                                <option value="gw_telnyx_uk">Telnyx UK Backup</option>
-                                <option value="gw_twilio_uk">Twilio UK Standard</option>
-                                <option value="gw_bics_intl">BICS International</option>
-                                <option value="gw_sinch_global">Sinch Global</option>
-                                <option value="gw_telnyx_global">Telnyx Global</option>
+                                @foreach($gateways as $gw)
+                                <option value="{{ $gw->id }}">{{ $gw->name }} ({{ $gw->supplier->name ?? 'Unknown' }})</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Secondary Gateway</label>
                             <select class="form-select" id="coSecondaryGateway">
                                 <option value="">None (optional)</option>
-                                <option value="gw_bics_uk">BICS UK Premium</option>
-                                <option value="gw_sinch_uk">Sinch UK Direct</option>
-                                <option value="gw_telnyx_uk">Telnyx UK Backup</option>
-                                <option value="gw_twilio_uk">Twilio UK Standard</option>
-                                <option value="gw_bics_intl">BICS International</option>
-                                <option value="gw_sinch_global">Sinch Global</option>
-                                <option value="gw_telnyx_global">Telnyx Global</option>
+                                @foreach($gateways as $gw)
+                                <option value="{{ $gw->id }}">{{ $gw->name }} ({{ $gw->supplier->name ?? 'Unknown' }})</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>
@@ -583,19 +539,13 @@ function toggleScopeValue() {
     select.innerHTML = '<option value="">Select...</option>';
 
     if (scope === 'uk_network') {
-        ['EE', 'Three', 'O2', 'Vodafone', 'BT Mobile', 'Sky Mobile', 'Virgin Media', 'Tesco Mobile'].forEach(n => {
-            select.innerHTML += `<option value="${n}">${n}</option>`;
-        });
+        @foreach($ukNetworks as $network)
+        select.innerHTML += `<option value="{{ $network->mcc }}/{{ $network->mnc }}">{{ $network->network_name }}</option>`;
+        @endforeach
     } else if (scope === 'country') {
-        [
-            {code: 'AU', name: 'Australia'}, {code: 'AT', name: 'Austria'}, {code: 'BR', name: 'Brazil'},
-            {code: 'CA', name: 'Canada'}, {code: 'DK', name: 'Denmark'}, {code: 'FR', name: 'France'},
-            {code: 'DE', name: 'Germany'}, {code: 'IN', name: 'India'}, {code: 'JP', name: 'Japan'},
-            {code: 'KE', name: 'Kenya'}, {code: 'NG', name: 'Nigeria'}, {code: 'ZA', name: 'South Africa'},
-            {code: 'US', name: 'United States'}
-        ].forEach(c => {
-            select.innerHTML += `<option value="${c.code}">${c.name} (${c.code})</option>`;
-        });
+        @foreach($countries as $country)
+        select.innerHTML += `<option value="{{ $country->country_iso }}">{{ $country->country_name }} ({{ $country->country_iso }})</option>`;
+        @endforeach
     }
 }
 
