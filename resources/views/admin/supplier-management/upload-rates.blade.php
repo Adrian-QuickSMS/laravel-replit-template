@@ -874,7 +874,17 @@ function validateAndPreview() {
             product_type: productType,
         })
     })
-    .then(r => r.json())
+    .then(r => {
+        if (!r.ok) {
+            return r.json().then(errData => {
+                throw new Error(errData.message || errData.errors ? JSON.stringify(errData.errors) : 'Server error (' + r.status + ')');
+            }).catch(parseErr => {
+                if (parseErr.message && !parseErr.message.includes('Unexpected')) throw parseErr;
+                throw new Error('Server error (' + r.status + '). Please try uploading the file again.');
+            });
+        }
+        return r.json();
+    })
     .then(data => {
         if (!data.success) {
             document.getElementById('validationResults').innerHTML = `
@@ -888,9 +898,10 @@ function validateAndPreview() {
         displayValidationResults(data);
     })
     .catch(err => {
-        console.error(err);
+        console.error('Validation error:', err);
+        let errorMsg = err.message || 'Validation failed. Please try again.';
         document.getElementById('validationResults').innerHTML = `
-            <div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Validation failed. Please try again.</div>`;
+            <div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>${errorMsg}</div>`;
         document.getElementById('importActions').style.display = 'block';
         document.getElementById('confirmImportBtn').style.display = 'none';
     });

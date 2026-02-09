@@ -22,6 +22,11 @@ class MccMnc extends Model
         'active' => 'boolean',
     ];
 
+    public function scopeByMccMnc($query, $mcc, $mnc)
+    {
+        return $query->where('mcc', $mcc)->where('mnc', $mnc);
+    }
+
     public function rateCards()
     {
         return $this->hasMany(RateCard::class, 'mcc_mnc_id');
