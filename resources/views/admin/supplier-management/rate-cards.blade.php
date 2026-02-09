@@ -142,17 +142,13 @@
         <table class="table mb-0">
             <thead>
                 <tr>
+                    <th>Supplier</th>
                     <th>Network</th>
-                    <th>MCC/MNC</th>
-                    <th>Gateway</th>
                     <th>Product</th>
-                    <th>Rate (Native)</th>
+                    <th>Rate Updated</th>
+                    <th>Billing</th>
                     <th>Rate (GBP)</th>
-                    <th>Valid From</th>
-                    <th>Valid To</th>
-                    <th>Version</th>
-                    <th>Status</th>
-                    <th style="width: 100px;">Actions</th>
+                    <th style="width: 80px;">Actions</th>
                 </tr>
             </thead>
             <tbody id="rateTableBody">
@@ -163,25 +159,25 @@
                     data-status="{{ $rate->active ? 'active' : 'inactive' }}"
                     data-search="{{ strtolower($rate->mcc . $rate->mnc . $rate->network_name) }}">
                     <td>
-                        <strong>{{ $rate->network_name }}</strong>
-                        <br><small class="text-muted">{{ $rate->country_name }}</small>
+                        <strong>{{ $rate->supplier->name ?? '—' }}</strong>
+                        <br><small class="text-muted">{{ $rate->gateway->name ?? '—' }}</small>
                     </td>
-                    <td><code>{{ $rate->mcc }}/{{ $rate->mnc }}</code></td>
-                    <td>{{ $rate->gateway->name }}</td>
+                    <td>
+                        <strong>{{ $rate->network_name }}</strong>
+                        <br><small class="text-muted">{{ $rate->mcc }}/{{ $rate->mnc }}</small>
+                    </td>
                     <td>
                         <span class="badge bg-secondary">{{ $rate->product_type }}</span>
                     </td>
-                    <td class="rate-value">{{ $rate->currency }} {{ number_format($rate->native_rate, 4) }}</td>
-                    <td class="rate-value">£{{ number_format($rate->gbp_rate, 4) }}</td>
-                    <td>{{ \Carbon\Carbon::parse($rate->valid_from)->format('d M Y') }}</td>
-                    <td>{{ $rate->valid_to ? \Carbon\Carbon::parse($rate->valid_to)->format('d M Y') : '—' }}</td>
-                    <td><span class="version-badge">v{{ $rate->version }}</span></td>
+                    <td>{{ $rate->updated_at ? $rate->updated_at->format('d-m-Y') : '—' }}</td>
                     <td>
-                        <span class="status-badge {{ $rate->active ? 'active' : 'inactive' }}">
-                            <i class="fas fa-circle" style="font-size: 6px;"></i>
-                            {{ $rate->active ? 'Active' : 'Inactive' }}
-                        </span>
+                        @if($rate->billing_method === 'delivered')
+                            <span class="badge" style="background: #d1fae5; color: #065f46;">Delivered</span>
+                        @else
+                            <span class="badge" style="background: #fef3c7; color: #92400e;">Submitted</span>
+                        @endif
                     </td>
+                    <td class="rate-value">£{{ number_format($rate->gbp_rate, 4) }}</td>
                     <td>
                         <div class="dropdown">
                             <button class="action-menu-btn" data-bs-toggle="dropdown">
@@ -199,7 +195,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="11" class="text-center py-4 text-muted">
+                    <td colspan="7" class="text-center py-4 text-muted">
                         <i class="fas fa-inbox fa-2x mb-2"></i>
                         <p>No rate cards found</p>
                         <a href="{{ route('admin.rate-cards.upload') }}" class="btn btn-sm btn-admin-primary mt-2">
