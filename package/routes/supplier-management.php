@@ -28,6 +28,7 @@ Route::prefix('admin')->middleware([
         Route::put('/suppliers/{supplier}', [SupplierController::class, 'update'])->name('admin.suppliers.update');
         Route::post('/suppliers/{supplier}/suspend', [SupplierController::class, 'suspend'])->name('admin.suppliers.suspend');
         Route::delete('/suppliers/{supplier}', [SupplierController::class, 'destroy'])->name('admin.suppliers.destroy');
+        Route::get('/suppliers/{supplier}/gateways', [SupplierController::class, 'gateways'])->name('admin.suppliers.gateways');
 
         // Gateways
         Route::get('/gateways', [GatewayController::class, 'index'])->name('admin.gateways.index');
