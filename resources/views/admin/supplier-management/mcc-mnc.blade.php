@@ -316,35 +316,167 @@
     </div>
 </div>
 
-<!-- Bulk Import Modal -->
-<div class="modal fade" id="importModal" tabindex="-1">
+<!-- Bulk Import Wizard Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Bulk Import MCC/MNC Data</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-file-import me-2"></i>Bulk Import MCC/MNC Data</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="resetImportWizard()"></button>
             </div>
-            <div class="modal-body">
-                <div class="alert alert-info">
-                    <strong>Required CSV Format:</strong>
-                    <code>mcc,mnc,country_name,country_iso,network_name,network_type</code>
-                    <br><small>Example: 234,10,United Kingdom,GB,O2,mobile</small>
+            <div class="modal-body p-0">
+                <!-- Step indicators -->
+                <div class="import-steps d-flex border-bottom">
+                    <div class="import-step active" id="stepIndicator1" style="flex:1; text-align:center; padding:0.75rem; font-size:0.85rem; font-weight:600; border-bottom:3px solid var(--admin-primary); color: var(--admin-primary);">
+                        <span class="step-number" style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--admin-primary);color:#fff;align-items:center;justify-content:center;font-size:0.7rem;margin-right:0.4rem;">1</span>Upload File
+                    </div>
+                    <div class="import-step" id="stepIndicator2" style="flex:1; text-align:center; padding:0.75rem; font-size:0.85rem; font-weight:600; border-bottom:3px solid #dee2e6; color: #adb5bd;">
+                        <span class="step-number" style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:#adb5bd;color:#fff;align-items:center;justify-content:center;font-size:0.7rem;margin-right:0.4rem;">2</span>Map Columns
+                    </div>
+                    <div class="import-step" id="stepIndicator3" style="flex:1; text-align:center; padding:0.75rem; font-size:0.85rem; font-weight:600; border-bottom:3px solid #dee2e6; color: #adb5bd;">
+                        <span class="step-number" style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:#adb5bd;color:#fff;align-items:center;justify-content:center;font-size:0.7rem;margin-right:0.4rem;">3</span>Preview & Import
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Upload CSV File</label>
-                    <input type="file" class="form-control" id="importFile" accept=".csv">
+                <!-- Step 1: Upload File -->
+                <div class="import-step-content p-4" id="step1Content">
+                    <p class="text-muted mb-3">Upload a CSV or Excel file containing MCC/MNC network data. Your file can have any column layout — you'll map columns in the next step.</p>
+                    <div class="upload-zone text-center p-4 rounded mb-3" id="dropZone" style="border:2px dashed #ccc; cursor:pointer; background:#fafbfc; transition: all 0.2s;">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--admin-accent);"></i>
+                        <p class="mb-1 fw-semibold">Drag & drop your file here</p>
+                        <p class="text-muted mb-2" style="font-size:0.85rem;">or click to browse</p>
+                        <span class="badge bg-light text-dark border">.csv</span>
+                        <span class="badge bg-light text-dark border">.xlsx</span>
+                        <span class="badge bg-light text-dark border">.xls</span>
+                        <input type="file" id="importFile" accept=".csv,.xlsx,.xls" style="display:none;">
+                    </div>
+                    <div id="fileInfo" class="d-none">
+                        <div class="d-flex align-items-center gap-3 p-3 rounded" style="background:#f0f7ff; border:1px solid #c5ddf7;">
+                            <i class="fas fa-file-alt fa-2x" style="color: var(--admin-accent);"></i>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold" id="fileName"></div>
+                                <small class="text-muted" id="fileSize"></small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger" onclick="clearFile()"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <div id="uploadError" class="alert alert-danger mt-3 d-none"></div>
+                    <div id="uploadSpinner" class="text-center py-3 d-none">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted">Reading file...</p>
+                    </div>
                 </div>
 
-                <div class="mt-3">
-                    <a href="/downloads/mcc-mnc-template.csv" class="btn btn-sm btn-outline-primary" download>
-                        <i class="fas fa-download me-1"></i>Download Template
-                    </a>
+                <!-- Step 2: Map Columns -->
+                <div class="import-step-content p-4 d-none" id="step2Content">
+                    <p class="text-muted mb-3">Map your file's columns to the required MCC/MNC fields. We've auto-detected likely matches where possible.</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">MCC <span class="text-danger">*</span></label>
+                            <select class="form-select" id="mapMcc"></select>
+                            <small class="text-muted">Mobile Country Code (3 digits)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">MNC <span class="text-danger">*</span></label>
+                            <select class="form-select" id="mapMnc"></select>
+                            <small class="text-muted">Mobile Network Code (2-3 digits)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Country Name <span class="text-danger">*</span></label>
+                            <select class="form-select" id="mapCountryName"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Country ISO <span class="text-danger">*</span></label>
+                            <select class="form-select" id="mapCountryIso"></select>
+                            <small class="text-muted">2-letter code (e.g., GB, US)</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Network Name <span class="text-danger">*</span></label>
+                            <select class="form-select" id="mapNetworkName"></select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Network Type <span class="text-muted">(optional)</span></label>
+                            <select class="form-select" id="mapNetworkType"></select>
+                            <small class="text-muted">Defaults to "mobile" if not mapped</small>
+                        </div>
+                    </div>
+                    <div id="mappingError" class="alert alert-danger mt-3 d-none"></div>
+                </div>
+
+                <!-- Step 3: Preview & Import -->
+                <div class="import-step-content p-4 d-none" id="step3Content">
+                    <div id="previewSection">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h6 class="mb-0">Data Preview</h6>
+                                <small class="text-muted">Showing first 5 rows of <span id="totalRowCount"></span> total</small>
+                            </div>
+                            <span class="badge" style="background: var(--admin-primary); font-size:0.8rem;" id="readyBadge"></span>
+                        </div>
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered mb-0" id="previewTable">
+                                <thead style="background:#f8f9fa; position:sticky; top:0;">
+                                    <tr id="previewHeader"></tr>
+                                </thead>
+                                <tbody id="previewBody"></tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-info mt-3 mb-0" style="font-size:0.85rem;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Duplicate MCC/MNC pairs will be <strong>updated</strong> with the new data. New entries will be <strong>created</strong>.
+                        </div>
+                    </div>
+                    <div id="importProgress" class="d-none text-center py-4">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width:3rem;height:3rem;"></div>
+                        <h6>Importing data...</h6>
+                        <p class="text-muted" id="importProgressText">Please wait</p>
+                    </div>
+                    <div id="importResults" class="d-none">
+                        <div class="text-center py-3">
+                            <i class="fas fa-check-circle fa-3x mb-3" style="color:#198754;"></i>
+                            <h5>Import Complete</h5>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-4 text-center">
+                                <div class="p-3 rounded" style="background:#d4f4dd;">
+                                    <div class="fs-4 fw-bold" style="color:#198754;" id="resultCreated">0</div>
+                                    <small class="text-muted">Created</small>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="p-3 rounded" style="background:#fff3cd;">
+                                    <div class="fs-4 fw-bold" style="color:#856404;" id="resultUpdated">0</div>
+                                    <small class="text-muted">Updated</small>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="p-3 rounded" style="background:#f8d7da;">
+                                    <div class="fs-4 fw-bold" style="color:#842029;" id="resultErrors">0</div>
+                                    <small class="text-muted">Errors</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="errorDetails" class="d-none">
+                            <h6 class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Error Details</h6>
+                            <div class="table-responsive" style="max-height:150px; overflow-y:auto;">
+                                <table class="table table-sm mb-0">
+                                    <thead><tr><th>Row</th><th>Error</th></tr></thead>
+                                    <tbody id="errorTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-admin-primary" onclick="submitImport()">Import Data</button>
+                <button type="button" class="btn btn-secondary" id="btnBack" onclick="wizardBack()" style="display:none;">
+                    <i class="fas fa-arrow-left me-1"></i>Back
+                </button>
+                <div class="flex-grow-1"></div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="resetImportWizard()">Cancel</button>
+                <button type="button" class="btn btn-admin-primary" id="btnNext" onclick="wizardNext()" disabled>
+                    Next <i class="fas fa-arrow-right ms-1"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -454,39 +586,269 @@ function deleteNetwork(networkId) {
     }
 }
 
+let importState = { step: 1, headers: [], preview: [], totalRows: 0, importId: '' };
+
 function openImportModal() {
+    resetImportWizard();
     new bootstrap.Modal(document.getElementById('importModal')).show();
 }
 
-function submitImport() {
-    const fileInput = document.getElementById('importFile');
-    if (!fileInput.files[0]) {
-        alert('Please select a file');
+function resetImportWizard() {
+    importState = { step: 1, headers: [], preview: [], totalRows: 0, importId: '' };
+    showStep(1);
+    document.getElementById('fileInfo').classList.add('d-none');
+    document.getElementById('dropZone').classList.remove('d-none');
+    document.getElementById('uploadError').classList.add('d-none');
+    document.getElementById('uploadSpinner').classList.add('d-none');
+    document.getElementById('importResults').classList.add('d-none');
+    document.getElementById('importProgress').classList.add('d-none');
+    document.getElementById('previewSection').classList.remove('d-none');
+    document.getElementById('importFile').value = '';
+    document.getElementById('btnNext').disabled = true;
+    document.getElementById('btnNext').innerHTML = 'Next <i class="fas fa-arrow-right ms-1"></i>';
+}
+
+function showStep(step) {
+    importState.step = step;
+    [1,2,3].forEach(s => {
+        document.getElementById('step' + s + 'Content').classList.toggle('d-none', s !== step);
+        const ind = document.getElementById('stepIndicator' + s);
+        if (s <= step) {
+            ind.style.borderBottomColor = 'var(--admin-primary)';
+            ind.style.color = 'var(--admin-primary)';
+            ind.querySelector('.step-number').style.background = 'var(--admin-primary)';
+        } else {
+            ind.style.borderBottomColor = '#dee2e6';
+            ind.style.color = '#adb5bd';
+            ind.querySelector('.step-number').style.background = '#adb5bd';
+        }
+    });
+    document.getElementById('btnBack').style.display = step > 1 ? '' : 'none';
+    if (step === 3) {
+        document.getElementById('btnNext').innerHTML = '<i class="fas fa-upload me-1"></i>Import Data';
+    } else {
+        document.getElementById('btnNext').innerHTML = 'Next <i class="fas fa-arrow-right ms-1"></i>';
+    }
+}
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('importFile');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--admin-accent)'; dropZone.style.background = '#e8f0fe'; });
+dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = '#ccc'; dropZone.style.background = '#fafbfc'; });
+dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = '#ccc'; dropZone.style.background = '#fafbfc';
+    if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; handleFileSelected(); }
+});
+fileInput.addEventListener('change', handleFileSelected);
+
+function handleFileSelected() {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['csv','xlsx','xls'].includes(ext)) {
+        document.getElementById('uploadError').textContent = 'Please upload a .csv, .xlsx, or .xls file.';
+        document.getElementById('uploadError').classList.remove('d-none');
         return;
     }
+    document.getElementById('uploadError').classList.add('d-none');
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = formatBytes(file.size);
+    document.getElementById('fileInfo').classList.remove('d-none');
+    document.getElementById('dropZone').classList.add('d-none');
+    uploadFile(file);
+}
 
+function clearFile() {
+    fileInput.value = '';
+    document.getElementById('fileInfo').classList.add('d-none');
+    document.getElementById('dropZone').classList.remove('d-none');
+    document.getElementById('btnNext').disabled = true;
+    importState.headers = [];
+}
+
+function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function uploadFile(file) {
+    document.getElementById('uploadSpinner').classList.remove('d-none');
+    document.getElementById('btnNext').disabled = true;
     const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
+    formData.append('file', file);
+
+    fetch('{{ route('admin.mcc-mnc.parse-file') }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('uploadSpinner').classList.add('d-none');
+        if (!data.success) {
+            document.getElementById('uploadError').textContent = data.message;
+            document.getElementById('uploadError').classList.remove('d-none');
+            return;
+        }
+        importState.headers = data.headers;
+        importState.preview = data.preview;
+        importState.totalRows = data.totalRows;
+        importState.importId = data.importId;
+        document.getElementById('btnNext').disabled = false;
+    })
+    .catch(err => {
+        document.getElementById('uploadSpinner').classList.add('d-none');
+        document.getElementById('uploadError').textContent = 'Failed to upload file. Please try again.';
+        document.getElementById('uploadError').classList.remove('d-none');
+    });
+}
+
+function populateMappingDropdowns() {
+    const fields = [
+        { id: 'mapMcc', keywords: ['mcc'] },
+        { id: 'mapMnc', keywords: ['mnc'] },
+        { id: 'mapCountryName', keywords: ['country_name','country name','country','countryname'] },
+        { id: 'mapCountryIso', keywords: ['country_iso','iso','country_code','countryiso','country iso','cc'] },
+        { id: 'mapNetworkName', keywords: ['network_name','network name','operator','network','networkname','carrier'] },
+        { id: 'mapNetworkType', keywords: ['network_type','type','network type','networktype'], optional: true },
+    ];
+    fields.forEach(field => {
+        const sel = document.getElementById(field.id);
+        sel.innerHTML = field.optional
+            ? '<option value="">— Not mapped (defaults to mobile) —</option>'
+            : '<option value="">— Select column —</option>';
+        importState.headers.forEach((h, i) => {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = h;
+            const lower = h.toLowerCase().trim();
+            if (field.keywords.some(k => lower === k || lower.replace(/[\s_-]/g,'') === k.replace(/[\s_-]/g,''))) {
+                opt.selected = true;
+            }
+            sel.appendChild(opt);
+        });
+    });
+}
+
+function buildPreviewTable() {
+    const mapping = getMappingValues();
+    const headerRow = document.getElementById('previewHeader');
+    const tbody = document.getElementById('previewBody');
+    headerRow.innerHTML = '<th>MCC</th><th>MNC</th><th>Country</th><th>ISO</th><th>Network</th><th>Type</th>';
+    tbody.innerHTML = '';
+    importState.preview.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><code>${row[mapping.mcc] || ''}</code></td>
+            <td><code>${row[mapping.mnc] || ''}</code></td>
+            <td>${row[mapping.country_name] || ''}</td>
+            <td>${row[mapping.country_iso] || ''}</td>
+            <td>${row[mapping.network_name] || ''}</td>
+            <td>${mapping.network_type !== '' ? (row[mapping.network_type] || 'mobile') : 'mobile'}</td>`;
+        tbody.appendChild(tr);
+    });
+    document.getElementById('totalRowCount').textContent = importState.totalRows;
+    document.getElementById('readyBadge').textContent = importState.totalRows + ' rows ready';
+}
+
+function getMappingValues() {
+    return {
+        mcc: parseInt(document.getElementById('mapMcc').value),
+        mnc: parseInt(document.getElementById('mapMnc').value),
+        country_name: parseInt(document.getElementById('mapCountryName').value),
+        country_iso: parseInt(document.getElementById('mapCountryIso').value),
+        network_name: parseInt(document.getElementById('mapNetworkName').value),
+        network_type: document.getElementById('mapNetworkType').value,
+    };
+}
+
+function wizardNext() {
+    if (importState.step === 1) {
+        if (!importState.headers.length) return;
+        populateMappingDropdowns();
+        showStep(2);
+        document.getElementById('btnNext').disabled = false;
+    } else if (importState.step === 2) {
+        const required = ['mapMcc','mapMnc','mapCountryName','mapCountryIso','mapNetworkName'];
+        const missing = required.filter(id => document.getElementById(id).value === '');
+        if (missing.length) {
+            document.getElementById('mappingError').textContent = 'Please map all required fields (marked with *).';
+            document.getElementById('mappingError').classList.remove('d-none');
+            return;
+        }
+        document.getElementById('mappingError').classList.add('d-none');
+        buildPreviewTable();
+        showStep(3);
+    } else if (importState.step === 3) {
+        runImport();
+    }
+}
+
+function wizardBack() {
+    if (importState.step === 2) showStep(1);
+    else if (importState.step === 3) showStep(2);
+}
+
+function runImport() {
+    const mapping = getMappingValues();
+    document.getElementById('previewSection').classList.add('d-none');
+    document.getElementById('importProgress').classList.remove('d-none');
+    document.getElementById('btnNext').disabled = true;
+    document.getElementById('btnBack').style.display = 'none';
 
     fetch('{{ route('admin.mcc-mnc.import') }}', {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: formData
+        body: JSON.stringify({ importId: importState.importId, mapping })
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
+        document.getElementById('importProgress').classList.add('d-none');
+        document.getElementById('importResults').classList.remove('d-none');
         if (data.success) {
-            alert(`Successfully imported ${data.imported} networks`);
-            location.reload();
+            document.getElementById('resultCreated').textContent = data.imported;
+            document.getElementById('resultUpdated').textContent = data.updated;
+            document.getElementById('resultErrors').textContent = data.errors.length;
+            if (data.errors.length) {
+                document.getElementById('errorDetails').classList.remove('d-none');
+                const errBody = document.getElementById('errorTableBody');
+                errBody.innerHTML = '';
+                data.errors.slice(0, 20).forEach(e => {
+                    errBody.innerHTML += `<tr><td>${e.row}</td><td>${e.error}</td></tr>`;
+                });
+            }
+            document.getElementById('btnNext').innerHTML = '<i class="fas fa-check me-1"></i>Done';
+            document.getElementById('btnNext').disabled = false;
+            document.getElementById('btnNext').onclick = () => location.reload();
         } else {
-            alert('Import failed: ' + data.message);
+            document.getElementById('resultCreated').textContent = '0';
+            document.getElementById('resultUpdated').textContent = '0';
+            document.getElementById('resultErrors').textContent = '1';
+            document.getElementById('errorDetails').classList.remove('d-none');
+            document.getElementById('errorTableBody').innerHTML = `<tr><td>-</td><td>${data.message || 'Unknown error occurred'}</td></tr>`;
+            document.getElementById('btnNext').innerHTML = '<i class="fas fa-redo me-1"></i>Try Again';
+            document.getElementById('btnNext').disabled = false;
+            document.getElementById('btnNext').onclick = () => { resetImportWizard(); };
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred during import');
+    .catch(err => {
+        document.getElementById('importProgress').classList.add('d-none');
+        document.getElementById('importResults').classList.remove('d-none');
+        document.getElementById('resultCreated').textContent = '0';
+        document.getElementById('resultUpdated').textContent = '0';
+        document.getElementById('resultErrors').textContent = '1';
+        document.getElementById('errorDetails').classList.remove('d-none');
+        document.getElementById('errorTableBody').innerHTML = `<tr><td>-</td><td>Network error. Please check your connection and try again.</td></tr>`;
+        document.getElementById('btnNext').innerHTML = '<i class="fas fa-redo me-1"></i>Try Again';
+        document.getElementById('btnNext').disabled = false;
+        document.getElementById('btnNext').onclick = () => { resetImportWizard(); };
     });
 }
 

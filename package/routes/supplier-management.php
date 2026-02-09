@@ -49,6 +49,7 @@ Route::prefix('admin')->middleware([
         Route::put('/mcc-mnc/{mccMnc}', [MccMncController::class, 'update'])->name('admin.mcc-mnc.update');
         Route::post('/mcc-mnc/{mccMnc}/toggle-status', [MccMncController::class, 'toggleStatus'])->name('admin.mcc-mnc.toggle-status');
         Route::delete('/mcc-mnc/{mccMnc}', [MccMncController::class, 'destroy'])->name('admin.mcc-mnc.destroy');
+        Route::post('/mcc-mnc/parse-file', [MccMncController::class, 'parseFile'])->name('admin.mcc-mnc.parse-file');
         Route::post('/mcc-mnc/import', [MccMncController::class, 'import'])->name('admin.mcc-mnc.import');
 
     });
