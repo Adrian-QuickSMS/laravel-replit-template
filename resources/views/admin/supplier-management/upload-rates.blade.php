@@ -366,7 +366,7 @@ function uploadAndValidate() {
 
     nextStep(3);
 
-    fetch('{{ route('admin.rate-cards.validate') }}', {
+    fetch('{{ route('admin.rate-cards.validate-upload') }}', {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -434,7 +434,7 @@ function confirmImport() {
     if (!validatedData) return;
 
     if (confirm(`Are you sure you want to import ${validatedData.total_rows} rate cards?`)) {
-        fetch('{{ route('admin.rate-cards.process') }}', {
+        fetch('{{ route('admin.rate-cards.process-upload') }}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
