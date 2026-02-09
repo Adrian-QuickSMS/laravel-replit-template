@@ -11,7 +11,9 @@ use App\Models\FxRate;
 use App\Models\RateCardAuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use Carbon\Carbon;
 
 class RateCardController extends Controller
@@ -59,27 +61,235 @@ class RateCardController extends Controller
         return view('admin.supplier-management.upload-rates', compact('suppliers'));
     }
 
-    public function validateUpload(Request $request)
+    public function parseFile(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,xlsx',
-            'gateway_id' => 'required|exists:gateways,id',
+            'file' => 'required|file|max:10240',
         ]);
 
         $file = $request->file('file');
-        $gateway = Gateway::with('supplier')->findOrFail($request->gateway_id);
+        $extension = strtolower($file->getClientOriginalExtension());
 
-        // Parse file
-        $data = $this->parseUploadFile($file);
+        if (!in_array($extension, ['csv', 'xlsx', 'xls'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unsupported file type. Please upload a CSV or Excel (.xlsx/.xls) file.',
+            ], 422);
+        }
 
-        // Validate data
-        $validationResults = $this->validateRateData($data, $gateway);
+        try {
+            $rows = $this->readFileRows($file->getRealPath(), $extension);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not read the file: ' . $e->getMessage(),
+            ], 422);
+        }
+
+        if (count($rows) < 2) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The file must contain at least 2 rows (a header and at least one data row).',
+            ], 422);
+        }
+
+        if (count($rows) > 50000) {
+            return response()->json([
+                'success' => false,
+                'message' => 'File exceeds the maximum of 50,000 rows.',
+            ], 422);
+        }
+
+        $storedName = $file->store('imports', 'local');
+        $importId = basename($storedName);
+        $request->session()->put('rate_card_import_file', $storedName);
+        $request->session()->put('rate_card_import_extension', $extension);
+
+        $previewRows = array_slice($rows, 0, 20);
 
         return response()->json([
             'success' => true,
-            'data' => $data,
-            'validation' => $validationResults,
-            'gateway' => $gateway,
+            'preview' => $previewRows,
+            'totalRows' => count($rows),
+            'importId' => $importId,
+            'fileName' => $file->getClientOriginalName(),
+        ]);
+    }
+
+    public function validateMapping(Request $request)
+    {
+        $request->validate([
+            'importId' => 'required|string',
+            'headerRow' => 'required|integer|min:0',
+            'mapping' => 'required|array',
+            'mapping.mcc' => 'required|integer|min:0',
+            'mapping.mnc' => 'required|integer|min:0',
+            'mapping.rate' => 'required|integer|min:0',
+            'gateway_id' => 'required|exists:gateways,id',
+        ]);
+
+        $sessionFile = $request->session()->get('rate_card_import_file');
+        $extension = $request->session()->get('rate_card_import_extension', 'csv');
+        if (!$sessionFile) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload session expired. Please upload the file again.',
+            ], 422);
+        }
+
+        $importId = basename($request->importId);
+        if (basename($sessionFile) !== $importId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid import session. Please upload the file again.',
+            ], 422);
+        }
+
+        $fullPath = Storage::disk('local')->path($sessionFile);
+        if (!file_exists($fullPath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Upload file not found. Please upload again.',
+            ], 422);
+        }
+
+        try {
+            $rows = $this->readFileRows($fullPath, $extension);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not read the file: ' . $e->getMessage(),
+            ], 500);
+        }
+
+        $headerRow = (int) $request->headerRow;
+        $mapping = $request->mapping;
+        $gateway = Gateway::with('supplier')->findOrFail($request->gateway_id);
+
+        if ($headerRow >= count($rows) - 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Header row is out of range. There must be at least one data row after the header.',
+            ], 422);
+        }
+
+        $headers = $rows[$headerRow] ?? [];
+        $maxColIndex = count($headers) - 1;
+
+        foreach (['mcc', 'mnc', 'rate'] as $requiredField) {
+            if ((int) $mapping[$requiredField] > $maxColIndex) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Column index for '{$requiredField}' is out of range (max column: {$maxColIndex}).",
+                ], 422);
+            }
+        }
+
+        foreach (['currency', 'product_type', 'country_name', 'network_name'] as $optField) {
+            if (isset($mapping[$optField]) && $mapping[$optField] !== '' && $mapping[$optField] !== null) {
+                if ((int) $mapping[$optField] > $maxColIndex) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Column index for '{$optField}' is out of range (max column: {$maxColIndex}).",
+                    ], 422);
+                }
+            }
+        }
+
+        $dataRows = array_slice($rows, $headerRow + 1);
+
+        $currencyCol = isset($mapping['currency']) && $mapping['currency'] !== '' && $mapping['currency'] !== null
+            ? (int) $mapping['currency'] : null;
+        $productTypeCol = isset($mapping['product_type']) && $mapping['product_type'] !== '' && $mapping['product_type'] !== null
+            ? (int) $mapping['product_type'] : null;
+        $countryCol = isset($mapping['country_name']) && $mapping['country_name'] !== '' && $mapping['country_name'] !== null
+            ? (int) $mapping['country_name'] : null;
+        $networkCol = isset($mapping['network_name']) && $mapping['network_name'] !== '' && $mapping['network_name'] !== null
+            ? (int) $mapping['network_name'] : null;
+
+        $validRows = [];
+        $errors = [];
+        $newRates = 0;
+        $updateRates = 0;
+
+        foreach ($dataRows as $index => $row) {
+            $rowNum = $headerRow + $index + 2;
+            $mcc = trim($row[$mapping['mcc']] ?? '');
+            $mnc = trim($row[$mapping['mnc']] ?? '');
+            $rate = trim($row[$mapping['rate']] ?? '');
+            $currency = $currencyCol !== null ? trim($row[$currencyCol] ?? '') : ($gateway->currency ?? 'GBP');
+            $productType = $productTypeCol !== null ? trim($row[$productTypeCol] ?? '') : 'SMS';
+            $countryName = $countryCol !== null ? trim($row[$countryCol] ?? '') : '';
+            $networkName = $networkCol !== null ? trim($row[$networkCol] ?? '') : '';
+
+            $mcc = ltrim($mcc, "'");
+            $mnc = ltrim($mnc, "'");
+
+            if (empty($mcc) && empty($mnc) && empty($rate)) {
+                continue;
+            }
+
+            $rowErrors = [];
+
+            if (empty($mcc) || !ctype_digit($mcc)) {
+                $rowErrors[] = 'Valid MCC is required';
+            }
+            if (empty($mnc) || !ctype_digit($mnc)) {
+                $rowErrors[] = 'Valid MNC is required';
+            }
+            if (empty($rate) || !is_numeric($rate)) {
+                $rowErrors[] = 'Valid rate is required';
+            } elseif ((float) $rate < 0) {
+                $rowErrors[] = 'Rate cannot be negative';
+            }
+
+            $mccMnc = null;
+            if (empty($rowErrors)) {
+                $mccMnc = MccMnc::byMccMnc($mcc, $mnc)->first();
+                if (!$mccMnc) {
+                    $rowErrors[] = "MCC/MNC {$mcc}/{$mnc} not found in master reference";
+                }
+            }
+
+            if (!empty($rowErrors)) {
+                $errors[] = ['row' => $rowNum, 'errors' => $rowErrors, 'data' => compact('mcc', 'mnc', 'rate')];
+            } else {
+                $existing = RateCard::where('gateway_id', $gateway->id)
+                    ->where('mcc', $mcc)
+                    ->where('mnc', $mnc)
+                    ->where('product_type', $productType ?: 'SMS')
+                    ->where('active', true)
+                    ->first();
+
+                if ($existing) {
+                    $updateRates++;
+                } else {
+                    $newRates++;
+                }
+
+                $validRows[] = [
+                    'mcc' => $mcc,
+                    'mnc' => $mnc,
+                    'rate' => $rate,
+                    'currency' => $currency ?: 'GBP',
+                    'product_type' => $productType ?: 'SMS',
+                    'country_name' => $countryName ?: ($mccMnc->country_name ?? ''),
+                    'network_name' => $networkName ?: ($mccMnc->network_name ?? ''),
+                ];
+            }
+        }
+
+        $preview = array_slice($validRows, 0, 20);
+
+        return response()->json([
+            'success' => true,
+            'totalRows' => count($dataRows),
+            'validRows' => count($validRows),
+            'newRates' => $newRates,
+            'updateRates' => $updateRates,
+            'errors' => $errors,
+            'preview' => $preview,
+            'rates' => $validRows,
         ]);
     }
 
@@ -151,79 +361,74 @@ class RateCardController extends Controller
         }
     }
 
-    private function parseUploadFile($file)
+    private function readFileRows($filePath, $extension)
     {
-        $extension = $file->getClientOriginalExtension();
-        $data = [];
-
         if ($extension === 'csv') {
-            $handle = fopen($file->getRealPath(), 'r');
-            $header = fgetcsv($handle);
-
-            while (($row = fgetcsv($handle)) !== false) {
-                $data[] = array_combine($header, $row);
-            }
-
-            fclose($handle);
-        } elseif ($extension === 'xlsx') {
-            // Use PhpSpreadsheet for Excel files
-            // Implementation would go here
+            return $this->readCsv($filePath);
         }
 
-        return $data;
+        return $this->readExcel($filePath);
     }
 
-    private function validateRateData($data, $gateway)
+    private function readCsv($filePath)
     {
-        $errors = [];
-        $warnings = [];
-        $validRows = 0;
-
-        foreach ($data as $index => $row) {
-            $rowErrors = [];
-
-            // Validate required fields
-            if (empty($row['mcc'])) {
-                $rowErrors[] = 'MCC is required';
-            }
-
-            if (empty($row['mnc'])) {
-                $rowErrors[] = 'MNC is required';
-            }
-
-            if (empty($row['rate']) || !is_numeric($row['rate'])) {
-                $rowErrors[] = 'Valid rate is required';
-            }
-
-            if (isset($row['rate']) && $row['rate'] < 0) {
-                $rowErrors[] = 'Rate cannot be negative';
-            }
-
-            // Check if MCC/MNC exists in master table
-            if (!empty($row['mcc']) && !empty($row['mnc'])) {
-                $mccMnc = MccMnc::byMccMnc($row['mcc'], $row['mnc'])->first();
-                if (!$mccMnc) {
-                    $rowErrors[] = 'MCC/MNC not found in master reference';
-                }
-            }
-
-            if (empty($rowErrors)) {
-                $validRows++;
-            } else {
-                $errors[] = [
-                    'row' => $index + 2, // +2 for header and 0-index
-                    'errors' => $rowErrors,
-                ];
-            }
+        $handle = @fopen($filePath, 'r');
+        if (!$handle) {
+            throw new \RuntimeException('Unable to open the file for reading.');
         }
 
-        return [
-            'valid' => count($errors) === 0,
-            'total_rows' => count($data),
-            'valid_rows' => $validRows,
-            'errors' => $errors,
-            'warnings' => $warnings,
-        ];
+        $rows = [];
+        $maxRows = 50001;
+
+        while (($row = fgetcsv($handle)) !== false && count($rows) < $maxRows) {
+            $rows[] = $row;
+        }
+
+        fclose($handle);
+
+        if (empty($rows)) {
+            throw new \RuntimeException('The file appears to be empty.');
+        }
+
+        return $rows;
+    }
+
+    private function readExcel($filePath)
+    {
+        $spreadsheet = IOFactory::load($filePath);
+        $worksheet = $spreadsheet->getActiveSheet();
+        $rows = [];
+        $maxRows = 50001;
+
+        foreach ($worksheet->getRowIterator() as $row) {
+            if (count($rows) >= $maxRows) break;
+
+            $cellIterator = $row->getCellIterator();
+            $cellIterator->setIterateOnlyExistingCells(false);
+            $rowData = [];
+
+            foreach ($cellIterator as $cell) {
+                $value = $cell->getValue();
+                if ($value instanceof \PhpOffice\PhpSpreadsheet\RichText\RichText) {
+                    $value = $value->getPlainText();
+                }
+                if (is_float($value) && \PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell)) {
+                    try {
+                        $value = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value)->format('Y-m-d');
+                    } catch (\Exception $e) {
+                    }
+                }
+                $rowData[] = $value !== null ? (string) $value : '';
+            }
+
+            $rows[] = $rowData;
+        }
+
+        if (empty($rows)) {
+            throw new \RuntimeException('The file appears to be empty.');
+        }
+
+        return $rows;
     }
 
     private function importRate($rateData, $gateway, $validFrom)

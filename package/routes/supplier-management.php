@@ -40,7 +40,8 @@ Route::prefix('admin')->middleware([
         // Rate Cards
         Route::get('/rate-cards', [RateCardController::class, 'index'])->name('admin.rate-cards.index');
         Route::get('/rate-cards/upload', [RateCardController::class, 'uploadForm'])->name('admin.rate-cards.upload');
-        Route::post('/rate-cards/validate-upload', [RateCardController::class, 'validateUpload'])->name('admin.rate-cards.validate-upload');
+        Route::post('/rate-cards/parse-file', [RateCardController::class, 'parseFile'])->name('admin.rate-cards.parse-file');
+        Route::post('/rate-cards/validate-mapping', [RateCardController::class, 'validateMapping'])->name('admin.rate-cards.validate-mapping');
         Route::post('/rate-cards/process-upload', [RateCardController::class, 'processUpload'])->name('admin.rate-cards.process-upload');
         Route::put('/rate-cards/{rateCard}', [RateCardController::class, 'update'])->name('admin.rate-cards.update');
         Route::get('/rate-cards/{rateCard}/history', [RateCardController::class, 'history'])->name('admin.rate-cards.history');
