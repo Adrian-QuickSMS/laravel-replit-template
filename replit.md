@@ -87,6 +87,15 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
   - **Rule Evaluation:** Supports exact, contains, regex, startswith, endswith match types
   - **Caching:** 60-second TTL for rules and normalisation library via Laravel Cache
   - **Hot Reload:** `hotReloadRules()` invalidates cache for all engines
+- **UK Prefixes Module (Admin > Supplier Management > MCC/MNC Reference > UK Prefixes tab):** Ofcom number range management with network auto-matching:
+  - **Database:** `uk_prefixes` table with prefix, number_block_raw, cp_name, match_status (matched/predicted/unmatched), mcc_mnc_id FK
+  - **Import Wizard:** Multi-step (Upload → Map Columns → Import → Review Matches) for Ofcom CSV/XLSX data
+  - **Data Normalization:** Strips spaces, leading zeros, auto-prepends "44" country code; handles Excel serial date conversion
+  - **Network Auto-Matching:** Fuzzy matching algorithm matches Ofcom operator names to existing MCC/MNC networks using multiple strategies (exact, contains, known aliases like "EE"→"Everything Everywhere")
+  - **Bulk Operations:** Map/re-map all prefixes for an operator to a network; confirm/reject predicted matches; create new MCC/MNC entries
+  - **Security:** Session-based import validation, path traversal protection, 50K row limit, 10MB file limit
+  - **Controller:** `UkPrefixController.php` with index, parseFile, import, confirm, reject, bulkConfirm, createAndMap endpoints
+  - **Routes:** `package/routes/supplier-management.php`
 - **Design Principles:** Typed JSDoc objects, mock data modes for development, clean separation of UI and API, and robust error handling.
 
 ## External Dependencies

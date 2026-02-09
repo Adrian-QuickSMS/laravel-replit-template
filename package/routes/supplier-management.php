@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\GatewayController;
 use App\Http\Controllers\Admin\RateCardController;
 use App\Http\Controllers\Admin\MccMncController;
+use App\Http\Controllers\Admin\UkPrefixController;
 
 Route::prefix('admin')->middleware([
     \App\Http\Middleware\AdminIpAllowlist::class,
@@ -51,6 +52,16 @@ Route::prefix('admin')->middleware([
         Route::delete('/mcc-mnc/{mccMnc}', [MccMncController::class, 'destroy'])->name('admin.mcc-mnc.destroy');
         Route::post('/mcc-mnc/parse-file', [MccMncController::class, 'parseFile'])->name('admin.mcc-mnc.parse-file');
         Route::post('/mcc-mnc/import', [MccMncController::class, 'import'])->name('admin.mcc-mnc.import');
+
+        // UK Prefixes
+        Route::get('/uk-prefixes', [UkPrefixController::class, 'index'])->name('admin.uk-prefixes.index');
+        Route::post('/uk-prefixes/parse-file', [UkPrefixController::class, 'parseFile'])->name('admin.uk-prefixes.parse-file');
+        Route::post('/uk-prefixes/import', [UkPrefixController::class, 'import'])->name('admin.uk-prefixes.import');
+        Route::put('/uk-prefixes/{ukPrefix}/map', [UkPrefixController::class, 'mapNetwork'])->name('admin.uk-prefixes.map');
+        Route::post('/uk-prefixes/{ukPrefix}/confirm', [UkPrefixController::class, 'confirmPrediction'])->name('admin.uk-prefixes.confirm');
+        Route::post('/uk-prefixes/{ukPrefix}/reject', [UkPrefixController::class, 'rejectPrediction'])->name('admin.uk-prefixes.reject');
+        Route::post('/uk-prefixes/bulk-confirm', [UkPrefixController::class, 'bulkConfirm'])->name('admin.uk-prefixes.bulk-confirm');
+        Route::post('/uk-prefixes/create-and-map', [UkPrefixController::class, 'createAndMap'])->name('admin.uk-prefixes.create-and-map');
 
     });
 
