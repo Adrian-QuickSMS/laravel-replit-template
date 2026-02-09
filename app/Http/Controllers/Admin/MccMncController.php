@@ -10,11 +10,30 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class MccMncController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $mccMncList = MccMnc::orderBy('country_name')
-            ->orderBy('network_name')
-            ->paginate(50);
+        $query = MccMnc::orderBy('country_name')->orderBy('network_name');
+
+        if ($request->filled('country')) {
+            $query->where('country_iso', $request->country);
+        }
+        if ($request->filled('type')) {
+            $query->where('network_type', $request->type);
+        }
+        if ($request->filled('status')) {
+            $query->where('active', $request->status === 'active');
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('network_name', 'ilike', "%{$search}%")
+                  ->orWhere('mcc', 'like', "%{$search}%")
+                  ->orWhere('mnc', 'like', "%{$search}%")
+                  ->orWhere('country_name', 'ilike', "%{$search}%");
+            });
+        }
+
+        $mccMncList = $query->paginate(50)->appends($request->query());
 
         $countries = MccMnc::select('country_iso', 'country_name')
             ->distinct()

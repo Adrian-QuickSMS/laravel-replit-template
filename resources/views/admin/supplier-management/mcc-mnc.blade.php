@@ -340,30 +340,30 @@
 <div class="filter-toolbar">
     <div class="row g-3">
         <div class="col-md-3">
-            <select class="form-select" id="filterCountry" onchange="filterNetworks()">
+            <select class="form-select" id="filterCountry" onchange="applyMccFilters()">
                 <option value="">All Countries</option>
                 @foreach($countries as $country)
-                <option value="{{ $country->country_iso }}">{{ $country->country_name }}</option>
+                <option value="{{ $country->country_iso }}" {{ request('country') == $country->country_iso ? 'selected' : '' }}>{{ $country->country_name }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-3">
-            <select class="form-select" id="filterType" onchange="filterNetworks()">
+            <select class="form-select" id="filterType" onchange="applyMccFilters()">
                 <option value="">All Network Types</option>
-                <option value="mobile">Mobile</option>
-                <option value="fixed">Fixed</option>
-                <option value="virtual">Virtual</option>
+                <option value="mobile" {{ request('type') == 'mobile' ? 'selected' : '' }}>Mobile</option>
+                <option value="fixed" {{ request('type') == 'fixed' ? 'selected' : '' }}>Fixed</option>
+                <option value="virtual" {{ request('type') == 'virtual' ? 'selected' : '' }}>Virtual</option>
             </select>
         </div>
         <div class="col-md-3">
-            <select class="form-select" id="filterStatus" onchange="filterNetworks()">
+            <select class="form-select" id="filterStatus" onchange="applyMccFilters()">
                 <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
             </select>
         </div>
         <div class="col-md-3">
-            <input type="text" class="form-control" id="searchNetwork" placeholder="Search MCC/MNC or network..." onkeyup="filterNetworks()">
+            <input type="text" class="form-control" id="searchNetwork" placeholder="Search MCC/MNC or network..." value="{{ request('search') }}" onkeydown="if(event.key==='Enter')applyMccFilters()">
         </div>
     </div>
 </div>
@@ -1399,23 +1399,19 @@ function runImport() {
     });
 }
 
-function filterNetworks() {
-    const countryFilter = document.getElementById('filterCountry').value;
-    const typeFilter = document.getElementById('filterType').value;
-    const statusFilter = document.getElementById('filterStatus').value;
-    const searchText = document.getElementById('searchNetwork').value.toLowerCase();
-    const rows = document.querySelectorAll('#mccMncTableBody tr[data-country]');
+function applyMccFilters() {
+    const country = document.getElementById('filterCountry').value;
+    const type = document.getElementById('filterType').value;
+    const status = document.getElementById('filterStatus').value;
+    const search = document.getElementById('searchNetwork').value;
 
-    rows.forEach(row => {
-        let show = true;
+    const params = new URLSearchParams();
+    if (country) params.set('country', country);
+    if (type) params.set('type', type);
+    if (status) params.set('status', status);
+    if (search) params.set('search', search);
 
-        if (countryFilter && row.dataset.country !== countryFilter) show = false;
-        if (typeFilter && row.dataset.type !== typeFilter) show = false;
-        if (statusFilter && row.dataset.status !== statusFilter) show = false;
-        if (searchText && !row.dataset.search.includes(searchText)) show = false;
-
-        row.style.display = show ? '' : 'none';
-    });
+    window.location.href = '{{ route('admin.mcc-mnc.index') }}' + (params.toString() ? '?' + params.toString() : '');
 }
 
 function switchTab(tabId, el) {
