@@ -40,9 +40,23 @@ class RateCardController extends Controller
             $query->where('product_type', $request->product_type);
         }
 
+        if ($request->status) {
+            $query->where('active', $request->status === 'active');
+        }
+
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('mcc', 'like', "%{$search}%")
+                  ->orWhere('mnc', 'like', "%{$search}%")
+                  ->orWhere('network_name', 'ilike', "%{$search}%");
+            });
+        }
+
         $rateCards = $query->orderBy('country_name')
             ->orderBy('network_name')
-            ->paginate(50);
+            ->paginate(50)
+            ->appends($request->query());
 
         $suppliers = Supplier::active()->orderBy('name')->get();
         $gateways = Gateway::active()->with('supplier')->orderBy('name')->get();

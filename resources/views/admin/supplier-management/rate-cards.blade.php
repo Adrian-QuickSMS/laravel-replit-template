@@ -98,44 +98,44 @@
     </div>
 </div>
 
-<div class="filter-toolbar">
+<form method="GET" action="{{ route('admin.rate-cards.index') }}" id="filterForm" class="filter-toolbar">
     <div class="row g-3">
         <div class="col-md-3">
-            <select class="form-select" id="filterSupplier" onchange="filterRates()">
+            <select class="form-select" name="supplier_id" onchange="this.form.submit()">
                 <option value="">All Suppliers</option>
                 @foreach($suppliers as $supplier)
-                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-3">
-            <select class="form-select" id="filterGateway" onchange="filterRates()">
+            <select class="form-select" name="gateway_id" onchange="this.form.submit()">
                 <option value="">All Gateways</option>
                 @foreach($gateways as $gateway)
-                <option value="{{ $gateway->id }}">{{ $gateway->name }}</option>
+                <option value="{{ $gateway->id }}" {{ request('gateway_id') == $gateway->id ? 'selected' : '' }}>{{ $gateway->name }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-2">
-            <select class="form-select" id="filterCountry" onchange="filterRates()">
+            <select class="form-select" name="country_iso" onchange="this.form.submit()">
                 <option value="">All Countries</option>
                 @foreach($countries as $country)
-                <option value="{{ $country->country_iso }}">{{ $country->country_name }}</option>
+                <option value="{{ $country->country_iso }}" {{ request('country_iso') == $country->country_iso ? 'selected' : '' }}>{{ $country->country_name }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-2">
-            <select class="form-select" id="filterStatus" onchange="filterRates()">
+            <select class="form-select" name="status" onchange="this.form.submit()">
                 <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
+                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
             </select>
         </div>
         <div class="col-md-2">
-            <input type="text" class="form-control" id="searchRate" placeholder="Search MCC/MNC..." onkeyup="filterRates()">
+            <input type="text" class="form-control" name="search" placeholder="Search MCC/MNC..." value="{{ request('search') }}" onchange="this.form.submit()">
         </div>
     </div>
-</div>
+</form>
 
 <div class="rate-card-table">
     <div class="table-responsive">
@@ -302,26 +302,6 @@
 
 @push('scripts')
 <script>
-function filterRates() {
-    const supplierFilter = document.getElementById('filterSupplier').value;
-    const gatewayFilter = document.getElementById('filterGateway').value;
-    const countryFilter = document.getElementById('filterCountry').value;
-    const statusFilter = document.getElementById('filterStatus').value;
-    const searchText = document.getElementById('searchRate').value.toLowerCase();
-    const rows = document.querySelectorAll('#rateTableBody tr[data-supplier-id]');
-
-    rows.forEach(row => {
-        let show = true;
-
-        if (supplierFilter && row.dataset.supplierId !== supplierFilter) show = false;
-        if (gatewayFilter && row.dataset.gatewayId !== gatewayFilter) show = false;
-        if (countryFilter && row.dataset.country !== countryFilter) show = false;
-        if (statusFilter && row.dataset.status !== statusFilter) show = false;
-        if (searchText && !row.dataset.search.includes(searchText)) show = false;
-
-        row.style.display = show ? '' : 'none';
-    });
-}
 
 function editRate(rateId) {
     fetch(`/admin/supplier-management/rate-cards/${rateId}`)
@@ -412,12 +392,12 @@ function deactivateRate(rateId) {
 }
 
 function exportRates() {
-    const params = new URLSearchParams({
-        supplier_id: document.getElementById('filterSupplier').value,
-        gateway_id: document.getElementById('filterGateway').value,
-        country: document.getElementById('filterCountry').value,
-        status: document.getElementById('filterStatus').value
-    });
+    const form = document.getElementById('filterForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    for (const [key, value] of formData.entries()) {
+        if (value) params.set(key, value);
+    }
     window.location.href = `/admin/supplier-management/rate-cards/export?${params}`;
 }
 </script>
