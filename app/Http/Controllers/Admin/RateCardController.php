@@ -44,8 +44,12 @@ class RateCardController extends Controller
 
         $suppliers = Supplier::active()->orderBy('name')->get();
         $gateways = Gateway::active()->with('supplier')->orderBy('name')->get();
+        $countries = RateCard::select('country_iso', 'country_name')
+            ->distinct()
+            ->orderBy('country_name')
+            ->get();
 
-        return view('admin.supplier-management.rate-cards', compact('rateCards', 'suppliers', 'gateways'));
+        return view('admin.supplier-management.rate-cards', compact('rateCards', 'suppliers', 'gateways', 'countries'));
     }
 
     public function uploadForm()

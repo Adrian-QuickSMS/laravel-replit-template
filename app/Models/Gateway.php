@@ -26,6 +26,11 @@ class Gateway extends Model
         'last_rate_update' => 'datetime',
     ];
 
+    public function scopeActive($query)
+    {
+        return $query->where('active', true);
+    }
+
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
