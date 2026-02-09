@@ -233,9 +233,13 @@ class RateCardController extends Controller
 
             if (empty($mcc) || !ctype_digit($mcc)) {
                 $rowErrors[] = 'Valid MCC is required';
+            } else {
+                $mcc = str_pad($mcc, 3, '0', STR_PAD_LEFT);
             }
             if (empty($mnc) || !ctype_digit($mnc)) {
                 $rowErrors[] = 'Valid MNC is required';
+            } else {
+                $mnc = str_pad($mnc, 2, '0', STR_PAD_LEFT);
             }
             if (empty($rate) || !is_numeric($rate)) {
                 $rowErrors[] = 'Valid rate is required';
