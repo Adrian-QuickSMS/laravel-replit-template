@@ -45,6 +45,7 @@ Route::prefix('admin')->middleware([
         Route::post('/rate-cards/process-upload', [RateCardController::class, 'processUpload'])->name('admin.rate-cards.process-upload');
         Route::put('/rate-cards/{rateCard}', [RateCardController::class, 'update'])->name('admin.rate-cards.update');
         Route::get('/rate-cards/{rateCard}/history', [RateCardController::class, 'history'])->name('admin.rate-cards.history');
+        Route::post('/rate-cards/update-billing-methods', [RateCardController::class, 'updateBillingMethods'])->name('admin.rate-cards.update-billing-methods');
 
         // MCC/MNC Master Reference
         Route::get('/mcc-mnc', [MccMncController::class, 'index'])->name('admin.mcc-mnc.index');

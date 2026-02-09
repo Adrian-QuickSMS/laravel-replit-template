@@ -309,10 +309,12 @@ class RateCardController extends Controller
             $imported = 0;
             $updated = 0;
             $errors = [];
+            $importedRateIds = [];
 
             foreach ($request->rates as $rateData) {
                 try {
                     $result = $this->importRate($rateData, $gateway, $request->valid_from);
+                    $importedRateIds[] = $result['rate']->id;
                     if ($result['action'] === 'created') {
                         $imported++;
                     } else {
@@ -327,10 +329,8 @@ class RateCardController extends Controller
                 }
             }
 
-            // Update gateway last rate update
             $gateway->update(['last_rate_update' => now()]);
 
-            // Log action
             RateCardAuditLog::logAction('rate_uploaded', [
                 'supplier_id' => $gateway->supplier_id,
                 'gateway_id' => $gateway->id,
@@ -343,12 +343,20 @@ class RateCardController extends Controller
 
             DB::commit();
 
+            $importedRates = RateCard::whereIn('id', $importedRateIds)
+                ->select('id', 'mcc', 'mnc', 'country_name', 'country_iso', 'network_name', 'billing_method', 'native_rate', 'currency', 'product_type')
+                ->orderBy('country_name')
+                ->orderBy('network_name')
+                ->get();
+
             return response()->json([
                 'success' => true,
                 'message' => "Successfully imported {$imported} rates and updated {$updated} rates",
                 'imported' => $imported,
                 'updated' => $updated,
                 'errors' => $errors,
+                'importedRates' => $importedRates,
+                'gatewayBillingMethod' => $gateway->billing_method,
             ]);
 
         } catch (\Exception $e) {
@@ -550,6 +558,73 @@ class RateCardController extends Controller
             'message' => 'Rate updated successfully',
             'rate' => $newRate,
         ]);
+    }
+
+    public function updateBillingMethods(Request $request)
+    {
+        $request->validate([
+            'gateway_id' => 'required|exists:gateways,id',
+            'updates' => 'required|array',
+            'updates.*.id' => 'required|exists:rate_cards,id',
+            'updates.*.billing_method' => 'required|in:submitted,delivered',
+        ]);
+
+        $gatewayId = $request->gateway_id;
+        $updatedCount = 0;
+        $auditEntries = [];
+
+        DB::beginTransaction();
+
+        try {
+            foreach ($request->updates as $update) {
+                $rateCard = RateCard::where('id', $update['id'])
+                    ->where('gateway_id', $gatewayId)
+                    ->firstOrFail();
+                $oldMethod = $rateCard->billing_method;
+                $newMethod = $update['billing_method'];
+
+                if ($oldMethod !== $newMethod) {
+                    $rateCard->update(['billing_method' => $newMethod]);
+                    $updatedCount++;
+
+                    $auditEntries[] = [
+                        'rate_card_id' => $rateCard->id,
+                        'mcc' => $rateCard->mcc,
+                        'mnc' => $rateCard->mnc,
+                        'network_name' => $rateCard->network_name,
+                        'old_method' => $oldMethod,
+                        'new_method' => $newMethod,
+                    ];
+                }
+            }
+
+            if ($updatedCount > 0) {
+                $gateway = Gateway::find($gatewayId);
+                RateCardAuditLog::logAction('billing_method_updated', [
+                    'gateway_id' => $gatewayId,
+                    'supplier_id' => $gateway ? $gateway->supplier_id : null,
+                    'updated_count' => $updatedCount,
+                    'changes' => $auditEntries,
+                    'updated_by' => auth()->user()->name ?? 'System',
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$updatedCount} billing method(s) updated",
+                'updatedCount' => $updatedCount,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update billing methods: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function history(RateCard $rateCard)

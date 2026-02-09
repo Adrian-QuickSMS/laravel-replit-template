@@ -249,6 +249,79 @@
     max-height: 200px;
     overflow-y: auto;
 }
+
+.billing-review-wrap {
+    max-height: 500px;
+    overflow: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.billing-review-wrap table {
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+.billing-review-wrap th {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    font-weight: 600;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.billing-review-wrap td {
+    padding: 0.4rem 0.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.billing-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: #f1f3f5;
+    border-radius: 20px;
+    padding: 2px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.billing-toggle .toggle-option {
+    padding: 3px 12px;
+    border-radius: 18px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    color: #6c757d;
+}
+
+.billing-toggle .toggle-option.active-submitted {
+    background: #e67e22;
+    color: #fff;
+}
+
+.billing-toggle .toggle-option.active-delivered {
+    background: #198754;
+    color: #fff;
+}
+
+.billing-toggle .toggle-option:hover:not(.active-submitted):not(.active-delivered) {
+    background: #e2e6ea;
+}
+
+.country-group-header td {
+    background: #eef3f9;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--admin-primary);
+}
+
+.billing-changed {
+    background: #fff3cd !important;
+}
 </style>
 @endpush
 
@@ -295,6 +368,10 @@
         <div class="step-item" id="stepIndicator5">
             <div class="step-circle">5</div>
             <div class="step-label">Confirm Import</div>
+        </div>
+        <div class="step-item" id="stepIndicator6">
+            <div class="step-circle">6</div>
+            <div class="step-label">Billing Review</div>
         </div>
     </div>
 
@@ -479,6 +556,52 @@
             </div>
         </div>
     </div>
+
+    <!-- Step 6: Billing Review -->
+    <div class="wizard-step" id="step6">
+        <h4 class="mb-3">Step 6: Review Billing Methods</h4>
+        <p class="text-muted mb-3">
+            The gateway default billing method is <strong id="gatewayBillingLabel"></strong>.
+            Some networks may be billed differently. Toggle individual networks below as needed.
+        </p>
+
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-secondary" id="billingTotalCount"></span>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active" onclick="filterBillingView('all', this)">All</button>
+                    <button class="btn btn-outline-secondary" onclick="filterBillingView('delivered', this)">Delivered</button>
+                    <button class="btn btn-outline-secondary" onclick="filterBillingView('submitted', this)">Submitted</button>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary" onclick="setAllBilling('delivered')">
+                    <i class="fas fa-check-double me-1"></i>Set All Delivered
+                </button>
+                <button class="btn btn-sm btn-outline-primary" onclick="setAllBilling('submitted')">
+                    <i class="fas fa-check-double me-1"></i>Set All Submitted
+                </button>
+            </div>
+        </div>
+
+        <div class="billing-review-wrap" id="billingReviewTable"></div>
+
+        <div class="mt-3" id="billingChangeSummary" style="display:none;">
+            <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong id="billingChangeCount">0</strong> network(s) changed from gateway default.
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-success btn-lg" onclick="saveBillingMethods()" id="saveBillingBtn">
+                <i class="fas fa-save me-2"></i>Save & Finish
+            </button>
+            <a href="{{ route('admin.rate-cards.index') }}" class="btn btn-outline-secondary ms-2">
+                Skip — Keep Defaults
+            </a>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -491,6 +614,9 @@ let parsedRows = [];
 let selectedHeaderRow = -1;
 let headerColumns = [];
 let validatedRates = null;
+let importedRatesData = [];
+let gatewayDefaultBilling = 'delivered';
+let billingOverrides = {};
 
 function loadGateways() {
     const supplierId = document.getElementById('selectSupplier').value;
@@ -849,18 +975,15 @@ function confirmImport() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            document.getElementById('validationResults').innerHTML = `
-                <div class="text-center py-5">
-                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                    <h4 class="text-success">Import Complete</h4>
-                    <p class="text-muted">${data.message}</p>
-                    <div class="row justify-content-center mt-3">
-                        <div class="col-auto"><div class="summary-card summary-stat"><div class="stat-value text-success">${data.imported}</div><div class="stat-label">New Rates</div></div></div>
-                        <div class="col-auto"><div class="summary-card summary-stat"><div class="stat-value" style="color:#e67e22">${data.updated}</div><div class="stat-label">Updated</div></div></div>
-                    </div>
-                    <a href="{{ route('admin.rate-cards.index') }}" class="btn btn-admin-primary mt-3"><i class="fas fa-arrow-left me-2"></i>Back to Rate Cards</a>
-                </div>`;
-            document.getElementById('importActions').style.display = 'none';
+            importedRatesData = data.importedRates || [];
+            gatewayDefaultBilling = data.gatewayBillingMethod || 'delivered';
+
+            if (importedRatesData.length > 0) {
+                goToStep(6);
+                renderBillingReview();
+            } else {
+                showImportComplete(data);
+            }
         } else {
             alert(data.message || 'Import failed.');
             btn.disabled = false;
@@ -873,6 +996,21 @@ function confirmImport() {
         btn.disabled = false;
         btn.innerHTML = origText;
     });
+}
+
+function showImportComplete(data) {
+    document.getElementById('validationResults').innerHTML = `
+        <div class="text-center py-5">
+            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+            <h4 class="text-success">Import Complete</h4>
+            <p class="text-muted">${data.message}</p>
+            <div class="row justify-content-center mt-3">
+                <div class="col-auto"><div class="summary-card summary-stat"><div class="stat-value text-success">${data.imported}</div><div class="stat-label">New Rates</div></div></div>
+                <div class="col-auto"><div class="summary-card summary-stat"><div class="stat-value" style="color:#e67e22">${data.updated}</div><div class="stat-label">Updated</div></div></div>
+            </div>
+            <a href="{{ route('admin.rate-cards.index') }}" class="btn btn-admin-primary mt-3"><i class="fas fa-arrow-left me-2"></i>Back to Rate Cards</a>
+        </div>`;
+    document.getElementById('importActions').style.display = 'none';
 }
 
 function goToStep(step) {
@@ -920,5 +1058,201 @@ dropzone.addEventListener('drop', (e) => {
         handleFileSelect({ target: { files: files } });
     }
 });
+
+function renderBillingReview(filter, resetOverrides) {
+    filter = filter || 'all';
+    if (resetOverrides === true) billingOverrides = {};
+    const label = document.getElementById('gatewayBillingLabel');
+    label.textContent = gatewayDefaultBilling.charAt(0).toUpperCase() + gatewayDefaultBilling.slice(1);
+    document.getElementById('billingTotalCount').textContent = importedRatesData.length + ' networks';
+
+    const grouped = {};
+    importedRatesData.forEach(rate => {
+        const key = rate.country_name || 'Unknown';
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(rate);
+    });
+
+    let html = '<table class="table table-sm mb-0">';
+    html += '<thead><tr>';
+    html += '<th>MCC</th><th>MNC</th><th>Country</th><th>Network</th>';
+    html += '<th>Rate</th><th>Product</th><th style="width:180px;">Billing Method</th>';
+    html += '</tr></thead><tbody>';
+
+    const sortedCountries = Object.keys(grouped).sort();
+    sortedCountries.forEach(country => {
+        const rates = grouped[country];
+        let visibleInGroup = rates;
+        if (filter !== 'all') {
+            visibleInGroup = rates.filter(r => {
+                const current = billingOverrides[r.id] || r.billing_method;
+                return current === filter;
+            });
+        }
+
+        if (filter !== 'all' && visibleInGroup.length === 0) return;
+
+        const safeCountry = country.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        html += `<tr class="country-group-header">
+            <td colspan="7">
+                <i class="fas fa-globe me-1"></i>${escapeHtml(country)}
+                <span class="text-muted ms-2" style="font-weight:400; font-size:0.75rem;">${rates.length} network(s)</span>
+                <button class="btn btn-sm btn-link p-0 ms-3" style="font-size:0.72rem;" onclick="setCountryBilling('${safeCountry}', 'delivered')">All Delivered</button>
+                <button class="btn btn-sm btn-link p-0 ms-2" style="font-size:0.72rem;" onclick="setCountryBilling('${safeCountry}', 'submitted')">All Submitted</button>
+            </td></tr>`;
+
+        const displayRates = filter !== 'all' ? visibleInGroup : rates;
+        displayRates.forEach(rate => {
+            const currentMethod = billingOverrides[rate.id] || rate.billing_method;
+            const isChanged = currentMethod !== gatewayDefaultBilling;
+            const rowClass = isChanged ? 'billing-changed' : '';
+            const submittedActive = currentMethod === 'submitted' ? 'active-submitted' : '';
+            const deliveredActive = currentMethod === 'delivered' ? 'active-delivered' : '';
+
+            html += `<tr class="${rowClass}" data-rate-id="${rate.id}" data-country="${escapeHtml(country)}">
+                <td><code>${rate.mcc}</code></td>
+                <td><code>${rate.mnc}</code></td>
+                <td>${escapeHtml(rate.country_name || '')}</td>
+                <td>${escapeHtml(rate.network_name || '')}</td>
+                <td>${rate.native_rate} ${rate.currency}</td>
+                <td><span class="badge bg-secondary">${rate.product_type}</span></td>
+                <td>
+                    <div class="billing-toggle" data-rate-id="${rate.id}">
+                        <span class="toggle-option ${submittedActive}" onclick="toggleBilling(${rate.id}, 'submitted')">Submitted</span>
+                        <span class="toggle-option ${deliveredActive}" onclick="toggleBilling(${rate.id}, 'delivered')">Delivered</span>
+                    </div>
+                </td>
+            </tr>`;
+        });
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('billingReviewTable').innerHTML = html;
+    updateBillingChangeSummary();
+}
+
+function toggleBilling(rateId, method) {
+    const rate = importedRatesData.find(r => r.id === rateId);
+    if (!rate) return;
+
+    billingOverrides[rateId] = method;
+
+    const row = document.querySelector(`tr[data-rate-id="${rateId}"]`);
+    if (row) {
+        const isChanged = method !== gatewayDefaultBilling;
+        row.classList.toggle('billing-changed', isChanged);
+
+        const toggle = row.querySelector('.billing-toggle');
+        const options = toggle.querySelectorAll('.toggle-option');
+        options[0].classList.toggle('active-submitted', method === 'submitted');
+        options[0].classList.remove('active-delivered');
+        options[1].classList.toggle('active-delivered', method === 'delivered');
+        options[1].classList.remove('active-submitted');
+    }
+
+    updateBillingChangeSummary();
+}
+
+function setCountryBilling(countryName, method) {
+    importedRatesData.forEach(rate => {
+        if (rate.country_name === countryName) {
+            billingOverrides[rate.id] = method;
+        }
+    });
+    renderBillingReview(getCurrentBillingFilter(), false);
+}
+
+function setAllBilling(method) {
+    importedRatesData.forEach(rate => {
+        billingOverrides[rate.id] = method;
+    });
+    renderBillingReview(getCurrentBillingFilter(), false);
+}
+
+function filterBillingView(filter, btn) {
+    document.querySelectorAll('#step6 .btn-group .btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderBillingReview(filter, false);
+}
+
+function getCurrentBillingFilter() {
+    const activeBtn = document.querySelector('#step6 .btn-group .btn.active');
+    if (!activeBtn) return 'all';
+    const text = activeBtn.textContent.trim().toLowerCase();
+    if (text === 'delivered' || text === 'submitted') return text;
+    return 'all';
+}
+
+function updateBillingChangeSummary() {
+    let changeCount = 0;
+    importedRatesData.forEach(rate => {
+        const current = billingOverrides[rate.id] || rate.billing_method;
+        if (current !== gatewayDefaultBilling) changeCount++;
+    });
+
+    const summaryEl = document.getElementById('billingChangeSummary');
+    const countEl = document.getElementById('billingChangeCount');
+    if (changeCount > 0) {
+        summaryEl.style.display = 'block';
+        countEl.textContent = changeCount;
+    } else {
+        summaryEl.style.display = 'none';
+    }
+}
+
+function saveBillingMethods() {
+    const updates = [];
+    importedRatesData.forEach(rate => {
+        const newMethod = billingOverrides[rate.id];
+        if (newMethod && newMethod !== rate.billing_method) {
+            updates.push({ id: rate.id, billing_method: newMethod });
+        }
+    });
+
+    if (updates.length === 0) {
+        window.location.href = '{{ route("admin.rate-cards.index") }}';
+        return;
+    }
+
+    const btn = document.getElementById('saveBillingBtn');
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+
+    fetch('{{ route("admin.rate-cards.update-billing-methods") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ gateway_id: selectedGatewayId, updates: updates })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('billingReviewTable').innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                    <h4 class="text-success">All Done</h4>
+                    <p class="text-muted">${data.message || 'Billing methods saved successfully.'}</p>
+                    <a href="{{ route('admin.rate-cards.index') }}" class="btn btn-admin-primary mt-2">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Rate Cards
+                    </a>
+                </div>`;
+            document.getElementById('billingChangeSummary').style.display = 'none';
+            document.querySelector('#step6 .mt-4').style.display = 'none';
+        } else {
+            alert(data.message || 'Failed to save billing methods.');
+            btn.disabled = false;
+            btn.innerHTML = origText;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Failed to save billing methods. Please try again.');
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    });
+}
 </script>
 @endpush
