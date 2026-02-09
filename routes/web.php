@@ -183,6 +183,16 @@ Route::prefix('admin')->group(function () {
             Route::post('/enforcement/normalise', 'normaliseInput')->name('admin.enforcement.normalise');
             Route::post('/enforcement/reload', 'reloadEnforcementRules')->name('admin.enforcement.reload');
             
+            Route::prefix('api/uk-network-controls')->controller(\App\Http\Controllers\Admin\UkNetworkControlController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.uk-network-controls.index');
+                Route::post('/update-status', 'updateStatus')->name('admin.api.uk-network-controls.update-status');
+                Route::post('/bulk-update-status', 'bulkUpdateStatus')->name('admin.api.uk-network-controls.bulk-update');
+                Route::get('/{mccMncId}/overrides', 'getOverrides')->name('admin.api.uk-network-controls.overrides');
+                Route::post('/overrides', 'addOverride')->name('admin.api.uk-network-controls.add-override');
+                Route::put('/overrides/{override}', 'updateOverride')->name('admin.api.uk-network-controls.update-override');
+                Route::delete('/overrides/{override}', 'deleteOverride')->name('admin.api.uk-network-controls.delete-override');
+            });
+            
             Route::prefix('api/governance')->controller(\App\Http\Controllers\Admin\ApprovalQueueController::class)->group(function () {
                 Route::get('/queue-counts', 'getQueueCounts')->name('admin.api.governance.queue-counts');
                 Route::get('/senderid-requests', 'getSenderIdRequests')->name('admin.api.governance.senderid-requests');

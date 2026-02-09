@@ -1550,6 +1550,11 @@ button.action-dropdown-item:focus {
                 <i class="fas fa-globe-americas me-1"></i>Countries
             </button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="uk-networks-tab" data-bs-toggle="tab" data-bs-target="#ukNetworksPane" type="button" role="tab">
+                <i class="fas fa-broadcast-tower me-1"></i>UK & CI Networks
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content" id="countryControlsTabContent">
@@ -1701,6 +1706,137 @@ button.action-dropdown-item:focus {
         </div>
         <div class="audit-preview-content" id="auditPreviewContent"></div>
     </div>
+        </div>
+
+        <div class="tab-pane fade" id="ukNetworksPane" role="tabpanel">
+            <div class="country-table-card">
+                <div class="country-table-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <h6><i class="fas fa-broadcast-tower me-2"></i>UK & Channel Island Network Controls</h6>
+                        <div class="bulk-actions">
+                            <select class="form-select form-select-sm" id="ukNetworkStatusFilter" onchange="filterUkNetworks()">
+                                <option value="">All Statuses</option>
+                                <option value="allowed">Allowed</option>
+                                <option value="blocked">Blocked</option>
+                            </select>
+                            <select class="form-select form-select-sm" id="ukNetworkCountryFilter" onchange="filterUkNetworks()">
+                                <option value="">All Regions</option>
+                                <option value="GB">United Kingdom</option>
+                                <option value="JE">Jersey</option>
+                                <option value="GG">Guernsey</option>
+                                <option value="IM">Isle of Man</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="country-search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-control form-control-sm" id="ukNetworkSearch" placeholder="Search networks..." oninput="filterUkNetworks()">
+                        </div>
+                        <div class="btn-group" id="ukBulkActionsGroup" style="display:none;">
+                            <button class="btn btn-sm btn-outline-success" onclick="bulkUkNetworkAction('allowed')">
+                                <i class="fas fa-check me-1"></i>Allow Selected
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="bulkUkNetworkAction('blocked')">
+                                <i class="fas fa-ban me-1"></i>Block Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3 px-3 pt-3">
+                    <div class="alert" style="background:#f0f4f8; border:1px solid #d1dbe6; color:#1e3a5f; font-size:0.82rem; margin:0;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Admin Only:</strong> Manage which UK & Channel Island networks are allowed or blocked by default. Blocked messages will show as <strong>Undeliverable</strong> to customers. Per-account overrides can be applied to allow or block specific networks for individual accounts.
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="country-table" id="ukNetworkTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;"><input type="checkbox" id="selectAllUkNetworks" onchange="toggleAllUkNetworks()"></th>
+                                <th onclick="sortUkNetworks('network')" class="sortable" style="cursor:pointer;">
+                                    Network <i class="fas fa-sort sort-icon"></i>
+                                </th>
+                                <th>MCC/MNC</th>
+                                <th>Region</th>
+                                <th>Prefixes</th>
+                                <th>Default Status</th>
+                                <th>Overrides</th>
+                                <th style="width: 80px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ukNetworkTableBody">
+                            <tr><td colspan="8" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary"></div> Loading networks...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ukNetworkOverridesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#f0f4f8; border-bottom: 1px solid #d1dbe6;">
+                <h5 class="modal-title" style="color:#1e3a5f;"><i class="fas fa-shield-alt me-2"></i>Network Overrides: <span id="overrideNetworkName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="overrides-modal-info">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>MCC/MNC:</strong> <span id="overrideMccMnc"></span>
+                        &nbsp;&middot;&nbsp;
+                        <strong>Default:</strong> <span id="overrideDefaultStatus"></span>
+                    </div>
+                    <button class="btn btn-sm" style="background:#1e3a5f; color:#fff;" onclick="showAddOverrideForm()">
+                        <i class="fas fa-plus me-1"></i>Add Override
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body p-0">
+                <div id="addOverrideFormWrap" style="display:none; padding: 1rem; background:#fafbfc; border-bottom: 1px solid #e9ecef;">
+                    <h6 style="color:#1e3a5f; font-size:0.85rem; margin-bottom:0.75rem;"><i class="fas fa-plus-circle me-1"></i>Add Account Override</h6>
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label" style="font-size:0.78rem;">Account ID</label>
+                            <input type="number" class="form-control form-control-sm" id="overrideAccountId" placeholder="Enter account ID">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" style="font-size:0.78rem;">Override Status</label>
+                            <select class="form-select form-select-sm" id="overrideStatus">
+                                <option value="allowed">Allowed</option>
+                                <option value="blocked">Blocked</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" style="font-size:0.78rem;">Reason</label>
+                            <input type="text" class="form-control form-control-sm" id="overrideReason" placeholder="Optional reason">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end gap-1">
+                            <button class="btn btn-sm" style="background:#1e3a5f; color:#fff;" onclick="saveOverride()">Save</button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="hideAddOverrideForm()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+                <table class="table table-sm mb-0" id="overridesListTable">
+                    <thead>
+                        <tr style="background:#f8f9fa;">
+                            <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Account ID</th>
+                            <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Override Status</th>
+                            <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Reason</th>
+                            <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Created By</th>
+                            <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Date</th>
+                            <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600; width:80px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overridesListBody">
+                        <tr><td colspan="6" class="text-center py-3 text-muted">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -5348,6 +5484,334 @@ function showToast(message, type) {
     setTimeout(function() {
         toast.remove();
     }, 4000);
+}
+
+var ukNetworksData = [];
+var ukNetworksFiltered = [];
+var ukNetworksSortField = 'network';
+var ukNetworksSortDir = 'asc';
+var currentOverrideMccMncId = null;
+var ukNetworksLoaded = false;
+
+document.getElementById('uk-networks-tab').addEventListener('shown.bs.tab', function() {
+    if (!ukNetworksLoaded) {
+        loadUkNetworks();
+        ukNetworksLoaded = true;
+    }
+});
+
+function loadUkNetworks() {
+    fetch('/admin/api/uk-network-controls', {
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            ukNetworksData = data.networks;
+            filterUkNetworks();
+        }
+    })
+    .catch(function(err) {
+        console.error('Error loading UK networks:', err);
+        document.getElementById('ukNetworkTableBody').innerHTML = '<tr><td colspan="8" class="text-center py-3 text-danger">Failed to load networks.</td></tr>';
+    });
+}
+
+function filterUkNetworks() {
+    var statusFilter = document.getElementById('ukNetworkStatusFilter').value;
+    var countryFilter = document.getElementById('ukNetworkCountryFilter').value;
+    var search = document.getElementById('ukNetworkSearch').value.toLowerCase().trim();
+
+    ukNetworksFiltered = ukNetworksData.filter(function(n) {
+        if (statusFilter && n.default_status !== statusFilter) return false;
+        if (countryFilter && n.country_iso !== countryFilter) return false;
+        if (search && n.network_name.toLowerCase().indexOf(search) === -1 && n.mcc.indexOf(search) === -1 && n.mnc.indexOf(search) === -1) return false;
+        return true;
+    });
+
+    sortUkNetworksArray();
+    renderUkNetworksTable();
+}
+
+function sortUkNetworks(field) {
+    if (ukNetworksSortField === field) {
+        ukNetworksSortDir = ukNetworksSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+        ukNetworksSortField = field;
+        ukNetworksSortDir = 'asc';
+    }
+    sortUkNetworksArray();
+    renderUkNetworksTable();
+}
+
+function sortUkNetworksArray() {
+    ukNetworksFiltered.sort(function(a, b) {
+        var va, vb;
+        if (ukNetworksSortField === 'network') { va = a.network_name; vb = b.network_name; }
+        else if (ukNetworksSortField === 'status') { va = a.default_status; vb = b.default_status; }
+        else if (ukNetworksSortField === 'region') { va = a.country_name; vb = b.country_name; }
+        else { va = a.network_name; vb = b.network_name; }
+
+        if (va < vb) return ukNetworksSortDir === 'asc' ? -1 : 1;
+        if (va > vb) return ukNetworksSortDir === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+function renderUkNetworksTable() {
+    var tbody = document.getElementById('ukNetworkTableBody');
+
+    if (ukNetworksFiltered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No networks found matching your filters.</td></tr>';
+        return;
+    }
+
+    var html = '';
+    ukNetworksFiltered.forEach(function(n) {
+        var statusBadge = n.default_status === 'allowed'
+            ? '<span class="badge" style="background:#dcfce7; color:#166534; font-size:0.72rem;">Allowed</span>'
+            : '<span class="badge" style="background:#fee2e2; color:#991b1b; font-size:0.72rem;">Blocked</span>';
+
+        var overrideBadge = n.override_count > 0
+            ? '<span class="badge" style="background:#fef3c7; color:#92400e; font-size:0.72rem; cursor:pointer;" onclick="openOverridesModal(' + n.id + ')">' + n.override_count + ' override' + (n.override_count > 1 ? 's' : '') + '</span>'
+            : '<span class="text-muted" style="font-size:0.78rem;">None</span>';
+
+        var toggleLabel = n.default_status === 'allowed' ? 'Block' : 'Allow';
+        var toggleStatus = n.default_status === 'allowed' ? 'blocked' : 'allowed';
+        var toggleColor = n.default_status === 'allowed' ? '#dc2626' : '#16a34a';
+
+        html += '<tr>';
+        html += '<td><input type="checkbox" class="uk-network-cb" value="' + n.id + '" onchange="updateUkBulkActions()"></td>';
+        html += '<td style="font-size:0.82rem; font-weight:500;">' + escapeHtmlSafe(n.network_name) + '</td>';
+        html += '<td><code style="font-size:0.78rem;">' + n.mcc + '/' + n.mnc + '</code></td>';
+        html += '<td style="font-size:0.8rem;">' + escapeHtmlSafe(n.country_name) + '</td>';
+        html += '<td><span class="badge bg-secondary" style="font-size:0.7rem;">' + n.prefix_count + '</span></td>';
+        html += '<td>' + statusBadge + '</td>';
+        html += '<td>' + overrideBadge + '</td>';
+        html += '<td>';
+        html += '<div class="d-flex gap-1">';
+        html += '<button class="btn btn-sm" style="font-size:0.72rem; color:' + toggleColor + '; border:1px solid ' + toggleColor + '; padding:2px 8px;" onclick="toggleUkNetworkStatus(' + n.id + ', \'' + toggleStatus + '\')">' + toggleLabel + '</button>';
+        html += '<button class="btn btn-sm" style="font-size:0.72rem; color:#1e3a5f; border:1px solid #1e3a5f; padding:2px 8px;" onclick="openOverridesModal(' + n.id + ')" title="Manage overrides"><i class="fas fa-users-cog"></i></button>';
+        html += '</div>';
+        html += '</td>';
+        html += '</tr>';
+    });
+
+    tbody.innerHTML = html;
+}
+
+function escapeHtmlSafe(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+function toggleUkNetworkStatus(mccMncId, newStatus) {
+    var network = ukNetworksData.find(function(n) { return n.id === mccMncId; });
+    var label = newStatus === 'blocked' ? 'block' : 'allow';
+    if (!confirm('Are you sure you want to ' + label + ' "' + (network ? network.network_name : '') + '" by default?')) return;
+
+    fetch('/admin/api/uk-network-controls/update-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ mcc_mnc_id: mccMncId, default_status: newStatus })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            showToast(data.message, 'success');
+            var idx = ukNetworksData.findIndex(function(n) { return n.id === mccMncId; });
+            if (idx >= 0) ukNetworksData[idx].default_status = newStatus;
+            filterUkNetworks();
+        } else {
+            showToast(data.message || 'Failed to update status.', 'error');
+        }
+    })
+    .catch(function() { showToast('Network error. Please try again.', 'error'); });
+}
+
+function toggleAllUkNetworks() {
+    var checked = document.getElementById('selectAllUkNetworks').checked;
+    document.querySelectorAll('.uk-network-cb').forEach(function(cb) { cb.checked = checked; });
+    updateUkBulkActions();
+}
+
+function updateUkBulkActions() {
+    var checked = document.querySelectorAll('.uk-network-cb:checked');
+    document.getElementById('ukBulkActionsGroup').style.display = checked.length > 0 ? '' : 'none';
+}
+
+function bulkUkNetworkAction(status) {
+    var ids = [];
+    document.querySelectorAll('.uk-network-cb:checked').forEach(function(cb) { ids.push(parseInt(cb.value)); });
+    if (ids.length === 0) return;
+
+    var label = status === 'blocked' ? 'block' : 'allow';
+    if (!confirm('Are you sure you want to ' + label + ' ' + ids.length + ' selected network(s)?')) return;
+
+    fetch('/admin/api/uk-network-controls/bulk-update-status', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({ mcc_mnc_ids: ids, default_status: status })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            showToast(data.message, 'success');
+            ids.forEach(function(id) {
+                var idx = ukNetworksData.findIndex(function(n) { return n.id === id; });
+                if (idx >= 0) ukNetworksData[idx].default_status = status;
+            });
+            document.getElementById('selectAllUkNetworks').checked = false;
+            updateUkBulkActions();
+            filterUkNetworks();
+        } else {
+            showToast(data.message || 'Failed to update.', 'error');
+        }
+    })
+    .catch(function() { showToast('Network error.', 'error'); });
+}
+
+function openOverridesModal(mccMncId) {
+    currentOverrideMccMncId = mccMncId;
+    var network = ukNetworksData.find(function(n) { return n.id === mccMncId; });
+    if (!network) return;
+
+    document.getElementById('overrideNetworkName').textContent = network.network_name;
+    document.getElementById('overrideMccMnc').textContent = network.mcc + '/' + network.mnc;
+    var statusEl = document.getElementById('overrideDefaultStatus');
+    if (network.default_status === 'allowed') {
+        statusEl.innerHTML = '<span class="badge" style="background:#dcfce7; color:#166534;">Allowed</span>';
+    } else {
+        statusEl.innerHTML = '<span class="badge" style="background:#fee2e2; color:#991b1b;">Blocked</span>';
+    }
+
+    hideAddOverrideForm();
+    loadOverrides(mccMncId);
+    var modal = new bootstrap.Modal(document.getElementById('ukNetworkOverridesModal'));
+    modal.show();
+}
+
+function loadOverrides(mccMncId) {
+    var tbody = document.getElementById('overridesListBody');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
+
+    fetch('/admin/api/uk-network-controls/' + mccMncId + '/overrides', {
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (!data.success || !data.overrides.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-muted" style="font-size:0.82rem;">No account overrides configured for this network.</td></tr>';
+            return;
+        }
+
+        var html = '';
+        data.overrides.forEach(function(ov) {
+            var statusBadge = ov.override_status === 'allowed'
+                ? '<span class="badge" style="background:#dcfce7; color:#166534; font-size:0.72rem;">Allowed</span>'
+                : '<span class="badge" style="background:#fee2e2; color:#991b1b; font-size:0.72rem;">Blocked</span>';
+
+            var createdAt = ov.created_at ? new Date(ov.created_at).toLocaleDateString('en-GB') : '-';
+
+            html += '<tr>';
+            html += '<td style="padding:0.5rem 0.75rem; font-size:0.82rem;"><strong>' + ov.account_id + '</strong></td>';
+            html += '<td style="padding:0.5rem 0.75rem;">' + statusBadge + '</td>';
+            html += '<td style="padding:0.5rem 0.75rem; font-size:0.8rem; color:#6c757d;">' + (ov.reason || '-') + '</td>';
+            html += '<td style="padding:0.5rem 0.75rem; font-size:0.8rem;">' + (ov.created_by || '-') + '</td>';
+            html += '<td style="padding:0.5rem 0.75rem; font-size:0.8rem;">' + createdAt + '</td>';
+            html += '<td style="padding:0.5rem 0.75rem;">';
+            html += '<button class="btn btn-sm btn-outline-danger" style="font-size:0.7rem; padding:1px 6px;" onclick="deleteOverride(' + ov.id + ')" title="Remove override"><i class="fas fa-trash-alt"></i></button>';
+            html += '</td>';
+            html += '</tr>';
+        });
+        tbody.innerHTML = html;
+    })
+    .catch(function() {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-danger">Failed to load overrides.</td></tr>';
+    });
+}
+
+function showAddOverrideForm() {
+    document.getElementById('addOverrideFormWrap').style.display = '';
+    document.getElementById('overrideAccountId').value = '';
+    document.getElementById('overrideReason').value = '';
+    document.getElementById('overrideStatus').value = 'allowed';
+}
+
+function hideAddOverrideForm() {
+    document.getElementById('addOverrideFormWrap').style.display = 'none';
+}
+
+function saveOverride() {
+    var accountId = document.getElementById('overrideAccountId').value;
+    var overrideStatus = document.getElementById('overrideStatus').value;
+    var reason = document.getElementById('overrideReason').value;
+
+    if (!accountId) {
+        showToast('Please enter an Account ID.', 'warning');
+        return;
+    }
+
+    fetch('/admin/api/uk-network-controls/overrides', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+        },
+        body: JSON.stringify({
+            mcc_mnc_id: currentOverrideMccMncId,
+            account_id: parseInt(accountId),
+            override_status: overrideStatus,
+            reason: reason
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            showToast(data.message, 'success');
+            hideAddOverrideForm();
+            loadOverrides(currentOverrideMccMncId);
+            var idx = ukNetworksData.findIndex(function(n) { return n.id === currentOverrideMccMncId; });
+            if (idx >= 0) ukNetworksData[idx].override_count++;
+            filterUkNetworks();
+        } else {
+            showToast(data.message || 'Failed to add override.', 'error');
+        }
+    })
+    .catch(function() { showToast('Network error.', 'error'); });
+}
+
+function deleteOverride(overrideId) {
+    if (!confirm('Remove this account override?')) return;
+
+    fetch('/admin/api/uk-network-controls/overrides/' + overrideId, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+        }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            showToast(data.message, 'success');
+            loadOverrides(currentOverrideMccMncId);
+            var idx = ukNetworksData.findIndex(function(n) { return n.id === currentOverrideMccMncId; });
+            if (idx >= 0 && ukNetworksData[idx].override_count > 0) ukNetworksData[idx].override_count--;
+            filterUkNetworks();
+        } else {
+            showToast(data.message || 'Failed to remove override.', 'error');
+        }
+    })
+    .catch(function() { showToast('Network error.', 'error'); });
 }
 </script>
 @endpush
