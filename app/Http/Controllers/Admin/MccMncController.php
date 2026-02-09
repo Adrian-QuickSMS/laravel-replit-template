@@ -10,11 +10,16 @@ class MccMncController extends Controller
 {
     public function index()
     {
-        $mccMncs = MccMnc::orderBy('country_name')
+        $mccMncList = MccMnc::orderBy('country_name')
             ->orderBy('network_name')
+            ->paginate(50);
+
+        $countries = MccMnc::select('country_iso', 'country_name')
+            ->distinct()
+            ->orderBy('country_name')
             ->get();
 
-        return view('admin.supplier-management.mcc-mnc', compact('mccMncs'));
+        return view('admin.supplier-management.mcc-mnc', compact('mccMncList', 'countries'));
     }
 
     public function store(Request $request)
