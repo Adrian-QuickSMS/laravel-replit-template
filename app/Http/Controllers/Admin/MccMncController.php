@@ -40,13 +40,22 @@ class MccMncController extends Controller
             ->first();
 
         if ($existing) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "MCC {$validated['mcc']} / MNC {$validated['mnc']} already exists as \"{$existing->network_name}\". Please use a different MNC code.",
+                ], 422);
+            }
             return redirect()->route('admin.mcc-mnc.index')
                 ->with('error', "MCC {$validated['mcc']} / MNC {$validated['mnc']} already exists as \"{$existing->network_name}\". Please use a different MNC code.");
         }
 
         $validated['active'] = true;
-        MccMnc::create($validated);
+        $network = MccMnc::create($validated);
 
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Network created successfully.', 'id' => $network->id]);
+        }
         return redirect()->route('admin.mcc-mnc.index')
             ->with('success', 'MCC/MNC entry created successfully.');
     }

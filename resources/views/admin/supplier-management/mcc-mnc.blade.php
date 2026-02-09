@@ -1031,21 +1031,34 @@ function submitAddMccMnc() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         body: JSON.stringify(Object.fromEntries(formData))
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw err; });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('addMccMncModal')).hide();
             location.reload();
         } else {
-            alert('Error: ' + data.message);
+            alert(data.message || 'Could not create the network. Please check your input.');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred');
+        if (error && error.message) {
+            alert(error.message);
+        } else if (error && error.errors) {
+            const msgs = Object.values(error.errors).flat().join('\n');
+            alert('Validation errors:\n' + msgs);
+        } else {
+            alert('An error occurred. Please try again.');
+        }
     });
 }
 
