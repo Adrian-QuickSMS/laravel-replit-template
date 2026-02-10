@@ -760,6 +760,33 @@
         </div>
     </div>
     
+    @php
+        // TODO: Replace with actual permission check from auth system
+        // e.g. auth()->user()->hasPermission('force_password_reset')
+        $canForcePasswordReset = in_array($user['role'] ?? '', ['admin']) || true;
+    @endphp
+    @if($canForcePasswordReset && $user['status'] !== 'archived')
+    <div class="section-card" id="security-actions-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-lock"></i>
+                Security Actions
+            </h2>
+        </div>
+        <div class="section-body">
+            <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                <div>
+                    <div class="fw-semibold" style="font-size: 0.9rem;">Reset Password</div>
+                    <div class="text-muted" style="font-size: 0.82rem;">Send a password reset email to this user. They will receive a secure link to set a new password.</div>
+                </div>
+                <button class="btn-action primary" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                    <i class="fas fa-key"></i> Reset Password
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <div class="section-card" id="details-section">
         <div class="section-header">
             <h2 class="section-title">
@@ -1178,6 +1205,35 @@
     </div>
 </div>
 
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-key me-2" style="color: #886cc0;"></i>Reset User Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-3" style="font-size: 0.85rem;">
+                    <i class="fas fa-envelope me-1"></i>
+                    A password reset email will be sent to <strong>{{ $user['email'] }}</strong>. The user will receive a secure link to set a new password.
+                </div>
+                <p style="font-size: 0.9rem;">Are you sure you want to reset the password for <strong>{{ $user['name'] }}</strong>?</p>
+                <ul class="mb-0" style="font-size: 0.85rem; color: #6c757d;">
+                    <li>The user's current password will remain active until they complete the reset</li>
+                    <li>The reset link will expire after 24 hours</li>
+                    <li>This action will be logged in the audit trail</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="btn-confirm-reset-password" style="background: #886cc0; color: white;">
+                    <i class="fas fa-paper-plane me-1"></i>Send Reset Email
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="editRoleModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1450,6 +1506,27 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => location.reload(), 1500);
     });
     
+    document.getElementById('btn-confirm-reset-password')?.addEventListener('click', function() {
+        var btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Sending...';
+        
+        // TODO: Backend integration - POST to password reset endpoint
+        console.log('[Audit] Password reset initiated', { 
+            userId: '{{ $user["id"] }}',
+            userEmail: '{{ $user["email"] }}',
+            initiatedBy: 'customer_admin',
+            timestamp: new Date().toISOString()
+        });
+        
+        setTimeout(function() {
+            bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i>Send Reset Email';
+            showToast('Password reset email sent to {{ $user["email"] }}', 'success');
+        }, 1200);
+    });
+
     document.getElementById('btn-resend-invite')?.addEventListener('click', function() {
         console.log('[Audit] Invite resent', { timestamp: new Date().toISOString() });
         showToast('Invitation resent successfully', 'success');
