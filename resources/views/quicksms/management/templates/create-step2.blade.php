@@ -129,8 +129,8 @@
     min-width: 0;
 }
 .template-content-right {
-    flex: 0 0 380px;
-    width: 380px;
+    flex: 0 0 460px;
+    width: 460px;
     max-width: 100%;
     position: sticky;
     top: 90px;
@@ -161,11 +161,11 @@
         gap: 1rem;
     }
     .template-content-right {
-        flex: 0 0 340px;
-        width: 340px;
+        flex: 0 0 400px;
+        width: 400px;
     }
     #mainPreviewContainer {
-        transform: scale(0.7);
+        transform: scale(0.75);
         margin-bottom: -120px;
     }
 }
