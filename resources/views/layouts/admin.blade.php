@@ -42,6 +42,19 @@
     <link href="{{ asset('css/admin-breadcrumb-system.css') }}" rel="stylesheet" type="text/css"/>
     
     @stack('styles')
+
+    <style>
+    .nav-header .brand-logo .logo-abbr { display: none; }
+    .nav-header .brand-logo .brand-title { margin-left: 0; }
+    .menu-toggle .nav-header .brand-logo .logo-abbr,
+    [data-sidebar-style="mini"] .nav-header .brand-logo .logo-abbr,
+    [data-sidebar-style="icon-hover"] .nav-header .brand-logo .logo-abbr,
+    [data-sidebar-style="overlay"] .nav-header .brand-logo .logo-abbr { display: block; }
+    .menu-toggle .nav-header .brand-logo .brand-title,
+    [data-sidebar-style="mini"] .nav-header .brand-logo .brand-title,
+    [data-sidebar-style="icon-hover"] .nav-header .brand-logo .brand-title,
+    [data-sidebar-style="overlay"] .nav-header .brand-logo .brand-title { display: none; }
+    </style>
 </head>
 <body class="admin-control-plane admin-console">
 
@@ -55,8 +68,11 @@
     <div id="main-wrapper" class="show">
         <div class="nav-header admin-nav-header">
             <a href="{{ url('/admin') }}" class="brand-logo">
-                <img src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS Admin" style="height: 35px; width: auto;">
-                <span class="admin-badge">ADMIN</span>
+                <img class="logo-abbr" src="{{ asset('images/favicon.png') }}" alt="Q">
+                <span class="brand-title">
+                    <img src="{{ asset('images/quicksms-logo-white.png') }}" alt="QuickSMS Admin" style="height: 35px; width: auto;">
+                    <span class="admin-badge">ADMIN</span>
+                </span>
             </a>
             <div class="nav-control">
                 <div class="hamburger">
