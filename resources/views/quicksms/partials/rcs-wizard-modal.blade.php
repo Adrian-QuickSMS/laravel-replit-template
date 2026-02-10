@@ -1,29 +1,38 @@
 <style>
+    #rcsWizardModal {
+        overflow: hidden !important;
+    }
+    #rcsWizardModal .modal-dialog {
+        margin: 0 !important;
+    }
     #rcsWizardModal .modal-content {
         height: 100vh !important;
         max-height: 100vh !important;
+        display: flex !important;
+        flex-direction: column !important;
         overflow: hidden !important;
     }
-    #rcsWizardModal .modal-body {
-        overflow: hidden !important;
-        padding: 0 !important;
+    #rcsWizardModal .modal-header {
+        flex-shrink: 0 !important;
+    }
+    #rcsWizardModal .modal-footer {
+        flex-shrink: 0 !important;
     }
     #rcsWizardBody {
-        height: calc(100vh - 100px) !important;
-        max-height: calc(100vh - 100px) !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
         overflow: hidden !important;
         display: grid !important;
         grid-template-columns: 5fr 7fr !important;
+        padding: 0 !important;
     }
     #rcsPreviewColumn {
         overflow-y: auto !important;
-        height: 100% !important;
-        max-height: 100% !important;
+        min-height: 0 !important;
     }
     #rcsConfigColumn {
         overflow-y: auto !important;
-        height: 100% !important;
-        max-height: 100% !important;
+        min-height: 0 !important;
     }
 </style>
 <div class="modal fade" id="rcsWizardModal" tabindex="-1" data-bs-backdrop="static">

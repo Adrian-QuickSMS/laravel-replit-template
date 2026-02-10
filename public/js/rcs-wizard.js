@@ -172,34 +172,6 @@ function initializeRcsCard(cardNum) {
     return rcsCardsData[cardNum];
 }
 
-function fixRcsWizardScrollHeights() {
-    var modalEl = document.getElementById('rcsWizardModal');
-    var body = document.getElementById('rcsWizardBody');
-    var configCol = document.getElementById('rcsConfigColumn');
-    var previewCol = document.getElementById('rcsPreviewColumn');
-    if (!modalEl || !body) return;
-    
-    var header = modalEl.querySelector('.modal-header');
-    var footer = modalEl.querySelector('.modal-footer');
-    var headerH = header ? header.offsetHeight : 0;
-    var footerH = footer ? footer.offsetHeight : 0;
-    var availableHeight = window.innerHeight - headerH - footerH;
-    
-    if (availableHeight > 0) {
-        body.style.height = availableHeight + 'px';
-        body.style.maxHeight = availableHeight + 'px';
-        if (configCol) {
-            configCol.style.height = availableHeight + 'px';
-            configCol.style.maxHeight = availableHeight + 'px';
-        }
-        if (previewCol) {
-            previewCol.style.height = availableHeight + 'px';
-            previewCol.style.maxHeight = availableHeight + 'px';
-        }
-        console.log('[RCS Wizard] Fixed scroll heights: available=' + availableHeight + 'px (viewport=' + window.innerHeight + ', header=' + headerH + ', footer=' + footerH + ')');
-    }
-}
-
 function openRcsWizard() {
     if (!rcsPersistentPayload && Object.keys(rcsCardsData).length === 0) {
         var hasStoredDraft = loadRcsFromStorage();
@@ -212,14 +184,7 @@ function openRcsWizard() {
     
     hideRcsValidationErrors();
     
-    var modalEl = document.getElementById('rcsWizardModal');
-    var modal = new bootstrap.Modal(modalEl);
-    
-    modalEl.addEventListener('shown.bs.modal', function onShown() {
-        modalEl.removeEventListener('shown.bs.modal', onShown);
-        fixRcsWizardScrollHeights();
-    });
-    
+    var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
     modal.show();
     
     var applyBtn = document.getElementById('rcsApplyContentBtn');
@@ -230,8 +195,7 @@ function openRcsWizard() {
         initializeMessageTypeUI();
         updateCarouselOrientationWarning();
         updateRcsWizardPreview();
-        fixRcsWizardScrollHeights();
-    }, 150);
+    }, 100);
 }
 
 function initializeMessageTypeUI() {
@@ -3190,13 +3154,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('[RCS Wizard] Apply button not found');
     }
-    
-    window.addEventListener('resize', function() {
-        var modalEl = document.getElementById('rcsWizardModal');
-        if (modalEl && modalEl.classList.contains('show')) {
-            fixRcsWizardScrollHeights();
-        }
-    });
     
     console.log('[RCS Wizard] DOMContentLoaded complete');
 });
