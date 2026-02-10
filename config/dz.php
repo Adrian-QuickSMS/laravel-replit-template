@@ -13,7 +13,7 @@ return [
         |
         */
 
-        'name' => env('APP_NAME', 'QuickSMS'),
+        'name' => 'QuickSMS',
 
         'public' => [
                 'global' => [
