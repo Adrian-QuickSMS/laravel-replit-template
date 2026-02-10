@@ -264,6 +264,51 @@
 
 @include('quicksms.partials.rcs-wizard-modal')
 @include('quicksms.partials.rcs-button-config-modal')
+
+<div class="modal fade" id="aiAssistantModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-magic me-2"></i>AI Content Assistant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h6 class="mb-3">Current Message</h6>
+                    <div class="p-3 rounded" id="aiCurrentContent" style="background-color: #f0ebf8;">
+                        <em class="text-muted">No content to improve</em>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <h6 class="mb-3">What would you like to do?</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('tone')"><i class="fas fa-smile me-1"></i>Improve tone</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('shorten')"><i class="fas fa-compress-alt me-1"></i>Shorten message</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('grammar')"><i class="fas fa-spell-check me-1"></i>Correct spelling & grammar</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="aiImprove('clarity')"><i class="fas fa-lightbulb me-1"></i>Rephrase for clarity</button>
+                    </div>
+                </div>
+                <div class="d-none" id="aiResultSection">
+                    <h6 class="mb-3">Suggested Version</h6>
+                    <div class="bg-success bg-opacity-10 border border-success p-3 rounded mb-3" id="aiSuggestedContent"></div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success" onclick="useAiSuggestion()"><i class="fas fa-check me-1"></i>Use this</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="discardAiSuggestion()">Discard</button>
+                    </div>
+                </div>
+                <div class="d-none" id="aiLoadingSection">
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary mb-3"></div>
+                        <p class="text-muted">Improving your message...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -538,8 +583,57 @@ function openPersonalisationModal() {
     alert('Personalisation modal would open here');
 }
 
+var aiSuggestedText = '';
+
 function openAiAssistant() {
-    alert('AI Assistant would open here');
+    var content = document.getElementById('smsContent').value;
+    var display = document.getElementById('aiCurrentContent');
+
+    if (content.trim()) {
+        display.innerHTML = content;
+    } else {
+        display.innerHTML = '<em class="text-muted">No content to improve</em>';
+    }
+
+    document.getElementById('aiResultSection').classList.add('d-none');
+    document.getElementById('aiLoadingSection').classList.add('d-none');
+
+    new bootstrap.Modal(document.getElementById('aiAssistantModal')).show();
+}
+
+function aiImprove(action) {
+    var content = document.getElementById('smsContent').value;
+    if (!content.trim()) {
+        alert('Please enter some message content first.');
+        return;
+    }
+
+    document.getElementById('aiLoadingSection').classList.remove('d-none');
+    document.getElementById('aiResultSection').classList.add('d-none');
+
+    setTimeout(function() {
+        var suggestions = {
+            'tone': 'Hi there! We hope you\'re well! ' + content.replace(/^Hi|^Hello/i, '').trim(),
+            'shorten': content.substring(0, Math.min(content.length, 100)) + (content.length > 100 ? '...' : ''),
+            'grammar': content.charAt(0).toUpperCase() + content.slice(1).replace(/\s+/g, ' ').trim() + (content.endsWith('.') ? '' : '.'),
+            'clarity': content.replace(/\s+/g, ' ').trim()
+        };
+
+        aiSuggestedText = suggestions[action] || content;
+        document.getElementById('aiSuggestedContent').textContent = aiSuggestedText;
+        document.getElementById('aiLoadingSection').classList.add('d-none');
+        document.getElementById('aiResultSection').classList.remove('d-none');
+    }, 1500);
+}
+
+function useAiSuggestion() {
+    document.getElementById('smsContent').value = aiSuggestedText;
+    handleContentChange();
+    bootstrap.Modal.getInstance(document.getElementById('aiAssistantModal')).hide();
+}
+
+function discardAiSuggestion() {
+    document.getElementById('aiResultSection').classList.add('d-none');
 }
 
 function toggleOptoutManagement() {
