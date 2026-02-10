@@ -5,13 +5,13 @@
                 <h5 class="modal-title text-white"><i class="fas fa-magic me-2 text-white"></i>RCS Content Wizard</h5>
                 <button type="button" class="btn-close btn-close-white" id="rcsWizardCloseBtn"></button>
             </div>
-            <div class="modal-body p-0" style="flex: 1 1 auto; overflow: hidden; min-height: 0;">
-                <div class="row g-0" style="height: 100%;">
-                    <div class="col-lg-5 p-4 d-flex flex-column align-items-center justify-content-start border-end" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1); overflow-y: auto; height: 100%;">
+            <div class="modal-body p-0" style="flex: 1 1 auto; min-height: 0; display: flex; overflow: hidden;">
+                <div class="d-flex w-100" style="min-height: 0; flex: 1 1 auto;">
+                    <div class="p-4 d-flex flex-column align-items-center justify-content-start border-end" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1); overflow-y: auto; min-height: 0; flex: 0 0 41.6667%; max-width: 41.6667%;">
                         <p class="text-muted small mb-3">Live Preview</p>
                         <div id="rcsWizardPreviewContainer"></div>
                     </div>
-                    <div class="col-lg-7 p-4" id="rcsConfigColumn" style="overflow-y: auto; height: 100%;">
+                    <div class="p-4" id="rcsConfigColumn" style="overflow-y: auto; min-height: 0; flex: 1 1 auto;" tabindex="0">
                         <div class="rcs-config-panel">
                             <div id="rcsValidationErrors" class="d-none"></div>
                             
@@ -294,3 +294,15 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var rcsModal = document.getElementById('rcsWizardModal');
+    if (rcsModal) {
+        rcsModal.addEventListener('shown.bs.modal', function() {
+            var configCol = document.getElementById('rcsConfigColumn');
+            if (configCol) configCol.focus();
+        });
+    }
+});
+</script>
