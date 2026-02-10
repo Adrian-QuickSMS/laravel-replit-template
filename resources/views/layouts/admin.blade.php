@@ -71,7 +71,6 @@
                 <img class="logo-abbr" src="{{ asset('images/favicon.png') }}" alt="Q">
                 <span class="brand-title">
                     <img src="{{ asset('images/quicksms-logo-white.png') }}" alt="QuickSMS Admin" style="height: 35px; width: auto;">
-                    <span class="admin-badge">ADMIN</span>
                 </span>
             </a>
             <div class="nav-control">
