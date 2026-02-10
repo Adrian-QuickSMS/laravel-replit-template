@@ -113,7 +113,7 @@
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <a href="{{ url('/account/activate') }}" class="btn btn-sm" style="background: #6f42c1; color: #fff; font-weight: 600; border: none;">
+                            <a href="{{ url('/account/activate') }}" class="btn btn-sm" style="background: #886CC0; color: #fff; font-weight: 600; border: none;">
                                 <i class="fas fa-rocket me-1"></i> Activate Account
                             </a>
                             <a href="{{ url('/support/knowledge-base/test-mode') }}" class="btn btn-sm" style="background: transparent; color: #000; border: 1px solid rgba(0,0,0,0.25); font-weight: 500;">
