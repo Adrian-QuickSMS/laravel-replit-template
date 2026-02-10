@@ -18,7 +18,7 @@
         <meta property="og:description" content="@yield('page_description', $page_description ?? '')" />
         <meta property="og:image" content="https:/fillow.dexignlab.com/laravel/social-image.png" />
         <meta name="format-detection" content="telephone=no">
-    <link rel="shortcut icon" type="image/png" href="{{asset('images/favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{asset('images/favicon.png') }}?v={{ time() }}">
         
         <!-- PAGE TITLE HERE -->
         <title>{{ config('dz.name') }} | @yield('title', $page_title ?? '')</title> 

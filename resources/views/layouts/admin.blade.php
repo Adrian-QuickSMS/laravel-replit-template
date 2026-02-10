@@ -26,7 +26,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="QuickSMS Admin Control Plane" />
     <meta name="format-detection" content="telephone=no">
-    <link rel="shortcut icon" type="image/png" href="{{asset('images/favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{asset('images/favicon.png') }}?v={{ time() }}">
     
     <title>QuickSMS Admin | @yield('title', $page_title ?? '')</title> 
 
