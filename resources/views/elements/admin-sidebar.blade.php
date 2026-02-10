@@ -76,7 +76,7 @@
                 </ul>
             </li>
             
-            <li class="{{ request()->routeIs('admin.suppliers.*') || request()->routeIs('admin.gateways.*') || request()->routeIs('admin.rate-cards.*') || request()->routeIs('admin.mcc-mnc.*') ? 'mm-active' : '' }}">
+            <li class="{{ request()->routeIs('admin.suppliers.*') || request()->routeIs('admin.gateways.*') || request()->routeIs('admin.rate-cards.*') ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-truck"></i>
                     <span class="nav-text">Supplier Management</span>
@@ -86,11 +86,10 @@
                     <li><a href="{{ route('admin.gateways.index') }}" class="{{ request()->routeIs('admin.gateways.*') ? 'mm-active' : '' }}">Gateways</a></li>
                     <li><a href="{{ route('admin.rate-cards.index') }}" class="{{ request()->routeIs('admin.rate-cards.*') ? 'mm-active' : '' }}">Rate Cards</a></li>
                     <li><a href="{{ route('admin.rate-cards.upload') }}" class="{{ request()->routeIs('admin.rate-cards.upload') ? 'mm-active' : '' }}">Upload Rates</a></li>
-                    <li><a href="{{ route('admin.mcc-mnc.index') }}" class="{{ request()->routeIs('admin.mcc-mnc.*') ? 'mm-active' : '' }}">MCC/MNC/Prefixes</a></li>
                 </ul>
             </li>
             
-            <li class="{{ request()->routeIs('admin.system.*') || request()->routeIs('admin.security.country-controls') ? 'mm-active' : '' }}">
+            <li class="{{ request()->routeIs('admin.system.*') || request()->routeIs('admin.security.country-controls') || request()->routeIs('admin.mcc-mnc.*') ? 'mm-active' : '' }}">
                 <a class="has-arrow" href="javascript:void()" aria-expanded="false">
                     <i class="fas fa-route"></i>
                     <span class="nav-text">Routing</span>
@@ -98,6 +97,7 @@
                 <ul aria-expanded="false">
                     <li><a href="{{ route('admin.security.country-controls') }}" class="{{ request()->routeIs('admin.security.country-controls') ? 'mm-active' : '' }}">Country Controls</a></li>
                     <li><a href="{{ route('admin.system.routing') }}" class="{{ request()->routeIs('admin.system.routing') ? 'mm-active' : '' }}">Routing Rules</a></li>
+                    <li><a href="{{ route('admin.mcc-mnc.index') }}" class="{{ request()->routeIs('admin.mcc-mnc.*') ? 'mm-active' : '' }}">MCC/MNC/Prefixes</a></li>
                 </ul>
             </li>
         </ul>
