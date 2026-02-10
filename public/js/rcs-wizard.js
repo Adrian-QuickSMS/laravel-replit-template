@@ -1664,8 +1664,7 @@ function loadRcsMediaUrl() {
             }
             
             var img = new Image();
-            img.crossOrigin = 'anonymous';
-            img.onload = function() {
+            var onImageLoaded = function() {
                 rcsMediaData.source = 'url';
                 rcsMediaData.url = url;
                 rcsMediaData.originalUrl = url;
@@ -1680,7 +1679,7 @@ function loadRcsMediaUrl() {
                 if (metadata.warnLargeFile) {
                     var sizeMB = (metadata.fileSize / (1024 * 1024)).toFixed(1);
                     showRcsMediaWarning('This file is ' + sizeMB + ' MB. Large media may load slowly and may not render optimally on handsets.');
-                } else if (metadata.corsBlocked) {
+                } else if (metadata.corsBlocked || !img.crossOrigin) {
                     showRcsMediaWarning('File size could not be verified. Very large images may not render optimally on handsets.');
                 }
                 
@@ -1689,12 +1688,22 @@ function loadRcsMediaUrl() {
                     loadBtn.innerHTML = '<i class="fas fa-check"></i>';
                 }
             };
+            img.crossOrigin = 'anonymous';
+            img.onload = onImageLoaded;
             img.onerror = function() {
-                showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
-                if (loadBtn) {
-                    loadBtn.disabled = false;
-                    loadBtn.innerHTML = '<i class="fas fa-check"></i>';
-                }
+                var retryImg = new Image();
+                retryImg.onload = function() {
+                    img = retryImg;
+                    onImageLoaded();
+                };
+                retryImg.onerror = function() {
+                    showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
+                    if (loadBtn) {
+                        loadBtn.disabled = false;
+                        loadBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    }
+                };
+                retryImg.src = url;
             };
             img.src = url;
         });
