@@ -102,24 +102,24 @@
         @endphp
         <div class="content-body default-height qsms-density-compact {{$body_class}} @yield('body_class')">
             <!-- TEST MODE BANNER - Collapsible overlay -->
-            <div id="test-mode-activation-banner" class="fade show mb-0" role="alert" style="display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 1050; border-radius: 0; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.15); background: linear-gradient(135deg, #7356a8, #5a3d8a);">
+            <div id="test-mode-activation-banner" class="fade show mb-0" role="alert" style="display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 1050; border-radius: 0; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); background: #f0eaf8;">
                 <div class="container-fluid" style="padding: 12px 20px;">
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div class="d-flex align-items-center">
-                            <i class="fas fa-lock me-3" style="font-size: 20px; color: #4a2d7a;"></i>
+                            <i class="fas fa-lock me-3" style="font-size: 20px; color: #6f42c1;"></i>
                             <div>
                                 <strong class="d-block" style="color: #000; font-size: 0.95rem;">Your account is in Test Mode</strong>
                                 <span class="small" style="color: #000;">You can send test messages to approved numbers using QuickSMS test settings. To send live messages, complete your account details and activate your account.</span>
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <a href="{{ url('/account/activate') }}" class="btn btn-sm" style="background: #fff; color: #5a3d8a; font-weight: 600; border: none;">
+                            <a href="{{ url('/account/activate') }}" class="btn btn-sm" style="background: #6f42c1; color: #fff; font-weight: 600; border: none;">
                                 <i class="fas fa-rocket me-1"></i> Activate Account
                             </a>
-                            <a href="{{ url('/support/knowledge-base/test-mode') }}" class="btn btn-sm" style="background: transparent; color: #000; border: 1px solid rgba(0,0,0,0.4); font-weight: 500;">
+                            <a href="{{ url('/support/knowledge-base/test-mode') }}" class="btn btn-sm" style="background: transparent; color: #000; border: 1px solid rgba(0,0,0,0.25); font-weight: 500;">
                                 Learn More
                             </a>
-                            <button type="button" class="btn btn-link btn-sm p-0 ms-2" id="test-mode-banner-close" title="Collapse banner" style="color: #000;">
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-2" id="test-mode-banner-close" title="Collapse banner" style="color: #6f42c1;">
                                 <i class="fas fa-chevron-up" style="font-size: 14px;"></i>
                             </button>
                         </div>
