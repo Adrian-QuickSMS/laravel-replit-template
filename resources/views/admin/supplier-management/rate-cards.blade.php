@@ -261,9 +261,18 @@
                             <input type="text" class="form-control" id="editRateCurrency" readonly>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Valid From <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" name="valid_from" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Billing Method</label>
+                            <select class="form-select" name="billing_method" id="editRateBillingMethod">
+                                <option value="submitted">Submitted</option>
+                                <option value="delivered">Delivered</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Valid From <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="valid_from" required>
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Change Reason <span class="text-danger">*</span></label>
@@ -320,6 +329,7 @@ function editRate(rateId) {
         document.getElementById('editRateMnc').value = data.mnc;
         document.getElementById('editRateValue').value = data.native_rate;
         document.getElementById('editRateCurrency').value = data.currency;
+        document.getElementById('editRateBillingMethod').value = data.billing_method || 'submitted';
         new bootstrap.Modal(document.getElementById('editRateModal')).show();
     })
     .catch(err => {
@@ -333,13 +343,18 @@ function submitEditRate() {
     const form = document.getElementById('editRateForm');
     const formData = new FormData(form);
 
+    const payload = Object.fromEntries(formData);
+    if (payload.change_reason && !payload.reason) {
+        payload.reason = payload.change_reason;
+    }
+
     fetch(`/admin/supplier-management/rate-cards/${rateId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify(Object.fromEntries(formData))
+        body: JSON.stringify(payload)
     })
     .then(response => response.json())
     .then(data => {

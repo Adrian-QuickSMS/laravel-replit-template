@@ -569,6 +569,7 @@ class RateCardController extends Controller
             'native_rate' => 'required|numeric|min:0',
             'valid_from' => 'required|date',
             'reason' => 'required|string',
+            'billing_method' => 'nullable|in:submitted,delivered',
         ]);
 
         // Recalculate GBP rate
