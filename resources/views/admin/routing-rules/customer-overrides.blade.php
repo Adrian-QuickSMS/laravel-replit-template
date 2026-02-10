@@ -283,12 +283,22 @@
         $productCode = $override->product_type ? strtolower($override->product_type) : 'all';
     @endphp
     @php
-        $customerLabel = 'Account #' . $override->account_id . ($override->sub_account_id ? ' / Sub #' . $override->sub_account_id : '');
+        $customerLabel = $override->account_name ?: ('Account #' . $override->account_id);
+        $hierarchyParts = [$customerLabel];
+        if ($override->sub_account_name) {
+            $hierarchyParts[] = $override->sub_account_name;
+        } elseif ($override->sub_account_id) {
+            $hierarchyParts[] = 'Sub #' . $override->sub_account_id;
+        }
+        if ($override->sender_id) {
+            $hierarchyParts[] = $override->sender_id;
+        }
+        $hierarchyLabel = implode(' › ', $hierarchyParts);
     @endphp
-    <div class="override-card" data-status="{{ $override->status }}" data-product="{{ $productCode }}" data-scope="{{ $scopeCode }}" data-search="{{ strtolower($customerLabel . ' ovr-' . $override->id . ' ' . $scopeValue) }}">
+    <div class="override-card" data-status="{{ $override->status }}" data-product="{{ $productCode }}" data-scope="{{ $scopeCode }}" data-search="{{ strtolower($hierarchyLabel . ' ovr-' . $override->id . ' ' . $scopeValue . ' ' . ($override->sender_id ?? '')) }}">
         <div class="card-header-row">
             <div>
-                <div class="customer-name">{{ $customerLabel }}</div>
+                <div class="customer-name">{{ $hierarchyLabel }}</div>
                 <div class="override-id">OVR-{{ str_pad($override->id, 3, '0', STR_PAD_LEFT) }}</div>
             </div>
             <span class="status-badge {{ $override->status }}">
@@ -302,6 +312,9 @@
             <span class="scope-badge"><i class="fas fa-crosshairs"></i> {{ $scopeType }}</span>
             @if($scopeValue !== '—')
             <span class="scope-badge"><i class="fas fa-tag"></i> {{ $scopeValue }}</span>
+            @endif
+            @if($override->sender_id)
+            <span class="scope-badge" style="background: #e8f4fd; color: #0d6efd;"><i class="fas fa-id-badge"></i> SenderID: {{ $override->sender_id }}</span>
             @endif
         </div>
 
@@ -377,8 +390,10 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Customer <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="coCustomer" placeholder="Search customer..." autocomplete="off">
-                            <div id="customerSuggestions" class="dropdown-menu" style="width: 100%;"></div>
+                            <div class="position-relative">
+                                <input type="text" class="form-control" id="coCustomer" placeholder="Search customer..." autocomplete="off">
+                                <div id="customerSuggestions" class="dropdown-menu" style="width: 100%;"></div>
+                            </div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Product <span class="text-danger">*</span></label>
@@ -388,6 +403,30 @@
                                 <option value="rcs_basic">RCS Basic</option>
                                 <option value="rcs_single">RCS Single</option>
                             </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Sub Account</label>
+                            <select class="form-select" id="coSubAccount" onchange="onSubAccountChange()" disabled>
+                                <option value="">All Sub Accounts</option>
+                            </select>
+                            <small class="text-muted">Optional — leave as "All" to apply to entire customer</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Sender ID</label>
+                            <select class="form-select" id="coSenderId" disabled>
+                                <option value="">All Sender IDs</option>
+                            </select>
+                            <small class="text-muted">Optional — leave as "All" to apply to all sender IDs</small>
+                        </div>
+                    </div>
+
+                    <div class="override-hierarchy-preview mb-3" id="hierarchyPreview" style="display:none;">
+                        <div style="background: #f0f4f8; border-radius: 8px; padding: 0.75rem 1rem; border-left: 3px solid var(--admin-primary);">
+                            <div style="font-size: 0.7rem; text-transform: uppercase; font-weight: 600; color: var(--admin-primary); margin-bottom: 0.25rem;">Override Target</div>
+                            <div style="font-size: 0.85rem; font-weight: 500;" id="hierarchyText">—</div>
                         </div>
                     </div>
 
@@ -467,6 +506,62 @@
 <script>
 let currentFilter = 'active';
 
+// TODO: Replace with real API calls when accounts/sub-accounts backend is implemented
+const customerData = {
+    'Acme Corp': {
+        subAccounts: {
+            'Marketing': { senderIds: ['InfoSMS', 'AcmeMktg', 'PromoAlert'] },
+            'Operations': { senderIds: ['AcmeOps', 'Dispatch', 'AlertSMS'] },
+            'Customer Service': { senderIds: ['AcmeCS', 'HelpDesk'] },
+        }
+    },
+    'TechStart Ltd': {
+        subAccounts: {
+            'Engineering': { senderIds: ['TechAlert', 'DevNotify'] },
+            'Sales': { senderIds: ['TechSales', 'DemoSMS'] },
+        }
+    },
+    'FastDelivery Inc': {
+        subAccounts: {
+            'Dispatch': { senderIds: ['FDTrack', 'Delivery', 'DriverSMS'] },
+            'Billing': { senderIds: ['FDBill', 'Payment'] },
+        }
+    },
+    'GlobalMsg Ltd': {
+        subAccounts: {
+            'UK Division': { senderIds: ['GMUK', 'GlobalUK'] },
+            'EU Division': { senderIds: ['GMEU', 'GlobalEU'] },
+        }
+    },
+    'MediaBuzz': {
+        subAccounts: {
+            'Content': { senderIds: ['BuzzAlert', 'NewsFlash'] },
+            'Advertising': { senderIds: ['AdBuzz', 'PromoMB'] },
+        }
+    },
+    'RetailChain PLC': {
+        subAccounts: {
+            'Online Store': { senderIds: ['RCOnline', 'ShopAlert'] },
+            'In-Store': { senderIds: ['RCStore', 'OfferSMS'] },
+            'Loyalty': { senderIds: ['RCReward', 'LoyalSMS'] },
+        }
+    },
+    'DataFlow Systems': {
+        subAccounts: {
+            'Monitoring': { senderIds: ['DFAlert', 'SysWatch'] },
+            'Support': { senderIds: ['DFHelp', 'TechSupp'] },
+        }
+    },
+    'CloudReach UK': {
+        subAccounts: {
+            'Enterprise': { senderIds: ['CREntpr', 'CloudMsg'] },
+            'SMB': { senderIds: ['CRSMB', 'CloudSMB'] },
+        }
+    }
+};
+
+let selectedCustomer = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     filterOverrides('active', document.querySelector('.filter-tab.active'));
 
@@ -475,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
         customerInput.addEventListener('input', function() {
             const query = this.value.toLowerCase();
             const suggestions = document.getElementById('customerSuggestions');
-            const customers = ['Acme Corp', 'TechStart Ltd', 'FastDelivery Inc', 'GlobalMsg Ltd', 'MediaBuzz', 'RetailChain PLC', 'DataFlow Systems', 'CloudReach UK'];
+            const customers = Object.keys(customerData);
 
             if (query.length < 2) { suggestions.classList.remove('show'); return; }
 
@@ -493,7 +588,77 @@ function selectCustomer(name) {
     document.getElementById('coCustomer').value = name;
     document.getElementById('customerSuggestions').classList.remove('show');
     document.getElementById('customerSuggestions').style.display = 'none';
+    selectedCustomer = name;
+
+    const subSelect = document.getElementById('coSubAccount');
+    const senderSelect = document.getElementById('coSenderId');
+    subSelect.innerHTML = '<option value="">All Sub Accounts</option>';
+    senderSelect.innerHTML = '<option value="">All Sender IDs</option>';
+    senderSelect.disabled = true;
+
+    const data = customerData[name];
+    if (data && data.subAccounts) {
+        Object.keys(data.subAccounts).forEach(sub => {
+            subSelect.innerHTML += `<option value="${sub}">${sub}</option>`;
+        });
+        subSelect.disabled = false;
+    } else {
+        subSelect.disabled = true;
+    }
+
+    updateHierarchyPreview();
 }
+
+function onSubAccountChange() {
+    const subAccount = document.getElementById('coSubAccount').value;
+    const senderSelect = document.getElementById('coSenderId');
+    senderSelect.innerHTML = '<option value="">All Sender IDs</option>';
+
+    if (subAccount && selectedCustomer && customerData[selectedCustomer]) {
+        const subData = customerData[selectedCustomer].subAccounts[subAccount];
+        if (subData && subData.senderIds) {
+            subData.senderIds.forEach(sid => {
+                senderSelect.innerHTML += `<option value="${sid}">${sid}</option>`;
+            });
+            senderSelect.disabled = false;
+        } else {
+            senderSelect.disabled = true;
+        }
+    } else {
+        senderSelect.disabled = true;
+    }
+
+    updateHierarchyPreview();
+}
+
+function updateHierarchyPreview() {
+    const customer = document.getElementById('coCustomer').value;
+    const subAccount = document.getElementById('coSubAccount').value;
+    const senderId = document.getElementById('coSenderId').value;
+    const preview = document.getElementById('hierarchyPreview');
+    const text = document.getElementById('hierarchyText');
+
+    if (!customer) {
+        preview.style.display = 'none';
+        return;
+    }
+
+    let parts = [customer];
+    if (subAccount) parts.push(subAccount);
+    else parts.push('All Sub Accounts');
+    if (senderId) parts.push(senderId);
+    else parts.push('All Sender IDs');
+
+    text.innerHTML = parts.map((p, i) => {
+        const icon = i === 0 ? '🏢' : (i === 1 ? '📂' : '📱');
+        const weight = i === parts.length - 1 && (subAccount || senderId) ? 'font-weight:600;color:var(--admin-primary)' : '';
+        return `<span style="${weight}">${icon} ${p}</span>`;
+    }).join(' <span style="color:#adb5bd;">›</span> ');
+
+    preview.style.display = '';
+}
+
+document.getElementById('coSenderId')?.addEventListener('change', updateHierarchyPreview);
 
 function filterOverrides(status, btn) {
     currentFilter = status;
@@ -552,6 +717,12 @@ function toggleScopeValue() {
 function openCreateOverrideModal() {
     document.getElementById('createOverrideForm').reset();
     document.getElementById('scopeValueContainer').style.display = 'none';
+    document.getElementById('coSubAccount').innerHTML = '<option value="">All Sub Accounts</option>';
+    document.getElementById('coSubAccount').disabled = true;
+    document.getElementById('coSenderId').innerHTML = '<option value="">All Sender IDs</option>';
+    document.getElementById('coSenderId').disabled = true;
+    document.getElementById('hierarchyPreview').style.display = 'none';
+    selectedCustomer = null;
     new bootstrap.Modal(document.getElementById('createOverrideModal')).show();
 }
 
@@ -568,9 +739,11 @@ function confirmCreateOverride() {
 
     const scope = document.getElementById('coScope')?.value || 'global';
     const scopeValue = document.getElementById('coScopeValue')?.value || '';
-    const productType = document.getElementById('coProductType')?.value || 'all';
+    const productType = document.getElementById('coProduct')?.value || 'all';
     const endDate = document.getElementById('coEndDate')?.value || null;
     const notify = document.getElementById('coNotify')?.checked || false;
+    const subAccount = document.getElementById('coSubAccount')?.value || '';
+    const senderId = document.getElementById('coSenderId')?.value || '';
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
 
@@ -579,7 +752,19 @@ function confirmCreateOverride() {
     fetch('/admin/system/routing/create-override', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-        body: JSON.stringify({ customer_name: customer, gateway_id: parseInt(gateway), scope: scope, scope_value: scopeValue, product_type: productType, reason: reason, start_date: startDate, end_date: endDate, notify: notify })
+        body: JSON.stringify({
+            customer_name: customer,
+            gateway_id: parseInt(gateway),
+            scope: scope,
+            scope_value: scopeValue,
+            product_type: productType,
+            reason: reason,
+            start_date: startDate,
+            end_date: endDate,
+            notify: notify,
+            sub_account_name: subAccount,
+            sender_id: senderId
+        })
     })
     .then(r => r.json())
     .then(data => { if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 500); } else { showToast(data.message || 'Failed to create override', 'danger'); } })

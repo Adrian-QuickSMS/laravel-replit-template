@@ -1295,15 +1295,20 @@ class AdminController extends Controller
             'reason' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date',
+            'sub_account_name' => 'nullable|string|max:255',
+            'sender_id' => 'nullable|string|max:15',
         ]);
 
         try {
             $overrideData = [
                 'account_id' => 0,
+                'account_name' => $request->input('customer_name'),
+                'sub_account_name' => $request->input('sub_account_name') ?: null,
                 'forced_gateway_id' => $request->input('gateway_id'),
                 'override_type' => 'force_gateway',
                 'status' => 'active',
                 'product_type' => $request->input('product_type') !== 'all' ? $request->input('product_type') : null,
+                'sender_id' => $request->input('sender_id') ?: null,
                 'reason' => $request->input('reason'),
                 'valid_from' => $request->input('start_date'),
                 'valid_to' => $request->input('end_date'),

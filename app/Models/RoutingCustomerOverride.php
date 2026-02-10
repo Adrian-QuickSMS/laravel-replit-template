@@ -11,12 +11,15 @@ class RoutingCustomerOverride extends Model
 
     protected $fillable = [
         'account_id',
+        'account_name',
         'sub_account_id',
+        'sub_account_name',
         'routing_rule_id',
         'country_iso',
         'mcc',
         'mnc',
         'product_type',
+        'sender_id',
         'forced_gateway_id',
         'forced_supplier_id',
         'blocked_gateway_id',
