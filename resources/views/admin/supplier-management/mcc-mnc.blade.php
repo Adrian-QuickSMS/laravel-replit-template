@@ -300,10 +300,10 @@
         <button class="btn btn-admin-primary" onclick="openAddMccMncModal()" id="btnAddNetwork">
             <i class="fas fa-plus me-2"></i>Add Network
         </button>
-        <button class="btn btn-outline-primary" onclick="openImportModal()" id="btnMccImport">
+        <button class="btn btn-admin-primary" onclick="openImportModal()" id="btnMccImport">
             <i class="fas fa-file-import me-2"></i>Bulk Import
         </button>
-        <button class="btn btn-outline-primary d-none" onclick="openUkPrefixImportModal()" id="btnUkImport">
+        <button class="btn btn-admin-primary d-none" onclick="openUkPrefixImportModal()" id="btnUkImport">
             <i class="fas fa-file-import me-2"></i>Import Ofcom Data
         </button>
     </div>
