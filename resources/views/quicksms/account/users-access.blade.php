@@ -1345,6 +1345,27 @@ input:focus + .perm-slider {
                 </div>
             </div>
             
+            <div class="accordion-item border-0" id="drawer-security-actions-section">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#securityActionsSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
+                        <i class="fas fa-lock me-2" style="color: #886cc0;"></i>Security Actions
+                    </button>
+                </h2>
+                <div id="securityActionsSection" class="accordion-collapse collapse" data-bs-parent="#userDetailAccordion">
+                    <div class="accordion-body">
+                        <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: #faf5ff; border: 1px solid #e9d5ff;">
+                            <div>
+                                <div class="fw-semibold" style="font-size: 0.85rem; color: #374151;">Reset Password</div>
+                                <div class="text-muted" style="font-size: 0.78rem;">Send a password reset email to this user.</div>
+                            </div>
+                            <button class="btn btn-sm" id="drawer-reset-password-btn" style="background: #886cc0; color: white; font-size: 0.8rem;" onclick="triggerPasswordReset()">
+                                <i class="fas fa-key me-1"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="accordion-item border-0">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#userLimitsSection" style="background: #f8f9fa; font-size: 0.9rem; font-weight: 600; color: #374151;">
@@ -1490,9 +1511,13 @@ function showToast(type, title, message) {
 
 var confirmCallback = null;
 
-function showConfirmModal(title, message, buttonText, buttonClass, callback) {
+function showConfirmModal(title, message, buttonText, buttonClass, callback, useHtml) {
     document.getElementById('confirmModalTitle').textContent = title;
-    document.getElementById('confirmModalMessage').textContent = message;
+    if (useHtml) {
+        document.getElementById('confirmModalMessage').innerHTML = message;
+    } else {
+        document.getElementById('confirmModalMessage').textContent = message;
+    }
     
     var btn = document.getElementById('confirmModalBtn');
     btn.textContent = buttonText;
@@ -2830,6 +2855,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('drawer-user-status-pill').innerHTML = statusPillHtml;
         document.getElementById('drawer-user-status-actions').innerHTML = actionsHtml;
         
+        var securitySection = document.getElementById('drawer-security-actions-section');
+        if (securitySection) {
+            securitySection.style.display = (status === 'archived') ? 'none' : '';
+        }
+        
         document.getElementById('drawer-user-role').textContent = formatRole(user.role);
         document.getElementById('drawer-user-sender').textContent = user.senderCapability ? capitalise(user.senderCapability) : 'N/A';
         
@@ -2857,6 +2887,43 @@ document.addEventListener('DOMContentLoaded', function() {
         offcanvas.show();
     }
     
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
+    window.triggerPasswordReset = function() {
+        var userId = document.getElementById('drawer-user-id').value;
+        var subId = document.getElementById('drawer-user-subaccount-id').value;
+        var userName = document.getElementById('drawer-user-name').textContent;
+        var userEmail = document.getElementById('drawer-user-email').textContent;
+
+        var safeEmail = escapeHtml(userEmail);
+        var safeName = escapeHtml(userName);
+
+        showConfirmModal(
+            'Reset Password',
+            'A password reset email will be sent to <strong>' + safeEmail + '</strong>. The link will expire after 24 hours.<br><br>Are you sure you want to reset the password for <strong>' + safeName + '</strong>?',
+            'Send Reset Email',
+            'btn-warning',
+            function() {
+                console.log('[AUDIT] Password reset triggered:', {
+                    action: 'PASSWORD_RESET_TRIGGERED',
+                    userId: userId,
+                    userName: userName,
+                    userEmail: userEmail,
+                    subAccountId: subId,
+                    triggeredBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
+                    timestamp: new Date().toISOString()
+                });
+
+                showToast('success', 'Reset Email Sent', 'Password reset email has been sent to ' + userEmail);
+            },
+            true
+        );
+    };
+
     window.changeUserStatus = function(userId, subId, newStatus) {
         var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
         if (!subAccount) return;
