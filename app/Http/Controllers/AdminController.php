@@ -1169,20 +1169,19 @@ class AdminController extends Controller
         ]);
 
         try {
-            $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
-            $routingRule = $this->findRoutingRule($request->input('route_id'), $request->input('route_type'));
+            return DB::transaction(function () use ($request) {
+                $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
+                $routingRule = $this->findOrCreateRoutingRule($request->input('route_id'), $request->input('route_type'));
 
-            if (!$routingRule) {
-                return response()->json(['success' => false, 'message' => 'Routing rule not found'], 404);
-            }
+                if (!$routingRule) {
+                    return response()->json(['success' => false, 'message' => 'Route not found'], 404);
+                }
 
-            $weight = RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
-                ->where('gateway_id', $gateway->id)
-                ->firstOrFail();
+                $weight = $this->findOrCreateGatewayWeight($routingRule, $gateway);
+                $weight->update(['weight' => $request->input('new_weight'), 'is_fallback' => false, 'updated_by' => session('admin_email', 'admin')]);
 
-            $weight->update(['weight' => $request->input('new_weight'), 'updated_by' => session('admin_email', 'admin')]);
-
-            return response()->json(['success' => true, 'message' => 'Weight updated successfully']);
+                return response()->json(['success' => true, 'message' => 'Weight updated successfully']);
+            });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingChangeWeight failed', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Failed to update weight: ' . $e->getMessage()], 500);
@@ -1200,11 +1199,13 @@ class AdminController extends Controller
         try {
             return DB::transaction(function () use ($request) {
                 $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
-                $routingRule = $this->findRoutingRule($request->input('route_id'), $request->input('route_type'));
+                $routingRule = $this->findOrCreateRoutingRule($request->input('route_id'), $request->input('route_type'));
 
                 if (!$routingRule) {
-                    return response()->json(['success' => false, 'message' => 'Routing rule not found'], 404);
+                    return response()->json(['success' => false, 'message' => 'Route not found'], 404);
                 }
+
+                $this->findOrCreateGatewayWeight($routingRule, $gateway);
 
                 RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
                     ->where('priority_order', '>=', 1)
@@ -1212,7 +1213,7 @@ class AdminController extends Controller
 
                 RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
                     ->where('gateway_id', $gateway->id)
-                    ->update(['priority_order' => 1, 'updated_by' => session('admin_email', 'admin')]);
+                    ->update(['priority_order' => 1, 'is_fallback' => false, 'updated_by' => session('admin_email', 'admin')]);
 
                 return response()->json(['success' => true, 'message' => 'Primary gateway updated']);
             });
@@ -1231,21 +1232,21 @@ class AdminController extends Controller
         ]);
 
         try {
-            $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
-            $routingRule = $this->findRoutingRule($request->input('route_id'), $request->input('route_type'));
+            return DB::transaction(function () use ($request) {
+                $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
+                $routingRule = $this->findOrCreateRoutingRule($request->input('route_id'), $request->input('route_type'));
 
-            if (!$routingRule) {
-                return response()->json(['success' => false, 'message' => 'Routing rule not found'], 404);
-            }
+                if (!$routingRule) {
+                    return response()->json(['success' => false, 'message' => 'Route not found'], 404);
+                }
 
-            $weight = RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
-                ->where('gateway_id', $gateway->id)
-                ->firstOrFail();
+                $weight = $this->findOrCreateGatewayWeight($routingRule, $gateway);
 
-            $newStatus = $weight->status === 'active' ? 'blocked' : 'active';
-            $weight->update(['status' => $newStatus, 'updated_by' => session('admin_email', 'admin')]);
+                $newStatus = $weight->status === 'active' ? 'blocked' : 'active';
+                $weight->update(['status' => $newStatus, 'updated_by' => session('admin_email', 'admin')]);
 
-            return response()->json(['success' => true, 'message' => 'Gateway ' . $newStatus, 'new_status' => $newStatus]);
+                return response()->json(['success' => true, 'message' => 'Gateway ' . $newStatus, 'new_status' => $newStatus]);
+            });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingToggleBlock failed', ['error' => $e->getMessage()]);
             return response()->json(['success' => false, 'message' => 'Failed to toggle block: ' . $e->getMessage()], 500);
@@ -1263,10 +1264,10 @@ class AdminController extends Controller
         try {
             return DB::transaction(function () use ($request) {
                 $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
-                $routingRule = $this->findRoutingRule($request->input('route_id'), $request->input('route_type'));
+                $routingRule = $this->findOrCreateRoutingRule($request->input('route_id'), $request->input('route_type'));
 
                 if (!$routingRule) {
-                    return response()->json(['success' => false, 'message' => 'Routing rule not found'], 404);
+                    return response()->json(['success' => false, 'message' => 'Route not found'], 404);
                 }
 
                 RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
@@ -1372,5 +1373,69 @@ class AdminController extends Controller
                 ->whereNull('mnc')
                 ->first();
         }
+    }
+
+    private function findOrCreateRoutingRule($routeId, $routeType)
+    {
+        $existing = $this->findRoutingRule($routeId, $routeType);
+        if ($existing) {
+            return $existing;
+        }
+
+        if ($routeType === 'uk') {
+            $mccMnc = MccMnc::find($routeId);
+            if (!$mccMnc) return null;
+            return RoutingRule::create([
+                'mcc' => $mccMnc->mcc,
+                'mnc' => $mccMnc->mnc,
+                'country_iso' => 'GB',
+                'name' => 'UK Route - ' . $mccMnc->network_name,
+                'country_name' => 'United Kingdom',
+                'rule_type' => 'network_route',
+                'selection_strategy' => 'weighted',
+                'status' => 'active',
+                'is_default' => false,
+                'priority' => 100,
+            ]);
+        } else {
+            $countryName = RateCard::where('country_iso', $routeId)->value('country_name') ?? $routeId;
+            return RoutingRule::create([
+                'country_iso' => $routeId,
+                'mcc' => null,
+                'mnc' => null,
+                'name' => 'International Route - ' . $countryName,
+                'country_name' => $countryName,
+                'rule_type' => 'network_route',
+                'selection_strategy' => 'weighted',
+                'status' => 'active',
+                'is_default' => false,
+                'priority' => 100,
+            ]);
+        }
+    }
+
+    private function findOrCreateGatewayWeight($routingRule, $gateway)
+    {
+        $weight = RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
+            ->where('gateway_id', $gateway->id)
+            ->first();
+
+        if ($weight) {
+            return $weight;
+        }
+
+        $maxOrder = RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)->max('priority_order') ?? 0;
+        $isFirst = $maxOrder === 0;
+
+        return RoutingGatewayWeight::create([
+            'routing_rule_id' => $routingRule->id,
+            'gateway_id' => $gateway->id,
+            'supplier_id' => $gateway->supplier_id,
+            'weight' => 0,
+            'priority_order' => $maxOrder + 1,
+            'is_fallback' => !$isFirst,
+            'status' => 'active',
+            'created_by' => session('admin_email', 'admin'),
+        ]);
     }
 }
