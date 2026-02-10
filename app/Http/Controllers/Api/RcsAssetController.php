@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\RcsAssetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class RcsAssetController extends Controller
 {
@@ -141,6 +142,94 @@ class RcsAssetController extends Controller
                 'success' => false,
                 'error' => 'Failed to update image. Please try again.',
             ], 500);
+        }
+    }
+
+    public function proxyImage(Request $request)
+    {
+        $request->validate([
+            'url' => 'required|url',
+        ]);
+
+        $url = $request->input('url');
+
+        if (!preg_match('/^https?:\/\//i', $url)) {
+            return response()->json(['error' => 'Invalid URL'], 422);
+        }
+
+        $parsedUrl = parse_url($url);
+        $host = $parsedUrl['host'] ?? '';
+
+        if (empty($host)) {
+            return response()->json(['error' => 'Invalid URL'], 422);
+        }
+
+        $resolvedIps = gethostbynamel($host);
+        if ($resolvedIps === false) {
+            return response()->json(['error' => 'Could not resolve hostname'], 422);
+        }
+
+        foreach ($resolvedIps as $ip) {
+            if (
+                filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false
+            ) {
+                return response()->json(['error' => 'URL points to a restricted network address'], 403);
+            }
+        }
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+        try {
+            $response = Http::timeout(10)
+                ->withoutRedirecting()
+                ->withHeaders([
+                    'User-Agent' => 'QuickSMS-RCS/1.0',
+                    'Accept' => 'image/*',
+                ])
+                ->get($url);
+
+            if ($response->status() >= 300 && $response->status() < 400) {
+                return response()->json(['error' => 'Image URL redirects are not supported. Please use the final image URL.'], 422);
+            }
+
+            if (!$response->successful()) {
+                return response()->json(['error' => 'Failed to fetch image'], 502);
+            }
+
+            $contentType = $response->header('Content-Type');
+            $mimeBase = $contentType ? strtolower(explode(';', $contentType)[0]) : '';
+            if (!in_array($mimeBase, $allowedMimes)) {
+                return response()->json(['error' => 'Not a valid image file'], 422);
+            }
+
+            $body = $response->body();
+            $maxSize = 5 * 1024 * 1024;
+            if (strlen($body) > $maxSize) {
+                return response()->json(['error' => 'Image exceeds 5 MB limit'], 413);
+            }
+
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $detectedMime = $finfo->buffer($body);
+            if (!in_array($detectedMime, $allowedMimes)) {
+                return response()->json(['error' => 'File content is not a valid image'], 422);
+            }
+
+            $base64 = base64_encode($body);
+            $dataUrl = 'data:' . $detectedMime . ';base64,' . $base64;
+
+            return response()->json([
+                'success' => true,
+                'dataUrl' => $dataUrl,
+                'contentType' => $detectedMime,
+                'size' => strlen($body),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('RCS image proxy failed', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['error' => 'Failed to proxy image'], 500);
         }
     }
 

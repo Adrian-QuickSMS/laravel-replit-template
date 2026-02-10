@@ -92,6 +92,7 @@ Route::controller(QuickSMSController::class)->group(function () {
 Route::prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
     Route::post('/process-url', 'processUrl')->name('api.rcs.assets.process-url');
     Route::post('/process-upload', 'processUpload')->name('api.rcs.assets.process-upload');
+    Route::post('/proxy-image', 'proxyImage')->name('api.rcs.assets.proxy-image');
     Route::put('/{uuid}', 'updateAsset')->name('api.rcs.assets.update');
     Route::post('/{uuid}/finalize', 'finalizeAsset')->name('api.rcs.assets.finalize');
 });

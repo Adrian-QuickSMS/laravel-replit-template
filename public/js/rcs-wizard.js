@@ -89,33 +89,45 @@ window.onrcsMediaLoadSuccess = function(data) {
         img.src = data.dataUrl;
     } else if (data.source === 'url') {
         var img = new Image();
-        var onUrlImageLoaded = function() {
+        var onUrlImageLoaded = function(previewSrc) {
             rcsMediaData.source = 'url';
-            rcsMediaData.url = data.url;
+            rcsMediaData.url = previewSrc || data.url;
             rcsMediaData.originalUrl = data.url;
             rcsMediaData.dimensions = { width: img.width, height: img.height };
             rcsMediaData.fileSize = 0;
             rcsMediaData.assetUuid = null;
             rcsMediaData.hostedUrl = null;
-            showRcsMediaPreview(data.url);
+            showRcsMediaPreview(previewSrc || data.url);
             updateRcsImageInfo();
             initRcsImageBaseline();
         };
         img.crossOrigin = 'anonymous';
-        img.onload = onUrlImageLoaded;
+        img.onload = function() {
+            onUrlImageLoaded(data.url);
+        };
         img.onerror = function() {
-            var retryImg = new Image();
-            retryImg.onload = function() {
-                img = retryImg;
-                onUrlImageLoaded();
-            };
-            retryImg.onerror = function() {
-                showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
-                if (typeof window.rcsMediaReset === 'function') {
-                    window.rcsMediaReset();
+            console.log('[RCS Load] CORS blocked, proxying through server:', data.url);
+            proxyRcsImageThroughServer(data.url, function(proxyResult) {
+                if (proxyResult && proxyResult.dataUrl) {
+                    var proxyImg = new Image();
+                    proxyImg.onload = function() {
+                        img = proxyImg;
+                        onUrlImageLoaded(proxyResult.dataUrl);
+                    };
+                    proxyImg.onerror = function() {
+                        showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
+                        if (typeof window.rcsMediaReset === 'function') {
+                            window.rcsMediaReset();
+                        }
+                    };
+                    proxyImg.src = proxyResult.dataUrl;
+                } else {
+                    showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
+                    if (typeof window.rcsMediaReset === 'function') {
+                        window.rcsMediaReset();
+                    }
                 }
-            };
-            retryImg.src = data.url;
+            });
         };
         img.src = data.url;
     }
@@ -1180,6 +1192,39 @@ function getCurrentEditParams() {
     };
 }
 
+function proxyRcsImageThroughServer(url, callback) {
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    };
+    if (csrfToken) {
+        headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+    }
+
+    fetch('/api/rcs/assets/proxy-image', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ url: url })
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(data) {
+        if (data.success && data.dataUrl) {
+            console.log('[RCS Proxy] Image proxied successfully, size:', data.size);
+            callback(data);
+        } else {
+            console.error('[RCS Proxy] Server returned error:', data.error);
+            callback(null);
+        }
+    })
+    .catch(function(err) {
+        console.error('[RCS Proxy] Fetch failed:', err);
+        callback(null);
+    });
+}
+
 /**
  * Mock Media Service - stores edited images and generates URLs
  * TODO: Replace with real backend implementation
@@ -1673,23 +1718,21 @@ function loadRcsMediaUrl() {
             }
             
             var img = new Image();
-            var onImageLoaded = function() {
+            var onImageLoaded = function(previewSrc) {
                 rcsMediaData.source = 'url';
-                rcsMediaData.url = url;
+                rcsMediaData.url = previewSrc || url;
                 rcsMediaData.originalUrl = url;
                 rcsMediaData.dimensions = { width: img.width, height: img.height };
                 rcsMediaData.fileSize = metadata.fileSize || 0;
                 rcsMediaData.assetUuid = null;
                 rcsMediaData.hostedUrl = null;
-                showRcsMediaPreview(url);
+                showRcsMediaPreview(previewSrc || url);
                 updateRcsImageInfo();
                 initRcsImageBaseline();
                 
                 if (metadata.warnLargeFile) {
                     var sizeMB = (metadata.fileSize / (1024 * 1024)).toFixed(1);
                     showRcsMediaWarning('This file is ' + sizeMB + ' MB. Large media may load slowly and may not render optimally on handsets.');
-                } else if (metadata.corsBlocked || !img.crossOrigin) {
-                    showRcsMediaWarning('File size could not be verified. Very large images may not render optimally on handsets.');
                 }
                 
                 if (loadBtn) {
@@ -1698,21 +1741,34 @@ function loadRcsMediaUrl() {
                 }
             };
             img.crossOrigin = 'anonymous';
-            img.onload = onImageLoaded;
+            img.onload = function() {
+                onImageLoaded(url);
+            };
             img.onerror = function() {
-                var retryImg = new Image();
-                retryImg.onload = function() {
-                    img = retryImg;
-                    onImageLoaded();
-                };
-                retryImg.onerror = function() {
-                    showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
-                    if (loadBtn) {
-                        loadBtn.disabled = false;
-                        loadBtn.innerHTML = '<i class="fas fa-check"></i>';
+                console.log('[RCS Load] CORS blocked in loadRcsMediaUrl, proxying:', url);
+                proxyRcsImageThroughServer(url, function(proxyResult) {
+                    if (proxyResult && proxyResult.dataUrl) {
+                        var proxyImg = new Image();
+                        proxyImg.onload = function() {
+                            img = proxyImg;
+                            onImageLoaded(proxyResult.dataUrl);
+                        };
+                        proxyImg.onerror = function() {
+                            showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
+                            if (loadBtn) {
+                                loadBtn.disabled = false;
+                                loadBtn.innerHTML = '<i class="fas fa-check"></i>';
+                            }
+                        };
+                        proxyImg.src = proxyResult.dataUrl;
+                    } else {
+                        showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
+                        if (loadBtn) {
+                            loadBtn.disabled = false;
+                            loadBtn.innerHTML = '<i class="fas fa-check"></i>';
+                        }
                     }
-                };
-                retryImg.src = url;
+                });
             };
             img.src = url;
         });
