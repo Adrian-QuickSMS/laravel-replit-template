@@ -1084,7 +1084,7 @@ class AdminController extends Controller
         $request->validate([
             'route_id' => 'required|string',
             'gateway_code' => 'required|string',
-            'weight' => 'required|integer|min:1|max:100',
+            'weight' => 'nullable|integer|min:0|max:100',
             'set_primary' => 'nullable|boolean',
             'route_type' => 'required|string|in:uk,international',
         ]);
@@ -1138,14 +1138,16 @@ class AdminController extends Controller
                         ->increment('priority_order');
                 }
 
+                $weight = $request->input('weight', 0);
+
                 RoutingGatewayWeight::create([
                     'routing_rule_id' => $routingRule->id,
                     'gateway_id' => $gateway->id,
                     'supplier_id' => $gateway->supplier_id,
-                    'weight' => $request->input('weight'),
+                    'weight' => $weight,
                     'priority_order' => $priorityOrder,
                     'status' => 'active',
-                    'is_fallback' => false,
+                    'is_fallback' => $weight === 0,
                     'created_by' => session('admin_email', 'admin'),
                 ]);
 

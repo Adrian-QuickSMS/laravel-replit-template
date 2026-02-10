@@ -476,6 +476,15 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="addGwRouteId">
+                <div class="mb-3" id="addGwRouteSelectContainer">
+                    <label class="form-label fw-semibold">Select Network / Route <span class="text-danger">*</span></label>
+                    <select class="form-select" id="addGwRouteSelect">
+                        <option value="">Choose a network...</option>
+                        @foreach($ukNetworks as $route)
+                        <option value="{{ $route['id'] }}">{{ $route['network'] }} ({{ $route['prefix'] }})</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Select Gateway <span class="text-danger">*</span></label>
                     <select class="form-select" id="addGwSelect">
@@ -485,14 +494,9 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Initial Weight (%) <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control" id="addGwWeight" min="1" max="100" value="10">
-                    <small class="text-muted">Weights across all gateways for this route will be rebalanced automatically.</small>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="addGwPrimary">
-                    <label class="form-check-label" for="addGwPrimary">Set as Primary Gateway</label>
+                <div class="alert alert-light border" style="font-size: 0.8rem; margin-bottom: 0;">
+                    <i class="fas fa-info-circle text-muted me-1"></i>
+                    The gateway will be added as the <strong>last secondary provider</strong> with no weight balancing. To adjust weights, expand the route row and manage all gateways from there.
                 </div>
             </div>
             <div class="modal-footer">
@@ -594,8 +598,15 @@ function updateRouteCount(count) {
 function openAddGatewayToRouteModal(routeId) {
     document.getElementById('addGwRouteId').value = routeId || '';
     document.getElementById('addGwSelect').value = '';
-    document.getElementById('addGwWeight').value = 10;
-    document.getElementById('addGwPrimary').checked = false;
+    const routeSelectContainer = document.getElementById('addGwRouteSelectContainer');
+    const routeSelect = document.getElementById('addGwRouteSelect');
+    if (routeId) {
+        routeSelectContainer.style.display = 'none';
+        routeSelect.value = routeId;
+    } else {
+        routeSelectContainer.style.display = 'block';
+        routeSelect.value = '';
+    }
     new bootstrap.Modal(document.getElementById('addGatewayRouteModal')).show();
 }
 
@@ -611,14 +622,15 @@ function apiPost(url, data) {
 
 function confirmAddGateway() {
     const gw = document.getElementById('addGwSelect').value;
-    const weight = document.getElementById('addGwWeight').value;
-    const routeId = document.getElementById('addGwRouteId').value;
-    const setPrimary = document.getElementById('addGwPrimary')?.checked || false;
+    let routeId = document.getElementById('addGwRouteId').value;
+    if (!routeId) {
+        routeId = document.getElementById('addGwRouteSelect').value;
+    }
+    if (!routeId) { showToast('Please select a network / route', 'warning'); return; }
     if (!gw) { showToast('Please select a gateway', 'warning'); return; }
-    if (!weight || weight < 1 || weight > 100) { showToast('Weight must be between 1 and 100', 'warning'); return; }
 
     bootstrap.Modal.getInstance(document.getElementById('addGatewayRouteModal')).hide();
-    apiPost('/admin/system/routing/add-gateway', { route_id: String(routeId), gateway_code: gw, weight: parseInt(weight), set_primary: setPrimary, route_type: 'uk' })
+    apiPost('/admin/system/routing/add-gateway', { route_id: String(routeId), gateway_code: gw, weight: 0, set_primary: false, route_type: 'uk' })
         .then(data => { if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 500); } else { showToast(data.message || 'Failed to add gateway', 'danger'); } })
         .catch(() => showToast('Request failed', 'danger'));
 }
