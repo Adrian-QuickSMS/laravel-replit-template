@@ -5,12 +5,12 @@
                 <h5 class="modal-title text-white"><i class="fas fa-magic me-2 text-white"></i>RCS Content Wizard</h5>
                 <button type="button" class="btn-close btn-close-white" id="rcsWizardCloseBtn"></button>
             </div>
-            <div class="modal-body p-0" style="flex: 1 1 auto; min-height: 0; position: relative; overflow: hidden !important;">
-                    <div class="p-4 d-flex flex-column align-items-center justify-content-start border-end" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1); overflow-y: auto; position: absolute; top: 0; left: 0; bottom: 0; width: 41.6667%;">
+            <div class="modal-body p-0" id="rcsWizardBody" style="flex: 1 1 auto; min-height: 0; display: flex; flex-direction: row; overflow: hidden !important;">
+                    <div class="p-4 d-flex flex-column align-items-center justify-content-start border-end" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1); overflow-y: scroll; width: 41.6667%; flex-shrink: 0;">
                         <p class="text-muted small mb-3">Live Preview</p>
                         <div id="rcsWizardPreviewContainer"></div>
                     </div>
-                    <div class="p-4" id="rcsConfigColumn" style="overflow-y: auto; position: absolute; top: 0; right: 0; bottom: 0; left: 41.6667%;" tabindex="0">
+                    <div class="p-4" id="rcsConfigColumn" style="overflow-y: scroll; flex: 1 1 auto;" tabindex="0">
                         <div class="rcs-config-panel">
                             <div id="rcsValidationErrors" class="d-none"></div>
                             

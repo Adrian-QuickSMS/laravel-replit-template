@@ -172,6 +172,28 @@ function initializeRcsCard(cardNum) {
     return rcsCardsData[cardNum];
 }
 
+function fixRcsWizardScrollHeights() {
+    var body = document.getElementById('rcsWizardBody');
+    var configCol = document.getElementById('rcsConfigColumn');
+    var previewCol = document.getElementById('rcsPreviewColumn');
+    if (!body) return;
+    
+    var bodyHeight = body.getBoundingClientRect().height;
+    if (bodyHeight > 0) {
+        if (configCol) {
+            configCol.style.height = bodyHeight + 'px';
+            configCol.style.maxHeight = bodyHeight + 'px';
+            configCol.style.minHeight = '0';
+        }
+        if (previewCol) {
+            previewCol.style.height = bodyHeight + 'px';
+            previewCol.style.maxHeight = bodyHeight + 'px';
+            previewCol.style.minHeight = '0';
+        }
+        console.log('[RCS Wizard] Fixed scroll heights: ' + bodyHeight + 'px');
+    }
+}
+
 function openRcsWizard() {
     if (!rcsPersistentPayload && Object.keys(rcsCardsData).length === 0) {
         var hasStoredDraft = loadRcsFromStorage();
@@ -184,7 +206,14 @@ function openRcsWizard() {
     
     hideRcsValidationErrors();
     
-    var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
+    var modalEl = document.getElementById('rcsWizardModal');
+    var modal = new bootstrap.Modal(modalEl);
+    
+    modalEl.addEventListener('shown.bs.modal', function onShown() {
+        modalEl.removeEventListener('shown.bs.modal', onShown);
+        fixRcsWizardScrollHeights();
+    });
+    
     modal.show();
     
     var applyBtn = document.getElementById('rcsApplyContentBtn');
@@ -195,7 +224,8 @@ function openRcsWizard() {
         initializeMessageTypeUI();
         updateCarouselOrientationWarning();
         updateRcsWizardPreview();
-    }, 100);
+        fixRcsWizardScrollHeights();
+    }, 150);
 }
 
 function initializeMessageTypeUI() {
@@ -3154,6 +3184,13 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.log('[RCS Wizard] Apply button not found');
     }
+    
+    window.addEventListener('resize', function() {
+        var modalEl = document.getElementById('rcsWizardModal');
+        if (modalEl && modalEl.classList.contains('show')) {
+            fixRcsWizardScrollHeights();
+        }
+    });
     
     console.log('[RCS Wizard] DOMContentLoaded complete');
 });
