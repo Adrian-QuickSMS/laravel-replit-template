@@ -8,6 +8,7 @@ use App\Services\Admin\AdminLoginPolicyService;
 use App\Services\Admin\AdminAuditService;
 use App\Services\Admin\MessageEnforcementService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Models\MccMnc;
 use App\Models\Gateway;
 use App\Models\Supplier;
@@ -1075,6 +1076,294 @@ class AdminController extends Controller
                 'error' => 'Failed to reload rules',
                 'message' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+    public function routingAddGateway(Request $request)
+    {
+        $request->validate([
+            'route_id' => 'required|string',
+            'gateway_code' => 'required|string',
+            'weight' => 'required|integer|min:1|max:100',
+            'set_primary' => 'nullable|boolean',
+            'route_type' => 'required|string|in:uk,international',
+        ]);
+
+        try {
+            return DB::transaction(function () use ($request) {
+                $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
+
+                if ($request->input('route_type') === 'uk') {
+                    $mccMnc = MccMnc::findOrFail($request->input('route_id'));
+                    $routingRule = RoutingRule::firstOrCreate(
+                        ['mcc' => $mccMnc->mcc, 'mnc' => $mccMnc->mnc, 'country_iso' => 'GB'],
+                        [
+                            'name' => 'UK Route - ' . $mccMnc->network_name,
+                            'rule_type' => 'network_route',
+                            'selection_strategy' => 'weighted',
+                            'status' => 'active',
+                            'is_default' => false,
+                            'priority' => 100,
+                            'country_name' => 'United Kingdom',
+                        ]
+                    );
+                } else {
+                    $countryIso = $request->input('route_id');
+                    $routingRule = RoutingRule::firstOrCreate(
+                        ['country_iso' => $countryIso, 'mcc' => null, 'mnc' => null],
+                        [
+                            'name' => 'International Route - ' . $countryIso,
+                            'rule_type' => 'network_route',
+                            'selection_strategy' => 'weighted',
+                            'status' => 'active',
+                            'is_default' => false,
+                            'priority' => 100,
+                        ]
+                    );
+                }
+
+                $routingRule->update([
+                    'rule_type' => 'network_route',
+                    'selection_strategy' => 'weighted',
+                    'status' => 'active',
+                    'is_default' => false,
+                    'priority' => 100,
+                ]);
+
+                $maxOrder = RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)->max('priority_order') ?? 0;
+                $priorityOrder = $request->input('set_primary') ? 1 : $maxOrder + 1;
+
+                if ($request->input('set_primary')) {
+                    RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
+                        ->increment('priority_order');
+                }
+
+                RoutingGatewayWeight::create([
+                    'routing_rule_id' => $routingRule->id,
+                    'gateway_id' => $gateway->id,
+                    'supplier_id' => $gateway->supplier_id,
+                    'weight' => $request->input('weight'),
+                    'priority_order' => $priorityOrder,
+                    'status' => 'active',
+                    'is_fallback' => false,
+                    'created_by' => session('admin_email', 'admin'),
+                ]);
+
+                return response()->json(['success' => true, 'message' => 'Gateway added successfully']);
+            });
+        } catch (\Exception $e) {
+            Log::error('[AdminController] routingAddGateway failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Failed to add gateway: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function routingChangeWeight(Request $request)
+    {
+        $request->validate([
+            'route_id' => 'required|string',
+            'gateway_code' => 'required|string',
+            'new_weight' => 'required|integer|min:1|max:100',
+            'route_type' => 'required|string|in:uk,international',
+        ]);
+
+        try {
+            $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
+            $routingRule = $this->findRoutingRule($request->input('route_id'), $request->input('route_type'));
+
+            if (!$routingRule) {
+                return response()->json(['success' => false, 'message' => 'Routing rule not found'], 404);
+            }
+
+            $weight = RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
+                ->where('gateway_id', $gateway->id)
+                ->firstOrFail();
+
+            $weight->update(['weight' => $request->input('new_weight'), 'updated_by' => session('admin_email', 'admin')]);
+
+            return response()->json(['success' => true, 'message' => 'Weight updated successfully']);
+        } catch (\Exception $e) {
+            Log::error('[AdminController] routingChangeWeight failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Failed to update weight: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function routingSetPrimary(Request $request)
+    {
+        $request->validate([
+            'route_id' => 'required|string',
+            'gateway_code' => 'required|string',
+            'route_type' => 'required|string|in:uk,international',
+        ]);
+
+        try {
+            return DB::transaction(function () use ($request) {
+                $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
+                $routingRule = $this->findRoutingRule($request->input('route_id'), $request->input('route_type'));
+
+                if (!$routingRule) {
+                    return response()->json(['success' => false, 'message' => 'Routing rule not found'], 404);
+                }
+
+                RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
+                    ->where('priority_order', '>=', 1)
+                    ->increment('priority_order');
+
+                RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
+                    ->where('gateway_id', $gateway->id)
+                    ->update(['priority_order' => 1, 'updated_by' => session('admin_email', 'admin')]);
+
+                return response()->json(['success' => true, 'message' => 'Primary gateway updated']);
+            });
+        } catch (\Exception $e) {
+            Log::error('[AdminController] routingSetPrimary failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Failed to set primary: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function routingToggleBlock(Request $request)
+    {
+        $request->validate([
+            'route_id' => 'required|string',
+            'gateway_code' => 'required|string',
+            'route_type' => 'required|string|in:uk,international',
+        ]);
+
+        try {
+            $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
+            $routingRule = $this->findRoutingRule($request->input('route_id'), $request->input('route_type'));
+
+            if (!$routingRule) {
+                return response()->json(['success' => false, 'message' => 'Routing rule not found'], 404);
+            }
+
+            $weight = RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
+                ->where('gateway_id', $gateway->id)
+                ->firstOrFail();
+
+            $newStatus = $weight->status === 'active' ? 'blocked' : 'active';
+            $weight->update(['status' => $newStatus, 'updated_by' => session('admin_email', 'admin')]);
+
+            return response()->json(['success' => true, 'message' => 'Gateway ' . $newStatus, 'new_status' => $newStatus]);
+        } catch (\Exception $e) {
+            Log::error('[AdminController] routingToggleBlock failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Failed to toggle block: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function routingRemoveGateway(Request $request)
+    {
+        $request->validate([
+            'route_id' => 'required|string',
+            'gateway_code' => 'required|string',
+            'route_type' => 'required|string|in:uk,international',
+        ]);
+
+        try {
+            return DB::transaction(function () use ($request) {
+                $gateway = Gateway::where('gateway_code', $request->input('gateway_code'))->firstOrFail();
+                $routingRule = $this->findRoutingRule($request->input('route_id'), $request->input('route_type'));
+
+                if (!$routingRule) {
+                    return response()->json(['success' => false, 'message' => 'Routing rule not found'], 404);
+                }
+
+                RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)
+                    ->where('gateway_id', $gateway->id)
+                    ->delete();
+
+                $remaining = RoutingGatewayWeight::where('routing_rule_id', $routingRule->id)->count();
+                if ($remaining === 0) {
+                    $routingRule->delete();
+                }
+
+                return response()->json(['success' => true, 'message' => 'Gateway removed from route']);
+            });
+        } catch (\Exception $e) {
+            Log::error('[AdminController] routingRemoveGateway failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Failed to remove gateway: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function routingCreateOverride(Request $request)
+    {
+        $request->validate([
+            'customer_name' => 'required|string',
+            'gateway_id' => 'required|integer',
+            'scope' => 'required|string|in:global,uk_network,country',
+            'scope_value' => 'nullable|string',
+            'product_type' => 'nullable|string',
+            'reason' => 'required|string',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date',
+        ]);
+
+        try {
+            $overrideData = [
+                'account_id' => 0,
+                'forced_gateway_id' => $request->input('gateway_id'),
+                'override_type' => 'force_gateway',
+                'status' => 'active',
+                'product_type' => $request->input('product_type') !== 'all' ? $request->input('product_type') : null,
+                'reason' => $request->input('reason'),
+                'valid_from' => $request->input('start_date'),
+                'valid_to' => $request->input('end_date'),
+                'created_by' => session('admin_email', 'admin'),
+            ];
+
+            $scope = $request->input('scope');
+            $scopeValue = $request->input('scope_value');
+
+            if ($scope === 'uk_network' && $scopeValue) {
+                $parts = explode('/', $scopeValue);
+                if (count($parts) === 2) {
+                    $overrideData['mcc'] = $parts[0];
+                    $overrideData['mnc'] = $parts[1];
+                    $overrideData['country_iso'] = 'GB';
+                }
+            } elseif ($scope === 'country' && $scopeValue) {
+                $overrideData['country_iso'] = $scopeValue;
+            }
+
+            RoutingCustomerOverride::create($overrideData);
+
+            return response()->json(['success' => true, 'message' => 'Override created successfully']);
+        } catch (\Exception $e) {
+            Log::error('[AdminController] routingCreateOverride failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Failed to create override: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function routingCancelOverride(Request $request)
+    {
+        $request->validate([
+            'override_id' => 'required|integer',
+        ]);
+
+        try {
+            $override = RoutingCustomerOverride::findOrFail($request->input('override_id'));
+            $override->update(['status' => 'cancelled']);
+
+            return response()->json(['success' => true, 'message' => 'Override cancelled successfully']);
+        } catch (\Exception $e) {
+            Log::error('[AdminController] routingCancelOverride failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'message' => 'Failed to cancel override: ' . $e->getMessage()], 500);
+        }
+    }
+
+    private function findRoutingRule($routeId, $routeType)
+    {
+        if ($routeType === 'uk') {
+            $mccMnc = MccMnc::find($routeId);
+            if (!$mccMnc) return null;
+            return RoutingRule::where('mcc', $mccMnc->mcc)
+                ->where('mnc', $mccMnc->mnc)
+                ->where('country_iso', 'GB')
+                ->first();
+        } else {
+            return RoutingRule::where('country_iso', $routeId)
+                ->whereNull('mcc')
+                ->whereNull('mnc')
+                ->first();
         }
     }
 }

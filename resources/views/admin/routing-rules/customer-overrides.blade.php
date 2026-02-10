@@ -566,8 +566,24 @@ function confirmCreateOverride() {
     if (!startDate) { showToast('Please set a start date', 'warning'); return; }
     if (!reason.trim()) { showToast('Reason is required', 'warning'); return; }
 
+    const scope = document.getElementById('coScope')?.value || 'global';
+    const scopeValue = document.getElementById('coScopeValue')?.value || '';
+    const productType = document.getElementById('coProductType')?.value || 'all';
+    const endDate = document.getElementById('coEndDate')?.value || null;
+    const notify = document.getElementById('coNotify')?.checked || false;
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
     bootstrap.Modal.getInstance(document.getElementById('createOverrideModal')).hide();
-    showToast('Override created successfully', 'success');
+
+    fetch('/admin/system/routing/create-override', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+        body: JSON.stringify({ customer_name: customer, gateway_id: parseInt(gateway), scope: scope, scope_value: scopeValue, product_type: productType, reason: reason, start_date: startDate, end_date: endDate, notify: notify })
+    })
+    .then(r => r.json())
+    .then(data => { if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 500); } else { showToast(data.message || 'Failed to create override', 'danger'); } })
+    .catch(() => showToast('Request failed', 'danger'));
 }
 
 function editOverride(id) {
@@ -576,7 +592,15 @@ function editOverride(id) {
 
 function cancelOverride(id, customer) {
     if (confirm('Cancel routing override ' + id + ' for ' + customer + '? This will revert to standard routing rules.')) {
-        showToast('Override ' + id + ' cancelled', 'success');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        fetch('/admin/system/routing/cancel-override', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+            body: JSON.stringify({ override_id: parseInt(id) })
+        })
+        .then(r => r.json())
+        .then(data => { if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 500); } else { showToast(data.message || 'Failed to cancel override', 'danger'); } })
+        .catch(() => showToast('Request failed', 'danger'));
     }
 }
 

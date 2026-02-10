@@ -599,14 +599,28 @@ function openAddGatewayToRouteModal(routeId) {
     new bootstrap.Modal(document.getElementById('addGatewayRouteModal')).show();
 }
 
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
+function apiPost(url, data) {
+    return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+        body: JSON.stringify(data)
+    }).then(r => r.json());
+}
+
 function confirmAddGateway() {
     const gw = document.getElementById('addGwSelect').value;
     const weight = document.getElementById('addGwWeight').value;
+    const routeId = document.getElementById('addGwRouteId').value;
+    const setPrimary = document.getElementById('addGwPrimary')?.checked || false;
     if (!gw) { showToast('Please select a gateway', 'warning'); return; }
     if (!weight || weight < 1 || weight > 100) { showToast('Weight must be between 1 and 100', 'warning'); return; }
 
     bootstrap.Modal.getInstance(document.getElementById('addGatewayRouteModal')).hide();
-    showToast('Gateway added successfully. Weights rebalanced.', 'success');
+    apiPost('/admin/system/routing/add-gateway', { route_id: String(routeId), gateway_code: gw, weight: parseInt(weight), set_primary: setPrimary, route_type: 'uk' })
+        .then(data => { if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 500); } else { showToast(data.message || 'Failed to add gateway', 'danger'); } })
+        .catch(() => showToast('Request failed', 'danger'));
 }
 
 function openChangeWeightModal(routeId, gwCode, gwName, currentWeight) {
@@ -619,28 +633,38 @@ function openChangeWeightModal(routeId, gwCode, gwName, currentWeight) {
 }
 
 function confirmChangeWeight() {
+    const routeId = document.getElementById('cwRouteId').value;
+    const gwCode = document.getElementById('cwGatewayCode').value;
     const newWeight = document.getElementById('cwNewWeight').value;
     if (!newWeight || newWeight < 1 || newWeight > 100) { showToast('Weight must be between 1 and 100', 'warning'); return; }
 
     bootstrap.Modal.getInstance(document.getElementById('changeWeightModal')).hide();
-    showToast('Weight updated successfully', 'success');
+    apiPost('/admin/system/routing/change-weight', { route_id: String(routeId), gateway_code: gwCode, new_weight: parseInt(newWeight), route_type: 'uk' })
+        .then(data => { if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 500); } else { showToast(data.message || 'Failed to update weight', 'danger'); } })
+        .catch(() => showToast('Request failed', 'danger'));
 }
 
 function setPrimaryGateway(routeId, gwCode) {
     if (confirm('Set this gateway as primary for this route? The current primary will be demoted.')) {
-        showToast('Primary gateway updated', 'success');
+        apiPost('/admin/system/routing/set-primary', { route_id: String(routeId), gateway_code: gwCode, route_type: 'uk' })
+            .then(data => { if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 500); } else { showToast(data.message || 'Failed to set primary', 'danger'); } })
+            .catch(() => showToast('Request failed', 'danger'));
     }
 }
 
 function toggleGatewayBlock(routeId, gwCode) {
     if (confirm('Are you sure you want to change the status of this gateway?')) {
-        showToast('Gateway status updated', 'success');
+        apiPost('/admin/system/routing/toggle-block', { route_id: String(routeId), gateway_code: gwCode, route_type: 'uk' })
+            .then(data => { if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 500); } else { showToast(data.message || 'Failed to update status', 'danger'); } })
+            .catch(() => showToast('Request failed', 'danger'));
     }
 }
 
 function removeGateway(routeId, gwCode, gwName) {
     if (confirm('Remove "' + gwName + '" from this route? This action cannot be undone.')) {
-        showToast('Gateway removed from route', 'success');
+        apiPost('/admin/system/routing/remove-gateway', { route_id: String(routeId), gateway_code: gwCode, route_type: 'uk' })
+            .then(data => { if (data.success) { showToast(data.message, 'success'); setTimeout(() => location.reload(), 500); } else { showToast(data.message || 'Failed to remove gateway', 'danger'); } })
+            .catch(() => showToast('Request failed', 'danger'));
     }
 }
 

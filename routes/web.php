@@ -217,6 +217,14 @@ Route::prefix('admin')->group(function () {
             Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
             Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');
             Route::get('/system/flags', 'systemFlags')->name('admin.system.flags');
+
+            Route::post('/system/routing/add-gateway', 'routingAddGateway')->name('admin.routing.add-gateway');
+            Route::post('/system/routing/change-weight', 'routingChangeWeight')->name('admin.routing.change-weight');
+            Route::post('/system/routing/set-primary', 'routingSetPrimary')->name('admin.routing.set-primary');
+            Route::post('/system/routing/toggle-block', 'routingToggleBlock')->name('admin.routing.toggle-block');
+            Route::post('/system/routing/remove-gateway', 'routingRemoveGateway')->name('admin.routing.remove-gateway');
+            Route::post('/system/routing/create-override', 'routingCreateOverride')->name('admin.routing.create-override');
+            Route::post('/system/routing/cancel-override', 'routingCancelOverride')->name('admin.routing.cancel-override');
         });
 });
 
