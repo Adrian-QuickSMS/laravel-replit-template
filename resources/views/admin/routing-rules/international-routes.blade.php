@@ -384,7 +384,7 @@
                     <select class="form-select" id="addGwRouteSelect">
                         <option value="">Choose a country...</option>
                         @foreach($countries as $country)
-                        <option value="{{ $country['iso'] }}">{{ $country['name'] }} ({{ $country['iso'] }})</option>
+                        <option value="{{ $country['iso'] }}">{{ $country['country'] }} ({{ $country['iso'] }})</option>
                         @endforeach
                     </select>
                 </div>
