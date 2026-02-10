@@ -195,6 +195,8 @@ function openRcsWizard() {
         initializeMessageTypeUI();
         updateCarouselOrientationWarning();
         updateRcsWizardPreview();
+        var configCol = document.getElementById('rcsConfigColumn');
+        if (configCol) configCol.focus();
     }, 100);
 }
 
