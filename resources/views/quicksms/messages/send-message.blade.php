@@ -1146,7 +1146,7 @@
 @include('quicksms.partials.rcs-wizard-modal')
 
 <script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106b"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v=20260210b"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260210c"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

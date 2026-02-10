@@ -89,8 +89,7 @@ window.onrcsMediaLoadSuccess = function(data) {
         img.src = data.dataUrl;
     } else if (data.source === 'url') {
         var img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = function() {
+        var onUrlImageLoaded = function() {
             rcsMediaData.source = 'url';
             rcsMediaData.url = data.url;
             rcsMediaData.originalUrl = data.url;
@@ -102,11 +101,21 @@ window.onrcsMediaLoadSuccess = function(data) {
             updateRcsImageInfo();
             initRcsImageBaseline();
         };
+        img.crossOrigin = 'anonymous';
+        img.onload = onUrlImageLoaded;
         img.onerror = function() {
-            showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
-            if (typeof window.rcsMediaReset === 'function') {
-                window.rcsMediaReset();
-            }
+            var retryImg = new Image();
+            retryImg.onload = function() {
+                img = retryImg;
+                onUrlImageLoaded();
+            };
+            retryImg.onerror = function() {
+                showRcsMediaError('Media could not be fetched. The URL may not be publicly accessible or may not point to a valid image.');
+                if (typeof window.rcsMediaReset === 'function') {
+                    window.rcsMediaReset();
+                }
+            };
+            retryImg.src = data.url;
         };
         img.src = data.url;
     }
