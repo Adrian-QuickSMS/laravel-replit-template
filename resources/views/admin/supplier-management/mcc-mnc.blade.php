@@ -824,34 +824,38 @@
 
 <!-- Edit MCC/MNC Modal -->
 <div class="modal fade" id="editMccMncModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Network</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Network</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="editMccMncForm">
                     <input type="hidden" name="network_id" id="editNetworkId">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">MCC</label>
-                            <input type="text" class="form-control" id="editMcc" readonly>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">MNC</label>
-                            <input type="text" class="form-control" id="editMnc" readonly>
-                        </div>
-                    </div>
                     <div class="mb-3">
-                        <label class="form-label">Network Name <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold">Network Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="network_name" id="editNetworkName" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Country Prefix <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold">Country Prefix <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="country_prefix" id="editCountryPrefix" placeholder="e.g. 44" required>
                         <small class="text-muted">Dialing code without + (e.g., 44 for UK, 1 for US)</small>
                     </div>
+
+                    <hr class="my-3">
+                    <label class="form-label fw-semibold mb-2">MCC / MNC Codes</label>
+                    <p class="text-muted mb-2" style="font-size: 0.82rem;">Existing codes for this network. Add additional MCC/MNC pairs below.</p>
+
+                    <div id="editExistingMncs" class="mb-3"></div>
+
+                    <div id="editNewMncRows"></div>
+
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addEditMncRow()">
+                        <i class="fas fa-plus me-1"></i>Add MCC/MNC
+                    </button>
+
+                    <div id="editMncFeedback" class="mt-3" style="display: none;"></div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -1176,18 +1180,71 @@ function editNetwork(networkId) {
         .then(response => response.json())
         .then(data => {
             document.getElementById('editNetworkId').value = data.id;
-            document.getElementById('editMcc').value = data.mcc;
-            document.getElementById('editMnc').value = data.mnc;
             document.getElementById('editNetworkName').value = data.network_name;
             document.getElementById('editCountryPrefix').value = data.country_prefix;
+
+            const existingContainer = document.getElementById('editExistingMncs');
+            existingContainer.innerHTML = '';
+            if (data.siblings && data.siblings.length > 0) {
+                data.siblings.forEach(s => {
+                    const row = document.createElement('div');
+                    row.className = 'd-flex align-items-center gap-2 mb-2';
+                    row.innerHTML = `
+                        <div style="flex: 0 0 120px;">
+                            <input type="text" class="form-control form-control-sm" value="${s.mcc}" readonly style="background: #f0f4f8;">
+                        </div>
+                        <div style="flex: 0 0 120px;">
+                            <input type="text" class="form-control form-control-sm" value="${s.mnc}" readonly style="background: #f0f4f8;">
+                        </div>
+                        <div class="flex-grow-1">
+                            <span class="status-badge ${s.active ? 'active' : 'inactive'}" style="font-size: 0.7rem;">
+                                <i class="fas fa-circle" style="font-size: 5px;"></i> ${s.active ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>`;
+                    existingContainer.appendChild(row);
+                });
+            }
+
+            document.getElementById('editNewMncRows').innerHTML = '';
+            document.getElementById('editMncFeedback').style.display = 'none';
+
             new bootstrap.Modal(document.getElementById('editMccMncModal')).show();
         });
 }
 
+function addEditMncRow() {
+    const container = document.getElementById('editNewMncRows');
+    const row = document.createElement('div');
+    row.className = 'd-flex align-items-center gap-2 mb-2 edit-new-mnc-row';
+    row.innerHTML = `
+        <div style="flex: 0 0 120px;">
+            <input type="text" class="form-control form-control-sm" name="new_mcc" maxlength="3" placeholder="MCC" required>
+        </div>
+        <div style="flex: 0 0 120px;">
+            <input type="text" class="form-control form-control-sm" name="new_mnc" maxlength="3" placeholder="MNC" required>
+        </div>
+        <div class="flex-grow-1">
+            <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">New</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.edit-new-mnc-row').remove()" title="Remove">
+            <i class="fas fa-times"></i>
+        </button>`;
+    container.appendChild(row);
+}
+
 function submitEditMccMnc() {
     const networkId = document.getElementById('editNetworkId').value;
-    const form = document.getElementById('editMccMncForm');
-    const formData = new FormData(form);
+    const networkName = document.getElementById('editNetworkName').value;
+    const countryPrefix = document.getElementById('editCountryPrefix').value;
+
+    const newMncs = [];
+    document.querySelectorAll('.edit-new-mnc-row').forEach(row => {
+        const mcc = row.querySelector('[name="new_mcc"]').value.trim();
+        const mnc = row.querySelector('[name="new_mnc"]').value.trim();
+        if (mcc && mnc) {
+            newMncs.push({ mcc, mnc });
+        }
+    });
 
     fetch(`/admin/supplier-management/mcc-mnc/${networkId}`, {
         method: 'PUT',
@@ -1195,14 +1252,18 @@ function submitEditMccMnc() {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify(Object.fromEntries(formData))
+        body: JSON.stringify({
+            network_name: networkName,
+            country_prefix: countryPrefix,
+            new_mncs: newMncs
+        })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             location.reload();
         } else {
-            alert('Error: ' + data.message);
+            alert('Error: ' + (data.message || 'Something went wrong'));
         }
     });
 }

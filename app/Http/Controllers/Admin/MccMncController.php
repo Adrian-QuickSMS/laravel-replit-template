@@ -45,7 +45,16 @@ class MccMncController extends Controller
 
     public function show(MccMnc $mccMnc)
     {
-        return response()->json($mccMnc);
+        $siblings = MccMnc::where('network_name', $mccMnc->network_name)
+            ->where('country_iso', $mccMnc->country_iso)
+            ->orderBy('mcc')
+            ->orderBy('mnc')
+            ->get(['id', 'mcc', 'mnc', 'active']);
+
+        $data = $mccMnc->toArray();
+        $data['siblings'] = $siblings;
+
+        return response()->json($data);
     }
 
     public function store(Request $request)
@@ -166,17 +175,70 @@ class MccMncController extends Controller
 
     public function update(Request $request, MccMnc $mccMnc)
     {
-        $validated = $request->validate([
-            'country_name' => 'required|string|max:255',
-            'country_iso' => 'required|string|size:2',
+        $request->validate([
             'network_name' => 'required|string|max:255',
             'country_prefix' => 'nullable|string|max:10',
+            'new_mncs' => 'nullable|array',
+            'new_mncs.*.mcc' => 'required_with:new_mncs|string|max:3',
+            'new_mncs.*.mnc' => 'required_with:new_mncs|string|max:3',
         ]);
 
-        $mccMnc->update($validated);
+        $siblings = MccMnc::where('network_name', $mccMnc->network_name)
+            ->where('country_iso', $mccMnc->country_iso)
+            ->get();
 
-        return redirect()->route('admin.mcc-mnc.index')
-            ->with('success', 'MCC/MNC entry updated successfully.');
+        foreach ($siblings as $sibling) {
+            $sibling->update([
+                'network_name' => $request->input('network_name'),
+                'country_prefix' => $request->input('country_prefix'),
+            ]);
+        }
+
+        $newMncs = $request->input('new_mncs', []);
+        $created = [];
+        $skipped = [];
+
+        foreach ($newMncs as $entry) {
+            $rawMcc = ltrim(trim($entry['mcc'] ?? ''), "'");
+            $rawMnc = ltrim(trim($entry['mnc'] ?? ''), "'");
+
+            if (empty($rawMcc) || empty($rawMnc)) continue;
+            if (!ctype_digit($rawMcc) || !ctype_digit($rawMnc)) continue;
+
+            $mcc = str_pad($rawMcc, 3, '0', STR_PAD_LEFT);
+            $mnc = strlen($rawMnc) < 2 ? str_pad($rawMnc, 2, '0', STR_PAD_LEFT) : $rawMnc;
+
+            $existing = MccMnc::where('mcc', $mcc)->where('mnc', $mnc)->first();
+            if ($existing) {
+                $skipped[] = "{$mcc}/{$mnc}";
+                continue;
+            }
+
+            MccMnc::create([
+                'mcc' => $mcc,
+                'mnc' => $mnc,
+                'country_name' => $mccMnc->country_name,
+                'country_iso' => $mccMnc->country_iso,
+                'network_name' => $request->input('network_name'),
+                'country_prefix' => $request->input('country_prefix'),
+                'active' => true,
+            ]);
+            $created[] = "{$mcc}/{$mnc}";
+        }
+
+        $message = 'Network updated successfully.';
+        if (count($created) > 0) {
+            $message .= ' ' . count($created) . ' new MCC/MNC ' . (count($created) === 1 ? 'entry' : 'entries') . ' added.';
+        }
+        if (count($skipped) > 0) {
+            $message .= ' ' . count($skipped) . ' skipped (already exist): ' . implode(', ', $skipped) . '.';
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $message, 'created' => $created, 'skipped' => $skipped]);
+        }
+
+        return redirect()->route('admin.mcc-mnc.index')->with('success', $message);
     }
 
     public function toggleStatus(MccMnc $mccMnc)
