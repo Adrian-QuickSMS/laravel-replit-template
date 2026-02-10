@@ -1,16 +1,44 @@
+<style>
+    #rcsWizardModal .modal-content {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+    }
+    #rcsWizardModal .modal-body {
+        overflow: hidden !important;
+        padding: 0 !important;
+    }
+    #rcsWizardBody {
+        height: calc(100vh - 100px) !important;
+        max-height: calc(100vh - 100px) !important;
+        overflow: hidden !important;
+        display: grid !important;
+        grid-template-columns: 5fr 7fr !important;
+    }
+    #rcsPreviewColumn {
+        overflow-y: auto !important;
+        height: 100% !important;
+        max-height: 100% !important;
+    }
+    #rcsConfigColumn {
+        overflow-y: auto !important;
+        height: 100% !important;
+        max-height: 100% !important;
+    }
+</style>
 <div class="modal fade" id="rcsWizardModal" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content" style="height: 100vh; max-height: 100vh; display: flex; flex-direction: column; overflow: hidden;">
-            <div class="modal-header py-3" style="background: var(--primary); color: #fff; flex-shrink: 0;">
+        <div class="modal-content">
+            <div class="modal-header py-3" style="background: var(--primary); color: #fff;">
                 <h5 class="modal-title text-white"><i class="fas fa-magic me-2 text-white"></i>RCS Content Wizard</h5>
                 <button type="button" class="btn-close btn-close-white" id="rcsWizardCloseBtn"></button>
             </div>
-            <div class="modal-body p-0" id="rcsWizardBody" style="flex: 1 1 auto; min-height: 0; display: flex; flex-direction: row; overflow: hidden !important;">
-                    <div class="p-4 d-flex flex-column align-items-center justify-content-start border-end" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1); overflow-y: scroll; width: 41.6667%; flex-shrink: 0;">
+            <div class="modal-body p-0" id="rcsWizardBody">
+                    <div class="p-4 d-flex flex-column align-items-center justify-content-start border-end" id="rcsPreviewColumn" style="background: rgba(136, 108, 192, 0.1);">
                         <p class="text-muted small mb-3">Live Preview</p>
                         <div id="rcsWizardPreviewContainer"></div>
                     </div>
-                    <div class="p-4" id="rcsConfigColumn" style="overflow-y: scroll; flex: 1 1 auto;" tabindex="0">
+                    <div class="p-4" id="rcsConfigColumn" tabindex="0">
                         <div class="rcs-config-panel">
                             <div id="rcsValidationErrors" class="d-none"></div>
                             
@@ -255,7 +283,7 @@
                         </div>
                     </div>
             </div>
-            <div class="modal-footer py-2 border-top" style="flex-shrink: 0; background: #fff; z-index: 10; position: relative; pointer-events: auto;">
+            <div class="modal-footer py-2 border-top" style="background: #fff;">
                 <button type="button" class="btn btn-secondary" id="rcsWizardCancelBtn">Cancel</button>
                 <button type="button" class="btn btn-primary" id="rcsApplyContentBtn">
                     <i class="fas fa-check me-1"></i>Apply RCS Content

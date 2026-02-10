@@ -173,24 +173,30 @@ function initializeRcsCard(cardNum) {
 }
 
 function fixRcsWizardScrollHeights() {
+    var modalEl = document.getElementById('rcsWizardModal');
     var body = document.getElementById('rcsWizardBody');
     var configCol = document.getElementById('rcsConfigColumn');
     var previewCol = document.getElementById('rcsPreviewColumn');
-    if (!body) return;
+    if (!modalEl || !body) return;
     
-    var bodyHeight = body.getBoundingClientRect().height;
-    if (bodyHeight > 0) {
+    var header = modalEl.querySelector('.modal-header');
+    var footer = modalEl.querySelector('.modal-footer');
+    var headerH = header ? header.offsetHeight : 0;
+    var footerH = footer ? footer.offsetHeight : 0;
+    var availableHeight = window.innerHeight - headerH - footerH;
+    
+    if (availableHeight > 0) {
+        body.style.height = availableHeight + 'px';
+        body.style.maxHeight = availableHeight + 'px';
         if (configCol) {
-            configCol.style.height = bodyHeight + 'px';
-            configCol.style.maxHeight = bodyHeight + 'px';
-            configCol.style.minHeight = '0';
+            configCol.style.height = availableHeight + 'px';
+            configCol.style.maxHeight = availableHeight + 'px';
         }
         if (previewCol) {
-            previewCol.style.height = bodyHeight + 'px';
-            previewCol.style.maxHeight = bodyHeight + 'px';
-            previewCol.style.minHeight = '0';
+            previewCol.style.height = availableHeight + 'px';
+            previewCol.style.maxHeight = availableHeight + 'px';
         }
-        console.log('[RCS Wizard] Fixed scroll heights: ' + bodyHeight + 'px');
+        console.log('[RCS Wizard] Fixed scroll heights: available=' + availableHeight + 'px (viewport=' + window.innerHeight + ', header=' + headerH + ', footer=' + footerH + ')');
     }
 }
 
