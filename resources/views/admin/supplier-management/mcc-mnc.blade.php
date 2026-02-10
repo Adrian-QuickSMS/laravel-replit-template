@@ -750,47 +750,73 @@
 
 <!-- Add MCC/MNC Modal -->
 <div class="modal fade" id="addMccMncModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Network</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Add Network</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="addMccMncForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Network Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="network_name" placeholder="e.g. Vodafone UK" required>
+                    </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">MCC <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="mcc" maxlength="3" required>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Country Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="country_name" placeholder="e.g. United Kingdom" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">MNC <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="mnc" maxlength="3" required>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Country ISO <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="country_iso" maxlength="2" placeholder="e.g. GB" required>
+                            <small class="text-muted">2-letter code</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold">Country Prefix <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="country_prefix" placeholder="e.g. 44">
+                            <small class="text-muted">Dialing code without +</small>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Country Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="country_name" required>
+
+                    <hr class="my-3">
+                    <label class="form-label fw-semibold mb-2">MCC / MNC Codes <span class="text-danger">*</span></label>
+                    <p class="text-muted mb-2" style="font-size: 0.82rem;">A network can have multiple MCC/MNC combinations. Add each pair below.</p>
+
+                    <div id="mccMncRows">
+                        <div class="mcc-mnc-row d-flex align-items-center gap-2 mb-2">
+                            <div style="flex: 0 0 120px;">
+                                <input type="text" class="form-control form-control-sm" name="mcc_list[]" maxlength="3" placeholder="MCC" required>
+                            </div>
+                            <div style="flex: 0 0 120px;">
+                                <input type="text" class="form-control form-control-sm" name="mnc_list[]" maxlength="3" placeholder="MNC" required>
+                            </div>
+                            <div class="flex-grow-1">
+                                <small class="text-muted" style="font-size: 0.75rem;">e.g. 234 / 15</small>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMccMncRow(this)" style="visibility: hidden;" title="Remove row">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Country ISO Code <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="country_iso" maxlength="2" required>
-                        <small class="text-muted">2-letter code (e.g., GB, US)</small>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Network Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="network_name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Country Prefix <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="country_prefix" placeholder="e.g. 44" required>
-                        <small class="text-muted">Dialing code without + (e.g., 44 for UK, 1 for US)</small>
+
+                    <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addMccMncRow()">
+                        <i class="fas fa-plus me-1"></i>Add Another MCC/MNC
+                    </button>
+
+                    <div id="addMccMncSummary" class="mt-3" style="display: none;">
+                        <div class="alert alert-info mb-0" style="font-size: 0.82rem;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span id="addMccMncSummaryText"></span>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-admin-primary" onclick="submitAddMccMnc()">Add Network</button>
+                <button type="button" class="btn" style="background: var(--admin-primary); color: #fff;" onclick="submitAddMccMnc()">
+                    <i class="fas fa-check me-1"></i>Add Network
+                </button>
             </div>
         </div>
     </div>
@@ -1006,12 +1032,109 @@
 @push('scripts')
 <script>
 function openAddMccMncModal() {
+    var form = document.getElementById('addMccMncForm');
+    form.reset();
+    var rowsContainer = document.getElementById('mccMncRows');
+    rowsContainer.innerHTML = '';
+    addMccMncRow();
+    updateMccMncSummary();
     new bootstrap.Modal(document.getElementById('addMccMncModal')).show();
 }
 
+function addMccMncRow() {
+    var container = document.getElementById('mccMncRows');
+    var row = document.createElement('div');
+    row.className = 'mcc-mnc-row d-flex align-items-center gap-2 mb-2';
+    row.innerHTML = '<div style="flex: 0 0 120px;">' +
+        '<input type="text" class="form-control form-control-sm" name="mcc_list[]" maxlength="3" placeholder="MCC" required oninput="updateMccMncSummary()">' +
+        '</div>' +
+        '<div style="flex: 0 0 120px;">' +
+        '<input type="text" class="form-control form-control-sm" name="mnc_list[]" maxlength="3" placeholder="MNC" required oninput="updateMccMncSummary()">' +
+        '</div>' +
+        '<div class="flex-grow-1"><small class="text-muted" style="font-size: 0.75rem;">e.g. 234 / 15</small></div>' +
+        '<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMccMncRow(this)" title="Remove row"><i class="fas fa-times"></i></button>';
+    container.appendChild(row);
+    updateRemoveButtons();
+    updateMccMncSummary();
+}
+
+function removeMccMncRow(btn) {
+    btn.closest('.mcc-mnc-row').remove();
+    updateRemoveButtons();
+    updateMccMncSummary();
+}
+
+function updateRemoveButtons() {
+    var rows = document.querySelectorAll('#mccMncRows .mcc-mnc-row');
+    rows.forEach(function(row) {
+        var btn = row.querySelector('.btn-outline-danger');
+        if (btn) {
+            btn.style.visibility = rows.length <= 1 ? 'hidden' : 'visible';
+        }
+    });
+}
+
+function updateMccMncSummary() {
+    var rows = document.querySelectorAll('#mccMncRows .mcc-mnc-row');
+    var count = rows.length;
+    var summaryDiv = document.getElementById('addMccMncSummary');
+    var summaryText = document.getElementById('addMccMncSummaryText');
+
+    if (count > 1) {
+        var pairs = [];
+        rows.forEach(function(row) {
+            var mcc = row.querySelector('[name="mcc_list[]"]').value.trim();
+            var mnc = row.querySelector('[name="mnc_list[]"]').value.trim();
+            if (mcc && mnc) {
+                pairs.push(mcc + '/' + mnc);
+            }
+        });
+        summaryText.textContent = 'This will create ' + count + ' MCC/MNC entries for the same network' +
+            (pairs.length > 0 ? ': ' + pairs.join(', ') : '') + '.';
+        summaryDiv.style.display = '';
+    } else {
+        summaryDiv.style.display = 'none';
+    }
+}
+
 function submitAddMccMnc() {
-    const form = document.getElementById('addMccMncForm');
-    const formData = new FormData(form);
+    var form = document.getElementById('addMccMncForm');
+    var networkName = form.querySelector('[name="network_name"]').value.trim();
+    var countryName = form.querySelector('[name="country_name"]').value.trim();
+    var countryIso = form.querySelector('[name="country_iso"]').value.trim().toUpperCase();
+    var countryPrefix = form.querySelector('[name="country_prefix"]').value.trim();
+
+    if (!networkName || !countryName || !countryIso) {
+        alert('Please fill in the Network Name, Country Name and Country ISO fields.');
+        return;
+    }
+
+    var mccInputs = form.querySelectorAll('[name="mcc_list[]"]');
+    var mncInputs = form.querySelectorAll('[name="mnc_list[]"]');
+    var entries = [];
+
+    for (var i = 0; i < mccInputs.length; i++) {
+        var mcc = mccInputs[i].value.trim();
+        var mnc = mncInputs[i].value.trim();
+        if (!mcc || !mnc) {
+            alert('Please fill in all MCC and MNC fields, or remove empty rows.');
+            return;
+        }
+        entries.push({ mcc: mcc, mnc: mnc });
+    }
+
+    if (entries.length === 0) {
+        alert('Please add at least one MCC/MNC pair.');
+        return;
+    }
+
+    var payload = {
+        network_name: networkName,
+        country_name: countryName,
+        country_iso: countryIso,
+        country_prefix: countryPrefix,
+        entries: entries
+    };
 
     fetch('{{ route('admin.mcc-mnc.store') }}', {
         method: 'POST',
@@ -1020,15 +1143,15 @@ function submitAddMccMnc() {
             'Accept': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify(Object.fromEntries(formData))
+        body: JSON.stringify(payload)
     })
-    .then(response => {
+    .then(function(response) {
         if (!response.ok) {
-            return response.json().then(err => { throw err; });
+            return response.json().then(function(err) { throw err; });
         }
         return response.json();
     })
-    .then(data => {
+    .then(function(data) {
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('addMccMncModal')).hide();
             location.reload();
@@ -1036,11 +1159,11 @@ function submitAddMccMnc() {
             alert(data.message || 'Could not create the network. Please check your input.');
         }
     })
-    .catch(error => {
+    .catch(function(error) {
         if (error && error.message) {
             alert(error.message);
         } else if (error && error.errors) {
-            const msgs = Object.values(error.errors).flat().join('\n');
+            var msgs = Object.values(error.errors).flat().join('\n');
             alert('Validation errors:\n' + msgs);
         } else {
             alert('An error occurred. Please try again.');

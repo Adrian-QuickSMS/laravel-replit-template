@@ -50,38 +50,118 @@ class MccMncController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'mcc' => 'required|string|size:3',
-            'mnc' => 'required|string|max:3',
+        $request->validate([
             'country_name' => 'required|string|max:255',
             'country_iso' => 'required|string|size:2',
             'network_name' => 'required|string|max:255',
-            'country_prefix' => 'required|string|max:10',
+            'country_prefix' => 'nullable|string|max:10',
+            'entries' => 'nullable|array|min:1',
+            'entries.*.mcc' => 'required_with:entries|string|max:3',
+            'entries.*.mnc' => 'required_with:entries|string|max:3',
+            'mcc' => 'required_without:entries|string|max:3',
+            'mnc' => 'required_without:entries|string|max:3',
         ]);
 
-        $existing = MccMnc::where('mcc', $validated['mcc'])
-            ->where('mnc', $validated['mnc'])
-            ->first();
+        $countryName = $request->input('country_name');
+        $countryIso = strtoupper($request->input('country_iso'));
+        $networkName = $request->input('network_name');
+        $countryPrefix = $request->input('country_prefix', '');
 
-        if ($existing) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "MCC {$validated['mcc']} / MNC {$validated['mnc']} already exists as \"{$existing->network_name}\". Please use a different MNC code.",
-                ], 422);
-            }
-            return redirect()->route('admin.mcc-mnc.index')
-                ->with('error', "MCC {$validated['mcc']} / MNC {$validated['mnc']} already exists as \"{$existing->network_name}\". Please use a different MNC code.");
+        if (empty($countryPrefix)) {
+            $countryPrefix = self::isoToDialingCode($countryIso) ?? '';
         }
 
-        $validated['active'] = true;
-        $network = MccMnc::create($validated);
+        $entries = $request->input('entries');
+
+        if (!$entries || !is_array($entries)) {
+            $mcc = $request->input('mcc');
+            $mnc = $request->input('mnc');
+            if (!$mcc || !$mnc) {
+                $errorMsg = 'Please provide at least one MCC/MNC pair.';
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => false, 'message' => $errorMsg], 422);
+                }
+                return redirect()->route('admin.mcc-mnc.index')->with('error', $errorMsg);
+            }
+            $entries = [['mcc' => $mcc, 'mnc' => $mnc]];
+        }
+
+        $created = [];
+        $skipped = [];
+        $errors = [];
+
+        foreach ($entries as $index => $entry) {
+            $rawMcc = trim($entry['mcc'] ?? '');
+            $rawMnc = trim($entry['mnc'] ?? '');
+
+            if (empty($rawMcc) || empty($rawMnc)) {
+                $errors[] = "Row " . ($index + 1) . ": MCC and MNC are required.";
+                continue;
+            }
+
+            $rawMcc = ltrim($rawMcc, "'");
+            $rawMnc = ltrim($rawMnc, "'");
+
+            if (!ctype_digit($rawMcc)) {
+                $errors[] = "Row " . ($index + 1) . ": MCC must be numeric (got: {$rawMcc}).";
+                continue;
+            }
+            if (!ctype_digit($rawMnc)) {
+                $errors[] = "Row " . ($index + 1) . ": MNC must be numeric (got: {$rawMnc}).";
+                continue;
+            }
+
+            $mcc = str_pad($rawMcc, 3, '0', STR_PAD_LEFT);
+            $mnc = strlen($rawMnc) < 2 ? str_pad($rawMnc, 2, '0', STR_PAD_LEFT) : $rawMnc;
+
+            $existing = MccMnc::where('mcc', $mcc)->where('mnc', $mnc)->first();
+            if ($existing) {
+                $skipped[] = "{$mcc}/{$mnc} (already exists as \"{$existing->network_name}\")";
+                continue;
+            }
+
+            MccMnc::create([
+                'mcc' => $mcc,
+                'mnc' => $mnc,
+                'country_name' => $countryName,
+                'country_iso' => $countryIso,
+                'network_name' => $networkName,
+                'country_prefix' => $countryPrefix,
+                'active' => true,
+            ]);
+            $created[] = "{$mcc}/{$mnc}";
+        }
+
+        if (count($errors) > 0 && count($created) === 0) {
+            $errorMsg = 'Validation failed: ' . implode('; ', $errors);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $errorMsg], 422);
+            }
+            return redirect()->route('admin.mcc-mnc.index')->with('error', $errorMsg);
+        }
+
+        $message = '';
+        if (count($created) > 0) {
+            $message = count($created) . ' MCC/MNC ' . (count($created) === 1 ? 'entry' : 'entries') . ' created for ' . $networkName . '.';
+        }
+        if (count($skipped) > 0) {
+            $message .= (strlen($message) > 0 ? ' ' : '') . count($skipped) . ' skipped (duplicates): ' . implode(', ', $skipped);
+        }
+        if (count($errors) > 0) {
+            $message .= (strlen($message) > 0 ? ' ' : '') . count($errors) . ' had errors: ' . implode('; ', $errors);
+        }
+
+        if (count($created) === 0 && count($skipped) > 0) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'All entries already exist: ' . implode(', ', $skipped)], 422);
+            }
+            return redirect()->route('admin.mcc-mnc.index')->with('error', $message);
+        }
 
         if ($request->expectsJson()) {
-            return response()->json(['success' => true, 'message' => 'Network created successfully.', 'id' => $network->id]);
+            return response()->json(['success' => true, 'message' => $message, 'created' => $created, 'skipped' => $skipped]);
         }
-        return redirect()->route('admin.mcc-mnc.index')
-            ->with('success', 'MCC/MNC entry created successfully.');
+        return redirect()->route('admin.mcc-mnc.index')->with('success', $message);
     }
 
     public function update(Request $request, MccMnc $mccMnc)
@@ -90,7 +170,7 @@ class MccMncController extends Controller
             'country_name' => 'required|string|max:255',
             'country_iso' => 'required|string|size:2',
             'network_name' => 'required|string|max:255',
-            'country_prefix' => 'required|string|max:10',
+            'country_prefix' => 'nullable|string|max:10',
         ]);
 
         $mccMnc->update($validated);
