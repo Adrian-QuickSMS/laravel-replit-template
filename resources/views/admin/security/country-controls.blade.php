@@ -1799,23 +1799,35 @@ button.action-dropdown-item:focus {
             <div class="modal-body p-0">
                 <div id="addOverrideFormWrap" style="display:none; padding: 1rem; background:#fafbfc; border-bottom: 1px solid #e9ecef;">
                     <h6 style="color:#1e3a5f; font-size:0.85rem; margin-bottom:0.75rem;"><i class="fas fa-plus-circle me-1"></i>Add Account Override</h6>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:0.78rem;">Account Name <span class="text-danger">*</span></label>
+                            <div class="position-relative" id="overrideAccountWrap">
+                                <input type="text" class="form-control form-control-sm" id="overrideAccountSearch" placeholder="Search account name..." autocomplete="off">
+                                <input type="hidden" id="overrideAccountId">
+                                <div class="dropdown-menu w-100 shadow-sm" id="overrideAccountDropdown" style="max-height:200px; overflow-y:auto; font-size:0.8rem;"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:0.78rem;">Sub Account</label>
+                            <select class="form-select form-select-sm" id="overrideSubAccount" disabled>
+                                <option value="">All Sub Accounts</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="row g-2">
                         <div class="col-md-4">
-                            <label class="form-label" style="font-size:0.78rem;">Account ID</label>
-                            <input type="number" class="form-control form-control-sm" id="overrideAccountId" placeholder="Enter account ID">
-                        </div>
-                        <div class="col-md-3">
                             <label class="form-label" style="font-size:0.78rem;">Override Status</label>
                             <select class="form-select form-select-sm" id="overrideStatus">
                                 <option value="allowed">Allowed</option>
                                 <option value="blocked">Blocked</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-4">
                             <label class="form-label" style="font-size:0.78rem;">Reason</label>
                             <input type="text" class="form-control form-control-sm" id="overrideReason" placeholder="Optional reason">
                         </div>
-                        <div class="col-md-2 d-flex align-items-end gap-1">
+                        <div class="col-md-4 d-flex align-items-end gap-1">
                             <button class="btn btn-sm" style="background:#1e3a5f; color:#fff;" onclick="saveOverride()">Save</button>
                             <button class="btn btn-sm btn-outline-secondary" onclick="hideAddOverrideForm()">Cancel</button>
                         </div>
@@ -1824,7 +1836,8 @@ button.action-dropdown-item:focus {
                 <table class="table table-sm mb-0" id="overridesListTable">
                     <thead>
                         <tr style="background:#f8f9fa;">
-                            <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Account ID</th>
+                            <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Account</th>
+                            <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Sub Account</th>
                             <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Override Status</th>
                             <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Reason</th>
                             <th style="padding:0.5rem 0.75rem; font-size:0.75rem; font-weight:600;">Created By</th>
@@ -1833,7 +1846,7 @@ button.action-dropdown-item:focus {
                         </tr>
                     </thead>
                     <tbody id="overridesListBody">
-                        <tr><td colspan="6" class="text-center py-3 text-muted">Loading...</td></tr>
+                        <tr><td colspan="7" class="text-center py-3 text-muted">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -2384,6 +2397,7 @@ window.handleConfirmRejection = function() {
 document.addEventListener('DOMContentLoaded', function() {
     initCountryControls();
     initAccountTypeahead();
+    initOverrideAccountSearch();
     
     // Attach confirm button listener
     var confirmBtn = document.getElementById('confirmDefaultStatusBtn');
@@ -5751,7 +5765,7 @@ function openOverridesModal(mccMncId) {
 
 function loadOverrides(mccMncId) {
     var tbody = document.getElementById('overridesListBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div></td></tr>';
 
     fetch('/admin/api/uk-network-controls/' + mccMncId + '/overrides', {
         headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}' }
@@ -5759,7 +5773,7 @@ function loadOverrides(mccMncId) {
     .then(function(r) { return r.json(); })
     .then(function(data) {
         if (!data.success || !data.overrides.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-muted" style="font-size:0.82rem;">No account overrides configured for this network.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-3 text-muted" style="font-size:0.82rem;">No account overrides configured for this network.</td></tr>';
             return;
         }
 
@@ -5770,9 +5784,12 @@ function loadOverrides(mccMncId) {
                 : '<span class="badge" style="background:#fee2e2; color:#991b1b; font-size:0.72rem;">Blocked</span>';
 
             var createdAt = ov.created_at ? new Date(ov.created_at).toLocaleDateString('en-GB') : '-';
+            var accountDisplay = ov.account_name || ('ID: ' + ov.account_id);
+            var subAccountDisplay = ov.sub_account_name || 'All';
 
             html += '<tr>';
-            html += '<td style="padding:0.5rem 0.75rem; font-size:0.82rem;"><strong>' + ov.account_id + '</strong></td>';
+            html += '<td style="padding:0.5rem 0.75rem; font-size:0.82rem;"><strong>' + accountDisplay + '</strong></td>';
+            html += '<td style="padding:0.5rem 0.75rem; font-size:0.8rem;">' + subAccountDisplay + '</td>';
             html += '<td style="padding:0.5rem 0.75rem;">' + statusBadge + '</td>';
             html += '<td style="padding:0.5rem 0.75rem; font-size:0.8rem; color:#6c757d;">' + (ov.reason || '-') + '</td>';
             html += '<td style="padding:0.5rem 0.75rem; font-size:0.8rem;">' + (ov.created_by || '-') + '</td>';
@@ -5785,15 +5802,100 @@ function loadOverrides(mccMncId) {
         tbody.innerHTML = html;
     })
     .catch(function() {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3 text-danger">Failed to load overrides.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-3 text-danger">Failed to load overrides.</td></tr>';
     });
+}
+
+// TODO: Replace with real API call when accounts backend is implemented
+var overrideAccountsData = {
+    'Acme Corp': { id: 1001, subAccounts: ['Marketing', 'Operations', 'Customer Service'] },
+    'TechStart Ltd': { id: 1002, subAccounts: ['Engineering', 'Sales'] },
+    'FastDelivery Inc': { id: 1003, subAccounts: ['Dispatch', 'Billing'] },
+    'GlobalMsg Ltd': { id: 1004, subAccounts: ['UK Division', 'EU Division'] },
+    'MediaBuzz': { id: 1005, subAccounts: ['Content', 'Advertising'] },
+    'RetailChain PLC': { id: 1006, subAccounts: ['Online Store', 'In-Store', 'Loyalty'] },
+    'DataFlow Systems': { id: 1007, subAccounts: ['Monitoring', 'Support'] },
+    'CloudReach UK': { id: 1008, subAccounts: ['Enterprise', 'SMB'] }
+};
+
+var overrideSelectedAccount = null;
+
+function initOverrideAccountSearch() {
+    var input = document.getElementById('overrideAccountSearch');
+    var dropdown = document.getElementById('overrideAccountDropdown');
+
+    input.addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        overrideSelectedAccount = null;
+        document.getElementById('overrideAccountId').value = '';
+        resetOverrideSubAccount();
+
+        if (query.length === 0) {
+            dropdown.classList.remove('show');
+            return;
+        }
+
+        var matches = Object.keys(overrideAccountsData).filter(function(name) {
+            return name.toLowerCase().indexOf(query) !== -1;
+        });
+
+        if (matches.length === 0) {
+            dropdown.innerHTML = '<div class="dropdown-item text-muted" style="font-size:0.8rem;">No accounts found</div>';
+            dropdown.classList.add('show');
+            return;
+        }
+
+        dropdown.innerHTML = matches.map(function(name) {
+            return '<button type="button" class="dropdown-item" style="font-size:0.8rem; padding:0.35rem 0.75rem;" onclick="selectOverrideAccount(\'' + name.replace(/'/g, "\\'") + '\')">' +
+                '<i class="fas fa-building me-2 text-muted" style="font-size:0.7rem;"></i>' + name +
+                '</button>';
+        }).join('');
+        dropdown.classList.add('show');
+    });
+
+    input.addEventListener('focus', function() {
+        if (this.value.length > 0) {
+            this.dispatchEvent(new Event('input'));
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!document.getElementById('overrideAccountWrap').contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+}
+
+function selectOverrideAccount(name) {
+    overrideSelectedAccount = name;
+    var data = overrideAccountsData[name];
+    document.getElementById('overrideAccountSearch').value = name;
+    document.getElementById('overrideAccountId').value = data.id;
+    document.getElementById('overrideAccountDropdown').classList.remove('show');
+
+    var subSelect = document.getElementById('overrideSubAccount');
+    subSelect.innerHTML = '<option value="">All Sub Accounts</option>';
+    data.subAccounts.forEach(function(sub) {
+        subSelect.innerHTML += '<option value="' + sub + '">' + sub + '</option>';
+    });
+    subSelect.disabled = false;
+}
+
+function resetOverrideSubAccount() {
+    var subSelect = document.getElementById('overrideSubAccount');
+    subSelect.innerHTML = '<option value="">All Sub Accounts</option>';
+    subSelect.disabled = true;
 }
 
 function showAddOverrideForm() {
     document.getElementById('addOverrideFormWrap').style.display = '';
+    document.getElementById('overrideAccountSearch').value = '';
     document.getElementById('overrideAccountId').value = '';
     document.getElementById('overrideReason').value = '';
     document.getElementById('overrideStatus').value = 'allowed';
+    overrideSelectedAccount = null;
+    resetOverrideSubAccount();
+    document.getElementById('overrideAccountDropdown').classList.remove('show');
 }
 
 function hideAddOverrideForm() {
@@ -5802,11 +5904,13 @@ function hideAddOverrideForm() {
 
 function saveOverride() {
     var accountId = document.getElementById('overrideAccountId').value;
+    var accountName = document.getElementById('overrideAccountSearch').value;
+    var subAccount = document.getElementById('overrideSubAccount').value;
     var overrideStatus = document.getElementById('overrideStatus').value;
     var reason = document.getElementById('overrideReason').value;
 
-    if (!accountId) {
-        showToast('Please enter an Account ID.', 'warning');
+    if (!accountId || !accountName) {
+        showToast('Please select an account from the dropdown.', 'warning');
         return;
     }
 
@@ -5819,6 +5923,8 @@ function saveOverride() {
         body: JSON.stringify({
             mcc_mnc_id: currentOverrideMccMncId,
             account_id: parseInt(accountId),
+            account_name: accountName,
+            sub_account_name: subAccount || null,
             override_status: overrideStatus,
             reason: reason
         })
