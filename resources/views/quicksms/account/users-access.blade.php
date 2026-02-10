@@ -1522,6 +1522,10 @@ function showConfirmModal(title, message, buttonText, buttonClass, callback, use
     var btn = document.getElementById('confirmModalBtn');
     btn.textContent = buttonText;
     btn.className = 'btn ' + buttonClass;
+    btn.removeAttribute('style');
+    if (buttonClass === 'btn-primary-purple') {
+        btn.style.cssText = 'background: #886cc0; border-color: #886cc0; color: white;';
+    }
     
     confirmCallback = callback;
     
@@ -2906,7 +2910,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Reset Password',
             'A password reset email will be sent to <strong>' + safeEmail + '</strong>. The link will expire after 24 hours.<br><br>Are you sure you want to reset the password for <strong>' + safeName + '</strong>?',
             'Send Reset Email',
-            'btn-warning',
+            'btn-primary-purple',
             function() {
                 console.log('[AUDIT] Password reset triggered:', {
                     action: 'PASSWORD_RESET_TRIGGERED',
