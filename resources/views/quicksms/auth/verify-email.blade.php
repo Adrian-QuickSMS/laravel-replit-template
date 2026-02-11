@@ -8,6 +8,9 @@
                 <a href="{{ url('/') }}"><img class="logo-auth" src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS" style="height: 48px;"></a>
             </div>
             
+            <h4 class="text-center mb-1">Verify Your Email</h4>
+            <p class="text-center text-muted mb-4">Step 2 of 3: Verify Email</p>
+            
             <div id="verifyingState" class="text-center py-4">
                 <div class="spinner-border text-primary mb-3" role="status">
                     <span class="visually-hidden">Verifying...</span>
@@ -24,7 +27,7 @@
                 <p class="text-muted mb-4">Your email address has been successfully verified.</p>
                 <p class="mb-4">Redirecting to complete your registration...</p>
                 <a href="#" class="btn btn-primary" id="continueToStep2Btn">
-                    Continue to Step 2 <i class="fas fa-arrow-right ms-2"></i>
+                    Continue to Step 3 <i class="fas fa-arrow-right ms-2"></i>
                 </a>
             </div>
             

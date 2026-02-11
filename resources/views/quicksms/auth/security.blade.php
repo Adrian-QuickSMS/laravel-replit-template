@@ -8,7 +8,7 @@
                 <a href="{{ url('/') }}"><img class="logo-auth" src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS" style="height: 40px;"></a>
             </div>
             <h4 class="text-center mb-1">Set Up Your Account</h4>
-            <p class="text-center text-muted mb-3">Step 2 of 3: Security & Consent</p>
+            <p class="text-center text-muted mb-3">Step 3 of 3: Security & Consent</p>
             
             <div class="alert alert-success mb-3 py-2" id="verifiedBadge">
                 <i class="fas fa-check-circle me-2"></i>
