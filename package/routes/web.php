@@ -100,6 +100,9 @@ Route::controller(FillowAdminController::class)->group(function () {
     Route::post('/ajax/order-request', 'ajax_order_request')->name('ajax_order_request');
 });
 
+// Authentication & Account Management Routes
+require __DIR__ . '/auth.php';
+
 // Supplier Management Routes
 require __DIR__ . '/supplier-management.php';
 
