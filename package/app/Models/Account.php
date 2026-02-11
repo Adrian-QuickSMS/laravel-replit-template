@@ -32,6 +32,7 @@ class Account extends Model
     protected $fillable = [
         'account_number',
         'company_name',
+        'trading_name',
         'status',
         'account_type',
         'email',
@@ -39,6 +40,7 @@ class Account extends Model
         'address_line1',
         'address_line2',
         'city',
+        'county',
         'postcode',
         'country',
         'vat_number',
@@ -71,6 +73,50 @@ class Account extends Model
         // Promotional credits
         'signup_credits_awarded',
         'signup_promotion_code',
+        // Section 2: Company Information
+        'company_type',
+        'business_sector',
+        'website',
+        'company_number',
+        // Section 3: Support & Operations
+        'support_contact_name',
+        'support_contact_email',
+        'support_contact_phone',
+        'operations_contact_name',
+        'operations_contact_email',
+        'operations_contact_phone',
+        // Section 4: Contract Signatory
+        'signatory_name',
+        'signatory_title',
+        'signatory_email',
+        'contract_agreed',
+        'contract_signed_at',
+        'contract_signed_ip',
+        'contract_version',
+        // Section 5: Billing, VAT & Tax
+        'billing_contact_name',
+        'billing_contact_phone',
+        'billing_address_same_as_registered',
+        'billing_address_line1',
+        'billing_address_line2',
+        'billing_city',
+        'billing_county',
+        'billing_postcode',
+        'billing_country',
+        'vat_registered',
+        'tax_id',
+        'tax_country',
+        'purchase_order_required',
+        'payment_terms',
+        // Activation tracking
+        'signup_details_complete',
+        'company_info_complete',
+        'support_operations_complete',
+        'contract_signatory_complete',
+        'billing_vat_complete',
+        'activation_complete',
+        'activated_at',
+        'activated_by',
     ];
 
     protected $casts = [
@@ -83,6 +129,18 @@ class Account extends Model
         'fraud_consent_at' => 'datetime',
         'marketing_consent_at' => 'datetime',
         'signup_credits_awarded' => 'integer',
+        'contract_agreed' => 'boolean',
+        'contract_signed_at' => 'datetime',
+        'vat_registered' => 'boolean',
+        'billing_address_same_as_registered' => 'boolean',
+        'purchase_order_required' => 'boolean',
+        'signup_details_complete' => 'boolean',
+        'company_info_complete' => 'boolean',
+        'support_operations_complete' => 'boolean',
+        'contract_signatory_complete' => 'boolean',
+        'billing_vat_complete' => 'boolean',
+        'activation_complete' => 'boolean',
+        'activated_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -383,6 +441,165 @@ class Account extends Model
             ->sum('credits_remaining');
     }
 
+    // =====================================================
+    // ACCOUNT ACTIVATION METHODS
+    // =====================================================
+
+    /**
+     * Check if signup details section is complete
+     */
+    public function isSignupDetailsComplete(): bool
+    {
+        return !is_null($this->company_name)
+            && !is_null($this->country)
+            && $this->hasAcceptedTerms()
+            && $this->hasAcceptedPrivacy()
+            && $this->hasAcceptedFraudConsent();
+    }
+
+    /**
+     * Check if company information section is complete
+     */
+    public function isCompanyInfoComplete(): bool
+    {
+        $required = !is_null($this->company_type)
+            && !is_null($this->business_sector)
+            && !is_null($this->website)
+            && !is_null($this->address_line1)
+            && !is_null($this->city)
+            && !is_null($this->postcode)
+            && !is_null($this->country);
+
+        // Company number is mandatory for UK Limited companies only
+        if ($this->company_type === 'uk_limited') {
+            $required = $required && !is_null($this->company_number);
+        }
+
+        return $required;
+    }
+
+    /**
+     * Check if support & operations section is complete
+     */
+    public function isSupportOperationsComplete(): bool
+    {
+        return !is_null($this->support_contact_name)
+            && !is_null($this->support_contact_email)
+            && !is_null($this->support_contact_phone)
+            && !is_null($this->operations_contact_name)
+            && !is_null($this->operations_contact_email)
+            && !is_null($this->operations_contact_phone);
+    }
+
+    /**
+     * Check if contract signatory section is complete
+     */
+    public function isContractSignatoryComplete(): bool
+    {
+        return !is_null($this->signatory_name)
+            && !is_null($this->signatory_title)
+            && !is_null($this->signatory_email)
+            && $this->contract_agreed === true
+            && !is_null($this->contract_signed_at);
+    }
+
+    /**
+     * Check if billing, VAT and tax section is complete
+     */
+    public function isBillingVatComplete(): bool
+    {
+        $required = !is_null($this->billing_email)
+            && !is_null($this->payment_terms);
+
+        // VAT number is required if VAT registered
+        if ($this->vat_registered) {
+            $required = $required && !is_null($this->vat_number);
+        }
+
+        return $required;
+    }
+
+    /**
+     * Update section completion flags
+     * Call this after updating any section to refresh completion status
+     */
+    public function updateActivationStatus(): void
+    {
+        $this->update([
+            'signup_details_complete' => $this->isSignupDetailsComplete(),
+            'company_info_complete' => $this->isCompanyInfoComplete(),
+            'support_operations_complete' => $this->isSupportOperationsComplete(),
+            'contract_signatory_complete' => $this->isContractSignatoryComplete(),
+            'billing_vat_complete' => $this->isBillingVatComplete(),
+        ]);
+
+        // Check if ALL sections are complete
+        if ($this->signup_details_complete
+            && $this->company_info_complete
+            && $this->support_operations_complete
+            && $this->contract_signatory_complete
+            && $this->billing_vat_complete
+        ) {
+            // Mark account as fully activated
+            if (!$this->activation_complete) {
+                $this->update([
+                    'activation_complete' => true,
+                    'activated_at' => now(),
+                ]);
+
+                // TODO: Trigger activation events
+                // - Expire trial credits (handled by AccountObserver if account_type changes)
+                // - Send welcome email
+                // - Enable live sending
+                // - Notify sales team
+            }
+        }
+    }
+
+    /**
+     * Get activation progress summary
+     */
+    public function getActivationProgress(): array
+    {
+        return [
+            'sections' => [
+                [
+                    'id' => 'signup_details',
+                    'name' => 'Sign Up Details',
+                    'complete' => $this->signup_details_complete,
+                    'required' => true,
+                ],
+                [
+                    'id' => 'company_info',
+                    'name' => 'Company Information',
+                    'complete' => $this->company_info_complete,
+                    'required' => true,
+                ],
+                [
+                    'id' => 'support_operations',
+                    'name' => 'Support & Operations',
+                    'complete' => $this->support_operations_complete,
+                    'required' => true,
+                ],
+                [
+                    'id' => 'contract_signatory',
+                    'name' => 'Contract Signatory',
+                    'complete' => $this->contract_signatory_complete,
+                    'required' => true,
+                ],
+                [
+                    'id' => 'billing_vat',
+                    'name' => 'Billing, VAT and Tax Information',
+                    'complete' => $this->billing_vat_complete,
+                    'required' => true,
+                ],
+            ],
+            'overall_complete' => $this->activation_complete,
+            'activated_at' => $this->activated_at?->toIso8601String(),
+            'can_go_live' => $this->activation_complete,
+        ];
+    }
+
     /**
      * Format account for safe portal display
      * Excludes sensitive fields
@@ -393,6 +610,11 @@ class Account extends Model
             'id' => $this->id,
             'account_number' => $this->account_number,
             'company_name' => $this->company_name,
+            'trading_name' => $this->trading_name,
+            'company_type' => $this->company_type,
+            'business_sector' => $this->business_sector,
+            'website' => $this->website,
+            'company_number' => $this->company_number,
             'status' => $this->status,
             'account_type' => $this->account_type,
             'email' => $this->email,
@@ -401,11 +623,42 @@ class Account extends Model
                 'line1' => $this->address_line1,
                 'line2' => $this->address_line2,
                 'city' => $this->city,
+                'county' => $this->county,
                 'postcode' => $this->postcode,
                 'country' => $this->country,
             ],
-            'vat_number' => $this->vat_number,
+            // Support & Operations
+            'support_contact' => [
+                'name' => $this->support_contact_name,
+                'email' => $this->support_contact_email,
+                'phone' => $this->support_contact_phone,
+            ],
+            'operations_contact' => [
+                'name' => $this->operations_contact_name,
+                'email' => $this->operations_contact_email,
+                'phone' => $this->operations_contact_phone,
+            ],
+            // Contract Signatory
+            'signatory' => [
+                'name' => $this->signatory_name,
+                'title' => $this->signatory_title,
+                'email' => $this->signatory_email,
+                'agreed' => $this->contract_agreed,
+                'signed_at' => $this->contract_signed_at?->toIso8601String(),
+            ],
+            // Billing & Tax
             'billing_email' => $this->billing_email,
+            'billing_contact' => [
+                'name' => $this->billing_contact_name,
+                'phone' => $this->billing_contact_phone,
+            ],
+            'vat_registered' => $this->vat_registered,
+            'vat_number' => $this->vat_number,
+            'tax_id' => $this->tax_id,
+            'payment_terms' => $this->payment_terms,
+            'purchase_order_required' => $this->purchase_order_required,
+            // Activation status
+            'activation' => $this->getActivationProgress(),
             'onboarded_at' => $this->onboarded_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
         ];

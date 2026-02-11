@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\MobileVerificationController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountActivationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -79,5 +80,23 @@ Route::prefix('api/account')->middleware('auth:sanctum')->group(function () {
     Route::get('/team', [AccountController::class, 'team']);
     Route::post('/team/invite', [AccountController::class, 'inviteTeamMember']);
     Route::delete('/team/{userId}', [AccountController::class, 'removeTeamMember']);
+
+    // Account Activation (5-section process)
+    Route::prefix('activation')->group(function () {
+        // Get activation status and progress
+        Route::get('/status', [AccountActivationController::class, 'getStatus']);
+
+        // Update each section
+        Route::put('/company-info', [AccountActivationController::class, 'updateCompanyInfo']);
+        Route::put('/support-operations', [AccountActivationController::class, 'updateSupportOperations']);
+        Route::put('/contract-signatory', [AccountActivationController::class, 'updateContractSignatory']);
+        Route::put('/billing-vat', [AccountActivationController::class, 'updateBillingVat']);
+
+        // Complete activation and go live
+        Route::post('/complete', [AccountActivationController::class, 'completeActivation']);
+
+        // Get available business sectors
+        Route::get('/business-sectors', [AccountActivationController::class, 'getBusinessSectors']);
+    });
 
 });
