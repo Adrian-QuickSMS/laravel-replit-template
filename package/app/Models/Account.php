@@ -78,7 +78,17 @@ class Account extends Model
         'business_sector',
         'website',
         'company_number',
+        // Operating Address
+        'operating_address_same_as_registered',
+        'operating_address_line1',
+        'operating_address_line2',
+        'operating_city',
+        'operating_county',
+        'operating_postcode',
+        'operating_country',
         // Section 3: Support & Operations
+        'accounts_billing_email',
+        'incident_email',
         'support_contact_name',
         'support_contact_email',
         'support_contact_phone',
@@ -104,9 +114,11 @@ class Account extends Model
         'billing_postcode',
         'billing_country',
         'vat_registered',
+        'vat_reverse_charges',
         'tax_id',
         'tax_country',
         'purchase_order_required',
+        'purchase_order_number',
         'payment_terms',
         // Activation tracking
         'signup_details_complete',
@@ -131,7 +143,9 @@ class Account extends Model
         'signup_credits_awarded' => 'integer',
         'contract_agreed' => 'boolean',
         'contract_signed_at' => 'datetime',
+        'operating_address_same_as_registered' => 'boolean',
         'vat_registered' => 'boolean',
+        'vat_reverse_charges' => 'boolean',
         'billing_address_same_as_registered' => 'boolean',
         'purchase_order_required' => 'boolean',
         'signup_details_complete' => 'boolean',
@@ -483,8 +497,10 @@ class Account extends Model
      */
     public function isSupportOperationsComplete(): bool
     {
-        return !is_null($this->support_contact_name)
+        return !is_null($this->accounts_billing_email)
             && !is_null($this->support_contact_email)
+            && !is_null($this->incident_email)
+            && !is_null($this->support_contact_name)
             && !is_null($this->support_contact_phone)
             && !is_null($this->operations_contact_name)
             && !is_null($this->operations_contact_email)
@@ -627,7 +643,18 @@ class Account extends Model
                 'postcode' => $this->postcode,
                 'country' => $this->country,
             ],
+            'operating_address' => [
+                'same_as_registered' => $this->operating_address_same_as_registered,
+                'line1' => $this->operating_address_line1,
+                'line2' => $this->operating_address_line2,
+                'city' => $this->operating_city,
+                'county' => $this->operating_county,
+                'postcode' => $this->operating_postcode,
+                'country' => $this->operating_country,
+            ],
             // Support & Operations
+            'accounts_billing_email' => $this->accounts_billing_email,
+            'incident_email' => $this->incident_email,
             'support_contact' => [
                 'name' => $this->support_contact_name,
                 'email' => $this->support_contact_email,
@@ -654,9 +681,11 @@ class Account extends Model
             ],
             'vat_registered' => $this->vat_registered,
             'vat_number' => $this->vat_number,
+            'vat_reverse_charges' => $this->vat_reverse_charges,
             'tax_id' => $this->tax_id,
             'payment_terms' => $this->payment_terms,
             'purchase_order_required' => $this->purchase_order_required,
+            'purchase_order_number' => $this->purchase_order_number,
             // Activation status
             'activation' => $this->getActivationProgress(),
             'onboarded_at' => $this->onboarded_at?->toIso8601String(),

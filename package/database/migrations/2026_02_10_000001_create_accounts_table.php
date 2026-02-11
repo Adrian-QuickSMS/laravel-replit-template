@@ -35,7 +35,7 @@ return new class extends Migration
             $table->enum('account_type', ['trial', 'prepay', 'postpay', 'system'])->default('trial');
 
             // Contact details (GREEN - customer can see/edit)
-            $table->string('primary_email');
+            $table->string('email'); // Primary account email
             $table->string('billing_email')->nullable();
             $table->string('phone')->nullable();
 
@@ -49,7 +49,7 @@ return new class extends Migration
 
             // Business details (GREEN)
             $table->string('vat_number')->nullable();
-            $table->string('company_registration')->nullable();
+            // company_number field defined in activation migration (2026_02_11_000001_extend_accounts_for_activation.php)
 
             // Verification tracking
             $table->timestamp('email_verified_at')->nullable();

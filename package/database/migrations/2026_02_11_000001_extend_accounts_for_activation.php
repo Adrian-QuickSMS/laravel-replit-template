@@ -42,12 +42,28 @@ return new class extends Migration
             // County/Region (optional, different from country)
             // Note: 'county' field already exists in migration but not in fillable - will add to fillable
 
+            // Operating Address (if different from registered address)
+            $table->boolean('operating_address_same_as_registered')->default(true)->after('county')
+                ->comment('Is operating address same as registered address?');
+            $table->string('operating_address_line1')->nullable()->after('operating_address_same_as_registered');
+            $table->string('operating_address_line2')->nullable()->after('operating_address_line1');
+            $table->string('operating_city', 100)->nullable()->after('operating_address_line2');
+            $table->string('operating_county', 100)->nullable()->after('operating_city');
+            $table->string('operating_postcode', 20)->nullable()->after('operating_county');
+            $table->string('operating_country', 2)->nullable()->after('operating_postcode');
+
             // =====================================================
             // SECTION 3: SUPPORT & OPERATIONS CONTACTS
             // =====================================================
 
+            // Email Contacts (all mandatory)
+            $table->string('accounts_billing_email')->nullable()->after('operating_country')
+                ->comment('Accounts & Billing department email');
+            $table->string('incident_email')->nullable()->after('accounts_billing_email')
+                ->comment('Incident notifications email');
+
             // Support Contact
-            $table->string('support_contact_name', 100)->nullable()->after('county');
+            $table->string('support_contact_name', 100)->nullable()->after('incident_email');
             $table->string('support_contact_email')->nullable()->after('support_contact_name');
             $table->string('support_contact_phone', 20)->nullable()->after('support_contact_email');
 
@@ -95,9 +111,11 @@ return new class extends Migration
             // VAT Information
             $table->boolean('vat_registered')->default(false)->after('vat_number')
                 ->comment('Is company VAT registered?');
+            $table->boolean('vat_reverse_charges')->default(false)->after('vat_registered')
+                ->comment('VAT reverse charge mechanism applicable?');
 
             // Tax Information
-            $table->string('tax_id', 50)->nullable()->after('vat_registered')
+            $table->string('tax_id', 50)->nullable()->after('vat_reverse_charges')
                 ->comment('Company Tax Reference / Tax ID');
             $table->string('tax_country', 2)->nullable()->after('tax_id')
                 ->comment('Country of tax registration');
@@ -105,9 +123,11 @@ return new class extends Migration
             // Payment Terms
             $table->boolean('purchase_order_required')->default(false)->after('tax_country')
                 ->comment('Does company require PO for invoices?');
+            $table->string('purchase_order_number', 100)->nullable()->after('purchase_order_required')
+                ->comment('Purchase order reference number');
             $table->enum('payment_terms', ['immediate', 'net_7', 'net_14', 'net_30', 'net_60'])
                 ->default('immediate')
-                ->after('purchase_order_required');
+                ->after('purchase_order_number');
 
             // =====================================================
             // ACTIVATION STATUS TRACKING
@@ -144,10 +164,19 @@ return new class extends Migration
                 'business_sector',
                 'website',
                 'company_number',
+                'operating_address_same_as_registered',
+                'operating_address_line1',
+                'operating_address_line2',
+                'operating_city',
+                'operating_county',
+                'operating_postcode',
+                'operating_country',
             ]);
 
             // Remove Section 3: Support & Operations
             $table->dropColumn([
+                'accounts_billing_email',
+                'incident_email',
                 'support_contact_name',
                 'support_contact_email',
                 'support_contact_phone',
@@ -179,9 +208,11 @@ return new class extends Migration
                 'billing_postcode',
                 'billing_country',
                 'vat_registered',
+                'vat_reverse_charges',
                 'tax_id',
                 'tax_country',
                 'purchase_order_required',
+                'purchase_order_number',
                 'payment_terms',
             ]);
 

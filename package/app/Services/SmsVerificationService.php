@@ -25,15 +25,15 @@ class SmsVerificationService
     const SYSTEM_ACCOUNT_ID = '00000000-0000-0000-0000-000000000001';
 
     /**
-     * Rate limit: Max 3 codes per phone per hour
+     * Rate limit: Max 4 codes per phone per 24 hours
      */
-    const RATE_LIMIT_MAX_ATTEMPTS = 3;
-    const RATE_LIMIT_WINDOW_MINUTES = 60;
+    const RATE_LIMIT_MAX_ATTEMPTS = 4;
+    const RATE_LIMIT_WINDOW_MINUTES = 1440; // 24 hours
 
     /**
-     * Code expiry: 10 minutes
+     * Code expiry: 5 minutes
      */
-    const CODE_EXPIRY_MINUTES = 10;
+    const CODE_EXPIRY_MINUTES = 5;
 
     /**
      * Generate a random 6-digit verification code
@@ -67,7 +67,7 @@ class SmsVerificationService
 
             return [
                 'success' => false,
-                'message' => 'Too many verification attempts. Please try again in an hour.',
+                'message' => 'Too many verification attempts. Please try again in 24 hours.',
                 'code' => null,
             ];
         }

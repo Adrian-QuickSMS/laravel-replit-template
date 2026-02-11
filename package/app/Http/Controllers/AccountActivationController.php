@@ -147,9 +147,13 @@ class AccountActivationController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
+                // Email Contacts (mandatory)
+                'accounts_billing_email' => 'required|email|max:255',
+                'support_contact_email' => 'required|email|max:255',
+                'incident_email' => 'required|email|max:255',
+
                 // Support Contact (mandatory)
                 'support_contact_name' => 'required|string|max:100',
-                'support_contact_email' => 'required|email|max:255',
                 'support_contact_phone' => 'required|string|max:20',
 
                 // Operations Contact (mandatory)
@@ -167,8 +171,10 @@ class AccountActivationController extends Controller
 
             $account = $user->account;
             $account->update($request->only([
-                'support_contact_name',
+                'accounts_billing_email',
                 'support_contact_email',
+                'incident_email',
+                'support_contact_name',
                 'support_contact_phone',
                 'operations_contact_name',
                 'operations_contact_email',
@@ -287,6 +293,9 @@ class AccountActivationController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
+                // Billing Email (mandatory)
+                'billing_email' => 'required|email|max:255',
+
                 // Billing Contact (optional)
                 'billing_contact_name' => 'nullable|string|max:100',
                 'billing_contact_phone' => 'nullable|string|max:20',
@@ -303,6 +312,7 @@ class AccountActivationController extends Controller
                 // VAT
                 'vat_registered' => 'required|boolean',
                 'vat_number' => 'required_if:vat_registered,true|nullable|string|max:50',
+                'vat_reverse_charges' => 'required_if:vat_registered,true|nullable|boolean',
 
                 // Tax
                 'tax_id' => 'nullable|string|max:50',
@@ -310,6 +320,7 @@ class AccountActivationController extends Controller
 
                 // Payment Terms
                 'purchase_order_required' => 'required|boolean',
+                'purchase_order_number' => 'nullable|string|max:100',
                 'payment_terms' => 'required|in:immediate,net_7,net_14,net_30,net_60',
             ]);
 
@@ -322,6 +333,7 @@ class AccountActivationController extends Controller
 
             $account = $user->account;
             $account->update($request->only([
+                'billing_email',
                 'billing_contact_name',
                 'billing_contact_phone',
                 'billing_address_same_as_registered',
@@ -333,9 +345,11 @@ class AccountActivationController extends Controller
                 'billing_country',
                 'vat_registered',
                 'vat_number',
+                'vat_reverse_charges',
                 'tax_id',
                 'tax_country',
                 'purchase_order_required',
+                'purchase_order_number',
                 'payment_terms',
             ]));
 

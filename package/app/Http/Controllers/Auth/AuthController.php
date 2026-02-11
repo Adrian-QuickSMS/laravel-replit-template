@@ -46,8 +46,17 @@ class AuthController extends Controller
             'phone' => 'nullable|string|max:20',
             'country' => 'required|string|size:2',
 
-            // Password
-            'password' => ['required', 'confirmed', Password::min(12)],
+            // Password (12-128 chars, mixed case, numbers, symbols, breach check)
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(12)
+                    ->max(128)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
+            ],
 
             // Mobile Number (for MFA)
             'mobile_number' => 'required|string|max:20',
