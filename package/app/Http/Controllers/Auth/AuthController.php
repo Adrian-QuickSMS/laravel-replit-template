@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Account;
+use App\Models\AccountCredit;
 use App\Models\EmailVerificationToken;
 use App\Models\AuthAuditLog;
+use App\Services\SmsVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -35,13 +37,38 @@ class AuthController extends Controller
     public function signup(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            // Company & Personal Details
             'company_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email',
-            'password' => ['required', 'confirmed', Password::min(12)],
             'first_name' => 'required|string|max:100',
             'last_name' => 'required|string|max:100',
+            'job_title' => 'nullable|string|max:100',
+            'email' => 'required|email|max:255|unique:users,email',
             'phone' => 'nullable|string|max:20',
             'country' => 'required|string|size:2',
+
+            // Password
+            'password' => ['required', 'confirmed', Password::min(12)],
+
+            // Mobile Number (for MFA)
+            'mobile_number' => 'required|string|max:20',
+
+            // Consent (required)
+            'accept_terms' => 'required|accepted',
+            'accept_privacy' => 'required|accepted',
+            'accept_fraud_prevention' => 'required|accepted',
+
+            // Marketing Consent (optional)
+            'accept_marketing' => 'nullable|boolean',
+
+            // UTM Parameters (optional, captured from URL)
+            'utm_source' => 'nullable|string|max:255',
+            'utm_medium' => 'nullable|string|max:255',
+            'utm_campaign' => 'nullable|string|max:255',
+            'utm_content' => 'nullable|string|max:255',
+            'utm_term' => 'nullable|string|max:255',
+
+            // Referrer (optional, captured from HTTP headers)
+            'referrer' => 'nullable|string|max:512',
         ]);
 
         if ($validator->fails()) {
@@ -52,32 +79,72 @@ class AuthController extends Controller
         }
 
         try {
+            DB::beginTransaction();
+
+            // Normalize mobile number to storage format (447XXXXXXXXX)
+            $normalizedMobile = User::normalizeMobileNumber($request->mobile_number);
+
+            // Get consent versions from config
+            $consentVersions = config('consent.versions');
+            $ipAddress = $request->ip();
+            $referrer = $request->referrer ?? $request->header('Referer');
+
             // Hash password
             $hashedPassword = Hash::make($request->password);
 
-            // Call stored procedure to create account
-            $result = DB::select('CALL sp_create_account(?, ?, ?, ?, ?, ?, ?, ?)', [
-                $request->company_name,
-                $request->email,
-                $hashedPassword,
-                $request->first_name,
-                $request->last_name,
-                $request->phone,
-                $request->country,
-                $request->ip()
+            // Create Account with consent tracking and UTM data
+            $account = Account::create([
+                'company_name' => $request->company_name,
+                'phone' => $request->phone,
+                'country' => $request->country,
+                'account_type' => 'trial',
+                'status' => 'active',
+
+                // Terms & Conditions consent
+                'terms_accepted_at' => now(),
+                'terms_accepted_ip' => $ipAddress,
+                'terms_version' => $consentVersions['terms'],
+
+                // Privacy Policy consent
+                'privacy_accepted_at' => now(),
+                'privacy_accepted_ip' => $ipAddress,
+                'privacy_version' => $consentVersions['privacy'],
+
+                // Fraud Prevention consent
+                'fraud_consent_at' => now(),
+                'fraud_consent_ip' => $ipAddress,
+                'fraud_consent_version' => $consentVersions['fraud_prevention'],
+
+                // Marketing consent (optional)
+                'marketing_consent_at' => $request->accept_marketing ? now() : null,
+                'marketing_consent_ip' => $request->accept_marketing ? $ipAddress : null,
+
+                // Signup tracking
+                'signup_ip_address' => $ipAddress,
+                'signup_referrer' => $referrer,
+
+                // UTM parameters
+                'signup_utm_source' => $request->utm_source,
+                'signup_utm_medium' => $request->utm_medium,
+                'signup_utm_campaign' => $request->utm_campaign,
+                'signup_utm_content' => $request->utm_content,
+                'signup_utm_term' => $request->utm_term,
             ]);
 
-            if (empty($result) || $result[0]->status !== 'success') {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Failed to create account'
-                ], 500);
-            }
-
-            $accountData = $result[0];
-
-            // Get created user
-            $user = User::withoutGlobalScope('tenant')->find($accountData->user_id);
+            // Create User with mobile number
+            $user = User::create([
+                'tenant_id' => $account->id,
+                'user_type' => 'customer',
+                'email' => $request->email,
+                'password' => $hashedPassword,
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'job_title' => $request->job_title,
+                'role' => 'owner',
+                'status' => 'active',
+                'mobile_number' => $normalizedMobile,
+                'mfa_enabled' => false, // Will be auto-enabled after mobile verification
+            ]);
 
             // Generate email verification token
             $tokenData = EmailVerificationToken::createForUser($user);
@@ -85,20 +152,42 @@ class AuthController extends Controller
             // TODO: Send verification email via queue
             // Mail::to($user->email)->queue(new VerifyEmailMail($tokenData['plain_token']));
 
+            // Log account creation
+            AuthAuditLog::logEvent([
+                'actor_type' => 'customer_user',
+                'actor_id' => $user->id,
+                'actor_email' => $user->email,
+                'tenant_id' => $account->id,
+                'event_type' => 'account_created',
+                'result' => 'success',
+                'ip_address' => $ipAddress,
+                'metadata' => json_encode([
+                    'account_number' => $account->account_number,
+                    'marketing_consent' => $request->accept_marketing ?? false,
+                    'utm_source' => $request->utm_source,
+                ]),
+            ]);
+
+            DB::commit();
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'Account created successfully. Please check your email to verify your account.',
+                'message' => 'Account created successfully. Please verify your email and mobile number.',
                 'data' => [
-                    'account_id' => $accountData->account_id,
-                    'user_id' => $accountData->user_id,
-                    'account_number' => $accountData->account_number,
+                    'account_id' => $account->id,
+                    'user_id' => $user->id,
+                    'account_number' => $account->account_number,
                     'email' => $user->email,
                     'email_verification_required' => true,
+                    'mobile_verification_required' => true,
                 ]
             ], 201);
 
         } catch (\Exception $e) {
-            \Log::error('Signup error: ' . $e->getMessage());
+            DB::rollBack();
+            \Log::error('Signup error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return response()->json([
                 'status' => 'error',
@@ -165,13 +254,24 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            // Check if MFA is enabled
+            // Check if mobile verification is required (mandatory for all users)
+            if (!$user->hasMobileVerified()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Please verify your mobile number to enable MFA.',
+                    'mobile_verification_required' => true,
+                    'user_id' => $user->id
+                ], 403);
+            }
+
+            // Check if MFA is enabled (auto-enabled after mobile verification)
             if ($user->hasMfaEnabled()) {
-                // TODO: Implement MFA challenge
+                // TODO: Implement MFA challenge (send SMS code)
                 return response()->json([
                     'status' => 'mfa_required',
                     'message' => 'MFA verification required',
-                    'mfa_challenge_token' => 'TODO_IMPLEMENT_MFA'
+                    'mfa_challenge_token' => 'TODO_IMPLEMENT_MFA',
+                    'mobile_number_hint' => substr($user->mobile_number, -4)
                 ], 200);
             }
 

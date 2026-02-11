@@ -47,6 +47,30 @@ class Account extends Model
         'onboarded_at',
         'suspended_at',
         'closed_at',
+        // Consent tracking
+        'terms_accepted_at',
+        'terms_accepted_ip',
+        'terms_version',
+        'privacy_accepted_at',
+        'privacy_accepted_ip',
+        'privacy_version',
+        'fraud_consent_at',
+        'fraud_consent_ip',
+        'fraud_consent_version',
+        'marketing_consent_at',
+        'marketing_consent_ip',
+        // Signup tracking
+        'signup_ip_address',
+        'signup_referrer',
+        // UTM parameters
+        'signup_utm_source',
+        'signup_utm_medium',
+        'signup_utm_campaign',
+        'signup_utm_content',
+        'signup_utm_term',
+        // Promotional credits
+        'signup_credits_awarded',
+        'signup_promotion_code',
     ];
 
     protected $casts = [
@@ -54,6 +78,11 @@ class Account extends Model
         'onboarded_at' => 'datetime',
         'suspended_at' => 'datetime',
         'closed_at' => 'datetime',
+        'terms_accepted_at' => 'datetime',
+        'privacy_accepted_at' => 'datetime',
+        'fraud_consent_at' => 'datetime',
+        'marketing_consent_at' => 'datetime',
+        'signup_credits_awarded' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -150,6 +179,14 @@ class Account extends Model
     public function apiTokens(): HasMany
     {
         return $this->hasMany(ApiToken::class, 'tenant_id');
+    }
+
+    /**
+     * Account credits (promotional and purchased)
+     */
+    public function credits(): HasMany
+    {
+        return $this->hasMany(AccountCredit::class, 'account_id');
     }
 
     // =====================================================
@@ -262,6 +299,88 @@ class Account extends Model
     public function getAdmins()
     {
         return $this->users()->whereIn('role', ['owner', 'admin'])->get();
+    }
+
+    // =====================================================
+    // CONSENT METHODS
+    // =====================================================
+
+    /**
+     * Check if terms have been accepted
+     */
+    public function hasAcceptedTerms(): bool
+    {
+        return !is_null($this->terms_accepted_at);
+    }
+
+    /**
+     * Check if privacy policy has been accepted
+     */
+    public function hasAcceptedPrivacy(): bool
+    {
+        return !is_null($this->privacy_accepted_at);
+    }
+
+    /**
+     * Check if fraud prevention consent has been given
+     */
+    public function hasAcceptedFraudConsent(): bool
+    {
+        return !is_null($this->fraud_consent_at);
+    }
+
+    /**
+     * Check if marketing consent has been given
+     */
+    public function hasMarketingConsent(): bool
+    {
+        return !is_null($this->marketing_consent_at);
+    }
+
+    /**
+     * Get all UTM parameters as array
+     */
+    public function getUtmParameters(): array
+    {
+        return [
+            'source' => $this->signup_utm_source,
+            'medium' => $this->signup_utm_medium,
+            'campaign' => $this->signup_utm_campaign,
+            'content' => $this->signup_utm_content,
+            'term' => $this->signup_utm_term,
+        ];
+    }
+
+    /**
+     * Award signup credits
+     */
+    public function awardSignupCredits(int $amount, string $type, string $reason): void
+    {
+        AccountCredit::create([
+            'account_id' => $this->id,
+            'type' => $type,
+            'credits_awarded' => $amount,
+            'credits_used' => 0,
+            'credits_remaining' => $amount,
+            'reason' => $reason,
+            'expires_at' => null, // NULL = valid during trial
+        ]);
+
+        $this->increment('signup_credits_awarded', $amount);
+    }
+
+    /**
+     * Get total available credits
+     */
+    public function getAvailableCredits(): int
+    {
+        return $this->credits()
+            ->where('credits_remaining', '>', 0)
+            ->where(function($q) {
+                $q->whereNull('expires_at')
+                  ->orWhere('expires_at', '>', now());
+            })
+            ->sum('credits_remaining');
     }
 
     /**

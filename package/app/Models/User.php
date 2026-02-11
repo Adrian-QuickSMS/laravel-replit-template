@@ -43,10 +43,15 @@ class User extends Authenticatable
         'password',
         'first_name',
         'last_name',
+        'job_title',
         'role',
         'status',
         'mfa_enabled',
         'mfa_secret',
+        'mobile_number',
+        'mobile_verified_at',
+        'mobile_verification_code',
+        'mobile_verification_expires_at',
         'email_verified_at',
         'last_login_at',
         'last_login_ip',
@@ -59,12 +64,15 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'mfa_secret',
+        'mobile_verification_code',
     ];
 
     protected $casts = [
         'id' => 'string',
         'tenant_id' => 'string',
         'email_verified_at' => 'datetime',
+        'mobile_verified_at' => 'datetime',
+        'mobile_verification_expires_at' => 'datetime',
         'last_login_at' => 'datetime',
         'account_locked_until' => 'datetime',
         'password_changed_at' => 'datetime',
@@ -428,6 +436,133 @@ class User extends Authenticatable
     }
 
     // =====================================================
+    // MOBILE VERIFICATION METHODS
+    // =====================================================
+
+    /**
+     * Normalize mobile number to storage format (447XXXXXXXXX)
+     */
+    public static function normalizeMobileNumber(string $input): string
+    {
+        // Remove all non-digits
+        $digits = preg_replace('/[^0-9]/', '', $input);
+
+        // Convert 07XX to 447XX (UK local to international)
+        if (str_starts_with($digits, '07') && strlen($digits) == 11) {
+            $digits = '44' . substr($digits, 1);
+        }
+
+        // Remove leading 44 if present, then re-add for consistency
+        if (str_starts_with($digits, '44')) {
+            $digits = substr($digits, 2);
+        }
+
+        // Final format: 447XXXXXXXXX (always 12 digits)
+        return '44' . $digits;
+    }
+
+    /**
+     * Check if user has verified their mobile number
+     */
+    public function hasMobileVerified(): bool
+    {
+        return !is_null($this->mobile_verified_at);
+    }
+
+    /**
+     * Generate and store mobile verification code (6 digits)
+     * Returns the plain code to be sent via SMS
+     */
+    public function generateMobileVerificationCode(): string
+    {
+        // Generate random 6-digit code
+        $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        // Store hashed version with SHA-256
+        $this->update([
+            'mobile_verification_code' => hash('sha256', $code),
+            'mobile_verification_expires_at' => now()->addMinutes(10),
+        ]);
+
+        return $code;
+    }
+
+    /**
+     * Verify mobile verification code
+     */
+    public function verifyMobileCode(string $code): bool
+    {
+        // Check if code exists and hasn't expired
+        if (!$this->mobile_verification_code || !$this->mobile_verification_expires_at) {
+            return false;
+        }
+
+        if ($this->mobile_verification_expires_at->isPast()) {
+            return false;
+        }
+
+        // Verify code matches stored hash
+        $hashedCode = hash('sha256', $code);
+        if ($hashedCode !== $this->mobile_verification_code) {
+            return false;
+        }
+
+        // Mark mobile as verified and auto-enable MFA
+        $this->update([
+            'mobile_verified_at' => now(),
+            'mobile_verification_code' => null,
+            'mobile_verification_expires_at' => null,
+            'mfa_enabled' => true, // Auto-enable MFA after mobile verification
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Check if user can resend verification code (rate limiting check)
+     */
+    public function canResendMobileCode(): bool
+    {
+        if (!$this->mobile_verification_expires_at) {
+            return true;
+        }
+
+        // Allow resend only after 1 minute
+        return $this->mobile_verification_expires_at->diffInMinutes(now()) >= 9;
+    }
+
+    /**
+     * Check if user is ready for MFA (mobile verified + MFA enabled)
+     */
+    public function isMfaReady(): bool
+    {
+        return $this->hasMobileVerified() && $this->hasMfaEnabled();
+    }
+
+    /**
+     * Format mobile number for display (+44 7XXX XXX XXX)
+     */
+    public function getFormattedMobileNumber(): ?string
+    {
+        if (!$this->mobile_number) {
+            return null;
+        }
+
+        // Assume stored as 447XXXXXXXXX (12 digits)
+        if (strlen($this->mobile_number) === 12 && str_starts_with($this->mobile_number, '44')) {
+            $localNumber = substr($this->mobile_number, 2); // Remove '44'
+            return sprintf(
+                '+44 %s %s %s',
+                substr($localNumber, 0, 4),
+                substr($localNumber, 4, 3),
+                substr($localNumber, 7, 3)
+            );
+        }
+
+        return '+' . $this->mobile_number;
+    }
+
+    // =====================================================
     // PASSWORD METHODS
     // =====================================================
 
@@ -552,11 +687,15 @@ class User extends Authenticatable
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'full_name' => $this->first_name . ' ' . $this->last_name,
+            'job_title' => $this->job_title,
             'role' => $this->role,
             'status' => $this->status,
             'mfa_enabled' => $this->mfa_enabled,
             'email_verified' => $this->hasVerifiedEmail(),
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),
+            'mobile_number' => $this->getFormattedMobileNumber(),
+            'mobile_verified' => $this->hasMobileVerified(),
+            'mobile_verified_at' => $this->mobile_verified_at?->toIso8601String(),
             'last_login_at' => $this->last_login_at?->toIso8601String(),
             'created_at' => $this->created_at->toIso8601String(),
         ];

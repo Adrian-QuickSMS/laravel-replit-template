@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\MobileVerificationController;
 use App\Http\Controllers\AccountController;
 
 /*
@@ -38,6 +39,12 @@ Route::prefix('api/auth')->group(function () {
     // Password Reset
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+    // Mobile Verification (public - used during signup flow)
+    Route::post('/verify-mobile/send', [MobileVerificationController::class, 'sendCode']);
+    Route::post('/verify-mobile/verify', [MobileVerificationController::class, 'verifyCode']);
+    Route::post('/verify-mobile/resend', [MobileVerificationController::class, 'resendCode']);
+    Route::get('/verify-mobile/status', [MobileVerificationController::class, 'getStatus']);
 
 });
 

@@ -32,7 +32,7 @@ return new class extends Migration
 
             // Account status
             $table->enum('status', ['pending_verification', 'active', 'suspended', 'closed'])->default('pending_verification');
-            $table->enum('account_type', ['trial', 'prepay', 'postpay'])->default('trial');
+            $table->enum('account_type', ['trial', 'prepay', 'postpay', 'system'])->default('trial');
 
             // Contact details (GREEN - customer can see/edit)
             $table->string('primary_email');
@@ -59,6 +59,41 @@ return new class extends Migration
             $table->string('hubspot_company_id')->nullable()->unique();
             $table->timestamp('last_hubspot_sync')->nullable();
 
+            // Consent tracking (GDPR compliance)
+            // Terms of Service
+            $table->timestamp('terms_accepted_at')->nullable();
+            $table->string('terms_accepted_ip', 45)->nullable();
+            $table->string('terms_version', 20)->nullable();
+
+            // Privacy Policy
+            $table->timestamp('privacy_accepted_at')->nullable();
+            $table->string('privacy_accepted_ip', 45)->nullable();
+            $table->string('privacy_version', 20)->nullable();
+
+            // Fraud Prevention (mandatory)
+            $table->timestamp('fraud_consent_at')->nullable();
+            $table->string('fraud_consent_ip', 45)->nullable();
+            $table->string('fraud_consent_version', 20)->nullable();
+
+            // Marketing (optional)
+            $table->timestamp('marketing_consent_at')->nullable();
+            $table->string('marketing_consent_ip', 45)->nullable();
+
+            // Signup tracking
+            $table->string('signup_ip_address', 45)->nullable();
+            $table->string('signup_referrer', 512)->nullable();
+
+            // UTM tracking (marketing attribution)
+            $table->string('signup_utm_source')->nullable();
+            $table->string('signup_utm_medium')->nullable();
+            $table->string('signup_utm_campaign')->nullable();
+            $table->string('signup_utm_content')->nullable();
+            $table->string('signup_utm_term')->nullable();
+
+            // Promotional credits
+            $table->integer('signup_credits_awarded')->default(0);
+            $table->string('signup_promotion_code')->nullable();
+
             // Audit fields
             $table->string('created_by')->nullable();
             $table->string('updated_by')->nullable();
@@ -71,6 +106,8 @@ return new class extends Migration
             $table->index('status');
             $table->index(['status', 'account_type']);
             $table->index('hubspot_company_id');
+            $table->index('signup_ip_address'); // For fraud detection queries
+            $table->index('signup_utm_source'); // For marketing attribution
         });
 
         // Add UUID generation trigger

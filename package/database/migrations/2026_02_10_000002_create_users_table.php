@@ -42,6 +42,7 @@ return new class extends Migration
             // User details (GREEN - visible to user)
             $table->string('first_name');
             $table->string('last_name');
+            $table->string('job_title')->nullable();
             $table->string('phone')->nullable();
 
             // Account status
@@ -56,6 +57,12 @@ return new class extends Migration
             $table->boolean('mfa_enabled')->default(false);
             $table->string('mfa_secret')->nullable(); // Encrypted TOTP secret
             $table->text('mfa_recovery_codes')->nullable(); // JSON encrypted
+
+            // Mobile verification (for MFA)
+            $table->string('mobile_number', 12)->nullable()->comment('Stored as 447XXXXXXXXX');
+            $table->timestamp('mobile_verified_at')->nullable();
+            $table->string('mobile_verification_code', 64)->nullable()->comment('SHA-256 hash of 6-digit code');
+            $table->timestamp('mobile_verification_expires_at')->nullable();
 
             // Password management
             $table->timestamp('password_changed_at')->nullable();
@@ -83,6 +90,7 @@ return new class extends Migration
             $table->index(['tenant_id', 'status']);
             $table->index(['tenant_id', 'role']);
             $table->index('hubspot_contact_id');
+            $table->index('mobile_number'); // For mobile verification lookup
         });
 
         // Add UUID generation trigger
