@@ -7,7 +7,9 @@
     }
     #rcsWizardModal .modal-content {
         height: 100vh !important;
+        height: 100dvh !important;
         max-height: 100vh !important;
+        max-height: 100dvh !important;
         display: flex !important;
         flex-direction: column !important;
         overflow: hidden !important;
@@ -17,6 +19,10 @@
     }
     #rcsWizardModal .modal-footer {
         flex-shrink: 0 !important;
+        position: sticky !important;
+        bottom: 0 !important;
+        z-index: 10 !important;
+        background: #fff !important;
     }
     #rcsWizardBody {
         flex: 1 1 0% !important;
