@@ -65,7 +65,7 @@
                                     </div>
                                 </div>
                                 
-                                <div class="password-check-status mt-2 d-none" id="passwordCheckStatus"></div>
+                                <div class="alert alert-success mt-2 py-2 d-none" id="passwordCheckStatus"></div>
                             </div>
                             
                             <div class="form-group">
@@ -115,9 +115,9 @@
                                 </div>
                             </div>
                             
-                            <div class="verified-badge d-none" id="mobileVerifiedBadge">
-                                <i class="fas fa-check-circle text-success me-2"></i>
-                                <span>Mobile verified</span>
+                            <div class="alert alert-success py-2 d-none" id="mobileVerifiedBadge">
+                                <i class="fas fa-check-circle me-2"></i>
+                                Mobile verified
                             </div>
                             
                             <div class="mfa-notice mt-2">
@@ -321,23 +321,6 @@
 .rule-item.invalid {
     color: #dc3545;
 }
-.password-check-status {
-    font-size: 0.8rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.25rem;
-}
-.password-check-status.checking {
-    background: #e7f1ff;
-    color: #0d6efd;
-}
-.password-check-status.error {
-    background: #f8d7da;
-    color: #842029;
-}
-.password-check-status.success {
-    background: #d1e7dd;
-    color: #0f5132;
-}
 .otp-status {
     font-size: 0.8rem;
     padding: 0.5rem 0.75rem;
@@ -354,15 +337,6 @@
 .otp-status.error {
     background: #f8d7da;
     color: #842029;
-}
-.verified-badge {
-    display: flex;
-    align-items: center;
-    background: #d1e7dd;
-    color: #0f5132;
-    padding: 0.75rem 1rem;
-    border-radius: 0.375rem;
-    font-weight: 500;
 }
 .mfa-notice {
     display: flex;
@@ -1152,26 +1126,24 @@ $(document).ready(function() {
     function checkPasswordBackend(password) {
         var $status = $('#passwordCheckStatus');
         
-        // Show checking status
-        $status.removeClass('d-none error success').addClass('checking');
+        $status.removeClass('d-none alert-danger alert-success alert-info');
+        $status.addClass('alert-info');
         $status.html('<i class="fas fa-spinner fa-spin me-2"></i>Checking password security...');
         
-        // Mock backend checks
-        // In production: POST /api/auth/check-password (hashed or using k-anonymity for breach check)
         setTimeout(function() {
             var isBreached = BREACHED_PASSWORDS.includes(password);
             var isPreviouslyUsed = PREVIOUS_PASSWORDS.includes(password);
             
             if (isBreached) {
-                $status.removeClass('checking success').addClass('error');
+                $status.removeClass('alert-info alert-success').addClass('alert-danger');
                 $status.html('<i class="fas fa-exclamation-triangle me-2"></i>This password has been found in a data breach. Please choose a different password.');
                 passwordChecksComplete = false;
             } else if (isPreviouslyUsed) {
-                $status.removeClass('checking success').addClass('error');
+                $status.removeClass('alert-info alert-success').addClass('alert-danger');
                 $status.html('<i class="fas fa-exclamation-triangle me-2"></i>You cannot reuse one of your last 10 passwords. Please choose a different password.');
                 passwordChecksComplete = false;
             } else {
-                $status.removeClass('checking error').addClass('success');
+                $status.removeClass('alert-info alert-danger').addClass('alert-success');
                 $status.html('<i class="fas fa-check-circle me-2"></i>Password meets all security requirements.');
                 passwordChecksComplete = true;
             }
