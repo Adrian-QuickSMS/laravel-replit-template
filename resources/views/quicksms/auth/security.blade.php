@@ -1260,209 +1260,70 @@ $(document).ready(function() {
             }
         };
         
-        console.log('[Security] Saving security settings:', formData);
+        var registrationData = JSON.parse(sessionStorage.getItem('pendingRegistration') || '{}');
         
-        // Audit log: Password set
-        AuditService.logPasswordSet(email);
+        var signupPayload = {
+            company_name: registrationData.business_name || urlParams.get('business_name') || '',
+            first_name: registrationData.first_name || urlParams.get('first_name') || '',
+            last_name: registrationData.last_name || urlParams.get('last_name') || '',
+            job_title: registrationData.job_title || urlParams.get('job_title') || '',
+            email: email,
+            country: registrationData.country || urlParams.get('country') || 'GB',
+            password: $('#password').val(),
+            password_confirmation: $('#confirmPassword').val(),
+            mobile_number: formData.mobile_number,
+            accept_fraud_prevention: true,
+            accept_marketing: formData.marketing.consent ? true : false,
+            _token: $('meta[name="csrf-token"]').attr('content')
+        };
         
-        // Audit log: Consent capture
-        AuditService.logConsentCapture(email, {
-            terms: true,
-            privacy: true,
-            fraud_prevention: true,
-            third_party_sharing: true,
-            content_compliance: true,
-            marketing: formData.marketing.consent
-        });
+        console.log('[Security] Submitting signup to backend:', { email: signupPayload.email, company: signupPayload.company_name });
         
-        // Mock account provisioning
-        // In production: POST /api/auth/provision-account
-        setTimeout(function() {
-            // Step 1: Create QuickSMS Account
-            var accountId = 'ACC-' + Date.now();
-            var userId = 'USR-' + Date.now();
-            
-            var provisioningResult = {
-                account: {
-                    id: accountId,
-                    created_at: new Date().toISOString(),
-                    status: 'active',
-                    type: 'standard'
-                },
-                user: {
-                    id: userId,
-                    email: email,
-                    role: 'account_owner',
-                    email_verified: true,
-                    mfa_enabled: true,
-                    mobile_verified: true,
-                    created_at: new Date().toISOString()
-                },
-                security: {
-                    password_policy_applied: true,
-                    password_hash_algorithm: 'argon2id',
-                    password_history_count: 10
-                },
-                credits: formData.test_credits.eligible ? {
-                    applied: true,
-                    amount: 100,
-                    reason: 'marketing_opt_in',
-                    applied_at: new Date().toISOString()
-                } : {
-                    applied: false,
-                    amount: 0
-                },
-                account_details: {
-                    first_name: urlParams.get('first_name') || 'New',
-                    last_name: urlParams.get('last_name') || 'User',
-                    job_title: urlParams.get('job_title') || '',
-                    business_name: urlParams.get('business_name') || '',
-                    business_email: email,
-                    mobile_number: formData.mobile_number,
-                    country: urlParams.get('country') || 'United Kingdom'
-                },
-                audit: {
-                    event: 'account_provisioned',
-                    timestamp: new Date().toISOString(),
-                    user_agent: navigator.userAgent,
-                    ip_address: 'CAPTURED_BY_SERVER',
-                    details: {
-                        email_verified: true,
-                        mobile_verified: true,
-                        mfa_enabled: true,
-                        test_credits_applied: formData.test_credits.eligible,
-                        marketing_consent: formData.marketing.consent,
-                        consents_accepted: ['terms', 'privacy', 'fraud_prevention', 'third_party_sharing', 'content_compliance']
+        $.ajax({
+            url: '/api/auth/signup',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(signupPayload),
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                console.log('[Signup] Account created successfully:', response);
+                
+                sessionStorage.removeItem('pendingRegistration');
+                sessionStorage.removeItem('verificationToken');
+                
+                sessionStorage.setItem('quicksms_onboarding', JSON.stringify({
+                    completed: true,
+                    account_id: response.data.account_id,
+                    account_number: response.data.account_number,
+                    email: response.data.email
+                }));
+                
+                window.location.href = response.data.redirect || '/?onboarding=complete';
+            },
+            error: function(xhr) {
+                console.error('[Signup] Error:', xhr.responseJSON);
+                
+                var errorMsg = 'An error occurred during signup. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    var errors = xhr.responseJSON.errors;
+                    var firstError = Object.values(errors)[0];
+                    if (Array.isArray(firstError)) {
+                        errorMsg = firstError[0];
                     }
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMsg = xhr.responseJSON.message;
                 }
-            };
-            
-            // HubSpot Service - Backend-ready wrapper
-            // In production: Replace with actual HubSpot API calls via backend
-            var HubSpotService = {
-                createContact: function(contactData) {
-                    // POST /api/hubspot/contacts
-                    var payload = {
-                        properties: {
-                            firstname: contactData.first_name,
-                            lastname: contactData.last_name,
-                            email: contactData.email,
-                            jobtitle: contactData.job_title,
-                            company: contactData.business_name,
-                            phone: contactData.mobile_number,
-                            country: contactData.country,
-                            email_verified: String(contactData.email_verified),
-                            marketing_consent: String(contactData.marketing_consent),
-                            marketing_consent_timestamp: contactData.marketing_consent_timestamp || '',
-                            test_credit_eligible: String(contactData.test_credit_eligible)
-                        }
-                    };
-                    console.log('[HubSpotService] createContact payload:', payload);
-                    return {
-                        success: true,
-                        id: 'HS-CONTACT-' + Date.now(),
-                        payload: payload
-                    };
-                },
-                createCompany: function(companyData) {
-                    // POST /api/hubspot/companies
-                    var payload = {
-                        properties: {
-                            name: companyData.company_name,
-                            country: companyData.country,
-                            domain: companyData.email ? companyData.email.split('@')[1] : ''
-                        }
-                    };
-                    console.log('[HubSpotService] createCompany payload:', payload);
-                    return {
-                        success: true,
-                        id: 'HS-COMPANY-' + Date.now(),
-                        payload: payload
-                    };
-                },
-                associateContactToCompany: function(contactId, companyId) {
-                    // PUT /api/hubspot/associations
-                    console.log('[HubSpotService] associateContactToCompany:', { contactId, companyId });
-                    return { success: true };
-                },
-                syncOnboarding: function(accountDetails, formData) {
-                    // Combined sync method for onboarding
-                    var contactResult = this.createContact({
-                        first_name: accountDetails.first_name,
-                        last_name: accountDetails.last_name,
-                        email: accountDetails.business_email,
-                        job_title: accountDetails.job_title,
-                        business_name: accountDetails.business_name,
-                        mobile_number: accountDetails.mobile_number,
-                        country: accountDetails.country,
-                        email_verified: true,
-                        marketing_consent: formData.marketing.consent,
-                        marketing_consent_timestamp: formData.marketing.consent_timestamp,
-                        test_credit_eligible: formData.test_credits.eligible
-                    });
-                    
-                    var companyResult = this.createCompany({
-                        company_name: accountDetails.business_name,
-                        country: accountDetails.country,
-                        email: accountDetails.business_email
-                    });
-                    
-                    if (contactResult.success && companyResult.success) {
-                        this.associateContactToCompany(contactResult.id, companyResult.id);
-                    }
-                    
-                    return {
-                        success: true,
-                        contact: contactResult,
-                        company: companyResult,
-                        synced_at: new Date().toISOString()
-                    };
-                }
-            };
-            
-            // Execute HubSpot sync
-            var hubspotResult = HubSpotService.syncOnboarding(provisioningResult.account_details, formData);
-            provisioningResult.hubspot_sync = hubspotResult;
-            
-            console.log('[Provisioning] Account created:', provisioningResult);
-            console.log('[HubSpot] Sync completed:', hubspotResult);
-            console.log('[Audit] Event logged:', provisioningResult.audit);
-            
-            // Audit log: Signup completed
-            AuditService.logSignupComplete(email, accountId);
-            
-            if (formData.test_credits.eligible) {
-                console.log('[Credits] 100 test SMS credits applied to account');
-                AuditService.log('test_credits_applied', { email: email, amount: 100, reason: 'marketing_opt_in' });
+                
+                alert(errorMsg);
+                
+                $btn.prop('disabled', false);
+                $btn.find('.btn-text').removeClass('d-none');
+                $btn.find('.btn-loading').addClass('d-none');
             }
-            
-            // Store provisioning result for dashboard
-            sessionStorage.setItem('quicksms_onboarding', JSON.stringify({
-                completed: true,
-                account_id: accountId,
-                user_id: userId,
-                email: email,
-                test_credits_applied: formData.test_credits.eligible,
-                test_credits_amount: formData.test_credits.eligible ? 100 : 0
-            }));
-            
-            // Store account lifecycle state (all new accounts start in TEST)
-            // Backend: accounts.lifecycle_state = 'TEST', logged to account_lifecycle_audit
-            var stateChangedAt = new Date().toISOString();
-            sessionStorage.setItem('account_id', accountId);
-            sessionStorage.setItem('lifecycle_state', 'TEST');
-            sessionStorage.setItem('state_changed_at', stateChangedAt);
-            
-            AuditService.log('lifecycle_state_set', {
-                account_id: accountId,
-                lifecycle_state: 'TEST',
-                reason: 'new_account_creation',
-                state_changed_at: stateChangedAt
-            });
-            
-            // Redirect to Dashboard
-            window.location.href = '/?onboarding=complete&credits=' + (formData.test_credits.eligible ? '100' : '0');
-        }, 2000);
+        });
     });
     
     $('input[required]').on('input change', function() {

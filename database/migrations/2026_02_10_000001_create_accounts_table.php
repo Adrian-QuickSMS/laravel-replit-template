@@ -116,7 +116,7 @@ return new class extends Migration
             BEGIN
                 IF NEW.account_number IS NULL OR NEW.account_number = '' THEN
                     NEW.account_number := 'QS' || LPAD(
-                        (COALESCE((SELECT MAX(CAST(SUBSTRING(account_number FROM 3) AS INTEGER)) FROM accounts), 0) + 1)::TEXT,
+                        (COALESCE((SELECT MAX(CAST(SUBSTRING(account_number FROM 3) AS INTEGER)) FROM accounts WHERE account_number LIKE 'QS%'), 0) + 1)::TEXT,
                         8, '0'
                     );
                 END IF;

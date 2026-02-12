@@ -532,28 +532,28 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">First Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control signup-field" id="signupFirstName" value="Sarah" data-field="firstName">
+                                    <input type="text" class="form-control signup-field" id="signupFirstName" value="{{ $user->first_name ?? '' }}" data-field="firstName">
                                     <div class="validation-error">First name is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Last Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control signup-field" id="signupLastName" value="Johnson" data-field="lastName">
+                                    <input type="text" class="form-control signup-field" id="signupLastName" value="{{ $user->last_name ?? '' }}" data-field="lastName">
                                     <div class="validation-error">Last name is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Job Title<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control signup-field" id="signupJobTitle" value="Account Director" data-field="jobTitle">
+                                    <input type="text" class="form-control signup-field" id="signupJobTitle" value="{{ $user->job_title ?? '' }}" data-field="jobTitle">
                                     <div class="validation-error">Job title is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Business Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control signup-field" id="signupBusinessName" value="Acme Communications Ltd" data-field="businessName">
+                                    <input type="text" class="form-control signup-field" id="signupBusinessName" value="{{ $account->company_name ?? '' }}" data-field="businessName">
                                     <div class="field-hint">Legal registered company name</div>
                                     <div class="validation-error">Business name is required</div>
                                 </div>
@@ -561,7 +561,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Business Email Address<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control signup-field" id="signupEmail" value="sarah.johnson@acmecomms.co.uk" data-field="email">
+                                    <input type="email" class="form-control signup-field" id="signupEmail" value="{{ $user->email ?? '' }}" data-field="email">
                                     <div class="field-hint">Must be unique across the platform</div>
                                     <div class="validation-error" id="emailError">Please enter a valid email address</div>
                                 </div>
@@ -569,7 +569,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Mobile Number<span class="required-indicator">*</span></label>
-                                    <input type="tel" class="form-control signup-field" id="signupMobile" value="+44 7700 900123" placeholder="+44 7XXX XXXXXX" data-field="mobile">
+                                    <input type="tel" class="form-control signup-field" id="signupMobile" value="{{ $user->mobile_number ?? '' }}" placeholder="+44 7XXX XXXXXX" data-field="mobile">
                                     <div class="field-hint">E.164 format preferred (e.g., +447700900123)</div>
                                     <div class="validation-error" id="mobileError">Please enter a valid mobile number</div>
                                 </div>

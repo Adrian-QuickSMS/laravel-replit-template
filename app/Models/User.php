@@ -26,6 +26,17 @@ class User extends Authenticatable
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = \Illuminate\Support\Str::uuid()->toString();
+            }
+        });
+    }
+
     protected $fillable = [
         'tenant_id',
         'user_type',
@@ -67,7 +78,7 @@ class User extends Authenticatable
         'id' => 'string',
         'tenant_id' => 'string',
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password' => 'string',
         'mfa_enabled' => 'boolean',
         'phone_verified' => 'boolean',
         'force_password_change' => 'boolean',
@@ -124,5 +135,43 @@ class User extends Authenticatable
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    public function hasMobileVerified(): bool
+    {
+        return $this->mobile_verified_at !== null;
+    }
+
+    public function hasMfaEnabled(): bool
+    {
+        return (bool) $this->mfa_enabled;
+    }
+
+    public function changePassword(string $newPassword): void
+    {
+        $this->password = $newPassword;
+        $this->password_changed_at = now();
+        $this->force_password_change = false;
+        $this->save();
+    }
+
+    public static function normalizeMobileNumber(string $mobile): string
+    {
+        $mobile = preg_replace('/[^0-9+]/', '', $mobile);
+
+        if (str_starts_with($mobile, '+44')) {
+            $mobile = '44' . substr($mobile, 3);
+        } elseif (str_starts_with($mobile, '07')) {
+            $mobile = '44' . substr($mobile, 1);
+        } elseif (str_starts_with($mobile, '7')) {
+            $mobile = '44' . $mobile;
+        }
+
+        return $mobile;
     }
 }

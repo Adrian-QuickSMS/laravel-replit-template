@@ -135,7 +135,13 @@ $(document).ready(function() {
         $('#successState').removeClass('d-none');
         
         // Build the redirect URL with proper params
+        var pendingReg = JSON.parse(sessionStorage.getItem('pendingRegistration') || '{}');
         var redirectUrl = '/signup/security?email=' + encodeURIComponent(email || '') + '&verified=true';
+        if (pendingReg.first_name) redirectUrl += '&first_name=' + encodeURIComponent(pendingReg.first_name);
+        if (pendingReg.last_name) redirectUrl += '&last_name=' + encodeURIComponent(pendingReg.last_name);
+        if (pendingReg.business_name) redirectUrl += '&business_name=' + encodeURIComponent(pendingReg.business_name);
+        if (pendingReg.job_title) redirectUrl += '&job_title=' + encodeURIComponent(pendingReg.job_title);
+        if (pendingReg.country) redirectUrl += '&country=' + encodeURIComponent(pendingReg.country);
         
         // Set the button href so clicking it also works
         $('#continueToStep2Btn').attr('href', redirectUrl);

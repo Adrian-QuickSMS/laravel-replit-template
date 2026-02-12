@@ -161,9 +161,17 @@ class Account extends Model
 
     protected $hidden = [];
 
-    /**
-     * Get the route key name for Laravel routing
-     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = \Illuminate\Support\Str::uuid()->toString();
+            }
+        });
+    }
+
     public function getRouteKeyName(): string
     {
         return 'id';

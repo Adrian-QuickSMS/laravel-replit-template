@@ -2214,8 +2214,13 @@ class QuickSMSController extends Controller
 
     public function accountDetails()
     {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $account = $user ? $user->account : null;
+
         return view('quicksms.account.details', [
-            'page_title' => 'Account Details'
+            'page_title' => 'Account Details',
+            'user' => $user,
+            'account' => $account,
         ]);
     }
     
