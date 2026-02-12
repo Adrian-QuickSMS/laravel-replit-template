@@ -24,11 +24,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            // Primary identifier - UUID stored as BINARY(16)
-            $table->binary('id', 16)->primary();
+            // Primary identifier - UUID
+            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
             // MANDATORY tenant isolation
-            $table->binary('tenant_id', 16)->comment('FK to accounts.id - MANDATORY for all queries');
+            $table->uuid('tenant_id')->comment('FK to accounts.id - MANDATORY for all queries');
             $table->foreign('tenant_id')->references('id')->on('accounts')->onDelete('cascade');
 
             // User type (customer only on GREEN side)
@@ -93,36 +93,28 @@ return new class extends Migration
             $table->index('mobile_number'); // For mobile verification lookup
         });
 
-        // Add UUID generation trigger
+        // Add validation trigger - tenant_id MUST be set (PostgreSQL)
         DB::unprepared("
-            CREATE TRIGGER before_insert_users_uuid
-            BEFORE INSERT ON users
-            FOR EACH ROW
+            CREATE OR REPLACE FUNCTION validate_user_tenant() RETURNS TRIGGER AS \$\$
             BEGIN
-                IF NEW.id IS NULL OR NEW.id = '' THEN
-                    SET NEW.id = UNHEX(REPLACE(UUID(), '-', ''));
+                IF NEW.tenant_id IS NULL THEN
+                    RAISE EXCEPTION 'tenant_id is mandatory for all users';
                 END IF;
-            END
-        ");
+                RETURN NEW;
+            END;
+            \$\$ LANGUAGE plpgsql;
 
-        // Add validation trigger - tenant_id MUST be set
-        DB::unprepared("
             CREATE TRIGGER before_insert_users_tenant_validation
             BEFORE INSERT ON users
             FOR EACH ROW
-            BEGIN
-                IF NEW.tenant_id IS NULL OR NEW.tenant_id = '' THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'tenant_id is mandatory for all users';
-                END IF;
-            END
+            EXECUTE FUNCTION validate_user_tenant();
         ");
     }
 
     public function down(): void
     {
-        DB::unprepared("DROP TRIGGER IF EXISTS before_insert_users_uuid");
-        DB::unprepared("DROP TRIGGER IF EXISTS before_insert_users_tenant_validation");
+        DB::unprepared("DROP TRIGGER IF EXISTS before_insert_users_tenant_validation ON users");
+        DB::unprepared("DROP FUNCTION IF EXISTS validate_user_tenant()");
         Schema::dropIfExists('users');
     }
 };

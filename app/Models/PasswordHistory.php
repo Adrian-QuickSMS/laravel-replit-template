@@ -40,48 +40,6 @@ class PasswordHistory extends Model
         'set_at' => 'datetime',
     ];
 
-    /**
-     * Convert user_id binary to string
-     */
-    public function getUserIdAttribute($value)
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if (is_string($value) && strlen($value) === 36) {
-            return $value;
-        }
-
-        $hex = bin2hex($value);
-        return sprintf(
-            '%s-%s-%s-%s-%s',
-            substr($hex, 0, 8),
-            substr($hex, 8, 4),
-            substr($hex, 12, 4),
-            substr($hex, 16, 4),
-            substr($hex, 20)
-        );
-    }
-
-    /**
-     * Convert user_id string to binary
-     */
-    public function setUserIdAttribute($value)
-    {
-        if ($value === null) {
-            return;
-        }
-
-        if (is_string($value) && strlen($value) === 16) {
-            $this->attributes['user_id'] = $value;
-            return;
-        }
-
-        $hex = str_replace('-', '', $value);
-        $this->attributes['user_id'] = hex2bin($hex);
-    }
-
     // =====================================================
     // RELATIONSHIPS
     // =====================================================

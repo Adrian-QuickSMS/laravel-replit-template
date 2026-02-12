@@ -25,7 +25,7 @@ return new class extends Migration
             $table->id();
 
             // User reference
-            $table->binary('user_id', 16)->unique();
+            $table->uuid('user_id')->unique();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             // Token

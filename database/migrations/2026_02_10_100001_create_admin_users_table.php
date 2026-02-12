@@ -29,7 +29,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('admin_users', function (Blueprint $table) {
-            $table->binary('id', 16)->primary();
+            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
             // Authentication
             $table->string('email')->unique();
@@ -79,36 +79,28 @@ return new class extends Migration
             $table->index('role');
         });
 
-        // UUID generation trigger
-        DB::unprepared("
-            CREATE TRIGGER before_insert_admin_users_uuid
-            BEFORE INSERT ON admin_users
-            FOR EACH ROW
-            BEGIN
-                IF NEW.id IS NULL OR NEW.id = '' THEN
-                    SET NEW.id = UNHEX(REPLACE(UUID(), '-', ''));
-                END IF;
-            END
-        ");
-
         // MFA enforcement trigger (prevent disabling MFA without approval)
         DB::unprepared("
+            CREATE OR REPLACE FUNCTION enforce_admin_mfa() RETURNS TRIGGER AS $$
+            BEGIN
+                IF OLD.mfa_enabled = TRUE AND NEW.mfa_enabled = FALSE THEN
+                    RAISE EXCEPTION 'MFA cannot be disabled for admin users without security approval';
+                END IF;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
             CREATE TRIGGER before_update_admin_users_mfa
             BEFORE UPDATE ON admin_users
             FOR EACH ROW
-            BEGIN
-                IF OLD.mfa_enabled = TRUE AND NEW.mfa_enabled = FALSE THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'MFA cannot be disabled for admin users without security approval';
-                END IF;
-            END
+            EXECUTE FUNCTION enforce_admin_mfa();
         ");
     }
 
     public function down(): void
     {
-        DB::unprepared("DROP TRIGGER IF EXISTS before_insert_admin_users_uuid");
-        DB::unprepared("DROP TRIGGER IF EXISTS before_update_admin_users_mfa");
+        DB::unprepared("DROP TRIGGER IF EXISTS before_update_admin_users_mfa ON admin_users");
+        DB::unprepared("DROP FUNCTION IF EXISTS enforce_admin_mfa()");
         Schema::dropIfExists('admin_users');
     }
 };

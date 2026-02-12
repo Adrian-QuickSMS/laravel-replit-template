@@ -25,7 +25,7 @@ return new class extends Migration
             $table->id();
 
             // Account reference
-            $table->binary('account_id', 16);
+            $table->uuid('account_id');
             $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');
 
             // Credit type

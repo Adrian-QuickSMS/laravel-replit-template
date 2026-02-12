@@ -23,7 +23,7 @@ return new class extends Migration
     {
         Schema::create('account_settings', function (Blueprint $table) {
             // Primary key IS the tenant_id (one settings row per account)
-            $table->binary('account_id', 16)->primary();
+            $table->uuid('account_id')->primary();
             $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');
 
             // Notification preferences (GREEN - customer configurable)

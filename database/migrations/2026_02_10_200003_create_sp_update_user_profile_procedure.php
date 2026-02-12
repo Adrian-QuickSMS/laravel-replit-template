@@ -29,39 +29,38 @@ return new class extends Migration
     public function up(): void
     {
         DB::unprepared("
-            DROP PROCEDURE IF EXISTS sp_update_user_profile;
+            DROP FUNCTION IF EXISTS sp_update_user_profile(VARCHAR, VARCHAR, VARCHAR, VARCHAR);
         ");
 
         DB::unprepared("
-            CREATE PROCEDURE sp_update_user_profile(
-                IN p_user_id_hex VARCHAR(36),
-                IN p_tenant_id_hex VARCHAR(36),
-                IN p_first_name VARCHAR(100),
-                IN p_last_name VARCHAR(100)
-            )
+            CREATE OR REPLACE FUNCTION sp_update_user_profile(
+                p_user_id_hex VARCHAR(36),
+                p_tenant_id_hex VARCHAR(36),
+                p_first_name VARCHAR(100),
+                p_last_name VARCHAR(100)
+            ) RETURNS TABLE(status TEXT, message TEXT)
+            LANGUAGE plpgsql AS \$\$
+            DECLARE
+                v_user_id UUID;
+                v_tenant_id UUID;
+                v_actual_tenant_id UUID;
             BEGIN
-                DECLARE v_user_id BINARY(16);
-                DECLARE v_tenant_id BINARY(16);
-                DECLARE v_actual_tenant_id BINARY(16);
-
-                -- Convert hex UUIDs to binary
-                SET v_user_id = UNHEX(REPLACE(p_user_id_hex, '-', ''));
-                SET v_tenant_id = UNHEX(REPLACE(p_tenant_id_hex, '-', ''));
+                -- Convert hex UUIDs to UUID type
+                v_user_id := p_user_id_hex::UUID;
+                v_tenant_id := p_tenant_id_hex::UUID;
 
                 -- Verify user belongs to tenant
-                SELECT tenant_id INTO v_actual_tenant_id
-                FROM users
-                WHERE id = v_user_id
+                SELECT u.tenant_id INTO v_actual_tenant_id
+                FROM users u
+                WHERE u.id = v_user_id
                 LIMIT 1;
 
                 IF v_actual_tenant_id IS NULL THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'User not found';
+                    RAISE EXCEPTION 'User not found';
                 END IF;
 
                 IF v_actual_tenant_id != v_tenant_id THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Unauthorized: Tenant mismatch';
+                    RAISE EXCEPTION 'Unauthorized: Tenant mismatch';
                 END IF;
 
                 -- Update user profile
@@ -72,16 +71,17 @@ return new class extends Migration
                     updated_at = NOW()
                 WHERE id = v_user_id;
 
-                SELECT
-                    'success' as status,
-                    'Profile updated successfully' as message;
+                RETURN QUERY SELECT
+                    'success'::TEXT,
+                    'Profile updated successfully'::TEXT;
 
-            END
+            END;
+            \$\$
         ");
     }
 
     public function down(): void
     {
-        DB::unprepared("DROP PROCEDURE IF EXISTS sp_update_user_profile");
+        DB::unprepared("DROP FUNCTION IF EXISTS sp_update_user_profile(VARCHAR, VARCHAR, VARCHAR, VARCHAR)");
     }
 };

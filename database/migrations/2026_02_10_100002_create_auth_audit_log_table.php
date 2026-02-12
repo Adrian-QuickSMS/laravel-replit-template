@@ -36,11 +36,11 @@ return new class extends Migration
 
             // Who (user or admin)
             $table->enum('actor_type', ['customer_user', 'admin_user', 'api_token', 'system'])->default('customer_user');
-            $table->binary('actor_id', 16)->nullable()->comment('user.id or admin_user.id');
+            $table->uuid('actor_id')->nullable()->comment('user.id or admin_user.id');
             $table->string('actor_email')->nullable();
 
             // For customer users - record tenant for isolation queries
-            $table->binary('tenant_id', 16)->nullable()->comment('NULL for admin events');
+            $table->uuid('tenant_id')->nullable()->comment('NULL for admin events');
 
             // What happened
             $table->enum('event_type', [

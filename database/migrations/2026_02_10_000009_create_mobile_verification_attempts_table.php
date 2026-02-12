@@ -35,8 +35,8 @@ return new class extends Migration
             $table->string('ip_address', 45);
 
             // Optional user/account reference
-            $table->binary('user_id', 16)->nullable();
-            $table->binary('account_id', 16)->nullable();
+            $table->uuid('user_id')->nullable();
+            $table->uuid('account_id')->nullable();
 
             // Result
             $table->enum('result', ['sent', 'rate_limited', 'failed'])->default('sent');

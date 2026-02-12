@@ -26,7 +26,7 @@ return new class extends Migration
             $table->id();
 
             // User reference
-            $table->binary('user_id', 16);
+            $table->uuid('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             // Password hash (bcrypt)

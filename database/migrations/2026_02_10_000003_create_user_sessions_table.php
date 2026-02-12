@@ -25,7 +25,7 @@ return new class extends Migration
             $table->id();
 
             // User reference (tenant isolation via FK)
-            $table->binary('user_id', 16);
+            $table->uuid('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             // Session token (hashed)

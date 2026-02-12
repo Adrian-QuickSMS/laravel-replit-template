@@ -34,47 +34,46 @@ return new class extends Migration
     public function up(): void
     {
         DB::unprepared("
-            DROP PROCEDURE IF EXISTS sp_create_api_token;
+            DROP FUNCTION IF EXISTS sp_create_api_token(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, JSONB, VARCHAR, JSONB, TIMESTAMP);
         ");
 
         DB::unprepared("
-            CREATE PROCEDURE sp_create_api_token(
-                IN p_user_id_hex VARCHAR(36),
-                IN p_tenant_id_hex VARCHAR(36),
-                IN p_name VARCHAR(100),
-                IN p_token_hash VARCHAR(64),
-                IN p_token_prefix VARCHAR(8),
-                IN p_scopes JSON,
-                IN p_access_level VARCHAR(20),
-                IN p_ip_whitelist JSON,
-                IN p_expires_at DATETIME
-            )
+            CREATE OR REPLACE FUNCTION sp_create_api_token(
+                p_user_id_hex VARCHAR(36),
+                p_tenant_id_hex VARCHAR(36),
+                p_name VARCHAR(100),
+                p_token_hash VARCHAR(64),
+                p_token_prefix VARCHAR(8),
+                p_scopes JSONB,
+                p_access_level VARCHAR(20),
+                p_ip_whitelist JSONB,
+                p_expires_at TIMESTAMP
+            ) RETURNS TABLE(token_id TEXT, status TEXT)
+            LANGUAGE plpgsql AS \$\$
+            DECLARE
+                v_user_id UUID;
+                v_tenant_id UUID;
+                v_token_id UUID;
+                v_actual_tenant_id UUID;
+                v_name_exists INT;
             BEGIN
-                DECLARE v_user_id BINARY(16);
-                DECLARE v_tenant_id BINARY(16);
-                DECLARE v_token_id BINARY(16);
-                DECLARE v_actual_tenant_id BINARY(16);
-                DECLARE v_name_exists INT;
-
-                -- Convert hex UUIDs to binary
-                SET v_user_id = UNHEX(REPLACE(p_user_id_hex, '-', ''));
-                SET v_tenant_id = UNHEX(REPLACE(p_tenant_id_hex, '-', ''));
-                SET v_token_id = UNHEX(REPLACE(UUID(), '-', ''));
+                -- Convert hex UUIDs to UUID type
+                v_user_id := p_user_id_hex::UUID;
+                v_tenant_id := p_tenant_id_hex::UUID;
+                v_token_id := gen_random_uuid();
 
                 -- Verify user belongs to tenant
-                SELECT tenant_id INTO v_actual_tenant_id
-                FROM users
-                WHERE id = v_user_id
+                SELECT u.tenant_id INTO v_actual_tenant_id
+                FROM users u
+                WHERE u.id = v_user_id
                 LIMIT 1;
 
                 IF v_actual_tenant_id IS NULL THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'User not found';
+                    RAISE EXCEPTION 'User not found';
                 END IF;
 
                 IF v_actual_tenant_id != v_tenant_id THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Unauthorized: Tenant mismatch';
+                    RAISE EXCEPTION 'Unauthorized: Tenant mismatch';
                 END IF;
 
                 -- Check if token name already exists for this tenant
@@ -85,17 +84,14 @@ return new class extends Migration
                   AND revoked_at IS NULL;
 
                 IF v_name_exists > 0 THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Token name already exists';
+                    RAISE EXCEPTION 'Token name already exists';
                 END IF;
-
-                START TRANSACTION;
 
                 -- Create API token
                 INSERT INTO api_tokens (
                     id,
                     tenant_id,
-                    user_id,
+                    created_by_user_id,
                     name,
                     token_hash,
                     token_prefix,
@@ -137,29 +133,22 @@ return new class extends Migration
                     'api_token_created',
                     '',
                     'success',
-                    JSON_OBJECT('token_name', p_name, 'access_level', p_access_level),
+                    jsonb_build_object('token_name', p_name, 'access_level', p_access_level),
                     NOW()
                 );
 
-                COMMIT;
-
                 -- Return token ID
-                SELECT
-                    LOWER(CONCAT(
-                        HEX(SUBSTRING(v_token_id, 1, 4)), '-',
-                        HEX(SUBSTRING(v_token_id, 5, 2)), '-',
-                        HEX(SUBSTRING(v_token_id, 7, 2)), '-',
-                        HEX(SUBSTRING(v_token_id, 9, 2)), '-',
-                        HEX(SUBSTRING(v_token_id, 11))
-                    )) as token_id,
-                    'success' as status;
+                RETURN QUERY SELECT
+                    v_token_id::TEXT,
+                    'success'::TEXT;
 
-            END
+            END;
+            \$\$
         ");
     }
 
     public function down(): void
     {
-        DB::unprepared("DROP PROCEDURE IF EXISTS sp_create_api_token");
+        DB::unprepared("DROP FUNCTION IF EXISTS sp_create_api_token(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, JSONB, VARCHAR, JSONB, TIMESTAMP)");
     }
 };

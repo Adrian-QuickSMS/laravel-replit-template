@@ -31,13 +31,7 @@ return new class extends Migration
         DB::unprepared("
             CREATE OR REPLACE VIEW account_safe_view AS
             SELECT
-                LOWER(CONCAT(
-                    HEX(SUBSTRING(id, 1, 4)), '-',
-                    HEX(SUBSTRING(id, 5, 2)), '-',
-                    HEX(SUBSTRING(id, 7, 2)), '-',
-                    HEX(SUBSTRING(id, 9, 2)), '-',
-                    HEX(SUBSTRING(id, 11))
-                )) as id,
+                id::TEXT as id,
                 account_number,
                 company_name,
                 status,
@@ -52,7 +46,6 @@ return new class extends Migration
                 vat_number,
                 billing_email,
                 hubspot_company_id,
-                onboarded_at,
                 created_at,
                 updated_at
             FROM accounts

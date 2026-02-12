@@ -35,42 +35,39 @@ return new class extends Migration
     public function up(): void
     {
         DB::unprepared("
-            DROP PROCEDURE IF EXISTS sp_create_account;
+            DROP FUNCTION IF EXISTS sp_create_account(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR);
         ");
 
         DB::unprepared("
-            CREATE PROCEDURE sp_create_account(
-                IN p_company_name VARCHAR(255),
-                IN p_email VARCHAR(255),
-                IN p_password VARCHAR(255),
-                IN p_first_name VARCHAR(100),
-                IN p_last_name VARCHAR(100),
-                IN p_phone VARCHAR(20),
-                IN p_country VARCHAR(2),
-                IN p_ip_address VARCHAR(45)
-            )
+            CREATE OR REPLACE FUNCTION sp_create_account(
+                p_company_name VARCHAR(255),
+                p_email VARCHAR(255),
+                p_password VARCHAR(255),
+                p_first_name VARCHAR(100),
+                p_last_name VARCHAR(100),
+                p_phone VARCHAR(20),
+                p_country VARCHAR(2),
+                p_ip_address VARCHAR(45)
+            ) RETURNS TABLE(account_id TEXT, user_id TEXT, account_number VARCHAR, status TEXT)
+            LANGUAGE plpgsql AS \$\$
+            DECLARE
+                v_account_id UUID;
+                v_user_id UUID;
+                v_account_number VARCHAR(20);
+                v_account_exists INT;
             BEGIN
-                DECLARE v_account_id BINARY(16);
-                DECLARE v_user_id BINARY(16);
-                DECLARE v_account_number VARCHAR(20);
-                DECLARE v_account_exists INT;
-
                 -- Check if email already exists
                 SELECT COUNT(*) INTO v_account_exists
                 FROM users
                 WHERE email = p_email;
 
                 IF v_account_exists > 0 THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Email address already registered';
+                    RAISE EXCEPTION 'Email address already registered';
                 END IF;
 
                 -- Generate UUIDs
-                SET v_account_id = UNHEX(REPLACE(UUID(), '-', ''));
-                SET v_user_id = UNHEX(REPLACE(UUID(), '-', ''));
-
-                -- Start transaction
-                START TRANSACTION;
+                v_account_id := gen_random_uuid();
+                v_user_id := gen_random_uuid();
 
                 -- 1. Create account
                 INSERT INTO accounts (
@@ -96,9 +93,9 @@ return new class extends Migration
                 );
 
                 -- Get auto-generated account number
-                SELECT account_number INTO v_account_number
-                FROM accounts
-                WHERE id = v_account_id;
+                SELECT a.account_number INTO v_account_number
+                FROM accounts a
+                WHERE a.id = v_account_id;
 
                 -- 2. Create owner user
                 INSERT INTO users (
@@ -131,29 +128,19 @@ return new class extends Migration
                     NOW()
                 );
 
-                -- 3. Create default account settings
+                -- 3. Create default account settings (matching actual table columns)
                 INSERT INTO account_settings (
                     account_id,
-                    notification_email_enabled,
-                    notification_email_addresses,
                     timezone,
                     currency,
-                    language,
                     session_timeout_minutes,
-                    require_mfa,
-                    allow_api_access,
                     created_at,
                     updated_at
                 ) VALUES (
                     v_account_id,
-                    TRUE,
-                    JSON_ARRAY(p_email),
-                    'UTC',
+                    'Europe/London',
                     'GBP',
-                    'en',
-                    60,
-                    FALSE,
-                    TRUE,
+                    120,
                     NOW(),
                     NOW()
                 );
@@ -218,33 +205,20 @@ return new class extends Migration
                     NOW()
                 );
 
-                COMMIT;
-
                 -- Return account details
-                SELECT
-                    LOWER(CONCAT(
-                        HEX(SUBSTRING(v_account_id, 1, 4)), '-',
-                        HEX(SUBSTRING(v_account_id, 5, 2)), '-',
-                        HEX(SUBSTRING(v_account_id, 7, 2)), '-',
-                        HEX(SUBSTRING(v_account_id, 9, 2)), '-',
-                        HEX(SUBSTRING(v_account_id, 11))
-                    )) as account_id,
-                    LOWER(CONCAT(
-                        HEX(SUBSTRING(v_user_id, 1, 4)), '-',
-                        HEX(SUBSTRING(v_user_id, 5, 2)), '-',
-                        HEX(SUBSTRING(v_user_id, 7, 2)), '-',
-                        HEX(SUBSTRING(v_user_id, 9, 2)), '-',
-                        HEX(SUBSTRING(v_user_id, 11))
-                    )) as user_id,
-                    v_account_number as account_number,
-                    'success' as status;
+                RETURN QUERY SELECT
+                    v_account_id::TEXT,
+                    v_user_id::TEXT,
+                    v_account_number,
+                    'success'::TEXT;
 
-            END
+            END;
+            \$\$
         ");
     }
 
     public function down(): void
     {
-        DB::unprepared("DROP PROCEDURE IF EXISTS sp_create_account");
+        DB::unprepared("DROP FUNCTION IF EXISTS sp_create_account(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR)");
     }
 };

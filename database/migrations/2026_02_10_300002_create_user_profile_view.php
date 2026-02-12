@@ -14,7 +14,7 @@ return new class extends Migration
      * SECURITY:
      * - Portal users: SELECT permission
      * - NEVER exposes: password, mfa_secret, remember_token
-     * - NEVER exposes: failed_login_attempts, account_locked_until (security sensitive)
+     * - NEVER exposes: failed_login_attempts, locked_until (security sensitive)
      * - Tenant-scoped (users can only see users in own tenant)
      *
      * COLUMNS EXPOSED:
@@ -30,7 +30,7 @@ return new class extends Migration
      * - mfa_secret (encrypted TOTP secret - NEVER expose)
      * - remember_token (Laravel auth token - NEVER expose)
      * - failed_login_attempts (security sensitive)
-     * - account_locked_until (security sensitive)
+     * - locked_until (security sensitive)
      * - last_login_ip (privacy sensitive)
      * - password_changed_at (security metadata)
      */
@@ -39,20 +39,8 @@ return new class extends Migration
         DB::unprepared("
             CREATE OR REPLACE VIEW user_profile_view AS
             SELECT
-                LOWER(CONCAT(
-                    HEX(SUBSTRING(id, 1, 4)), '-',
-                    HEX(SUBSTRING(id, 5, 2)), '-',
-                    HEX(SUBSTRING(id, 7, 2)), '-',
-                    HEX(SUBSTRING(id, 9, 2)), '-',
-                    HEX(SUBSTRING(id, 11))
-                )) as id,
-                LOWER(CONCAT(
-                    HEX(SUBSTRING(tenant_id, 1, 4)), '-',
-                    HEX(SUBSTRING(tenant_id, 5, 2)), '-',
-                    HEX(SUBSTRING(tenant_id, 7, 2)), '-',
-                    HEX(SUBSTRING(tenant_id, 9, 2)), '-',
-                    HEX(SUBSTRING(tenant_id, 11))
-                )) as tenant_id,
+                id::TEXT as id,
+                tenant_id::TEXT as tenant_id,
                 user_type,
                 email,
                 first_name,
@@ -62,7 +50,7 @@ return new class extends Migration
                 status,
                 mfa_enabled,
                 email_verified_at,
-                email_verified_at IS NOT NULL as email_verified,
+                (email_verified_at IS NOT NULL) as email_verified,
                 last_login_at,
                 hubspot_contact_id,
                 created_at,

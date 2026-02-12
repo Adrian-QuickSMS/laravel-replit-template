@@ -24,7 +24,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('account_flags', function (Blueprint $table) {
-            $table->binary('account_id', 16)->primary();
+            $table->uuid('account_id')->primary();
             $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');
 
             // Fraud and risk (RED - internal only)

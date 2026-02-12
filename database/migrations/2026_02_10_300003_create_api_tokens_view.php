@@ -18,7 +18,7 @@ return new class extends Migration
      * - Tenant-scoped (users can only see tokens in own tenant)
      *
      * COLUMNS EXPOSED:
-     * - id, tenant_id, user_id
+     * - id, tenant_id, created_by_user_id
      * - name, token_prefix (first 8 chars only)
      * - scopes, access_level
      * - has_ip_whitelist (boolean), ip_count (count only, not actual IPs)
@@ -36,37 +36,19 @@ return new class extends Migration
         DB::unprepared("
             CREATE OR REPLACE VIEW api_tokens_view AS
             SELECT
-                LOWER(CONCAT(
-                    HEX(SUBSTRING(id, 1, 4)), '-',
-                    HEX(SUBSTRING(id, 5, 2)), '-',
-                    HEX(SUBSTRING(id, 7, 2)), '-',
-                    HEX(SUBSTRING(id, 9, 2)), '-',
-                    HEX(SUBSTRING(id, 11))
-                )) as id,
-                LOWER(CONCAT(
-                    HEX(SUBSTRING(tenant_id, 1, 4)), '-',
-                    HEX(SUBSTRING(tenant_id, 5, 2)), '-',
-                    HEX(SUBSTRING(tenant_id, 7, 2)), '-',
-                    HEX(SUBSTRING(tenant_id, 9, 2)), '-',
-                    HEX(SUBSTRING(tenant_id, 11))
-                )) as tenant_id,
-                LOWER(CONCAT(
-                    HEX(SUBSTRING(user_id, 1, 4)), '-',
-                    HEX(SUBSTRING(user_id, 5, 2)), '-',
-                    HEX(SUBSTRING(user_id, 7, 2)), '-',
-                    HEX(SUBSTRING(user_id, 9, 2)), '-',
-                    HEX(SUBSTRING(user_id, 11))
-                )) as user_id,
+                id::TEXT as id,
+                tenant_id::TEXT as tenant_id,
+                created_by_user_id::TEXT as created_by_user_id,
                 name,
                 token_prefix,
                 scopes,
                 access_level,
                 CASE
-                    WHEN ip_whitelist IS NOT NULL AND JSON_LENGTH(ip_whitelist) > 0 THEN TRUE
+                    WHEN ip_whitelist IS NOT NULL AND jsonb_array_length(ip_whitelist::jsonb) > 0 THEN TRUE
                     ELSE FALSE
                 END as has_ip_whitelist,
                 CASE
-                    WHEN ip_whitelist IS NOT NULL THEN JSON_LENGTH(ip_whitelist)
+                    WHEN ip_whitelist IS NOT NULL THEN jsonb_array_length(ip_whitelist::jsonb)
                     ELSE 0
                 END as ip_count,
                 last_used_at,

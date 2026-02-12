@@ -28,77 +28,85 @@ return new class extends Migration
     public function up(): void
     {
         DB::unprepared("
-            DROP PROCEDURE IF EXISTS sp_update_account_settings;
+            DROP FUNCTION IF EXISTS sp_update_account_settings(VARCHAR, VARCHAR, BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN, VARCHAR, VARCHAR, VARCHAR, JSONB, VARCHAR, INT, BOOLEAN);
         ");
 
         DB::unprepared("
-            CREATE PROCEDURE sp_update_account_settings(
-                IN p_user_id_hex VARCHAR(36),
-                IN p_account_id_hex VARCHAR(36),
-                IN p_notification_email_enabled BOOLEAN,
-                IN p_notification_email_addresses JSON,
-                IN p_webhook_url_delivery VARCHAR(255),
-                IN p_webhook_url_inbound VARCHAR(255),
-                IN p_timezone VARCHAR(50),
-                IN p_currency VARCHAR(3),
-                IN p_session_timeout_minutes INT,
-                IN p_require_mfa BOOLEAN
-            )
+            CREATE OR REPLACE FUNCTION sp_update_account_settings(
+                p_user_id_hex VARCHAR(36),
+                p_account_id_hex VARCHAR(36),
+                p_notify_low_balance BOOLEAN,
+                p_notify_failed_messages BOOLEAN,
+                p_notify_monthly_summary BOOLEAN,
+                p_marketing_emails BOOLEAN,
+                p_product_updates BOOLEAN,
+                p_timezone VARCHAR(50),
+                p_date_format VARCHAR(20),
+                p_currency VARCHAR(3),
+                p_webhook_urls JSONB,
+                p_webhook_secret VARCHAR(255),
+                p_session_timeout_minutes INT,
+                p_require_mfa_for_api BOOLEAN
+            ) RETURNS TABLE(status TEXT, message TEXT)
+            LANGUAGE plpgsql AS \$\$
+            DECLARE
+                v_user_id UUID;
+                v_account_id UUID;
+                v_tenant_id UUID;
+                v_user_role VARCHAR(20);
             BEGIN
-                DECLARE v_user_id BINARY(16);
-                DECLARE v_account_id BINARY(16);
-                DECLARE v_tenant_id BINARY(16);
-                DECLARE v_user_role VARCHAR(20);
-
-                -- Convert hex UUIDs to binary
-                SET v_user_id = UNHEX(REPLACE(p_user_id_hex, '-', ''));
-                SET v_account_id = UNHEX(REPLACE(p_account_id_hex, '-', ''));
+                -- Convert hex UUIDs to UUID type
+                v_user_id := p_user_id_hex::UUID;
+                v_account_id := p_account_id_hex::UUID;
 
                 -- Verify user is owner or admin of this account
-                SELECT tenant_id, role INTO v_tenant_id, v_user_role
-                FROM users
-                WHERE id = v_user_id
+                SELECT u.tenant_id, u.role INTO v_tenant_id, v_user_role
+                FROM users u
+                WHERE u.id = v_user_id
                 LIMIT 1;
 
                 IF v_tenant_id IS NULL THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'User not found';
+                    RAISE EXCEPTION 'User not found';
                 END IF;
 
                 IF v_tenant_id != v_account_id THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Unauthorized: Account mismatch';
+                    RAISE EXCEPTION 'Unauthorized: Account mismatch';
                 END IF;
 
                 IF v_user_role NOT IN ('owner', 'admin') THEN
-                    SIGNAL SQLSTATE '45000'
-                    SET MESSAGE_TEXT = 'Unauthorized: Only owners and admins can update account settings';
+                    RAISE EXCEPTION 'Unauthorized: Only owners and admins can update account settings';
                 END IF;
 
-                -- Update account settings
+                -- Update account settings (matching actual table columns)
                 UPDATE account_settings
                 SET
-                    notification_email_enabled = COALESCE(p_notification_email_enabled, notification_email_enabled),
-                    notification_email_addresses = COALESCE(p_notification_email_addresses, notification_email_addresses),
-                    webhook_url_delivery = COALESCE(p_webhook_url_delivery, webhook_url_delivery),
-                    webhook_url_inbound = COALESCE(p_webhook_url_inbound, webhook_url_inbound),
+                    notify_low_balance = COALESCE(p_notify_low_balance, notify_low_balance),
+                    notify_failed_messages = COALESCE(p_notify_failed_messages, notify_failed_messages),
+                    notify_monthly_summary = COALESCE(p_notify_monthly_summary, notify_monthly_summary),
+                    marketing_emails = COALESCE(p_marketing_emails, marketing_emails),
+                    product_updates = COALESCE(p_product_updates, product_updates),
                     timezone = COALESCE(p_timezone, timezone),
+                    date_format = COALESCE(p_date_format, date_format),
                     currency = COALESCE(p_currency, currency),
+                    webhook_urls = COALESCE(p_webhook_urls, webhook_urls),
+                    webhook_secret = COALESCE(p_webhook_secret, webhook_secret),
                     session_timeout_minutes = COALESCE(p_session_timeout_minutes, session_timeout_minutes),
-                    require_mfa = COALESCE(p_require_mfa, require_mfa),
+                    require_mfa_for_api = COALESCE(p_require_mfa_for_api, require_mfa_for_api),
+                    updated_by = v_user_id,
                     updated_at = NOW()
                 WHERE account_id = v_account_id;
 
-                SELECT
-                    'success' as status,
-                    'Account settings updated successfully' as message;
+                RETURN QUERY SELECT
+                    'success'::TEXT,
+                    'Account settings updated successfully'::TEXT;
 
-            END
+            END;
+            \$\$
         ");
     }
 
     public function down(): void
     {
-        DB::unprepared("DROP PROCEDURE IF EXISTS sp_update_account_settings");
+        DB::unprepared("DROP FUNCTION IF EXISTS sp_update_account_settings(VARCHAR, VARCHAR, BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN, VARCHAR, VARCHAR, VARCHAR, JSONB, VARCHAR, INT, BOOLEAN)");
     }
 };

@@ -32,42 +32,59 @@ return new class extends Migration
     public function up(): void
     {
         DB::unprepared("
-            DROP PROCEDURE IF EXISTS sp_authenticate_user;
+            DROP FUNCTION IF EXISTS sp_authenticate_user(VARCHAR, VARCHAR, BOOLEAN);
         ");
 
         DB::unprepared("
-            CREATE PROCEDURE sp_authenticate_user(
-                IN p_email VARCHAR(255),
-                IN p_ip_address VARCHAR(45),
-                IN p_password_verified BOOLEAN
+            CREATE OR REPLACE FUNCTION sp_authenticate_user(
+                p_email VARCHAR(255),
+                p_ip_address VARCHAR(45),
+                p_password_verified BOOLEAN
+            ) RETURNS TABLE(
+                status TEXT,
+                message TEXT,
+                user_id TEXT,
+                tenant_id TEXT,
+                email VARCHAR,
+                first_name VARCHAR,
+                last_name VARCHAR,
+                role VARCHAR,
+                mfa_enabled BOOLEAN,
+                email_verified BOOLEAN,
+                company_name VARCHAR,
+                account_number VARCHAR,
+                account_status VARCHAR,
+                locked_until TIMESTAMP,
+                failed_attempts INT
             )
+            LANGUAGE plpgsql AS \$\$
+            DECLARE
+                v_user_id UUID;
+                v_tenant_id UUID;
+                v_status VARCHAR(20);
+                v_locked_until TIMESTAMP;
+                v_email_verified_at TIMESTAMP;
+                v_failed_attempts INT;
+                v_result VARCHAR(20);
+                v_failure_reason VARCHAR(255);
             BEGIN
-                DECLARE v_user_id BINARY(16);
-                DECLARE v_tenant_id BINARY(16);
-                DECLARE v_status VARCHAR(20);
-                DECLARE v_account_locked_until DATETIME;
-                DECLARE v_email_verified_at DATETIME;
-                DECLARE v_failed_attempts INT;
-                DECLARE v_result VARCHAR(20);
-                DECLARE v_failure_reason VARCHAR(255);
-
                 -- Find user
                 SELECT
-                    id,
-                    tenant_id,
-                    status,
-                    account_locked_until,
-                    email_verified_at,
-                    failed_login_attempts
+                    u.id,
+                    u.tenant_id,
+                    u.status,
+                    u.locked_until,
+                    u.email_verified_at,
+                    u.failed_login_attempts
                 INTO
                     v_user_id,
                     v_tenant_id,
                     v_status,
-                    v_account_locked_until,
+                    v_locked_until,
                     v_email_verified_at,
                     v_failed_attempts
-                FROM users
-                WHERE email = p_email
+                FROM users u
+                WHERE u.email = p_email
                 LIMIT 1;
 
                 -- User not found
@@ -91,12 +108,17 @@ return new class extends Migration
                         NOW()
                     );
 
-                    SELECT 'failure' as status, 'Invalid credentials' as message;
-                    LEAVE;
+                    RETURN QUERY SELECT
+                        'failure'::TEXT,
+                        'Invalid credentials'::TEXT,
+                        NULL::TEXT, NULL::TEXT, NULL::VARCHAR, NULL::VARCHAR, NULL::VARCHAR,
+                        NULL::VARCHAR, NULL::BOOLEAN, NULL::BOOLEAN, NULL::VARCHAR,
+                        NULL::VARCHAR, NULL::VARCHAR, NULL::TIMESTAMP, NULL::INT;
+                    RETURN;
                 END IF;
 
                 -- Check if account is locked
-                IF v_account_locked_until IS NOT NULL AND v_account_locked_until > NOW() THEN
+                IF v_locked_until IS NOT NULL AND v_locked_until > NOW() THEN
                     -- Log failed attempt (RED SIDE)
                     INSERT INTO auth_audit_log (
                         actor_type,
@@ -120,11 +142,13 @@ return new class extends Migration
                         NOW()
                     );
 
-                    SELECT
-                        'failure' as status,
-                        'Account temporarily locked. Please try again later.' as message,
-                        v_account_locked_until as locked_until;
-                    LEAVE;
+                    RETURN QUERY SELECT
+                        'failure'::TEXT,
+                        'Account temporarily locked. Please try again later.'::TEXT,
+                        NULL::TEXT, NULL::TEXT, NULL::VARCHAR, NULL::VARCHAR, NULL::VARCHAR,
+                        NULL::VARCHAR, NULL::BOOLEAN, NULL::BOOLEAN, NULL::VARCHAR,
+                        NULL::VARCHAR, NULL::VARCHAR, v_locked_until, NULL::INT;
+                    RETURN;
                 END IF;
 
                 -- Check if account is active
@@ -147,23 +171,28 @@ return new class extends Migration
                         'login_failed',
                         p_ip_address,
                         'failure',
-                        CONCAT('Account status: ', v_status),
+                        'Account status: ' || v_status,
                         NOW()
                     );
 
-                    SELECT 'failure' as status, 'Account is not active' as message;
-                    LEAVE;
+                    RETURN QUERY SELECT
+                        'failure'::TEXT,
+                        'Account is not active'::TEXT,
+                        NULL::TEXT, NULL::TEXT, NULL::VARCHAR, NULL::VARCHAR, NULL::VARCHAR,
+                        NULL::VARCHAR, NULL::BOOLEAN, NULL::BOOLEAN, NULL::VARCHAR,
+                        NULL::VARCHAR, NULL::VARCHAR, NULL::TIMESTAMP, NULL::INT;
+                    RETURN;
                 END IF;
 
                 -- Check password (verified in application layer)
                 IF p_password_verified = FALSE THEN
                     -- Increment failed login attempts
-                    SET v_failed_attempts = v_failed_attempts + 1;
+                    v_failed_attempts := v_failed_attempts + 1;
 
                     UPDATE users
                     SET
                         failed_login_attempts = v_failed_attempts,
-                        account_locked_until = IF(v_failed_attempts >= 5, DATE_ADD(NOW(), INTERVAL 30 MINUTE), NULL)
+                        locked_until = CASE WHEN v_failed_attempts >= 5 THEN NOW() + INTERVAL '30 minutes' ELSE NULL END
                     WHERE id = v_user_id;
 
                     -- Log failed attempt (RED SIDE)
@@ -211,17 +240,22 @@ return new class extends Migration
                             NOW()
                         );
 
-                        SELECT
-                            'failure' as status,
-                            'Too many failed attempts. Account locked for 30 minutes.' as message;
+                        RETURN QUERY SELECT
+                            'failure'::TEXT,
+                            'Too many failed attempts. Account locked for 30 minutes.'::TEXT,
+                            NULL::TEXT, NULL::TEXT, NULL::VARCHAR, NULL::VARCHAR, NULL::VARCHAR,
+                            NULL::VARCHAR, NULL::BOOLEAN, NULL::BOOLEAN, NULL::VARCHAR,
+                            NULL::VARCHAR, NULL::VARCHAR, NULL::TIMESTAMP, NULL::INT;
                     ELSE
-                        SELECT
-                            'failure' as status,
-                            'Invalid credentials' as message,
-                            v_failed_attempts as failed_attempts;
+                        RETURN QUERY SELECT
+                            'failure'::TEXT,
+                            'Invalid credentials'::TEXT,
+                            NULL::TEXT, NULL::TEXT, NULL::VARCHAR, NULL::VARCHAR, NULL::VARCHAR,
+                            NULL::VARCHAR, NULL::BOOLEAN, NULL::BOOLEAN, NULL::VARCHAR,
+                            NULL::VARCHAR, NULL::VARCHAR, NULL::TIMESTAMP, v_failed_attempts;
                     END IF;
 
-                    LEAVE;
+                    RETURN;
                 END IF;
 
                 -- SUCCESS: Update user login info
@@ -230,7 +264,7 @@ return new class extends Migration
                     last_login_at = NOW(),
                     last_login_ip = p_ip_address,
                     failed_login_attempts = 0,
-                    account_locked_until = NULL
+                    locked_until = NULL
                 WHERE id = v_user_id;
 
                 -- Log successful login (RED SIDE)
@@ -255,41 +289,33 @@ return new class extends Migration
                 );
 
                 -- Return user details
-                SELECT
-                    'success' as status,
-                    LOWER(CONCAT(
-                        HEX(SUBSTRING(u.id, 1, 4)), '-',
-                        HEX(SUBSTRING(u.id, 5, 2)), '-',
-                        HEX(SUBSTRING(u.id, 7, 2)), '-',
-                        HEX(SUBSTRING(u.id, 9, 2)), '-',
-                        HEX(SUBSTRING(u.id, 11))
-                    )) as user_id,
-                    LOWER(CONCAT(
-                        HEX(SUBSTRING(u.tenant_id, 1, 4)), '-',
-                        HEX(SUBSTRING(u.tenant_id, 5, 2)), '-',
-                        HEX(SUBSTRING(u.tenant_id, 7, 2)), '-',
-                        HEX(SUBSTRING(u.tenant_id, 9, 2)), '-',
-                        HEX(SUBSTRING(u.tenant_id, 11))
-                    )) as tenant_id,
+                RETURN QUERY SELECT
+                    'success'::TEXT,
+                    NULL::TEXT,
+                    u.id::TEXT,
+                    u.tenant_id::TEXT,
                     u.email,
                     u.first_name,
                     u.last_name,
                     u.role,
                     u.mfa_enabled,
-                    u.email_verified_at IS NOT NULL as email_verified,
+                    (u.email_verified_at IS NOT NULL)::BOOLEAN,
                     a.company_name,
                     a.account_number,
-                    a.status as account_status
+                    a.status,
+                    NULL::TIMESTAMP,
+                    NULL::INT
                 FROM users u
                 JOIN accounts a ON u.tenant_id = a.id
                 WHERE u.id = v_user_id;
 
-            END
+            END;
+            \$\$
         ");
     }
 
     public function down(): void
     {
-        DB::unprepared("DROP PROCEDURE IF EXISTS sp_authenticate_user");
+        DB::unprepared("DROP FUNCTION IF EXISTS sp_authenticate_user(VARCHAR, VARCHAR, BOOLEAN)");
     }
 };

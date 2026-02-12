@@ -30,9 +30,8 @@ class SystemAccountSeeder extends Seeder
         $systemAccountId = '00000000-0000-0000-0000-000000000001';
         $systemUserId = '00000000-0000-0000-0000-000000000002';
 
-        // Check if system account already exists
         $exists = DB::table('accounts')
-            ->where('id', hex2bin(str_replace('-', '', $systemAccountId)))
+            ->where('id', $systemAccountId)
             ->exists();
 
         if ($exists) {
@@ -40,31 +39,49 @@ class SystemAccountSeeder extends Seeder
             return;
         }
 
-        // Create System Account
         DB::table('accounts')->insert([
-            'id' => hex2bin(str_replace('-', '', $systemAccountId)),
+            'id' => $systemAccountId,
             'account_number' => 'SYS-000001',
             'company_name' => 'QuickSMS Platform',
             'phone' => '+44 800 000 0001',
             'country' => 'GB',
             'account_type' => 'system',
             'status' => 'active',
+            'email' => 'system@quicksms.internal',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        // Create System User
         DB::table('users')->insert([
-            'id' => hex2bin(str_replace('-', '', $systemUserId)),
-            'tenant_id' => hex2bin(str_replace('-', '', $systemAccountId)),
-            'user_type' => 'system',
+            'id' => $systemUserId,
+            'tenant_id' => $systemAccountId,
+            'user_type' => 'api',
             'email' => 'system@quicksms.internal',
-            'password' => bcrypt(Str::random(64)), // Random unguessable password
+            'password' => bcrypt(Str::random(64)),
             'first_name' => 'System',
             'last_name' => 'Account',
-            'role' => 'system',
+            'role' => 'owner',
             'status' => 'active',
             'email_verified_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('account_settings')->insert([
+            'account_id' => $systemAccountId,
+            'timezone' => 'Europe/London',
+            'currency' => 'GBP',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('account_flags')->insert([
+            'account_id' => $systemAccountId,
+            'fraud_risk_level' => 'low',
+            'fraud_score' => 0,
+            'payment_status' => 'current',
+            'daily_message_limit' => 999999,
+            'api_rate_limit_per_minute' => 9999,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

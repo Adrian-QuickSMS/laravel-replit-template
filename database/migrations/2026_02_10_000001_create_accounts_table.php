@@ -22,8 +22,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('accounts', function (Blueprint $table) {
-            // Primary identifier - UUID stored as BINARY(16)
-            $table->binary('id', 16)->primary();
+            // Primary identifier - UUID
+            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
 
             // Account identification
             $table->string('account_number', 20)->unique()->comment('Public account identifier');
@@ -102,7 +102,7 @@ return new class extends Migration
 
             // Indexes
             $table->index('account_number');
-            $table->index('primary_email');
+            $table->index('email');
             $table->index('status');
             $table->index(['status', 'account_type']);
             $table->index('hubspot_company_id');
@@ -110,35 +110,31 @@ return new class extends Migration
             $table->index('signup_utm_source'); // For marketing attribution
         });
 
-        // Add UUID generation trigger
+        // Add account number generation trigger (PostgreSQL)
         DB::unprepared("
-            CREATE TRIGGER before_insert_accounts_uuid
-            BEFORE INSERT ON accounts
-            FOR EACH ROW
+            CREATE OR REPLACE FUNCTION generate_account_number() RETURNS TRIGGER AS \$\$
             BEGIN
-                IF NEW.id IS NULL OR NEW.id = '' THEN
-                    SET NEW.id = UNHEX(REPLACE(UUID(), '-', ''));
+                IF NEW.account_number IS NULL OR NEW.account_number = '' THEN
+                    NEW.account_number := 'QS' || LPAD(
+                        (COALESCE((SELECT MAX(CAST(SUBSTRING(account_number FROM 3) AS INTEGER)) FROM accounts), 0) + 1)::TEXT,
+                        8, '0'
+                    );
                 END IF;
-            END
-        ");
+                RETURN NEW;
+            END;
+            \$\$ LANGUAGE plpgsql;
 
-        // Add account number generation trigger
-        DB::unprepared("
             CREATE TRIGGER before_insert_accounts_number
             BEFORE INSERT ON accounts
             FOR EACH ROW
-            BEGIN
-                IF NEW.account_number IS NULL OR NEW.account_number = '' THEN
-                    SET NEW.account_number = CONCAT('QS', LPAD((SELECT COALESCE(MAX(CAST(SUBSTRING(account_number, 3) AS UNSIGNED)), 0) + 1 FROM accounts), 8, '0'));
-                END IF;
-            END
+            EXECUTE FUNCTION generate_account_number();
         ");
     }
 
     public function down(): void
     {
-        DB::unprepared("DROP TRIGGER IF EXISTS before_insert_accounts_uuid");
-        DB::unprepared("DROP TRIGGER IF EXISTS before_insert_accounts_number");
+        DB::unprepared("DROP TRIGGER IF EXISTS before_insert_accounts_number ON accounts");
+        DB::unprepared("DROP FUNCTION IF EXISTS generate_account_number()");
         Schema::dropIfExists('accounts');
     }
 };
