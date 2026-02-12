@@ -33,8 +33,21 @@ QuickSMS is built with PHP 8.1+ and Laravel 10, utilizing the Fillow SaaS Admin 
     - **UK Prefixes Module (Admin > Supplier Management > MCC/MNC Reference > UK Prefixes tab):** Ofcom number range management with network auto-matching, import wizard, data normalization, and bulk operations.
     - **Routing Rules Module (Admin > Routing > Routing Rules):** Manual routing control with tabbed views for UK Routes, International Routes, and Customer Overrides.
 
+## Database Architecture (PostgreSQL - Deployed Feb 2026)
+- **Database:** PostgreSQL (Neon-backed, Replit built-in)
+- **UUID Strategy:** Native PostgreSQL `uuid` type with `gen_random_uuid()` defaults (converted from MySQL BINARY(16))
+- **Multi-Tenant Isolation:** `tenant_id` foreign keys with CASCADE DELETE, RED/GREEN data separation
+- **Schema Summary:** 42 base tables, 3 views, 9 PL/pgSQL functions, 4 triggers
+- **Key Tables:** accounts, users, admin_users, api_tokens, account_settings, account_flags, auth_audit_log, contacts, contact_groups, messages, campaigns, invoices, suppliers, gateways, rate_cards, routing_rules, spam_filter_rules, normalisation_library
+- **Stored Procedures:** sp_create_account, sp_authenticate_user, sp_update_user_profile, sp_create_api_token, sp_update_account_settings
+- **Views:** account_safe_view, user_profile_view, api_tokens_view
+- **System Account:** ID `00000000-0000-0000-0000-000000000001`, Account Number `SYS-000001`
+- **Account Activation:** 5-section flow (signup details, company info, support/ops, contract signatory, billing/VAT)
+- **Conversion Notes:** All MySQL triggers converted to PostgreSQL trigger functions, SIGNAL → RAISE EXCEPTION, HEX/UNHEX → native UUID ::TEXT cast, ->after() calls removed from activation migration
+
 ## External Dependencies
 - **PHP 8.1+ / Laravel 10:** Core backend framework.
+- **PostgreSQL:** Primary database (Replit built-in, Neon-backed).
 - **Fillow SaaS Admin Template:** UI framework (Bootstrap 5).
 - **MetisMenu:** JavaScript library for navigation.
 - **Stripe PHP SDK / Stripe Checkout:** For payment processing.
