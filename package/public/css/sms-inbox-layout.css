@@ -1,0 +1,402 @@
+/* ============================================
+   SMS INBOX - FIXED LAYOUT WITH SCROLL ZONES
+   NO MAIN PAGE SCROLL
+   ============================================ */
+
+/* CRITICAL: Prevent Main Page Scroll */
+html,
+body {
+    height: 100% !important;
+    overflow: hidden !important;
+    margin: 0;
+    padding: 0;
+}
+
+/* Override any parent container scroll */
+#main-wrapper,
+.content-body {
+    height: 100vh !important;
+    overflow: hidden !important;
+}
+
+/* Main SMS Inbox Container - Full Viewport */
+.sms-inbox-container {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    background: #f8f9fa;
+}
+
+/* The Bootstrap Row - Full Height */
+.sms-inbox-container .row {
+    height: 100% !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    flex: 1;
+}
+
+/* ============================================
+   LEFT PANEL - CONVERSATION LIST
+   ============================================ */
+.inbox-sidebar-left {
+    width: 340px !important;
+    min-width: 340px !important;
+    max-width: 340px !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+}
+
+/* Fixed Header - No Scroll */
+.inbox-header {
+    flex-shrink: 0 !important; /* CRITICAL: Never shrink */
+    padding: 20px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Scrollable Conversation List */
+.conversations-scrollable {
+    flex: 1 !important; /* CRITICAL: Take remaining space */
+    overflow-y: auto !important; /* CRITICAL: Enable vertical scroll */
+    overflow-x: hidden !important;
+    min-height: 0 !important; /* CRITICAL: Allow flex shrink */
+    padding: 0;
+}
+
+/* Conversation Item */
+.conversation-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.conversation-item:hover {
+    background: #f8f9fa;
+}
+
+.conversation-item.active {
+    background: #e3f2fd;
+    border-left: 3px solid #2196F3;
+}
+
+/* Avatar Circle */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #7c3aed;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.avatar-circle-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #7c3aed;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+/* ============================================
+   CENTER PANEL - MESSAGE THREAD
+   ============================================ */
+.inbox-main-center {
+    flex: 1 !important; /* CRITICAL: Take remaining width */
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    min-width: 0 !important;
+    background: #f8f9fa;
+}
+
+/* Fixed Header - No Scroll */
+.conversation-header-fixed {
+    flex-shrink: 0 !important; /* CRITICAL: Never shrink */
+    padding: 16px 24px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Scrollable Messages Area */
+.messages-scrollable {
+    flex: 1 !important; /* CRITICAL: Take remaining space */
+    overflow-y: auto !important; /* CRITICAL: Enable vertical scroll */
+    overflow-x: hidden !important;
+    min-height: 0 !important; /* CRITICAL: Allow flex shrink */
+    padding: 20px 24px;
+    background: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Date Separator */
+.date-separator {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.date-separator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e0e0e0;
+    z-index: 0;
+}
+
+.date-separator::after {
+    content: attr(data-date);
+}
+
+.date-separator {
+    background: #fff;
+    padding: 4px 12px;
+    border-radius: 12px;
+    display: inline-block;
+    font-size: 12px;
+    color: #666;
+    position: relative;
+    z-index: 1;
+    margin: 20px auto;
+}
+
+/* Message Bubbles */
+.message-bubble {
+    max-width: 60%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    word-wrap: break-word;
+}
+
+.message-bubble.sent {
+    align-self: flex-end;
+    background: #58c671;
+    color: #fff;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.message-bubble.received {
+    align-self: flex-start;
+    background: #fff;
+    color: #333;
+    border: 1px solid #e0e0e0;
+    border-bottom-left-radius: 4px;
+}
+
+.message-bubble p {
+    margin: 0 0 4px 0;
+}
+
+.message-bubble small {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+/* Fixed Message Input - Bottom (CRITICAL) */
+.message-input-fixed {
+    flex-shrink: 0 !important; /* CRITICAL: Never shrink */
+    padding: 16px 24px;
+    background: #fff;
+    border-top: 1px solid #e0e0e0;
+    max-height: 50vh; /* Prevent input from taking too much space */
+    overflow-y: auto; /* Allow scroll if content is too tall */
+}
+
+/* Channel Selector */
+.channel-selector {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-channel {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.btn-channel.active {
+    background: #7c3aed;
+    color: #fff;
+    border-color: #7c3aed;
+}
+
+.btn-channel:hover:not(.active) {
+    background: #f0f0f0;
+}
+
+/* ============================================
+   RIGHT PANEL - CONTACT DETAILS
+   ============================================ */
+.inbox-sidebar-right {
+    width: 280px !important;
+    min-width: 280px !important;
+    max-width: 280px !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+    background: #fff;
+    border-left: 1px solid #e0e0e0;
+}
+
+/* Fixed Header */
+.contact-header-fixed {
+    flex-shrink: 0 !important;
+    padding: 20px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Scrollable Details */
+.contact-details-scrollable {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    min-height: 0 !important;
+    padding: 20px;
+}
+
+.detail-section {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.note-item {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR STYLING
+   ============================================ */
+.conversations-scrollable::-webkit-scrollbar,
+.messages-scrollable::-webkit-scrollbar,
+.contact-details-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.conversations-scrollable::-webkit-scrollbar-track,
+.messages-scrollable::-webkit-scrollbar-track,
+.contact-details-scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.conversations-scrollable::-webkit-scrollbar-thumb,
+.messages-scrollable::-webkit-scrollbar-thumb,
+.contact-details-scrollable::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.conversations-scrollable::-webkit-scrollbar-thumb:hover,
+.messages-scrollable::-webkit-scrollbar-thumb:hover,
+.contact-details-scrollable::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Firefox Scrollbar */
+.conversations-scrollable,
+.messages-scrollable,
+.contact-details-scrollable {
+    scrollbar-width: thin;
+    scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+/* ============================================
+   RESPONSIVE BEHAVIOR
+   ============================================ */
+@media (max-width: 1200px) {
+    .inbox-sidebar-right {
+        width: 260px !important;
+        min-width: 260px !important;
+        max-width: 260px !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .inbox-sidebar-left {
+        width: 300px !important;
+        min-width: 300px !important;
+    }
+
+    .inbox-sidebar-right {
+        display: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .inbox-sidebar-left {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 40vh !important;
+    }
+
+    .inbox-main-center {
+        width: 100% !important;
+        height: 60vh !important;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.badge {
+    font-size: 11px;
+    padding: 4px 8px;
+}
+
+.text-primary {
+    color: #2196F3 !important;
+}
+
+.text-success {
+    color: #4CAF50 !important;
+}
+
+.text-warning {
+    color: #FF9800 !important;
+}
+
+.text-danger {
+    color: #F44336 !important;
+}
+
+.btn-primary {
+    background: #7c3aed !important;
+    border-color: #7c3aed !important;
+}
+
+.btn-primary:hover {
+    background: #6d28d9 !important;
+    border-color: #6d28d9 !important;
+}

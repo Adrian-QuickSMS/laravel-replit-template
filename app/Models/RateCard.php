@@ -130,8 +130,6 @@ class RateCard extends Model
             'country_iso' => $this->country_iso,
             'network_name' => $this->network_name,
             'product_type' => $this->product_type,
-            'billing_method' => $newData['billing_method'] ?? $this->billing_method ?? 'submitted',
-            'currency' => $newData['currency'] ?? $this->currency ?? 'GBP',
             'version' => $this->version + 1,
             'previous_version_id' => $this->id,
             'created_by' => $createdBy,
