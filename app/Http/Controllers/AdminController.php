@@ -16,6 +16,8 @@ use App\Models\RateCard;
 use App\Models\RoutingRule;
 use App\Models\RoutingGatewayWeight;
 use App\Models\RoutingCustomerOverride;
+use App\Models\Account;
+use App\Models\User;
 
 class AdminController extends Controller
 {
@@ -211,8 +213,28 @@ class AdminController extends Controller
 
     public function accountsOverview()
     {
+        $systemId = '00000000-0000-0000-0000-000000000001';
+
+        $accounts = Account::where('id', '!=', $systemId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $counts = [
+            'active' => Account::where('id', '!=', $systemId)->where('status', 'active')->count(),
+            'trial' => Account::where('id', '!=', $systemId)->where('account_type', 'trial')->count(),
+            'suspended' => Account::where('id', '!=', $systemId)->where('status', 'suspended')->count(),
+            'pending' => Account::where('id', '!=', $systemId)->where('activation_complete', false)->where('status', 'active')->count(),
+            'flagged' => DB::table('account_flags')
+                ->where('account_id', '!=', $systemId)
+                ->where(function($q) {
+                    $q->where('fraud_risk_level', 'high')->orWhere('under_investigation', true);
+                })->count(),
+        ];
+
         return view('admin.accounts.overview', [
-            'page_title' => 'Account Overview'
+            'page_title' => 'Account Overview',
+            'accounts' => $accounts,
+            'counts' => $counts,
         ]);
     }
 
@@ -232,9 +254,24 @@ class AdminController extends Controller
 
     public function accountsDetails($accountId)
     {
+        $account = Account::find($accountId);
+        $owner = null;
+        $flags = null;
+        $settings = null;
+
+        if ($account) {
+            $owner = User::where('tenant_id', $account->id)->where('role', 'owner')->first();
+            $flags = DB::table('account_flags')->where('account_id', $account->id)->first();
+            $settings = DB::table('account_settings')->where('account_id', $account->id)->first();
+        }
+
         return view('admin.accounts.details', [
             'page_title' => 'Account Details',
-            'account_id' => $accountId
+            'account_id' => $accountId,
+            'account' => $account,
+            'owner' => $owner,
+            'flags' => $flags,
+            'settings' => $settings,
         ]);
     }
 
