@@ -18,7 +18,7 @@ class GatewayController extends Controller
             ->orderBy('name')
             ->get();
 
-        $suppliers = Supplier::where('status', 'active')->orderBy('name')->get();
+        $suppliers = Supplier::active()->orderBy('name')->get();
 
         return view('admin.supplier-management.gateways', compact('gateways', 'suppliers'));
     }
@@ -27,30 +27,31 @@ class GatewayController extends Controller
     {
         $validated = $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'gateway_code' => 'required|string|max:50|unique:gateways,gateway_code',
             'name' => 'required|string|max:255',
             'currency' => 'required|string|size:3',
             'billing_method' => 'required|in:submitted,delivered',
-            'fx_source' => 'nullable|string|max:50',
+            'fx_source' => 'required|string',
             'notes' => 'nullable|string',
         ]);
 
+        // Generate gateway code
+        $validated['gateway_code'] = 'GW-' . strtoupper(Str::random(8));
         $validated['active'] = true;
 
         $gateway = Gateway::create($validated);
 
-        RateCardAuditLog::create([
+        // Log action
+        RateCardAuditLog::logAction('gateway_created', [
             'supplier_id' => $gateway->supplier_id,
             'gateway_id' => $gateway->id,
-            'action' => 'gateway_created',
-            'admin_user' => session('admin_email', 'admin@quicksms.co.uk'),
-            'admin_email' => session('admin_email', 'admin@quicksms.co.uk'),
-            'ip_address' => $request->ip(),
-            'new_value' => $validated,
+            'new_value' => $gateway->toArray(),
         ]);
 
-        return redirect()->route('admin.gateways.index')
-            ->with('success', 'Gateway created successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Gateway created successfully',
+            'gateway' => $gateway->load('supplier'),
+        ]);
     }
 
     public function update(Request $request, Gateway $gateway)
@@ -59,53 +60,65 @@ class GatewayController extends Controller
             'name' => 'required|string|max:255',
             'currency' => 'required|string|size:3',
             'billing_method' => 'required|in:submitted,delivered',
-            'fx_source' => 'nullable|string|max:50',
+            'fx_source' => 'required|string',
             'notes' => 'nullable|string',
         ]);
 
-        $before = $gateway->toArray();
+        $oldValue = $gateway->toArray();
         $gateway->update($validated);
 
-        RateCardAuditLog::create([
+        // Log action
+        RateCardAuditLog::logAction('gateway_updated', [
             'supplier_id' => $gateway->supplier_id,
             'gateway_id' => $gateway->id,
-            'action' => 'gateway_updated',
-            'admin_user' => session('admin_email', 'admin@quicksms.co.uk'),
-            'admin_email' => session('admin_email', 'admin@quicksms.co.uk'),
-            'ip_address' => $request->ip(),
-            'old_value' => $before,
+            'old_value' => $oldValue,
             'new_value' => $gateway->fresh()->toArray(),
         ]);
 
-        return redirect()->route('admin.gateways.index')
-            ->with('success', 'Gateway updated successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Gateway updated successfully',
+            'gateway' => $gateway->load('supplier'),
+        ]);
     }
 
-    public function toggleStatus(Request $request, Gateway $gateway)
+    public function toggleStatus(Gateway $gateway)
     {
-        $old = $gateway->active;
-        $gateway->update(['active' => !$gateway->active]);
+        $oldValue = $gateway->toArray();
 
-        RateCardAuditLog::create([
-            'supplier_id' => $gateway->supplier_id,
-            'gateway_id' => $gateway->id,
-            'action' => 'gateway_updated',
-            'admin_user' => session('admin_email', 'admin@quicksms.co.uk'),
-            'admin_email' => session('admin_email', 'admin@quicksms.co.uk'),
-            'ip_address' => $request->ip(),
-            'old_value' => ['active' => $old],
-            'new_value' => ['active' => $gateway->active],
+        $gateway->update([
+            'active' => !$gateway->active
         ]);
 
-        return redirect()->route('admin.gateways.index')
-            ->with('success', 'Gateway status updated.');
+        // Log action
+        RateCardAuditLog::logAction('gateway_updated', [
+            'supplier_id' => $gateway->supplier_id,
+            'gateway_id' => $gateway->id,
+            'old_value' => $oldValue,
+            'new_value' => $gateway->fresh()->toArray(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Gateway status updated successfully',
+            'gateway' => $gateway,
+        ]);
     }
 
-    public function destroy(Request $request, Gateway $gateway)
+    public function destroy(Gateway $gateway)
     {
+        if ($gateway->rateCards()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete gateway with existing rate cards. Please archive rate cards first.',
+            ], 400);
+        }
+
         $gateway->delete();
 
-        return redirect()->route('admin.gateways.index')
-            ->with('success', 'Gateway deleted successfully.');
+        return response()->json([
+            'success' => true,
+            'message' => 'Gateway deleted successfully',
+        ]);
     }
 }

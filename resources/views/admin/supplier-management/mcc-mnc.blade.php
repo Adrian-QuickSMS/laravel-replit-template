@@ -38,14 +38,26 @@
     color: #6c757d;
 }
 
-.country-prefix-code {
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    background: #e8f0fe;
-    color: #1e3a5f;
-    border: 1px solid #d0e1f9;
+.network-type-badge {
+    padding: 0.15rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.network-type-badge.mobile {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.network-type-badge.fixed {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.network-type-badge.virtual {
+    background: #fff3e0;
+    color: #e65100;
 }
 
 .filter-toolbar {
@@ -73,199 +85,6 @@
     padding: 1.5rem;
     margin-bottom: 1.5rem;
 }
-
-.mcc-pagination-wrap {
-    padding: 0.75rem 1rem;
-}
-
-.mcc-pagination {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    gap: 4px;
-}
-
-.mcc-page-item .mcc-page-link,
-.mcc-page-item span.mcc-page-link {
-    display: inline-block;
-    padding: 0.35rem 0.65rem;
-    font-size: 0.8rem;
-    color: var(--admin-primary);
-    background: #fff;
-    border: 1px solid #dde4ea;
-    border-radius: 6px;
-    text-decoration: none;
-    cursor: pointer;
-    line-height: 1.4;
-}
-
-.mcc-page-item .mcc-page-link:hover {
-    background: #f0f4f8;
-    border-color: var(--admin-accent);
-}
-
-.mcc-page-item.active .mcc-page-link {
-    background: var(--admin-primary);
-    color: #fff;
-    border-color: var(--admin-primary);
-}
-
-.mcc-page-item.disabled .mcc-page-link,
-.mcc-page-item.disabled span.mcc-page-link {
-    color: #adb5bd;
-    cursor: not-allowed;
-    background: #f8f9fa;
-    border-color: #e9ecef;
-}
-
-.ref-tabs {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0 0 1.5rem 0;
-    border-bottom: 2px solid #e9ecef;
-    gap: 0;
-}
-
-.ref-tab-item {
-    margin-bottom: -2px;
-}
-
-.ref-tab-link {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.65rem 1.25rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #6c757d;
-    text-decoration: none;
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.ref-tab-link:hover {
-    color: var(--admin-primary);
-}
-
-.ref-tab-link.active {
-    color: var(--admin-primary);
-    border-bottom-color: var(--admin-primary);
-    font-weight: 600;
-}
-
-.ref-tab-badge {
-    display: inline-block;
-    padding: 0.1rem 0.45rem;
-    font-size: 0.65rem;
-    font-weight: 600;
-    border-radius: 10px;
-    background: #e9ecef;
-    color: #6c757d;
-    margin-left: 0.4rem;
-}
-
-.ref-tab-link.active .ref-tab-badge {
-    background: var(--admin-accent);
-    color: #fff;
-}
-
-.uk-stat-card {
-    background: #fff;
-    border: 1px solid #dde4ea;
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    text-align: center;
-}
-
-.uk-stat-card.matched { border-left: 3px solid #198754; }
-.uk-stat-card.predicted { border-left: 3px solid #0d6efd; }
-.uk-stat-card.unmatched { border-left: 3px solid #dc3545; }
-
-.uk-stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--admin-primary);
-}
-
-.uk-stat-label {
-    font-size: 0.75rem;
-    color: #6c757d;
-}
-
-.match-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.2rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 10px;
-    font-size: 0.7rem;
-    font-weight: 500;
-}
-
-.match-badge.confirmed { background: #d4f4dd; color: #198754; }
-.match-badge.predicted { background: #cfe2ff; color: #0d6efd; }
-.match-badge.unmatched { background: #f8d7da; color: #dc3545; }
-
-.wizard-steps {
-    display: flex;
-    justify-content: space-between;
-    position: relative;
-}
-
-.wizard-step {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8rem;
-    color: #adb5bd;
-    font-weight: 500;
-}
-
-.wizard-step.active {
-    color: var(--admin-primary);
-    font-weight: 600;
-}
-
-.wizard-step.done {
-    color: #198754;
-}
-
-.wizard-step-num {
-    display: inline-flex;
-    width: 24px;
-    height: 24px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: #e9ecef;
-    font-size: 0.7rem;
-    font-weight: 700;
-}
-
-.wizard-step.active .wizard-step-num {
-    background: var(--admin-primary);
-    color: #fff;
-}
-
-.wizard-step.done .wizard-step-num {
-    background: #198754;
-    color: #fff;
-}
-
-.drop-zone {
-    border: 2px dashed #ced4da;
-    border-radius: 12px;
-    padding: 2.5rem;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s;
-}
-
-.drop-zone:hover {
-    border-color: var(--admin-accent);
-}
 </style>
 @endpush
 
@@ -278,87 +97,48 @@
     </ol>
 </div>
 
-@if(session('success'))
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    {{ session('success') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-@endif
-@if(session('error'))
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    {{ session('error') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-@endif
-
 <div class="page-header">
     <div>
-        <h2>Network Reference Database</h2>
-        <p>Mobile network codes and UK number prefix management</p>
+        <h2>MCC/MNC Master Database</h2>
+        <p>Mobile Country Code and Mobile Network Code reference</p>
     </div>
-    <div class="d-flex gap-2" id="tabActions">
-        <button class="btn btn-admin-primary" onclick="openAddMccMncModal()" id="btnAddNetwork">
+    <div class="d-flex gap-2">
+        <button class="btn btn-admin-primary" onclick="openAddMccMncModal()">
             <i class="fas fa-plus me-2"></i>Add Network
         </button>
-        <button class="btn btn-admin-primary" onclick="openImportModal()" id="btnMccImport">
+        <button class="btn btn-outline-primary" onclick="openImportModal()">
             <i class="fas fa-file-import me-2"></i>Bulk Import
-        </button>
-        <button class="btn btn-admin-primary d-none" onclick="openUkPrefixImportModal()" id="btnUkImport">
-            <i class="fas fa-file-import me-2"></i>Import Ofcom Data
         </button>
     </div>
 </div>
-
-<ul class="ref-tabs" role="tablist">
-    <li class="ref-tab-item">
-        <a class="ref-tab-link active" data-tab="mcc-mnc-tab" onclick="switchTab('mcc-mnc-tab', this)">
-            <i class="fas fa-globe me-1"></i> Global MCC/MNC
-        </a>
-    </li>
-    <li class="ref-tab-item">
-        <a class="ref-tab-link" data-tab="uk-prefixes-tab" onclick="switchTab('uk-prefixes-tab', this)">
-            <i class="fas fa-phone-alt me-1"></i> UK Prefixes
-            <span class="ref-tab-badge" id="ukPrefixCount">0</span>
-        </a>
-    </li>
-</ul>
-
-<div id="mcc-mnc-tab" class="ref-tab-content">
 
 <div class="filter-toolbar">
     <div class="row g-3">
         <div class="col-md-3">
-            <select class="form-select" id="filterCountry" onchange="applyMccFilters()">
+            <select class="form-select" id="filterCountry" onchange="filterNetworks()">
                 <option value="">All Countries</option>
                 @foreach($countries as $country)
-                <option value="{{ $country->country_iso }}" {{ request('country') == $country->country_iso ? 'selected' : '' }}>{{ $country->country_name }}</option>
+                <option value="{{ $country->country_iso }}">{{ $country->country_name }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-3">
-            <select class="form-select" id="filterPrefix" onchange="applyMccFilters()">
-                <option value="">All Country Prefixes</option>
-                @php
-                    $prefixes = App\Models\MccMnc::select('country_prefix')
-                        ->whereNotNull('country_prefix')
-                        ->distinct()
-                        ->orderBy('country_prefix')
-                        ->pluck('country_prefix');
-                @endphp
-                @foreach($prefixes as $prefix)
-                <option value="{{ $prefix }}" {{ request('prefix') == $prefix ? 'selected' : '' }}>+{{ $prefix }}</option>
-                @endforeach
+            <select class="form-select" id="filterType" onchange="filterNetworks()">
+                <option value="">All Network Types</option>
+                <option value="mobile">Mobile</option>
+                <option value="fixed">Fixed</option>
+                <option value="virtual">Virtual</option>
             </select>
         </div>
         <div class="col-md-3">
-            <select class="form-select" id="filterStatus" onchange="applyMccFilters()">
+            <select class="form-select" id="filterStatus" onchange="filterNetworks()">
                 <option value="">All Status</option>
-                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
             </select>
         </div>
         <div class="col-md-3">
-            <input type="text" class="form-control" id="searchNetwork" placeholder="Search MCC/MNC or network..." value="{{ request('search') }}" onkeydown="if(event.key==='Enter')applyMccFilters()">
+            <input type="text" class="form-control" id="searchNetwork" placeholder="Search MCC/MNC or network..." onkeyup="filterNetworks()">
         </div>
     </div>
 </div>
@@ -372,7 +152,7 @@
                     <th>MNC</th>
                     <th>Country</th>
                     <th>Network Name</th>
-                    <th>Country Prefix</th>
+                    <th>Network Type</th>
                     <th>Status</th>
                     <th>Rate Cards</th>
                     <th style="width: 100px;">Actions</th>
@@ -381,6 +161,7 @@
             <tbody id="mccMncTableBody">
                 @forelse($mccMncList as $network)
                 <tr data-country="{{ $network->country_iso }}"
+                    data-type="{{ $network->network_type }}"
                     data-status="{{ $network->active ? 'active' : 'inactive' }}"
                     data-search="{{ strtolower($network->mcc . $network->mnc . $network->network_name . $network->country_name) }}">
                     <td><code>{{ $network->mcc }}</code></td>
@@ -391,7 +172,9 @@
                     </td>
                     <td>{{ $network->network_name }}</td>
                     <td>
-                        <code class="country-prefix-code">+{{ $network->country_prefix ?? '—' }}</code>
+                        <span class="network-type-badge {{ $network->network_type }}">
+                            {{ ucfirst($network->network_type) }}
+                        </span>
                     </td>
                     <td>
                         <span class="status-badge {{ $network->active ? 'active' : 'inactive' }}">
@@ -429,394 +212,62 @@
 </div>
 
 @if($mccMncList->hasPages())
-<div class="d-flex justify-content-between align-items-center mt-3 mcc-pagination-wrap">
-    <div class="text-muted" style="font-size: 0.8rem;">
+<div class="d-flex justify-content-between align-items-center mt-3">
+    <div class="text-muted">
         Showing {{ $mccMncList->firstItem() }} to {{ $mccMncList->lastItem() }} of {{ $mccMncList->total() }} networks
     </div>
-    <nav>
-        <ul class="mcc-pagination">
-            @if($mccMncList->onFirstPage())
-                <li class="mcc-page-item disabled"><span class="mcc-page-link">&laquo; Previous</span></li>
-            @else
-                <li class="mcc-page-item"><a class="mcc-page-link" href="{{ $mccMncList->previousPageUrl() }}">&laquo; Previous</a></li>
-            @endif
-
-            @foreach($mccMncList->getUrlRange(1, $mccMncList->lastPage()) as $page => $url)
-                <li class="mcc-page-item {{ $page == $mccMncList->currentPage() ? 'active' : '' }}">
-                    <a class="mcc-page-link" href="{{ $url }}">{{ $page }}</a>
-                </li>
-            @endforeach
-
-            @if($mccMncList->hasMorePages())
-                <li class="mcc-page-item"><a class="mcc-page-link" href="{{ $mccMncList->nextPageUrl() }}">Next &raquo;</a></li>
-            @else
-                <li class="mcc-page-item disabled"><span class="mcc-page-link">Next &raquo;</span></li>
-            @endif
-        </ul>
-    </nav>
+    <div>
+        {{ $mccMncList->links() }}
+    </div>
 </div>
 @endif
 
-</div><!-- end mcc-mnc-tab -->
-
-<div id="uk-prefixes-tab" class="ref-tab-content d-none">
-
-<div class="row g-3 mb-3">
-    <div class="col-md-3">
-        <div class="uk-stat-card">
-            <div class="uk-stat-value" id="statTotal">0</div>
-            <div class="uk-stat-label">Total Prefixes</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="uk-stat-card matched">
-            <div class="uk-stat-value" id="statMatched">0</div>
-            <div class="uk-stat-label">Confirmed</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="uk-stat-card predicted">
-            <div class="uk-stat-value" id="statPredicted">0</div>
-            <div class="uk-stat-label">Predicted</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="uk-stat-card unmatched">
-            <div class="uk-stat-value" id="statUnmatched">0</div>
-            <div class="uk-stat-label">Unmatched</div>
-        </div>
-    </div>
-</div>
-
-<div class="filter-toolbar">
-    <div class="row g-3">
-        <div class="col-md-3">
-            <select class="form-select" id="ukFilterMatch" onchange="loadUkPrefixes()">
-                <option value="">All Match Status</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="predicted">Predicted</option>
-                <option value="unmatched">Unmatched</option>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select class="form-select" id="ukFilterCp" onchange="loadUkPrefixes()">
-                <option value="">All Operators</option>
-            </select>
-        </div>
-        <div class="col-md-4">
-            <input type="text" class="form-control" id="ukSearchPrefix" placeholder="Search prefix or operator..." onkeyup="debounceUkSearch()">
-        </div>
-        <div class="col-md-2 d-flex align-items-center">
-            <button class="btn btn-sm btn-outline-secondary w-100" onclick="loadUkPrefixes()">
-                <i class="fas fa-sync-alt me-1"></i>Refresh
-            </button>
-        </div>
-    </div>
-</div>
-
-<div class="mcc-mnc-table-card">
-    <div class="table-responsive">
-        <table class="table mb-0">
-            <thead>
-                <tr>
-                    <th>Prefix</th>
-                    <th>Raw Block</th>
-                    <th>Operator (CP Name)</th>
-                    <th>Mapped Network</th>
-                    <th>Match Status</th>
-                    <th>Number Length</th>
-                    <th>Allocation Date</th>
-                    <th style="width: 120px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="ukPrefixTableBody">
-                <tr>
-                    <td colspan="8" class="text-center py-4 text-muted">
-                        <i class="fas fa-inbox fa-2x mb-2"></i>
-                        <p>No UK prefix data loaded. Import Ofcom data to get started.</p>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div id="ukPaginationWrap" class="d-none d-flex justify-content-between align-items-center mt-3 mcc-pagination-wrap">
-    <div class="text-muted" style="font-size: 0.8rem;" id="ukPaginationInfo"></div>
-    <nav>
-        <ul class="mcc-pagination" id="ukPaginationLinks"></ul>
-    </nav>
-</div>
-
-</div><!-- end uk-prefixes-tab -->
-
-<!-- UK Prefix Import Modal -->
-<div class="modal fade" id="ukImportModal" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
-                <h5 class="modal-title"><i class="fas fa-file-import me-2"></i>Import UK Prefix Data</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="wizard-steps mb-4">
-                    <div class="wizard-step active" data-step="1"><span class="wizard-step-num">1</span> Upload File</div>
-                    <div class="wizard-step" data-step="2"><span class="wizard-step-num">2</span> Map Columns</div>
-                    <div class="wizard-step" data-step="3"><span class="wizard-step-num">3</span> Import & Match</div>
-                    <div class="wizard-step" data-step="4"><span class="wizard-step-num">4</span> Review Matches</div>
-                </div>
-
-                <!-- Step 1: Upload -->
-                <div class="uk-wizard-step" id="ukStep1">
-                    <p class="text-muted mb-3">Upload an Ofcom number allocation file (CSV or Excel). Prefixes starting with 7 will be padded with 44 automatically, and spaces will be removed.</p>
-                    <div class="drop-zone" id="ukDropZone" onclick="document.getElementById('ukFileInput').click()">
-                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
-                        <p>Drag & drop or click to select file</p>
-                        <small class="text-muted">CSV, XLSX, XLS (max 10MB)</small>
-                        <input type="file" id="ukFileInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleUkFile(this)">
-                    </div>
-                    <div id="ukFileInfo" class="d-none mt-3 p-3 bg-light rounded">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div><i class="fas fa-file-excel text-success me-2"></i><span id="ukFileName"></span></div>
-                            <button class="btn btn-sm btn-outline-danger" onclick="resetUkImport()"><i class="fas fa-times"></i></button>
-                        </div>
-                        <small class="text-muted" id="ukRowCount"></small>
-                    </div>
-                    <div id="ukUploadSpinner" class="text-center d-none py-3"><div class="spinner-border text-primary"></div><p class="mt-2">Reading file...</p></div>
-                    <div id="ukUploadError" class="alert alert-danger d-none mt-3"></div>
-                </div>
-
-                <!-- Step 2: Map Columns -->
-                <div class="uk-wizard-step d-none" id="ukStep2">
-                    <p class="text-muted mb-3">Map the columns from your file to the required fields.</p>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Number Block <span class="text-danger">*</span></label>
-                            <select class="form-select" id="ukMapNumberBlock"></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Operator / CP Name <span class="text-danger">*</span></label>
-                            <select class="form-select" id="ukMapCpName"></select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Block Status</label>
-                            <select class="form-select" id="ukMapStatus"><option value="">-- Skip --</option></select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Number Length</label>
-                            <select class="form-select" id="ukMapNumberLength"><option value="">-- Skip --</option></select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Allocation Date</label>
-                            <select class="form-select" id="ukMapAllocationDate"><option value="">-- Skip --</option></select>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <h6>Preview (first 3 rows):</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm table-bordered" id="ukPreviewTable"></table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3: Import Progress -->
-                <div class="uk-wizard-step d-none" id="ukStep3">
-                    <div id="ukImportProgress" class="text-center py-4">
-                        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div>
-                        <p class="mt-3">Importing and matching prefixes to networks...</p>
-                        <small class="text-muted">This may take a moment for large files</small>
-                    </div>
-                    <div id="ukImportResults" class="d-none">
-                        <div class="text-center mb-3">
-                            <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
-                            <h5 class="mt-2">Import Complete</h5>
-                        </div>
-                        <div class="row g-2 mb-3">
-                            <div class="col-4">
-                                <div class="text-center p-2 rounded" style="background: #d4f4dd;">
-                                    <div class="fw-bold text-success" id="ukResultCreated">0</div>
-                                    <small>Created</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="text-center p-2 rounded" style="background: #fff3cd;">
-                                    <div class="fw-bold text-warning" id="ukResultUpdated">0</div>
-                                    <small>Updated</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="text-center p-2 rounded" style="background: #f8d7da;">
-                                    <div class="fw-bold text-danger" id="ukResultErrors">0</div>
-                                    <small>Errors</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="ukErrorDetails" class="d-none mt-3">
-                            <p class="text-muted small mb-2">Sample errors (first 20):</p>
-                            <div style="max-height: 150px; overflow-y: auto; font-size: 0.75rem;" id="ukErrorList" class="border rounded p-2 bg-light"></div>
-                        </div>
-                        <div id="ukSkippedInfo" class="d-none mt-2">
-                            <p class="text-muted small mb-0" id="ukSkippedText"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 4: Review Matches -->
-                <div class="uk-wizard-step d-none" id="ukStep4">
-                    <p class="text-muted mb-3">Review predicted network matches. Confirm correct predictions or assign networks to unmatched operators.</p>
-
-                    <div id="predictedMatchesSection" class="d-none mb-4">
-                        <h6><i class="fas fa-magic me-1 text-primary"></i> Predicted Matches</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead><tr><th>Operator</th><th>Predicted Network</th><th>Prefixes</th><th>Actions</th></tr></thead>
-                                <tbody id="predictedMatchesBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div id="unmatchedSection" class="d-none mb-4">
-                        <h6><i class="fas fa-unlink me-1 text-warning"></i> Unmatched Operators</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead><tr><th>Operator</th><th>Prefixes</th><th>Actions</th></tr></thead>
-                                <tbody id="unmatchedBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div id="allMatchedMsg" class="text-center py-3 d-none">
-                        <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
-                        <p class="text-success">All operators have been matched to networks.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-admin-primary" id="ukBtnNext" onclick="ukWizardNext()" disabled>
-                    Next <i class="fas fa-arrow-right ms-1"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Map Network Modal -->
-<div class="modal fade" id="mapNetworkModal" tabindex="-1">
+<!-- Add MCC/MNC Modal -->
+<div class="modal fade" id="addMccMncModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Map Operator to Network</h5>
+                <h5 class="modal-title">Add Network</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="mapCpName">
-                <p class="mb-2">Map all prefixes for operator: <strong id="mapCpNameDisplay"></strong></p>
-                <p class="text-muted small mb-3">This will update all prefixes belonging to this operator.</p>
-                <div class="mb-3">
-                    <label class="form-label">Select Network</label>
-                    <select class="form-select" id="mapNetworkSelect">
-                        <option value="">-- Choose a network --</option>
-                    </select>
-                </div>
-                <hr>
-                <p class="text-muted mb-2"><small>Or create a new network:</small></p>
-                <div class="row g-2">
-                    <div class="col-md-6">
-                        <input type="text" class="form-control form-control-sm" id="newNetworkName" placeholder="Network name">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" class="form-control form-control-sm" id="newNetworkMcc" value="234" maxlength="3" placeholder="MCC">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" class="form-control form-control-sm" id="newNetworkMnc" maxlength="3" placeholder="MNC">
-                    </div>
-                    <div class="col-12">
-                        <button class="btn btn-sm btn-outline-primary" onclick="createAndMapNetwork()">
-                            <i class="fas fa-plus me-1"></i>Create & Map
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-admin-primary btn-sm" onclick="confirmBulkMap()">
-                    <i class="fas fa-check me-1"></i>Map Selected
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add MCC/MNC Modal -->
-<div class="modal fade" id="addMccMncModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
-                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Add Network</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
                 <form id="addMccMncForm">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Network Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="network_name" placeholder="e.g. Vodafone UK" required>
-                    </div>
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Country Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="country_name" placeholder="e.g. United Kingdom" required>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">MCC <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="mcc" maxlength="3" required>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Country ISO <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="country_iso" maxlength="2" placeholder="e.g. GB" required>
-                            <small class="text-muted">2-letter code</small>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-semibold">Country Prefix <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="country_prefix" placeholder="e.g. 44">
-                            <small class="text-muted">Dialing code without +</small>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">MNC <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="mnc" maxlength="3" required>
                         </div>
                     </div>
-
-                    <hr class="my-3">
-                    <label class="form-label fw-semibold mb-2">MCC / MNC Codes <span class="text-danger">*</span></label>
-                    <p class="text-muted mb-2" style="font-size: 0.82rem;">A network can have multiple MCC/MNC combinations. Add each pair below.</p>
-
-                    <div id="mccMncRows">
-                        <div class="mcc-mnc-row d-flex align-items-center gap-2 mb-2">
-                            <div style="flex: 0 0 120px;">
-                                <input type="text" class="form-control form-control-sm" name="mcc_list[]" maxlength="3" placeholder="MCC" required>
-                            </div>
-                            <div style="flex: 0 0 120px;">
-                                <input type="text" class="form-control form-control-sm" name="mnc_list[]" maxlength="3" placeholder="MNC" required>
-                            </div>
-                            <div class="flex-grow-1">
-                                <small class="text-muted" style="font-size: 0.75rem;">e.g. 234 / 15</small>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMccMncRow(this)" style="visibility: hidden;" title="Remove row">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Country Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="country_name" required>
                     </div>
-
-                    <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addMccMncRow()">
-                        <i class="fas fa-plus me-1"></i>Add Another MCC/MNC
-                    </button>
-
-                    <div id="addMccMncSummary" class="mt-3" style="display: none;">
-                        <div class="alert alert-info mb-0" style="font-size: 0.82rem;">
-                            <i class="fas fa-info-circle me-1"></i>
-                            <span id="addMccMncSummaryText"></span>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Country ISO Code <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="country_iso" maxlength="2" required>
+                        <small class="text-muted">2-letter code (e.g., GB, US)</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Network Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="network_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Network Type <span class="text-danger">*</span></label>
+                        <select class="form-select" name="network_type" required>
+                            <option value="mobile">Mobile</option>
+                            <option value="fixed">Fixed</option>
+                            <option value="virtual">Virtual</option>
+                        </select>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn" style="background: var(--admin-primary); color: #fff;" onclick="submitAddMccMnc()">
-                    <i class="fas fa-check me-1"></i>Add Network
-                </button>
+                <button type="button" class="btn btn-admin-primary" onclick="submitAddMccMnc()">Add Network</button>
             </div>
         </div>
     </div>
@@ -824,38 +275,37 @@
 
 <!-- Edit MCC/MNC Modal -->
 <div class="modal fade" id="editMccMncModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
-                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Network</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Network</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="editMccMncForm">
                     <input type="hidden" name="network_id" id="editNetworkId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">MCC</label>
+                            <input type="text" class="form-control" id="editMcc" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">MNC</label>
+                            <input type="text" class="form-control" id="editMnc" readonly>
+                        </div>
+                    </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Network Name <span class="text-danger">*</span></label>
+                        <label class="form-label">Network Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="network_name" id="editNetworkName" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Country Prefix <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="country_prefix" id="editCountryPrefix" placeholder="e.g. 44" required>
-                        <small class="text-muted">Dialing code without + (e.g., 44 for UK, 1 for US)</small>
+                        <label class="form-label">Network Type <span class="text-danger">*</span></label>
+                        <select class="form-select" name="network_type" id="editNetworkType" required>
+                            <option value="mobile">Mobile</option>
+                            <option value="fixed">Fixed</option>
+                            <option value="virtual">Virtual</option>
+                        </select>
                     </div>
-
-                    <hr class="my-3">
-                    <label class="form-label fw-semibold mb-2">MCC / MNC Codes</label>
-                    <p class="text-muted mb-2" style="font-size: 0.82rem;">Existing codes for this network. Add additional MCC/MNC pairs below.</p>
-
-                    <div id="editExistingMncs" class="mb-3"></div>
-
-                    <div id="editNewMncRows"></div>
-
-                    <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addEditMncRow()">
-                        <i class="fas fa-plus me-1"></i>Add MCC/MNC
-                    </button>
-
-                    <div id="editMncFeedback" class="mt-3" style="display: none;"></div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -866,167 +316,35 @@
     </div>
 </div>
 
-<!-- Bulk Import Wizard Modal -->
-<div class="modal fade" id="importModal" tabindex="-1" data-bs-backdrop="static">
+<!-- Bulk Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header" style="background: var(--admin-primary); color: #fff;">
-                <h5 class="modal-title"><i class="fas fa-file-import me-2"></i>Bulk Import MCC/MNC Data</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="resetImportWizard()"></button>
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Import MCC/MNC Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0">
-                <!-- Step indicators -->
-                <div class="import-steps d-flex border-bottom">
-                    <div class="import-step active" id="stepIndicator1" style="flex:1; text-align:center; padding:0.75rem; font-size:0.85rem; font-weight:600; border-bottom:3px solid var(--admin-primary); color: var(--admin-primary);">
-                        <span class="step-number" style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:var(--admin-primary);color:#fff;align-items:center;justify-content:center;font-size:0.7rem;margin-right:0.4rem;">1</span>Upload File
-                    </div>
-                    <div class="import-step" id="stepIndicator2" style="flex:1; text-align:center; padding:0.75rem; font-size:0.85rem; font-weight:600; border-bottom:3px solid #dee2e6; color: #adb5bd;">
-                        <span class="step-number" style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:#adb5bd;color:#fff;align-items:center;justify-content:center;font-size:0.7rem;margin-right:0.4rem;">2</span>Map Columns
-                    </div>
-                    <div class="import-step" id="stepIndicator3" style="flex:1; text-align:center; padding:0.75rem; font-size:0.85rem; font-weight:600; border-bottom:3px solid #dee2e6; color: #adb5bd;">
-                        <span class="step-number" style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:#adb5bd;color:#fff;align-items:center;justify-content:center;font-size:0.7rem;margin-right:0.4rem;">3</span>Preview & Import
-                    </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <strong>Required CSV Format:</strong>
+                    <code>mcc,mnc,country_name,country_iso,network_name,network_type</code>
+                    <br><small>Example: 234,10,United Kingdom,GB,O2,mobile</small>
                 </div>
 
-                <!-- Step 1: Upload File -->
-                <div class="import-step-content p-4" id="step1Content">
-                    <p class="text-muted mb-3">Upload a CSV or Excel file containing MCC/MNC network data. Your file can have any column layout — you'll map columns in the next step.</p>
-                    <div class="upload-zone text-center p-4 rounded mb-3" id="dropZone" style="border:2px dashed #ccc; cursor:pointer; background:#fafbfc; transition: all 0.2s;">
-                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--admin-accent);"></i>
-                        <p class="mb-1 fw-semibold">Drag & drop your file here</p>
-                        <p class="text-muted mb-2" style="font-size:0.85rem;">or click to browse</p>
-                        <span class="badge bg-light text-dark border">.csv</span>
-                        <span class="badge bg-light text-dark border">.xlsx</span>
-                        <span class="badge bg-light text-dark border">.xls</span>
-                        <input type="file" id="importFile" accept=".csv,.xlsx,.xls" style="display:none;">
-                    </div>
-                    <div id="fileInfo" class="d-none">
-                        <div class="d-flex align-items-center gap-3 p-3 rounded" style="background:#f0f7ff; border:1px solid #c5ddf7;">
-                            <i class="fas fa-file-alt fa-2x" style="color: var(--admin-accent);"></i>
-                            <div class="flex-grow-1">
-                                <div class="fw-semibold" id="fileName"></div>
-                                <small class="text-muted" id="fileSize"></small>
-                            </div>
-                            <button class="btn btn-sm btn-outline-danger" onclick="clearFile()"><i class="fas fa-times"></i></button>
-                        </div>
-                    </div>
-                    <div id="uploadError" class="alert alert-danger mt-3 d-none"></div>
-                    <div id="uploadSpinner" class="text-center py-3 d-none">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <p class="mt-2 text-muted">Reading file...</p>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Upload CSV File</label>
+                    <input type="file" class="form-control" id="importFile" accept=".csv">
                 </div>
 
-                <!-- Step 2: Map Columns -->
-                <div class="import-step-content p-4 d-none" id="step2Content">
-                    <p class="text-muted mb-3">Map your file's columns to the required MCC/MNC fields. We've auto-detected likely matches where possible.</p>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">MCC <span class="text-danger">*</span></label>
-                            <select class="form-select" id="mapMcc"></select>
-                            <small class="text-muted">Mobile Country Code (3 digits)</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">MNC <span class="text-danger">*</span></label>
-                            <select class="form-select" id="mapMnc"></select>
-                            <small class="text-muted">Mobile Network Code (2-3 digits)</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Country Name <span class="text-danger">*</span></label>
-                            <select class="form-select" id="mapCountryName"></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Country ISO <span class="text-danger">*</span></label>
-                            <select class="form-select" id="mapCountryIso"></select>
-                            <small class="text-muted">2-letter code (e.g., GB, US)</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Network Name <span class="text-danger">*</span></label>
-                            <select class="form-select" id="mapNetworkName"></select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Country Prefix <span class="text-muted">(optional)</span></label>
-                            <select class="form-select" id="mapCountryPrefix"></select>
-                            <small class="text-muted">Auto-detected from country ISO if not mapped</small>
-                        </div>
-                    </div>
-                    <div id="mappingError" class="alert alert-danger mt-3 d-none"></div>
-                </div>
-
-                <!-- Step 3: Preview & Import -->
-                <div class="import-step-content p-4 d-none" id="step3Content">
-                    <div id="previewSection">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h6 class="mb-0">Data Preview</h6>
-                                <small class="text-muted">Showing first 5 rows of <span id="totalRowCount"></span> total</small>
-                            </div>
-                            <span class="badge" style="background: var(--admin-primary); font-size:0.8rem;" id="readyBadge"></span>
-                        </div>
-                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                            <table class="table table-sm table-bordered mb-0" id="previewTable">
-                                <thead style="background:#f8f9fa; position:sticky; top:0;">
-                                    <tr id="previewHeader"></tr>
-                                </thead>
-                                <tbody id="previewBody"></tbody>
-                            </table>
-                        </div>
-                        <div class="alert alert-info mt-3 mb-0" style="font-size:0.85rem;">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Duplicate MCC/MNC pairs will be <strong>updated</strong> with the new data. New entries will be <strong>created</strong>.
-                        </div>
-                    </div>
-                    <div id="importProgress" class="d-none text-center py-4">
-                        <div class="spinner-border text-primary mb-3" role="status" style="width:3rem;height:3rem;"></div>
-                        <h6>Importing data...</h6>
-                        <p class="text-muted" id="importProgressText">Please wait</p>
-                    </div>
-                    <div id="importResults" class="d-none">
-                        <div class="text-center py-3">
-                            <i class="fas fa-check-circle fa-3x mb-3" style="color:#198754;"></i>
-                            <h5>Import Complete</h5>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-4 text-center">
-                                <div class="p-3 rounded" style="background:#d4f4dd;">
-                                    <div class="fs-4 fw-bold" style="color:#198754;" id="resultCreated">0</div>
-                                    <small class="text-muted">Created</small>
-                                </div>
-                            </div>
-                            <div class="col-4 text-center">
-                                <div class="p-3 rounded" style="background:#fff3cd;">
-                                    <div class="fs-4 fw-bold" style="color:#856404;" id="resultUpdated">0</div>
-                                    <small class="text-muted">Updated</small>
-                                </div>
-                            </div>
-                            <div class="col-4 text-center">
-                                <div class="p-3 rounded" style="background:#f8d7da;">
-                                    <div class="fs-4 fw-bold" style="color:#842029;" id="resultErrors">0</div>
-                                    <small class="text-muted">Errors</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="errorDetails" class="d-none">
-                            <h6 class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>Error Details</h6>
-                            <div class="table-responsive" style="max-height:150px; overflow-y:auto;">
-                                <table class="table table-sm mb-0">
-                                    <thead><tr><th>Row</th><th>Error</th></tr></thead>
-                                    <tbody id="errorTableBody"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+                <div class="mt-3">
+                    <a href="/downloads/mcc-mnc-template.csv" class="btn btn-sm btn-outline-primary" download>
+                        <i class="fas fa-download me-1"></i>Download Template
+                    </a>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="btnBack" onclick="wizardBack()" style="display:none;">
-                    <i class="fas fa-arrow-left me-1"></i>Back
-                </button>
-                <div class="flex-grow-1"></div>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="resetImportWizard()">Cancel</button>
-                <button type="button" class="btn btn-admin-primary" id="btnNext" onclick="wizardNext()" disabled>
-                    Next <i class="fas fa-arrow-right ms-1"></i>
-                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-admin-primary" onclick="submitImport()">Import Data</button>
             </div>
         </div>
     </div>
@@ -1036,142 +354,32 @@
 @push('scripts')
 <script>
 function openAddMccMncModal() {
-    var form = document.getElementById('addMccMncForm');
-    form.reset();
-    var rowsContainer = document.getElementById('mccMncRows');
-    rowsContainer.innerHTML = '';
-    addMccMncRow();
-    updateMccMncSummary();
     new bootstrap.Modal(document.getElementById('addMccMncModal')).show();
 }
 
-function addMccMncRow() {
-    var container = document.getElementById('mccMncRows');
-    var row = document.createElement('div');
-    row.className = 'mcc-mnc-row d-flex align-items-center gap-2 mb-2';
-    row.innerHTML = '<div style="flex: 0 0 120px;">' +
-        '<input type="text" class="form-control form-control-sm" name="mcc_list[]" maxlength="3" placeholder="MCC" required oninput="updateMccMncSummary()">' +
-        '</div>' +
-        '<div style="flex: 0 0 120px;">' +
-        '<input type="text" class="form-control form-control-sm" name="mnc_list[]" maxlength="3" placeholder="MNC" required oninput="updateMccMncSummary()">' +
-        '</div>' +
-        '<div class="flex-grow-1"><small class="text-muted" style="font-size: 0.75rem;">e.g. 234 / 15</small></div>' +
-        '<button type="button" class="btn btn-sm btn-outline-danger" onclick="removeMccMncRow(this)" title="Remove row"><i class="fas fa-times"></i></button>';
-    container.appendChild(row);
-    updateRemoveButtons();
-    updateMccMncSummary();
-}
-
-function removeMccMncRow(btn) {
-    btn.closest('.mcc-mnc-row').remove();
-    updateRemoveButtons();
-    updateMccMncSummary();
-}
-
-function updateRemoveButtons() {
-    var rows = document.querySelectorAll('#mccMncRows .mcc-mnc-row');
-    rows.forEach(function(row) {
-        var btn = row.querySelector('.btn-outline-danger');
-        if (btn) {
-            btn.style.visibility = rows.length <= 1 ? 'hidden' : 'visible';
-        }
-    });
-}
-
-function updateMccMncSummary() {
-    var rows = document.querySelectorAll('#mccMncRows .mcc-mnc-row');
-    var count = rows.length;
-    var summaryDiv = document.getElementById('addMccMncSummary');
-    var summaryText = document.getElementById('addMccMncSummaryText');
-
-    if (count > 1) {
-        var pairs = [];
-        rows.forEach(function(row) {
-            var mcc = row.querySelector('[name="mcc_list[]"]').value.trim();
-            var mnc = row.querySelector('[name="mnc_list[]"]').value.trim();
-            if (mcc && mnc) {
-                pairs.push(mcc + '/' + mnc);
-            }
-        });
-        summaryText.textContent = 'This will create ' + count + ' MCC/MNC entries for the same network' +
-            (pairs.length > 0 ? ': ' + pairs.join(', ') : '') + '.';
-        summaryDiv.style.display = '';
-    } else {
-        summaryDiv.style.display = 'none';
-    }
-}
-
 function submitAddMccMnc() {
-    var form = document.getElementById('addMccMncForm');
-    var networkName = form.querySelector('[name="network_name"]').value.trim();
-    var countryName = form.querySelector('[name="country_name"]').value.trim();
-    var countryIso = form.querySelector('[name="country_iso"]').value.trim().toUpperCase();
-    var countryPrefix = form.querySelector('[name="country_prefix"]').value.trim();
-
-    if (!networkName || !countryName || !countryIso) {
-        alert('Please fill in the Network Name, Country Name and Country ISO fields.');
-        return;
-    }
-
-    var mccInputs = form.querySelectorAll('[name="mcc_list[]"]');
-    var mncInputs = form.querySelectorAll('[name="mnc_list[]"]');
-    var entries = [];
-
-    for (var i = 0; i < mccInputs.length; i++) {
-        var mcc = mccInputs[i].value.trim();
-        var mnc = mncInputs[i].value.trim();
-        if (!mcc || !mnc) {
-            alert('Please fill in all MCC and MNC fields, or remove empty rows.');
-            return;
-        }
-        entries.push({ mcc: mcc, mnc: mnc });
-    }
-
-    if (entries.length === 0) {
-        alert('Please add at least one MCC/MNC pair.');
-        return;
-    }
-
-    var payload = {
-        network_name: networkName,
-        country_name: countryName,
-        country_iso: countryIso,
-        country_prefix: countryPrefix,
-        entries: entries
-    };
+    const form = document.getElementById('addMccMncForm');
+    const formData = new FormData(form);
 
     fetch('{{ route('admin.mcc-mnc.store') }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(Object.fromEntries(formData))
     })
-    .then(function(response) {
-        if (!response.ok) {
-            return response.json().then(function(err) { throw err; });
-        }
-        return response.json();
-    })
-    .then(function(data) {
+    .then(response => response.json())
+    .then(data => {
         if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('addMccMncModal')).hide();
             location.reload();
         } else {
-            alert(data.message || 'Could not create the network. Please check your input.');
+            alert('Error: ' + data.message);
         }
     })
-    .catch(function(error) {
-        if (error && error.message) {
-            alert(error.message);
-        } else if (error && error.errors) {
-            var msgs = Object.values(error.errors).flat().join('\n');
-            alert('Validation errors:\n' + msgs);
-        } else {
-            alert('An error occurred. Please try again.');
-        }
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred');
     });
 }
 
@@ -1180,71 +388,18 @@ function editNetwork(networkId) {
         .then(response => response.json())
         .then(data => {
             document.getElementById('editNetworkId').value = data.id;
+            document.getElementById('editMcc').value = data.mcc;
+            document.getElementById('editMnc').value = data.mnc;
             document.getElementById('editNetworkName').value = data.network_name;
-            document.getElementById('editCountryPrefix').value = data.country_prefix;
-
-            const existingContainer = document.getElementById('editExistingMncs');
-            existingContainer.innerHTML = '';
-            if (data.siblings && data.siblings.length > 0) {
-                data.siblings.forEach(s => {
-                    const row = document.createElement('div');
-                    row.className = 'd-flex align-items-center gap-2 mb-2';
-                    row.innerHTML = `
-                        <div style="flex: 0 0 120px;">
-                            <input type="text" class="form-control form-control-sm" value="${s.mcc}" readonly style="background: #f0f4f8;">
-                        </div>
-                        <div style="flex: 0 0 120px;">
-                            <input type="text" class="form-control form-control-sm" value="${s.mnc}" readonly style="background: #f0f4f8;">
-                        </div>
-                        <div class="flex-grow-1">
-                            <span class="status-badge ${s.active ? 'active' : 'inactive'}" style="font-size: 0.7rem;">
-                                <i class="fas fa-circle" style="font-size: 5px;"></i> ${s.active ? 'Active' : 'Inactive'}
-                            </span>
-                        </div>`;
-                    existingContainer.appendChild(row);
-                });
-            }
-
-            document.getElementById('editNewMncRows').innerHTML = '';
-            document.getElementById('editMncFeedback').style.display = 'none';
-
+            document.getElementById('editNetworkType').value = data.network_type;
             new bootstrap.Modal(document.getElementById('editMccMncModal')).show();
         });
 }
 
-function addEditMncRow() {
-    const container = document.getElementById('editNewMncRows');
-    const row = document.createElement('div');
-    row.className = 'd-flex align-items-center gap-2 mb-2 edit-new-mnc-row';
-    row.innerHTML = `
-        <div style="flex: 0 0 120px;">
-            <input type="text" class="form-control form-control-sm" name="new_mcc" maxlength="3" placeholder="MCC" required>
-        </div>
-        <div style="flex: 0 0 120px;">
-            <input type="text" class="form-control form-control-sm" name="new_mnc" maxlength="3" placeholder="MNC" required>
-        </div>
-        <div class="flex-grow-1">
-            <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">New</span>
-        </div>
-        <button type="button" class="btn btn-sm btn-outline-danger" onclick="this.closest('.edit-new-mnc-row').remove()" title="Remove">
-            <i class="fas fa-times"></i>
-        </button>`;
-    container.appendChild(row);
-}
-
 function submitEditMccMnc() {
     const networkId = document.getElementById('editNetworkId').value;
-    const networkName = document.getElementById('editNetworkName').value;
-    const countryPrefix = document.getElementById('editCountryPrefix').value;
-
-    const newMncs = [];
-    document.querySelectorAll('.edit-new-mnc-row').forEach(row => {
-        const mcc = row.querySelector('[name="new_mcc"]').value.trim();
-        const mnc = row.querySelector('[name="new_mnc"]').value.trim();
-        if (mcc && mnc) {
-            newMncs.push({ mcc, mnc });
-        }
-    });
+    const form = document.getElementById('editMccMncForm');
+    const formData = new FormData(form);
 
     fetch(`/admin/supplier-management/mcc-mnc/${networkId}`, {
         method: 'PUT',
@@ -1252,18 +407,14 @@ function submitEditMccMnc() {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({
-            network_name: networkName,
-            country_prefix: countryPrefix,
-            new_mncs: newMncs
-        })
+        body: JSON.stringify(Object.fromEntries(formData))
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             location.reload();
         } else {
-            alert('Error: ' + (data.message || 'Something went wrong'));
+            alert('Error: ' + data.message);
         }
     });
 }
@@ -1303,776 +454,59 @@ function deleteNetwork(networkId) {
     }
 }
 
-let importState = { step: 1, headers: [], preview: [], totalRows: 0, importId: '' };
-
 function openImportModal() {
-    resetImportWizard();
     new bootstrap.Modal(document.getElementById('importModal')).show();
 }
 
-function resetImportWizard() {
-    importState = { step: 1, headers: [], preview: [], totalRows: 0, importId: '' };
-    showStep(1);
-    document.getElementById('fileInfo').classList.add('d-none');
-    document.getElementById('dropZone').classList.remove('d-none');
-    document.getElementById('uploadError').classList.add('d-none');
-    document.getElementById('uploadSpinner').classList.add('d-none');
-    document.getElementById('importResults').classList.add('d-none');
-    document.getElementById('importProgress').classList.add('d-none');
-    document.getElementById('previewSection').classList.remove('d-none');
-    document.getElementById('importFile').value = '';
-    document.getElementById('btnNext').disabled = true;
-    document.getElementById('btnNext').innerHTML = 'Next <i class="fas fa-arrow-right ms-1"></i>';
-}
-
-function showStep(step) {
-    importState.step = step;
-    [1,2,3].forEach(s => {
-        document.getElementById('step' + s + 'Content').classList.toggle('d-none', s !== step);
-        const ind = document.getElementById('stepIndicator' + s);
-        if (s <= step) {
-            ind.style.borderBottomColor = 'var(--admin-primary)';
-            ind.style.color = 'var(--admin-primary)';
-            ind.querySelector('.step-number').style.background = 'var(--admin-primary)';
-        } else {
-            ind.style.borderBottomColor = '#dee2e6';
-            ind.style.color = '#adb5bd';
-            ind.querySelector('.step-number').style.background = '#adb5bd';
-        }
-    });
-    document.getElementById('btnBack').style.display = step > 1 ? '' : 'none';
-    if (step === 3) {
-        document.getElementById('btnNext').innerHTML = '<i class="fas fa-upload me-1"></i>Import Data';
-    } else {
-        document.getElementById('btnNext').innerHTML = 'Next <i class="fas fa-arrow-right ms-1"></i>';
-    }
-}
-
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('importFile');
-
-dropZone.addEventListener('click', () => fileInput.click());
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = 'var(--admin-accent)'; dropZone.style.background = '#e8f0fe'; });
-dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = '#ccc'; dropZone.style.background = '#fafbfc'; });
-dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.style.borderColor = '#ccc'; dropZone.style.background = '#fafbfc';
-    if (e.dataTransfer.files.length) { fileInput.files = e.dataTransfer.files; handleFileSelected(); }
-});
-fileInput.addEventListener('change', handleFileSelected);
-
-function handleFileSelected() {
-    const file = fileInput.files[0];
-    if (!file) return;
-    const ext = file.name.split('.').pop().toLowerCase();
-    if (!['csv','xlsx','xls'].includes(ext)) {
-        document.getElementById('uploadError').textContent = 'Please upload a .csv, .xlsx, or .xls file.';
-        document.getElementById('uploadError').classList.remove('d-none');
+function submitImport() {
+    const fileInput = document.getElementById('importFile');
+    if (!fileInput.files[0]) {
+        alert('Please select a file');
         return;
     }
-    document.getElementById('uploadError').classList.add('d-none');
-    document.getElementById('fileName').textContent = file.name;
-    document.getElementById('fileSize').textContent = formatBytes(file.size);
-    document.getElementById('fileInfo').classList.remove('d-none');
-    document.getElementById('dropZone').classList.add('d-none');
-    uploadFile(file);
-}
 
-function clearFile() {
-    fileInput.value = '';
-    document.getElementById('fileInfo').classList.add('d-none');
-    document.getElementById('dropZone').classList.remove('d-none');
-    document.getElementById('btnNext').disabled = true;
-    importState.headers = [];
-}
-
-function formatBytes(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
-}
-
-function uploadFile(file) {
-    document.getElementById('uploadSpinner').classList.remove('d-none');
-    document.getElementById('btnNext').disabled = true;
     const formData = new FormData();
-    formData.append('file', file);
-
-    fetch('{{ route('admin.mcc-mnc.parse-file') }}', {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('uploadSpinner').classList.add('d-none');
-        if (!data.success) {
-            document.getElementById('uploadError').textContent = data.message;
-            document.getElementById('uploadError').classList.remove('d-none');
-            return;
-        }
-        importState.headers = data.headers;
-        importState.preview = data.preview;
-        importState.totalRows = data.totalRows;
-        importState.importId = data.importId;
-        document.getElementById('btnNext').disabled = false;
-    })
-    .catch(err => {
-        document.getElementById('uploadSpinner').classList.add('d-none');
-        document.getElementById('uploadError').textContent = 'Failed to upload file. Please try again.';
-        document.getElementById('uploadError').classList.remove('d-none');
-    });
-}
-
-function populateMappingDropdowns() {
-    const fields = [
-        { id: 'mapMcc', keywords: ['mcc'] },
-        { id: 'mapMnc', keywords: ['mnc'] },
-        { id: 'mapCountryName', keywords: ['country_name','country name','country','countryname'] },
-        { id: 'mapCountryIso', keywords: ['country_iso','iso','country_code','countryiso','country iso','cc'] },
-        { id: 'mapNetworkName', keywords: ['network_name','network name','operator','network','networkname','carrier'] },
-        { id: 'mapCountryPrefix', keywords: ['country_prefix','prefix','country prefix','countryprefix','dialing_code','dialing code','calling_code'], optional: true },
-    ];
-    fields.forEach(field => {
-        const sel = document.getElementById(field.id);
-        sel.innerHTML = field.optional
-            ? '<option value="">— Not mapped (auto-detected) —</option>'
-            : '<option value="">— Select column —</option>';
-        importState.headers.forEach((h, i) => {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = h;
-            const lower = h.toLowerCase().trim();
-            if (field.keywords.some(k => lower === k || lower.replace(/[\s_-]/g,'') === k.replace(/[\s_-]/g,''))) {
-                opt.selected = true;
-            }
-            sel.appendChild(opt);
-        });
-    });
-}
-
-function buildPreviewTable() {
-    const mapping = getMappingValues();
-    const headerRow = document.getElementById('previewHeader');
-    const tbody = document.getElementById('previewBody');
-    headerRow.innerHTML = '<th>MCC</th><th>MNC</th><th>Country</th><th>ISO</th><th>Network</th><th>Prefix</th>';
-    tbody.innerHTML = '';
-    importState.preview.forEach(row => {
-        const tr = document.createElement('tr');
-        const prefixVal = mapping.country_prefix !== '' ? (row[mapping.country_prefix] || 'auto') : 'auto';
-        tr.innerHTML = `
-            <td><code>${row[mapping.mcc] || ''}</code></td>
-            <td><code>${row[mapping.mnc] || ''}</code></td>
-            <td>${row[mapping.country_name] || ''}</td>
-            <td>${row[mapping.country_iso] || ''}</td>
-            <td>${row[mapping.network_name] || ''}</td>
-            <td>${prefixVal}</td>`;
-        tbody.appendChild(tr);
-    });
-    document.getElementById('totalRowCount').textContent = importState.totalRows;
-    document.getElementById('readyBadge').textContent = importState.totalRows + ' rows ready';
-}
-
-function getMappingValues() {
-    return {
-        mcc: parseInt(document.getElementById('mapMcc').value),
-        mnc: parseInt(document.getElementById('mapMnc').value),
-        country_name: parseInt(document.getElementById('mapCountryName').value),
-        country_iso: parseInt(document.getElementById('mapCountryIso').value),
-        network_name: parseInt(document.getElementById('mapNetworkName').value),
-        country_prefix: document.getElementById('mapCountryPrefix').value,
-    };
-}
-
-function wizardNext() {
-    if (importState.step === 1) {
-        if (!importState.headers.length) return;
-        populateMappingDropdowns();
-        showStep(2);
-        document.getElementById('btnNext').disabled = false;
-    } else if (importState.step === 2) {
-        const required = ['mapMcc','mapMnc','mapCountryName','mapCountryIso','mapNetworkName'];
-        const missing = required.filter(id => document.getElementById(id).value === '');
-        if (missing.length) {
-            document.getElementById('mappingError').textContent = 'Please map all required fields (marked with *).';
-            document.getElementById('mappingError').classList.remove('d-none');
-            return;
-        }
-        document.getElementById('mappingError').classList.add('d-none');
-        buildPreviewTable();
-        showStep(3);
-    } else if (importState.step === 3) {
-        runImport();
-    }
-}
-
-function wizardBack() {
-    if (importState.step === 2) showStep(1);
-    else if (importState.step === 3) showStep(2);
-}
-
-function runImport() {
-    const mapping = getMappingValues();
-    document.getElementById('previewSection').classList.add('d-none');
-    document.getElementById('importProgress').classList.remove('d-none');
-    document.getElementById('btnNext').disabled = true;
-    document.getElementById('btnBack').style.display = 'none';
+    formData.append('file', fileInput.files[0]);
 
     fetch('{{ route('admin.mcc-mnc.import') }}', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({ importId: importState.importId, mapping })
-    })
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('importProgress').classList.add('d-none');
-        document.getElementById('importResults').classList.remove('d-none');
-        if (data.success) {
-            document.getElementById('resultCreated').textContent = data.imported;
-            document.getElementById('resultUpdated').textContent = data.updated;
-            document.getElementById('resultErrors').textContent = data.errors.length;
-            if (data.errors.length) {
-                document.getElementById('errorDetails').classList.remove('d-none');
-                const errBody = document.getElementById('errorTableBody');
-                errBody.innerHTML = '';
-                data.errors.slice(0, 20).forEach(e => {
-                    errBody.innerHTML += `<tr><td>${e.row}</td><td>${e.error}</td></tr>`;
-                });
-            }
-            document.getElementById('btnNext').innerHTML = '<i class="fas fa-check me-1"></i>Done';
-            document.getElementById('btnNext').disabled = false;
-            document.getElementById('btnNext').onclick = () => location.reload();
-        } else {
-            document.getElementById('resultCreated').textContent = '0';
-            document.getElementById('resultUpdated').textContent = '0';
-            document.getElementById('resultErrors').textContent = '1';
-            document.getElementById('errorDetails').classList.remove('d-none');
-            document.getElementById('errorTableBody').innerHTML = `<tr><td>-</td><td>${data.message || 'Unknown error occurred'}</td></tr>`;
-            document.getElementById('btnNext').innerHTML = '<i class="fas fa-redo me-1"></i>Try Again';
-            document.getElementById('btnNext').disabled = false;
-            document.getElementById('btnNext').onclick = () => { resetImportWizard(); };
-        }
-    })
-    .catch(err => {
-        document.getElementById('importProgress').classList.add('d-none');
-        document.getElementById('importResults').classList.remove('d-none');
-        document.getElementById('resultCreated').textContent = '0';
-        document.getElementById('resultUpdated').textContent = '0';
-        document.getElementById('resultErrors').textContent = '1';
-        document.getElementById('errorDetails').classList.remove('d-none');
-        document.getElementById('errorTableBody').innerHTML = `<tr><td>-</td><td>Network error. Please check your connection and try again.</td></tr>`;
-        document.getElementById('btnNext').innerHTML = '<i class="fas fa-redo me-1"></i>Try Again';
-        document.getElementById('btnNext').disabled = false;
-        document.getElementById('btnNext').onclick = () => { resetImportWizard(); };
-    });
-}
-
-function applyMccFilters() {
-    const country = document.getElementById('filterCountry').value;
-    const prefix = document.getElementById('filterPrefix').value;
-    const status = document.getElementById('filterStatus').value;
-    const search = document.getElementById('searchNetwork').value;
-
-    const params = new URLSearchParams();
-    if (country) params.set('country', country);
-    if (prefix) params.set('prefix', prefix);
-    if (status) params.set('status', status);
-    if (search) params.set('search', search);
-
-    window.location.href = '{{ route('admin.mcc-mnc.index') }}' + (params.toString() ? '?' + params.toString() : '');
-}
-
-function switchTab(tabId, el) {
-    document.querySelectorAll('.ref-tab-content').forEach(t => t.classList.add('d-none'));
-    document.getElementById(tabId).classList.remove('d-none');
-    document.querySelectorAll('.ref-tab-link').forEach(l => l.classList.remove('active'));
-    el.classList.add('active');
-
-    if (tabId === 'uk-prefixes-tab') {
-        document.getElementById('btnAddNetwork').classList.add('d-none');
-        document.getElementById('btnMccImport').classList.add('d-none');
-        document.getElementById('btnUkImport').classList.remove('d-none');
-        loadUkPrefixes();
-    } else {
-        document.getElementById('btnAddNetwork').classList.remove('d-none');
-        document.getElementById('btnMccImport').classList.remove('d-none');
-        document.getElementById('btnUkImport').classList.add('d-none');
-    }
-}
-
-let ukCurrentPage = 1;
-let ukNetworksList = [];
-let ukDebounceTimer = null;
-let ukImportState = { step: 1, headers: [], preview: [], totalRows: 0, importId: '' };
-
-function debounceUkSearch() {
-    clearTimeout(ukDebounceTimer);
-    ukDebounceTimer = setTimeout(() => loadUkPrefixes(), 300);
-}
-
-function loadUkPrefixes(page) {
-    if (page) ukCurrentPage = page;
-    const match = document.getElementById('ukFilterMatch').value;
-    const cp = document.getElementById('ukFilterCp').value;
-    const search = document.getElementById('ukSearchPrefix').value;
-
-    let url = `{{ route('admin.uk-prefixes.index') }}?page=${ukCurrentPage}`;
-    if (match) url += `&match_status=${encodeURIComponent(match)}`;
-    if (cp) url += `&cp_name=${encodeURIComponent(cp)}`;
-    if (search) url += `&search=${encodeURIComponent(search)}`;
-
-    fetch(url, { headers: { 'Accept': 'application/json' }})
-    .then(r => r.json())
-    .then(data => {
-        renderUkStats(data.stats);
-        renderUkTable(data.prefixes);
-        renderUkPagination(data.prefixes);
-        renderCpFilter(data.cpNames);
-        ukNetworksList = data.ukNetworks;
-        document.getElementById('ukPrefixCount').textContent = data.stats.total;
-    })
-    .catch(err => console.error('Failed to load UK prefixes:', err));
-}
-
-function renderUkStats(stats) {
-    document.getElementById('statTotal').textContent = stats.total.toLocaleString();
-    document.getElementById('statMatched').textContent = stats.matched.toLocaleString();
-    document.getElementById('statPredicted').textContent = stats.predicted.toLocaleString();
-    document.getElementById('statUnmatched').textContent = stats.unmatched.toLocaleString();
-}
-
-function renderUkTable(paginated) {
-    const tbody = document.getElementById('ukPrefixTableBody');
-    if (!paginated.data || paginated.data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-inbox fa-2x mb-2"></i><p>No UK prefix data found. Import Ofcom data to get started.</p></td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = paginated.data.map(p => {
-        const networkName = p.mcc_mnc ? p.mcc_mnc.network_name : '<span class="text-muted">-</span>';
-        const matchClass = p.match_status;
-        const matchLabel = p.match_status.charAt(0).toUpperCase() + p.match_status.slice(1);
-        const allocDate = p.allocation_date ? new Date(p.allocation_date).toLocaleDateString('en-GB') : '-';
-
-        let actions = '';
-        if (p.match_status === 'predicted') {
-            actions = `<button class="btn btn-sm btn-outline-success me-1" onclick="confirmPrefix(${p.id})" title="Confirm match"><i class="fas fa-check"></i></button><button class="btn btn-sm btn-outline-danger" onclick="rejectPrefix(${p.id})" title="Reject match"><i class="fas fa-times"></i></button>`;
-        } else if (p.match_status === 'unmatched') {
-            actions = `<button class="btn btn-sm btn-outline-primary" onclick="openMapModal('${p.cp_name.replace(/'/g, "\\'")}', ${p.id})" title="Map all '${p.cp_name}' prefixes"><i class="fas fa-link"></i></button>`;
-        } else {
-            actions = `<button class="btn btn-sm btn-outline-secondary" onclick="openMapModal('${p.cp_name.replace(/'/g, "\\'")}', ${p.id})" title="Re-map all '${p.cp_name}' prefixes"><i class="fas fa-edit"></i></button>`;
-        }
-
-        return `<tr>
-            <td><code>${p.prefix}</code></td>
-            <td><small class="text-muted">${p.number_block_raw || '-'}</small></td>
-            <td>${p.cp_name}</td>
-            <td>${networkName}</td>
-            <td><span class="match-badge ${matchClass}"><i class="fas fa-circle" style="font-size:5px;"></i> ${matchLabel}</span></td>
-            <td><small>${p.number_length || '-'}</small></td>
-            <td><small>${allocDate}</small></td>
-            <td>${actions}</td>
-        </tr>`;
-    }).join('');
-}
-
-function renderUkPagination(paginated) {
-    const wrap = document.getElementById('ukPaginationWrap');
-    if (paginated.last_page <= 1) { wrap.classList.add('d-none'); return; }
-    wrap.classList.remove('d-none');
-
-    document.getElementById('ukPaginationInfo').textContent = `Showing ${paginated.from} to ${paginated.to} of ${paginated.total} prefixes`;
-
-    let links = '';
-    if (paginated.current_page > 1) {
-        links += `<li class="mcc-page-item"><a class="mcc-page-link" onclick="loadUkPrefixes(${paginated.current_page - 1})">&laquo;</a></li>`;
-    }
-    const start = Math.max(1, paginated.current_page - 3);
-    const end = Math.min(paginated.last_page, paginated.current_page + 3);
-    for (let i = start; i <= end; i++) {
-        links += `<li class="mcc-page-item ${i === paginated.current_page ? 'active' : ''}"><a class="mcc-page-link" onclick="loadUkPrefixes(${i})">${i}</a></li>`;
-    }
-    if (paginated.current_page < paginated.last_page) {
-        links += `<li class="mcc-page-item"><a class="mcc-page-link" onclick="loadUkPrefixes(${paginated.current_page + 1})">&raquo;</a></li>`;
-    }
-    document.getElementById('ukPaginationLinks').innerHTML = links;
-}
-
-function renderCpFilter(cpNames) {
-    const sel = document.getElementById('ukFilterCp');
-    const current = sel.value;
-    sel.innerHTML = '<option value="">All Operators</option>';
-    cpNames.forEach(name => {
-        sel.innerHTML += `<option value="${name}" ${name === current ? 'selected' : ''}>${name}</option>`;
-    });
-}
-
-function confirmPrefix(id) {
-    fetch(`/admin/supplier-management/uk-prefixes/${id}/confirm`, {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(() => loadUkPrefixes())
-    .catch(err => alert('Error confirming prediction'));
-}
-
-function rejectPrefix(id) {
-    fetch(`/admin/supplier-management/uk-prefixes/${id}/reject`, {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(() => loadUkPrefixes())
-    .catch(err => alert('Error rejecting prediction'));
-}
-
-function openMapModal(cpName, prefixId) {
-    document.getElementById('mapCpName').value = cpName;
-    document.getElementById('mapCpNameDisplay').textContent = cpName;
-
-    const sel = document.getElementById('mapNetworkSelect');
-    sel.innerHTML = '<option value="">-- Choose a network --</option>';
-    ukNetworksList.forEach(n => {
-        sel.innerHTML += `<option value="${n.id}">${n.network_name} (${n.mcc}/${n.mnc})</option>`;
-    });
-
-    document.getElementById('newNetworkName').value = '';
-    document.getElementById('newNetworkMnc').value = '';
-    new bootstrap.Modal(document.getElementById('mapNetworkModal')).show();
-}
-
-function confirmBulkMap() {
-    const cpName = document.getElementById('mapCpName').value;
-    const mccMncId = document.getElementById('mapNetworkSelect').value;
-    if (!mccMncId) { alert('Please select a network'); return; }
-
-    fetch('{{ route('admin.uk-prefixes.bulk-confirm') }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify({ cp_name: cpName, mcc_mnc_id: parseInt(mccMncId) })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('mapNetworkModal')).hide();
-            loadUkPrefixes();
-            alert(data.message);
-        }
-    })
-    .catch(err => alert('Error mapping network'));
-}
-
-function createAndMapNetwork() {
-    const cpName = document.getElementById('mapCpName').value;
-    const name = document.getElementById('newNetworkName').value;
-    const mcc = document.getElementById('newNetworkMcc').value;
-    const mnc = document.getElementById('newNetworkMnc').value;
-
-    if (!name || !mcc || !mnc) { alert('Please fill in all fields'); return; }
-
-    fetch('{{ route('admin.uk-prefixes.create-and-map') }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify({ network_name: name, mcc: mcc, mnc: mnc, country_prefix: '44', cp_name: cpName })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('mapNetworkModal')).hide();
-            loadUkPrefixes();
-            alert(data.message);
-        } else {
-            alert(data.message || 'Error creating network');
-        }
-    })
-    .catch(err => alert('Error creating network'));
-}
-
-function openUkPrefixImportModal() {
-    resetUkImport();
-    new bootstrap.Modal(document.getElementById('ukImportModal')).show();
-}
-
-function resetUkImport() {
-    ukImportState = { step: 1, headers: [], preview: [], totalRows: 0, importId: '' };
-    showUkStep(1);
-    document.getElementById('ukFileInfo').classList.add('d-none');
-    document.getElementById('ukDropZone').classList.remove('d-none');
-    document.getElementById('ukUploadError').classList.add('d-none');
-    document.getElementById('ukBtnNext').disabled = true;
-    document.getElementById('ukBtnNext').innerHTML = 'Next <i class="fas fa-arrow-right ms-1"></i>';
-    document.getElementById('ukBtnNext').onclick = ukWizardNext;
-    if (document.getElementById('ukFileInput')) document.getElementById('ukFileInput').value = '';
-}
-
-function showUkStep(n) {
-    document.querySelectorAll('.uk-wizard-step').forEach(s => s.classList.add('d-none'));
-    document.getElementById('ukStep' + n).classList.remove('d-none');
-    document.querySelectorAll('.wizard-step').forEach(s => {
-        const step = parseInt(s.dataset.step);
-        s.classList.remove('active', 'done');
-        if (step < n) s.classList.add('done');
-        if (step === n) s.classList.add('active');
-    });
-    ukImportState.step = n;
-}
-
-function handleUkFile(input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    document.getElementById('ukDropZone').classList.add('d-none');
-    document.getElementById('ukUploadSpinner').classList.remove('d-none');
-    document.getElementById('ukUploadError').classList.add('d-none');
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    fetch('{{ route('admin.uk-prefixes.parse-file') }}', {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
         body: formData
     })
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('ukUploadSpinner').classList.add('d-none');
-        if (!data.success) {
-            document.getElementById('ukUploadError').textContent = data.message;
-            document.getElementById('ukUploadError').classList.remove('d-none');
-            document.getElementById('ukDropZone').classList.remove('d-none');
-            return;
-        }
-        ukImportState.headers = data.headers;
-        ukImportState.preview = data.preview;
-        ukImportState.totalRows = data.totalRows;
-        ukImportState.importId = data.importId;
-
-        document.getElementById('ukFileName').textContent = data.fileName;
-        document.getElementById('ukRowCount').textContent = `${data.totalRows} data rows`;
-        document.getElementById('ukFileInfo').classList.remove('d-none');
-        document.getElementById('ukBtnNext').disabled = false;
-    })
-    .catch(err => {
-        document.getElementById('ukUploadSpinner').classList.add('d-none');
-        document.getElementById('ukUploadError').textContent = 'Error uploading file';
-        document.getElementById('ukUploadError').classList.remove('d-none');
-        document.getElementById('ukDropZone').classList.remove('d-none');
-    });
-}
-
-function ukWizardNext() {
-    if (ukImportState.step === 1) {
-        showUkStep(2);
-        populateUkColumnMapping();
-        document.getElementById('ukBtnNext').innerHTML = '<i class="fas fa-upload me-1"></i>Import & Match';
-    } else if (ukImportState.step === 2) {
-        runUkImport();
-    } else if (ukImportState.step === 3) {
-        showUkStep(4);
-        showReviewStep();
-        document.getElementById('ukBtnNext').innerHTML = '<i class="fas fa-check me-1"></i>Done';
-        document.getElementById('ukBtnNext').disabled = false;
-        document.getElementById('ukBtnNext').onclick = () => {
-            bootstrap.Modal.getInstance(document.getElementById('ukImportModal')).hide();
-            loadUkPrefixes();
-        };
-    } else if (ukImportState.step === 4) {
-        bootstrap.Modal.getInstance(document.getElementById('ukImportModal')).hide();
-        loadUkPrefixes();
-    }
-}
-
-function populateUkColumnMapping() {
-    const headers = ukImportState.headers;
-    const selectors = ['ukMapNumberBlock', 'ukMapCpName', 'ukMapStatus', 'ukMapNumberLength', 'ukMapAllocationDate'];
-    const autoMatchKeys = {
-        'ukMapNumberBlock': ['number block', 'number', 'block', 'prefix', 'nms'],
-        'ukMapCpName': ['cp name', 'cp', 'operator', 'provider', 'name'],
-        'ukMapStatus': ['status', 'block status'],
-        'ukMapNumberLength': ['length', 'number length', 'non geo'],
-        'ukMapAllocationDate': ['date', 'allocation', 'allocated']
-    };
-
-    selectors.forEach(selId => {
-        const sel = document.getElementById(selId);
-        const isRequired = selId === 'ukMapNumberBlock' || selId === 'ukMapCpName';
-        const existingOpts = isRequired ? '' : '<option value="">-- Skip --</option>';
-        sel.innerHTML = existingOpts;
-
-        headers.forEach((h, i) => {
-            const opt = document.createElement('option');
-            opt.value = i;
-            opt.textContent = h;
-            sel.appendChild(opt);
-        });
-
-        const keys = autoMatchKeys[selId] || [];
-        for (let i = 0; i < headers.length; i++) {
-            const hLower = headers[i].toLowerCase();
-            if (keys.some(k => hLower.includes(k))) {
-                sel.value = i;
-                break;
-            }
-        }
-    });
-
-    let previewHtml = '<thead><tr>';
-    headers.forEach(h => previewHtml += `<th style="font-size:0.75rem;">${h}</th>`);
-    previewHtml += '</tr></thead><tbody>';
-    ukImportState.preview.slice(0, 3).forEach(row => {
-        previewHtml += '<tr>';
-        row.forEach(cell => previewHtml += `<td style="font-size:0.75rem;">${cell}</td>`);
-        previewHtml += '</tr>';
-    });
-    previewHtml += '</tbody>';
-    document.getElementById('ukPreviewTable').innerHTML = previewHtml;
-}
-
-function runUkImport() {
-    showUkStep(3);
-    document.getElementById('ukImportProgress').classList.remove('d-none');
-    document.getElementById('ukImportResults').classList.add('d-none');
-    document.getElementById('ukBtnNext').disabled = true;
-
-    const mapping = {
-        number_block: parseInt(document.getElementById('ukMapNumberBlock').value),
-        cp_name: parseInt(document.getElementById('ukMapCpName').value),
-    };
-
-    const statusVal = document.getElementById('ukMapStatus').value;
-    if (statusVal !== '') mapping.status = parseInt(statusVal);
-    const lenVal = document.getElementById('ukMapNumberLength').value;
-    if (lenVal !== '') mapping.number_length = parseInt(lenVal);
-    const dateVal = document.getElementById('ukMapAllocationDate').value;
-    if (dateVal !== '') mapping.allocation_date = parseInt(dateVal);
-
-    fetch('{{ route('admin.uk-prefixes.import') }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify({ importId: ukImportState.importId, mapping })
-    })
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('ukImportProgress').classList.add('d-none');
-        document.getElementById('ukImportResults').classList.remove('d-none');
-
-        if (data.success) {
-            document.getElementById('ukResultCreated').textContent = data.imported;
-            document.getElementById('ukResultUpdated').textContent = data.updated;
-            const errCount = data.totalErrors || data.errors.length;
-            document.getElementById('ukResultErrors').textContent = errCount;
-
-            if (errCount > 0 && data.errors && data.errors.length > 0) {
-                document.getElementById('ukErrorDetails').classList.remove('d-none');
-                const errorItems = data.errors.slice(0, 20).map(e => `<div class="text-danger mb-1">Row ${e.row}: ${e.error}</div>`).join('');
-                document.getElementById('ukErrorList').innerHTML = errorItems;
-                if (errCount > 20) {
-                    document.getElementById('ukSkippedInfo').classList.remove('d-none');
-                    document.getElementById('ukSkippedText').textContent = `Showing 20 of ${errCount} errors. Most are similar — rows with empty number blocks or very short prefixes were skipped.`;
-                }
-            } else {
-                document.getElementById('ukErrorDetails').classList.add('d-none');
-                document.getElementById('ukSkippedInfo').classList.add('d-none');
-            }
-
-            ukImportState.unmatchedCps = data.unmatchedCps || [];
-            ukImportState.predictedCps = data.predictedCps || [];
-
-            document.getElementById('ukBtnNext').disabled = false;
-            document.getElementById('ukBtnNext').innerHTML = 'Review Matches <i class="fas fa-arrow-right ms-1"></i>';
-        } else {
-            document.getElementById('ukResultCreated').textContent = '0';
-            document.getElementById('ukResultUpdated').textContent = '0';
-            document.getElementById('ukResultErrors').textContent = data.message || 'Error';
-        }
-    })
-    .catch(err => {
-        document.getElementById('ukImportProgress').classList.add('d-none');
-        document.getElementById('ukImportResults').classList.remove('d-none');
-        document.getElementById('ukResultErrors').textContent = 'Network error';
-    });
-}
-
-function showReviewStep() {
-    const predicted = ukImportState.predictedCps || [];
-    const unmatched = ukImportState.unmatchedCps || [];
-
-    if (predicted.length > 0) {
-        document.getElementById('predictedMatchesSection').classList.remove('d-none');
-        const tbody = document.getElementById('predictedMatchesBody');
-        tbody.innerHTML = predicted.map(p => `
-            <tr>
-                <td>${p.cp_name}</td>
-                <td><span class="match-badge predicted"><i class="fas fa-magic" style="font-size:8px;"></i> ${p.network_name}</span></td>
-                <td><span class="badge bg-light text-dark">${p.prefix_count}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-success me-1" onclick="bulkConfirmCp('${p.cp_name.replace(/'/g, "\\'")}', ${p.mcc_mnc_id}, this)"><i class="fas fa-check me-1"></i>Confirm All</button>
-                    <button class="btn btn-sm btn-outline-warning" onclick="openMapModal('${p.cp_name.replace(/'/g, "\\'")}')"><i class="fas fa-exchange-alt me-1"></i>Change</button>
-                </td>
-            </tr>
-        `).join('');
-    } else {
-        document.getElementById('predictedMatchesSection').classList.add('d-none');
-    }
-
-    if (unmatched.length > 0) {
-        document.getElementById('unmatchedSection').classList.remove('d-none');
-        const tbody = document.getElementById('unmatchedBody');
-        tbody.innerHTML = unmatched.map(u => `
-            <tr>
-                <td>${u.cp_name}</td>
-                <td><span class="badge bg-light text-dark">${u.prefix_count}</span></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary" onclick="openMapModal('${u.cp_name.replace(/'/g, "\\'")}')"><i class="fas fa-link me-1"></i>Map to Network</button>
-                </td>
-            </tr>
-        `).join('');
-    } else {
-        document.getElementById('unmatchedSection').classList.add('d-none');
-    }
-
-    if (predicted.length === 0 && unmatched.length === 0) {
-        document.getElementById('allMatchedMsg').classList.remove('d-none');
-    }
-}
-
-function bulkConfirmCp(cpName, mccMncId, btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Confirming...';
-    fetch('{{ route('admin.uk-prefixes.bulk-confirm') }}', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: JSON.stringify({ cp_name: cpName, mcc_mnc_id: mccMncId })
-    })
-    .then(r => r.json())
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const row = btn.closest('tr');
-            if (row) row.remove();
-            loadUkPrefixes();
+            alert(`Successfully imported ${data.imported} networks`);
+            location.reload();
         } else {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm All';
-            alert(data.message || 'Error confirming');
+            alert('Import failed: ' + data.message);
         }
     })
-    .catch(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check me-1"></i>Confirm All';
-        alert('Network error');
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during import');
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('tab') === 'uk-prefixes') {
-        const ukTab = document.querySelector('[data-tab="uk-prefixes-tab"]');
-        if (ukTab) switchTab('uk-prefixes-tab', ukTab);
-    }
-});
+function filterNetworks() {
+    const countryFilter = document.getElementById('filterCountry').value;
+    const typeFilter = document.getElementById('filterType').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+    const searchText = document.getElementById('searchNetwork').value.toLowerCase();
+    const rows = document.querySelectorAll('#mccMncTableBody tr[data-country]');
+
+    rows.forEach(row => {
+        let show = true;
+
+        if (countryFilter && row.dataset.country !== countryFilter) show = false;
+        if (typeFilter && row.dataset.type !== typeFilter) show = false;
+        if (statusFilter && row.dataset.status !== statusFilter) show = false;
+        if (searchText && !row.dataset.search.includes(searchText)) show = false;
+
+        row.style.display = show ? '' : 'none';
+    });
+}
 </script>
 @endpush

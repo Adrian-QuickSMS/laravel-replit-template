@@ -109,16 +109,6 @@ class SupplierController extends Controller
         ]);
     }
 
-    public function gateways(Supplier $supplier)
-    {
-        $gateways = $supplier->gateways()
-            ->where('active', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'gateway_code']);
-
-        return response()->json($gateways);
-    }
-
     public function destroy(Supplier $supplier)
     {
         if ($supplier->gateways()->exists()) {
