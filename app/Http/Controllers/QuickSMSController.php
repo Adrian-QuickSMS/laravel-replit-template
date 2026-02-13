@@ -60,7 +60,9 @@ class QuickSMSController extends Controller
                 'customer_account_id' => $user->tenant_id,
             ]);
 
-            \Illuminate\Support\Facades\DB::statement("SET app.current_tenant_id = '" . addslashes($user->tenant_id) . "'");
+            \Illuminate\Support\Facades\DB::statement("SET app.current_tenant_id = ?", [$user->tenant_id]);
+
+            $request->session()->regenerate();
 
             return redirect()->route('dashboard')->with('success', 'Welcome back, ' . $user->first_name . '!');
 

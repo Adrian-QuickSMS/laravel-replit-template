@@ -72,7 +72,7 @@ class SetTenantContext
                 // Use SET (session-scoped) not SET LOCAL (transaction-scoped) because
                 // Laravel may not wrap every request in a single transaction, and
                 // SET LOCAL has no effect outside a transaction block.
-                DB::statement("SET app.current_tenant_id = '" . addslashes($user->tenant_id) . "'");
+                DB::statement("SET app.current_tenant_id = ?", [$user->tenant_id]);
 
                 // Log tenant context set (debug mode only)
                 if (config('app.debug')) {

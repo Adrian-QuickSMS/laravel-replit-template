@@ -223,7 +223,7 @@ class AdminController extends Controller
             'active' => Account::where('id', '!=', $systemId)->where('status', 'active')->count(),
             'trial' => Account::where('id', '!=', $systemId)->where('account_type', 'trial')->count(),
             'suspended' => Account::where('id', '!=', $systemId)->where('status', 'suspended')->count(),
-            'pending' => Account::where('id', '!=', $systemId)->whereNull('email_verified_at')->where('status', 'active')->count(),
+            'pending' => Account::where('id', '!=', $systemId)->where('activation_complete', false)->where('status', 'active')->count(),
             'flagged' => DB::table('account_flags')
                 ->where('account_id', '!=', $systemId)
                 ->where(function($q) {

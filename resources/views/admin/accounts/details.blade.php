@@ -680,7 +680,7 @@
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var accountId = '{{ $account_id }}';
+    var accountId = @json($account_id);
     
     var data = {
         name: @json($account->company_name ?? 'Unknown Account'),
@@ -703,7 +703,7 @@ var accountStructureModal = null;
 var currentHierarchyData = null;
 
 function openAccountStructureModal() {
-    var accountId = '{{ $account_id }}';
+    var accountId = @json($account_id);
     var accountName = document.getElementById('accountName').textContent;
     
     if (!accountStructureModal) {

@@ -126,7 +126,7 @@ class AuthController extends Controller
                 'fraud_prevention' => '1.0',
             ]);
 
-            DB::statement("SET app.current_tenant_id = '" . addslashes($accountData->account_id) . "'");
+            DB::statement("SET app.current_tenant_id = ?", [$accountData->account_id]);
 
             // Update account with consent and UTM data
             DB::table('accounts')->where('id', $accountData->account_id)->update([
@@ -604,7 +604,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => 'An error occurred while resetting your password. Please try again.'
             ], 500);
         }
     }
