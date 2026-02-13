@@ -71,6 +71,8 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/management/numbers/configure', 'numbersConfigure')->name('management.numbers.configure');
     
     Route::get('/my-profile', 'myProfile')->name('my-profile');
+    Route::post('/my-profile/save', 'saveProfile')->name('my-profile.save');
+    Route::post('/my-profile/change-password', 'changePassword')->name('my-profile.change-password');
     
     Route::get('/account', 'account')->name('account');
     Route::get('/account/details', 'accountDetails')->name('account.details');

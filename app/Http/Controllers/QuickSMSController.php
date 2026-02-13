@@ -2354,9 +2354,214 @@ class QuickSMSController extends Controller
 
     public function myProfile()
     {
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+
+        if (!$userId || !$tenantId) {
+            return redirect()->route('auth.login');
+        }
+
+        $user = \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        $account = \Illuminate\Support\Facades\DB::table('accounts')
+            ->where('id', $tenantId)
+            ->first();
+
+        if (!$user) {
+            session()->flush();
+            return redirect()->route('auth.login');
+        }
+
+        $securityEvents = \Illuminate\Support\Facades\DB::table('auth_audit_log')
+            ->where('actor_id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($event) {
+                $iconMap = [
+                    'login_success' => ['icon' => 'fa-sign-in-alt', 'color' => 'success', 'label' => 'Successful login'],
+                    'login_failed' => ['icon' => 'fa-exclamation-triangle', 'color' => 'warning', 'label' => 'Failed login attempt'],
+                    'password_changed' => ['icon' => 'fa-key', 'color' => 'info', 'label' => 'Password changed'],
+                    'mfa_verified' => ['icon' => 'fa-shield-alt', 'color' => 'primary', 'label' => 'MFA verified'],
+                    'mfa_enabled' => ['icon' => 'fa-shield-alt', 'color' => 'success', 'label' => 'MFA enabled'],
+                    'mfa_disabled' => ['icon' => 'fa-shield-alt', 'color' => 'danger', 'label' => 'MFA disabled'],
+                    'profile_updated' => ['icon' => 'fa-user-edit', 'color' => 'info', 'label' => 'Profile updated'],
+                    'logout' => ['icon' => 'fa-sign-out-alt', 'color' => 'secondary', 'label' => 'Logged out'],
+                ];
+                $mapped = $iconMap[$event->event_type] ?? ['icon' => 'fa-circle', 'color' => 'secondary', 'label' => ucfirst(str_replace('_', ' ', $event->event_type ?? 'Unknown'))];
+                return [
+                    'date' => $event->created_at ? \Carbon\Carbon::parse($event->created_at)->format('d M Y, H:i') : 'N/A',
+                    'event' => $mapped['label'],
+                    'ip' => $event->ip_address ?? 'N/A',
+                    'icon' => $mapped['icon'],
+                    'color' => $mapped['color'],
+                ];
+            })
+            ->toArray();
+
+        $roleLabels = [
+            'owner' => 'Account Owner',
+            'admin' => 'Account Administrator',
+            'manager' => 'Manager',
+            'user' => 'Standard User',
+            'viewer' => 'Viewer',
+        ];
+
         return view('quicksms.my-profile', [
-            'page_title' => 'My Profile'
+            'page_title' => 'My Profile',
+            'user' => $user,
+            'account' => $account,
+            'securityEvents' => $securityEvents,
+            'roleLabel' => $roleLabels[$user->role ?? 'user'] ?? ucfirst($user->role ?? 'User'),
         ]);
+    }
+
+    public function saveProfile(Request $request)
+    {
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+
+        if (!$userId || !$tenantId) {
+            return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
+        }
+
+        $user = \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $firstName = trim($request->input('first_name', ''));
+        $lastName = trim($request->input('last_name', ''));
+        $mobileNumber = trim($request->input('mobile_number', ''));
+
+        if (empty($firstName) || empty($lastName)) {
+            return response()->json(['success' => false, 'message' => 'First name and last name are required'], 422);
+        }
+
+        if (!empty($mobileNumber) && !preg_match('/^\+[1-9]\d{6,14}$/', str_replace(' ', '', $mobileNumber))) {
+            return response()->json(['success' => false, 'message' => 'Invalid mobile number format. Use E.164 format (e.g., +447700900123)'], 422);
+        }
+
+        $updateData = [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'mobile_number' => $mobileNumber ?: null,
+            'updated_at' => now(),
+            'updated_by' => $userId,
+        ];
+
+        \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->update($updateData);
+
+        try {
+            \Illuminate\Support\Facades\DB::table('auth_audit_log')->insert([
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'actor_id' => $userId,
+                'actor_email' => $user->email,
+                'tenant_id' => $tenantId,
+                'event_type' => 'profile_updated',
+                'result' => 'success',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'metadata' => json_encode(['fields_changed' => array_keys($updateData)]),
+                'created_at' => now(),
+            ]);
+        } catch (\Exception $e) {
+        }
+
+        return response()->json(['success' => true, 'message' => 'Profile updated successfully']);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+
+        if (!$userId || !$tenantId) {
+            return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
+        }
+
+        $user = \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $currentPassword = $request->input('current_password', '');
+        $newPassword = $request->input('new_password', '');
+        $confirmPassword = $request->input('confirm_password', '');
+
+        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+            return response()->json(['success' => false, 'message' => 'All password fields are required'], 422);
+        }
+
+        if (!password_verify($currentPassword, $user->password)) {
+            return response()->json(['success' => false, 'message' => 'Current password is incorrect'], 422);
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            return response()->json(['success' => false, 'message' => 'New passwords do not match'], 422);
+        }
+
+        if (strlen($newPassword) < 12) {
+            return response()->json(['success' => false, 'message' => 'Password must be at least 12 characters'], 422);
+        }
+        if (!preg_match('/[A-Z]/', $newPassword)) {
+            return response()->json(['success' => false, 'message' => 'Password must contain at least one uppercase letter'], 422);
+        }
+        if (!preg_match('/[a-z]/', $newPassword)) {
+            return response()->json(['success' => false, 'message' => 'Password must contain at least one lowercase letter'], 422);
+        }
+        if (!preg_match('/[0-9]/', $newPassword)) {
+            return response()->json(['success' => false, 'message' => 'Password must contain at least one number'], 422);
+        }
+        if (!preg_match('/[^A-Za-z0-9]/', $newPassword)) {
+            return response()->json(['success' => false, 'message' => 'Password must contain at least one special character'], 422);
+        }
+
+        if (password_verify($newPassword, $user->password)) {
+            return response()->json(['success' => false, 'message' => 'New password cannot be the same as current password'], 422);
+        }
+
+        \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->update([
+                'password' => password_hash($newPassword, PASSWORD_BCRYPT),
+                'password_changed_at' => now(),
+                'updated_at' => now(),
+                'updated_by' => $userId,
+            ]);
+
+        try {
+            \Illuminate\Support\Facades\DB::table('auth_audit_log')->insert([
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'actor_id' => $userId,
+                'actor_email' => $user->email,
+                'tenant_id' => $tenantId,
+                'event_type' => 'password_changed',
+                'result' => 'success',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'created_at' => now(),
+            ]);
+        } catch (\Exception $e) {
+        }
+
+        return response()->json(['success' => true, 'message' => 'Password changed successfully']);
     }
     
     public function account()
