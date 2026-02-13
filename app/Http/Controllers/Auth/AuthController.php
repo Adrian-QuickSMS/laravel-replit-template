@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 /**
@@ -46,9 +47,9 @@ class AuthController extends Controller
             'phone' => 'nullable|string|max:20',
             'country' => 'required|string|size:2',
 
-            // Password (12-128 chars, mixed case, numbers, symbols, breach check)
+            // Password (optional at Step 1, set in Step 3: Security Setup)
             'password' => [
-                'required',
+                'nullable',
                 'confirmed',
                 Password::min(12)
                     ->max(128)
@@ -58,13 +59,13 @@ class AuthController extends Controller
                     ->uncompromised()
             ],
 
-            // Mobile Number (for MFA)
-            'mobile_number' => 'required|string|max:20',
+            // Mobile Number (optional at Step 1, set in Step 3: Security Setup)
+            'mobile_number' => 'nullable|string|max:20',
 
             // Consent (required)
             'accept_terms' => 'required|accepted',
-            'accept_privacy' => 'required|accepted',
-            'accept_fraud_prevention' => 'required|accepted',
+            'accept_privacy' => 'nullable|accepted',
+            'accept_fraud_prevention' => 'nullable|accepted',
 
             // Marketing Consent (optional)
             'accept_marketing' => 'nullable|boolean',
@@ -88,8 +89,9 @@ class AuthController extends Controller
         }
 
         try {
-            // Hash password before passing to stored procedure
-            $hashedPassword = Hash::make($request->password);
+            $hashedPassword = $request->password
+                ? Hash::make($request->password)
+                : Hash::make(Str::random(64));
             $ipAddress = $request->ip();
 
             // Call stored procedure — handles account, user, settings, flags, and audit
@@ -117,9 +119,9 @@ class AuthController extends Controller
 
             $accountData = $result[0];
 
-            // Update additional fields not handled by the SP (consent, UTM, mobile)
-            // These run as the table owner via SECURITY DEFINER context still active
-            $normalizedMobile = User::normalizeMobileNumber($request->mobile_number);
+            $normalizedMobile = $request->mobile_number
+                ? User::normalizeMobileNumber($request->mobile_number)
+                : null;
             $consentVersions = config('consent.versions', [
                 'terms' => '1.0',
                 'privacy' => '1.0',
@@ -150,10 +152,11 @@ class AuthController extends Controller
                 'signup_utm_term' => $request->utm_term,
             ]);
 
-            // Update user with mobile number
-            DB::table('users')->where('id', $accountData->user_id)->update([
-                'mobile_number' => $normalizedMobile,
-            ]);
+            if ($request->mobile_number) {
+                DB::table('users')->where('id', $accountData->user_id)->update([
+                    'mobile_number' => $normalizedMobile,
+                ]);
+            }
 
             // Generate email verification token
             $user = User::withoutGlobalScope('tenant')->find($accountData->user_id);
