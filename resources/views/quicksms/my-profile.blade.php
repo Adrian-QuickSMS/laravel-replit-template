@@ -482,15 +482,8 @@
                     <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
                         <input type="radio" name="mfaMethodChoice" value="sms" class="me-3">
                         <div>
-                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>SMS</h6>
-                            <small class="text-muted">Receive codes via text message (UK numbers only)</small>
-                        </div>
-                    </label>
-                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
-                        <input type="radio" name="mfaMethodChoice" value="rcs" class="me-3">
-                        <div>
-                            <h6 class="mb-1"><i class="fas fa-comment-dots me-2"></i>RCS</h6>
-                            <small class="text-muted">Receive codes via RCS messaging (UK numbers only)</small>
+                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>RCS/SMS</h6>
+                            <small class="text-muted">Receive codes via RCS or text message (UK numbers only)</small>
                         </div>
                     </label>
                 </div>
@@ -570,15 +563,8 @@
                     <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
                         <input type="radio" name="changeMfaMethod" value="sms" class="me-3">
                         <div class="flex-grow-1">
-                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>SMS</h6>
-                            <small class="text-muted">Receive codes via text message (UK numbers only)</small>
-                        </div>
-                    </label>
-                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
-                        <input type="radio" name="changeMfaMethod" value="rcs" class="me-3">
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1"><i class="fas fa-comment-dots me-2"></i>RCS</h6>
-                            <small class="text-muted">Receive codes via RCS messaging (UK numbers only)</small>
+                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>RCS/SMS</h6>
+                            <small class="text-muted">Receive codes via RCS or text message (UK numbers only)</small>
                         </div>
                     </label>
                 </div>
