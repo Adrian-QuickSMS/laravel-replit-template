@@ -919,56 +919,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // =====================================================
-    // LOAD SAVED DATA
+    // CLEAR STALE DATA
     // =====================================================
+    localStorage.removeItem('account_details');
+
     function loadSavedData() {
-        var saved = localStorage.getItem('account_details');
-        if (!saved) {
-            console.log('[Activate] No saved account_details found');
-            return;
-        }
-        
-        var data;
-        try {
-            data = JSON.parse(saved);
-            console.log('[Activate] Loading saved data:', Object.keys(data));
-        } catch (e) {
-            console.error('[Activate] Invalid JSON in localStorage:', e);
-            return;
-        }
-        
-        // Set company type
-        if (data.company_type) {
-            selectedCompanyType = data.company_type;
-            var typeInput = document.getElementById('company_type');
-            if (typeInput) typeInput.value = data.company_type;
-            var tile = document.querySelector('.company-type-tile[data-type="' + data.company_type + '"]');
-            if (tile) tile.classList.add('selected');
-            updateCompanyTypeFields();
-        }
-        
-        // Set other fields
-        Object.keys(data).forEach(function(key) {
-            if (key !== 'company_type') {
-                var el = document.getElementById(key);
-                if (el) {
-                    el.value = data[key] || '';
-                }
-            }
-        });
-        
-        // Handle VAT visibility
-        if (data.vat_registered === 'yes') {
-            var vatCountry = document.getElementById('vatCountryGroup');
-            var vatNumber = document.getElementById('vatNumberGroup');
-            var reverseCharges = document.getElementById('reverseChargesGroup');
-            if (vatCountry) vatCountry.style.display = 'block';
-            if (vatNumber) vatNumber.style.display = 'block';
-            if (reverseCharges) reverseCharges.style.display = 'block';
-        }
-        
-        // Validate form
-        validateForm();
+        console.log('[Activate] Form starts empty - fill in details to complete activation');
     }
     
     // =====================================================
