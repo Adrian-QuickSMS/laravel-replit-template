@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\RcsAssetController;
 Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/login', 'login')->name('auth.login');
     Route::post('/login', 'handleLogin')->name('auth.login.submit');
+    Route::post('/login/verify-mfa', 'verifyMfa')->name('auth.mfa.verify');
+    Route::post('/login/resend-mfa', 'resendMfa')->name('auth.mfa.resend');
     Route::get('/logout', 'logout')->name('auth.logout');
     Route::get('/signup', 'signup')->name('auth.signup');
     Route::get('/signup/verify', 'verifyEmail')->name('auth.verify-email');

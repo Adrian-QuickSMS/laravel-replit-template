@@ -22,8 +22,12 @@ class QuickSMSController extends Controller
     {
         $email = strtolower(trim($request->input('email')));
         $password = $request->input('password');
+        $isAjax = $request->expectsJson() || $request->ajax();
 
         if (!$email || !$password) {
+            if ($isAjax) {
+                return response()->json(['status' => 'error', 'message' => 'Please enter your email and password.'], 422);
+            }
             return back()->withErrors(['email' => 'Please enter your email and password.']);
         }
 
@@ -40,36 +44,163 @@ class QuickSMSController extends Controller
             );
 
             if (empty($result) || empty($result[0]->user_id)) {
+                if ($isAjax) {
+                    return response()->json(['status' => 'error', 'message' => 'Invalid email or password.'], 401);
+                }
                 return back()->withErrors(['email' => 'Invalid email or password.'])->withInput(['email' => $email]);
             }
 
             $userData = $result[0];
 
             if (isset($userData->failed_attempts) && $userData->failed_attempts >= 5) {
-                return back()->withErrors(['email' => 'Account is locked due to too many failed attempts. Please try again later.']);
+                $msg = 'Account is locked due to too many failed attempts. Please try again later.';
+                if ($isAjax) {
+                    return response()->json(['status' => 'error', 'message' => $msg], 401);
+                }
+                return back()->withErrors(['email' => $msg]);
             }
 
             $user = \App\Models\User::withoutGlobalScope('tenant')->find($userData->user_id);
 
-            session([
-                'customer_logged_in' => true,
-                'customer_email' => $user->email,
-                'customer_name' => $user->first_name . ' ' . $user->last_name,
-                'customer_user_id' => $user->id,
-                'customer_tenant_id' => $user->tenant_id,
-                'customer_account_id' => $user->tenant_id,
-            ]);
+            if ($user->hasMfaEnabled()) {
+                $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-            \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+                session([
+                    'mfa_pending_user_id' => $user->id,
+                    'mfa_pending_tenant_id' => $user->tenant_id,
+                    'mfa_otp' => hash('sha256', $otp),
+                    'mfa_otp_expires' => now()->addMinutes(5)->timestamp,
+                    'mfa_attempts' => 0,
+                ]);
 
-            $request->session()->regenerate();
+                $mobileHint = $user->mobile_number ? substr($user->mobile_number, -4) : '';
 
+                $responseData = [
+                    'status' => 'mfa_required',
+                    'message' => 'MFA verification required',
+                    'mobile_hint' => $mobileHint,
+                ];
+
+                if (config('app.debug') && config('app.env') === 'local') {
+                    $responseData['otp_debug'] = $otp;
+                }
+
+                if ($isAjax) {
+                    return response()->json($responseData);
+                }
+
+                return back()->withErrors(['mfa' => 'MFA verification required'])->withInput(['email' => $email]);
+            }
+
+            $this->completeLogin($request, $user);
+
+            if ($isAjax) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Login successful',
+                    'redirect' => route('dashboard'),
+                ]);
+            }
             return redirect()->route('dashboard')->with('success', 'Welcome back, ' . $user->first_name . '!');
 
         } catch (\Exception $e) {
             \Log::error('Login error: ' . $e->getMessage());
+            if ($isAjax) {
+                return response()->json(['status' => 'error', 'message' => 'An error occurred during login. Please try again.'], 500);
+            }
             return back()->withErrors(['email' => 'An error occurred during login. Please try again.'])->withInput(['email' => $email]);
         }
+    }
+
+    public function verifyMfa(Request $request)
+    {
+        $code = $request->input('code');
+        $pendingUserId = session('mfa_pending_user_id');
+        $pendingTenantId = session('mfa_pending_tenant_id');
+        $storedOtp = session('mfa_otp');
+        $otpExpires = session('mfa_otp_expires');
+        $attempts = session('mfa_attempts', 0);
+
+        if (!$pendingUserId || !$storedOtp) {
+            return response()->json(['status' => 'error', 'message' => 'No MFA challenge pending. Please log in again.'], 401);
+        }
+
+        if ($attempts >= 5) {
+            session()->forget(['mfa_pending_user_id', 'mfa_pending_tenant_id', 'mfa_otp', 'mfa_otp_expires', 'mfa_attempts']);
+            return response()->json(['status' => 'error', 'message' => 'Too many failed attempts. Please log in again.'], 401);
+        }
+
+        if (now()->timestamp > $otpExpires) {
+            session()->forget(['mfa_pending_user_id', 'mfa_pending_tenant_id', 'mfa_otp', 'mfa_otp_expires', 'mfa_attempts']);
+            return response()->json(['status' => 'error', 'message' => 'Code has expired. Please log in again.'], 401);
+        }
+
+        if (hash('sha256', $code) !== $storedOtp) {
+            session(['mfa_attempts' => $attempts + 1]);
+            $remaining = 5 - ($attempts + 1);
+            return response()->json(['status' => 'error', 'message' => "Invalid code. {$remaining} attempts remaining."], 401);
+        }
+
+        $user = \App\Models\User::withoutGlobalScope('tenant')
+            ->where('id', $pendingUserId)
+            ->where('tenant_id', $pendingTenantId)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User not found. Please log in again.'], 401);
+        }
+
+        session()->forget(['mfa_pending_user_id', 'mfa_pending_tenant_id', 'mfa_otp', 'mfa_otp_expires', 'mfa_attempts']);
+
+        $this->completeLogin($request, $user);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'MFA verification successful',
+            'redirect' => route('dashboard'),
+        ]);
+    }
+
+    public function resendMfa(Request $request)
+    {
+        $pendingUserId = session('mfa_pending_user_id');
+        if (!$pendingUserId) {
+            return response()->json(['status' => 'error', 'message' => 'No MFA challenge pending.'], 401);
+        }
+
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        session([
+            'mfa_otp' => hash('sha256', $otp),
+            'mfa_otp_expires' => now()->addMinutes(5)->timestamp,
+            'mfa_attempts' => 0,
+        ]);
+
+        $responseData = [
+            'status' => 'success',
+            'message' => 'New code sent',
+        ];
+
+        if (config('app.debug') && config('app.env') === 'local') {
+            $responseData['otp_debug'] = $otp;
+        }
+
+        return response()->json($responseData);
+    }
+
+    private function completeLogin(Request $request, $user)
+    {
+        session([
+            'customer_logged_in' => true,
+            'customer_email' => $user->email,
+            'customer_name' => $user->first_name . ' ' . $user->last_name,
+            'customer_user_id' => $user->id,
+            'customer_tenant_id' => $user->tenant_id,
+            'customer_account_id' => $user->tenant_id,
+        ]);
+
+        \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+
+        $request->session()->regenerate();
     }
     
     public function logout()
