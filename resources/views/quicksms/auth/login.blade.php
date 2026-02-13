@@ -240,9 +240,8 @@ body {
             @endif
             
             <div class="alert alert-info mb-3" style="font-size: 0.85rem;">
-                <strong>Demo Credentials:</strong><br>
-                Email: <code>demo@quicksms.com</code><br>
-                Password: <code>demo123</code>
+                <strong>Sign in with your account credentials</strong><br>
+                <small class="text-muted">Don't have an account? <a href="{{ url('/signup') }}">Sign up here</a></small>
             </div>
             
             <form id="loginForm" method="POST" action="{{ route('auth.login.submit') }}" novalidate>
@@ -677,7 +676,6 @@ $(document).ready(function() {
     });
     
     $('#loginForm').on('submit', function(e) {
-        e.preventDefault();
         var email = $('#email').val().trim().toLowerCase();
         var password = $('#password').val();
         
@@ -694,152 +692,15 @@ $(document).ready(function() {
             isValid = false;
         }
         
-        if (!isValid) return;
+        if (!isValid) {
+            e.preventDefault();
+            return;
+        }
         
         var $btn = $('#loginBtn');
         $btn.find('.btn-text').addClass('d-none');
         $btn.find('.btn-loading').removeClass('d-none');
         $btn.prop('disabled', true);
-        
-        setTimeout(function() {
-            var user = MockUsers[email];
-            if (user && user.password === password) {
-                IPService.logLoginAttempt(email, true, { stage: 'credentials' });
-                
-                // Check IP allowlist policy BEFORE MFA challenge
-                var ipCheck = AccountIPPolicy.isIPAllowed(IPService.currentIP);
-                if (!ipCheck.allowed) {
-                    var requestId = AccountIPPolicy.generateRequestId();
-                    var timestamp = new Date().toISOString();
-                    
-                    // Log security event
-                    AuditService.log('LOGIN_BLOCKED_BY_IP_POLICY', {
-                        source_ip: IPService.currentIP,
-                        timestamp: timestamp,
-                        reason: 'IP_BLOCKED',
-                        email_hash: btoa(email).substring(0, 16), // Simple hash for privacy
-                        request_id: requestId
-                    });
-                    
-                    // Show blocked error banner
-                    $('#loginStatus')
-                        .removeClass('d-none alert-danger')
-                        .addClass('alert-danger')
-                        .html('<i class="fas fa-ban me-2"></i><strong>Login blocked:</strong> your network is not permitted for this account. Please contact your administrator.<br><small class="text-muted mt-1 d-block">Request ID: ' + requestId + ' | ' + new Date().toLocaleString() + '</small>');
-                    
-                    $btn.find('.btn-text').removeClass('d-none');
-                    $btn.find('.btn-loading').addClass('d-none');
-                    $btn.prop('disabled', false);
-                    return;
-                }
-                
-                AuditService.log('login_success_step1', { email: email });
-                currentEmail = email;
-                
-                if (user.mfa_enabled) {
-                    currentMobile = user.mobile;
-                    if (currentMobile) {
-                        $('#maskedMobile').text(currentMobile.slice(-4));
-                    }
-                    
-                    // Check policy compliance
-                    var policyCheck = AccountMfaPolicy.checkPolicyCompliance(user);
-                    forcedEnrollmentMode = !policyCheck.compliant;
-                    
-                    if (forcedEnrollmentMode) {
-                        // User needs to enroll in an allowed method - BLOCK verification
-                        $('#policyChangedAlert').removeClass('d-none');
-                        $('#mfaStepTitle').text('Security Policy Update Required');
-                        $('#mfaStepSubtitle').text('Set up an approved authentication method.');
-                        
-                        // Hide verification UI, show enrollment UI
-                        $('#mfaMethodSelection').addClass('d-none');
-                        $('#sendCodeSection').addClass('d-none');
-                        $('#mfaForm').addClass('d-none');
-                        $('#forcedEnrollmentSection').removeClass('d-none');
-                        
-                        // Emit audit event for forced enrollment
-                        AuditService.log('SECURITY_POLICY_FORCED_MFA_ENROLMENT', {
-                            user: email,
-                            timestamp: new Date().toISOString(),
-                            source_ip: IPService.currentIP,
-                            reason: 'POLICY_CHANGED'
-                        });
-                    } else {
-                        $('#policyChangedAlert').addClass('d-none');
-                        $('#mfaStepTitle').text('Verify it\'s you');
-                        $('#mfaStepSubtitle').text('Choose how you want to verify.');
-                        
-                        // Show verification UI, hide enrollment UI
-                        $('#mfaMethodSelection').removeClass('d-none');
-                        $('#mfaForm').removeClass('d-none');
-                        $('#forcedEnrollmentSection').addClass('d-none');
-                    }
-                    
-                    // Show/hide methods based on POLICY (not just user settings)
-                    var showAuthenticator = AccountMfaPolicy.allowed_methods.authenticator;
-                    var showSmsRcs = AccountMfaPolicy.allowed_methods.sms_rcs;
-                    
-                    // Authenticator App - show if policy allows AND (user has it OR forced enrollment mode)
-                    if (showAuthenticator && (user.totp_enabled || forcedEnrollmentMode)) {
-                        $('#totpMethodCard').show();
-                    } else {
-                        $('#totpMethodCard').hide();
-                    }
-                    
-                    // SMS/RCS - show if policy allows AND user has mobile
-                    if (showSmsRcs && currentMobile) {
-                        $('#smsMethodCard').show();
-                    } else {
-                        $('#smsMethodCard').hide();
-                    }
-                    
-                    // Set default selection based on what's visible
-                    $('.mfa-method-card').removeClass('active');
-                    if (showSmsRcs && currentMobile) {
-                        $('#smsMethodCard').addClass('active');
-                    } else if (showAuthenticator) {
-                        $('#totpMethodCard').addClass('active');
-                    }
-                    
-                    // Handle case where no methods are available (shouldn't happen if policy is valid)
-                    if (!showAuthenticator && !(showSmsRcs && currentMobile)) {
-                        $('#noMobileWarning').removeClass('d-none');
-                        $('#sendCodeSection').addClass('d-none');
-                    } else {
-                        $('#noMobileWarning').addClass('d-none');
-                        $('#sendCodeSection').removeClass('d-none');
-                    }
-                    
-                    if (user.rcs_enabled && currentMobile && showSmsRcs) {
-                        $('#rcsChannelOption').show();
-                    } else {
-                        $('#rcsChannelOption').hide();
-                    }
-                    
-                    var bypassResult = DevBypassService.canBypass(user);
-                    if (bypassResult.allowed && !forcedEnrollmentMode) {
-                        $('#devBypassSection').removeClass('d-none');
-                    } else {
-                        $('#devBypassSection').addClass('d-none');
-                    }
-                    
-                    $('#loginStep1').addClass('d-none');
-                    $('#loginStep2').removeClass('d-none');
-                } else {
-                    AuditService.log('login_complete', { email: email, mfa_required: false });
-                    window.location.href = '/dashboard';
-                }
-            } else {
-                IPService.logLoginAttempt(email, false, { reason: 'invalid_credentials' });
-                AuditService.log('login_failed', { email: email, reason: 'invalid_credentials' });
-                $('#loginStatus').html('<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Invalid email or password. Please try again.</div>').removeClass('d-none');
-            }
-            
-            $btn.find('.btn-text').removeClass('d-none');
-            $btn.find('.btn-loading').addClass('d-none');
-            $btn.prop('disabled', false);
-        }, 1000);
     });
     
     $('.mfa-method-card').on('click', function() {

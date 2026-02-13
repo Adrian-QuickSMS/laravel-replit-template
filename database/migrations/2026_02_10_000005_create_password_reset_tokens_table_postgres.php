@@ -7,17 +7,23 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * GREEN SIDE: Password Reset Tokens
+     * GREEN SIDE: Password Reset Tokens (PostgreSQL Version)
      *
      * DATA CLASSIFICATION: Restricted - Password Recovery
      * SIDE: GREEN (used by customer password reset flow)
      * TENANT ISOLATION: Scoped via email (which is unique per tenant in users table)
+     *
+     * POSTGRESQL NOTES:
+     * - No UUIDs needed (email is PK)
+     * - No RLS needed (already isolated by email uniqueness)
+     * - Simple table structure
      *
      * SECURITY NOTES:
      * - Tokens expire after 60 minutes
      * - One-time use only (deleted after use)
      * - Rate limited at application layer
      * - Token never exposed in logs
+     * - Email is unique per tenant, providing natural isolation
      */
     public function up(): void
     {

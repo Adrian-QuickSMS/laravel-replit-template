@@ -1,0 +1,225 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * POSTGRESQL VERSION - GREEN SIDE: Customer Accounts (Tenants)
+     *
+     * DATA CLASSIFICATION: Internal - Customer Configuration
+     * SIDE: GREEN (customer accessible via views)
+     * TENANT ISOLATION: This IS the tenant table (root of isolation)
+     *
+     * SECURITY NOTES:
+     * - Native PostgreSQL UUID type for performance
+     * - Row Level Security (RLS) enabled for defense-in-depth
+     * - Portal users access via account_safe_view only
+     * - Direct SELECT blocked for portal roles via GRANTS
+     *
+     * CHANGES FROM MYSQL:
+     * - BINARY(16) → native UUID type
+     * - UNHEX(UUID()) → gen_random_uuid()
+     * - MySQL triggers → PL/pgSQL trigger functions
+     * - ENUM fields → PostgreSQL ENUM types
+     */
+    public function up(): void
+    {
+        // Create ENUM types first (PostgreSQL requires this)
+        DB::statement("CREATE TYPE account_status AS ENUM ('pending_verification', 'active', 'suspended', 'closed')");
+        DB::statement("CREATE TYPE account_type AS ENUM ('trial', 'prepay', 'postpay', 'system')");
+
+        Schema::create('accounts', function (Blueprint $table) {
+            // Primary identifier - Native PostgreSQL UUID
+            $table->uuid('id')->primary();
+
+            // Account identification
+            $table->string('account_number', 20)->unique()->comment('Public account identifier (QS00000001)');
+            $table->string('company_name');
+            $table->string('trading_name')->nullable();
+
+            // Contact details (GREEN - customer can see/edit)
+            $table->string('email')->comment('Primary account email');
+            $table->string('billing_email')->nullable();
+            $table->string('phone')->nullable();
+
+            // Address (GREEN)
+            $table->string('address_line1')->nullable();
+            $table->string('address_line2')->nullable();
+            $table->string('city')->nullable();
+            $table->string('county')->nullable();
+            $table->string('postcode')->nullable();
+            $table->string('country', 2)->default('GB');
+
+            // Business details (GREEN)
+            $table->string('vat_number')->nullable();
+
+            // Verification tracking
+            $table->timestamp('email_verified_at')->nullable();
+            $table->boolean('phone_verified')->default(false);
+
+            // External integration IDs (GREEN - hashed references only)
+            $table->string('hubspot_company_id')->nullable()->unique();
+            $table->timestamp('last_hubspot_sync')->nullable();
+
+            // Consent tracking (GDPR compliance)
+            // Terms of Service
+            $table->timestamp('terms_accepted_at')->nullable();
+            $table->string('terms_accepted_ip', 45)->nullable();
+            $table->string('terms_version', 20)->nullable();
+
+            // Privacy Policy
+            $table->timestamp('privacy_accepted_at')->nullable();
+            $table->string('privacy_accepted_ip', 45)->nullable();
+            $table->string('privacy_version', 20)->nullable();
+
+            // Fraud Prevention (mandatory)
+            $table->timestamp('fraud_consent_at')->nullable();
+            $table->string('fraud_consent_ip', 45)->nullable();
+            $table->string('fraud_consent_version', 20)->nullable();
+
+            // Marketing (optional)
+            $table->timestamp('marketing_consent_at')->nullable();
+            $table->string('marketing_consent_ip', 45)->nullable();
+
+            // Signup tracking
+            $table->string('signup_ip_address', 45)->nullable();
+            $table->string('signup_referrer', 512)->nullable();
+
+            // UTM tracking (marketing attribution)
+            $table->string('signup_utm_source')->nullable();
+            $table->string('signup_utm_medium')->nullable();
+            $table->string('signup_utm_campaign')->nullable();
+            $table->string('signup_utm_content')->nullable();
+            $table->string('signup_utm_term')->nullable();
+
+            // Promotional credits
+            $table->integer('signup_credits_awarded')->default(0);
+            $table->string('signup_promotion_code')->nullable();
+
+            // Audit fields
+            $table->string('created_by')->nullable();
+            $table->string('updated_by')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+
+            // Indexes
+            $table->index('account_number');
+            $table->index('email');
+            $table->index('hubspot_company_id');
+            $table->index('signup_ip_address');
+            $table->index('signup_utm_source');
+        });
+
+        // Account status ENUM columns (must be added after table creation)
+        DB::statement("ALTER TABLE accounts ADD COLUMN status account_status DEFAULT 'pending_verification'");
+        DB::statement("ALTER TABLE accounts ADD COLUMN account_type account_type DEFAULT 'trial'");
+        DB::statement("CREATE INDEX idx_accounts_status ON accounts (status)");
+        DB::statement("CREATE INDEX idx_accounts_status_type ON accounts (status, account_type)");
+
+        // PL/pgSQL trigger function for UUID generation
+        DB::unprepared("
+            CREATE OR REPLACE FUNCTION generate_uuid_accounts()
+            RETURNS TRIGGER AS \$\$
+            BEGIN
+                IF NEW.id IS NULL THEN
+                    NEW.id = gen_random_uuid();
+                END IF;
+                RETURN NEW;
+            END;
+            \$\$ LANGUAGE plpgsql;
+        ");
+
+        DB::unprepared("
+            CREATE TRIGGER before_insert_accounts_uuid
+            BEFORE INSERT ON accounts
+            FOR EACH ROW
+            EXECUTE FUNCTION generate_uuid_accounts();
+        ");
+
+        // PL/pgSQL trigger function for account number generation
+        DB::unprepared("
+            CREATE SEQUENCE IF NOT EXISTS accounts_number_seq START 1;
+        ");
+
+        DB::unprepared("
+            CREATE OR REPLACE FUNCTION generate_account_number()
+            RETURNS TRIGGER AS \$\$
+            BEGIN
+                IF NEW.account_number IS NULL THEN
+                    -- Use sequence for concurrency-safe number generation
+                    NEW.account_number := 'QS' || LPAD(nextval('accounts_number_seq')::TEXT, 8, '0');
+                END IF;
+                RETURN NEW;
+            END;
+            \$\$ LANGUAGE plpgsql;
+        ");
+
+        DB::unprepared("
+            CREATE TRIGGER before_insert_accounts_number
+            BEFORE INSERT ON accounts
+            FOR EACH ROW
+            EXECUTE FUNCTION generate_account_number();
+        ");
+
+        // ENABLE ROW LEVEL SECURITY (including for table owner)
+        DB::unprepared("ALTER TABLE accounts ENABLE ROW LEVEL SECURITY");
+        DB::unprepared("ALTER TABLE accounts FORCE ROW LEVEL SECURITY");
+
+        // RLS Policy: Tenant isolation - no NULL-context bypass
+        // If no tenant context is set, zero rows are returned (fail-closed)
+        DB::unprepared("
+            CREATE POLICY accounts_isolation ON accounts
+            FOR ALL
+            USING (
+                id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
+            )
+            WITH CHECK (
+                id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
+            );
+        ");
+
+        // Privileged roles bypass: internal services and ops can see all accounts
+        DB::unprepared("
+            CREATE POLICY accounts_service_access ON accounts
+            FOR ALL
+            TO svc_red, ops_admin
+            USING (true)
+            WITH CHECK (true);
+        ");
+
+        // System account read access (restricted to service roles, not PUBLIC)
+        DB::unprepared("
+            CREATE POLICY accounts_system_bypass ON accounts
+            FOR SELECT
+            TO svc_red, ops_admin
+            USING (id = '00000000-0000-0000-0000-000000000001'::uuid);
+        ");
+
+        // Postgres superuser bypass (app connects as postgres)
+        DB::unprepared("
+            CREATE POLICY accounts_postgres_bypass ON accounts
+            FOR ALL
+            TO postgres
+            USING (true)
+            WITH CHECK (true);
+        ");
+    }
+
+    public function down(): void
+    {
+        DB::unprepared("DROP TRIGGER IF EXISTS before_insert_accounts_uuid ON accounts");
+        DB::unprepared("DROP TRIGGER IF EXISTS before_insert_accounts_number ON accounts");
+        DB::unprepared("DROP FUNCTION IF EXISTS generate_uuid_accounts()");
+        DB::unprepared("DROP FUNCTION IF EXISTS generate_account_number()");
+        DB::unprepared("DROP SEQUENCE IF EXISTS accounts_number_seq");
+
+        Schema::dropIfExists('accounts');
+
+        DB::statement("DROP TYPE IF EXISTS account_status CASCADE");
+        DB::statement("DROP TYPE IF EXISTS account_type CASCADE");
+    }
+};

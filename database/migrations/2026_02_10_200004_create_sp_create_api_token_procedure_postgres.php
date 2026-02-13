@@ -6,50 +6,64 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration
 {
     /**
-     * GREEN SIDE: Stored Procedure - Create API Token
+     * GREEN SIDE: Stored Procedure - Create API Token (PostgreSQL Version)
      *
-     * PROCEDURE: sp_create_api_token
+     * FUNCTION: sp_create_api_token
      * PURPOSE: Create new API token for programmatic access
+     *
+     * POSTGRESQL ENHANCEMENTS:
+     * - Native UUID generation and handling
+     * - JSONB for scopes and ip_whitelist (queryable)
+     * - Returns TABLE for Laravel compatibility
+     * - SECURITY DEFINER for audit log access
+     * - jsonb_build_object for metadata
+     * - ENUM type casting for access_level
      *
      * SECURITY:
      * - Portal users: EXECUTE permission
      * - Can only create tokens for own tenant
      * - Token hash stored (plain token returned once)
      * - Enforces token name uniqueness per tenant
-     * - Logs token creation to audit log
+     * - Logs token creation to audit log (RED SIDE)
      *
      * PARAMETERS:
-     * - p_user_id: User UUID creating the token
-     * - p_tenant_id: Tenant UUID
+     * - p_user_id: User UUID creating the token (TEXT, converted to UUID)
+     * - p_tenant_id: Tenant UUID (TEXT, converted to UUID)
      * - p_name: Token name
      * - p_token_hash: SHA-256 hash of token
      * - p_token_prefix: First 8 chars for identification
-     * - p_scopes: JSON array of scopes
-     * - p_access_level: read, write, full
-     * - p_ip_whitelist: JSON array of IPs (optional)
-     * - p_expires_at: Expiry datetime
+     * - p_scopes: JSONB array of scopes
+     * - p_access_level: readonly, write, admin (TEXT, cast to ENUM)
+     * - p_ip_whitelist: JSONB array of IPs (optional)
+     * - p_expires_at: Expiry datetime (TEXT, converted to TIMESTAMP)
      *
-     * RETURNS: token_id
+     * RETURNS: TABLE with token_id and status
      */
     public function up(): void
     {
-        DB::unprepared("
-            DROP FUNCTION IF EXISTS sp_create_api_token(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, JSONB, VARCHAR, JSONB, TIMESTAMP);
-        ");
+        DB::unprepared("DROP FUNCTION IF EXISTS sp_create_api_token(TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, JSONB, TEXT)");
 
         DB::unprepared("
             CREATE OR REPLACE FUNCTION sp_create_api_token(
-                p_user_id_hex VARCHAR(36),
-                p_tenant_id_hex VARCHAR(36),
-                p_name VARCHAR(100),
-                p_token_hash VARCHAR(64),
-                p_token_prefix VARCHAR(8),
+                p_user_id TEXT,
+                p_tenant_id TEXT,
+                p_name TEXT,
+                p_token_hash TEXT,
+                p_token_prefix TEXT,
                 p_scopes JSONB,
-                p_access_level VARCHAR(20),
+                p_access_level TEXT,
                 p_ip_whitelist JSONB,
-                p_expires_at TIMESTAMP
-            ) RETURNS TABLE(token_id TEXT, status TEXT)
-            LANGUAGE plpgsql AS \$\$
+                p_expires_at TEXT
+            )
+            RETURNS TABLE(
+                token_id TEXT,
+                status TEXT,
+                message TEXT
+            )
+            LANGUAGE plpgsql
+            SECURITY DEFINER
+            SET search_path = public, pg_temp
+            AS \$\$
             DECLARE
                 v_user_id UUID;
                 v_tenant_id UUID;
@@ -57,15 +71,15 @@ return new class extends Migration
                 v_actual_tenant_id UUID;
                 v_name_exists INT;
             BEGIN
-                -- Convert hex UUIDs to UUID type
-                v_user_id := p_user_id_hex::UUID;
-                v_tenant_id := p_tenant_id_hex::UUID;
+                -- Convert text UUIDs to UUID type
+                v_user_id := p_user_id::UUID;
+                v_tenant_id := p_tenant_id::UUID;
                 v_token_id := gen_random_uuid();
 
                 -- Verify user belongs to tenant
-                SELECT u.tenant_id INTO v_actual_tenant_id
-                FROM users u
-                WHERE u.id = v_user_id
+                SELECT tenant_id INTO v_actual_tenant_id
+                FROM users
+                WHERE id = v_user_id
                 LIMIT 1;
 
                 IF v_actual_tenant_id IS NULL THEN
@@ -98,6 +112,7 @@ return new class extends Migration
                     scopes,
                     access_level,
                     ip_whitelist,
+                    status,
                     expires_at,
                     created_at,
                     updated_at
@@ -109,9 +124,10 @@ return new class extends Migration
                     p_token_hash,
                     p_token_prefix,
                     p_scopes,
-                    p_access_level,
+                    p_access_level::api_token_access_level,
                     p_ip_whitelist,
-                    p_expires_at,
+                    'active'::api_token_status,
+                    CASE WHEN p_expires_at IS NOT NULL THEN p_expires_at::TIMESTAMP ELSE NULL END,
                     NOW(),
                     NOW()
                 );
@@ -127,28 +143,36 @@ return new class extends Migration
                     metadata,
                     created_at
                 ) VALUES (
-                    'customer_user',
+                    'customer_user'::actor_type,
                     v_user_id,
                     v_tenant_id,
-                    'api_token_created',
-                    '',
-                    'success',
+                    'api_token_created'::auth_event_type,
+                    '0.0.0.0'::INET,
+                    'success'::auth_result,
                     jsonb_build_object('token_name', p_name, 'access_level', p_access_level),
                     NOW()
                 );
 
                 -- Return token ID
-                RETURN QUERY SELECT
+                RETURN QUERY
+                SELECT
                     v_token_id::TEXT,
-                    'success'::TEXT;
+                    'success'::TEXT,
+                    'API token created successfully'::TEXT;
 
+            EXCEPTION
+                WHEN OTHERS THEN
+                    RAISE EXCEPTION 'Token creation failed: %', SQLERRM;
             END;
-            \$\$
+            \$\$;
         ");
+
+        // Grant EXECUTE permission to portal_rw role
+        DB::unprepared("GRANT EXECUTE ON FUNCTION sp_create_api_token TO portal_rw");
     }
 
     public function down(): void
     {
-        DB::unprepared("DROP FUNCTION IF EXISTS sp_create_api_token(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, JSONB, VARCHAR, JSONB, TIMESTAMP)");
+        DB::unprepared("DROP FUNCTION IF EXISTS sp_create_api_token(TEXT, TEXT, TEXT, TEXT, TEXT, JSONB, TEXT, JSONB, TEXT)");
     }
 };

@@ -20,30 +20,59 @@ class QuickSMSController extends Controller
     
     public function handleLogin(Request $request)
     {
-        $email = $request->input('email');
+        $email = strtolower(trim($request->input('email')));
         $password = $request->input('password');
-        
-        // Demo credentials
-        $demoUsers = [
-            'demo@quicksms.com' => 'demo123',
-            'customer@quicksms.com' => 'customer123',
-            'test@quicksms.com' => 'test123'
-        ];
-        
-        if (isset($demoUsers[$email]) && $demoUsers[$email] === $password) {
-            session(['customer_logged_in' => true]);
-            session(['customer_email' => $email]);
-            session(['customer_name' => explode('@', $email)[0]]);
-            
-            return redirect()->route('dashboard')->with('success', 'Welcome back!');
+
+        if (!$email || !$password) {
+            return back()->withErrors(['email' => 'Please enter your email and password.']);
         }
-        
-        return back()->withErrors(['email' => 'Invalid email or password. Try: demo@quicksms.com / demo123']);
+
+        try {
+            $user = \App\Models\User::withoutGlobalScope('tenant')
+                ->where('email', $email)
+                ->first();
+
+            $passwordVerified = $user && \Illuminate\Support\Facades\Hash::check($password, $user->password);
+
+            $result = \Illuminate\Support\Facades\DB::select(
+                "SELECT * FROM sp_authenticate_user(?, ?::inet, ?::boolean)",
+                [$email, $request->ip(), $passwordVerified ? 'true' : 'false']
+            );
+
+            if (empty($result) || empty($result[0]->user_id)) {
+                return back()->withErrors(['email' => 'Invalid email or password.'])->withInput(['email' => $email]);
+            }
+
+            $userData = $result[0];
+
+            if (isset($userData->failed_attempts) && $userData->failed_attempts >= 5) {
+                return back()->withErrors(['email' => 'Account is locked due to too many failed attempts. Please try again later.']);
+            }
+
+            $user = \App\Models\User::withoutGlobalScope('tenant')->find($userData->user_id);
+
+            session([
+                'customer_logged_in' => true,
+                'customer_email' => $user->email,
+                'customer_name' => $user->first_name . ' ' . $user->last_name,
+                'customer_user_id' => $user->id,
+                'customer_tenant_id' => $user->tenant_id,
+                'customer_account_id' => $user->tenant_id,
+            ]);
+
+            \Illuminate\Support\Facades\DB::statement("SET app.current_tenant_id = '" . addslashes($user->tenant_id) . "'");
+
+            return redirect()->route('dashboard')->with('success', 'Welcome back, ' . $user->first_name . '!');
+
+        } catch (\Exception $e) {
+            \Log::error('Login error: ' . $e->getMessage());
+            return back()->withErrors(['email' => 'An error occurred during login. Please try again.'])->withInput(['email' => $email]);
+        }
     }
     
     public function logout()
     {
-        session()->forget(['customer_logged_in', 'customer_email', 'customer_name']);
+        session()->forget(['customer_logged_in', 'customer_email', 'customer_name', 'customer_user_id', 'customer_tenant_id', 'customer_account_id']);
         return redirect()->route('auth.login')->with('success', 'You have been logged out.');
     }
     
