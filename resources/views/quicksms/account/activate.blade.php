@@ -1086,8 +1086,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check activation status from server-side data only
     function checkActivationStatus() {
         var accountStatus = @json($account->status ?? 'pending_activation');
+        var hasCompanyType = @json(!empty($account->company_type ?? ''));
+        var hasRegisteredAddress = @json(!empty($account->registered_address_line1 ?? ''));
+        var hasSignatory = @json(!empty($account->signatory_name ?? ''));
 
-        if (accountStatus === 'live' || accountStatus === 'active') {
+        if (accountStatus === 'live') {
+            detailsComplete = true;
+            return true;
+        }
+
+        if (hasCompanyType && hasRegisteredAddress && hasSignatory) {
             detailsComplete = true;
             return true;
         }
