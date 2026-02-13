@@ -2479,6 +2479,8 @@ class QuickSMSController extends Controller
         } catch (\Exception $e) {
         }
 
+        session(['customer_name' => $firstName . ' ' . $lastName]);
+
         return response()->json(['success' => true, 'message' => 'Profile updated successfully']);
     }
 
