@@ -22,8 +22,12 @@ class QuickSMSController extends Controller
     {
         $email = strtolower(trim($request->input('email')));
         $password = $request->input('password');
+        $isAjax = $request->expectsJson() || $request->ajax();
 
         if (!$email || !$password) {
+            if ($isAjax) {
+                return response()->json(['status' => 'error', 'message' => 'Please enter your email and password.'], 422);
+            }
             return back()->withErrors(['email' => 'Please enter your email and password.']);
         }
 
@@ -40,37 +44,163 @@ class QuickSMSController extends Controller
             );
 
             if (empty($result) || empty($result[0]->user_id)) {
+                if ($isAjax) {
+                    return response()->json(['status' => 'error', 'message' => 'Invalid email or password.'], 401);
+                }
                 return back()->withErrors(['email' => 'Invalid email or password.'])->withInput(['email' => $email]);
             }
 
             $userData = $result[0];
 
             if (isset($userData->failed_attempts) && $userData->failed_attempts >= 5) {
-                return back()->withErrors(['email' => 'Account is locked due to too many failed attempts. Please try again later.']);
+                $msg = 'Account is locked due to too many failed attempts. Please try again later.';
+                if ($isAjax) {
+                    return response()->json(['status' => 'error', 'message' => $msg], 401);
+                }
+                return back()->withErrors(['email' => $msg]);
             }
 
             $user = \App\Models\User::withoutGlobalScope('tenant')->find($userData->user_id);
 
-            // Regenerate session ID to prevent session fixation attacks
-            $request->session()->regenerate();
+            if ($user->hasMfaEnabled()) {
+                $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-            session([
-                'customer_logged_in' => true,
-                'customer_email' => $user->email,
-                'customer_name' => $user->first_name . ' ' . $user->last_name,
-                'customer_user_id' => $user->id,
-                'customer_tenant_id' => $user->tenant_id,
-                'customer_account_id' => $user->tenant_id,
-            ]);
+                session([
+                    'mfa_pending_user_id' => $user->id,
+                    'mfa_pending_tenant_id' => $user->tenant_id,
+                    'mfa_otp' => hash('sha256', $otp),
+                    'mfa_otp_expires' => now()->addMinutes(5)->timestamp,
+                    'mfa_attempts' => 0,
+                ]);
 
-            \Illuminate\Support\Facades\DB::statement("SET app.current_tenant_id = ?", [$user->tenant_id]);
+                $mobileHint = $user->mobile_number ? substr($user->mobile_number, -4) : '';
 
+                $responseData = [
+                    'status' => 'mfa_required',
+                    'message' => 'MFA verification required',
+                    'mobile_hint' => $mobileHint,
+                ];
+
+                if (config('app.debug') && config('app.env') === 'local') {
+                    $responseData['otp_debug'] = $otp;
+                }
+
+                if ($isAjax) {
+                    return response()->json($responseData);
+                }
+
+                return back()->withErrors(['mfa' => 'MFA verification required'])->withInput(['email' => $email]);
+            }
+
+            $this->completeLogin($request, $user);
+
+            if ($isAjax) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Login successful',
+                    'redirect' => route('dashboard'),
+                ]);
+            }
             return redirect()->route('dashboard')->with('success', 'Welcome back, ' . $user->first_name . '!');
 
         } catch (\Exception $e) {
             \Log::error('Login error: ' . $e->getMessage());
+            if ($isAjax) {
+                return response()->json(['status' => 'error', 'message' => 'An error occurred during login. Please try again.'], 500);
+            }
             return back()->withErrors(['email' => 'An error occurred during login. Please try again.'])->withInput(['email' => $email]);
         }
+    }
+
+    public function verifyMfa(Request $request)
+    {
+        $code = $request->input('code');
+        $pendingUserId = session('mfa_pending_user_id');
+        $pendingTenantId = session('mfa_pending_tenant_id');
+        $storedOtp = session('mfa_otp');
+        $otpExpires = session('mfa_otp_expires');
+        $attempts = session('mfa_attempts', 0);
+
+        if (!$pendingUserId || !$storedOtp) {
+            return response()->json(['status' => 'error', 'message' => 'No MFA challenge pending. Please log in again.'], 401);
+        }
+
+        if ($attempts >= 5) {
+            session()->forget(['mfa_pending_user_id', 'mfa_pending_tenant_id', 'mfa_otp', 'mfa_otp_expires', 'mfa_attempts']);
+            return response()->json(['status' => 'error', 'message' => 'Too many failed attempts. Please log in again.'], 401);
+        }
+
+        if (now()->timestamp > $otpExpires) {
+            session()->forget(['mfa_pending_user_id', 'mfa_pending_tenant_id', 'mfa_otp', 'mfa_otp_expires', 'mfa_attempts']);
+            return response()->json(['status' => 'error', 'message' => 'Code has expired. Please log in again.'], 401);
+        }
+
+        if (hash('sha256', $code) !== $storedOtp) {
+            session(['mfa_attempts' => $attempts + 1]);
+            $remaining = 5 - ($attempts + 1);
+            return response()->json(['status' => 'error', 'message' => "Invalid code. {$remaining} attempts remaining."], 401);
+        }
+
+        $user = \App\Models\User::withoutGlobalScope('tenant')
+            ->where('id', $pendingUserId)
+            ->where('tenant_id', $pendingTenantId)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User not found. Please log in again.'], 401);
+        }
+
+        session()->forget(['mfa_pending_user_id', 'mfa_pending_tenant_id', 'mfa_otp', 'mfa_otp_expires', 'mfa_attempts']);
+
+        $this->completeLogin($request, $user);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'MFA verification successful',
+            'redirect' => route('dashboard'),
+        ]);
+    }
+
+    public function resendMfa(Request $request)
+    {
+        $pendingUserId = session('mfa_pending_user_id');
+        if (!$pendingUserId) {
+            return response()->json(['status' => 'error', 'message' => 'No MFA challenge pending.'], 401);
+        }
+
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        session([
+            'mfa_otp' => hash('sha256', $otp),
+            'mfa_otp_expires' => now()->addMinutes(5)->timestamp,
+            'mfa_attempts' => 0,
+        ]);
+
+        $responseData = [
+            'status' => 'success',
+            'message' => 'New code sent',
+        ];
+
+        if (config('app.debug') && config('app.env') === 'local') {
+            $responseData['otp_debug'] = $otp;
+        }
+
+        return response()->json($responseData);
+    }
+
+    private function completeLogin(Request $request, $user)
+    {
+        session([
+            'customer_logged_in' => true,
+            'customer_email' => $user->email,
+            'customer_name' => $user->first_name . ' ' . $user->last_name,
+            'customer_user_id' => $user->id,
+            'customer_tenant_id' => $user->tenant_id,
+            'customer_account_id' => $user->tenant_id,
+        ]);
+
+        \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+
+        $request->session()->regenerate();
     }
     
     public function logout()
@@ -2224,9 +2354,216 @@ class QuickSMSController extends Controller
 
     public function myProfile()
     {
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+
+        if (!$userId || !$tenantId) {
+            return redirect()->route('auth.login');
+        }
+
+        $user = \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        $account = \Illuminate\Support\Facades\DB::table('accounts')
+            ->where('id', $tenantId)
+            ->first();
+
+        if (!$user) {
+            session()->flush();
+            return redirect()->route('auth.login');
+        }
+
+        $securityEvents = \Illuminate\Support\Facades\DB::table('auth_audit_log')
+            ->where('actor_id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($event) {
+                $iconMap = [
+                    'login_success' => ['icon' => 'fa-sign-in-alt', 'color' => 'success', 'label' => 'Successful login'],
+                    'login_failed' => ['icon' => 'fa-exclamation-triangle', 'color' => 'warning', 'label' => 'Failed login attempt'],
+                    'password_changed' => ['icon' => 'fa-key', 'color' => 'info', 'label' => 'Password changed'],
+                    'mfa_verified' => ['icon' => 'fa-shield-alt', 'color' => 'primary', 'label' => 'MFA verified'],
+                    'mfa_enabled' => ['icon' => 'fa-shield-alt', 'color' => 'success', 'label' => 'MFA enabled'],
+                    'mfa_disabled' => ['icon' => 'fa-shield-alt', 'color' => 'danger', 'label' => 'MFA disabled'],
+                    'profile_updated' => ['icon' => 'fa-user-edit', 'color' => 'info', 'label' => 'Profile updated'],
+                    'logout' => ['icon' => 'fa-sign-out-alt', 'color' => 'secondary', 'label' => 'Logged out'],
+                ];
+                $mapped = $iconMap[$event->event_type] ?? ['icon' => 'fa-circle', 'color' => 'secondary', 'label' => ucfirst(str_replace('_', ' ', $event->event_type ?? 'Unknown'))];
+                return [
+                    'date' => $event->created_at ? \Carbon\Carbon::parse($event->created_at)->format('d M Y, H:i') : 'N/A',
+                    'event' => $mapped['label'],
+                    'ip' => $event->ip_address ?? 'N/A',
+                    'icon' => $mapped['icon'],
+                    'color' => $mapped['color'],
+                ];
+            })
+            ->toArray();
+
+        $roleLabels = [
+            'owner' => 'Account Owner',
+            'admin' => 'Account Administrator',
+            'manager' => 'Manager',
+            'user' => 'Standard User',
+            'viewer' => 'Viewer',
+        ];
+
         return view('quicksms.my-profile', [
-            'page_title' => 'My Profile'
+            'page_title' => 'My Profile',
+            'user' => $user,
+            'account' => $account,
+            'securityEvents' => $securityEvents,
+            'roleLabel' => $roleLabels[$user->role ?? 'user'] ?? ucfirst($user->role ?? 'User'),
         ]);
+    }
+
+    public function saveProfile(Request $request)
+    {
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+
+        if (!$userId || !$tenantId) {
+            return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
+        }
+
+        $user = \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $firstName = trim($request->input('first_name', ''));
+        $lastName = trim($request->input('last_name', ''));
+        $mobileNumber = trim($request->input('mobile_number', ''));
+
+        if (empty($firstName) || empty($lastName)) {
+            return response()->json(['success' => false, 'message' => 'First name and last name are required'], 422);
+        }
+
+        if (!empty($mobileNumber) && !preg_match('/^\+[1-9]\d{6,14}$/', str_replace(' ', '', $mobileNumber))) {
+            return response()->json(['success' => false, 'message' => 'Invalid mobile number format. Use E.164 format (e.g., +447700900123)'], 422);
+        }
+
+        $updateData = [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'mobile_number' => $mobileNumber ?: null,
+            'updated_at' => now(),
+            'updated_by' => $userId,
+        ];
+
+        \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->update($updateData);
+
+        try {
+            \Illuminate\Support\Facades\DB::table('auth_audit_log')->insert([
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'actor_id' => $userId,
+                'actor_email' => $user->email,
+                'tenant_id' => $tenantId,
+                'event_type' => 'profile_updated',
+                'result' => 'success',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'metadata' => json_encode(['fields_changed' => array_keys($updateData)]),
+                'created_at' => now(),
+            ]);
+        } catch (\Exception $e) {
+        }
+
+        session(['customer_name' => $firstName . ' ' . $lastName]);
+
+        return response()->json(['success' => true, 'message' => 'Profile updated successfully']);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+
+        if (!$userId || !$tenantId) {
+            return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
+        }
+
+        $user = \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $currentPassword = $request->input('current_password', '');
+        $newPassword = $request->input('new_password', '');
+        $confirmPassword = $request->input('confirm_password', '');
+
+        if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
+            return response()->json(['success' => false, 'message' => 'All password fields are required'], 422);
+        }
+
+        if (!password_verify($currentPassword, $user->password)) {
+            return response()->json(['success' => false, 'message' => 'Current password is incorrect'], 422);
+        }
+
+        if ($newPassword !== $confirmPassword) {
+            return response()->json(['success' => false, 'message' => 'New passwords do not match'], 422);
+        }
+
+        if (strlen($newPassword) < 12) {
+            return response()->json(['success' => false, 'message' => 'Password must be at least 12 characters'], 422);
+        }
+        if (!preg_match('/[A-Z]/', $newPassword)) {
+            return response()->json(['success' => false, 'message' => 'Password must contain at least one uppercase letter'], 422);
+        }
+        if (!preg_match('/[a-z]/', $newPassword)) {
+            return response()->json(['success' => false, 'message' => 'Password must contain at least one lowercase letter'], 422);
+        }
+        if (!preg_match('/[0-9]/', $newPassword)) {
+            return response()->json(['success' => false, 'message' => 'Password must contain at least one number'], 422);
+        }
+        if (!preg_match('/[^A-Za-z0-9]/', $newPassword)) {
+            return response()->json(['success' => false, 'message' => 'Password must contain at least one special character'], 422);
+        }
+
+        if (password_verify($newPassword, $user->password)) {
+            return response()->json(['success' => false, 'message' => 'New password cannot be the same as current password'], 422);
+        }
+
+        \Illuminate\Support\Facades\DB::table('users')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->update([
+                'password' => password_hash($newPassword, PASSWORD_BCRYPT),
+                'password_changed_at' => now(),
+                'updated_at' => now(),
+                'updated_by' => $userId,
+            ]);
+
+        try {
+            \Illuminate\Support\Facades\DB::table('auth_audit_log')->insert([
+                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                'actor_id' => $userId,
+                'actor_email' => $user->email,
+                'tenant_id' => $tenantId,
+                'event_type' => 'password_changed',
+                'result' => 'success',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'created_at' => now(),
+            ]);
+        } catch (\Exception $e) {
+        }
+
+        return response()->json(['success' => true, 'message' => 'Password changed successfully']);
     }
     
     public function account()
@@ -2246,8 +2583,19 @@ class QuickSMSController extends Controller
 
     public function accountDetails()
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
-        $account = $user ? $user->account : null;
+        $user = null;
+        $account = null;
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+        if ($userId && $tenantId) {
+            $user = \App\Models\User::withoutGlobalScope('tenant')
+                ->where('id', $userId)
+                ->where('tenant_id', $tenantId)
+                ->first();
+            if ($user) {
+                $account = \App\Models\Account::withoutGlobalScope('tenant')->find($user->tenant_id);
+            }
+        }
 
         return view('quicksms.account.details', [
             'page_title' => 'Account Details',
@@ -2258,8 +2606,125 @@ class QuickSMSController extends Controller
     
     public function accountActivate()
     {
+        $user = null;
+        $account = null;
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+        if ($userId && $tenantId) {
+            $user = \App\Models\User::withoutGlobalScope('tenant')
+                ->where('id', $userId)
+                ->where('tenant_id', $tenantId)
+                ->first();
+            if ($user) {
+                $account = \App\Models\Account::withoutGlobalScope('tenant')->find($user->tenant_id);
+            }
+        }
+
         return view('quicksms.account.activate', [
-            'page_title' => 'Activate Your Account'
+            'page_title' => 'Activate Your Account',
+            'user' => $user,
+            'account' => $account,
+        ]);
+    }
+
+    public function saveActivation(\Illuminate\Http\Request $request)
+    {
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+
+        if (!$userId || !$tenantId) {
+            return response()->json(['status' => 'error', 'message' => 'Not authenticated'], 401);
+        }
+
+        $user = \App\Models\User::withoutGlobalScope('tenant')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
+        }
+
+        $account = \App\Models\Account::withoutGlobalScope('tenant')
+            ->where('id', $user->tenant_id)
+            ->first();
+        if (!$account || $account->id !== $tenantId) {
+            return response()->json(['status' => 'error', 'message' => 'Account not found'], 404);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'company_type' => 'required|string|in:uk_limited,sole_trader,government_nhs,government,other',
+            'company_name' => 'required|string|max:255',
+            'trading_name' => 'nullable|string|max:255',
+            'company_number' => 'nullable|string|max:20',
+            'sector' => 'required|string|max:100',
+            'website' => 'required|url|max:255',
+            'address_line1' => 'required|string|max:255',
+            'address_line2' => 'nullable|string|max:255',
+            'city' => 'required|string|max:100',
+            'county' => 'nullable|string|max:100',
+            'postcode' => 'required|string|max:20',
+            'country' => 'required|string|max:2',
+            'billing_email' => 'required|email|max:255',
+            'support_email' => 'required|email|max:255',
+            'incident_email' => 'required|email|max:255',
+            'signatory_name' => 'required|string|max:255',
+            'signatory_title' => 'required|string|max:255',
+            'signatory_email' => 'required|email|max:255',
+            'vat_registered' => 'required|string|in:yes,no',
+            'vat_country' => 'nullable|string|max:2',
+            'vat_number' => 'nullable|string|max:50',
+            'reverse_charges' => 'nullable|string|in:yes,no',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        $data = $request->all();
+
+        $companyType = $data['company_type'] === 'government' ? 'government_nhs' : $data['company_type'];
+
+        $account->update([
+            'company_type' => $companyType,
+            'company_name' => $data['company_name'],
+            'trading_name' => $data['trading_name'] ?? null,
+            'company_number' => $data['company_number'] ?? null,
+            'business_sector' => $data['sector'],
+            'website' => $data['website'],
+            'address_line1' => $data['address_line1'],
+            'address_line2' => $data['address_line2'] ?? null,
+            'city' => $data['city'],
+            'county' => $data['county'] ?? null,
+            'postcode' => $data['postcode'],
+            'country' => $data['country'],
+            'accounts_billing_email' => $data['billing_email'],
+            'support_contact_email' => $data['support_email'],
+            'incident_email' => $data['incident_email'],
+            'support_contact_name' => $data['signatory_name'],
+            'support_contact_phone' => $account->phone ?? '',
+            'operations_contact_name' => $data['signatory_name'],
+            'operations_contact_email' => $data['support_email'],
+            'operations_contact_phone' => $account->phone ?? '',
+            'signatory_name' => $data['signatory_name'],
+            'signatory_title' => $data['signatory_title'],
+            'signatory_email' => $data['signatory_email'],
+            'vat_registered' => $data['vat_registered'] === 'yes',
+            'vat_number' => $data['vat_number'] ?? null,
+            'vat_reverse_charges' => ($data['reverse_charges'] ?? 'no') === 'yes',
+            'tax_country' => $data['vat_country'] ?? null,
+            'payment_terms' => 'immediate',
+            'contract_agreed' => true,
+            'contract_signed_at' => now(),
+            'contract_signed_ip' => $request->ip(),
+        ]);
+
+        $account->updateActivationStatus();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Account details saved successfully',
+            'activation' => $account->getActivationProgress(),
         ]);
     }
 

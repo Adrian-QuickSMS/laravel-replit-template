@@ -183,6 +183,28 @@
     </div>
 </div>
 
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center">
+                    <div class="me-3" style="width: 40px; height: 40px; border-radius: 50%; background-color: rgba(220, 53, 69, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-exclamation-triangle text-danger"></i>
+                    </div>
+                    <h5 class="modal-title mb-0" id="errorModalLabel">Attention Required</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="text-muted mb-0" id="errorModalMessage"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .logo-auth {
     max-height: 40px;
@@ -1260,36 +1282,28 @@ $(document).ready(function() {
             }
         };
         
-        var registrationData = JSON.parse(sessionStorage.getItem('pendingRegistration') || '{}');
-        
-        var signupPayload = {
-            company_name: registrationData.business_name || urlParams.get('business_name') || '',
-            first_name: registrationData.first_name || urlParams.get('first_name') || '',
-            last_name: registrationData.last_name || urlParams.get('last_name') || '',
-            job_title: registrationData.job_title || urlParams.get('job_title') || '',
+        var securityPayload = {
             email: email,
-            country: registrationData.country || urlParams.get('country') || 'GB',
             password: $('#password').val(),
             password_confirmation: $('#confirmPassword').val(),
             mobile_number: formData.mobile_number,
             accept_fraud_prevention: true,
-            accept_marketing: formData.marketing.consent ? true : false,
-            _token: $('meta[name="csrf-token"]').attr('content')
+            accept_marketing: formData.marketing.consent ? true : false
         };
         
-        console.log('[Security] Submitting signup to backend:', { email: signupPayload.email, company: signupPayload.company_name });
+        console.log('[Security] Completing security setup for:', email);
         
         $.ajax({
-            url: '/api/auth/signup',
+            url: '/api/auth/complete-security',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify(signupPayload),
+            data: JSON.stringify(securityPayload),
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
             },
             success: function(response) {
-                console.log('[Signup] Account created successfully:', response);
+                console.log('[Security] Setup completed successfully:', response);
                 
                 sessionStorage.removeItem('pendingRegistration');
                 sessionStorage.removeItem('verificationToken');
@@ -1304,9 +1318,9 @@ $(document).ready(function() {
                 window.location.href = response.data.redirect || '/?onboarding=complete';
             },
             error: function(xhr) {
-                console.error('[Signup] Error:', xhr.responseJSON);
+                console.error('[Security] Error:', xhr.responseJSON);
                 
-                var errorMsg = 'An error occurred during signup. Please try again.';
+                var errorMsg = 'An error occurred. Please try again.';
                 if (xhr.responseJSON && xhr.responseJSON.errors) {
                     var errors = xhr.responseJSON.errors;
                     var firstError = Object.values(errors)[0];
@@ -1317,7 +1331,8 @@ $(document).ready(function() {
                     errorMsg = xhr.responseJSON.message;
                 }
                 
-                alert(errorMsg);
+                $('#errorModalMessage').text(errorMsg);
+                new bootstrap.Modal(document.getElementById('errorModal')).show();
                 
                 $btn.prop('disabled', false);
                 $btn.find('.btn-text').removeClass('d-none');

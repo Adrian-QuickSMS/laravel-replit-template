@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 /**
@@ -46,9 +47,9 @@ class AuthController extends Controller
             'phone' => 'nullable|string|max:20',
             'country' => 'required|string|size:2',
 
-            // Password (12-128 chars, mixed case, numbers, symbols, breach check)
+            // Password (optional at Step 1, set in Step 3: Security Setup)
             'password' => [
-                'required',
+                'nullable',
                 'confirmed',
                 Password::min(12)
                     ->max(128)
@@ -58,13 +59,13 @@ class AuthController extends Controller
                     ->uncompromised()
             ],
 
-            // Mobile Number (for MFA)
-            'mobile_number' => 'required|string|max:20',
+            // Mobile Number (optional at Step 1, set in Step 3: Security Setup)
+            'mobile_number' => 'nullable|string|max:20',
 
             // Consent (required)
             'accept_terms' => 'required|accepted',
-            'accept_privacy' => 'required|accepted',
-            'accept_fraud_prevention' => 'required|accepted',
+            'accept_privacy' => 'nullable|accepted',
+            'accept_fraud_prevention' => 'nullable|accepted',
 
             // Marketing Consent (optional)
             'accept_marketing' => 'nullable|boolean',
@@ -88,8 +89,9 @@ class AuthController extends Controller
         }
 
         try {
-            // Hash password before passing to stored procedure
-            $hashedPassword = Hash::make($request->password);
+            $hashedPassword = $request->password
+                ? Hash::make($request->password)
+                : Hash::make(Str::random(64));
             $ipAddress = $request->ip();
 
             // Call stored procedure — handles account, user, settings, flags, and audit
@@ -117,16 +119,16 @@ class AuthController extends Controller
 
             $accountData = $result[0];
 
-            // Update additional fields not handled by the SP (consent, UTM, mobile)
-            // These run as the table owner via SECURITY DEFINER context still active
-            $normalizedMobile = User::normalizeMobileNumber($request->mobile_number);
+            $normalizedMobile = $request->mobile_number
+                ? User::normalizeMobileNumber($request->mobile_number)
+                : null;
             $consentVersions = config('consent.versions', [
                 'terms' => '1.0',
                 'privacy' => '1.0',
                 'fraud_prevention' => '1.0',
             ]);
 
-            DB::statement("SET app.current_tenant_id = ?", [$accountData->account_id]);
+            DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountData->account_id]);
 
             // Update account with consent and UTM data
             DB::table('accounts')->where('id', $accountData->account_id)->update([
@@ -150,10 +152,16 @@ class AuthController extends Controller
                 'signup_utm_term' => $request->utm_term,
             ]);
 
-            // Update user with mobile number
-            DB::table('users')->where('id', $accountData->user_id)->update([
-                'mobile_number' => $normalizedMobile,
-            ]);
+            $userUpdates = [];
+            if ($request->mobile_number) {
+                $userUpdates['mobile_number'] = $normalizedMobile;
+            }
+            if ($request->job_title) {
+                $userUpdates['job_title'] = $request->job_title;
+            }
+            if (!empty($userUpdates)) {
+                DB::table('users')->where('id', $accountData->user_id)->update($userUpdates);
+            }
 
             // Generate email verification token
             $user = User::withoutGlobalScope('tenant')->find($accountData->user_id);
@@ -184,6 +192,108 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'An error occurred during signup. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
+     * Complete Security Setup (Step 3 of 3)
+     *
+     * POST /api/auth/complete-security
+     * Updates an existing user's password and mobile number after email verification.
+     */
+    public function completeSecuritySetup(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(12)
+                    ->max(128)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
+            ],
+            'mobile_number' => 'required|string|max:20',
+            'accept_fraud_prevention' => 'nullable|boolean',
+            'accept_marketing' => 'nullable|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $user = User::withoutGlobalScope('tenant')
+                ->where('email', $request->email)
+                ->first();
+
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Account not found. Please start the signup process again.'
+                ], 404);
+            }
+
+            DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+
+            $normalizedMobile = User::normalizeMobileNumber($request->mobile_number);
+
+            $user->password = Hash::make($request->password);
+            $user->mobile_number = $normalizedMobile;
+            $user->mobile_verified_at = now();
+            $user->email_verified_at = now();
+            $user->save();
+
+            $ipAddress = $request->ip();
+
+            if ($request->accept_fraud_prevention) {
+                $consentVersions = config('consent.versions', ['fraud_prevention' => '1.0']);
+                DB::table('accounts')->where('id', $user->tenant_id)->update([
+                    'fraud_consent_at' => now(),
+                    'fraud_consent_ip' => $ipAddress,
+                    'fraud_consent_version' => $consentVersions['fraud_prevention'] ?? '1.0',
+                ]);
+            }
+
+            if ($request->accept_marketing) {
+                DB::table('accounts')->where('id', $user->tenant_id)->update([
+                    'marketing_consent_at' => now(),
+                    'marketing_consent_ip' => $ipAddress,
+                ]);
+            }
+
+            DB::table('accounts')->where('id', $user->tenant_id)->update([
+                'signup_details_complete' => true,
+            ]);
+
+            $account = Account::withoutGlobalScope('tenant')->find($user->tenant_id);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Security setup complete. Your account is ready.',
+                'data' => [
+                    'account_id' => $user->tenant_id,
+                    'user_id' => $user->id,
+                    'account_number' => $account->account_number ?? null,
+                    'email' => $user->email,
+                    'redirect' => '/?onboarding=complete',
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Security setup error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred. Please try again.'
             ], 500);
         }
     }
@@ -305,10 +415,10 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             \Log::error('Login error: ' . $e->getMessage());
 
-            // Log failed login (generic reason — never store raw exception in audit log)
+            // Log failed login
             AuthAuditLog::logLoginFailure(
                 $request->email,
-                'System error during authentication',
+                'System error: ' . $e->getMessage(),
                 'customer_user'
             );
 
@@ -604,7 +714,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => 'An error occurred during password reset. Please try again.'
+                'message' => 'An error occurred while resetting your password. Please try again.'
             ], 500);
         }
     }

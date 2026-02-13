@@ -330,19 +330,19 @@
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Company Name<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="companyName" value="">
+                                                <input type="text" class="form-control" id="companyName" value="{{ $account->company_name ?? '' }}">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Trading Name<span class="optional-indicator">(Optional)</span></label>
-                                                <input type="text" class="form-control" id="tradingName" value="">
+                                                <input type="text" class="form-control" id="tradingName" value="{{ $account->trading_name ?? '' }}">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Company Number<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="companyNumber" value="">
+                                                <input type="text" class="form-control" id="companyNumber" value="{{ $account->company_number ?? '' }}">
                                                 <div class="field-hint">Companies House registration number</div>
                                             </div>
                                         </div>
@@ -362,7 +362,7 @@
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Primary Website<span class="required-indicator">*</span></label>
-                                                <input type="url" class="form-control" id="companyWebsite" value="">
+                                                <input type="url" class="form-control" id="companyWebsite" value="{{ $account->website ?? '' }}">
                                             </div>
                                         </div>
                                     </div>
@@ -372,25 +372,25 @@
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Address Line 1<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="regAddress1" value="">
+                                                <input type="text" class="form-control" id="regAddress1" value="{{ $account->address_line1 ?? '' }}">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Address Line 2<span class="optional-indicator">(Optional)</span></label>
-                                                <input type="text" class="form-control" id="regAddress2" value="">
+                                                <input type="text" class="form-control" id="regAddress2" value="{{ $account->address_line2 ?? '' }}">
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="field-group">
                                                 <label class="form-label">City<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="regCity" value="">
+                                                <input type="text" class="form-control" id="regCity" value="{{ $account->city ?? '' }}">
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="field-group">
                                                 <label class="form-label">Postcode<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="regPostcode" value="">
+                                                <input type="text" class="form-control" id="regPostcode" value="{{ $account->postcode ?? '' }}">
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -427,21 +427,21 @@
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Accounts & Billing Email<span class="required-indicator">*</span></label>
-                                                <input type="email" class="form-control" id="billingEmail" value="accounts@acmecomms.co.uk" placeholder="e.g., accounts@company.com">
+                                                <input type="email" class="form-control" id="billingEmail" value="{{ $account->accounts_billing_email ?? '' }}" placeholder="e.g., accounts@company.com">
                                                 <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Support Email Address<span class="required-indicator">*</span></label>
-                                                <input type="email" class="form-control" id="supportEmail" value="support@acmecomms.co.uk" placeholder="e.g., support@company.com">
+                                                <input type="email" class="form-control" id="supportEmail" value="{{ $account->support_contact_email ?? '' }}" placeholder="e.g., support@company.com">
                                                 <div class="field-hint">Receives support ticket updates and general communications</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Incident Email Address<span class="required-indicator">*</span></label>
-                                                <input type="email" class="form-control" id="incidentEmail" value="incidents@acmecomms.co.uk" placeholder="e.g., incidents@company.com">
+                                                <input type="email" class="form-control" id="incidentEmail" value="{{ $account->incident_email ?? '' }}" placeholder="e.g., incidents@company.com">
                                                 <div class="field-hint">Receives urgent incident alerts and service disruption notices</div>
                                             </div>
                                         </div>
@@ -471,19 +471,19 @@
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Full Name<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="signatoryName" value="James Wilson" placeholder="e.g., John Smith">
+                                                <input type="text" class="form-control" id="signatoryName" value="{{ $account->signatory_name ?? '' }}" placeholder="e.g., John Smith">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Job Title<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="signatoryTitle" value="Managing Director" placeholder="e.g., CEO, Managing Director">
+                                                <input type="text" class="form-control" id="signatoryTitle" value="{{ $account->signatory_title ?? '' }}" placeholder="e.g., CEO, Managing Director">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Email Address<span class="required-indicator">*</span></label>
-                                                <input type="email" class="form-control" id="signatoryEmail" value="j.wilson@acmecomms.co.uk" placeholder="e.g., signatory@company.com">
+                                                <input type="email" class="form-control" id="signatoryEmail" value="{{ $account->signatory_email ?? '' }}" placeholder="e.g., signatory@company.com">
                                                 <div class="field-hint">Used for contract signing and legal communications</div>
                                             </div>
                                         </div>
@@ -513,7 +513,7 @@
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Purchase Order Number</label>
-                                                <input type="text" class="form-control" id="purchaseOrderNumber" value="PO-2024-0892" placeholder="e.g., PO-12345">
+                                                <input type="text" class="form-control" id="purchaseOrderNumber" value="{{ $account->purchase_order_number ?? '' }}" placeholder="e.g., PO-12345">
                                                 <div class="field-hint">Optional: This number will be included on all invoices</div>
                                             </div>
                                         </div>
@@ -527,8 +527,8 @@
                                                 <label class="form-label">VAT Registered<span class="required-indicator">*</span></label>
                                                 <select class="form-select" id="vatRegistered">
                                                     <option value="">Select...</option>
-                                                    <option value="yes" selected>Yes - VAT registered</option>
-                                                    <option value="no">No - Not VAT registered</option>
+                                                    <option value="yes" {{ ($account->vat_registered ?? false) ? 'selected' : '' }}>Yes - VAT registered</option>
+                                                    <option value="no" {{ !($account->vat_registered ?? false) && $account->vat_registered !== null ? 'selected' : '' }}>No - Not VAT registered</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -538,7 +538,7 @@
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">VAT Number<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="vatNumber" value="GB123456789" placeholder="e.g., GB123456789">
+                                                <input type="text" class="form-control" id="vatNumber" value="{{ $account->vat_number ?? '' }}" placeholder="e.g., GB123456789">
                                                 <div class="field-hint">Format: GB followed by 9 digits</div>
                                             </div>
                                         </div>
@@ -547,8 +547,8 @@
                                                 <label class="form-label">VAT Country<span class="required-indicator">*</span></label>
                                                 <select class="form-select" id="vatCountry">
                                                     <option value="">Select country...</option>
-                                                    <option value="GB" selected>United Kingdom (GB)</option>
-                                                    <option value="DE">Germany (DE)</option>
+                                                    <option value="GB" {{ ($account->tax_country ?? '') === 'GB' ? 'selected' : '' }}>United Kingdom (GB)</option>
+                                                    <option value="DE" {{ ($account->tax_country ?? '') === 'DE' ? 'selected' : '' }}>Germany (DE)</option>
                                                     <option value="FR">France (FR)</option>
                                                     <option value="IE">Ireland (IE)</option>
                                                     <option value="NL">Netherlands (NL)</option>
@@ -561,8 +561,8 @@
                                             <div class="field-group">
                                                 <label class="form-label">Reverse Charge Applicable</label>
                                                 <select class="form-select" id="reverseCharge">
-                                                    <option value="no" selected>No</option>
-                                                    <option value="yes">Yes - EU Reverse Charge applies</option>
+                                                    <option value="no" {{ !($account->vat_reverse_charges ?? false) ? 'selected' : '' }}>No</option>
+                                                    <option value="yes" {{ ($account->vat_reverse_charges ?? false) ? 'selected' : '' }}>Yes - EU Reverse Charge applies</option>
                                                 </select>
                                                 <div class="field-hint">Applies to B2B transactions with EU businesses</div>
                                             </div>
@@ -686,13 +686,27 @@ document.addEventListener('DOMContentLoaded', function() {
         name: @json($account->company_name ?? 'Unknown Account'),
         email: @json($owner->email ?? $account->email ?? ''),
         mobile: @json($owner->mobile_number ?? ''),
-        businessName: @json($account->company_name ?? '')
+        businessName: @json($account->company_name ?? ''),
+        companyType: @json($account->company_type ?? ''),
+        sector: @json($account->business_sector ?? '')
     };
     document.getElementById('accountName').textContent = data.name;
     if (document.getElementById('signupBusinessName')) document.getElementById('signupBusinessName').value = data.businessName;
     if (document.getElementById('signupEmail')) document.getElementById('signupEmail').value = data.email;
     if (document.getElementById('signupMobile')) document.getElementById('signupMobile').value = data.mobile;
-    if (document.getElementById('companyName')) document.getElementById('companyName').value = data.businessName;
+    
+    if (data.companyType) {
+        document.querySelectorAll('#companyTypeSelector .selectable-tile').forEach(function(tile) {
+            tile.classList.remove('selected');
+            if (tile.getAttribute('data-type') === data.companyType) {
+                tile.classList.add('selected');
+            }
+        });
+    }
+    
+    if (data.sector && document.getElementById('companySector')) {
+        document.getElementById('companySector').value = data.sector;
+    }
     
     if (typeof AdminControlPlane !== 'undefined') {
         AdminControlPlane.logAdminAction('ACCOUNT_DETAILS_VIEWED', accountId, { accountName: data.name });

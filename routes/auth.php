@@ -6,6 +6,7 @@ use App\Http\Controllers\AccountController;
 
 Route::prefix('api/auth')->group(function () {
     Route::post('/signup', [AuthController::class, 'signup']);
+    Route::post('/complete-security', [AuthController::class, 'completeSecuritySetup']);
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {

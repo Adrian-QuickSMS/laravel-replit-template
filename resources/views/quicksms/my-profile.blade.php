@@ -86,38 +86,29 @@
     </div>
     
     @php
-        $username = 'sarah.mitchell';
-        $firstName = 'Sarah';
-        $lastName = 'Mitchell';
-        $initials = strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
-        $email = 'sarah.mitchell@example.com';
-        $emailVerified = true;
-        $mobile = '+447700900123';
-        $role = 'Account Administrator';
+        $firstName = $user->first_name ?? '';
+        $lastName = $user->last_name ?? '';
+        $initials = strtoupper(substr($firstName ?: '?', 0, 1) . substr($lastName ?: '?', 0, 1));
+        $email = $user->email ?? '';
+        $username = explode('@', $email)[0] ?? '';
+        $emailVerified = !empty($user->email_verified_at);
+        $mobile = $user->mobile_number ?? '';
+        $role = $roleLabel ?? 'User';
         $senderCapabilityLevel = 'Full Access';
-        $subAccount = 'Marketing Department';
-        $campaignApprovalResponsibility = 'Can approve campaigns';
-        $accountName = 'Acme Corporation Ltd';
-        $lastLogin = '26 Jan 2026, 09:15';
-        $accountCreated = '15 Mar 2024';
-        $lastPasswordChange = '10 Jan 2026';
-        $twoFactorEnabled = true;
+        $subAccount = $account->company_name ?? 'Primary Account';
+        $campaignApprovalResponsibility = in_array($user->role ?? '', ['owner', 'admin']) ? 'Can approve campaigns' : 'Cannot approve campaigns';
+        $accountName = $account->company_name ?? '';
+        $lastLogin = $user->last_login_at ? \Carbon\Carbon::parse($user->last_login_at)->format('d M Y, H:i') : 'Never';
+        $accountCreated = $user->created_at ? \Carbon\Carbon::parse($user->created_at)->format('d M Y') : 'N/A';
+        $lastPasswordChange = $user->password_changed_at ? \Carbon\Carbon::parse($user->password_changed_at)->format('d M Y') : 'Not changed yet';
+        $twoFactorEnabled = (bool)($user->mfa_enabled ?? false);
         $mfaMethod = 'sms';
-        $mfaMethods = ['sms'];
+        $mfaMethods = $twoFactorEnabled ? ['sms'] : [];
         $mfaEnforced = true;
-        $mfaPhone = '+447700900123';
-        $backupCodesRemaining = 6;
-        $loginCount = 247;
-        $lastLoginIp = '192.168.1.45';
-        $mfaLastVerified = '26 Jan 2026, 08:30';
-        
-        $securityEvents = [
-            ['date' => '26 Jan 2026, 09:15', 'event' => 'Successful login', 'ip' => '192.168.1.45', 'icon' => 'fa-sign-in-alt', 'color' => 'success'],
-            ['date' => '25 Jan 2026, 14:22', 'event' => 'Password changed', 'ip' => '192.168.1.45', 'icon' => 'fa-key', 'color' => 'info'],
-            ['date' => '25 Jan 2026, 10:05', 'event' => 'MFA verified', 'ip' => '192.168.1.45', 'icon' => 'fa-shield-alt', 'color' => 'primary'],
-            ['date' => '24 Jan 2026, 16:30', 'event' => 'Successful login', 'ip' => '10.0.0.12', 'icon' => 'fa-sign-in-alt', 'color' => 'success'],
-            ['date' => '23 Jan 2026, 09:45', 'event' => 'Failed login attempt', 'ip' => '203.45.67.89', 'icon' => 'fa-exclamation-triangle', 'color' => 'warning'],
-        ];
+        $mfaPhone = $user->mobile_number ?? '';
+        $backupCodesRemaining = 0;
+        $lastLoginIp = $user->last_login_ip ?? 'N/A';
+        $mfaLastVerified = $lastLogin;
     @endphp
     
     <div class="toast-container">
@@ -170,9 +161,9 @@
                         
                         <div class="mb-3">
                             <label class="form-label">Email Address <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="emailAddress" name="email" value="{{ $email }}" data-original="{{ $email }}" required>
+                            <input type="email" class="form-control" id="emailAddress" name="email" value="{{ $email }}" data-original="{{ $email }}" readonly disabled style="background-color: #f8f9fa;">
                             <div class="invalid-feedback" id="emailError">Please enter a valid email address</div>
-                            <small class="text-muted">Changing your email will require verification</small>
+                            <small class="text-muted">Email changes require administrator approval</small>
                         </div>
                         
                         @php
@@ -491,15 +482,8 @@
                     <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
                         <input type="radio" name="mfaMethodChoice" value="sms" class="me-3">
                         <div>
-                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>SMS</h6>
-                            <small class="text-muted">Receive codes via text message (UK numbers only)</small>
-                        </div>
-                    </label>
-                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
-                        <input type="radio" name="mfaMethodChoice" value="rcs" class="me-3">
-                        <div>
-                            <h6 class="mb-1"><i class="fas fa-comment-dots me-2"></i>RCS</h6>
-                            <small class="text-muted">Receive codes via RCS messaging (UK numbers only)</small>
+                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>RCS/SMS</h6>
+                            <small class="text-muted">Receive codes via RCS or text message (UK numbers only)</small>
                         </div>
                     </label>
                 </div>
@@ -579,15 +563,8 @@
                     <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
                         <input type="radio" name="changeMfaMethod" value="sms" class="me-3">
                         <div class="flex-grow-1">
-                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>SMS</h6>
-                            <small class="text-muted">Receive codes via text message (UK numbers only)</small>
-                        </div>
-                    </label>
-                    <label class="list-group-item list-group-item-action d-flex align-items-center" style="cursor: pointer;">
-                        <input type="radio" name="changeMfaMethod" value="rcs" class="me-3">
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1"><i class="fas fa-comment-dots me-2"></i>RCS</h6>
-                            <small class="text-muted">Receive codes via RCS messaging (UK numbers only)</small>
+                            <h6 class="mb-1"><i class="fas fa-sms me-2"></i>RCS/SMS</h6>
+                            <small class="text-muted">Receive codes via RCS or text message (UK numbers only)</small>
                         </div>
                     </label>
                 </div>
@@ -743,7 +720,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('[MyProfile] Page loaded');
     
     // ========== AUDIT EVENT UTILITY ==========
-    var currentUserId = 'usr_8f4a2b1c'; // TODO: Get from backend session
+    var currentUserId = '{{ $user->id ?? "" }}';
     
     function emitAuditEvent(action, details) {
         var event = {
@@ -888,61 +865,67 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
         
-        setTimeout(function() {
-            // Emit audit events for changes
-            var changedFields = [];
-            fields.forEach(function(field) {
-                var input = document.getElementById(field);
-                if (input && input.value !== originalValues[field]) {
-                    changedFields.push(field);
+        fetch('{{ route("my-profile.save") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                first_name: document.getElementById('firstName').value.trim(),
+                last_name: document.getElementById('lastName').value.trim(),
+                mobile_number: document.getElementById('mobileNumber').value.trim()
+            })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                if (emailChanged) {
+                    emailPendingBanner.classList.add('show');
+                    emailUnverifiedBadge.style.display = 'inline-block';
+                    document.getElementById('displayEmail').textContent = emailInput.value;
                 }
-            });
-            
-            if (emailChanged) {
-                emitAuditEvent('EMAIL_CHANGED', {
-                    oldEmail: originalValues['emailAddress'],
-                    newEmail: emailInput.value
+                
+                var firstName = document.getElementById('firstName').value;
+                var lastName = document.getElementById('lastName').value;
+                document.getElementById('displayName').textContent = firstName + ' ' + lastName;
+                document.getElementById('profileAvatar').textContent = firstName.charAt(0).toUpperCase() + lastName.charAt(0).toUpperCase();
+                
+                fields.forEach(function(field) {
+                    var input = document.getElementById(field);
+                    if (input) {
+                        originalValues[field] = input.value;
+                        input.dataset.original = input.value;
+                    }
                 });
-                emailPendingBanner.classList.add('show');
-                emailUnverifiedBadge.style.display = 'inline-block';
-                document.getElementById('displayEmail').textContent = emailInput.value;
+                
+                saveBtn.innerHTML = 'Save Changes';
+                saveBtn.disabled = true;
+                cancelBtn.disabled = true;
+                
+                document.querySelector('.toast-message').textContent = 'Profile updated successfully';
+                successToast.classList.add('show');
+                setTimeout(function() { successToast.classList.remove('show'); }, 3000);
+            } else {
+                saveBtn.innerHTML = 'Save Changes';
+                saveBtn.disabled = false;
+                document.querySelector('.toast-message').textContent = data.message || 'Failed to save profile';
+                successToast.querySelector('i').className = 'fas fa-exclamation-circle';
+                successToast.style.borderLeftColor = '#dc3545';
+                successToast.classList.add('show');
+                setTimeout(function() {
+                    successToast.classList.remove('show');
+                    successToast.querySelector('i').className = 'fas fa-check-circle';
+                    successToast.style.borderLeftColor = '#1cbb8c';
+                }, 3000);
             }
-            
-            var mobileInput = document.getElementById('mobileNumber');
-            if (mobileInput && mobileInput.value !== originalValues['mobileNumber']) {
-                emitAuditEvent('MOBILE_NUMBER_CHANGED', {
-                    oldMobile: originalValues['mobileNumber'],
-                    newMobile: mobileInput.value
-                });
-            }
-            
-            // Emit general profile update event
-            emitAuditEvent('PROFILE_UPDATED', {
-                fieldsChanged: changedFields
-            });
-            
-            var firstName = document.getElementById('firstName').value;
-            var lastName = document.getElementById('lastName').value;
-            document.getElementById('displayName').textContent = firstName + ' ' + lastName;
-            document.getElementById('profileAvatar').textContent = firstName.charAt(0).toUpperCase() + lastName.charAt(0).toUpperCase();
-            
-            fields.forEach(function(field) {
-                var input = document.getElementById(field);
-                if (input) {
-                    originalValues[field] = input.value;
-                }
-            });
-            
+        })
+        .catch(function(error) {
+            console.error('[MyProfile] Save error:', error);
             saveBtn.innerHTML = 'Save Changes';
-            saveBtn.disabled = true;
-            cancelBtn.disabled = true;
-            
-            successToast.classList.add('show');
-            setTimeout(function() {
-                successToast.classList.remove('show');
-            }, 3000);
-            
-        }, 800);
+            saveBtn.disabled = false;
+        });
     });
     
     // Change Password Modal functionality
@@ -1103,24 +1086,51 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!isValid) return;
         
-        // Simulate API call
         changePasswordBtn.disabled = true;
         changePasswordBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Changing...';
         
-        setTimeout(function() {
-            // Close modal
-            var modal = bootstrap.Modal.getInstance(changePasswordModal);
-            modal.hide();
-            
-            // Show success toast
-            successToast.classList.add('show');
-            setTimeout(function() {
-                successToast.classList.remove('show');
-            }, 3000);
-            
-            emitAuditEvent('PASSWORD_CHANGED', {});
-            console.log('[MyProfile] Password changed successfully');
-        }, 1000);
+        fetch('{{ route("my-profile.change-password") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                current_password: currentPasswordInput.value,
+                new_password: newPasswordInput.value,
+                confirm_password: confirmPasswordInput.value
+            })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                var modal = bootstrap.Modal.getInstance(changePasswordModal);
+                modal.hide();
+                
+                document.querySelector('.toast-message').textContent = 'Password changed successfully';
+                successToast.classList.add('show');
+                setTimeout(function() { successToast.classList.remove('show'); }, 3000);
+                
+                console.log('[MyProfile] Password changed successfully');
+            } else {
+                changePasswordBtn.innerHTML = 'Change Password';
+                changePasswordBtn.disabled = false;
+                
+                if (data.message && data.message.toLowerCase().includes('current password')) {
+                    currentPasswordInput.classList.add('is-invalid');
+                    document.getElementById('currentPasswordError').textContent = data.message;
+                } else if (data.message) {
+                    newPasswordInput.classList.add('is-invalid');
+                    document.getElementById('newPasswordError').textContent = data.message;
+                }
+            }
+        })
+        .catch(function(error) {
+            console.error('[MyProfile] Password change error:', error);
+            changePasswordBtn.innerHTML = 'Change Password';
+            changePasswordBtn.disabled = false;
+        });
     });
     
     // ========== MFA FUNCTIONALITY ==========
@@ -1230,6 +1240,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 authenticatorSetupSection.style.display = 'none';
                 currentMfaStep = 'phone';
                 enableMfaBtn.textContent = 'Send Code';
+                var existingMobile = document.getElementById('mobileNumber') ? document.getElementById('mobileNumber').value : '';
+                if (existingMobile && !mfaPhoneInput.value) {
+                    mfaPhoneInput.value = existingMobile;
+                }
             } else if (selectedMfaMethod === 'authenticator') {
                 authenticatorSetupSection.style.display = 'block';
                 phoneSetupSection.style.display = 'none';

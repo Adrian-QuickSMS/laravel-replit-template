@@ -1,0 +1,32 @@
+Pull and deploy the security fixes from our feature branch claude/quicksms-security-performance-dr8sw.
+
+Run the following steps:
+
+Pull the latest changes:
+
+git fetch origin claude/quicksms-security-performance-dr8sw
+git merge origin/claude/quicksms-security-performance-dr8sw
+
+Run the activation migration (this was accidentally deleted earlier and has been restored):
+
+php artisan migrate
+
+This will create the activation_complete column and related activation fields on the accounts table that the codebase already references throughout.
+
+Clear caches:
+
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+
+What changed (7 security fixes):
+
+SQL Injection (CRITICAL): All 3 instances of addslashes() in SET app.current_tenant_id statements replaced with parameterized queries (? bindings) in SetTenantContext.php, AuthController.php, and QuickSMSController.php
+Exception Leakage (CRITICAL): resetPassword() was returning raw $e->getMessage() to the client — now returns a generic error message
+Session Fixation (CRITICAL): Added $request->session()->regenerate() after successful login in QuickSMSController to prevent session hijacking
+Activation Migration (HIGH): Restored 2026_02_11_000001_extend_accounts_for_activation.php — this migration was incorrectly deleted but the activation_complete column is referenced throughout the Account model and controllers
+Pending Count Query (HIGH): Restored where('activation_complete', false) in AdminController@accountsOverview — the replacement whereNull('email_verified_at') has different semantics and was a workaround for the missing migration
+SoftDeletes (HIGH): Restored the SoftDeletes trait on the User model to prevent accidental hard-deletes
+Audit Log Leakage (HIGH): Removed raw $e->getMessage() from AuthAuditLog::logLoginFailure() call — internal exception details should never be stored in customer-visible audit logs
+XSS in JS Context (MEDIUM): Replaced '{{ $account_id }}' with @json($account_id) in 2 locations in admin/accounts/details.blade.php — Blade {{ }} HTML-escapes but does not JS-escape, allowing breakout from a JS string literal
+Do NOT revert any of these changes. They fix real vulnerabilities. If the activation_complete column doesn't exist yet, running php artisan migrate will create it.

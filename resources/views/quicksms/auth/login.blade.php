@@ -239,9 +239,9 @@ body {
             </div>
             @endif
             
-            <div class="alert alert-info mb-3" style="font-size: 0.85rem;">
-                <strong>Sign in with your account credentials</strong><br>
-                <small class="text-muted">Don't have an account? <a href="{{ url('/signup') }}">Sign up here</a></small>
+            <div class="mb-3 p-3 rounded" style="background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.2); font-size: 0.85rem;">
+                <strong style="color: #1a1a2e;">Sign in with your account credentials</strong><br>
+                <small style="color: #333;">Don't have an account? <a href="{{ url('/signup') }}" style="color: #886cc0; font-weight: 500;">Sign up here</a></small>
             </div>
             
             <form id="loginForm" method="POST" action="{{ route('auth.login.submit') }}" novalidate>
@@ -676,6 +676,8 @@ $(document).ready(function() {
     });
     
     $('#loginForm').on('submit', function(e) {
+        e.preventDefault();
+        
         var email = $('#email').val().trim().toLowerCase();
         var password = $('#password').val();
         
@@ -692,15 +694,51 @@ $(document).ready(function() {
             isValid = false;
         }
         
-        if (!isValid) {
-            e.preventDefault();
-            return;
-        }
+        if (!isValid) return;
         
         var $btn = $('#loginBtn');
         $btn.find('.btn-text').addClass('d-none');
         $btn.find('.btn-loading').removeClass('d-none');
         $btn.prop('disabled', true);
+        
+        $.ajax({
+            url: '{{ route("auth.login.submit") }}',
+            method: 'POST',
+            data: { email: email, password: password, _token: $('input[name="_token"]').val() },
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(response) {
+                if (response.status === 'mfa_required') {
+                    currentEmail = email;
+                    currentMobile = response.mobile_hint || '';
+                    $('#maskedMobile').text(currentMobile);
+                    
+                    if (response.otp_debug) {
+                        currentOtp = response.otp_debug;
+                        $('#displayOtp').text(response.otp_debug);
+                        $('#testOtpCode').removeClass('d-none');
+                    }
+                    
+                    $('#loginStep1').addClass('d-none');
+                    $('#loginStep2').removeClass('d-none');
+                    
+                    AuditService.log('mfa_challenge_started', { email: email });
+                } else if (response.status === 'success') {
+                    window.location.href = response.redirect || '/dashboard';
+                }
+            },
+            error: function(xhr) {
+                var msg = 'An error occurred. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                $('#loginStatus').html('<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + msg + '</div>').removeClass('d-none');
+            },
+            complete: function() {
+                $btn.find('.btn-text').removeClass('d-none');
+                $btn.find('.btn-loading').addClass('d-none');
+                $btn.prop('disabled', false);
+            }
+        });
     });
     
     $('.mfa-method-card').on('click', function() {
@@ -760,11 +798,7 @@ $(document).ready(function() {
     }
     
     $('#sendCodeBtn').on('click', function() {
-        // Block if in forced enrollment mode
-        if (forcedEnrollmentMode) {
-            console.log('[Security] Blocked: User in forced enrollment mode');
-            return;
-        }
+        if (forcedEnrollmentMode) return;
         
         var $btn = $(this);
         $btn.find('.btn-text').addClass('d-none');
@@ -773,23 +807,34 @@ $(document).ready(function() {
         
         var channel = $('input[name="smsChannel"]:checked').val() || 'sms';
         
-        setTimeout(function() {
-            currentOtp = generateOtp();
-            otpExpiry = Date.now() + (5 * 60 * 1000);
-            
-            AuditService.log('otp_sent', { email: currentEmail, channel: channel, mobile_masked: '****' + (currentMobile ? currentMobile.slice(-4) : '') });
-            
-            $('#displayOtp').text(currentOtp);
-            $('#testOtpCode').removeClass('d-none');
-            $('#otpInputSection').removeClass('d-none');
-            $('#sendCodeSection').addClass('d-none');
-            
-            startOtpCountdown(300);
-            
-            $btn.find('.btn-text').removeClass('d-none');
-            $btn.find('.btn-loading').addClass('d-none');
-            $btn.prop('disabled', false);
-        }, 1500);
+        $.ajax({
+            url: '{{ route("auth.mfa.resend") }}',
+            method: 'POST',
+            data: { _token: $('input[name="_token"]').val() },
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(response) {
+                if (response.otp_debug) {
+                    currentOtp = response.otp_debug;
+                    $('#displayOtp').text(response.otp_debug);
+                    $('#testOtpCode').removeClass('d-none');
+                }
+                
+                AuditService.log('otp_sent', { email: currentEmail, channel: channel });
+                
+                $('#otpInputSection').removeClass('d-none');
+                $('#sendCodeSection').addClass('d-none');
+                startOtpCountdown(300);
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Failed to send code';
+                $('#mfaStatus').html('<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + msg + '</div>').removeClass('d-none');
+            },
+            complete: function() {
+                $btn.find('.btn-text').removeClass('d-none');
+                $btn.find('.btn-loading').addClass('d-none');
+                $btn.prop('disabled', false);
+            }
+        });
     });
     
     $('#resendOtpBtn').on('click', function() {
@@ -801,11 +846,7 @@ $(document).ready(function() {
     $('#mfaForm').on('submit', function(e) {
         e.preventDefault();
         
-        // Block if in forced enrollment mode
-        if (forcedEnrollmentMode) {
-            console.log('[Security] Blocked: User in forced enrollment mode');
-            return;
-        }
+        if (forcedEnrollmentMode) return;
         
         var code = $('#otpCode').val().trim();
         
@@ -823,29 +864,34 @@ $(document).ready(function() {
         $btn.find('.btn-loading').removeClass('d-none');
         $btn.prop('disabled', true);
         
-        setTimeout(function() {
-            var isValid = false;
-            var method = $('.mfa-method-card.active').data('method');
-            
-            if (method === 'totp') {
-                isValid = DevBypassService.isTestOtp(code) || code === '123456';
-            } else {
-                isValid = code === currentOtp || DevBypassService.isTestOtp(code);
-            }
-            
-            if (isValid) {
-                AuditService.log('mfa_success', { email: currentEmail, method: method });
-                if (countdownInterval) clearInterval(countdownInterval);
-                window.location.href = '/dashboard';
-            } else {
+        var method = $('.mfa-method-card.active').data('method');
+        
+        $.ajax({
+            url: '{{ route("auth.mfa.verify") }}',
+            method: 'POST',
+            data: { code: code, _token: $('input[name="_token"]').val() },
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            success: function(response) {
+                if (response.status === 'success') {
+                    AuditService.log('mfa_success', { email: currentEmail, method: method });
+                    if (countdownInterval) clearInterval(countdownInterval);
+                    window.location.href = response.redirect || '/dashboard';
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Invalid verification code. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
                 AuditService.log('mfa_failed', { email: currentEmail, method: method });
-                $('#mfaStatus').html('<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Invalid verification code. Please try again.</div>').removeClass('d-none');
+                $('#mfaStatus').html('<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + msg + '</div>').removeClass('d-none');
+            },
+            complete: function() {
+                $btn.find('.btn-text').removeClass('d-none');
+                $btn.find('.btn-loading').addClass('d-none');
+                $btn.prop('disabled', false);
             }
-            
-            $btn.find('.btn-text').removeClass('d-none');
-            $btn.find('.btn-loading').addClass('d-none');
-            $btn.prop('disabled', false);
-        }, 1000);
+        });
     });
     
     $('#tryAnotherMethod').on('click', function() {

@@ -578,9 +578,11 @@
                             </li>
                                                         <li class="nav-item dropdown header-profile">
                                 @php
-                                    $firstName = 'Sarah';
-                                    $lastName = 'Mitchell';
-                                    $initials = strtoupper(substr($firstName, 0, 1) . substr($lastName, 0, 1));
+                                    $headerName = session('customer_name', '');
+                                    $headerParts = explode(' ', trim($headerName), 2);
+                                    $firstName = $headerParts[0] ?? '';
+                                    $lastName = $headerParts[1] ?? '';
+                                    $initials = strtoupper(substr($firstName ?: '?', 0, 1) . substr($lastName ?: '?', 0, 1));
                                 @endphp
                                                                 <a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown">
                                                                         <div class="user-avatar-initials" style="width: 40px; height: 40px; border-radius: 50%; background-color: #886cc0; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">{{ $initials }}</div>

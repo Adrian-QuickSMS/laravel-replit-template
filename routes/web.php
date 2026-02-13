@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\RcsAssetController;
 Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/login', 'login')->name('auth.login');
     Route::post('/login', 'handleLogin')->name('auth.login.submit');
+    Route::post('/login/verify-mfa', 'verifyMfa')->name('auth.mfa.verify');
+    Route::post('/login/resend-mfa', 'resendMfa')->name('auth.mfa.resend');
     Route::get('/logout', 'logout')->name('auth.logout');
     Route::get('/signup', 'signup')->name('auth.signup');
     Route::get('/signup/verify', 'verifyEmail')->name('auth.verify-email');
@@ -69,10 +71,13 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/management/numbers/configure', 'numbersConfigure')->name('management.numbers.configure');
     
     Route::get('/my-profile', 'myProfile')->name('my-profile');
+    Route::post('/my-profile/save', 'saveProfile')->name('my-profile.save');
+    Route::post('/my-profile/change-password', 'changePassword')->name('my-profile.change-password');
     
     Route::get('/account', 'account')->name('account');
     Route::get('/account/details', 'accountDetails')->name('account.details');
     Route::get('/account/activate', 'accountActivate')->name('account.activate');
+    Route::post('/account/activate', 'saveActivation')->name('account.activate.save');
     Route::get('/account/users', 'usersAndAccess')->name('account.users');
     Route::get('/account/sub-accounts', 'subAccounts')->name('account.sub-accounts');
     Route::get('/account/sub-accounts/{id}', 'subAccountDetail')->name('account.sub-accounts.detail');
