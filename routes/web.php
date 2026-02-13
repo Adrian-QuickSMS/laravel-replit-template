@@ -10,13 +10,14 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::post('/login', 'handleLogin')->name('auth.login.submit');
     Route::post('/login/verify-mfa', 'verifyMfa')->name('auth.mfa.verify');
     Route::post('/login/resend-mfa', 'resendMfa')->name('auth.mfa.resend');
-    Route::get('/logout', 'logout')->name('auth.logout');
+    Route::match(['get', 'post'], '/logout', 'logout')->name('auth.logout');
     Route::get('/signup', 'signup')->name('auth.signup');
     Route::get('/signup/verify', 'verifyEmail')->name('auth.verify-email');
     Route::get('/signup/security', 'signupSecurity')->name('auth.security');
 });
 
-Route::controller(QuickSMSController::class)->group(function () {
+Route::middleware(\App\Http\Middleware\CustomerAuthenticate::class)
+    ->controller(QuickSMSController::class)->group(function () {
     Route::get('/', 'dashboard')->name('dashboard');
     
     Route::get('/messages', 'messages')->name('messages');

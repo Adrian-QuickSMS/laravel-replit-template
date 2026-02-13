@@ -720,14 +720,14 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('[MyProfile] Page loaded');
     
     // ========== AUDIT EVENT UTILITY ==========
-    var currentUserId = '{{ $user->id ?? "" }}';
+    var currentUserId = @json($user->id ?? "");
     
     function emitAuditEvent(action, details) {
         var event = {
             userId: currentUserId,
             action: action,
             timestamp: new Date().toISOString(),
-            ipAddress: '{{ request()->ip() ?? "127.0.0.1" }}',
+            ipAddress: @json(request()->ip() ?? "127.0.0.1"),
             details: details || {}
         };
         

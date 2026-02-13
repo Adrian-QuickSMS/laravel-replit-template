@@ -477,7 +477,7 @@ $(document).ready(function() {
     var resendCooldown = 30;
     
     var EnvironmentConfig = {
-        APP_ENV: '{{ config("app.env", "local") }}',
+        APP_ENV: @json(config("app.env", "local")),
         isProduction: function() {
             return this.APP_ENV === 'production';
         },
@@ -566,7 +566,7 @@ $(document).ready(function() {
             this.currentIP = this.getClientIP();
         },
         getClientIP: function() {
-            return '{{ request()->ip() ?? "127.0.0.1" }}';
+            return @json(request()->ip() ?? "127.0.0.1");
         },
         logLoginAttempt: function(email, success, details) {
             var logEntry = {

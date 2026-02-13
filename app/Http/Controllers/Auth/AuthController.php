@@ -201,11 +201,16 @@ class AuthController extends Controller
      *
      * POST /api/auth/complete-security
      * Updates an existing user's password and mobile number after email verification.
+     *
+     * SECURITY: Requires a valid, unexpired email verification token to prove
+     * the caller owns the account. Without this, anyone who knows an email
+     * address could take over the account.
      */
     public function completeSecuritySetup(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
+            'token' => 'required|string',
             'password' => [
                 'required',
                 'confirmed',
@@ -239,6 +244,27 @@ class AuthController extends Controller
                     'message' => 'Account not found. Please start the signup process again.'
                 ], 404);
             }
+
+            // SECURITY: Verify the email verification token before allowing
+            // password/mobile setup. This prevents unauthenticated account takeover.
+            $tokenRecord = DB::table('email_verification_tokens')
+                ->where('user_id', $user->id)
+                ->where('expires_at', '>', now())
+                ->where('used_at', null)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$tokenRecord || !Hash::check($request->token, $tokenRecord->token_hash)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid or expired verification token. Please request a new one.'
+                ], 403);
+            }
+
+            // Mark token as used so it cannot be replayed
+            DB::table('email_verification_tokens')
+                ->where('id', $tokenRecord->id)
+                ->update(['used_at' => now()]);
 
             DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
 
@@ -415,10 +441,10 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             \Log::error('Login error: ' . $e->getMessage());
 
-            // Log failed login
+            // Log failed login (generic reason — never store raw exception in audit log)
             AuthAuditLog::logLoginFailure(
                 $request->email,
-                'System error: ' . $e->getMessage(),
+                'System error during authentication',
                 'customer_user'
             );
 
