@@ -209,7 +209,7 @@
     }
     .company-type-tile .tile-icon.bg-purple { background: rgba(136, 108, 192, 0.15); color: #886cc0; }
     .company-type-tile .tile-icon.bg-amber { background: rgba(245, 158, 11, 0.15); color: #d97706; }
-    .company-type-tile .tile-icon.bg-blue { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+    .company-type-tile .tile-icon.bg-blue { background: rgba(147, 197, 253, 0.3); color: #60a5fa; }
     .company-type-tile .tile-check {
         position: absolute;
         top: 0.5rem;
@@ -391,7 +391,7 @@
                     <!-- Company Type Selector -->
                     <div class="form-section">
                         <div class="form-section-title">
-                            <i class="fas fa-building"></i> Company Type <span class="required">*</span>
+                            <i class="fas fa-building"></i> Company Type
                         </div>
                         <div class="company-type-tiles" id="companyTypeSelector">
                             <div class="company-type-tile" data-type="uk_limited">
@@ -424,7 +424,7 @@
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="company_name" class="form-label">Company Name <span class="required">*</span></label>
+                                <label for="company_name" class="form-label">Company Name <span class="required"></span></label>
                                 <input type="text" class="form-control" id="company_name" name="company_name" placeholder="Legal registered company name" required>
                                 <div class="validation-error">Company name is required</div>
                             </div>
@@ -445,7 +445,7 @@
                                 <div class="validation-error" id="companyNumberError">Company number is required</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="sector" class="form-label">Business Sector <span class="required">*</span></label>
+                                <label for="sector" class="form-label">Business Sector <span class="required"></span></label>
                                 <select class="form-select" id="sector" name="sector" required>
                                     <option value="">Select sector...</option>
                                     <option value="telecommunications">Telecommunications & Media</option>
@@ -465,7 +465,7 @@
                                 <div class="validation-error">Please select a sector</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="website" class="form-label">Website <span class="required">*</span></label>
+                                <label for="website" class="form-label">Website <span class="required"></span></label>
                                 <input type="url" class="form-control" id="website" name="website" placeholder="https://www.example.com" required>
                                 <div class="field-hint">Must start with https://</div>
                                 <div class="validation-error" id="websiteError">Please enter a valid website URL</div>
@@ -480,7 +480,7 @@
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="address_line1" class="form-label">Address Line 1 <span class="required">*</span></label>
+                                <label for="address_line1" class="form-label">Address Line 1 <span class="required"></span></label>
                                 <input type="text" class="form-control" id="address_line1" name="address_line1" placeholder="Street address" required>
                                 <div class="validation-error">Address is required</div>
                             </div>
@@ -489,7 +489,7 @@
                                 <input type="text" class="form-control" id="address_line2" name="address_line2" placeholder="Apartment, suite, etc.">
                             </div>
                             <div class="col-md-4">
-                                <label for="city" class="form-label">City <span class="required">*</span></label>
+                                <label for="city" class="form-label">City <span class="required"></span></label>
                                 <input type="text" class="form-control" id="city" name="city" placeholder="City" required>
                                 <div class="validation-error">City is required</div>
                             </div>
@@ -498,12 +498,12 @@
                                 <input type="text" class="form-control" id="county" name="county" placeholder="County">
                             </div>
                             <div class="col-md-4">
-                                <label for="postcode" class="form-label">Postcode <span class="required">*</span></label>
+                                <label for="postcode" class="form-label">Postcode <span class="required"></span></label>
                                 <input type="text" class="form-control" id="postcode" name="postcode" placeholder="Postcode" required>
                                 <div class="validation-error">Postcode is required</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="country" class="form-label">Country <span class="required">*</span></label>
+                                <label for="country" class="form-label">Country <span class="required"></span></label>
                                 <select class="form-select" id="country" name="country" required>
                                     <option value="">Select country...</option>
                                     <option value="GB" selected>United Kingdom</option>
@@ -531,19 +531,19 @@
                         <p class="text-muted small mb-3">Configure email addresses for billing notifications, support communications, and incident alerts. Shared or group inboxes are accepted.</p>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="billing_email" class="form-label">Accounts & Billing Email <span class="required">*</span></label>
+                                <label for="billing_email" class="form-label">Accounts & Billing Email <span class="required"></span></label>
                                 <input type="email" class="form-control" id="billing_email" name="billing_email" placeholder="e.g., accounts@company.com" required>
                                 <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
                                 <div class="validation-error">Please enter a valid email address</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="support_email" class="form-label">Support Email Address <span class="required">*</span></label>
+                                <label for="support_email" class="form-label">Support Email Address <span class="required"></span></label>
                                 <input type="email" class="form-control" id="support_email" name="support_email" placeholder="e.g., support@company.com" required>
                                 <div class="field-hint">Receives support ticket updates and general communications</div>
                                 <div class="validation-error">Please enter a valid email address</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="incident_email" class="form-label">Incident Email Address <span class="required">*</span></label>
+                                <label for="incident_email" class="form-label">Incident Email Address <span class="required"></span></label>
                                 <input type="email" class="form-control" id="incident_email" name="incident_email" placeholder="e.g., incidents@company.com" required>
                                 <div class="field-hint">Receives urgent incident alerts and service disruption notices</div>
                                 <div class="validation-error">Please enter a valid email address</div>
@@ -559,17 +559,17 @@
                         <p class="text-muted small mb-3">The contract signatory is the individual authorised to enter contracts on behalf of your company. This person will receive legal notices and approval requests.</p>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="signatory_name" class="form-label">Full Name <span class="required">*</span></label>
+                                <label for="signatory_name" class="form-label">Full Name <span class="required"></span></label>
                                 <input type="text" class="form-control" id="signatory_name" name="signatory_name" placeholder="e.g., John Smith" required>
                                 <div class="validation-error">Full name is required</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="signatory_title" class="form-label">Job Title <span class="required">*</span></label>
+                                <label for="signatory_title" class="form-label">Job Title <span class="required"></span></label>
                                 <input type="text" class="form-control" id="signatory_title" name="signatory_title" placeholder="e.g., CEO, Managing Director" required>
                                 <div class="validation-error">Job title is required</div>
                             </div>
                             <div class="col-md-6">
-                                <label for="signatory_email" class="form-label">Email Address <span class="required">*</span></label>
+                                <label for="signatory_email" class="form-label">Email Address <span class="required"></span></label>
                                 <input type="email" class="form-control" id="signatory_email" name="signatory_email" placeholder="e.g., signatory@company.com" required>
                                 <div class="field-hint">Used for contract signing and legal communications</div>
                                 <div class="validation-error">Please enter a valid email address</div>
@@ -585,7 +585,7 @@
                         <p class="text-muted small mb-3">VAT settings are used for billing and invoice generation. Changes to VAT details are audit-logged.</p>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="vat_registered" class="form-label">VAT Registered <span class="required">*</span></label>
+                                <label for="vat_registered" class="form-label">VAT Registered <span class="required"></span></label>
                                 <select class="form-select" id="vat_registered" name="vat_registered" required>
                                     <option value="">Select...</option>
                                     <option value="yes">Yes - VAT registered</option>
@@ -594,7 +594,7 @@
                                 <div class="validation-error">Please select VAT registration status</div>
                             </div>
                             <div class="col-md-6" id="vatCountryGroup" style="display: none;">
-                                <label for="vat_country" class="form-label">VAT Country <span class="required">*</span></label>
+                                <label for="vat_country" class="form-label">VAT Country <span class="required"></span></label>
                                 <select class="form-select" id="vat_country" name="vat_country">
                                     <option value="GB" selected>United Kingdom (GB)</option>
                                     <option value="IE">Ireland (IE)</option>
@@ -607,7 +607,7 @@
                                 </select>
                             </div>
                             <div class="col-md-6" id="vatNumberGroup" style="display: none;">
-                                <label for="vat_number" class="form-label">VAT Number <span class="required">*</span></label>
+                                <label for="vat_number" class="form-label">VAT Number <span class="required"></span></label>
                                 <div class="lookup-row">
                                     <input type="text" class="form-control" id="vat_number" name="vat_number" placeholder="e.g., GB123456789">
                                     <button type="button" class="btn btn-outline-primary btn-sm" id="lookupVatBtn">
@@ -620,7 +620,7 @@
                             </div>
                             <div class="col-md-6" id="reverseChargesGroup" style="display: none;">
                                 <label for="reverse_charges" class="form-label">
-                                    Reverse Charges <span class="required">*</span>
+                                    Reverse Charges <span class="required"></span>
                                     <i class="fas fa-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="<strong>No</strong> = You are sending messages to your own customers<br><br><strong>Yes</strong> = You are providing messaging as a service to third parties (reverse charge applies)"></i>
                                 </label>
                                 <select class="form-select" id="reverse_charges" name="reverse_charges">
