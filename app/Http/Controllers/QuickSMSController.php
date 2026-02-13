@@ -2446,7 +2446,7 @@ class QuickSMSController extends Controller
         }
 
         $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
-            'company_type' => 'required|string|in:uk_limited,sole_trader,government',
+            'company_type' => 'required|string|in:uk_limited,sole_trader,government_nhs,government,other',
             'company_name' => 'required|string|max:255',
             'trading_name' => 'nullable|string|max:255',
             'company_number' => 'nullable|string|max:20',
@@ -2476,8 +2476,10 @@ class QuickSMSController extends Controller
 
         $data = $request->all();
 
+        $companyType = $data['company_type'] === 'government' ? 'government_nhs' : $data['company_type'];
+
         $account->update([
-            'company_type' => $data['company_type'],
+            'company_type' => $companyType,
             'company_name' => $data['company_name'],
             'trading_name' => $data['trading_name'] ?? null,
             'company_number' => $data['company_number'] ?? null,
@@ -2505,7 +2507,7 @@ class QuickSMSController extends Controller
             'vat_number' => $data['vat_number'] ?? null,
             'vat_reverse_charges' => ($data['reverse_charges'] ?? 'no') === 'yes',
             'tax_country' => $data['vat_country'] ?? null,
-            'payment_terms' => 'prepay',
+            'payment_terms' => 'immediate',
             'contract_agreed' => true,
             'contract_signed_at' => now(),
             'contract_signed_ip' => $request->ip(),
