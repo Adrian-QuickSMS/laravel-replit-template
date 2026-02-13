@@ -1240,6 +1240,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 authenticatorSetupSection.style.display = 'none';
                 currentMfaStep = 'phone';
                 enableMfaBtn.textContent = 'Send Code';
+                var existingMobile = document.getElementById('mobileNumber') ? document.getElementById('mobileNumber').value : '';
+                if (existingMobile && !mfaPhoneInput.value) {
+                    mfaPhoneInput.value = existingMobile;
+                }
             } else if (selectedMfaMethod === 'authenticator') {
                 authenticatorSetupSection.style.display = 'block';
                 phoneSetupSection.style.display = 'none';
