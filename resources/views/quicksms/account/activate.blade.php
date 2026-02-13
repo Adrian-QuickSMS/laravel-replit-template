@@ -413,7 +413,7 @@
                                 <p class="tile-desc">Public sector organisations and health services</p>
                             </div>
                         </div>
-                        <input type="hidden" id="company_type" name="company_type" value="">
+                        <input type="hidden" id="company_type" name="company_type" value="{{ ($account->company_type ?? '') === 'government_nhs' ? 'government' : ($account->company_type ?? '') }}">
                         <div class="validation-error" id="companyTypeError">Please select a company type</div>
                     </div>
 
@@ -425,17 +425,17 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="company_name" class="form-label">Company Name <span class="required"></span></label>
-                                <input type="text" class="form-control" id="company_name" name="company_name" placeholder="Legal registered company name" required>
+                                <input type="text" class="form-control" id="company_name" name="company_name" placeholder="Legal registered company name" value="{{ $account->company_name ?? '' }}" required>
                                 <div class="validation-error">Company name is required</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="trading_name" class="form-label">Trading Name <span class="text-muted">(Optional)</span></label>
-                                <input type="text" class="form-control" id="trading_name" name="trading_name" placeholder="If different from legal name">
+                                <input type="text" class="form-control" id="trading_name" name="trading_name" placeholder="If different from legal name" value="{{ $account->trading_name ?? '' }}">
                             </div>
                             <div class="col-md-6" id="companyNumberGroup">
                                 <label for="company_number" class="form-label" id="companyNumberLabel">Company Number <span class="required" id="companyNumberRequired">*</span></label>
                                 <div class="lookup-row">
-                                    <input type="text" class="form-control" id="company_number" name="company_number" placeholder="e.g., 12345678">
+                                    <input type="text" class="form-control" id="company_number" name="company_number" placeholder="e.g., 12345678" value="{{ $account->company_number ?? '' }}">
                                     <button type="button" class="btn btn-outline-primary btn-sm" id="lookupCompanyBtn" style="display: none;">
                                         <i class="fas fa-search me-1"></i>Lookup
                                     </button>
@@ -446,27 +446,28 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="sector" class="form-label">Business Sector <span class="required"></span></label>
+                                @php $savedSector = $account->business_sector ?? ''; @endphp
                                 <select class="form-select" id="sector" name="sector" required>
                                     <option value="">Select sector...</option>
-                                    <option value="telecommunications">Telecommunications & Media</option>
-                                    <option value="financial">Financial Services</option>
-                                    <option value="healthcare">Healthcare</option>
-                                    <option value="retail">Retail & E-commerce</option>
-                                    <option value="travel">Travel & Hospitality</option>
-                                    <option value="education">Education</option>
-                                    <option value="government">Government & Public Sector</option>
-                                    <option value="technology">Technology</option>
-                                    <option value="manufacturing">Manufacturing</option>
-                                    <option value="professional">Professional Services</option>
-                                    <option value="utilities">Utilities & Energy</option>
-                                    <option value="logistics">Logistics & Transport</option>
-                                    <option value="other">Other</option>
+                                    <option value="telecommunications" @if($savedSector === 'telecommunications') selected @endif>Telecommunications & Media</option>
+                                    <option value="financial" @if($savedSector === 'financial') selected @endif>Financial Services</option>
+                                    <option value="healthcare" @if($savedSector === 'healthcare') selected @endif>Healthcare</option>
+                                    <option value="retail" @if($savedSector === 'retail') selected @endif>Retail & E-commerce</option>
+                                    <option value="travel" @if($savedSector === 'travel') selected @endif>Travel & Hospitality</option>
+                                    <option value="education" @if($savedSector === 'education') selected @endif>Education</option>
+                                    <option value="government" @if($savedSector === 'government') selected @endif>Government & Public Sector</option>
+                                    <option value="technology" @if($savedSector === 'technology') selected @endif>Technology</option>
+                                    <option value="manufacturing" @if($savedSector === 'manufacturing') selected @endif>Manufacturing</option>
+                                    <option value="professional" @if($savedSector === 'professional') selected @endif>Professional Services</option>
+                                    <option value="utilities" @if($savedSector === 'utilities') selected @endif>Utilities & Energy</option>
+                                    <option value="logistics" @if($savedSector === 'logistics') selected @endif>Logistics & Transport</option>
+                                    <option value="other" @if($savedSector === 'other') selected @endif>Other</option>
                                 </select>
                                 <div class="validation-error">Please select a sector</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="website" class="form-label">Website <span class="required"></span></label>
-                                <input type="url" class="form-control" id="website" name="website" value="https://" placeholder="https://www.example.com" required>
+                                <input type="url" class="form-control" id="website" name="website" value="{{ $account->website ?? 'https://' }}" placeholder="https://www.example.com" required>
                                 <div class="field-hint">Must start with https://</div>
                                 <div class="validation-error" id="websiteError">Please enter a valid website URL</div>
                             </div>
@@ -481,42 +482,43 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="address_line1" class="form-label">Address Line 1 <span class="required"></span></label>
-                                <input type="text" class="form-control" id="address_line1" name="address_line1" placeholder="Street address" required>
+                                <input type="text" class="form-control" id="address_line1" name="address_line1" placeholder="Street address" value="{{ $account->address_line1 ?? '' }}" required>
                                 <div class="validation-error">Address is required</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="address_line2" class="form-label">Address Line 2 <span class="text-muted">(Optional)</span></label>
-                                <input type="text" class="form-control" id="address_line2" name="address_line2" placeholder="Apartment, suite, etc.">
+                                <input type="text" class="form-control" id="address_line2" name="address_line2" placeholder="Apartment, suite, etc." value="{{ $account->address_line2 ?? '' }}">
                             </div>
                             <div class="col-md-4">
                                 <label for="city" class="form-label">City <span class="required"></span></label>
-                                <input type="text" class="form-control" id="city" name="city" placeholder="City" required>
+                                <input type="text" class="form-control" id="city" name="city" placeholder="City" value="{{ $account->city ?? '' }}" required>
                                 <div class="validation-error">City is required</div>
                             </div>
                             <div class="col-md-4">
                                 <label for="county" class="form-label">County / Region <span class="text-muted">(Optional)</span></label>
-                                <input type="text" class="form-control" id="county" name="county" placeholder="County">
+                                <input type="text" class="form-control" id="county" name="county" placeholder="County" value="{{ $account->county ?? '' }}">
                             </div>
                             <div class="col-md-4">
                                 <label for="postcode" class="form-label">Postcode <span class="required"></span></label>
-                                <input type="text" class="form-control" id="postcode" name="postcode" placeholder="Postcode" required>
+                                <input type="text" class="form-control" id="postcode" name="postcode" placeholder="Postcode" value="{{ $account->postcode ?? '' }}" required>
                                 <div class="validation-error">Postcode is required</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="country" class="form-label">Country <span class="required"></span></label>
+                                @php $savedCountry = $account->country ?? 'GB'; @endphp
                                 <select class="form-select" id="country" name="country" required>
                                     <option value="">Select country...</option>
-                                    <option value="GB" selected>United Kingdom</option>
-                                    <option value="IE">Ireland</option>
-                                    <option value="DE">Germany</option>
-                                    <option value="FR">France</option>
-                                    <option value="NL">Netherlands</option>
-                                    <option value="BE">Belgium</option>
-                                    <option value="ES">Spain</option>
-                                    <option value="IT">Italy</option>
-                                    <option value="US">United States</option>
-                                    <option value="CA">Canada</option>
-                                    <option value="AU">Australia</option>
+                                    <option value="GB" @if($savedCountry === 'GB') selected @endif>United Kingdom</option>
+                                    <option value="IE" @if($savedCountry === 'IE') selected @endif>Ireland</option>
+                                    <option value="DE" @if($savedCountry === 'DE') selected @endif>Germany</option>
+                                    <option value="FR" @if($savedCountry === 'FR') selected @endif>France</option>
+                                    <option value="NL" @if($savedCountry === 'NL') selected @endif>Netherlands</option>
+                                    <option value="BE" @if($savedCountry === 'BE') selected @endif>Belgium</option>
+                                    <option value="ES" @if($savedCountry === 'ES') selected @endif>Spain</option>
+                                    <option value="IT" @if($savedCountry === 'IT') selected @endif>Italy</option>
+                                    <option value="US" @if($savedCountry === 'US') selected @endif>United States</option>
+                                    <option value="CA" @if($savedCountry === 'CA') selected @endif>Canada</option>
+                                    <option value="AU" @if($savedCountry === 'AU') selected @endif>Australia</option>
                                 </select>
                                 <div class="validation-error">Country is required</div>
                             </div>
@@ -532,19 +534,19 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="billing_email" class="form-label">Accounts & Billing Email <span class="required"></span></label>
-                                <input type="email" class="form-control" id="billing_email" name="billing_email" placeholder="e.g., accounts@company.com" required>
+                                <input type="email" class="form-control" id="billing_email" name="billing_email" placeholder="e.g., accounts@company.com" value="{{ $account->billing_email ?? '' }}" required>
                                 <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
                                 <div class="validation-error">Please enter a valid email address</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="support_email" class="form-label">Support Email Address <span class="required"></span></label>
-                                <input type="email" class="form-control" id="support_email" name="support_email" placeholder="e.g., support@company.com" required>
+                                <input type="email" class="form-control" id="support_email" name="support_email" placeholder="e.g., support@company.com" value="{{ $account->support_contact_email ?? '' }}" required>
                                 <div class="field-hint">Receives support ticket updates and general communications</div>
                                 <div class="validation-error">Please enter a valid email address</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="incident_email" class="form-label">Incident Email Address <span class="required"></span></label>
-                                <input type="email" class="form-control" id="incident_email" name="incident_email" placeholder="e.g., incidents@company.com" required>
+                                <input type="email" class="form-control" id="incident_email" name="incident_email" placeholder="e.g., incidents@company.com" value="{{ $account->incident_email ?? '' }}" required>
                                 <div class="field-hint">Receives urgent incident alerts and service disruption notices</div>
                                 <div class="validation-error">Please enter a valid email address</div>
                             </div>
@@ -560,17 +562,17 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="signatory_name" class="form-label">Full Name <span class="required"></span></label>
-                                <input type="text" class="form-control" id="signatory_name" name="signatory_name" placeholder="e.g., John Smith" required>
+                                <input type="text" class="form-control" id="signatory_name" name="signatory_name" placeholder="e.g., John Smith" value="{{ $account->signatory_name ?? '' }}" required>
                                 <div class="validation-error">Full name is required</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="signatory_title" class="form-label">Job Title <span class="required"></span></label>
-                                <input type="text" class="form-control" id="signatory_title" name="signatory_title" placeholder="e.g., CEO, Managing Director" required>
+                                <input type="text" class="form-control" id="signatory_title" name="signatory_title" placeholder="e.g., CEO, Managing Director" value="{{ $account->signatory_title ?? '' }}" required>
                                 <div class="validation-error">Job title is required</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="signatory_email" class="form-label">Email Address <span class="required"></span></label>
-                                <input type="email" class="form-control" id="signatory_email" name="signatory_email" placeholder="e.g., signatory@company.com" required>
+                                <input type="email" class="form-control" id="signatory_email" name="signatory_email" placeholder="e.g., signatory@company.com" value="{{ $account->signatory_email ?? '' }}" required>
                                 <div class="field-hint">Used for contract signing and legal communications</div>
                                 <div class="validation-error">Please enter a valid email address</div>
                             </div>
@@ -586,30 +588,32 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="vat_registered" class="form-label">VAT Registered <span class="required"></span></label>
+                                @php $savedVatReg = ($account->vat_registered ?? false) ? 'yes' : (($account->vat_registered === false) ? 'no' : ''); @endphp
                                 <select class="form-select" id="vat_registered" name="vat_registered" required>
                                     <option value="">Select...</option>
-                                    <option value="yes">Yes - VAT registered</option>
-                                    <option value="no">No - Not VAT registered</option>
+                                    <option value="yes" @if($savedVatReg === 'yes') selected @endif>Yes - VAT registered</option>
+                                    <option value="no" @if($savedVatReg === 'no') selected @endif>No - Not VAT registered</option>
                                 </select>
                                 <div class="validation-error">Please select VAT registration status</div>
                             </div>
                             <div class="col-md-6" id="vatCountryGroup" style="display: none;">
                                 <label for="vat_country" class="form-label">VAT Country <span class="required"></span></label>
+                                @php $savedTaxCountry = $account->tax_country ?? 'GB'; @endphp
                                 <select class="form-select" id="vat_country" name="vat_country">
-                                    <option value="GB" selected>United Kingdom (GB)</option>
-                                    <option value="IE">Ireland (IE)</option>
-                                    <option value="DE">Germany (DE)</option>
-                                    <option value="FR">France (FR)</option>
-                                    <option value="NL">Netherlands (NL)</option>
-                                    <option value="BE">Belgium (BE)</option>
-                                    <option value="ES">Spain (ES)</option>
-                                    <option value="IT">Italy (IT)</option>
+                                    <option value="GB" @if($savedTaxCountry === 'GB') selected @endif>United Kingdom (GB)</option>
+                                    <option value="IE" @if($savedTaxCountry === 'IE') selected @endif>Ireland (IE)</option>
+                                    <option value="DE" @if($savedTaxCountry === 'DE') selected @endif>Germany (DE)</option>
+                                    <option value="FR" @if($savedTaxCountry === 'FR') selected @endif>France (FR)</option>
+                                    <option value="NL" @if($savedTaxCountry === 'NL') selected @endif>Netherlands (NL)</option>
+                                    <option value="BE" @if($savedTaxCountry === 'BE') selected @endif>Belgium (BE)</option>
+                                    <option value="ES" @if($savedTaxCountry === 'ES') selected @endif>Spain (ES)</option>
+                                    <option value="IT" @if($savedTaxCountry === 'IT') selected @endif>Italy (IT)</option>
                                 </select>
                             </div>
                             <div class="col-md-6" id="vatNumberGroup" style="display: none;">
                                 <label for="vat_number" class="form-label">VAT Number <span class="required"></span></label>
                                 <div class="lookup-row">
-                                    <input type="text" class="form-control" id="vat_number" name="vat_number" placeholder="e.g., GB123456789">
+                                    <input type="text" class="form-control" id="vat_number" name="vat_number" placeholder="e.g., GB123456789" value="{{ $account->vat_number ?? '' }}">
                                     <button type="button" class="btn btn-outline-primary btn-sm" id="lookupVatBtn">
                                         <i class="fas fa-search me-1"></i>Verify
                                     </button>
@@ -623,10 +627,11 @@
                                     Reverse Charges <span class="required"></span>
                                     <i class="fas fa-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="<strong>No</strong> = You are sending messages to your own customers<br><br><strong>Yes</strong> = You are providing messaging as a service to third parties (reverse charge applies)"></i>
                                 </label>
+                                @php $savedReverseCharges = ($account->vat_reverse_charges ?? false) ? 'yes' : (($account->vat_reverse_charges === false) ? 'no' : ''); @endphp
                                 <select class="form-select" id="reverse_charges" name="reverse_charges">
                                     <option value="">Select...</option>
-                                    <option value="no">No</option>
-                                    <option value="yes">Yes</option>
+                                    <option value="no" @if($savedReverseCharges === 'no') selected @endif>No</option>
+                                    <option value="yes" @if($savedReverseCharges === 'yes') selected @endif>Yes</option>
                                 </select>
                                 <div class="validation-error">Please select reverse charges status</div>
                             </div>
@@ -658,7 +663,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var progressText = document.getElementById('form-progress-text');
     
     // State
-    var selectedCompanyType = '';
+    var selectedCompanyType = document.getElementById('company_type').value || '';
     
     // Required field groups (matches Account > Details sections)
     var requiredGroups = {
@@ -1060,11 +1065,31 @@ document.addEventListener('DOMContentLoaded', function() {
         new bootstrap.Tooltip(el);
     });
     
+    // Auto-select company type tile from saved data
+    if (selectedCompanyType) {
+        var mappedType = selectedCompanyType;
+        var tile = document.querySelector('.company-type-tile[data-type="' + mappedType + '"]');
+        if (tile) {
+            tile.classList.add('selected');
+            updateCompanyTypeFields();
+        }
+    }
+
+    // Auto-show VAT fields if VAT is registered
+    var vatSelect = document.getElementById('vat_registered');
+    if (vatSelect.value === 'yes') {
+        document.getElementById('vatCountryGroup').style.display = 'block';
+        document.getElementById('vatNumberGroup').style.display = 'block';
+        document.getElementById('reverseChargesGroup').style.display = 'block';
+        document.getElementById('vat_number').setAttribute('required', 'required');
+        document.getElementById('reverse_charges').setAttribute('required', 'required');
+    }
+
     // Check activation status from server-side data only
     function checkActivationStatus() {
         var accountStatus = @json($account->status ?? 'pending_activation');
         var hasCompanyType = @json(!empty($account->company_type ?? ''));
-        var hasRegisteredAddress = @json(!empty($account->registered_address_line1 ?? ''));
+        var hasRegisteredAddress = @json(!empty($account->address_line1 ?? ''));
         var hasSignatory = @json(!empty($account->signatory_name ?? ''));
 
         if (accountStatus === 'live') {
