@@ -126,7 +126,7 @@ class AuthController extends Controller
                 'fraud_prevention' => '1.0',
             ]);
 
-            DB::statement("SET app.current_tenant_id = '" . addslashes($accountData->account_id) . "'");
+            DB::statement("SET app.current_tenant_id = ?", [$accountData->account_id]);
 
             // Update account with consent and UTM data
             DB::table('accounts')->where('id', $accountData->account_id)->update([
@@ -305,10 +305,10 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             \Log::error('Login error: ' . $e->getMessage());
 
-            // Log failed login
+            // Log failed login (generic reason — never store raw exception in audit log)
             AuthAuditLog::logLoginFailure(
                 $request->email,
-                'System error: ' . $e->getMessage(),
+                'System error during authentication',
                 'customer_user'
             );
 
@@ -604,7 +604,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => 'An error occurred during password reset. Please try again.'
             ], 500);
         }
     }

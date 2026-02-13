@@ -51,6 +51,9 @@ class QuickSMSController extends Controller
 
             $user = \App\Models\User::withoutGlobalScope('tenant')->find($userData->user_id);
 
+            // Regenerate session ID to prevent session fixation attacks
+            $request->session()->regenerate();
+
             session([
                 'customer_logged_in' => true,
                 'customer_email' => $user->email,
@@ -60,7 +63,7 @@ class QuickSMSController extends Controller
                 'customer_account_id' => $user->tenant_id,
             ]);
 
-            \Illuminate\Support\Facades\DB::statement("SET app.current_tenant_id = '" . addslashes($user->tenant_id) . "'");
+            \Illuminate\Support\Facades\DB::statement("SET app.current_tenant_id = ?", [$user->tenant_id]);
 
             return redirect()->route('dashboard')->with('success', 'Welcome back, ' . $user->first_name . '!');
 
