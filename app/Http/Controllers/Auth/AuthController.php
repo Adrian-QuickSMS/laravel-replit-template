@@ -192,6 +192,108 @@ class AuthController extends Controller
     }
 
     /**
+     * Complete Security Setup (Step 3 of 3)
+     *
+     * POST /api/auth/complete-security
+     * Updates an existing user's password and mobile number after email verification.
+     */
+    public function completeSecuritySetup(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+            'password' => [
+                'required',
+                'confirmed',
+                Password::min(12)
+                    ->max(128)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
+            ],
+            'mobile_number' => 'required|string|max:20',
+            'accept_fraud_prevention' => 'nullable|boolean',
+            'accept_marketing' => 'nullable|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $user = User::withoutGlobalScope('tenant')
+                ->where('email', $request->email)
+                ->first();
+
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Account not found. Please start the signup process again.'
+                ], 404);
+            }
+
+            DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+
+            $normalizedMobile = User::normalizeMobileNumber($request->mobile_number);
+
+            $user->password = Hash::make($request->password);
+            $user->mobile_number = $normalizedMobile;
+            $user->mobile_verified_at = now();
+            $user->email_verified_at = now();
+            $user->save();
+
+            $ipAddress = $request->ip();
+
+            if ($request->accept_fraud_prevention) {
+                $consentVersions = config('consent.versions', ['fraud_prevention' => '1.0']);
+                DB::table('accounts')->where('id', $user->tenant_id)->update([
+                    'fraud_consent_at' => now(),
+                    'fraud_consent_ip' => $ipAddress,
+                    'fraud_consent_version' => $consentVersions['fraud_prevention'] ?? '1.0',
+                ]);
+            }
+
+            if ($request->accept_marketing) {
+                DB::table('accounts')->where('id', $user->tenant_id)->update([
+                    'marketing_consent_at' => now(),
+                    'marketing_consent_ip' => $ipAddress,
+                ]);
+            }
+
+            DB::table('accounts')->where('id', $user->tenant_id)->update([
+                'signup_details_complete' => true,
+            ]);
+
+            $account = Account::withoutGlobalScope('tenant')->find($user->tenant_id);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Security setup complete. Your account is ready.',
+                'data' => [
+                    'account_id' => $user->tenant_id,
+                    'user_id' => $user->id,
+                    'account_number' => $account->account_number ?? null,
+                    'email' => $user->email,
+                    'redirect' => '/?onboarding=complete',
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            \Log::error('Security setup error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred. Please try again.'
+            ], 500);
+        }
+    }
+
+    /**
      * Login
      *
      * POST /api/auth/login

@@ -1260,36 +1260,28 @@ $(document).ready(function() {
             }
         };
         
-        var registrationData = JSON.parse(sessionStorage.getItem('pendingRegistration') || '{}');
-        
-        var signupPayload = {
-            company_name: registrationData.business_name || urlParams.get('business_name') || '',
-            first_name: registrationData.first_name || urlParams.get('first_name') || '',
-            last_name: registrationData.last_name || urlParams.get('last_name') || '',
-            job_title: registrationData.job_title || urlParams.get('job_title') || '',
+        var securityPayload = {
             email: email,
-            country: registrationData.country || urlParams.get('country') || 'GB',
             password: $('#password').val(),
             password_confirmation: $('#confirmPassword').val(),
             mobile_number: formData.mobile_number,
             accept_fraud_prevention: true,
-            accept_marketing: formData.marketing.consent ? true : false,
-            _token: $('meta[name="csrf-token"]').attr('content')
+            accept_marketing: formData.marketing.consent ? true : false
         };
         
-        console.log('[Security] Submitting signup to backend:', { email: signupPayload.email, company: signupPayload.company_name });
+        console.log('[Security] Completing security setup for:', email);
         
         $.ajax({
-            url: '/api/auth/signup',
+            url: '/api/auth/complete-security',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify(signupPayload),
+            data: JSON.stringify(securityPayload),
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
                 'Accept': 'application/json'
             },
             success: function(response) {
-                console.log('[Signup] Account created successfully:', response);
+                console.log('[Security] Setup completed successfully:', response);
                 
                 sessionStorage.removeItem('pendingRegistration');
                 sessionStorage.removeItem('verificationToken');
@@ -1304,9 +1296,9 @@ $(document).ready(function() {
                 window.location.href = response.data.redirect || '/?onboarding=complete';
             },
             error: function(xhr) {
-                console.error('[Signup] Error:', xhr.responseJSON);
+                console.error('[Security] Error:', xhr.responseJSON);
                 
-                var errorMsg = 'An error occurred during signup. Please try again.';
+                var errorMsg = 'An error occurred. Please try again.';
                 if (xhr.responseJSON && xhr.responseJSON.errors) {
                     var errors = xhr.responseJSON.errors;
                     var firstError = Object.values(errors)[0];
