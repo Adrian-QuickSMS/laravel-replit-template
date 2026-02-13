@@ -466,7 +466,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="website" class="form-label">Website <span class="required"></span></label>
-                                <input type="url" class="form-control" id="website" name="website" placeholder="https://www.example.com" required>
+                                <input type="url" class="form-control" id="website" name="website" value="https://" placeholder="https://www.example.com" required>
                                 <div class="field-hint">Must start with https://</div>
                                 <div class="validation-error" id="websiteError">Please enter a valid website URL</div>
                             </div>
