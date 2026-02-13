@@ -60,7 +60,7 @@ class QuickSMSController extends Controller
                 'customer_account_id' => $user->tenant_id,
             ]);
 
-            \Illuminate\Support\Facades\DB::statement("SET app.current_tenant_id = ?", [$user->tenant_id]);
+            \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
 
             $request->session()->regenerate();
 

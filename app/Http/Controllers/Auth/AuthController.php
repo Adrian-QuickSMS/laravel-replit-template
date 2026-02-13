@@ -128,7 +128,7 @@ class AuthController extends Controller
                 'fraud_prevention' => '1.0',
             ]);
 
-            DB::statement("SET app.current_tenant_id = ?", [$accountData->account_id]);
+            DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountData->account_id]);
 
             // Update account with consent and UTM data
             DB::table('accounts')->where('id', $accountData->account_id)->update([
