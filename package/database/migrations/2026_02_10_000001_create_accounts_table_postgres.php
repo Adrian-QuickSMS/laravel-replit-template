@@ -148,21 +148,10 @@ return new class extends Migration
         DB::unprepared("
             CREATE OR REPLACE FUNCTION generate_account_number()
             RETURNS TRIGGER AS \$\$
-            DECLARE
-                next_number INTEGER;
             BEGIN
                 IF NEW.account_number IS NULL THEN
-                    -- Get next available number
-                    SELECT COALESCE(
-                        MAX(CAST(SUBSTRING(account_number FROM 3) AS INTEGER)),
-                        0
-                    ) + 1
-                    INTO next_number
-                    FROM accounts
-                    WHERE account_number ~ '^QS[0-9]+$';
-
-                    -- Format as QS00000001
-                    NEW.account_number := 'QS' || LPAD(next_number::TEXT, 8, '0');
+                    -- Use sequence for concurrency-safe number generation
+                    NEW.account_number := 'QS' || LPAD(nextval('accounts_number_seq')::TEXT, 8, '0');
                 END IF;
                 RETURN NEW;
             END;
@@ -176,31 +165,37 @@ return new class extends Migration
             EXECUTE FUNCTION generate_account_number();
         ");
 
-        // ENABLE ROW LEVEL SECURITY
+        // ENABLE ROW LEVEL SECURITY (including for table owner)
         DB::unprepared("ALTER TABLE accounts ENABLE ROW LEVEL SECURITY");
+        DB::unprepared("ALTER TABLE accounts FORCE ROW LEVEL SECURITY");
 
-        // RLS Policy: Accounts are isolated by their own ID (tenant root)
-        // This is defense-in-depth - app-level filtering is primary control
+        // RLS Policy: Tenant isolation - no NULL-context bypass
+        // If no tenant context is set, zero rows are returned (fail-closed)
         DB::unprepared("
             CREATE POLICY accounts_isolation ON accounts
             FOR ALL
             USING (
                 id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                OR current_setting('app.current_tenant_id', true) IS NULL
-                OR current_user IN ('svc_red', 'ops_admin')
             )
             WITH CHECK (
                 id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                OR current_setting('app.current_tenant_id', true) IS NULL
-                OR current_user IN ('svc_red', 'ops_admin')
             );
         ");
 
-        // System account (00000000-0000-0000-0000-000000000001) bypass
+        // Privileged roles bypass: internal services and ops can see all accounts
+        DB::unprepared("
+            CREATE POLICY accounts_service_access ON accounts
+            FOR ALL
+            TO svc_red, ops_admin
+            USING (true)
+            WITH CHECK (true);
+        ");
+
+        // System account read access (restricted to service roles, not PUBLIC)
         DB::unprepared("
             CREATE POLICY accounts_system_bypass ON accounts
-            FOR ALL
-            TO PUBLIC
+            FOR SELECT
+            TO svc_red, ops_admin
             USING (id = '00000000-0000-0000-0000-000000000001'::uuid);
         ");
     }

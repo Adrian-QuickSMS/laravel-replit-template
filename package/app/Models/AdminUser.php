@@ -92,48 +92,6 @@ class AdminUser extends Authenticatable
         return 'id';
     }
 
-    /**
-     * Convert UUID binary to string when retrieved
-     */
-    public function getIdAttribute($value)
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if (is_string($value) && strlen($value) === 36) {
-            return $value;
-        }
-
-        $hex = bin2hex($value);
-        return sprintf(
-            '%s-%s-%s-%s-%s',
-            substr($hex, 0, 8),
-            substr($hex, 8, 4),
-            substr($hex, 12, 4),
-            substr($hex, 16, 4),
-            substr($hex, 20)
-        );
-    }
-
-    /**
-     * Convert UUID string to binary when setting
-     */
-    public function setIdAttribute($value)
-    {
-        if ($value === null) {
-            return;
-        }
-
-        if (is_string($value) && strlen($value) === 16) {
-            $this->attributes['id'] = $value;
-            return;
-        }
-
-        $hex = str_replace('-', '', $value);
-        $this->attributes['id'] = hex2bin($hex);
-    }
-
     // =====================================================
     // RELATIONSHIPS
     // =====================================================

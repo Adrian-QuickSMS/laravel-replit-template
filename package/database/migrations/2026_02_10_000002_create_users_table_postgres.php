@@ -144,21 +144,29 @@ return new class extends Migration
             EXECUTE FUNCTION validate_users_tenant_id();
         ");
 
-        // ENABLE ROW LEVEL SECURITY
+        // ENABLE ROW LEVEL SECURITY (including for table owner)
         DB::unprepared("ALTER TABLE users ENABLE ROW LEVEL SECURITY");
+        DB::unprepared("ALTER TABLE users FORCE ROW LEVEL SECURITY");
 
-        // RLS Policy: Users can only see users in their own tenant
+        // RLS Policy: Tenant isolation (fail-closed)
         DB::unprepared("
             CREATE POLICY users_tenant_isolation ON users
             FOR ALL
             USING (
                 tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                OR current_user IN ('svc_red', 'ops_admin')
             )
             WITH CHECK (
                 tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                OR current_user IN ('svc_red', 'ops_admin')
             );
+        ");
+
+        // Privileged roles bypass
+        DB::unprepared("
+            CREATE POLICY users_service_access ON users
+            FOR ALL
+            TO svc_red, ops_admin
+            USING (true)
+            WITH CHECK (true);
         ");
     }
 

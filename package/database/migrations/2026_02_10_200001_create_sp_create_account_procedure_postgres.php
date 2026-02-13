@@ -65,7 +65,7 @@ return new class extends Migration
             )
             LANGUAGE plpgsql
             SECURITY DEFINER
-            SET search_path = public
+            SET search_path = public, pg_temp
             AS \$\$
             DECLARE
                 v_account_id UUID;

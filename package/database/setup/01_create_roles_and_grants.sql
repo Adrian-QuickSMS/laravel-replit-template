@@ -18,24 +18,55 @@
 -- ========================================================
 
 -- ========================================================
+-- 0. LOCK DOWN PUBLIC SCHEMA
+-- ========================================================
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public TO PUBLIC;
+
+-- ========================================================
 -- 1. CREATE DATABASE ROLES
 -- ========================================================
+-- IMPORTANT: Set real passwords via environment variables before running.
+-- Example: CREATE ROLE portal_ro LOGIN PASSWORD :'PORTAL_RO_PASSWORD';
+-- Or use: \set PORTAL_RO_PASSWORD `echo $PORTAL_RO_PASSWORD`
 
 -- Portal Read-Only: SELECT on views only
-CREATE ROLE portal_ro LOGIN PASSWORD 'CHANGE_THIS_IN_PRODUCTION';
+DO $$ BEGIN
+    CREATE ROLE portal_ro LOGIN PASSWORD 'CHANGE_THIS_IN_PRODUCTION';
+EXCEPTION WHEN duplicate_object THEN
+    RAISE NOTICE 'Role portal_ro already exists, skipping';
+END $$;
 COMMENT ON ROLE portal_ro IS 'Customer portal read-only access to views';
 
 -- Portal Read-Write: Execute procedures + SELECT views
-CREATE ROLE portal_rw LOGIN PASSWORD 'CHANGE_THIS_IN_PRODUCTION';
+DO $$ BEGIN
+    CREATE ROLE portal_rw LOGIN PASSWORD 'CHANGE_THIS_IN_PRODUCTION';
+EXCEPTION WHEN duplicate_object THEN
+    RAISE NOTICE 'Role portal_rw already exists, skipping';
+END $$;
 COMMENT ON ROLE portal_rw IS 'Customer portal read-write via stored procedures';
 
 -- Internal Services (RED SIDE): Full access to internal tables
-CREATE ROLE svc_red LOGIN PASSWORD 'CHANGE_THIS_IN_PRODUCTION';
+DO $$ BEGIN
+    CREATE ROLE svc_red LOGIN PASSWORD 'CHANGE_THIS_IN_PRODUCTION';
+EXCEPTION WHEN duplicate_object THEN
+    RAISE NOTICE 'Role svc_red already exists, skipping';
+END $$;
 COMMENT ON ROLE svc_red IS 'Internal services with access to fraud/billing/audit data';
 
 -- Operations Admin: Full access, can bypass RLS for support
-CREATE ROLE ops_admin LOGIN PASSWORD 'CHANGE_THIS_IN_PRODUCTION' BYPASSRLS;
+DO $$ BEGIN
+    CREATE ROLE ops_admin LOGIN PASSWORD 'CHANGE_THIS_IN_PRODUCTION' BYPASSRLS;
+EXCEPTION WHEN duplicate_object THEN
+    RAISE NOTICE 'Role ops_admin already exists, skipping';
+END $$;
 COMMENT ON ROLE ops_admin IS 'Operations staff with full database access';
+
+-- SECURITY WARNING: Change these passwords immediately after deployment!
+-- ALTER ROLE portal_ro PASSWORD '<secure-random-password>';
+-- ALTER ROLE portal_rw PASSWORD '<secure-random-password>';
+-- ALTER ROLE svc_red PASSWORD '<secure-random-password>';
+-- ALTER ROLE ops_admin PASSWORD '<secure-random-password>';
 
 -- ========================================================
 -- 2. GREEN SIDE - PORTAL READ-ONLY GRANTS (portal_ro)

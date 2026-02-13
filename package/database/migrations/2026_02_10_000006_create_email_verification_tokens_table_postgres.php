@@ -46,28 +46,52 @@ return new class extends Migration
             $table->index(['user_id', 'expires_at']);
         });
 
-        // Enable Row Level Security
-        DB::unprepared("ALTER TABLE email_verification_tokens ENABLE ROW LEVEL SECURITY");
+        // Add tenant_id directly for efficient RLS (avoids subquery)
+        DB::statement("ALTER TABLE email_verification_tokens ADD COLUMN tenant_id UUID REFERENCES accounts(id)");
+        DB::statement("CREATE INDEX idx_email_verification_tokens_tenant ON email_verification_tokens (tenant_id)");
 
-        // RLS Policy: Users can only access their own verification tokens
-        // This works via the FK: email_verification_tokens.user_id → users.tenant_id
+        // Trigger to auto-populate tenant_id from user record
+        DB::unprepared("
+            CREATE OR REPLACE FUNCTION set_email_verification_tokens_tenant_id()
+            RETURNS TRIGGER AS \$\$
+            BEGIN
+                IF NEW.tenant_id IS NULL THEN
+                    SELECT tenant_id INTO NEW.tenant_id FROM users WHERE id = NEW.user_id;
+                END IF;
+                RETURN NEW;
+            END;
+            \$\$ LANGUAGE plpgsql;
+        ");
+        DB::unprepared("
+            CREATE TRIGGER before_insert_email_verification_tenant
+            BEFORE INSERT ON email_verification_tokens
+            FOR EACH ROW
+            EXECUTE FUNCTION set_email_verification_tokens_tenant_id();
+        ");
+
+        // Enable Row Level Security (including for table owner)
+        DB::unprepared("ALTER TABLE email_verification_tokens ENABLE ROW LEVEL SECURITY");
+        DB::unprepared("ALTER TABLE email_verification_tokens FORCE ROW LEVEL SECURITY");
+
+        // RLS Policy: Tenant isolation via direct tenant_id (no subquery)
         DB::unprepared("
             CREATE POLICY email_verification_tenant_isolation ON email_verification_tokens
             FOR ALL
             USING (
-                user_id IN (
-                    SELECT id FROM users
-                    WHERE tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                )
-                OR current_user IN ('svc_red', 'ops_admin')
+                tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
             )
             WITH CHECK (
-                user_id IN (
-                    SELECT id FROM users
-                    WHERE tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                )
-                OR current_user IN ('svc_red', 'ops_admin')
+                tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
             );
+        ");
+
+        // Privileged roles bypass
+        DB::unprepared("
+            CREATE POLICY email_verification_service_access ON email_verification_tokens
+            FOR ALL
+            TO svc_red, ops_admin
+            USING (true)
+            WITH CHECK (true);
         ");
     }
 

@@ -63,28 +63,52 @@ return new class extends Migration
         // Add INET column for IP address
         DB::statement("ALTER TABLE user_sessions ADD COLUMN ip_address INET NOT NULL");
 
-        // Enable Row Level Security
-        DB::unprepared("ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY");
+        // Add tenant_id directly for efficient RLS (avoids subquery)
+        DB::statement("ALTER TABLE user_sessions ADD COLUMN tenant_id UUID REFERENCES accounts(id)");
+        DB::statement("CREATE INDEX idx_user_sessions_tenant ON user_sessions (tenant_id)");
 
-        // RLS Policy: Users can only access their own sessions
-        // This works via the FK: user_sessions.user_id → users.tenant_id
+        // Trigger to auto-populate tenant_id from user record
+        DB::unprepared("
+            CREATE OR REPLACE FUNCTION set_user_sessions_tenant_id()
+            RETURNS TRIGGER AS \$\$
+            BEGIN
+                IF NEW.tenant_id IS NULL THEN
+                    SELECT tenant_id INTO NEW.tenant_id FROM users WHERE id = NEW.user_id;
+                END IF;
+                RETURN NEW;
+            END;
+            \$\$ LANGUAGE plpgsql;
+        ");
+        DB::unprepared("
+            CREATE TRIGGER before_insert_user_sessions_tenant
+            BEFORE INSERT ON user_sessions
+            FOR EACH ROW
+            EXECUTE FUNCTION set_user_sessions_tenant_id();
+        ");
+
+        // Enable Row Level Security (including for table owner)
+        DB::unprepared("ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY");
+        DB::unprepared("ALTER TABLE user_sessions FORCE ROW LEVEL SECURITY");
+
+        // RLS Policy: Tenant isolation via direct tenant_id (no subquery)
         DB::unprepared("
             CREATE POLICY user_sessions_tenant_isolation ON user_sessions
             FOR ALL
             USING (
-                user_id IN (
-                    SELECT id FROM users
-                    WHERE tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                )
-                OR current_user IN ('svc_red', 'ops_admin')
+                tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
             )
             WITH CHECK (
-                user_id IN (
-                    SELECT id FROM users
-                    WHERE tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                )
-                OR current_user IN ('svc_red', 'ops_admin')
+                tenant_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
             );
+        ");
+
+        // Privileged roles bypass
+        DB::unprepared("
+            CREATE POLICY user_sessions_service_access ON user_sessions
+            FOR ALL
+            TO svc_red, ops_admin
+            USING (true)
+            WITH CHECK (true);
         ");
     }
 

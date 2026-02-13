@@ -83,21 +83,29 @@ return new class extends Migration
         DB::statement("CREATE INDEX idx_account_credits_account_type ON account_credits (account_id, type)");
         DB::statement("CREATE INDEX idx_account_credits_balance ON account_credits (account_id, expires_at, credits_remaining)");
 
-        // Enable Row Level Security
+        // Enable Row Level Security (including for table owner)
         DB::unprepared("ALTER TABLE account_credits ENABLE ROW LEVEL SECURITY");
+        DB::unprepared("ALTER TABLE account_credits FORCE ROW LEVEL SECURITY");
 
-        // RLS Policy: Accounts can only access their own credits
+        // RLS Policy: Tenant isolation (fail-closed)
         DB::unprepared("
             CREATE POLICY account_credits_isolation ON account_credits
             FOR ALL
             USING (
                 account_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                OR current_user IN ('svc_red', 'ops_admin')
             )
             WITH CHECK (
                 account_id = NULLIF(current_setting('app.current_tenant_id', true), '')::uuid
-                OR current_user IN ('svc_red', 'ops_admin')
             );
+        ");
+
+        // Privileged roles bypass
+        DB::unprepared("
+            CREATE POLICY account_credits_service_access ON account_credits
+            FOR ALL
+            TO svc_red, ops_admin
+            USING (true)
+            WITH CHECK (true);
         ");
     }
 

@@ -66,7 +66,7 @@ return new class extends Migration
             )
             LANGUAGE plpgsql
             SECURITY DEFINER
-            SET search_path = public
+            SET search_path = public, pg_temp
             AS \$\$
             DECLARE
                 v_user_id UUID;
@@ -81,7 +81,7 @@ return new class extends Migration
                     u.id,
                     u.tenant_id,
                     u.status,
-                    u.account_locked_until,
+                    u.locked_until,
                     u.email_verified_at,
                     u.failed_login_attempts
                 INTO
@@ -203,7 +203,7 @@ return new class extends Migration
                     UPDATE users
                     SET
                         failed_login_attempts = v_failed_attempts,
-                        account_locked_until = CASE
+                        locked_until = CASE
                             WHEN v_failed_attempts >= 5 THEN NOW() + INTERVAL '30 minutes'
                             ELSE NULL
                         END
@@ -280,7 +280,7 @@ return new class extends Migration
                     last_login_at = NOW(),
                     last_login_ip = p_ip_address,
                     failed_login_attempts = 0,
-                    account_locked_until = NULL
+                    locked_until = NULL
                 WHERE id = v_user_id;
 
                 -- Log successful login (RED SIDE)

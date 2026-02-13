@@ -84,6 +84,10 @@ class User extends Authenticatable
 
     /**
      * Boot method - apply global tenant scope
+     *
+     * NOTE: Password hashing is NOT done here to avoid double-hashing.
+     * The stored procedures (sp_create_account, sp_authenticate_user) and
+     * the changePassword() method handle hashing at the appropriate layer.
      */
     protected static function boot()
     {
@@ -95,105 +99,6 @@ class User extends Authenticatable
                 $builder->where('users.tenant_id', auth()->user()->tenant_id);
             }
         });
-
-        // Hash password on create/update
-        static::saving(function ($user) {
-            if ($user->isDirty('password') && $user->password) {
-                $user->password = Hash::make($user->password);
-            }
-        });
-    }
-
-    /**
-     * Get the route key name for Laravel routing
-     */
-    public function getRouteKeyName(): string
-    {
-        return 'id';
-    }
-
-    /**
-     * Convert UUID binary to string when retrieved
-     */
-    public function getIdAttribute($value)
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if (is_string($value) && strlen($value) === 36) {
-            return $value;
-        }
-
-        $hex = bin2hex($value);
-        return sprintf(
-            '%s-%s-%s-%s-%s',
-            substr($hex, 0, 8),
-            substr($hex, 8, 4),
-            substr($hex, 12, 4),
-            substr($hex, 16, 4),
-            substr($hex, 20)
-        );
-    }
-
-    /**
-     * Convert UUID string to binary when setting
-     */
-    public function setIdAttribute($value)
-    {
-        if ($value === null) {
-            return;
-        }
-
-        if (is_string($value) && strlen($value) === 16) {
-            $this->attributes['id'] = $value;
-            return;
-        }
-
-        $hex = str_replace('-', '', $value);
-        $this->attributes['id'] = hex2bin($hex);
-    }
-
-    /**
-     * Convert tenant_id binary to string
-     */
-    public function getTenantIdAttribute($value)
-    {
-        if ($value === null) {
-            return null;
-        }
-
-        if (is_string($value) && strlen($value) === 36) {
-            return $value;
-        }
-
-        $hex = bin2hex($value);
-        return sprintf(
-            '%s-%s-%s-%s-%s',
-            substr($hex, 0, 8),
-            substr($hex, 8, 4),
-            substr($hex, 12, 4),
-            substr($hex, 16, 4),
-            substr($hex, 20)
-        );
-    }
-
-    /**
-     * Convert tenant_id string to binary
-     */
-    public function setTenantIdAttribute($value)
-    {
-        if ($value === null) {
-            return;
-        }
-
-        if (is_string($value) && strlen($value) === 16) {
-            $this->attributes['tenant_id'] = $value;
-            return;
-        }
-
-        $hex = str_replace('-', '', $value);
-        $this->attributes['tenant_id'] = hex2bin($hex);
     }
 
     // =====================================================

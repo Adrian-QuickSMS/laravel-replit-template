@@ -88,51 +88,62 @@ class AuthController extends Controller
         }
 
         try {
-            DB::beginTransaction();
-
-            // Normalize mobile number to storage format (447XXXXXXXXX)
-            $normalizedMobile = User::normalizeMobileNumber($request->mobile_number);
-
-            // Get consent versions from config
-            $consentVersions = config('consent.versions');
-            $ipAddress = $request->ip();
-            $referrer = $request->referrer ?? $request->header('Referer');
-
-            // Hash password
+            // Hash password before passing to stored procedure
             $hashedPassword = Hash::make($request->password);
+            $ipAddress = $request->ip();
 
-            // Create Account with consent tracking and UTM data
-            $account = Account::create([
-                'company_name' => $request->company_name,
-                'phone' => $request->phone,
-                'country' => $request->country,
-                'account_type' => 'trial',
-                'status' => 'active',
+            // Call stored procedure — handles account, user, settings, flags, and audit
+            // SECURITY DEFINER function bypasses RLS for cross-table creation
+            $result = DB::select(
+                "SELECT * FROM sp_create_account(?, ?, ?, ?, ?, ?, ?, ?::inet)",
+                [
+                    $request->company_name,
+                    $request->email,
+                    $hashedPassword,
+                    $request->first_name,
+                    $request->last_name,
+                    $request->phone,
+                    $request->country,
+                    $ipAddress,
+                ]
+            );
 
-                // Terms & Conditions consent
+            if (empty($result)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Account creation failed. Please try again.'
+                ], 500);
+            }
+
+            $accountData = $result[0];
+
+            // Update additional fields not handled by the SP (consent, UTM, mobile)
+            // These run as the table owner via SECURITY DEFINER context still active
+            $normalizedMobile = User::normalizeMobileNumber($request->mobile_number);
+            $consentVersions = config('consent.versions', [
+                'terms' => '1.0',
+                'privacy' => '1.0',
+                'fraud_prevention' => '1.0',
+            ]);
+
+            // Set tenant context to the new account for RLS-compatible updates
+            DB::statement("SET app.current_tenant_id = ?", [$accountData->account_id]);
+
+            // Update account with consent and UTM data
+            DB::table('accounts')->where('id', $accountData->account_id)->update([
                 'terms_accepted_at' => now(),
                 'terms_accepted_ip' => $ipAddress,
-                'terms_version' => $consentVersions['terms'],
-
-                // Privacy Policy consent
+                'terms_version' => $consentVersions['terms'] ?? '1.0',
                 'privacy_accepted_at' => now(),
                 'privacy_accepted_ip' => $ipAddress,
-                'privacy_version' => $consentVersions['privacy'],
-
-                // Fraud Prevention consent
+                'privacy_version' => $consentVersions['privacy'] ?? '1.0',
                 'fraud_consent_at' => now(),
                 'fraud_consent_ip' => $ipAddress,
-                'fraud_consent_version' => $consentVersions['fraud_prevention'],
-
-                // Marketing consent (optional)
+                'fraud_consent_version' => $consentVersions['fraud_prevention'] ?? '1.0',
                 'marketing_consent_at' => $request->accept_marketing ? now() : null,
                 'marketing_consent_ip' => $request->accept_marketing ? $ipAddress : null,
-
-                // Signup tracking
                 'signup_ip_address' => $ipAddress,
-                'signup_referrer' => $referrer,
-
-                // UTM parameters
+                'signup_referrer' => $request->referrer ?? $request->header('Referer'),
                 'signup_utm_source' => $request->utm_source,
                 'signup_utm_medium' => $request->utm_medium,
                 'signup_utm_campaign' => $request->utm_campaign,
@@ -140,60 +151,33 @@ class AuthController extends Controller
                 'signup_utm_term' => $request->utm_term,
             ]);
 
-            // Create User with mobile number
-            $user = User::create([
-                'tenant_id' => $account->id,
-                'user_type' => 'customer',
-                'email' => $request->email,
-                'password' => $hashedPassword,
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'job_title' => $request->job_title,
-                'role' => 'owner',
-                'status' => 'active',
+            // Update user with mobile number
+            DB::table('users')->where('id', $accountData->user_id)->update([
                 'mobile_number' => $normalizedMobile,
-                'mfa_enabled' => false, // Will be auto-enabled after mobile verification
             ]);
 
             // Generate email verification token
-            $tokenData = EmailVerificationToken::createForUser($user);
-
-            // TODO: Send verification email via queue
-            // Mail::to($user->email)->queue(new VerifyEmailMail($tokenData['plain_token']));
-
-            // Log account creation
-            AuthAuditLog::logEvent([
-                'actor_type' => 'customer_user',
-                'actor_id' => $user->id,
-                'actor_email' => $user->email,
-                'tenant_id' => $account->id,
-                'event_type' => 'account_created',
-                'result' => 'success',
-                'ip_address' => $ipAddress,
-                'metadata' => json_encode([
-                    'account_number' => $account->account_number,
-                    'marketing_consent' => $request->accept_marketing ?? false,
-                    'utm_source' => $request->utm_source,
-                ]),
-            ]);
-
-            DB::commit();
+            $user = User::withoutGlobalScope('tenant')->find($accountData->user_id);
+            if ($user) {
+                $tokenData = EmailVerificationToken::createForUser($user);
+                // TODO: Send verification email via queue
+                // Mail::to($user->email)->queue(new VerifyEmailMail($tokenData['plain_token']));
+            }
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Account created successfully. Please verify your email and mobile number.',
                 'data' => [
-                    'account_id' => $account->id,
-                    'user_id' => $user->id,
-                    'account_number' => $account->account_number,
-                    'email' => $user->email,
+                    'account_id' => $accountData->account_id,
+                    'user_id' => $accountData->user_id,
+                    'account_number' => $accountData->account_number,
+                    'email' => $request->email,
                     'email_verification_required' => true,
                     'mobile_verification_required' => true,
                 ]
             ], 201);
 
         } catch (\Exception $e) {
-            DB::rollBack();
             \Log::error('Signup error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
@@ -225,33 +209,51 @@ class AuthController extends Controller
         }
 
         try {
-            // Find user
+            // Find user for password verification (must bypass tenant scope for login)
             $user = User::withoutGlobalScope('tenant')
                 ->where('email', $request->email)
                 ->first();
 
-            // Verify password
+            // Verify password at app layer (hash is never sent over the wire)
             $passwordVerified = $user && Hash::check($request->password, $user->password);
 
-            // Call stored procedure for authentication (handles logging, lockout, etc.)
-            $result = DB::select('CALL sp_authenticate_user(?, ?, ?)', [
-                $request->email,
-                $request->ip(),
-                $passwordVerified ? 1 : 0
-            ]);
+            // Call stored function for authentication (handles logging, lockout, etc.)
+            // PostgreSQL functions use SELECT * FROM, not CALL
+            $result = DB::select(
+                "SELECT * FROM sp_authenticate_user(?, ?::inet, ?)",
+                [
+                    $request->email,
+                    $request->ip(),
+                    $passwordVerified ? 1 : 0,
+                ]
+            );
 
-            if (empty($result) || $result[0]->status !== 'success') {
-                $message = $result[0]->message ?? 'Invalid credentials';
-
+            if (empty($result)) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => $message
+                    'message' => 'Invalid credentials'
                 ], 401);
             }
 
             $userData = $result[0];
 
-            // Refresh user model
+            // The SP returns a status field - check for non-success
+            if (isset($userData->failed_attempts) && $userData->failed_attempts >= 5) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Account is locked due to too many failed attempts. Try again later.'
+                ], 401);
+            }
+
+            // If no user_id returned, credentials were invalid
+            if (empty($userData->user_id)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid credentials'
+                ], 401);
+            }
+
+            // Refresh user model with the authenticated user_id
             $user = User::withoutGlobalScope('tenant')->find($userData->user_id);
 
             // Check if email is verified
