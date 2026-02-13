@@ -239,9 +239,9 @@ body {
             </div>
             @endif
             
-            <div class="alert alert-info mb-3" style="font-size: 0.85rem;">
-                <strong>Sign in with your account credentials</strong><br>
-                <small class="text-muted">Don't have an account? <a href="{{ url('/signup') }}">Sign up here</a></small>
+            <div class="mb-3 p-3 rounded" style="background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.2); font-size: 0.85rem;">
+                <strong style="color: #1a1a2e;">Sign in with your account credentials</strong><br>
+                <small style="color: #333;">Don't have an account? <a href="{{ url('/signup') }}" style="color: #886cc0; font-weight: 500;">Sign up here</a></small>
             </div>
             
             <form id="loginForm" method="POST" action="{{ route('auth.login.submit') }}" novalidate>
