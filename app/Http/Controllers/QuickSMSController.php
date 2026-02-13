@@ -2492,7 +2492,6 @@ class QuickSMSController extends Controller
             'postcode' => $data['postcode'],
             'country' => $data['country'],
             'accounts_billing_email' => $data['billing_email'],
-            'billing_email' => $data['billing_email'],
             'support_contact_email' => $data['support_email'],
             'incident_email' => $data['incident_email'],
             'support_contact_name' => $data['signatory_name'],

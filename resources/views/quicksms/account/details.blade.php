@@ -737,14 +737,17 @@
                                     @php $savedCountry = $account->country ?? ''; @endphp
                                     <select class="form-select company-field" id="regCountry">
                                         <option value="">Select country...</option>
-                                        <option value="UK" @if($savedCountry === 'UK') selected @endif>United Kingdom</option>
-                                        <option value="US" @if($savedCountry === 'US') selected @endif>United States</option>
+                                        <option value="GB" @if($savedCountry === 'GB') selected @endif>United Kingdom</option>
+                                        <option value="IE" @if($savedCountry === 'IE') selected @endif>Ireland</option>
                                         <option value="DE" @if($savedCountry === 'DE') selected @endif>Germany</option>
                                         <option value="FR" @if($savedCountry === 'FR') selected @endif>France</option>
-                                        <option value="IE" @if($savedCountry === 'IE') selected @endif>Ireland</option>
                                         <option value="NL" @if($savedCountry === 'NL') selected @endif>Netherlands</option>
+                                        <option value="BE" @if($savedCountry === 'BE') selected @endif>Belgium</option>
                                         <option value="ES" @if($savedCountry === 'ES') selected @endif>Spain</option>
                                         <option value="IT" @if($savedCountry === 'IT') selected @endif>Italy</option>
+                                        <option value="US" @if($savedCountry === 'US') selected @endif>United States</option>
+                                        <option value="CA" @if($savedCountry === 'CA') selected @endif>Canada</option>
+                                        <option value="AU" @if($savedCountry === 'AU') selected @endif>Australia</option>
                                     </select>
                                     <div class="validation-error">Country is required</div>
                                 </div>
@@ -752,7 +755,7 @@
                         </div>
                         
                         <div class="form-check mt-4 mb-3">
-                            <input class="form-check-input" type="checkbox" id="operatingSameAsRegistered" checked>
+                            <input class="form-check-input" type="checkbox" id="operatingSameAsRegistered" @if($account->operating_address_same_as_registered ?? true) checked @endif>
                             <label class="form-check-label" for="operatingSameAsRegistered">
                                 Operating address same as registered address
                             </label>
@@ -764,49 +767,53 @@
                                 <div class="col-md-6">
                                     <div class="field-group">
                                         <label class="form-label">Address Line 1<span class="required-indicator">*</span></label>
-                                        <input type="text" class="form-control operating-field" id="opAddress1" value="">
+                                        <input type="text" class="form-control operating-field" id="opAddress1" value="{{ $account->operating_address_line1 ?? '' }}">
                                         <div class="validation-error">Address is required</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="field-group">
                                         <label class="form-label">Address Line 2<span class="optional-indicator">(Optional)</span></label>
-                                        <input type="text" class="form-control" id="opAddress2" value="">
+                                        <input type="text" class="form-control" id="opAddress2" value="{{ $account->operating_address_line2 ?? '' }}">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="field-group">
                                         <label class="form-label">City<span class="required-indicator">*</span></label>
-                                        <input type="text" class="form-control operating-field" id="opCity" value="">
+                                        <input type="text" class="form-control operating-field" id="opCity" value="{{ $account->operating_city ?? '' }}">
                                         <div class="validation-error">City is required</div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="field-group">
                                         <label class="form-label">County / Region<span class="optional-indicator">(Optional)</span></label>
-                                        <input type="text" class="form-control" id="opCounty" value="">
+                                        <input type="text" class="form-control" id="opCounty" value="{{ $account->operating_county ?? '' }}">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="field-group">
                                         <label class="form-label">Postcode<span class="required-indicator">*</span></label>
-                                        <input type="text" class="form-control operating-field" id="opPostcode" value="">
+                                        <input type="text" class="form-control operating-field" id="opPostcode" value="{{ $account->operating_postcode ?? '' }}">
                                         <div class="validation-error">Postcode is required</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="field-group">
                                         <label class="form-label">Country<span class="required-indicator">*</span></label>
+                                        @php $savedOpCountry = $account->operating_country ?? ''; @endphp
                                         <select class="form-select operating-field" id="opCountry">
                                             <option value="">Select country...</option>
-                                            <option value="UK">United Kingdom</option>
-                                            <option value="US">United States</option>
-                                            <option value="DE">Germany</option>
-                                            <option value="FR">France</option>
-                                            <option value="IE">Ireland</option>
-                                            <option value="NL">Netherlands</option>
-                                            <option value="ES">Spain</option>
-                                            <option value="IT">Italy</option>
+                                            <option value="GB" @if($savedOpCountry === 'GB') selected @endif>United Kingdom</option>
+                                            <option value="IE" @if($savedOpCountry === 'IE') selected @endif>Ireland</option>
+                                            <option value="DE" @if($savedOpCountry === 'DE') selected @endif>Germany</option>
+                                            <option value="FR" @if($savedOpCountry === 'FR') selected @endif>France</option>
+                                            <option value="NL" @if($savedOpCountry === 'NL') selected @endif>Netherlands</option>
+                                            <option value="BE" @if($savedOpCountry === 'BE') selected @endif>Belgium</option>
+                                            <option value="ES" @if($savedOpCountry === 'ES') selected @endif>Spain</option>
+                                            <option value="IT" @if($savedOpCountry === 'IT') selected @endif>Italy</option>
+                                            <option value="US" @if($savedOpCountry === 'US') selected @endif>United States</option>
+                                            <option value="CA" @if($savedOpCountry === 'CA') selected @endif>Canada</option>
+                                            <option value="AU" @if($savedOpCountry === 'AU') selected @endif>Australia</option>
                                         </select>
                                         <div class="validation-error">Country is required</div>
                                     </div>
@@ -839,7 +846,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Accounts & Billing Email<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control support-field" id="billingEmail" value="" placeholder="e.g., accounts@company.com">
+                                    <input type="email" class="form-control support-field" id="billingEmail" value="{{ $account->accounts_billing_email ?? '' }}" placeholder="e.g., accounts@company.com">
                                     <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
                                     <div class="validation-error">Please enter a valid email address</div>
                                 </div>
@@ -847,7 +854,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Support Email Address<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control support-field" id="supportEmail" value="" placeholder="e.g., support@company.com">
+                                    <input type="email" class="form-control support-field" id="supportEmail" value="{{ $account->support_contact_email ?? '' }}" placeholder="e.g., support@company.com">
                                     <div class="field-hint">Receives support ticket updates and general communications</div>
                                     <div class="validation-error">Please enter a valid email address</div>
                                 </div>
@@ -855,7 +862,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Incident Email Address<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control support-field" id="incidentEmail" value="" placeholder="e.g., incidents@company.com">
+                                    <input type="email" class="form-control support-field" id="incidentEmail" value="{{ $account->incident_email ?? '' }}" placeholder="e.g., incidents@company.com">
                                     <div class="field-hint">Receives urgent incident alerts and service disruption notices</div>
                                     <div class="validation-error">Please enter a valid email address</div>
                                 </div>
@@ -887,21 +894,21 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Full Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control signatory-field" id="signatoryName" value="" placeholder="e.g., John Smith">
+                                    <input type="text" class="form-control signatory-field" id="signatoryName" value="{{ $account->signatory_name ?? '' }}" placeholder="e.g., John Smith">
                                     <div class="validation-error">Full name is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Job Title<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control signatory-field" id="signatoryTitle" value="" placeholder="e.g., CEO, Managing Director">
+                                    <input type="text" class="form-control signatory-field" id="signatoryTitle" value="{{ $account->signatory_title ?? '' }}" placeholder="e.g., CEO, Managing Director">
                                     <div class="validation-error">Job title is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Email Address<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control signatory-field" id="signatoryEmail" value="" placeholder="e.g., signatory@company.com">
+                                    <input type="email" class="form-control signatory-field" id="signatoryEmail" value="{{ $account->signatory_email ?? '' }}" placeholder="e.g., signatory@company.com">
                                     <div class="field-hint">Used for contract signing and legal communications</div>
                                     <div class="alert alert-warning domain-warning py-2 px-3 mt-2" id="signatoryDomainWarning" style="display: none;">
                                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -937,7 +944,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Purchase Order Number</label>
-                                    <input type="text" class="form-control" id="purchaseOrderNumber" value="" placeholder="e.g., PO-12345">
+                                    <input type="text" class="form-control" id="purchaseOrderNumber" value="{{ $account->purchase_order_number ?? '' }}" placeholder="e.g., PO-12345">
                                     <div class="field-hint">Optional: This number will be included on all invoices</div>
                                 </div>
                             </div>
@@ -949,10 +956,11 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">VAT Registered<span class="required-indicator">*</span></label>
+                                    @php $isVatRegistered = $account->vat_registered ?? false; @endphp
                                     <select class="form-select vat-field" id="vatRegistered">
                                         <option value="">Select...</option>
-                                        <option value="yes" selected>Yes - VAT registered</option>
-                                        <option value="no">No - Not VAT registered</option>
+                                        <option value="yes" @if($isVatRegistered) selected @endif>Yes - VAT registered</option>
+                                        <option value="no" @if(!$isVatRegistered) selected @endif>No - Not VAT registered</option>
                                     </select>
                                     <div class="validation-error">Please select VAT registration status</div>
                                 </div>
@@ -964,7 +972,7 @@
                                 <div class="col-md-6">
                                     <div class="field-group">
                                         <label class="form-label">VAT Number<span class="required-indicator">*</span></label>
-                                        <input type="text" class="form-control vat-detail-field" id="vatNumber" value="" placeholder="e.g., GB123456789">
+                                        <input type="text" class="form-control vat-detail-field" id="vatNumber" value="{{ $account->vat_number ?? '' }}" placeholder="e.g., GB123456789">
                                         <div class="field-hint" id="vatFormatHint">Format: GB followed by 9 digits</div>
                                         <div class="vat-verification-status small mt-1" id="vatVerificationStatus" style="display: none;"></div>
                                         <div class="validation-error" id="vatNumberError">VAT number is required</div>
@@ -974,17 +982,18 @@
                                     <div class="field-group">
                                         <label class="form-label">VAT Country<span class="required-indicator">*</span></label>
                                         <select class="form-select vat-detail-field" id="vatCountry">
+                                            @php $savedTaxCountry = $account->tax_country ?? ''; @endphp
                                             <option value="">Select country...</option>
-                                            <option value="GB" selected>United Kingdom (GB)</option>
-                                            <option value="DE">Germany (DE)</option>
-                                            <option value="FR">France (FR)</option>
-                                            <option value="IE">Ireland (IE)</option>
-                                            <option value="NL">Netherlands (NL)</option>
-                                            <option value="ES">Spain (ES)</option>
-                                            <option value="IT">Italy (IT)</option>
-                                            <option value="BE">Belgium (BE)</option>
-                                            <option value="AT">Austria (AT)</option>
-                                            <option value="PL">Poland (PL)</option>
+                                            <option value="GB" @if($savedTaxCountry === 'GB') selected @endif>United Kingdom (GB)</option>
+                                            <option value="DE" @if($savedTaxCountry === 'DE') selected @endif>Germany (DE)</option>
+                                            <option value="FR" @if($savedTaxCountry === 'FR') selected @endif>France (FR)</option>
+                                            <option value="IE" @if($savedTaxCountry === 'IE') selected @endif>Ireland (IE)</option>
+                                            <option value="NL" @if($savedTaxCountry === 'NL') selected @endif>Netherlands (NL)</option>
+                                            <option value="ES" @if($savedTaxCountry === 'ES') selected @endif>Spain (ES)</option>
+                                            <option value="IT" @if($savedTaxCountry === 'IT') selected @endif>Italy (IT)</option>
+                                            <option value="BE" @if($savedTaxCountry === 'BE') selected @endif>Belgium (BE)</option>
+                                            <option value="AT" @if($savedTaxCountry === 'AT') selected @endif>Austria (AT)</option>
+                                            <option value="PL" @if($savedTaxCountry === 'PL') selected @endif>Poland (PL)</option>
                                         </select>
                                         <div class="validation-error">Please select a VAT country</div>
                                     </div>
@@ -995,10 +1004,11 @@
                                             Reverse Charges<span class="required-indicator">*</span>
                                             <i class="fas fa-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="<strong>No</strong> = You are sending messages to your own customers<br><br><strong>Yes</strong> = You are providing messaging as a service to third parties (reverse charge applies)"></i>
                                         </label>
+                                        @php $isReverseCharges = $account->vat_reverse_charges ?? false; @endphp
                                         <select class="form-select vat-detail-field" id="reverseCharges">
                                             <option value="">Select...</option>
-                                            <option value="no" selected>No - Messaging to own customers</option>
-                                            <option value="yes">Yes - Messaging provided as a service</option>
+                                            <option value="no" @if(!$isReverseCharges) selected @endif>No - Messaging to own customers</option>
+                                            <option value="yes" @if($isReverseCharges) selected @endif>Yes - Messaging provided as a service</option>
                                         </select>
                                         <div class="field-hint">Determines how VAT is applied on invoices</div>
                                         <div class="validation-error">Please select reverse charges option</div>
@@ -1338,7 +1348,11 @@
 $(document).ready(function() {
     
     $('[data-bs-toggle="tooltip"]').tooltip();
-    
+
+    if ($('#vatRegistered').val() !== 'yes') {
+        $('#vatDetailsSection').hide();
+    }
+
     // Pricing Service - Mock HubSpot Integration
     var PricingService = {
         simulateError: false, // Set to true to test error state
@@ -2731,6 +2745,12 @@ $(document).ready(function() {
             toastr.success('VAT & tax information saved successfully. Audit log updated.');
         }, 800);
     });
+
+    updateSignUpStatusBadge();
+    updateCompanyStatusBadge();
+    updateSupportStatusBadge();
+    updateSignatoryStatusBadge();
+    updateVatStatusBadge();
     
 });
 </script>

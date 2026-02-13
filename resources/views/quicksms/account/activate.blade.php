@@ -534,7 +534,7 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="billing_email" class="form-label">Accounts & Billing Email <span class="required"></span></label>
-                                <input type="email" class="form-control" id="billing_email" name="billing_email" placeholder="e.g., accounts@company.com" value="{{ $account->billing_email ?? '' }}" required>
+                                <input type="email" class="form-control" id="billing_email" name="billing_email" placeholder="e.g., accounts@company.com" value="{{ $account->accounts_billing_email ?? '' }}" required>
                                 <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
                                 <div class="validation-error">Please enter a valid email address</div>
                             </div>
@@ -588,7 +588,7 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="vat_registered" class="form-label">VAT Registered <span class="required"></span></label>
-                                @php $savedVatReg = ($account->vat_registered ?? false) ? 'yes' : (($account->vat_registered === false) ? 'no' : ''); @endphp
+                                @php $savedVatReg = ($account?->vat_registered) ? 'yes' : (($account && $account->vat_registered === false) ? 'no' : ''); @endphp
                                 <select class="form-select" id="vat_registered" name="vat_registered" required>
                                     <option value="">Select...</option>
                                     <option value="yes" @if($savedVatReg === 'yes') selected @endif>Yes - VAT registered</option>
@@ -598,7 +598,7 @@
                             </div>
                             <div class="col-md-6" id="vatCountryGroup" style="display: none;">
                                 <label for="vat_country" class="form-label">VAT Country <span class="required"></span></label>
-                                @php $savedTaxCountry = $account->tax_country ?? 'GB'; @endphp
+                                @php $savedTaxCountry = ($account?->tax_country) ?: 'GB'; @endphp
                                 <select class="form-select" id="vat_country" name="vat_country">
                                     <option value="GB" @if($savedTaxCountry === 'GB') selected @endif>United Kingdom (GB)</option>
                                     <option value="IE" @if($savedTaxCountry === 'IE') selected @endif>Ireland (IE)</option>
@@ -627,7 +627,7 @@
                                     Reverse Charges <span class="required"></span>
                                     <i class="fas fa-info-circle text-muted ms-1" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" title="<strong>No</strong> = You are sending messages to your own customers<br><br><strong>Yes</strong> = You are providing messaging as a service to third parties (reverse charge applies)"></i>
                                 </label>
-                                @php $savedReverseCharges = ($account->vat_reverse_charges ?? false) ? 'yes' : (($account->vat_reverse_charges === false) ? 'no' : ''); @endphp
+                                @php $savedReverseCharges = ($account?->vat_reverse_charges) ? 'yes' : (($account && $account->vat_reverse_charges === false) ? 'no' : ''); @endphp
                                 <select class="form-select" id="reverse_charges" name="reverse_charges">
                                     <option value="">Select...</option>
                                     <option value="no" @if($savedReverseCharges === 'no') selected @endif>No</option>
