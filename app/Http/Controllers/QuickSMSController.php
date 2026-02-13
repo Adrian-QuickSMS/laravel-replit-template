@@ -2245,8 +2245,19 @@ class QuickSMSController extends Controller
 
     public function accountDetails()
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
-        $account = $user ? $user->account : null;
+        $user = null;
+        $account = null;
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+        if ($userId && $tenantId) {
+            $user = \App\Models\User::withoutGlobalScope('tenant')
+                ->where('id', $userId)
+                ->where('tenant_id', $tenantId)
+                ->first();
+            if ($user) {
+                $account = \App\Models\Account::withoutGlobalScope('tenant')->find($user->tenant_id);
+            }
+        }
 
         return view('quicksms.account.details', [
             'page_title' => 'Account Details',
@@ -2257,8 +2268,24 @@ class QuickSMSController extends Controller
     
     public function accountActivate()
     {
+        $user = null;
+        $account = null;
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+        if ($userId && $tenantId) {
+            $user = \App\Models\User::withoutGlobalScope('tenant')
+                ->where('id', $userId)
+                ->where('tenant_id', $tenantId)
+                ->first();
+            if ($user) {
+                $account = \App\Models\Account::withoutGlobalScope('tenant')->find($user->tenant_id);
+            }
+        }
+
         return view('quicksms.account.activate', [
-            'page_title' => 'Activate Your Account'
+            'page_title' => 'Activate Your Account',
+            'user' => $user,
+            'account' => $account,
         ]);
     }
 

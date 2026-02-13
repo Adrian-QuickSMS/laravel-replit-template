@@ -518,7 +518,11 @@
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#signUpDetails" aria-expanded="true">
                         <i class="fas fa-user-plus me-2 text-primary"></i>Sign Up Details
+                        @if($user && $user->first_name && $user->last_name && $user->email)
                         <span class="section-indicator complete" id="signUpStatusBadge"><i class="fas fa-check-circle"></i> Complete</span>
+                        @else
+                        <span class="section-indicator required" id="signUpStatusBadge"><i class="fas fa-exclamation-circle"></i> Incomplete</span>
+                        @endif
                     </button>
                 </h2>
                 <div id="signUpDetails" class="accordion-collapse collapse show" data-bs-parent="#accountDetailsAccordion">
@@ -664,7 +668,7 @@
                                     <label class="form-label">Sector<span class="required-indicator">*</span></label>
                                     <select class="form-select company-field" id="companySector">
                                         <option value="">Select sector...</option>
-                                        <option value="telecommunications" selected>Telecommunications & Media</option>
+                                        <option value="telecommunications">Telecommunications & Media</option>
                                         <option value="financial">Financial Services</option>
                                         <option value="healthcare">Healthcare</option>
                                         <option value="retail">Retail & E-commerce</option>
@@ -684,7 +688,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Primary Website<span class="required-indicator">*</span></label>
-                                    <input type="url" class="form-control company-field" id="companyWebsite" value="https://www.acmecomms.co.uk" placeholder="https://www.example.com">
+                                    <input type="url" class="form-control company-field" id="companyWebsite" value="" placeholder="https://www.example.com">
                                     <div class="field-hint">Must start with https://</div>
                                     <div class="validation-error" id="websiteError">Please enter a valid website URL starting with https://</div>
                                 </div>
@@ -833,7 +837,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Accounts & Billing Email<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control support-field" id="billingEmail" value="accounts@acmecomms.co.uk" placeholder="e.g., accounts@company.com">
+                                    <input type="email" class="form-control support-field" id="billingEmail" value="" placeholder="e.g., accounts@company.com">
                                     <div class="field-hint">Receives invoices, payment confirmations, and billing alerts</div>
                                     <div class="validation-error">Please enter a valid email address</div>
                                 </div>
@@ -841,7 +845,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Support Email Address<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control support-field" id="supportEmail" value="support@acmecomms.co.uk" placeholder="e.g., support@company.com">
+                                    <input type="email" class="form-control support-field" id="supportEmail" value="" placeholder="e.g., support@company.com">
                                     <div class="field-hint">Receives support ticket updates and general communications</div>
                                     <div class="validation-error">Please enter a valid email address</div>
                                 </div>
@@ -849,7 +853,7 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Incident Email Address<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control support-field" id="incidentEmail" value="incidents@acmecomms.co.uk" placeholder="e.g., incidents@company.com">
+                                    <input type="email" class="form-control support-field" id="incidentEmail" value="" placeholder="e.g., incidents@company.com">
                                     <div class="field-hint">Receives urgent incident alerts and service disruption notices</div>
                                     <div class="validation-error">Please enter a valid email address</div>
                                 </div>
@@ -881,21 +885,21 @@
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Full Name<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control signatory-field" id="signatoryName" value="James Wilson" placeholder="e.g., John Smith">
+                                    <input type="text" class="form-control signatory-field" id="signatoryName" value="" placeholder="e.g., John Smith">
                                     <div class="validation-error">Full name is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Job Title<span class="required-indicator">*</span></label>
-                                    <input type="text" class="form-control signatory-field" id="signatoryTitle" value="Managing Director" placeholder="e.g., CEO, Managing Director">
+                                    <input type="text" class="form-control signatory-field" id="signatoryTitle" value="" placeholder="e.g., CEO, Managing Director">
                                     <div class="validation-error">Job title is required</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="field-group">
                                     <label class="form-label">Email Address<span class="required-indicator">*</span></label>
-                                    <input type="email" class="form-control signatory-field" id="signatoryEmail" value="j.wilson@acmecomms.co.uk" placeholder="e.g., signatory@company.com">
+                                    <input type="email" class="form-control signatory-field" id="signatoryEmail" value="" placeholder="e.g., signatory@company.com">
                                     <div class="field-hint">Used for contract signing and legal communications</div>
                                     <div class="alert alert-warning domain-warning py-2 px-3 mt-2" id="signatoryDomainWarning" style="display: none;">
                                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -1434,9 +1438,9 @@ $(document).ready(function() {
     var originalValues = {};
     var highImpactFields = ['companyName', 'companyNumber', 'vatRegistered'];
     var currentUser = {
-        id: 1,
-        name: 'Sarah Johnson',
-        email: 'sarah.johnson@acmecomms.co.uk',
+        id: @json($user->id ?? null),
+        name: @json(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')),
+        email: @json($user->email ?? ''),
         role: 'admin'
     };
     

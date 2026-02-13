@@ -1083,30 +1083,20 @@ document.addEventListener('DOMContentLoaded', function() {
         new bootstrap.Tooltip(el);
     });
     
-    // Check if account_details exists in localStorage on init
-    function checkSavedDetailsComplete() {
-        var saved = localStorage.getItem('account_details');
-        if (saved) {
-            try {
-                var data = JSON.parse(saved);
-                // Check if essential fields exist
-                if (data.company_type && data.company_name && data.address_line1 && 
-                    data.billing_email && data.signatory_name && data.vat_registered) {
-                    detailsComplete = true;
-                    if (lifecycle) {
-                        lifecycle.setActivationStatus('account_details_complete', true);
-                    }
-                    return true;
-                }
-            } catch (e) {
-                console.log('No valid saved data');
-            }
+    // Check activation status from server-side data only
+    function checkActivationStatus() {
+        var accountStatus = @json($account->status ?? 'pending_activation');
+
+        if (accountStatus === 'live' || accountStatus === 'active') {
+            detailsComplete = true;
+            return true;
         }
+
         return false;
     }
-    
-    // Initialize
-    var hasSavedData = checkSavedDetailsComplete();
+
+    // Initialize - load any saved draft values into form but don't mark complete
+    var hasSavedData = checkActivationStatus();
     loadSavedData();
     updateUI(hasSavedData);
     
