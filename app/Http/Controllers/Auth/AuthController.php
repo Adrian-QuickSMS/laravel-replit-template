@@ -152,10 +152,15 @@ class AuthController extends Controller
                 'signup_utm_term' => $request->utm_term,
             ]);
 
+            $userUpdates = [];
             if ($request->mobile_number) {
-                DB::table('users')->where('id', $accountData->user_id)->update([
-                    'mobile_number' => $normalizedMobile,
-                ]);
+                $userUpdates['mobile_number'] = $normalizedMobile;
+            }
+            if ($request->job_title) {
+                $userUpdates['job_title'] = $request->job_title;
+            }
+            if (!empty($userUpdates)) {
+                DB::table('users')->where('id', $accountData->user_id)->update($userUpdates);
             }
 
             // Generate email verification token
