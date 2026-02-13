@@ -2289,6 +2289,106 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function saveActivation(\Illuminate\Http\Request $request)
+    {
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+
+        if (!$userId || !$tenantId) {
+            return response()->json(['status' => 'error', 'message' => 'Not authenticated'], 401);
+        }
+
+        $user = \App\Models\User::withoutGlobalScope('tenant')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'User not found'], 404);
+        }
+
+        $account = \App\Models\Account::withoutGlobalScope('tenant')
+            ->where('id', $user->tenant_id)
+            ->first();
+        if (!$account || $account->id !== $tenantId) {
+            return response()->json(['status' => 'error', 'message' => 'Account not found'], 404);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'company_type' => 'required|string|in:uk_limited,sole_trader,government',
+            'company_name' => 'required|string|max:255',
+            'trading_name' => 'nullable|string|max:255',
+            'company_number' => 'nullable|string|max:20',
+            'sector' => 'required|string|max:100',
+            'website' => 'required|url|max:255',
+            'address_line1' => 'required|string|max:255',
+            'address_line2' => 'nullable|string|max:255',
+            'city' => 'required|string|max:100',
+            'county' => 'nullable|string|max:100',
+            'postcode' => 'required|string|max:20',
+            'country' => 'required|string|max:2',
+            'billing_email' => 'required|email|max:255',
+            'support_email' => 'required|email|max:255',
+            'incident_email' => 'required|email|max:255',
+            'signatory_name' => 'required|string|max:255',
+            'signatory_title' => 'required|string|max:255',
+            'signatory_email' => 'required|email|max:255',
+            'vat_registered' => 'required|string|in:yes,no',
+            'vat_country' => 'nullable|string|max:2',
+            'vat_number' => 'nullable|string|max:50',
+            'reverse_charges' => 'nullable|string|in:yes,no',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        $data = $request->all();
+
+        $account->update([
+            'company_type' => $data['company_type'],
+            'company_name' => $data['company_name'],
+            'trading_name' => $data['trading_name'] ?? null,
+            'company_number' => $data['company_number'] ?? null,
+            'business_sector' => $data['sector'],
+            'website' => $data['website'],
+            'address_line1' => $data['address_line1'],
+            'address_line2' => $data['address_line2'] ?? null,
+            'city' => $data['city'],
+            'county' => $data['county'] ?? null,
+            'postcode' => $data['postcode'],
+            'country' => $data['country'],
+            'accounts_billing_email' => $data['billing_email'],
+            'billing_email' => $data['billing_email'],
+            'support_contact_email' => $data['support_email'],
+            'incident_email' => $data['incident_email'],
+            'support_contact_name' => $data['signatory_name'],
+            'support_contact_phone' => $account->phone ?? '',
+            'operations_contact_name' => $data['signatory_name'],
+            'operations_contact_email' => $data['support_email'],
+            'operations_contact_phone' => $account->phone ?? '',
+            'signatory_name' => $data['signatory_name'],
+            'signatory_title' => $data['signatory_title'],
+            'signatory_email' => $data['signatory_email'],
+            'vat_registered' => $data['vat_registered'] === 'yes',
+            'vat_number' => $data['vat_number'] ?? null,
+            'vat_reverse_charges' => ($data['reverse_charges'] ?? 'no') === 'yes',
+            'tax_country' => $data['vat_country'] ?? null,
+            'payment_terms' => 'prepay',
+            'contract_agreed' => true,
+            'contract_signed_at' => now(),
+            'contract_signed_ip' => $request->ip(),
+        ]);
+
+        $account->updateActivationStatus();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Account details saved successfully',
+            'activation' => $account->getActivationProgress(),
+        ]);
+    }
+
     public function usersAndAccess()
     {
         return view('quicksms.account.users-access', [

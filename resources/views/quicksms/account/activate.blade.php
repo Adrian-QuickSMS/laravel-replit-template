@@ -940,28 +940,49 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         data.company_type = selectedCompanyType;
         
-        // Save to localStorage (syncs with Account Details page)
-        localStorage.setItem('account_details', JSON.stringify(data));
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
         
-        // Mark account details as complete in lifecycle
-        if (lifecycle) {
-            lifecycle.setActivationStatus('account_details_complete', true);
-            lifecycle.onAccountDetailsComplete(function(result) {
-                console.log('Account details saved:', result);
-            });
-            lifecycle.logAccountDetailsUpdate(Object.keys(data));
-        }
-        
-        // Close modal
-        var modal = bootstrap.Modal.getInstance(document.getElementById('completeDetailsModal'));
-        modal.hide();
-        
-        // Update UI with force flag to ensure button is enabled
-        detailsComplete = true;
-        updateUI(true);
-        
-        // Show success toast
-        showToast('Account details saved successfully!', 'success');
+        fetch('{{ route("account.activate.save") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(result) {
+            if (result.status === 'success') {
+                if (lifecycle) {
+                    lifecycle.setActivationStatus('account_details_complete', true);
+                    lifecycle.logAccountDetailsUpdate(Object.keys(data));
+                }
+                
+                var modal = bootstrap.Modal.getInstance(document.getElementById('completeDetailsModal'));
+                modal.hide();
+                
+                detailsComplete = true;
+                updateUI(true);
+                showToast('Account details saved successfully!', 'success');
+            } else {
+                var msg = result.message || 'Failed to save details';
+                if (result.errors) {
+                    var errorList = Object.values(result.errors).flat();
+                    msg = errorList.join(', ');
+                }
+                showToast(msg, 'error');
+            }
+        })
+        .catch(function(err) {
+            console.error('[Activate] Save error:', err);
+            showToast('An error occurred while saving. Please try again.', 'error');
+        })
+        .finally(function() {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save & Continue';
+        });
     });
     
     function showToast(message, type) {
