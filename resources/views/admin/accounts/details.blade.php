@@ -174,8 +174,8 @@
 
     <div class="account-header">
         <div class="account-title">
-            <h4 id="accountName">Loading...</h4>
-            <div class="account-id">{{ $account_id }}</div>
+            <h4 id="accountName">{{ $account->company_name ?? 'Unknown Account' }}</h4>
+            <div class="account-id">{{ $account->account_number ?? $account_id }}</div>
         </div>
         <div class="account-actions">
             <button class="btn btn-admin-outline btn-sm" onclick="openAccountStructureModal()">
@@ -238,39 +238,39 @@
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">First Name<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="signupFirstName" value="Sarah">
+                                                <input type="text" class="form-control" id="signupFirstName" value="{{ $owner->first_name ?? '' }}">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Last Name<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="signupLastName" value="Johnson">
+                                                <input type="text" class="form-control" id="signupLastName" value="{{ $owner->last_name ?? '' }}">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Job Title<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="signupJobTitle" value="Account Director">
+                                                <input type="text" class="form-control" id="signupJobTitle" value="{{ $owner->job_title ?? '' }}">
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Business Name<span class="required-indicator">*</span></label>
-                                                <input type="text" class="form-control" id="signupBusinessName" value="">
+                                                <input type="text" class="form-control" id="signupBusinessName" value="{{ $account->company_name ?? '' }}">
                                                 <div class="field-hint">Legal registered company name</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Business Email Address<span class="required-indicator">*</span></label>
-                                                <input type="email" class="form-control" id="signupEmail" value="">
+                                                <input type="email" class="form-control" id="signupEmail" value="{{ $owner->email ?? $account->email ?? '' }}">
                                                 <div class="field-hint">Must be unique across the platform</div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="field-group">
                                                 <label class="form-label">Mobile Number<span class="required-indicator">*</span></label>
-                                                <input type="tel" class="form-control" id="signupMobile" value="">
+                                                <input type="tel" class="form-control" id="signupMobile" value="{{ $owner->mobile_number ?? '' }}">
                                                 <div class="field-hint">E.164 format preferred</div>
                                             </div>
                                         </div>
@@ -682,21 +682,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     var accountId = '{{ $account_id }}';
     
-    var accountData = {
-        'ACC-1234': { name: 'Acme Corporation', email: 'sarah@acme.com', mobile: '+44 7700 900123', businessName: 'Acme Corporation Ltd' },
-        'ACC-5678': { name: 'Finance Ltd', email: 'admin@finance.co.uk', mobile: '+44 7700 900456', businessName: 'Finance Ltd' },
-        'ACC-7890': { name: 'NewClient', email: 'info@newclient.com', mobile: '+44 7700 900789', businessName: 'NewClient Inc' },
-        'ACC-4567': { name: 'TestCo', email: 'test@testco.com', mobile: '+44 7700 900111', businessName: 'TestCo Ltd' },
-        'ACC-9012': { name: 'HighRisk Corp', email: 'risk@highrisk.com', mobile: '+44 7700 900222', businessName: 'HighRisk Corp' },
-        'ACC-3456': { name: 'MedTech Solutions', email: 'info@medtech.com', mobile: '+44 7700 900333', businessName: 'MedTech Solutions Ltd' }
+    var data = {
+        name: @json($account->company_name ?? 'Unknown Account'),
+        email: @json($owner->email ?? $account->email ?? ''),
+        mobile: @json($owner->mobile_number ?? ''),
+        businessName: @json($account->company_name ?? '')
     };
-    
-    var data = accountData[accountId] || { name: 'Unknown Account', email: '', mobile: '', businessName: '' };
     document.getElementById('accountName').textContent = data.name;
-    document.getElementById('signupBusinessName').value = data.businessName;
-    document.getElementById('signupEmail').value = data.email;
-    document.getElementById('signupMobile').value = data.mobile;
-    document.getElementById('companyName').value = data.businessName;
+    if (document.getElementById('signupBusinessName')) document.getElementById('signupBusinessName').value = data.businessName;
+    if (document.getElementById('signupEmail')) document.getElementById('signupEmail').value = data.email;
+    if (document.getElementById('signupMobile')) document.getElementById('signupMobile').value = data.mobile;
+    if (document.getElementById('companyName')) document.getElementById('companyName').value = data.businessName;
     
     if (typeof AdminControlPlane !== 'undefined') {
         AdminControlPlane.logAdminAction('ACCOUNT_DETAILS_VIEWED', accountId, { accountName: data.name });
@@ -716,25 +712,14 @@ function openAccountStructureModal() {
     
     document.getElementById('accountStructureModalLabel').textContent = 'Account Structure — ' + accountName;
     
-    var hierarchyData = {
-        'ACC-1234': {
-            main: { name: 'Acme Corporation', id: 'ACC-1234', status: 'Active', type: 'Enterprise' },
-            subAccounts: [
-                { name: 'Acme Marketing', id: 'SUB-001', status: 'Active', users: [
-                    { name: 'Sarah Wilson', email: 's.wilson@acme.com', role: 'Admin', status: 'Active' }
-                ]},
-                { name: 'Acme Sales', id: 'SUB-002', status: 'Active', users: [] }
-            ],
-            mainUsers: [
-                { name: 'James Thompson', email: 'j.thompson@acme.com', role: 'Account Owner', status: 'Active' }
-            ]
-        }
-    };
-    
-    currentHierarchyData = hierarchyData[accountId] || {
-        main: { name: accountName, id: accountId, status: 'Active', type: 'Standard' },
+    currentHierarchyData = {
+        main: { name: @json($account->company_name ?? 'Unknown'), id: @json($account->account_number ?? $account_id), status: @json(ucfirst($account->status ?? 'active')), type: @json(ucfirst($account->account_type ?? 'standard')) },
         subAccounts: [],
-        mainUsers: [{ name: 'Primary User', email: 'user@example.com', role: 'Account Owner', status: 'Active' }]
+        mainUsers: [
+            @if($owner)
+            { name: @json(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')), email: @json($owner->email ?? ''), role: @json(ucfirst($owner->role ?? 'owner')), status: @json(ucfirst($owner->status ?? 'active')) }
+            @endif
+        ]
     };
     
     renderHierarchyTree();

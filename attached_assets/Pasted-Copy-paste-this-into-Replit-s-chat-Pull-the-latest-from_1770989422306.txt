@@ -1,0 +1,59 @@
+Copy/paste this into Replit's chat:
+
+Pull the latest from branch claude/quicksms-security-performance-dr8sw and follow the REPLIT_DEPLOYMENT_GUIDE.md at the project root. Here's what I need you to do:
+
+Step 1 - Deploy the PostgreSQL database:
+
+Set up PostgreSQL (replace the existing MySQL database entirely)
+Run the roles/grants script: psql -d quicksms_db -f package/database/setup/01_create_roles_and_grants.sql
+Set strong passwords for the 4 database roles (portal_ro, portal_rw, svc_red, ops_admin)
+Configure .env with DB_CONNECTION=pgsql, DB_PORT=5432, DB_USERNAME=portal_rw
+Run php artisan migrate — this creates 21 migrations: 9 GREEN tables, 4 RED tables, 5 stored procedures, 3 views
+Verify all 7 tenant tables have RLS enabled and FORCE ROW LEVEL SECURITY active
+Step 2 - Integrate the Sign-Up page:
+
+Modify package/resources/views/fillow/page/register.blade.php
+Replace the static form with fields matching POST /api/auth/signup: company_name, first_name, last_name, job_title, email, country (default "GB"), password (12+ chars with mixed case/numbers/symbols), password_confirmation, mobile_number, accept_terms, accept_privacy, accept_fraud_prevention checkboxes
+Submit via AJAX fetch to /api/auth/signup with JSON body and CSRF token
+Display validation errors inline, store the returned Sanctum token in localStorage on success
+Show password strength requirements visually
+Step 3 - Integrate the Login page:
+
+Modify package/resources/views/fillow/page/page_login.blade.php
+Change "Username" to "Email Address" (type="email"), remove the hardcoded password value="123456"
+Submit via AJAX fetch to POST /api/auth/login with JSON body and CSRF token
+Handle 200 (success — store token, redirect), 401 (invalid credentials), 423 (account locked)
+Wire "Forgot Password?" link to the password reset flow
+Step 4 - Integrate Customer Portal > Account > Details:
+
+Create a customer portal account details page
+Load data from GET /api/account (requires Bearer token in Authorization header)
+Allow editing via PUT /api/account and PUT /api/account/settings
+Only show data returned by the model's toPortalArray() method — never raw model data
+Include team management from GET /api/account/team
+Step 5 - Integrate Admin Console > Account Details:
+
+In resources/views/admin/accounts/details.blade.php, replace the hardcoded JavaScript accountData object (lines 685-699) with real API calls
+Create admin-only API endpoints that use the svc_red database role (bypasses RLS to see all accounts)
+Wire all 5 "Save Changes" buttons to real PUT endpoints with audit logging
+All admin actions must be logged to auth_audit_log
+CRITICAL SECURITY RULES — do not violate these:
+
+tenant_id is NEVER derived from user input — only from the authenticated user record
+All account creation goes through sp_create_account() stored procedure — never use Account::create() directly
+All login authentication goes through sp_authenticate_user() stored procedure
+Password is hashed ONCE in the controller with Hash::make() — the User model does NOT hash passwords
+The SetTenantContext middleware in Kernel.php must not be removed or reordered
+Portal responses must use toPortalArray() — never return raw model data to customers
+Include CSRF tokens in all form submissions
+Testing — verify these after integration:
+
+Sign up creates account, returns token, generates QS-XXXXX account number
+Duplicate email returns 422 error
+Weak password (under 12 chars) is rejected
+Login works with correct credentials, returns token
+5 failed logins locks the account (423 response)
+Two different accounts cannot see each other's data (tenant isolation via RLS)
+User IDs are 36-character UUID strings (not 72-character hex — this was a fixed bug)
+Admin console loads real account data from the database
+Refer to REPLIT_DEPLOYMENT_GUIDE.md in the project root for full details, API response formats, code examples, and the complete file reference map.

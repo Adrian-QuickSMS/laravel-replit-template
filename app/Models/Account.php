@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
  * TENANT ISOLATION: This IS the tenant root table
  *
  * SECURITY NOTES:
- * - UUID primary key prevents enumeration
+ * - UUID BINARY(16) primary key prevents enumeration
  * - Portal users access via account_safe_view only
  * - Direct SELECT requires svc_green or ops_admin role
  * - HubSpot bidirectional sync via hubspot_company_id
@@ -160,23 +160,6 @@ class Account extends Model
     ];
 
     protected $hidden = [];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->id)) {
-                $model->id = \Illuminate\Support\Str::uuid()->toString();
-            }
-        });
-    }
-
-    public function getRouteKeyName(): string
-    {
-        return 'id';
-    }
-
 
     // =====================================================
     // RELATIONSHIPS

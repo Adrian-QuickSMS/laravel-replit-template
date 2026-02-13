@@ -6,16 +6,22 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration
 {
     /**
-     * GREEN SIDE: Safe View - API Tokens
+     * GREEN SIDE: Safe View - API Tokens (PostgreSQL Version)
      *
      * VIEW: api_tokens_view
      * PURPOSE: Portal-safe API token listing
+     *
+     * POSTGRESQL ENHANCEMENTS:
+     * - Native UUID casting (no HEX conversion needed)
+     * - JSONB functions (jsonb_array_length instead of JSON_LENGTH)
+     * - ENUM types cast to TEXT for JSON serialization
+     * - Cleaner, more readable SQL
      *
      * SECURITY:
      * - Portal users: SELECT permission
      * - NEVER exposes: token_hash (security critical)
      * - Shows token_prefix only (first 8 chars for identification)
-     * - Tenant-scoped (users can only see tokens in own tenant)
+     * - Tenant-scoped via RLS on underlying api_tokens table
      *
      * COLUMNS EXPOSED:
      * - id, tenant_id, created_by_user_id
@@ -36,23 +42,24 @@ return new class extends Migration
         DB::unprepared("
             CREATE OR REPLACE VIEW api_tokens_view AS
             SELECT
-                id::TEXT as id,
-                tenant_id::TEXT as tenant_id,
-                created_by_user_id::TEXT as created_by_user_id,
+                id::text as id,
+                tenant_id::text as tenant_id,
+                created_by_user_id::text as created_by_user_id,
                 name,
                 token_prefix,
                 scopes,
-                access_level,
+                access_level::text as access_level,
                 CASE
-                    WHEN ip_whitelist IS NOT NULL AND jsonb_array_length(ip_whitelist::jsonb) > 0 THEN TRUE
+                    WHEN ip_whitelist IS NOT NULL
+                         AND jsonb_array_length(ip_whitelist) > 0 THEN TRUE
                     ELSE FALSE
                 END as has_ip_whitelist,
                 CASE
-                    WHEN ip_whitelist IS NOT NULL THEN jsonb_array_length(ip_whitelist::jsonb)
+                    WHEN ip_whitelist IS NOT NULL THEN jsonb_array_length(ip_whitelist)
                     ELSE 0
                 END as ip_count,
                 last_used_at,
-                last_used_ip,
+                last_used_ip::text as last_used_ip,
                 expires_at,
                 revoked_at,
                 CASE
@@ -60,6 +67,7 @@ return new class extends Migration
                     WHEN expires_at IS NOT NULL AND expires_at <= NOW() THEN FALSE
                     ELSE TRUE
                 END as is_active,
+                status::text as status,
                 created_at,
                 updated_at
             FROM api_tokens

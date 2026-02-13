@@ -223,7 +223,7 @@ class AdminController extends Controller
             'active' => Account::where('id', '!=', $systemId)->where('status', 'active')->count(),
             'trial' => Account::where('id', '!=', $systemId)->where('account_type', 'trial')->count(),
             'suspended' => Account::where('id', '!=', $systemId)->where('status', 'suspended')->count(),
-            'pending' => Account::where('id', '!=', $systemId)->where('activation_complete', false)->where('status', 'active')->count(),
+            'pending' => Account::where('id', '!=', $systemId)->whereNull('email_verified_at')->where('status', 'active')->count(),
             'flagged' => DB::table('account_flags')
                 ->where('account_id', '!=', $systemId)
                 ->where(function($q) {
@@ -254,16 +254,10 @@ class AdminController extends Controller
 
     public function accountsDetails($accountId)
     {
-        $account = Account::find($accountId);
-        $owner = null;
-        $flags = null;
-        $settings = null;
-
-        if ($account) {
-            $owner = User::where('tenant_id', $account->id)->where('role', 'owner')->first();
-            $flags = DB::table('account_flags')->where('account_id', $account->id)->first();
-            $settings = DB::table('account_settings')->where('account_id', $account->id)->first();
-        }
+        $account = Account::findOrFail($accountId);
+        $owner = User::where('tenant_id', $account->id)->where('role', 'owner')->first();
+        $flags = DB::table('account_flags')->where('account_id', $account->id)->first();
+        $settings = DB::table('account_settings')->where('account_id', $account->id)->first();
 
         return view('admin.accounts.details', [
             'page_title' => 'Account Details',

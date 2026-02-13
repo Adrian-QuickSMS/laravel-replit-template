@@ -6,15 +6,20 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration
 {
     /**
-     * GREEN SIDE: Safe View - Account
+     * GREEN SIDE: Safe View - Account (PostgreSQL Version)
      *
      * VIEW: account_safe_view
      * PURPOSE: Portal-safe account data (excludes internal fields)
      *
+     * POSTGRESQL ENHANCEMENTS:
+     * - Native UUID casting (no HEX conversion needed)
+     * - ENUM types cast to TEXT for JSON serialization
+     * - Cleaner, more readable SQL
+     *
      * SECURITY:
      * - Portal users: SELECT permission
      * - Excludes: suspended_at, closed_at (internal status tracking)
-     * - Tenant-scoped (users can only see own account)
+     * - Tenant-scoped via RLS on underlying accounts table
      *
      * COLUMNS EXPOSED:
      * - id, account_number, company_name, status, account_type
@@ -31,11 +36,11 @@ return new class extends Migration
         DB::unprepared("
             CREATE OR REPLACE VIEW account_safe_view AS
             SELECT
-                id::TEXT as id,
+                id::text as id,
                 account_number,
                 company_name,
-                status,
-                account_type,
+                status::text as status,
+                account_type::text as account_type,
                 email,
                 phone,
                 address_line1,

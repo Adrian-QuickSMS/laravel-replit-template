@@ -8,53 +8,68 @@
                 <a href="{{ url('/') }}"><img class="logo-auth" src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS" style="height: 48px;"></a>
             </div>
             <h4 class="text-center mb-2">Create your account</h4>
-            <p class="text-center text-muted mb-4">Step 1 of 3: Account Basics</p>
+            <p class="text-center text-muted mb-4">Enter your details to get started</p>
+            
+            <div class="alert alert-danger d-none" id="signupError"></div>
             
             <form id="signupForm" novalidate>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-4">
                             <label class="form-label" for="firstName">First Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="firstName" placeholder="Enter first name" required>
+                            <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
                             <div class="invalid-feedback">Please enter your first name</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-4">
                             <label class="form-label" for="lastName">Last Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="lastName" placeholder="Enter last name" required>
+                            <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
                             <div class="invalid-feedback">Please enter your last name</div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group mb-4">
-                            <label class="form-label" for="jobTitle">Job Title <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="jobTitle" placeholder="e.g., Marketing Manager" required>
-                            <div class="invalid-feedback">Please enter your job title</div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group mb-4">
-                            <label class="form-label" for="businessName">Business Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="businessName" placeholder="Your company name" required>
-                            <div class="invalid-feedback">Please enter your business name</div>
-                        </div>
-                    </div>
+                <div class="form-group mb-4">
+                    <label class="form-label" for="businessName">Business Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="businessName" name="company_name" placeholder="Your company name" required>
+                    <div class="invalid-feedback">Please enter your business name</div>
                 </div>
                 
                 <div class="form-group mb-4">
                     <label class="form-label" for="businessEmail">Business Email Address <span class="text-danger">*</span></label>
-                    <input type="email" class="form-control" id="businessEmail" placeholder="you@company.com" required>
+                    <input type="email" class="form-control" id="businessEmail" name="email" placeholder="you@company.com" required>
                     <div class="invalid-feedback" id="emailError">Please enter a valid business email address</div>
-                    <small class="form-text text-muted">We'll send a verification link to this address</small>
+                </div>
+                
+                <div class="form-group mb-4">
+                    <label class="form-label" for="mobileNumber">Mobile Number <span class="text-danger">*</span></label>
+                    <input type="tel" class="form-control" id="mobileNumber" name="mobile_number" placeholder="+44 7911 123456" required>
+                    <div class="invalid-feedback">Please enter your mobile number</div>
+                    <small class="form-text text-muted">Used for two-factor authentication</small>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Min 12 characters" required minlength="12">
+                            <div class="invalid-feedback" id="passwordError">Password must be at least 12 characters</div>
+                            <small class="form-text text-muted">Min 12 chars, mixed case, number &amp; symbol</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-4">
+                            <label class="form-label" for="passwordConfirm">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="passwordConfirm" name="password_confirmation" placeholder="Confirm password" required>
+                            <div class="invalid-feedback" id="confirmError">Passwords do not match</div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-group mb-4">
                     <label class="form-label" for="country">Country <span class="text-danger">*</span></label>
-                    <select class="form-select" id="country" required>
+                    <select class="form-select" id="country" name="country" required>
                         <option value="GB" selected>United Kingdom</option>
                         <option value="IE">Ireland</option>
                         <option value="US">United States</option>
@@ -69,31 +84,40 @@
                     <div class="invalid-feedback">Please select your country</div>
                 </div>
                 
-                <div class="form-group mb-4">
+                <div class="form-group mb-3">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="termsAgree" required>
+                        <input class="form-check-input" type="checkbox" id="termsAgree" name="accept_terms" required>
                         <label class="form-check-label" for="termsAgree">
-                            I agree to the <a href="#" class="text-primary">Terms of Service</a> and <a href="#" class="text-primary">Privacy Policy</a>
+                            I agree to the <a href="#" class="text-primary">Terms of Service</a>
                         </label>
-                        <div class="invalid-feedback">You must agree to the terms to continue</div>
+                        <div class="invalid-feedback">You must agree to the terms</div>
                     </div>
                 </div>
-                
-                <div id="recaptchaContainer" class="mb-4">
-                    <div class="recaptcha-mock border rounded p-3 bg-light d-flex align-items-center">
-                        <input class="form-check-input me-2" type="checkbox" id="recaptchaCheck">
-                        <label class="form-check-label mb-0" for="recaptchaCheck">I'm not a robot</label>
-                        <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" class="ms-auto" style="height: 32px; opacity: 0.7;">
+                <div class="form-group mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="privacyAgree" name="accept_privacy" required>
+                        <label class="form-check-label" for="privacyAgree">
+                            I agree to the <a href="#" class="text-primary">Privacy Policy</a>
+                        </label>
+                        <div class="invalid-feedback">You must agree to the privacy policy</div>
                     </div>
-                    <div class="invalid-feedback d-block" id="recaptchaError" style="display: none !important;">Please complete the reCAPTCHA verification</div>
+                </div>
+                <div class="form-group mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="fraudAgree" name="accept_fraud_prevention" required>
+                        <label class="form-check-label" for="fraudAgree">
+                            I consent to <a href="#" class="text-primary">fraud prevention checks</a>
+                        </label>
+                        <div class="invalid-feedback">You must consent to fraud prevention</div>
+                    </div>
                 </div>
                 
                 <div class="text-center">
                     <button type="submit" class="btn btn-primary btn-block" id="registerBtn">
-                        <span class="btn-text">Register</span>
+                        <span class="btn-text">Create Account</span>
                         <span class="btn-loading d-none">
                             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                            Sending verification...
+                            Creating account...
                         </span>
                     </button>
                 </div>
@@ -163,62 +187,12 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
-    var emailCheckTimeout;
-    
-    $('#businessEmail').on('blur', function() {
-        var email = $(this).val().trim();
-        if (email && isValidEmail(email)) {
-            checkEmailUniqueness(email);
-        }
-    });
-    
-    $('#businessEmail').on('input', function() {
-        clearTimeout(emailCheckTimeout);
-        var $field = $(this);
-        var email = $field.val().trim();
-        
-        $field.removeClass('is-invalid is-valid');
-        
-        if (email.length > 5) {
-            emailCheckTimeout = setTimeout(function() {
-                if (isValidEmail(email)) {
-                    checkEmailUniqueness(email);
-                }
-            }, 500);
-        }
-    });
-    
     function isValidEmail(email) {
-        var regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-    }
-    
-    function checkEmailUniqueness(email) {
-        var $field = $('#businessEmail');
-        var $error = $('#emailError');
-        
-        // Mock check - simulate API call
-        // In production: POST /api/auth/check-email
-        setTimeout(function() {
-            var takenEmails = ['test@example.com', 'admin@quicksms.com', 'demo@company.com'];
-            
-            if (takenEmails.includes(email.toLowerCase())) {
-                $field.addClass('is-invalid').removeClass('is-valid');
-                $error.text('This email is already registered. Please sign in or use a different email.');
-            } else if (!isValidEmail(email)) {
-                $field.addClass('is-invalid').removeClass('is-valid');
-                $error.text('Please enter a valid business email address');
-            } else {
-                $field.addClass('is-valid').removeClass('is-invalid');
-            }
-        }, 300);
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
     
     $('input[required], select[required]').on('input change', function() {
-        var $field = $(this);
-        if ($field.val().trim()) {
-            $field.removeClass('is-invalid');
-        }
+        $(this).removeClass('is-invalid');
     });
     
     $('#signupForm').on('submit', function(e) {
@@ -230,15 +204,10 @@ $(document).ready(function() {
         $form.find('input[required], select[required]').each(function() {
             var $field = $(this);
             if ($field.attr('type') === 'checkbox') {
-                if (!$field.is(':checked')) {
-                    $field.addClass('is-invalid');
-                    isValid = false;
-                } else {
-                    $field.removeClass('is-invalid');
-                }
+                if (!$field.is(':checked')) { $field.addClass('is-invalid'); isValid = false; }
+                else { $field.removeClass('is-invalid'); }
             } else if (!$field.val().trim()) {
-                $field.addClass('is-invalid');
-                isValid = false;
+                $field.addClass('is-invalid'); isValid = false;
             } else {
                 $field.removeClass('is-invalid');
             }
@@ -251,68 +220,82 @@ $(document).ready(function() {
             isValid = false;
         }
         
-        if (!$('#recaptchaCheck').is(':checked')) {
-            $('#recaptchaError').css('display', 'block !important').show();
+        var password = $('#password').val();
+        var confirm = $('#passwordConfirm').val();
+        if (password.length < 12) {
+            $('#password').addClass('is-invalid');
+            $('#passwordError').text('Password must be at least 12 characters');
             isValid = false;
-        } else {
-            $('#recaptchaError').hide();
+        }
+        if (password !== confirm) {
+            $('#passwordConfirm').addClass('is-invalid');
+            $('#confirmError').text('Passwords do not match');
+            isValid = false;
         }
         
-        if (!isValid) {
-            return;
-        }
+        if (!isValid) return;
         
         var $btn = $('#registerBtn');
         $btn.prop('disabled', true);
         $btn.find('.btn-text').addClass('d-none');
         $btn.find('.btn-loading').removeClass('d-none');
+        $('#signupError').addClass('d-none');
         
         var formData = {
+            company_name: $('#businessName').val().trim(),
             first_name: $('#firstName').val().trim(),
             last_name: $('#lastName').val().trim(),
-            job_title: $('#jobTitle').val().trim(),
-            business_name: $('#businessName').val().trim(),
-            business_email: email,
+            email: email,
+            password: password,
+            password_confirmation: confirm,
+            mobile_number: $('#mobileNumber').val().trim(),
             country: $('#country').val(),
-            terms_accepted: $('#termsAgree').is(':checked'),
-            recaptcha_token: 'mock_token_' + Date.now()
+            accept_terms: $('#termsAgree').is(':checked') ? 1 : 0,
+            accept_privacy: $('#privacyAgree').is(':checked') ? 1 : 0,
+            accept_fraud_prevention: $('#fraudAgree').is(':checked') ? 1 : 0
         };
         
-        // Mock API call - store pending registration
-        // In production: POST /api/auth/register
-        console.log('[SignUp] Submitting registration:', formData);
-        
-        setTimeout(function() {
-            // Generate test token
-            var testToken = 'test_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            var verifyUrl = '/signup/verify?token=' + testToken + '&email=' + encodeURIComponent(email);
-            
-            console.log('[SignUp] Verification email sent to:', email);
-            console.log('[SignUp] Test verification URL:', verifyUrl);
-            
-            // Store registration data for next step
-            sessionStorage.setItem('pendingRegistration', JSON.stringify(formData));
-            sessionStorage.setItem('verificationToken', testToken);
-            
-            $('#signupForm').addClass('d-none');
-            $('#sentToEmail').text(email);
-            $('#verifyLink').attr('href', verifyUrl).text(verifyUrl);
-            $('#successMessage').removeClass('d-none');
-            
-        }, 1500);
-    });
-    
-    $('#resendBtn').on('click', function() {
-        var $btn = $(this);
-        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Sending...');
-        
-        setTimeout(function() {
-            $btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i>Email Resent!');
-            
-            setTimeout(function() {
-                $btn.html('<i class="fas fa-redo me-1"></i>Resend Email');
-            }, 3000);
-        }, 1000);
+        $.ajax({
+            url: '/api/auth/signup',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || ''
+            },
+            success: function(response) {
+                $('#signupForm').addClass('d-none');
+                $('#sentToEmail').text(email);
+                $('#successMessage').removeClass('d-none');
+            },
+            error: function(xhr) {
+                var msg = 'An error occurred. Please try again.';
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.errors) {
+                        var errors = xhr.responseJSON.errors;
+                        var errorList = [];
+                        for (var field in errors) {
+                            errorList.push(errors[field][0]);
+                            var $field = $('[name="' + field + '"]');
+                            if ($field.length) {
+                                $field.addClass('is-invalid');
+                                $field.siblings('.invalid-feedback').text(errors[field][0]);
+                            }
+                        }
+                        msg = errorList.join('<br>');
+                    } else if (xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                }
+                $('#signupError').html(msg).removeClass('d-none');
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+                $btn.find('.btn-text').removeClass('d-none');
+                $btn.find('.btn-loading').addClass('d-none');
+            }
+        });
     });
 });
 </script>

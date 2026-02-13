@@ -156,8 +156,8 @@ class AccountController extends Controller
                 ], 422);
             }
 
-            // Call stored procedure to update settings
-            DB::statement('CALL sp_update_account_settings(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            // Call stored function to update settings (PostgreSQL uses SELECT, not CALL)
+            DB::select('SELECT * FROM sp_update_account_settings(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
                 $user->id,
                 $user->tenant_id,
                 $request->input('notification_email_enabled'),
