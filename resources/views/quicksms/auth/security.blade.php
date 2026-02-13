@@ -183,6 +183,28 @@
     </div>
 </div>
 
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center">
+                    <div class="me-3" style="width: 40px; height: 40px; border-radius: 50%; background-color: rgba(220, 53, 69, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-exclamation-triangle text-danger"></i>
+                    </div>
+                    <h5 class="modal-title mb-0" id="errorModalLabel">Attention Required</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="text-muted mb-0" id="errorModalMessage"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .logo-auth {
     max-height: 40px;
@@ -1309,7 +1331,8 @@ $(document).ready(function() {
                     errorMsg = xhr.responseJSON.message;
                 }
                 
-                alert(errorMsg);
+                $('#errorModalMessage').text(errorMsg);
+                new bootstrap.Modal(document.getElementById('errorModal')).show();
                 
                 $btn.prop('disabled', false);
                 $btn.find('.btn-text').removeClass('d-none');
