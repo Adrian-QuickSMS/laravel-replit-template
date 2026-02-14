@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Account;
 use App\Models\AccountCredit;
+use App\Services\SenderIdEnforcementService;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -55,14 +56,49 @@ class AccountObserver
             unset($account->_shouldExpireCredits);
         }
 
-        // Log status changes
+        // Log status changes and handle SenderID lifecycle
         if ($account->wasChanged('status')) {
+            $oldStatus = $account->getOriginal('status');
+            $newStatus = $account->status;
+
             Log::info('Account status changed', [
                 'account_id' => $account->id,
                 'account_number' => $account->account_number,
-                'old_status' => $account->getOriginal('status'),
-                'new_status' => $account->status,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
             ]);
+
+            // Suspend all SenderIDs when account is suspended
+            if ($newStatus === 'suspended' && $oldStatus !== 'suspended') {
+                try {
+                    $enforcementService = app(SenderIdEnforcementService::class);
+                    $count = $enforcementService->suspendAllForAccount(
+                        $account->id,
+                        'Account suspended'
+                    );
+                    Log::info("Suspended {$count} SenderIDs due to account suspension", [
+                        'account_id' => $account->id,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to suspend SenderIDs on account suspension', [
+                        'account_id' => $account->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        // Create default SenderID on account activation
+        if ($account->wasChanged('activation_complete') && $account->activation_complete) {
+            try {
+                $enforcementService = app(SenderIdEnforcementService::class);
+                $enforcementService->createDefaultSenderId($account->id);
+            } catch (\Exception $e) {
+                Log::error('Failed to create default SenderID on activation', [
+                    'account_id' => $account->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 

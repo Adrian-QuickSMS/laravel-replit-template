@@ -207,6 +207,22 @@ class Account extends Model
         return $this->hasMany(AccountCredit::class, 'account_id');
     }
 
+    /**
+     * Sub-accounts belonging to this account
+     */
+    public function subAccounts(): HasMany
+    {
+        return $this->hasMany(SubAccount::class, 'account_id');
+    }
+
+    /**
+     * Sender IDs owned by this account
+     */
+    public function senderIds(): HasMany
+    {
+        return $this->hasMany(SenderId::class, 'account_id');
+    }
+
     // =====================================================
     // SCOPES
     // =====================================================

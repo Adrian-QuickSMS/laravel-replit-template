@@ -1868,19 +1868,7 @@ class QuickSMSController extends Controller
         ]);
     }
 
-    public function smsSenderIdRegistration()
-    {
-        return view('quicksms.management.sms-sender-id', [
-            'page_title' => 'SMS SenderID Registration'
-        ]);
-    }
-
-    public function smsSenderIdRegister()
-    {
-        return view('quicksms.management.sms-sender-id-wizard', [
-            'page_title' => 'Register SenderID'
-        ]);
-    }
+    // smsSenderIdRegistration() and smsSenderIdRegister() moved to SenderIdController
 
     public function templates()
     {

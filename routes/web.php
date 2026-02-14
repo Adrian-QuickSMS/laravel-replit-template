@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuickSMSController;
+use App\Http\Controllers\SenderIdController;
 use App\Http\Controllers\Api\RcsAssetController;
 
 // Public auth routes (no authentication required)
@@ -47,8 +48,8 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/management', 'management')->name('management');
     Route::get('/management/rcs-agent', 'rcsAgentRegistrations')->name('management.rcs-agent');
     Route::get('/management/rcs-agent/create', 'rcsAgentCreate')->name('management.rcs-agent.create');
-    Route::get('/management/sms-sender-id', 'smsSenderIdRegistration')->name('management.sms-sender-id');
-    Route::get('/management/sms-sender-id/register', 'smsSenderIdRegister')->name('management.sms-sender-id.register');
+    Route::get('/management/sms-sender-id', [SenderIdController::class, 'index'])->name('management.sms-sender-id');
+    Route::get('/management/sms-sender-id/register', [SenderIdController::class, 'create'])->name('management.sms-sender-id.register');
     Route::get('/management/templates', 'templates')->name('management.templates');
     Route::get('/management/templates/create', 'templateCreateStep1')->name('management.templates.create');
     Route::get('/management/templates/create/step1', 'templateCreateStep1')->name('management.templates.create.step1');
@@ -92,6 +93,18 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/support/knowledge-base/test-mode', 'knowledgeBaseTestMode')->name('support.knowledge-base.test-mode');
     
     Route::get('/rcs/preview-demo', 'rcsPreviewDemo')->name('rcs.preview-demo');
+});
+
+// Customer Portal SenderID API (session auth)
+Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderIdController::class)->group(function () {
+    Route::get('/approved', 'approved')->name('api.sender-ids.approved');
+    Route::post('/validate', 'validateSenderId')->name('api.sender-ids.validate');
+    Route::post('/', 'store')->name('api.sender-ids.store');
+    Route::get('/{uuid}', 'show')->name('api.sender-ids.show');
+    Route::put('/{uuid}', 'update')->name('api.sender-ids.update');
+    Route::post('/{uuid}/submit', 'submit')->name('api.sender-ids.submit');
+    Route::post('/{uuid}/provide-info', 'provideInfo')->name('api.sender-ids.provide-info');
+    Route::post('/{uuid}/resubmit', 'resubmit')->name('api.sender-ids.resubmit');
 });
 
 Route::prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
@@ -209,6 +222,19 @@ Route::prefix('admin')->group(function () {
                 Route::delete('/overrides/{override}', 'deleteOverride')->name('admin.api.uk-network-controls.delete-override');
             });
             
+            // Admin SenderID Approval API
+            Route::prefix('api/sender-ids')->controller(\App\Http\Controllers\Admin\SenderIdApprovalController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.sender-ids.index');
+                Route::get('/{uuid}', 'show')->name('admin.api.sender-ids.show');
+                Route::post('/{uuid}/review', 'startReview')->name('admin.api.sender-ids.review');
+                Route::post('/{uuid}/approve', 'approve')->name('admin.api.sender-ids.approve');
+                Route::post('/{uuid}/reject', 'reject')->name('admin.api.sender-ids.reject');
+                Route::post('/{uuid}/request-info', 'requestInfo')->name('admin.api.sender-ids.request-info');
+                Route::post('/{uuid}/suspend', 'suspend')->name('admin.api.sender-ids.suspend');
+                Route::post('/{uuid}/reactivate', 'reactivate')->name('admin.api.sender-ids.reactivate');
+                Route::post('/{uuid}/revoke', 'revoke')->name('admin.api.sender-ids.revoke');
+            });
+
             Route::prefix('api/governance')->controller(\App\Http\Controllers\Admin\ApprovalQueueController::class)->group(function () {
                 Route::get('/queue-counts', 'getQueueCounts')->name('admin.api.governance.queue-counts');
                 Route::get('/senderid-requests', 'getSenderIdRequests')->name('admin.api.governance.senderid-requests');
