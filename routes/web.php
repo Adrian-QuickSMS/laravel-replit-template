@@ -16,8 +16,7 @@ Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/signup/security', 'signupSecurity')->name('auth.security');
 });
 
-Route::middleware(\App\Http\Middleware\CustomerAuthenticate::class)
-    ->controller(QuickSMSController::class)->group(function () {
+Route::middleware('customer.auth')->controller(QuickSMSController::class)->group(function () {
     Route::get('/', 'dashboard')->name('dashboard');
     
     Route::get('/messages', 'messages')->name('messages');

@@ -424,17 +424,14 @@ class QuickSMSController extends Controller
 
     public function storeCampaignConfig(Request $request)
     {
-        // Store campaign configuration in session for use in confirmation page
-        // Whitelist fields to prevent arbitrary session pollution
         $allowed = [
             'campaign_name', 'channel', 'sender_id', 'rcs_agent',
             'message_content', 'rcs_content', 'scheduled_time',
-            'message_expiry', 'sending_window',
-            'recipient_count', 'valid_count', 'invalid_count', 'opted_out_count',
-            'sources',
+            'message_expiry', 'sending_window', 'recipient_count',
+            'valid_count', 'invalid_count', 'opted_out_count', 'sources',
         ];
         $request->session()->put('campaign_config', $request->only($allowed));
-
+        
         return response()->json(['success' => true]);
     }
 
@@ -2502,7 +2499,7 @@ class QuickSMSController extends Controller
             return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
-        $user = \App\Models\User::withoutGlobalScope('tenant')
+        $user = \Illuminate\Support\Facades\DB::table('users')
             ->where('id', $userId)
             ->where('tenant_id', $tenantId)
             ->first();
@@ -2519,7 +2516,7 @@ class QuickSMSController extends Controller
             return response()->json(['success' => false, 'message' => 'All password fields are required'], 422);
         }
 
-        if (!\Illuminate\Support\Facades\Hash::check($currentPassword, $user->password)) {
+        if (!password_verify($currentPassword, $user->password)) {
             return response()->json(['success' => false, 'message' => 'Current password is incorrect'], 422);
         }
 
@@ -2543,9 +2540,17 @@ class QuickSMSController extends Controller
             return response()->json(['success' => false, 'message' => 'Password must contain at least one special character'], 422);
         }
 
-        // Use User model changePassword() to enforce password history (last 12 passwords)
+        if (password_verify($newPassword, $user->password)) {
+            return response()->json(['success' => false, 'message' => 'New password cannot be the same as current password'], 422);
+        }
+
+        $userModel = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
+        if (!$userModel) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
         try {
-            $user->changePassword(\Illuminate\Support\Facades\Hash::make($newPassword));
+            $userModel->changePassword(\Illuminate\Support\Facades\Hash::make($newPassword));
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }

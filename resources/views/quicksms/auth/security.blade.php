@@ -426,8 +426,9 @@ $(document).ready(function() {
     var urlParams = new URLSearchParams(window.location.search);
     var email = urlParams.get('email');
     var verified = urlParams.get('verified');
+    var verificationToken = urlParams.get('token');
     
-    if (!verified || verified !== 'true') {
+    if (!verified || verified !== 'true' || !verificationToken) {
         window.location.href = '/signup';
         return;
     }
@@ -1284,6 +1285,7 @@ $(document).ready(function() {
         
         var securityPayload = {
             email: email,
+            token: verificationToken,
             password: $('#password').val(),
             password_confirmation: $('#confirmPassword').val(),
             mobile_number: formData.mobile_number,

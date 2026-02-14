@@ -110,33 +110,42 @@ $(document).ready(function() {
     verifyToken(token, email);
     
     function verifyToken(token, email) {
-        // Mock token verification
-        // In production: POST /api/auth/verify-email { token, email }
-        console.log('[Verify] Verifying token:', token);
+        console.log('[Verify] Verifying token');
         
-        setTimeout(function() {
-            // Mock validation logic
-            // Valid tokens: any token starting with 'valid_' or 'test_'
-            // Expired tokens: any token starting with 'expired_'
-            // Invalid tokens: anything else
-            
-            if (token.startsWith('valid_') || token.startsWith('test_')) {
-                onVerificationSuccess(email);
-            } else if (token.startsWith('expired_')) {
-                showError('Link Expired', 'This verification link has expired. Please request a new one.');
-            } else {
-                showError('Invalid Link', 'This verification link is invalid. Please check your email or request a new link.');
+        $.ajax({
+            url: '/api/auth/verify-email',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ token: token }),
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                var verifiedEmail = (response.data && response.data.email) || email;
+                var verifiedToken = (response.data && response.data.token) || token;
+                onVerificationSuccess(verifiedEmail, verifiedToken);
+            },
+            error: function(xhr) {
+                var msg = 'This verification link is invalid. Please check your email or request a new link.';
+                var title = 'Verification Failed';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                if (xhr.status === 400 && msg.toLowerCase().indexOf('expired') !== -1) {
+                    title = 'Link Expired';
+                }
+                showError(title, msg);
             }
-        }, 1500);
+        });
     }
     
-    function onVerificationSuccess(email) {
+    function onVerificationSuccess(email, verifiedToken) {
         $('#verifyingState').addClass('d-none');
         $('#successState').removeClass('d-none');
         
-        // Build the redirect URL with proper params
         var pendingReg = JSON.parse(sessionStorage.getItem('pendingRegistration') || '{}');
-        var redirectUrl = '/signup/security?email=' + encodeURIComponent(email || '') + '&verified=true';
+        var redirectUrl = '/signup/security?email=' + encodeURIComponent(email || '') + '&verified=true&token=' + encodeURIComponent(verifiedToken || '');
         if (pendingReg.first_name) redirectUrl += '&first_name=' + encodeURIComponent(pendingReg.first_name);
         if (pendingReg.last_name) redirectUrl += '&last_name=' + encodeURIComponent(pendingReg.last_name);
         if (pendingReg.business_name) redirectUrl += '&business_name=' + encodeURIComponent(pendingReg.business_name);
@@ -182,15 +191,31 @@ $(document).ready(function() {
         $btn.find('.btn-text').addClass('d-none');
         $btn.find('.btn-loading').removeClass('d-none');
         
-        // Mock resend API call
-        // In production: POST /api/auth/resend-verification { email }
-        console.log('[Verify] Resending verification to:', emailVal);
-        
-        setTimeout(function() {
-            $('#resendSection').addClass('d-none');
-            $('#resendEmailConfirm').text(emailVal);
-            $('#resendSuccess').removeClass('d-none');
-        }, 1500);
+        $.ajax({
+            url: '/api/auth/resend-verification',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ email: emailVal }),
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
+            },
+            success: function() {
+                $('#resendSection').addClass('d-none');
+                $('#resendEmailConfirm').text(emailVal);
+                $('#resendSuccess').removeClass('d-none');
+            },
+            error: function() {
+                $('#resendSection').addClass('d-none');
+                $('#resendEmailConfirm').text(emailVal);
+                $('#resendSuccess').removeClass('d-none');
+            },
+            complete: function() {
+                $btn.prop('disabled', false);
+                $btn.find('.btn-text').removeClass('d-none');
+                $btn.find('.btn-loading').addClass('d-none');
+            }
+        });
     });
     
     function isValidEmail(email) {
