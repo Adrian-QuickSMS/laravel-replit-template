@@ -1,0 +1,48 @@
+Pull and deploy the Round 2 security fixes from branch claude/quicksms-security-performance-dr8sw.
+
+Run the following steps:
+
+Pull the latest changes:
+
+git fetch origin claude/quicksms-security-performance-dr8sw
+git merge origin/claude/quicksms-security-performance-dr8sw
+
+Clear caches:
+
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+
+What changed (10 security fixes across 6 files):
+
+CRITICAL FIX — Account Takeover Vulnerability
+completeSecuritySetup() in AuthController.php — This endpoint previously allowed anyone who knows a user's email address to set their password and mobile number without any authentication or verification token. It also auto-verified both email and mobile, bypassing all verification flows. This is now fixed:
+A token parameter is now required in the request
+The token is verified against the email_verification_tokens table using Hash::check()
+The token must be unexpired and unused
+After successful use, the token is marked as used_at = now() to prevent replay
+ACTION REQUIRED: The signup security page (/signup/security) must now pass the email verification token when calling POST /api/auth/complete-security. The token comes from the verification email URL. Update the JavaScript on that page to include token: <the_token_from_url> in the POST body.
+HIGH FIXES
+Customer portal routes now have authentication middleware — A new CustomerAuthenticate middleware (app/Http/Middleware/CustomerAuthenticate.php) protects all authenticated routes (dashboard, messages, account, profile, etc.). Previously these routes had zero middleware and relied on ad-hoc session checks inside individual controller methods, which several methods didn't implement correctly.
+
+Audit log exception leakage re-fixed — AuthController.php line 421 had reverted back to 'System error: ' . $e->getMessage() in AuthAuditLog::logLoginFailure(). Restored to generic 'System error during authentication'. Do not revert this again — raw exception messages in audit logs can expose database schema, connection strings, or internal paths to portal users viewing their audit history.
+
+Password change now enforces password history — QuickSMSController::changePassword() was using raw DB::table()->update() with password_hash(), completely bypassing the User::changePassword() model method which checks the last 12 passwords. Now uses the model method.
+
+Logout now fully invalidates session — Previously only called session()->forget() for specific keys. An attacker with a captured session ID could re-inject the keys. Now calls session()->invalidate() (destroys entire session) + session()->regenerateToken() (new CSRF token).
+
+XSS fixes in my-profile.blade.php and login.blade.php — Blade {{ }} inside <script> tags HTML-escapes but does NOT JS-escape. Four instances of '{{ $var }}' in JavaScript string literals changed to @json($var) which properly JSON-encodes and escapes for JS context:
+
+my-profile.blade.php: $user->id and request()->ip()
+login.blade.php: config("app.env") and request()->ip()
+MEDIUM FIXES
+OTP debug gate tightened — Was config('app.debug') && config('app.env') === 'local'. If APP_DEBUG=true in production by accident, OTPs would leak in API responses. Simplified to config('app.env') === 'local' only.
+
+storeCampaignConfig() input whitelisting — Was storing $request->all() blindly into the session. Now whitelists specific campaign fields (campaign_name, channel, sender_id, rcs_agent, message_content, rcs_content, scheduled_time, message_expiry, sending_window, recipient_count, valid_count, invalid_count, opted_out_count, sources).
+
+LOW FIX
+Logout route accepts GET and POST — Changed from Route::get to Route::match(['get', 'post']) to support POST-based logout with CSRF protection while maintaining backward compatibility with existing logout links.
+ACTION REQUIRED
+Update the signup security page (resources/views/quicksms/auth/security.blade.php) to pass the email verification token from the URL query string when calling POST /api/auth/complete-security. Without this, Step 3 of signup will return 403 Forbidden.
+
+Do NOT revert these changes. Each fix addresses a real, exploitable vulnerability. If something breaks, fix the integration — don't remove the security check.
