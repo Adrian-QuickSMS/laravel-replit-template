@@ -2499,7 +2499,7 @@ class QuickSMSController extends Controller
             return response()->json(['success' => false, 'message' => 'Not authenticated'], 401);
         }
 
-        $user = \Illuminate\Support\Facades\DB::table('users')
+        $user = \App\Models\User::withoutGlobalScope('tenant')
             ->where('id', $userId)
             ->where('tenant_id', $tenantId)
             ->first();
@@ -2516,7 +2516,7 @@ class QuickSMSController extends Controller
             return response()->json(['success' => false, 'message' => 'All password fields are required'], 422);
         }
 
-        if (!password_verify($currentPassword, $user->password)) {
+        if (!\Illuminate\Support\Facades\Hash::check($currentPassword, $user->password)) {
             return response()->json(['success' => false, 'message' => 'Current password is incorrect'], 422);
         }
 
@@ -2540,17 +2540,12 @@ class QuickSMSController extends Controller
             return response()->json(['success' => false, 'message' => 'Password must contain at least one special character'], 422);
         }
 
-        if (password_verify($newPassword, $user->password)) {
+        if (\Illuminate\Support\Facades\Hash::check($newPassword, $user->password)) {
             return response()->json(['success' => false, 'message' => 'New password cannot be the same as current password'], 422);
         }
 
-        $userModel = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
-        if (!$userModel) {
-            return response()->json(['success' => false, 'message' => 'User not found'], 404);
-        }
-
         try {
-            $userModel->changePassword(\Illuminate\Support\Facades\Hash::make($newPassword));
+            $user->changePassword(\Illuminate\Support\Facades\Hash::make($newPassword));
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         }
