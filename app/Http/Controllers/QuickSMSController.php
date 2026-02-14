@@ -81,7 +81,7 @@ class QuickSMSController extends Controller
                     'mobile_hint' => $mobileHint,
                 ];
 
-                if (config('app.debug') && config('app.env') === 'local') {
+                if (config('app.env') === 'local') {
                     $responseData['otp_debug'] = $otp;
                 }
 
@@ -180,7 +180,7 @@ class QuickSMSController extends Controller
             'message' => 'New code sent',
         ];
 
-        if (config('app.debug') && config('app.env') === 'local') {
+        if (config('app.env') === 'local') {
             $responseData['otp_debug'] = $otp;
         }
 
@@ -203,9 +203,10 @@ class QuickSMSController extends Controller
         $request->session()->regenerate();
     }
     
-    public function logout()
+    public function logout(Request $request)
     {
-        session()->forget(['customer_logged_in', 'customer_email', 'customer_name', 'customer_user_id', 'customer_tenant_id', 'customer_account_id']);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
         return redirect()->route('auth.login')->with('success', 'You have been logged out.');
     }
     
@@ -423,8 +424,13 @@ class QuickSMSController extends Controller
 
     public function storeCampaignConfig(Request $request)
     {
-        // Store campaign configuration in session for use in confirmation page
-        $request->session()->put('campaign_config', $request->all());
+        $allowed = [
+            'campaign_name', 'channel', 'sender_id', 'rcs_agent',
+            'message_content', 'rcs_content', 'scheduled_time',
+            'message_expiry', 'sending_window', 'recipient_count',
+            'valid_count', 'invalid_count', 'opted_out_count', 'sources',
+        ];
+        $request->session()->put('campaign_config', $request->only($allowed));
         
         return response()->json(['success' => true]);
     }
@@ -2538,15 +2544,16 @@ class QuickSMSController extends Controller
             return response()->json(['success' => false, 'message' => 'New password cannot be the same as current password'], 422);
         }
 
-        \Illuminate\Support\Facades\DB::table('users')
-            ->where('id', $userId)
-            ->where('tenant_id', $tenantId)
-            ->update([
-                'password' => password_hash($newPassword, PASSWORD_BCRYPT),
-                'password_changed_at' => now(),
-                'updated_at' => now(),
-                'updated_by' => $userId,
-            ]);
+        $userModel = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
+        if (!$userModel) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        try {
+            $userModel->changePassword(\Illuminate\Support\Facades\Hash::make($newPassword));
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
 
         try {
             \Illuminate\Support\Facades\DB::table('auth_audit_log')->insert([

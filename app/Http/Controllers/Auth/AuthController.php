@@ -206,6 +206,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
+            'token' => 'required|string',
             'password' => [
                 'required',
                 'confirmed',
@@ -238,6 +239,15 @@ class AuthController extends Controller
                     'status' => 'error',
                     'message' => 'Account not found. Please start the signup process again.'
                 ], 404);
+            }
+
+            $tokenUser = EmailVerificationToken::verifyAndConsume($request->token);
+
+            if (!$tokenUser || $tokenUser->id !== $user->id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid or expired verification token. Please restart the signup process.'
+                ], 403);
             }
 
             DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
@@ -418,7 +428,7 @@ class AuthController extends Controller
             // Log failed login
             AuthAuditLog::logLoginFailure(
                 $request->email,
-                'System error: ' . $e->getMessage(),
+                'System error during authentication',
                 'customer_user'
             );
 
@@ -479,7 +489,7 @@ class AuthController extends Controller
         }
 
         try {
-            $user = EmailVerificationToken::verifyAndConsume($request->token);
+            $user = EmailVerificationToken::verifyWithoutConsuming($request->token);
 
             if (!$user) {
                 return response()->json([
@@ -488,7 +498,6 @@ class AuthController extends Controller
                 ], 400);
             }
 
-            // Log email verified event
             AuthAuditLog::logEvent([
                 'actor_type' => 'customer_user',
                 'actor_id' => $user->id,
@@ -501,7 +510,11 @@ class AuthController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Email verified successfully. You can now log in.',
+                'message' => 'Email verified successfully.',
+                'data' => [
+                    'email' => $user->email,
+                    'token' => $request->token,
+                ]
             ], 200);
 
         } catch (\Exception $e) {

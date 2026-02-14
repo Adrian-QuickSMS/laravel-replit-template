@@ -130,7 +130,27 @@ class EmailVerificationToken extends Model
     }
 
     /**
-     * Verify and consume token
+     * Verify token without consuming it (for email verification step)
+     */
+    public static function verifyWithoutConsuming(string $plainToken): ?User
+    {
+        $token = static::findByPlainToken($plainToken);
+
+        if (!$token) {
+            return null;
+        }
+
+        $user = $token->user;
+
+        if ($user && !$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
+        return $user;
+    }
+
+    /**
+     * Verify and consume token (for security setup step - final use)
      */
     public static function verifyAndConsume(string $plainToken): ?User
     {
@@ -146,7 +166,6 @@ class EmailVerificationToken extends Model
             $user->markEmailAsVerified();
         }
 
-        // Delete token after use (one-time use)
         $token->delete();
 
         return $user;
