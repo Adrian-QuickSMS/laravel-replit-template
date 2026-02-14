@@ -2735,6 +2735,253 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    private function getAuthenticatedUserAndAccount()
+    {
+        $userId = session('customer_user_id');
+        $tenantId = session('customer_tenant_id');
+
+        if (!$userId || !$tenantId) {
+            return [null, null];
+        }
+
+        $user = \App\Models\User::withoutGlobalScope('tenant')
+            ->where('id', $userId)
+            ->where('tenant_id', $tenantId)
+            ->first();
+
+        if (!$user) {
+            return [null, null];
+        }
+
+        $account = \App\Models\Account::withoutGlobalScope('tenant')
+            ->where('id', $user->tenant_id)
+            ->first();
+
+        return [$user, $account];
+    }
+
+    public function saveSignUpDetails(\Illuminate\Http\Request $request)
+    {
+        [$user, $account] = $this->getAuthenticatedUserAndAccount();
+        if (!$user || !$account) {
+            return response()->json(['status' => 'error', 'message' => 'Not authenticated'], 401);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'job_title' => 'required|string|max:100',
+            'business_name' => 'required|string|max:255',
+            'mobile_number' => 'required|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+
+            $user->update([
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'job_title' => $request->job_title,
+                'mobile_number' => $request->mobile_number,
+            ]);
+
+            $account->update([
+                'company_name' => $request->business_name,
+                'signup_details_complete' => true,
+            ]);
+
+            session(['customer_name' => $request->first_name . ' ' . $request->last_name]);
+
+            return response()->json(['status' => 'success', 'message' => 'Sign up details saved successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Save signup details error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Failed to save changes'], 500);
+        }
+    }
+
+    public function saveCompanyInfo(\Illuminate\Http\Request $request)
+    {
+        [$user, $account] = $this->getAuthenticatedUserAndAccount();
+        if (!$user || !$account) {
+            return response()->json(['status' => 'error', 'message' => 'Not authenticated'], 401);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'company_type' => 'required|string|in:uk_limited,sole_trader,government',
+            'company_name' => 'required|string|max:255',
+            'trading_name' => 'nullable|string|max:255',
+            'company_number' => 'nullable|string|max:20',
+            'sector' => 'required|string|max:100',
+            'website' => 'required|url|max:255',
+            'address_line1' => 'required|string|max:255',
+            'address_line2' => 'nullable|string|max:255',
+            'city' => 'required|string|max:100',
+            'county' => 'nullable|string|max:100',
+            'postcode' => 'required|string|max:20',
+            'country' => 'required|string|max:2',
+            'operating_same' => 'required|boolean',
+            'operating_address_line1' => 'nullable|string|max:255',
+            'operating_address_line2' => 'nullable|string|max:255',
+            'operating_city' => 'nullable|string|max:100',
+            'operating_county' => 'nullable|string|max:100',
+            'operating_postcode' => 'nullable|string|max:20',
+            'operating_country' => 'nullable|string|max:2',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+
+            $companyType = $request->company_type === 'government' ? 'government_nhs' : $request->company_type;
+
+            $updateData = [
+                'company_type' => $companyType,
+                'company_name' => $request->company_name,
+                'trading_name' => $request->trading_name,
+                'company_number' => $request->company_number,
+                'business_sector' => $request->sector,
+                'website' => $request->website,
+                'address_line1' => $request->address_line1,
+                'address_line2' => $request->address_line2,
+                'city' => $request->city,
+                'county' => $request->county,
+                'postcode' => $request->postcode,
+                'country' => $request->country,
+                'operating_address_same_as_registered' => $request->operating_same,
+            ];
+
+            if (!$request->operating_same) {
+                $updateData['operating_address_line1'] = $request->operating_address_line1;
+                $updateData['operating_address_line2'] = $request->operating_address_line2;
+                $updateData['operating_city'] = $request->operating_city;
+                $updateData['operating_county'] = $request->operating_county;
+                $updateData['operating_postcode'] = $request->operating_postcode;
+                $updateData['operating_country'] = $request->operating_country;
+            }
+
+            $updateData['company_info_complete'] = true;
+            $account->update($updateData);
+
+            return response()->json(['status' => 'success', 'message' => 'Company information saved successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Save company info error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Failed to save changes'], 500);
+        }
+    }
+
+    public function saveSupportOps(\Illuminate\Http\Request $request)
+    {
+        [$user, $account] = $this->getAuthenticatedUserAndAccount();
+        if (!$user || !$account) {
+            return response()->json(['status' => 'error', 'message' => 'Not authenticated'], 401);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'billing_email' => 'required|email|max:255',
+            'support_email' => 'required|email|max:255',
+            'incident_email' => 'required|email|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+
+            $account->update([
+                'accounts_billing_email' => $request->billing_email,
+                'support_contact_email' => $request->support_email,
+                'incident_email' => $request->incident_email,
+                'support_operations_complete' => true,
+            ]);
+
+            return response()->json(['status' => 'success', 'message' => 'Support & operations contacts saved successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Save support ops error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Failed to save changes'], 500);
+        }
+    }
+
+    public function saveSignatory(\Illuminate\Http\Request $request)
+    {
+        [$user, $account] = $this->getAuthenticatedUserAndAccount();
+        if (!$user || !$account) {
+            return response()->json(['status' => 'error', 'message' => 'Not authenticated'], 401);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'signatory_name' => 'required|string|max:255',
+            'signatory_title' => 'required|string|max:255',
+            'signatory_email' => 'required|email|max:255',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+
+            $account->update([
+                'signatory_name' => $request->signatory_name,
+                'signatory_title' => $request->signatory_title,
+                'signatory_email' => $request->signatory_email,
+                'contract_signatory_complete' => true,
+            ]);
+
+            return response()->json(['status' => 'success', 'message' => 'Contract signatory details saved successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Save signatory error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Failed to save changes'], 500);
+        }
+    }
+
+    public function saveVatInfo(\Illuminate\Http\Request $request)
+    {
+        [$user, $account] = $this->getAuthenticatedUserAndAccount();
+        if (!$user || !$account) {
+            return response()->json(['status' => 'error', 'message' => 'Not authenticated'], 401);
+        }
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'vat_registered' => 'required|string|in:yes,no',
+            'vat_number' => 'nullable|string|max:50',
+            'vat_country' => 'nullable|string|max:2',
+            'reverse_charges' => 'nullable|string|in:yes,no',
+            'purchase_order_number' => 'nullable|string|max:100',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+
+            $account->update([
+                'vat_registered' => $request->vat_registered === 'yes',
+                'vat_number' => $request->vat_number,
+                'tax_country' => $request->vat_country,
+                'vat_reverse_charges' => ($request->reverse_charges ?? 'no') === 'yes',
+                'purchase_order_number' => $request->purchase_order_number,
+                'billing_vat_complete' => true,
+            ]);
+
+            return response()->json(['status' => 'success', 'message' => 'VAT & tax information saved successfully']);
+        } catch (\Exception $e) {
+            \Log::error('Save VAT info error: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Failed to save changes'], 500);
+        }
+    }
+
     public function usersAndAccess()
     {
         return view('quicksms.account.users-access', [

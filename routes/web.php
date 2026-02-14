@@ -78,6 +78,11 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/account/details', 'accountDetails')->name('account.details');
     Route::get('/account/activate', 'accountActivate')->name('account.activate');
     Route::post('/account/activate', 'saveActivation')->name('account.activate.save');
+    Route::post('/account/details/signup', 'saveSignUpDetails')->name('account.details.signup');
+    Route::post('/account/details/company', 'saveCompanyInfo')->name('account.details.company');
+    Route::post('/account/details/support', 'saveSupportOps')->name('account.details.support');
+    Route::post('/account/details/signatory', 'saveSignatory')->name('account.details.signatory');
+    Route::post('/account/details/vat', 'saveVatInfo')->name('account.details.vat');
     Route::get('/account/users', 'usersAndAccess')->name('account.users');
     Route::get('/account/sub-accounts', 'subAccounts')->name('account.sub-accounts');
     Route::get('/account/sub-accounts/{id}', 'subAccountDetail')->name('account.sub-accounts.detail');
