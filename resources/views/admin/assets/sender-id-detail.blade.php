@@ -864,6 +864,14 @@ html, body {
 <script src="{{ asset('js/admin-notifications.js') }}"></script>
 <script src="{{ asset('js/admin-audit-log.js') }}"></script>
 <script>
+var csrfToken = $('meta[name="csrf-token"]').attr('content');
+var senderIdUuid = @json($sender_id ?? '');
+var currentSenderIdData = null;
+
+function ajaxHeaders() {
+    return { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' };
+}
+
 var SENDER_ID_VALIDATION = {
     characterRules: function(value) {
         var alphanumericOnly = /^[A-Za-z0-9]+$/.test(value);
@@ -876,11 +884,12 @@ var SENDER_ID_VALIDATION = {
     
     lengthRules: function(value, type) {
         var limits = {
+            'alpha': { min: 3, max: 11 },
             'alphanumeric': { min: 3, max: 11 },
             'numeric': { min: 10, max: 15 },
             'shortcode': { min: 5, max: 6 }
         };
-        var limit = limits[type] || limits.alphanumeric;
+        var limit = limits[type.toLowerCase()] || limits.alphanumeric;
         var pass = value.length >= limit.min && value.length <= limit.max;
         return {
             pass: pass,
@@ -889,7 +898,7 @@ var SENDER_ID_VALIDATION = {
     },
     
     ukShortcodeRules: function(value, type) {
-        if (type !== 'shortcode') {
+        if (type.toLowerCase() !== 'shortcode') {
             return { pass: true, message: 'Not applicable - not a shortcode' };
         }
         var validShortcode = /^[0-9]{5,6}$/.test(value);
@@ -901,7 +910,6 @@ var SENDER_ID_VALIDATION = {
     
     numericNormalisation: function(value) {
         var hasLeadingZero = /^0/.test(value);
-        var numericOnly = /^[0-9]+$/.test(value);
         return {
             pass: !hasLeadingZero,
             message: hasLeadingZero ? 'Leading zeros detected - normalisation required' : 'No leading zeros detected'
@@ -942,49 +950,252 @@ var SENDER_ID_VALIDATION = {
     }
 };
 
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('[SenderID Detail] Initialized');
+    console.log('[SenderID Detail] Initialized with UUID:', senderIdUuid);
     
     if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('PAGE_VIEW', 'sender-id-detail', { requestId: 'SID-001' }, 'LOW');
+        AdminControlPlane.logAdminAction('PAGE_VIEW', 'sender-id-detail', { requestId: senderIdUuid }, 'LOW');
     }
 
-    UNIFIED_APPROVAL.init({
-        entityType: 'SENDER_ID',
-        entityId: 'SID-001',
-        currentVersion: 1,
-        currentStatus: 'submitted',
-        accountId: 'ACC-001',
-        accountName: 'Acme Corporation',
-        submittedBy: 'j.smith@acme.com',
-        submittedAt: '2026-01-20T10:15:00Z',
-        entityData: {
-            value: 'ACMEBANK',
-            type: 'Alphanumeric',
-            brand: 'Acme Bank Ltd',
-            permissionConfirmed: true,
-            explanation: 'We are registering ACMEBANK as our official sender ID for transactional banking notifications.',
-            vertical: 'Financial Services'
+    if (senderIdUuid) {
+        loadSenderIdDetail();
+    }
+});
+
+function loadSenderIdDetail() {
+    $.ajax({
+        url: '/admin/api/sender-ids/' + senderIdUuid,
+        method: 'GET',
+        headers: ajaxHeaders(),
+        success: function(response) {
+            if (response.success) {
+                currentSenderIdData = response.data;
+                populateDetailPage(response.data, response.spoofing_check, response.status_history, response.account);
+                
+                if (typeof UNIFIED_APPROVAL !== 'undefined') {
+                    UNIFIED_APPROVAL.init({
+                        entityType: 'SENDER_ID',
+                        entityId: senderIdUuid,
+                        currentVersion: response.data.version || 1,
+                        currentStatus: response.data.workflow_status,
+                        accountId: response.data.account_id || '',
+                        accountName: (response.account && response.account.company_name) || '',
+                        submittedBy: response.data.created_by || '',
+                        submittedAt: response.data.submitted_at || response.data.created_at || '',
+                        entityData: {
+                            value: response.data.sender_id_value,
+                            type: response.data.sender_type,
+                            brand: response.data.brand_name,
+                            permissionConfirmed: response.data.permission_confirmed,
+                            explanation: response.data.use_case_description || '',
+                            vertical: response.data.use_case || ''
+                        }
+                    });
+                }
+
+                if (typeof ADMIN_NOTIFICATIONS !== 'undefined') {
+                    ADMIN_NOTIFICATIONS.init();
+                    checkSlaStatus();
+                }
+            }
+        },
+        error: function(xhr) {
+            console.error('[SenderID Detail] Load error:', xhr.responseText);
+            alert('Failed to load SenderID details.');
         }
     });
+}
 
-    ADMIN_NOTIFICATIONS.init();
-    checkSlaStatus();
-});
+function populateDetailPage(data, spoofingCheck, statusHistory, account) {
+    document.getElementById('senderIdValue').textContent = data.sender_id_value || '';
+
+    var statusMap = {
+        'draft': { cls: 'submitted', icon: 'fa-pencil-alt', label: 'Draft' },
+        'submitted': { cls: 'submitted', icon: 'fa-paper-plane', label: 'Submitted' },
+        'in_review': { cls: 'in-review', icon: 'fa-search', label: 'In Review' },
+        'pending_info': { cls: 'returned-to-customer', icon: 'fa-question-circle', label: 'Info Requested' },
+        'info_provided': { cls: 'submitted', icon: 'fa-reply', label: 'Info Provided' },
+        'approved': { cls: 'approved', icon: 'fa-check-circle', label: 'Approved' },
+        'rejected': { cls: 'rejected', icon: 'fa-times-circle', label: 'Rejected' },
+        'suspended': { cls: 'rejected', icon: 'fa-pause-circle', label: 'Suspended' },
+        'revoked': { cls: 'rejected', icon: 'fa-ban', label: 'Revoked' }
+    };
+    var statusInfo = statusMap[data.workflow_status] || { cls: 'submitted', icon: 'fa-question', label: data.workflow_status };
+    updateStatus(statusInfo.cls, statusInfo.label, statusInfo.icon);
+
+    var headerMeta = document.querySelector('.status-header div[style*="font-size: 0.8rem"]');
+    if (headerMeta) {
+        var submittedDate = data.submitted_at ? new Date(data.submitted_at).toLocaleString('en-GB', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        headerMeta.innerHTML = '<span><i class="fas fa-hashtag me-1"></i>Request ID: <strong>' + escapeHtml(data.uuid) + '</strong></span>' +
+            '<span><i class="fas fa-clock me-1"></i>Submitted: <strong>' + escapeHtml(submittedDate) + '</strong></span>';
+    }
+
+    var contextInfo = document.querySelector('.context-info');
+    if (contextInfo && account) {
+        var accountName = account.company_name || '';
+        var accountNum = account.account_number || '';
+        contextInfo.innerHTML = '<div class="context-item"><i class="fas fa-building"></i><span class="context-label">Account:</span><span class="context-value">' + escapeHtml(accountName) + ' (' + escapeHtml(accountNum) + ')</span></div>' +
+            '<div class="context-item"><i class="fas fa-user"></i><span class="context-label">Created By:</span><span class="context-value">' + escapeHtml(data.created_by || 'N/A') + '</span></div>';
+    }
+
+    if (spoofingCheck) {
+        renderSpoofingCheck(spoofingCheck);
+    }
+
+    if (statusHistory && statusHistory.length > 0) {
+        renderAuditTrail(statusHistory);
+    }
+
+    var sidebarRequestId = document.querySelector('.sidebar-card .detail-value.mono');
+    if (sidebarRequestId) {
+        sidebarRequestId.textContent = data.uuid || '';
+    }
+
+    if (account) {
+        var accountStatusEl = document.querySelector('.sidebar .detail-card:last-child .detail-card-body');
+        if (accountStatusEl) {
+            var statusBadge = (account.status === 'active' || account.status === 'Active') ? '<span class="yes-badge">Active</span>' : '<span class="no-badge">' + escapeHtml(account.status || 'Unknown') + '</span>';
+            var rows = accountStatusEl.querySelectorAll('.detail-row');
+            if (rows[0]) {
+                rows[0].querySelector('.detail-value').innerHTML = statusBadge;
+            }
+        }
+
+        var viewAccountLink = accountStatusEl ? accountStatusEl.querySelector('a.action-btn') : null;
+        if (viewAccountLink && account.id) {
+            viewAccountLink.href = '/admin/accounts/' + account.id;
+        }
+    }
+
+    updateActionButtonVisibility(data.workflow_status);
+}
+
+function renderSpoofingCheck(spoofingCheck) {
+    var container = document.querySelector('.validation-section .detail-card-body');
+    if (!container) return;
+
+    var html = '';
+    if (spoofingCheck.results && Array.isArray(spoofingCheck.results)) {
+        spoofingCheck.results.forEach(function(check) {
+            var cls = check.pass ? 'pass' : (check.warn ? 'warn' : 'fail');
+            var icon = check.pass ? 'fa-check' : (check.warn ? 'fa-exclamation' : 'fa-times');
+            html += '<div class="validation-item ' + cls + '">';
+            html += '<div class="validation-icon"><i class="fas ' + icon + '"></i></div>';
+            html += '<div class="validation-content">';
+            html += '<div class="validation-title">' + escapeHtml(check.name || check.title || '') + '</div>';
+            html += '<div class="validation-detail">' + escapeHtml(check.message || check.detail || '') + '</div>';
+            html += '</div></div>';
+        });
+    }
+
+    if (html) {
+        container.innerHTML = html;
+    }
+}
+
+function renderAuditTrail(statusHistory) {
+    var container = document.querySelector('.audit-trail');
+    if (!container) return;
+
+    var iconMap = {
+        'submitted': 'fa-paper-plane',
+        'review_started': 'fa-eye',
+        'approved': 'fa-check-circle',
+        'rejected': 'fa-times-circle',
+        'info_requested': 'fa-question-circle',
+        'info_provided': 'fa-reply',
+        'review_resumed': 'fa-eye',
+        'suspended': 'fa-pause-circle',
+        'reactivated': 'fa-play-circle',
+        'revoked': 'fa-ban',
+        'status_changed': 'fa-exchange-alt',
+        'resubmission_started': 'fa-redo'
+    };
+
+    var html = '';
+    statusHistory.forEach(function(entry) {
+        var icon = iconMap[entry.action] || 'fa-circle';
+        var actionLabel = (entry.action || '').replace(/_/g, ' ');
+        actionLabel = actionLabel.charAt(0).toUpperCase() + actionLabel.slice(1);
+        var meta = (entry.user_name || entry.user_email || 'System');
+        if (entry.created_at) {
+            meta += ' | ' + new Date(entry.created_at).toLocaleString('en-GB', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        html += '<div class="audit-entry">';
+        html += '<div class="audit-icon"><i class="fas ' + icon + '"></i></div>';
+        html += '<div class="audit-content">';
+        html += '<div class="audit-action">' + escapeHtml(actionLabel) + '</div>';
+        html += '<div class="audit-meta">' + escapeHtml(meta) + '</div>';
+        if (entry.reason) {
+            html += '<div class="audit-meta" style="color: #64748b; margin-top: 0.25rem;">' + escapeHtml(entry.reason) + '</div>';
+        }
+        if (entry.notes) {
+            html += '<div class="audit-meta" style="color: #475569; margin-top: 0.25rem; font-style: italic;">' + escapeHtml(entry.notes) + '</div>';
+        }
+        html += '</div></div>';
+    });
+
+    container.innerHTML = html;
+}
+
+function updateActionButtonVisibility(status) {
+    var adminActionsModal = document.getElementById('adminActionsModal');
+    if (!adminActionsModal) return;
+
+    var approveBtn = adminActionsModal.querySelector('[onclick*="approveSenderId"]');
+    var rejectBtn = adminActionsModal.querySelector('[onclick*="showRejectModal"]');
+    var requestInfoBtn = adminActionsModal.querySelector('[onclick*="returnToCustomer"]');
+    var suspendBtn = adminActionsModal.querySelector('[onclick*="suspendSenderId"]');
+    var reactivateBtn = adminActionsModal.querySelector('[onclick*="reactivateSenderId"]');
+    var revokeBtn = adminActionsModal.querySelector('[onclick*="revokeSenderId"]');
+
+    var allBtns = [approveBtn, rejectBtn, requestInfoBtn, suspendBtn, reactivateBtn, revokeBtn];
+    allBtns.forEach(function(btn) { if (btn) btn.style.display = 'none'; });
+
+    switch (status) {
+        case 'submitted':
+            break;
+        case 'in_review':
+            if (approveBtn) approveBtn.style.display = '';
+            if (rejectBtn) rejectBtn.style.display = '';
+            if (requestInfoBtn) requestInfoBtn.style.display = '';
+            break;
+        case 'approved':
+            if (suspendBtn) suspendBtn.style.display = '';
+            break;
+        case 'suspended':
+            if (reactivateBtn) reactivateBtn.style.display = '';
+            if (revokeBtn) revokeBtn.style.display = '';
+            break;
+    }
+}
 
 function checkHighRiskFlags() {
     var brandWarning = document.querySelector('.validation-item.warn');
     if (brandWarning) {
         var warningText = brandWarning.textContent;
         if (warningText.includes('BANK') || warningText.includes('NHS') || warningText.includes('HMRC')) {
-            ADMIN_NOTIFICATIONS.triggerInternalAlert('HIGH_RISK', 'SID-001', 'SenderID contains regulated term - requires enhanced verification');
+            if (typeof ADMIN_NOTIFICATIONS !== 'undefined') {
+                ADMIN_NOTIFICATIONS.triggerInternalAlert('HIGH_RISK', senderIdUuid, 'SenderID contains regulated term - requires enhanced verification');
+            }
         }
     }
 }
 
 function checkSlaStatus() {
-    var submittedAt = '2026-01-20T10:15:00Z';
-    ADMIN_NOTIFICATIONS.checkSlaBreach('SID-001', submittedAt, 'SenderID');
+    if (!currentSenderIdData) return;
+    var submittedAt = currentSenderIdData.submitted_at || currentSenderIdData.created_at;
+    if (submittedAt && typeof ADMIN_NOTIFICATIONS !== 'undefined') {
+        ADMIN_NOTIFICATIONS.checkSlaBreach(senderIdUuid, submittedAt, 'SenderID');
+    }
 }
 
 function switchNotesTab(tab) {
@@ -999,29 +1210,119 @@ function switchNotesTab(tab) {
     document.getElementById('tab-' + tab).classList.add('active');
 }
 
+function performAction(action, body, successMsg) {
+    $.ajax({
+        url: '/admin/api/sender-ids/' + senderIdUuid + '/' + action,
+        method: 'POST',
+        headers: ajaxHeaders(),
+        data: JSON.stringify(body || {}),
+        success: function(response) {
+            if (response.success) {
+                alert(successMsg || response.message || 'Action completed.');
+                loadSenderIdDetail();
+            } else {
+                alert(response.error || 'Action failed.');
+            }
+        },
+        error: function(xhr) {
+            var msg = 'Action failed.';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            alert(msg);
+        }
+    });
+}
+
+function startReview() {
+    if (confirm('Start review for this SenderID?')) {
+        performAction('review', {}, 'SenderID is now in review.');
+    }
+}
+
 function returnToCustomer() {
-    UNIFIED_APPROVAL.showReturnModal();
+    var notes = prompt('What information do you need from the customer?');
+    if (!notes || notes.trim().length < 5) {
+        alert('Please provide details about what information is needed (min 5 characters).');
+        return;
+    }
+    performAction('request-info', { notes: notes.trim() }, 'Information request sent to customer.');
 }
 
 function showRejectModal() {
-    UNIFIED_APPROVAL.showRejectModal();
+    var modal = document.getElementById('rejectModal');
+    if (modal) {
+        document.getElementById('rejectReason').value = '';
+        document.getElementById('rejectMessage').value = '';
+        new bootstrap.Modal(modal).show();
+    }
+}
+
+function confirmReject() {
+    var reason = document.getElementById('rejectMessage').value.trim();
+    if (!reason || reason.length < 10) {
+        alert('Please provide a rejection reason (minimum 10 characters).');
+        return;
+    }
+
+    $.ajax({
+        url: '/admin/api/sender-ids/' + senderIdUuid + '/reject',
+        method: 'POST',
+        headers: ajaxHeaders(),
+        data: JSON.stringify({ reason: reason }),
+        success: function(response) {
+            if (response.success) {
+                bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+                alert('SenderID rejected.');
+                loadSenderIdDetail();
+            } else {
+                alert(response.error || 'Failed to reject.');
+            }
+        },
+        error: function(xhr) {
+            var msg = 'Failed to reject';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            alert(msg);
+        }
+    });
 }
 
 function approveSenderId() {
     if (confirm('Approve this SenderID request?')) {
-        var result = UNIFIED_APPROVAL.approve('Manual approval by admin');
-        if (result.success) {
-            setTimeout(function() {
-                UNIFIED_APPROVAL.provision();
-            }, 1500);
-        }
+        performAction('approve', { notes: 'Manual approval by admin' }, 'SenderID approved successfully.');
+    }
+}
+
+function suspendSenderId() {
+    var reason = prompt('Reason for suspending this SenderID (required):');
+    if (!reason || reason.trim().length < 5) {
+        alert('Suspension reason is required (min 5 characters).');
+        return;
+    }
+    performAction('suspend', { reason: reason.trim() }, 'SenderID suspended.');
+}
+
+function reactivateSenderId() {
+    if (confirm('Reactivate this suspended SenderID?')) {
+        performAction('reactivate', { notes: 'Reactivated by admin' }, 'SenderID reactivated.');
+    }
+}
+
+function revokeSenderId() {
+    var reason = prompt('Reason for permanently revoking this SenderID (required):');
+    if (!reason || reason.trim().length < 5) {
+        alert('Revocation reason is required (min 5 characters).');
+        return;
+    }
+    if (confirm('This action is PERMANENT. Revoke this SenderID?')) {
+        performAction('revoke', { reason: reason.trim() }, 'SenderID revoked permanently.');
     }
 }
 
 function submitToExternalProvider() {
     if (confirm('Submit this SenderID to BrandAssure for external validation?')) {
-        var entity = UNIFIED_APPROVAL.getCurrentEntity();
-        UNIFIED_APPROVAL.submitToExternalProvider(entity.data);
+        if (typeof UNIFIED_APPROVAL !== 'undefined') {
+            var entity = UNIFIED_APPROVAL.getCurrentEntity();
+            UNIFIED_APPROVAL.submitToExternalProvider(entity ? entity.data : {});
+        }
     }
 }
 
@@ -1033,15 +1334,7 @@ function forceApprove() {
     }
     
     if (confirm('Force approve this SenderID bypassing validation? This action is logged with CRITICAL severity.')) {
-        var result = UNIFIED_APPROVAL.forceApprove(reason);
-        if (result.success) {
-            setTimeout(function() {
-                UNIFIED_APPROVAL.provision();
-            }, 1000);
-            alert('SenderID force approved (enterprise override). Audit logged with CRITICAL severity.');
-        } else {
-            alert('Error: ' + result.error);
-        }
+        performAction('approve', { notes: 'FORCE APPROVE: ' + reason }, 'SenderID force approved (enterprise override).');
     }
 }
 
@@ -1053,6 +1346,7 @@ function updateStatus(status, label, icon) {
 
 function addInternalNote() {
     var textarea = document.querySelector('#tab-internal .notes-textarea');
+    if (!textarea) return;
     var note = textarea.value.trim();
     if (!note) {
         alert('Please enter a note');
@@ -1060,7 +1354,7 @@ function addInternalNote() {
     }
     
     if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('ADD_INTERNAL_NOTE', 'SID-001', { note: note.substring(0, 100) }, 'LOW');
+        AdminControlPlane.logAdminAction('ADD_INTERNAL_NOTE', senderIdUuid, { note: note.substring(0, 100) }, 'LOW');
     }
     
     textarea.value = '';
@@ -1068,22 +1362,25 @@ function addInternalNote() {
 }
 
 function previewCustomerMessage() {
-    var message = document.querySelector('#tab-customer .notes-textarea').value;
+    var textarea = document.querySelector('#tab-customer .notes-textarea');
+    var message = textarea ? textarea.value : '';
     alert('Preview:\n\n' + (message || '(No message entered)'));
 }
 
 function sendCustomerMessage() {
-    var message = document.querySelector('#tab-customer .notes-textarea').value.trim();
+    var textarea = document.querySelector('#tab-customer .notes-textarea');
+    if (!textarea) return;
+    var message = textarea.value.trim();
     if (!message) {
         alert('Please enter a message');
         return;
     }
     
     if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('SEND_CUSTOMER_MESSAGE', 'SID-001', {}, 'MEDIUM');
+        AdminControlPlane.logAdminAction('SEND_CUSTOMER_MESSAGE', senderIdUuid, {}, 'MEDIUM');
     }
     
-    document.querySelector('#tab-customer .notes-textarea').value = '';
+    textarea.value = '';
     alert('Message sent to customer.');
 }
 

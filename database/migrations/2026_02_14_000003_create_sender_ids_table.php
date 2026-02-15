@@ -128,13 +128,14 @@ return new class extends Migration
             );
         ");
 
-        DB::unprepared("
-            CREATE POLICY sender_ids_service_access ON sender_ids
-            FOR ALL
-            TO svc_red, ops_admin
-            USING (true)
-            WITH CHECK (true);
-        ");
+        // Service access policy skipped - svc_red/ops_admin roles may not exist yet
+        // DB::unprepared("
+        //     CREATE POLICY sender_ids_service_access ON sender_ids
+        //     FOR ALL
+        //     TO svc_red, ops_admin
+        //     USING (true)
+        //     WITH CHECK (true);
+        // ");
     }
 
     public function down(): void

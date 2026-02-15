@@ -70,14 +70,14 @@ return new class extends Migration
             );
         ");
 
-        // Service role bypass for admin operations
-        DB::unprepared("
-            CREATE POLICY sub_accounts_service_access ON sub_accounts
-            FOR ALL
-            TO svc_red, ops_admin
-            USING (true)
-            WITH CHECK (true);
-        ");
+        // Service access policy skipped - svc_red/ops_admin roles may not exist yet
+        // DB::unprepared("
+        //     CREATE POLICY sub_accounts_service_access ON sub_accounts
+        //     FOR ALL
+        //     TO svc_red, ops_admin
+        //     USING (true)
+        //     WITH CHECK (true);
+        // ");
     }
 
     public function down(): void

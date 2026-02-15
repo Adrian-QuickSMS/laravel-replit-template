@@ -79,6 +79,11 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/account/details', 'accountDetails')->name('account.details');
     Route::get('/account/activate', 'accountActivate')->name('account.activate');
     Route::post('/account/activate', 'saveActivation')->name('account.activate.save');
+    Route::post('/account/details/signup', 'saveSignUpDetails')->name('account.details.signup');
+    Route::post('/account/details/company', 'saveCompanyInfo')->name('account.details.company');
+    Route::post('/account/details/support', 'saveSupportOps')->name('account.details.support');
+    Route::post('/account/details/signatory', 'saveSignatory')->name('account.details.signatory');
+    Route::post('/account/details/vat', 'saveVatInfo')->name('account.details.vat');
     Route::get('/account/users', 'usersAndAccess')->name('account.users');
     Route::get('/account/sub-accounts', 'subAccounts')->name('account.sub-accounts');
     Route::get('/account/sub-accounts/{id}', 'subAccountDetail')->name('account.sub-accounts.detail');
@@ -95,7 +100,6 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/rcs/preview-demo', 'rcsPreviewDemo')->name('rcs.preview-demo');
 });
 
-// Customer Portal SenderID API (session auth)
 Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderIdController::class)->group(function () {
     Route::get('/approved', 'approved')->name('api.sender-ids.approved');
     Route::post('/validate', 'validateSenderId')->name('api.sender-ids.validate');
@@ -222,7 +226,6 @@ Route::prefix('admin')->group(function () {
                 Route::delete('/overrides/{override}', 'deleteOverride')->name('admin.api.uk-network-controls.delete-override');
             });
             
-            // Admin SenderID Approval API
             Route::prefix('api/sender-ids')->controller(\App\Http\Controllers\Admin\SenderIdApprovalController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.sender-ids.index');
                 Route::get('/{uuid}', 'show')->name('admin.api.sender-ids.show');

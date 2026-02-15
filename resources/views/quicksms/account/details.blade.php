@@ -2407,15 +2407,32 @@ $(document).ready(function() {
         $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
         showAutoSave($autoSave, 'saving');
         
-        setTimeout(function() {
-            var changes = collectChanges('supportOperations');
-            submitAuditLog(changes);
-            
-            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
-            showAutoSave($autoSave, 'saved');
-            updateSupportStatusBadge();
-            toastr.success('Support & operations contacts saved successfully.');
-        }, 800);
+        $.ajax({
+            url: '/account/details/support',
+            method: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                billing_email: $('#billingEmail').val().trim(),
+                support_email: $('#supportEmail').val().trim(),
+                incident_email: $('#incidentEmail').val().trim()
+            },
+            success: function(response) {
+                showAutoSave($autoSave, 'saved');
+                updateSupportStatusBadge();
+                toastr.success(response.message || 'Support & operations contacts saved successfully.');
+            },
+            error: function(xhr) {
+                var msg = 'Failed to save changes.';
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    msg = Object.values(xhr.responseJSON.errors).flat().join(', ');
+                }
+                toastr.error(msg);
+            },
+            complete: function() {
+                $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            }
+        });
     });
     
     function validatePhoneNumber(phone) {
@@ -2531,7 +2548,6 @@ $(document).ready(function() {
     }
     
     $('#saveSignUpDetails').on('click', function() {
-        var $section = $('#signUpDetails');
         var $saveBtn = $(this);
         var $autoSave = $('#signUpAutoSave');
         var isValid = true;
@@ -2550,15 +2566,35 @@ $(document).ready(function() {
         $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
         showAutoSave($autoSave, 'saving');
         
-        setTimeout(function() {
-            var changes = collectChanges('signUpDetails');
-            submitAuditLog(changes);
-            
-            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
-            showAutoSave($autoSave, 'saved');
-            updateSignUpStatusBadge();
-            toastr.success('Sign up details saved successfully.');
-        }, 800);
+        $.ajax({
+            url: '/account/details/signup',
+            method: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                first_name: $('#signupFirstName').val().trim(),
+                last_name: $('#signupLastName').val().trim(),
+                job_title: $('#signupJobTitle').val().trim(),
+                business_name: $('#signupBusinessName').val().trim(),
+                mobile_number: $('#signupMobile').val().trim()
+            },
+            success: function(response) {
+                showAutoSave($autoSave, 'saved');
+                updateSignUpStatusBadge();
+                toastr.success(response.message || 'Sign up details saved successfully.');
+            },
+            error: function(xhr) {
+                var msg = 'Failed to save changes.';
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    var errors = xhr.responseJSON.errors;
+                    msg = Object.values(errors).flat().join(', ');
+                }
+                toastr.error(msg);
+            },
+            complete: function() {
+                $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            }
+        });
     });
     
     $('#saveCompanyInfo').on('click', function() {
@@ -2573,13 +2609,20 @@ $(document).ready(function() {
             isValid = false;
         }
         
+        var selectedType = $('.company-type-tile.selected').data('type');
+        if (!selectedType) {
+            $('#companyTypeError').show();
+            isValid = false;
+        }
+        
         $('.company-field').each(function() {
             if (!validateField($(this))) {
                 isValid = false;
             }
         });
         
-        if (!$('#operatingSameAsRegistered').is(':checked')) {
+        var operatingSame = $('#operatingSameAsRegistered').is(':checked');
+        if (!operatingSame) {
             $('.operating-field').each(function() {
                 if (!validateField($(this))) {
                     isValid = false;
@@ -2595,15 +2638,53 @@ $(document).ready(function() {
         $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
         showAutoSave($autoSave, 'saving');
         
-        setTimeout(function() {
-            var changes = collectChanges('companyInfo');
-            submitAuditLog(changes);
-            
-            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
-            showAutoSave($autoSave, 'saved');
-            updateCompanyStatusBadge();
-            toastr.success('Company information saved successfully.');
-        }, 800);
+        var postData = {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            company_type: selectedType,
+            company_name: $('#companyName').val().trim(),
+            trading_name: $('#tradingName').val().trim() || null,
+            company_number: $('#companyNumber').val().trim() || null,
+            sector: $('#companySector').val(),
+            website: website,
+            address_line1: $('#regAddress1').val().trim(),
+            address_line2: $('#regAddress2').val().trim() || null,
+            city: $('#regCity').val().trim(),
+            county: $('#regCounty').val().trim() || null,
+            postcode: $('#regPostcode').val().trim(),
+            country: $('#regCountry').val(),
+            operating_same: operatingSame ? 1 : 0
+        };
+        
+        if (!operatingSame) {
+            postData.operating_address_line1 = $('#opAddress1').val().trim();
+            postData.operating_address_line2 = $('#opAddress2').val().trim() || null;
+            postData.operating_city = $('#opCity').val().trim();
+            postData.operating_county = $('#opCounty').val().trim() || null;
+            postData.operating_postcode = $('#opPostcode').val().trim();
+            postData.operating_country = $('#opCountry').val();
+        }
+        
+        $.ajax({
+            url: '/account/details/company',
+            method: 'POST',
+            data: postData,
+            success: function(response) {
+                showAutoSave($autoSave, 'saved');
+                updateCompanyStatusBadge();
+                toastr.success(response.message || 'Company information saved successfully.');
+            },
+            error: function(xhr) {
+                var msg = 'Failed to save changes.';
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    msg = Object.values(xhr.responseJSON.errors).flat().join(', ');
+                }
+                toastr.error(msg);
+            },
+            complete: function() {
+                $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            }
+        });
     });
     
     function getCompanyDomain() {
@@ -2690,16 +2771,33 @@ $(document).ready(function() {
         $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
         showAutoSave($autoSave, 'saving');
         
-        setTimeout(function() {
-            var changes = collectChanges('contractSignatory');
-            submitAuditLog(changes);
-            
-            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
-            showAutoSave($autoSave, 'saved');
-            updateSignatoryStatusBadge();
-            checkSignatoryDomainMatch();
-            toastr.success('Contract signatory details saved successfully.');
-        }, 800);
+        $.ajax({
+            url: '/account/details/signatory',
+            method: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                signatory_name: $('#signatoryName').val().trim(),
+                signatory_title: $('#signatoryTitle').val().trim(),
+                signatory_email: $('#signatoryEmail').val().trim()
+            },
+            success: function(response) {
+                showAutoSave($autoSave, 'saved');
+                updateSignatoryStatusBadge();
+                checkSignatoryDomainMatch();
+                toastr.success(response.message || 'Contract signatory details saved successfully.');
+            },
+            error: function(xhr) {
+                var msg = 'Failed to save changes.';
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    msg = Object.values(xhr.responseJSON.errors).flat().join(', ');
+                }
+                toastr.error(msg);
+            },
+            complete: function() {
+                $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            }
+        });
     });
     
     $('#saveVatInfo').on('click', function() {
@@ -2735,15 +2833,34 @@ $(document).ready(function() {
         $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
         showAutoSave($autoSave, 'saving');
         
-        setTimeout(function() {
-            var changes = collectChanges('vatTaxInfo');
-            submitAuditLog(changes);
-            
-            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
-            showAutoSave($autoSave, 'saved');
-            updateVatStatusBadge();
-            toastr.success('VAT & tax information saved successfully. Audit log updated.');
-        }, 800);
+        $.ajax({
+            url: '/account/details/vat',
+            method: 'POST',
+            data: {
+                _token: $('meta[name="csrf-token"]').attr('content'),
+                vat_registered: isRegistered,
+                vat_number: $('#vatNumber').val().trim() || null,
+                vat_country: $('#vatCountry').val() || null,
+                reverse_charges: $('#reverseCharges').val() || null,
+                purchase_order_number: $('#purchaseOrderNumber').val().trim() || null
+            },
+            success: function(response) {
+                showAutoSave($autoSave, 'saved');
+                updateVatStatusBadge();
+                toastr.success(response.message || 'VAT & tax information saved successfully.');
+            },
+            error: function(xhr) {
+                var msg = 'Failed to save changes.';
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    msg = Object.values(xhr.responseJSON.errors).flat().join(', ');
+                }
+                toastr.error(msg);
+            },
+            complete: function() {
+                $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Changes');
+            }
+        });
     });
 
     updateSignUpStatusBadge();

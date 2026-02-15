@@ -68,7 +68,6 @@ class AccountObserver
                 'new_status' => $newStatus,
             ]);
 
-            // Suspend all SenderIDs when account is suspended
             if ($newStatus === 'suspended' && $oldStatus !== 'suspended') {
                 try {
                     $enforcementService = app(SenderIdEnforcementService::class);
@@ -88,7 +87,6 @@ class AccountObserver
             }
         }
 
-        // Create default SenderID on account activation
         if ($account->wasChanged('activation_complete') && $account->activation_complete) {
             try {
                 $enforcementService = app(SenderIdEnforcementService::class);

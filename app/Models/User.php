@@ -148,17 +148,11 @@ class User extends Authenticatable
         return $this->hasMany(PasswordHistory::class, 'user_id');
     }
 
-    /**
-     * Sub-account this user belongs to (optional)
-     */
     public function subAccount(): BelongsTo
     {
         return $this->belongsTo(SubAccount::class, 'sub_account_id');
     }
 
-    /**
-     * SenderID assignments for this user
-     */
     public function senderIdAssignments(): \Illuminate\Database\Eloquent\Relations\MorphMany
     {
         return $this->morphMany(SenderIdAssignment::class, 'assignable');

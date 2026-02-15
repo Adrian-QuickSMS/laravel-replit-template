@@ -1,0 +1,302 @@
+Replit Deployment Prompt — SMS SenderID Registration Backend
+Step 1: Pull the latest changes from Git
+git fetch origin claude/quicksms-security-performance-dr8sw
+git merge origin/claude/quicksms-security-performance-dr8sw --no-edit
+
+Step 2: Run the new migrations
+php artisan migrate
+
+This will create 5 new tables:
+
+sub_accounts — Account > Sub-Account > User hierarchy (UUID PK, RLS)
+users.sub_account_id — FK column added to existing users table
+sender_ids — Main SenderID table with 3 PostgreSQL ENUMs (sender_id_type, sender_id_status, sender_id_use_case), RLS
+sender_id_assignments — Polymorphic distribution (sub-accounts & users)
+sender_id_status_history — Audit trail for workflow transitions
+If the RLS policy creation fails (because svc_red / ops_admin roles don't exist yet), you can safely comment out the _service_access policy statements and proceed. The _isolation policies are the critical ones.
+
+Step 3: Understand what was implemented
+13 new files, 5 modified files — here's what each does:
+
+New Models (4):
+Model	Purpose
+SubAccount	Account hierarchy. UUID PK, tenant global scope, active() scope, toPortalArray()
+SenderId	Full state machine with 9 statuses. Key methods: transitionTo(), isUsable(), isEditable(), toPortalArray(), toAdminArray(). Has usableByUser scope for assignment-aware queries
+SenderIdAssignment	Polymorphic join (assignable_type = SubAccount or User)
+SenderIdStatusHistory	Audit record with IP/User-Agent capture
+New Services (2):
+Service	Purpose
+SenderIdValidationService	Type validation (ALPHA max 11 chars, NUMERIC 447XXXXXXXXX, SHORTCODE 5-digit 6/7/8) + anti-spoofing via MessageEnforcementService normalisation
+SenderIdEnforcementService	Message-sending enforcement (validates sender approved + assigned), createDefaultSenderId(), suspendAllForAccount()
+New Controllers (2):
+Controller	Purpose
+SenderIdController	Customer portal — index(), create(), store(), show(), update(), submit(), provideInfo(), approved(), validateSenderId(), resubmit()
+SenderIdApprovalController	Admin portal — index(), show(), startReview(), approve(), reject(), requestInfo(), suspend(), reactivate(), revoke()
+Modified Files (5):
+File	Change
+Account.php	Added subAccounts() and senderIds() relationships
+User.php	Added sub_account_id to fillable/casts, subAccount() and senderIdAssignments() relationships
+AccountObserver.php	SenderID lifecycle hooks — suspend SenderIDs on account suspension, create default "QuickSMS" SenderID on account activation
+QuickSMSController.php	Removed smsSenderIdRegistration() and smsSenderIdRegister() stubs (moved to SenderIdController)
+routes/web.php	Rewired sender ID view routes to SenderIdController, added 17 API routes (8 customer + 9 admin)
+New Routes:
+Customer Portal API (under customer.auth middleware):
+
+GET    /api/sender-ids/approved           → SenderIdController@approved
+POST   /api/sender-ids/validate           → SenderIdController@validateSenderId
+POST   /api/sender-ids                    → SenderIdController@store
+GET    /api/sender-ids/{uuid}             → SenderIdController@show
+PUT    /api/sender-ids/{uuid}             → SenderIdController@update
+POST   /api/sender-ids/{uuid}/submit      → SenderIdController@submit
+POST   /api/sender-ids/{uuid}/provide-info→ SenderIdController@provideInfo
+POST   /api/sender-ids/{uuid}/resubmit    → SenderIdController@resubmit
+
+Admin Portal API (under AdminIpAllowlist + AdminAuthenticate middleware):
+
+GET    /admin/api/sender-ids              → SenderIdApprovalController@index
+GET    /admin/api/sender-ids/{uuid}       → SenderIdApprovalController@show
+POST   /admin/api/sender-ids/{uuid}/review→ SenderIdApprovalController@startReview
+POST   /admin/api/sender-ids/{uuid}/approve    → approve
+POST   /admin/api/sender-ids/{uuid}/reject     → reject
+POST   /admin/api/sender-ids/{uuid}/request-info → requestInfo
+POST   /admin/api/sender-ids/{uuid}/suspend    → suspend
+POST   /admin/api/sender-ids/{uuid}/reactivate → reactivate
+POST   /admin/api/sender-ids/{uuid}/revoke     → revoke
+
+Step 4: Wire the existing UI views to the new backend
+This is where bugs typically occur. READ CAREFULLY.
+
+The blade templates (sms-sender-id.blade.php, sms-sender-id-wizard.blade.php, admin/assets/sender-ids.blade.php, admin/assets/sender-id-detail.blade.php) currently use hardcoded mock data. You need to replace ALL mock data with real API calls. Here are the critical rules:
+
+RULE 1: Remove ALL hardcoded mock data arrays
+Search every blade file and JS block for patterns like:
+
+const senderIds = [ { id: 1, ... }, { id: 2, ... } ];
+var mockData = [ ... ];
+
+Delete them. Replace with real API calls. Every one of these must go.
+
+RULE 2: Match API field names EXACTLY to what the backend returns
+The backend returns these field names — your JS must use EXACTLY these:
+
+From GET /api/sender-ids/approved:
+
+{ "id": 1, "uuid": "abc-123", "sender_id_value": "QuickSMS", "sender_type": "ALPHA", "brand_name": "QuickSMS", "is_default": true }
+
+From POST /api/sender-ids (store):
+Request body fields: sender_id_value, sender_type, brand_name, country_code, use_case, use_case_description, permission_confirmed, permission_explanation, submit, sub_account_ids, user_ids
+
+From SenderId::toPortalArray() (all customer responses):
+
+{ "id", "uuid", "sender_id_value", "sender_type", "brand_name", "country_code", "use_case", "use_case_description", "permission_confirmed", "workflow_status", "submitted_at", "reviewed_at", "rejection_reason", "version", "is_default", "is_locked", "created_at" }
+
+COMMON MISTAKES TO AVOID:
+
+UI says senderIdName but backend says sender_id_value — use sender_id_value
+UI says type but backend says sender_type — use sender_type
+UI says status but backend says workflow_status — use workflow_status
+UI says businessName but backend says brand_name — use brand_name
+UI says name for the sender but backend says sender_id_value — use sender_id_value
+UI says useCase but backend says use_case — use use_case
+UI status values are lowercase: draft, submitted, in_review, pending_info, info_provided, approved, rejected, suspended, revoked
+RULE 3: Wire the wizard form submission properly
+The 5-step wizard (sms-sender-id-wizard.blade.php) collects data across steps. On final submit:
+
+// Collect all wizard data
+const payload = {
+    sender_id_value: step1Data.senderIdValue,    // maps to sender_id_value
+    sender_type: step1Data.senderType,            // 'ALPHA', 'NUMERIC', or 'SHORTCODE'
+    brand_name: step2Data.brandName,              // maps to brand_name
+    country_code: 'GB',                           // hardcoded for now
+    use_case: step4Data.useCase,                  // 'transactional', 'promotional', 'otp', 'mixed'
+    use_case_description: step4Data.description,  // maps to use_case_description
+    permission_confirmed: step3Data.confirmed,     // boolean true/false
+    permission_explanation: step3Data.explanation,  // maps to permission_explanation
+    sub_account_ids: step2Data.subAccountIds,      // array of UUID strings
+    user_ids: step2Data.userIds,                   // array of UUID strings
+    submit: true                                   // auto-submit on wizard completion
+};
+
+$.ajax({
+    url: '/api/sender-ids',
+    method: 'POST',
+    data: JSON.stringify(payload),
+    contentType: 'application/json',
+    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+    success: function(response) {
+        // response.data contains toPortalArray() output
+        // Redirect to list page with success message
+        window.location.href = '/management/sms-sender-id?created=1';
+    },
+    error: function(xhr) {
+        var resp = xhr.responseJSON;
+        // resp.errors is an array of validation error strings
+        // resp.spoofing may contain anti-spoofing failure details
+    }
+});
+
+RULE 4: Wire the validation endpoint for real-time checking
+The wizard should validate the SenderID value as the user types (on blur or after debounce):
+
+$.ajax({
+    url: '/api/sender-ids/validate',
+    method: 'POST',
+    data: JSON.stringify({
+        sender_id_value: inputValue,
+        sender_type: selectedType   // 'ALPHA', 'NUMERIC', or 'SHORTCODE'
+    }),
+    contentType: 'application/json',
+    headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+    success: function(response) {
+        // response.valid = true/false
+        // response.errors = string[] of validation messages
+        // response.spoofing = null or { passed, action, normalised }
+    }
+});
+
+RULE 5: Wire the list page to real data
+The list page (sms-sender-id.blade.php) currently has hardcoded sender ID arrays. The controller now passes $sender_ids (an Eloquent collection) to the view. Replace all mock data references:
+
+// The controller already passes this:
+// 'sender_ids' => $senderIds (Collection of SenderId models)
+
+In the blade, use @json($sender_ids) or iterate with @foreach($sender_ids as $sid). Field names are from toPortalArray().
+
+RULE 6: Wire the admin approval pages
+The admin sender ID list (admin/assets/sender-ids.blade.php) should call:
+
+// List all sender IDs (with optional filters)
+$.get('/admin/api/sender-ids', { status: 'submitted' }, function(response) {
+    // response.data is paginated: { data: [...], current_page, total, ... }
+});
+
+The admin detail page (admin/assets/sender-id-detail.blade.php) should call:
+
+// Get single sender ID with full admin data
+$.get('/admin/api/sender-ids/' + uuid, function(response) {
+    // response.data = toAdminArray() output (includes admin_notes, spoofing_check, status_history)
+});
+
+// Approval actions
+$.post('/admin/api/sender-ids/' + uuid + '/approve', { notes: '...' });
+$.post('/admin/api/sender-ids/' + uuid + '/reject', { reason: 'Required reason text' });
+$.post('/admin/api/sender-ids/' + uuid + '/request-info', { notes: 'What info is needed' });
+$.post('/admin/api/sender-ids/' + uuid + '/suspend', { reason: 'Required reason text' });
+
+RULE 7: Wire the sub-account data in the wizard
+Step 2 of the wizard has a sub-account multi-select. The controller passes $sub_accounts to the create view. Use this:
+
+// Already passed by SenderIdController@create:
+// 'sub_accounts' => SubAccount::where('account_id', session('customer_tenant_id'))->active()->get()
+
+RULE 8: Wire the SenderID dropdown in Send Message and Templates
+Other pages that show a SenderID dropdown (sendMessage, templates, emailToSms) should call:
+
+$.get('/api/sender-ids/approved', function(response) {
+    // response.data = array of { id, uuid, sender_id_value, sender_type, brand_name, is_default }
+    // Populate dropdown. Pre-select the one where is_default = true
+});
+
+Replace the hardcoded sender_ids arrays in the templates() method of QuickSMSController too — that method still has mock sender_id data that should be replaced with a real query.
+
+Step 5: Test Plan
+Complete these tests IN ORDER. Do not skip any. Mark each as PASS or FAIL.
+
+T1. Database & Migration Tests
+ T1.1: php artisan migrate completes without errors
+ T1.2: \d sub_accounts in psql shows correct columns (id UUID PK, account_id UUID, name, description, is_active, created_by, timestamps, deleted_at)
+ T1.3: \d sender_ids shows correct columns including the 3 ENUM columns (sender_type, use_case, workflow_status)
+ T1.4: \d sender_id_assignments shows unique constraint on (sender_id_id, assignable_type, assignable_id)
+ T1.5: \d sender_id_status_history shows correct columns
+ T1.6: \d users shows new sub_account_id column (UUID, nullable)
+ T1.7: RLS policies exist: SELECT polname FROM pg_policies WHERE tablename = 'sender_ids' returns sender_ids_isolation (and optionally sender_ids_service_access)
+ T1.8: RLS policies exist: SELECT polname FROM pg_policies WHERE tablename = 'sub_accounts' returns sub_accounts_isolation
+T2. Customer Portal — SenderID List Page
+ T2.1: Navigate to /management/sms-sender-id — page loads without errors
+ T2.2: No hardcoded mock sender IDs visible (the list should be empty for a new account, or show only real DB records)
+ T2.3: "Register New SenderID" button links to /management/sms-sender-id/register
+ T2.4: Status filter dropdown works (filters by workflow_status values: draft, submitted, approved, etc.)
+ T2.5: Verify NO JavaScript errors in browser console
+T3. Customer Portal — SenderID Registration Wizard
+ T3.1: Navigate to /management/sms-sender-id/register — wizard loads without errors
+ T3.2: Step 1 — ALPHA validation: Enter "TestSMS" with type Alphanumeric → validation passes
+ T3.3: Step 1 — ALPHA rejection: Enter "HMRC" with type Alphanumeric → validation fails with anti-spoofing message
+ T3.4: Step 1 — ALPHA rejection: Enter "H5BC" (leet-speak for HSBC) → validation fails due to normalisation
+ T3.5: Step 1 — NUMERIC validation: Enter "447700900100" → validation passes
+ T3.6: Step 1 — NUMERIC rejection: Enter "123456" → validation fails (must start with 447, exactly 12 digits)
+ T3.7: Step 1 — SHORTCODE validation: Enter "61234" → validation passes
+ T3.8: Step 1 — SHORTCODE rejection: Enter "12345" → validation fails (must start with 6, 7, or 8)
+ T3.9: Step 2 — Sub-accounts: Sub-account multi-select populated from DB (may be empty if none exist)
+ T3.10: Step 3 — Permission: Selecting "No" blocks progression with "Registration Cannot Continue" alert
+ T3.11: Step 3 — Permission: Selecting "Yes" reveals confirmation checkbox
+ T3.12: Step 5 — Submit: Clicking Submit calls POST /api/sender-ids with submit: true
+ T3.13: Step 5 — Submit: Response status 201 and redirects to list page
+ T3.14: Step 5 — Submit: New sender ID appears in DB with workflow_status = 'submitted'
+ T3.15: Step 5 — Submit: A record exists in sender_id_status_history showing draft → submitted
+ T3.16: Verify the CSRF token is included in all AJAX requests (X-CSRF-TOKEN header)
+T4. Customer Portal — SenderID Detail & Actions
+ T4.1: Click a sender ID on the list page → detail loads with correct data from GET /api/sender-ids/{uuid}
+ T4.2: A draft sender ID shows "Edit" and "Submit" buttons
+ T4.3: A submitted sender ID shows as locked (no edit, no submit)
+ T4.4: A rejected sender ID shows the rejection reason and a "Re-edit" button
+ T4.5: Clicking "Re-edit" on a rejected ID calls POST /api/sender-ids/{uuid}/resubmit and sets status back to draft
+ T4.6: A sender ID with status pending_info shows a text area to provide additional info and a submit button
+T5. Admin Portal — SenderID Approval Queue
+ T5.1: Navigate to /admin/assets/sender-ids — page loads without errors
+ T5.2: No hardcoded mock data visible — list comes from GET /admin/api/sender-ids
+ T5.3: Filter by status works (?status=submitted shows only submitted IDs)
+ T5.4: Clicking a sender ID opens detail page — data from GET /admin/api/sender-ids/{uuid}
+ T5.5: Detail page shows anti-spoofing check results (normalised form, mapping hits)
+ T5.6: Detail page shows status history timeline
+T6. Admin Portal — Approval Workflow
+ T6.1: Start Review: Click "Start Review" on a submitted ID → calls POST .../review → status becomes in_review
+ T6.2: Approve: Click "Approve" on an in_review ID → status becomes approved
+ T6.3: Reject: Click "Reject" (with mandatory reason) → status becomes rejected
+ T6.4: Request Info: Click "Request Info" (with mandatory notes) → status becomes pending_info
+ T6.5: Suspend: Click "Suspend" on an approved ID → status becomes suspended
+ T6.6: Reactivate: Click "Reactivate" on a suspended ID → status becomes approved
+ T6.7: Revoke: Click "Revoke" on a suspended ID → status becomes revoked
+ T6.8: Every action creates a new record in sender_id_status_history
+ T6.9: Every action creates a record in governance_audit_events
+ T6.10: Invalid transitions are rejected (e.g., can't approve a draft ID directly)
+T7. Integration — SenderID Dropdowns
+ T7.1: Navigate to Send Message (/messages/send) — SenderID dropdown calls GET /api/sender-ids/approved
+ T7.2: Only approved SenderIDs appear in the dropdown
+ T7.3: Default SenderID ("QuickSMS") is pre-selected (if account is activated and default was created)
+ T7.4: Navigate to Templates (/management/templates) — SenderID dropdown also calls /api/sender-ids/approved
+ T7.5: Navigate to Email-to-SMS (/management/email-to-sms) — SenderID dropdown also calls /api/sender-ids/approved
+ T7.6: The hardcoded mock sender_ids array in QuickSMSController@templates() has been replaced with a real DB query or the view uses the API endpoint
+T8. Data Integrity Checks
+ T8.1: Creating a sender ID without permission_confirmed: true returns 422 error
+ T8.2: Submitting a sender ID that matches a blocked pattern (e.g., "BARCLAYS") returns 422 with anti-spoofing error
+ T8.3: Trying to edit a submitted sender ID returns 422 ("cannot be edited in its current status")
+ T8.4: Trying to submit a sender ID that's already submitted returns 422
+ T8.5: Duplicate sub-account assignment is prevented (unique constraint)
+ T8.6: A different account CANNOT see another account's SenderIDs (tenant isolation via RLS)
+T9. Mock Data Removal Verification
+ T9.1: sms-sender-id.blade.php — search for hardcoded arrays like const senderIds = [ → NONE should exist
+ T9.2: sms-sender-id-wizard.blade.php — search for mock data → NONE should exist
+ T9.3: admin/assets/sender-ids.blade.php — search for hardcoded arrays → NONE should exist
+ T9.4: admin/assets/sender-id-detail.blade.php — search for mock data → NONE should exist
+ T9.5: QuickSMSController@templates() — the $sender_ids array should query the DB, not use hardcoded [['id' => 1, 'name' => 'QuickSMS', ...]]
+ T9.6: No TODO: Replace with database query or TODO: Replace with API call comments remain in any SenderID-related blade files
+ T9.7: No setTimeout fake delays simulating API calls remain
+Step 6: Required report on completion
+When you are finished, provide a report with the following sections:
+
+A. Changes Made — List every file you modified and what you changed in it.
+
+B. Mock Data Removed — List every hardcoded mock array or fake data block you removed, from which file, and what replaced it.
+
+C. Field Name Mismatches Found — List any places where the UI used a different field name than the backend API, and how you resolved each one.
+
+D. Deviations — If you had to deviate from the backend implementation for any reason (e.g., a field didn't exist, a response format was unexpected, the UI needed extra data not provided by the API), list each deviation with:
+
+What you expected vs what you found
+What you did instead
+Why
+E. Test Results — Mark each test from Step 5 as PASS, FAIL, or N/A (with explanation).
+
+F. Known Issues — Anything that doesn't work yet, edge cases not handled, or things that need follow-up.
+
+This report will be used for a security and performance audit, so completeness and accuracy matter.
