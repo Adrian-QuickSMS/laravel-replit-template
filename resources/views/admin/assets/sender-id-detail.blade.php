@@ -782,19 +782,19 @@ html, body {
                 <div class="detail-card-body">
                     <div class="detail-row">
                         <span class="detail-label">Request ID</span>
-                        <span class="detail-value mono">SID-001</span>
+                        <span class="detail-value mono" id="sidebarRequestId">-</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">SLA Timer</span>
-                        <span class="detail-value" style="color: #22c55e;"><i class="fas fa-hourglass-half me-1"></i>18h remaining</span>
+                        <span class="detail-value" id="sidebarSlaTimer">-</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Risk Level</span>
-                        <span class="detail-value"><span class="yes-badge" style="background: #fef3c7; color: #92400e;">Medium</span></span>
+                        <span class="detail-value" id="sidebarRiskLevel">-</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Assigned Admin</span>
-                        <span class="detail-value">Unassigned</span>
+                        <span class="detail-value" id="sidebarAssignedAdmin">Unassigned</span>
                     </div>
                 </div>
             </div>
@@ -806,21 +806,21 @@ html, body {
                 <div class="detail-card-body">
                     <div class="detail-row">
                         <span class="detail-label">Account Status</span>
-                        <span class="detail-value"><span class="yes-badge">Active</span></span>
+                        <span class="detail-value" id="sidebarAccountStatus">-</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Account Age</span>
-                        <span class="detail-value">2 years, 4 months</span>
+                        <span class="detail-value" id="sidebarAccountAge">-</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Existing SenderIDs</span>
-                        <span class="detail-value">3 approved</span>
+                        <span class="detail-value" id="sidebarExistingSenderIds">-</span>
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Previous Rejections</span>
-                        <span class="detail-value">0</span>
+                        <span class="detail-value" id="sidebarPrevRejections">-</span>
                     </div>
-                    <a href="{{ route('admin.accounts.details', ['accountId' => 'ACC-1234']) }}" class="action-btn outline" style="width: 100%; justify-content: center; margin-top: 0.75rem;">
+                    <a href="#" id="sidebarViewAccountLink" class="action-btn outline" style="width: 100%; justify-content: center; margin-top: 0.75rem;">
                         <i class="fas fa-external-link-alt"></i> View Full Account
                     </a>
                 </div>
@@ -1060,22 +1060,91 @@ function populateDetailPage(data, spoofingCheck, statusHistory, account) {
         renderAuditTrail(statusHistory);
     }
 
-    var sidebarRequestId = document.querySelector('.sidebar-card .detail-value.mono');
+    var sidebarRequestId = document.getElementById('sidebarRequestId');
     if (sidebarRequestId) {
-        sidebarRequestId.textContent = data.uuid || '';
+        sidebarRequestId.textContent = data.uuid || '-';
+    }
+
+    var sidebarSlaTimer = document.getElementById('sidebarSlaTimer');
+    if (sidebarSlaTimer && data.submitted_at) {
+        var submitted = new Date(data.submitted_at);
+        var now = new Date();
+        var hoursElapsed = (now - submitted) / (1000 * 60 * 60);
+        var slaHours = 24;
+        var remaining = Math.max(0, slaHours - hoursElapsed);
+        if (remaining <= 0) {
+            sidebarSlaTimer.innerHTML = '<span style="color: #dc2626;"><i class="fas fa-exclamation-triangle me-1"></i>SLA Breached</span>';
+        } else if (remaining <= 4) {
+            sidebarSlaTimer.innerHTML = '<span style="color: #f59e0b;"><i class="fas fa-hourglass-half me-1"></i>' + Math.round(remaining) + 'h remaining</span>';
+        } else {
+            sidebarSlaTimer.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-hourglass-half me-1"></i>' + Math.round(remaining) + 'h remaining</span>';
+        }
+    } else if (sidebarSlaTimer) {
+        sidebarSlaTimer.innerHTML = '<span style="color: #64748b;">N/A</span>';
+    }
+
+    var sidebarRiskLevel = document.getElementById('sidebarRiskLevel');
+    if (sidebarRiskLevel && spoofingCheck) {
+        var riskLevel = 'Low';
+        var riskColor = '#dcfce7';
+        var riskTextColor = '#166534';
+        if (spoofingCheck.results) {
+            var failCount = spoofingCheck.results.filter(function(r) { return r.pass === false || r.result === 'fail'; }).length;
+            var warnCount = spoofingCheck.results.filter(function(r) { return r.warn === true || r.result === 'warn'; }).length;
+            if (failCount > 0) { riskLevel = 'High'; riskColor = '#fee2e2'; riskTextColor = '#991b1b'; }
+            else if (warnCount > 0) { riskLevel = 'Medium'; riskColor = '#fef3c7'; riskTextColor = '#92400e'; }
+        }
+        sidebarRiskLevel.innerHTML = '<span class="yes-badge" style="background: ' + riskColor + '; color: ' + riskTextColor + ';">' + riskLevel + '</span>';
+    } else if (sidebarRiskLevel) {
+        sidebarRiskLevel.innerHTML = '<span class="yes-badge" style="background: #dcfce7; color: #166534;">Low</span>';
+    }
+
+    var sidebarAssignedAdmin = document.getElementById('sidebarAssignedAdmin');
+    if (sidebarAssignedAdmin) {
+        if (data.reviewed_by) {
+            sidebarAssignedAdmin.textContent = data.reviewed_by;
+        } else {
+            sidebarAssignedAdmin.textContent = 'Unassigned';
+        }
     }
 
     if (account) {
-        var accountStatusEl = document.querySelector('.sidebar .detail-card:last-child .detail-card-body');
-        if (accountStatusEl) {
-            var statusBadge = (account.status === 'active' || account.status === 'Active') ? '<span class="yes-badge">Active</span>' : '<span class="no-badge">' + escapeHtml(account.status || 'Unknown') + '</span>';
-            var rows = accountStatusEl.querySelectorAll('.detail-row');
-            if (rows[0]) {
-                rows[0].querySelector('.detail-value').innerHTML = statusBadge;
-            }
+        var sidebarAccountStatus = document.getElementById('sidebarAccountStatus');
+        if (sidebarAccountStatus) {
+            var isActive = (account.status === 'active' || account.status === 'Active');
+            sidebarAccountStatus.innerHTML = isActive
+                ? '<span class="yes-badge">Active</span>'
+                : '<span class="no-badge">' + escapeHtml(account.status || 'Unknown') + '</span>';
         }
 
-        var viewAccountLink = accountStatusEl ? accountStatusEl.querySelector('a.action-btn') : null;
+        var sidebarAccountAge = document.getElementById('sidebarAccountAge');
+        if (sidebarAccountAge && account.created_at) {
+            var created = new Date(account.created_at);
+            var nowDate = new Date();
+            var diffMs = nowDate - created;
+            var totalMonths = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44));
+            var years = Math.floor(totalMonths / 12);
+            var months = totalMonths % 12;
+            var ageStr = '';
+            if (years > 0) ageStr += years + (years === 1 ? ' year' : ' years');
+            if (months > 0) ageStr += (ageStr ? ', ' : '') + months + (months === 1 ? ' month' : ' months');
+            sidebarAccountAge.textContent = ageStr || 'Less than a month';
+        } else if (sidebarAccountAge) {
+            sidebarAccountAge.textContent = '-';
+        }
+
+        var sidebarExisting = document.getElementById('sidebarExistingSenderIds');
+        if (sidebarExisting) {
+            var approvedCount = account.approved_sender_ids !== undefined ? account.approved_sender_ids : 0;
+            sidebarExisting.textContent = approvedCount + ' approved';
+        }
+
+        var sidebarRejections = document.getElementById('sidebarPrevRejections');
+        if (sidebarRejections) {
+            sidebarRejections.textContent = account.rejected_sender_ids !== undefined ? account.rejected_sender_ids : 0;
+        }
+
+        var viewAccountLink = document.getElementById('sidebarViewAccountLink');
         if (viewAccountLink && account.id) {
             viewAccountLink.href = '/admin/accounts/' + account.id;
         }

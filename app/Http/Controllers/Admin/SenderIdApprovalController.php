@@ -75,7 +75,7 @@ class SenderIdApprovalController extends Controller
         $senderId = SenderId::withoutGlobalScope('tenant')
             ->where('uuid', $uuid)
             ->with([
-                'account:id,company_name,account_number,status',
+                'account:id,company_name,account_number,status,created_at',
                 'createdBy:id,email,first_name,last_name',
                 'reviewedBy:id,email,first_name,last_name',
                 'statusHistory',
@@ -90,12 +90,26 @@ class SenderIdApprovalController extends Controller
         // Run anti-spoofing check for admin context
         $spoofingCheck = $this->validationService->checkAntiSpoofing($senderId->sender_id_value);
 
+        $accountData = $senderId->account?->only(['id', 'company_name', 'account_number', 'status']);
+        if ($accountData && $senderId->account) {
+            $accountData['created_at'] = $senderId->account->created_at;
+            $tenantId = $senderId->account->id;
+            $accountData['approved_sender_ids'] = SenderId::withoutGlobalScope('tenant')
+                ->where('account_id', $tenantId)
+                ->where('workflow_status', SenderId::STATUS_APPROVED)
+                ->count();
+            $accountData['rejected_sender_ids'] = SenderId::withoutGlobalScope('tenant')
+                ->where('account_id', $tenantId)
+                ->where('workflow_status', SenderId::STATUS_REJECTED)
+                ->count();
+        }
+
         return response()->json([
             'success' => true,
             'data' => $senderId->toAdminArray(),
             'spoofing_check' => $spoofingCheck,
             'status_history' => $senderId->statusHistory,
-            'account' => $senderId->account?->only(['id', 'company_name', 'account_number', 'status']),
+            'account' => $accountData,
         ]);
     }
 
