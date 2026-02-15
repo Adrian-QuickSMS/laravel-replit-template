@@ -530,6 +530,75 @@ class SenderIdController extends Controller
     }
 
     /**
+     * Delete a draft SenderID (soft-delete)
+     * DELETE /api/sender-ids/{uuid}
+     */
+    public function destroy(string $uuid): JsonResponse
+    {
+        $senderId = SenderId::where('uuid', $uuid)
+            ->where('account_id', session('customer_tenant_id'))
+            ->first();
+
+        if (!$senderId) {
+            return response()->json(['success' => false, 'error' => 'SenderID not found.'], 404);
+        }
+
+        if ($senderId->workflow_status !== SenderId::STATUS_DRAFT) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Only draft SenderIDs can be deleted.',
+            ], 422);
+        }
+
+        $senderId->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'SenderID deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Get users for given sub-account IDs (tenant-validated)
+     * POST /api/sub-accounts/users
+     */
+    public function subAccountUsers(Request $request): JsonResponse
+    {
+        $request->validate([
+            'sub_account_ids' => 'required|array',
+            'sub_account_ids.*' => 'integer',
+        ]);
+
+        $tenantId = session('customer_tenant_id');
+
+        $subAccounts = SubAccount::where('account_id', $tenantId)
+            ->whereIn('id', $request->input('sub_account_ids'))
+            ->get();
+
+        if ($subAccounts->isEmpty()) {
+            return response()->json(['success' => true, 'data' => []]);
+        }
+
+        $validSubAccountIds = $subAccounts->pluck('id');
+
+        $users = User::withoutGlobalScope('tenant')
+            ->where('account_id', $tenantId)
+            ->whereIn('sub_account_id', $validSubAccountIds)
+            ->where('is_active', true)
+            ->select('id', 'first_name', 'last_name', 'email', 'sub_account_id')
+            ->orderBy('first_name')
+            ->get()
+            ->map(fn($u) => [
+                'id' => $u->id,
+                'name' => trim($u->first_name . ' ' . $u->last_name),
+                'email' => $u->email,
+                'sub_account_id' => $u->sub_account_id,
+            ]);
+
+        return response()->json(['success' => true, 'data' => $users]);
+    }
+
+    /**
      * Re-edit a rejected SenderID (transition back to draft)
      * POST /api/sender-ids/{uuid}/resubmit
      */

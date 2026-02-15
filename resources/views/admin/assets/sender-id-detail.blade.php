@@ -610,52 +610,57 @@ html, body {
                     <span class="badge bg-info ms-2" style="font-size: 0.65rem;">Matches Customer Final Review</span>
                 </div>
                 <div class="detail-card-body">
+                    <div id="sender-id-overview-loading" class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="ms-2 text-muted">Loading SenderID details...</span>
+                    </div>
                     @php
                     $senderIdData = [
-                        'senderId' => 'ACMEBANK',
-                        'type' => 'Alphanumeric',
+                        'senderId' => '',
+                        'type' => '',
                         'normalisedValue' => null,
-                        'brand' => 'Acme Bank Ltd',
-                        'hasPermission' => true,
-                        'explanation' => 'We are registering ACMEBANK as our official sender ID for transactional banking notifications including balance alerts, payment confirmations, and security notifications to our customers.',
+                        'brand' => '',
+                        'hasPermission' => false,
+                        'explanation' => '',
                         'channels' => [
-                            'portal' => true,
-                            'inbox' => true,
+                            'portal' => false,
+                            'inbox' => false,
                             'emailToSms' => false,
-                            'api' => true
+                            'api' => false
                         ],
-                        'useCase' => 'Transactional Notifications',
-                        'description' => 'Balance alerts, payment confirmations, and security notifications',
+                        'useCase' => '',
+                        'description' => '',
                         'validation' => [
-                            'characterCompliance' => true,
-                            'lengthCompliance' => true,
-                            'restrictedChars' => true,
-                            'ukRules' => true
+                            'characterCompliance' => false,
+                            'lengthCompliance' => false,
+                            'restrictedChars' => false,
+                            'ukRules' => false
                         ]
                     ];
                     
                     $senderIdMetadata = [
-                        'versionId' => 'SID-2026-00089-v2',
-                        'submittedBy' => 'm.johnson@acmebank.com',
-                        'account' => 'Acme Corporation Ltd',
-                        'subAccount' => 'Marketing Dept',
-                        'createdAt' => '12 Jan 2026, 11:15',
-                        'submittedAt' => '15 Jan 2026, 09:42',
-                        'lastUpdatedAt' => '20 Jan 2026, 14:30',
-                        'externalValidationStatus' => 'pending',
-                        'externalReferenceIds' => [
-                            'BrandAssure' => 'BA-UK-2026-00089',
-                            'Internal Ticket' => 'QSMS-4498'
-                        ]
+                        'versionId' => '',
+                        'submittedBy' => '',
+                        'account' => '',
+                        'subAccount' => '',
+                        'createdAt' => '',
+                        'submittedAt' => '',
+                        'lastUpdatedAt' => '',
+                        'externalValidationStatus' => '',
+                        'externalReferenceIds' => []
                     ];
                     @endphp
-                    @include('partials.review.sender-id-review-summary', [
-                        'isAdmin' => true,
-                        'data' => $senderIdData
-                    ])
-                    
-                    {{-- Section E: Admin-only Submission Metadata --}}
-                    @include('partials.admin.sender-id-admin-extras', ['metadata' => $senderIdMetadata])
+                    <div id="sender-id-overview-content" style="display: none;">
+                        @include('partials.review.sender-id-review-summary', [
+                            'isAdmin' => true,
+                            'data' => $senderIdData
+                        ])
+                        
+                        {{-- Section E: Admin-only Submission Metadata --}}
+                        @include('partials.admin.sender-id-admin-extras', ['metadata' => $senderIdMetadata])
+                    </div>
                 </div>
             </div>
 
@@ -978,7 +983,9 @@ function loadSenderIdDetail() {
             if (response.success) {
                 currentSenderIdData = response.data;
                 populateDetailPage(response.data, response.spoofing_check, response.status_history, response.account);
-                
+                $('#sender-id-overview-loading').hide();
+                $('#sender-id-overview-content').show();
+
                 if (typeof UNIFIED_APPROVAL !== 'undefined') {
                     UNIFIED_APPROVAL.init({
                         entityType: 'SENDER_ID',

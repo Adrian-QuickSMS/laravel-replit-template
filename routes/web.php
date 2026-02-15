@@ -106,10 +106,13 @@ Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderI
     Route::post('/', 'store')->name('api.sender-ids.store');
     Route::get('/{uuid}', 'show')->name('api.sender-ids.show');
     Route::put('/{uuid}', 'update')->name('api.sender-ids.update');
+    Route::delete('/{uuid}', 'destroy')->name('api.sender-ids.destroy');
     Route::post('/{uuid}/submit', 'submit')->name('api.sender-ids.submit');
     Route::post('/{uuid}/provide-info', 'provideInfo')->name('api.sender-ids.provide-info');
     Route::post('/{uuid}/resubmit', 'resubmit')->name('api.sender-ids.resubmit');
 });
+
+Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
 
 Route::prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
     Route::post('/process-url', 'processUrl')->name('api.rcs.assets.process-url');
