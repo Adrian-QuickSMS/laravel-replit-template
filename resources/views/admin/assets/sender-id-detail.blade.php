@@ -1082,6 +1082,172 @@ function populateDetailPage(data, spoofingCheck, statusHistory, account) {
     }
 
     updateActionButtonVisibility(data.workflow_status);
+
+    // =====================================================
+    // Section A: SenderID Details
+    // =====================================================
+    var reviewSenderIdEl = document.getElementById('reviewSenderId');
+    if (reviewSenderIdEl) {
+        reviewSenderIdEl.textContent = data.sender_id_value || '-';
+    }
+
+    var reviewTypeEl = document.getElementById('reviewType');
+    if (reviewTypeEl) {
+        var typeMap = {
+            'ALPHA': { label: 'Alphanumeric', cls: 'alphanumeric' },
+            'NUMERIC': { label: 'VMN', cls: 'vmn' },
+            'SHORTCODE': { label: 'Shortcode', cls: 'shortcode' }
+        };
+        var typeInfo = typeMap[data.sender_type] || { label: escapeHtml(data.sender_type || '-'), cls: 'alphanumeric' };
+        reviewTypeEl.className = 'senderid-type-badge ' + typeInfo.cls;
+        reviewTypeEl.textContent = typeInfo.label;
+    }
+
+    // =====================================================
+    // Section B: Brand Representation
+    // =====================================================
+    var reviewBrandEl = document.getElementById('reviewBrand');
+    if (reviewBrandEl) {
+        reviewBrandEl.textContent = data.brand_name || '-';
+    }
+
+    var reviewPermissionEl = document.getElementById('reviewPermission');
+    if (reviewPermissionEl) {
+        if (data.permission_confirmed) {
+            reviewPermissionEl.innerHTML = '<span class="senderid-yes-no yes"><i class="fas fa-check"></i> Yes</span>';
+        } else {
+            reviewPermissionEl.innerHTML = '<span class="senderid-yes-no no"><i class="fas fa-times"></i> No</span>';
+        }
+    }
+
+    var explanationText = data.permission_explanation || data.use_case_description || '';
+    var reviewExplanationEl = document.getElementById('reviewExplanation');
+    if (reviewExplanationEl) {
+        reviewExplanationEl.textContent = '"' + explanationText + '"';
+    }
+    if (explanationText) {
+        var sectionBRows = document.querySelectorAll('#senderIdReviewSummary .senderid-review-section:nth-child(2) .senderid-review-row');
+        if (sectionBRows.length < 3) {
+            var explanationRow = document.createElement('div');
+            explanationRow.className = 'senderid-review-row';
+            explanationRow.innerHTML = '<span class="senderid-review-label">Explanation</span>' +
+                '<span class="senderid-review-value" style="max-width: 70%;">' +
+                '<div class="senderid-explanation" id="reviewExplanation">"' + escapeHtml(explanationText) + '"</div>' +
+                '</span>';
+            var sectionB = document.querySelectorAll('#senderIdReviewSummary .senderid-review-section')[1];
+            if (sectionB) {
+                sectionB.appendChild(explanationRow);
+            }
+        }
+    }
+
+    // =====================================================
+    // Section C: Intended Usage
+    // =====================================================
+    var reviewChannelsEl = document.getElementById('reviewChannels');
+    if (reviewChannelsEl) {
+        var channels = ['Portal', 'Inbox', 'Email-to-SMS', 'API'];
+        var channelHtml = '';
+        channels.forEach(function(ch) {
+            channelHtml += '<span class="senderid-channel-pill enabled"><i class="fas fa-check"></i> ' + escapeHtml(ch) + '</span>';
+        });
+        reviewChannelsEl.innerHTML = channelHtml;
+    }
+
+    var useCaseValue = data.use_case || '';
+    var useCaseFormatted = useCaseValue ? useCaseValue.charAt(0).toUpperCase() + useCaseValue.slice(1) : '-';
+    var reviewUseCaseEl = document.getElementById('reviewUseCase');
+    if (reviewUseCaseEl) {
+        reviewUseCaseEl.textContent = useCaseFormatted;
+    } else if (useCaseValue) {
+        var sectionC = document.querySelectorAll('#senderIdReviewSummary .senderid-review-section')[2];
+        if (sectionC) {
+            var useCaseRow = document.createElement('div');
+            useCaseRow.className = 'senderid-review-row';
+            useCaseRow.innerHTML = '<span class="senderid-review-label">Primary Use Case</span>' +
+                '<span class="senderid-review-value" id="reviewUseCase">' + escapeHtml(useCaseFormatted) + '</span>';
+            sectionC.appendChild(useCaseRow);
+        }
+    }
+
+    var descriptionText = data.use_case_description || '';
+    var reviewDescriptionEl = document.getElementById('reviewDescription');
+    if (reviewDescriptionEl) {
+        reviewDescriptionEl.textContent = descriptionText;
+    } else if (descriptionText) {
+        var sectionC2 = document.querySelectorAll('#senderIdReviewSummary .senderid-review-section')[2];
+        if (sectionC2) {
+            var descRow = document.createElement('div');
+            descRow.className = 'senderid-review-row';
+            descRow.innerHTML = '<span class="senderid-review-label">Description</span>' +
+                '<span class="senderid-review-value" id="reviewDescription">' + escapeHtml(descriptionText) + '</span>';
+            sectionC2.appendChild(descRow);
+        }
+    }
+
+    // =====================================================
+    // Section D: Validation Summary (inline in overview)
+    // =====================================================
+    var sectionD = document.querySelectorAll('#senderIdReviewSummary .senderid-review-section')[3];
+    if (sectionD) {
+        var sid = data.sender_id_value || '';
+        var sType = (data.sender_type || 'ALPHA').toUpperCase();
+
+        var charPass = sType === 'ALPHA' ? /^[A-Za-z0-9]+$/.test(sid) : /^[0-9+]+$/.test(sid);
+        var maxLen = sType === 'ALPHA' ? 11 : 15;
+        var minLen = 3;
+        var lenPass = sid.length >= minLen && sid.length <= maxLen;
+        var restrictedPass = !/[\s!@#$%^&*()_=\[\]{};':"\\|,.<>\/?]/.test(sid);
+        var ukPass = charPass && lenPass;
+
+        var validationChecks = [
+            { label: 'Character Compliance', pass: charPass, passMsg: 'Only allowed characters used (A-Z, a-z, 0-9)', failMsg: 'Contains invalid characters' },
+            { label: 'Length Compliance', pass: lenPass, passMsg: 'Within ' + minLen + '-' + maxLen + ' character limit (' + sid.length + ' chars)', failMsg: 'Outside allowed length (' + sid.length + ' chars, limit ' + minLen + '-' + maxLen + ')' },
+            { label: 'Restricted Characters', pass: restrictedPass, passMsg: 'No restricted characters detected', failMsg: 'Contains restricted characters' },
+            { label: 'UK Rules', pass: ukPass, passMsg: 'Complies with UK carrier requirements', failMsg: 'May require additional validation' }
+        ];
+
+        var validationItems = sectionD.querySelectorAll('.senderid-validation-item');
+        validationChecks.forEach(function(check, i) {
+            if (validationItems[i]) {
+                var iconEl = validationItems[i].querySelector('.senderid-validation-icon');
+                var textEl = validationItems[i].querySelector('.senderid-validation-text');
+                if (iconEl) {
+                    iconEl.className = 'senderid-validation-icon ' + (check.pass ? 'pass' : 'fail');
+                    iconEl.innerHTML = '<i class="fas ' + (check.pass ? 'fa-check' : 'fa-times') + '"></i>';
+                }
+                if (textEl) {
+                    textEl.innerHTML = '<strong>' + escapeHtml(check.label) + ':</strong> ' + escapeHtml(check.pass ? check.passMsg : check.failMsg);
+                }
+            }
+        });
+    }
+
+    // =====================================================
+    // Section E: Submission Metadata
+    // =====================================================
+    var metadataValues = document.querySelectorAll('.senderid-metadata-grid .senderid-metadata-value');
+    if (metadataValues.length >= 8) {
+        var createdYear = data.created_at ? new Date(data.created_at).getFullYear() : new Date().getFullYear();
+        var versionId = 'SID-' + createdYear + '-' + String(data.id || 0).padStart(5, '0') + '-v' + (data.version || 1);
+        metadataValues[0].textContent = versionId;
+
+        metadataValues[1].textContent = data.created_by || '-';
+
+        metadataValues[2].textContent = (account && account.company_name) ? account.company_name : '-';
+
+        metadataValues[3].textContent = '-';
+
+        var formatDate = function(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleString('en-GB', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        };
+        metadataValues[4].textContent = formatDate(data.created_at);
+        metadataValues[5].textContent = formatDate(data.submitted_at);
+        metadataValues[6].textContent = formatDate(data.reviewed_at || data.created_at);
+
+        metadataValues[7].innerHTML = '<span class="senderid-validation-status not-started"><i class="fas fa-minus-circle"></i> Not Started</span>';
+    }
 }
 
 function renderSpoofingCheck(spoofingCheck) {
