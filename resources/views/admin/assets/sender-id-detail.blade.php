@@ -1320,34 +1320,48 @@ function renderAuditTrail(statusHistory) {
 }
 
 function updateActionButtonVisibility(status) {
-    var adminActionsModal = document.getElementById('adminActionsModal');
-    if (!adminActionsModal) return;
+    var btnIds = ['btnStartReview', 'btnApprove', 'btnReject', 'btnRequestInfo', 'btnSuspend', 'btnReactivate', 'btnRevoke'];
+    var noActionsMsg = document.getElementById('noActionsMsg');
 
-    var approveBtn = adminActionsModal.querySelector('[onclick*="approveSenderId"]');
-    var rejectBtn = adminActionsModal.querySelector('[onclick*="showRejectModal"]');
-    var requestInfoBtn = adminActionsModal.querySelector('[onclick*="returnToCustomer"]');
-    var suspendBtn = adminActionsModal.querySelector('[onclick*="suspendSenderId"]');
-    var reactivateBtn = adminActionsModal.querySelector('[onclick*="reactivateSenderId"]');
-    var revokeBtn = adminActionsModal.querySelector('[onclick*="revokeSenderId"]');
+    btnIds.forEach(function(id) {
+        var btn = document.getElementById(id);
+        if (btn) btn.style.display = 'none';
+    });
+    if (noActionsMsg) noActionsMsg.style.display = 'none';
 
-    var allBtns = [approveBtn, rejectBtn, requestInfoBtn, suspendBtn, reactivateBtn, revokeBtn];
-    allBtns.forEach(function(btn) { if (btn) btn.style.display = 'none'; });
+    var shownCount = 0;
+    function showBtn(id) {
+        var btn = document.getElementById(id);
+        if (btn) { btn.style.display = ''; shownCount++; }
+    }
 
     switch (status) {
         case 'submitted':
+            showBtn('btnStartReview');
             break;
         case 'in_review':
-            if (approveBtn) approveBtn.style.display = '';
-            if (rejectBtn) rejectBtn.style.display = '';
-            if (requestInfoBtn) requestInfoBtn.style.display = '';
+            showBtn('btnApprove');
+            showBtn('btnReject');
+            showBtn('btnRequestInfo');
+            break;
+        case 'pending_info':
+        case 'info_provided':
+            showBtn('btnApprove');
+            showBtn('btnReject');
+            showBtn('btnRequestInfo');
             break;
         case 'approved':
-            if (suspendBtn) suspendBtn.style.display = '';
+            showBtn('btnSuspend');
+            showBtn('btnRevoke');
             break;
         case 'suspended':
-            if (reactivateBtn) reactivateBtn.style.display = '';
-            if (revokeBtn) revokeBtn.style.display = '';
+            showBtn('btnReactivate');
+            showBtn('btnRevoke');
             break;
+    }
+
+    if (shownCount === 0 && noActionsMsg) {
+        noActionsMsg.style.display = '';
     }
 }
 
@@ -1371,16 +1385,29 @@ function checkSlaStatus() {
     }
 }
 
-function switchNotesTab(tab) {
-    document.querySelectorAll('.notes-tab').forEach(function(t) {
+function switchNotesTab(tab, evt) {
+    var el = evt ? (evt.target || evt.srcElement) : this;
+    var modal = document.getElementById('adminActionsModal');
+    if (!modal) return;
+    modal.querySelectorAll('.notes-tab').forEach(function(t) {
         t.classList.remove('active');
+        t.style.color = '#64748b';
+        t.style.background = '#fff';
+        t.style.borderBottom = 'none';
     });
-    document.querySelectorAll('.notes-content').forEach(function(c) {
+    modal.querySelectorAll('.notes-tab-pane').forEach(function(c) {
+        c.style.display = 'none';
         c.classList.remove('active');
     });
-    
-    event.target.classList.add('active');
-    document.getElementById('tab-' + tab).classList.add('active');
+
+    if (el) {
+        el.classList.add('active');
+        el.style.color = 'var(--admin-primary, #1e3a5f)';
+        el.style.background = '#f8fafc';
+        el.style.borderBottom = '2px solid var(--admin-primary, #1e3a5f)';
+    }
+    var pane = document.getElementById('tab-' + tab);
+    if (pane) { pane.style.display = 'block'; pane.classList.add('active'); }
 }
 
 function performAction(action, body, successMsg) {
@@ -1391,6 +1418,11 @@ function performAction(action, body, successMsg) {
         data: JSON.stringify(body || {}),
         success: function(response) {
             if (response.success) {
+                var modal = document.getElementById('adminActionsModal');
+                if (modal) {
+                    var instance = bootstrap.Modal.getInstance(modal);
+                    if (instance) instance.hide();
+                }
                 alert(successMsg || response.message || 'Action completed.');
                 loadSenderIdDetail();
             } else {
@@ -1421,16 +1453,17 @@ function returnToCustomer() {
 }
 
 function showRejectModal() {
-    var modal = document.getElementById('rejectModal');
-    if (modal) {
-        document.getElementById('rejectReason').value = '';
-        document.getElementById('rejectMessage').value = '';
-        new bootstrap.Modal(modal).show();
+    var panel = document.getElementById('rejectModalInline');
+    if (panel) {
+        var textarea = document.getElementById('rejectReasonText');
+        if (textarea) textarea.value = '';
+        panel.style.display = '';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
-function confirmReject() {
-    var reason = document.getElementById('rejectMessage').value.trim();
+function confirmRejectInline() {
+    var reason = document.getElementById('rejectReasonText').value.trim();
     if (!reason || reason.length < 10) {
         alert('Please provide a rejection reason (minimum 10 characters).');
         return;
@@ -1443,7 +1476,8 @@ function confirmReject() {
         data: JSON.stringify({ reason: reason }),
         success: function(response) {
             if (response.success) {
-                bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+                document.getElementById('rejectModalInline').style.display = 'none';
+                bootstrap.Modal.getInstance(document.getElementById('adminActionsModal')).hide();
                 alert('SenderID rejected.');
                 loadSenderIdDetail();
             } else {
@@ -1571,6 +1605,55 @@ function showAdminActionsModal() {
 #adminActionsModal:not(.show) {
     display: none !important;
 }
+.admin-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    width: 100%;
+    text-align: left;
+}
+.admin-action-btn:hover {
+    transform: translateX(2px);
+}
+.admin-action-btn.approve {
+    background: #d9f99d;
+    color: #3f6212;
+    border-color: #a3e635;
+}
+.admin-action-btn.approve:hover {
+    background: #bef264;
+}
+.admin-action-btn.reject {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fca5a5;
+}
+.admin-action-btn.reject:hover {
+    background: #fecaca;
+}
+.admin-action-btn.return {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fcd34d;
+}
+.admin-action-btn.return:hover {
+    background: #fde68a;
+}
+.admin-action-btn.submit-provider {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #93c5fd;
+}
+.admin-action-btn.submit-provider:hover {
+    background: #bfdbfe;
+}
 </style>
 <div class="modal fade" id="adminActionsModal" tabindex="-1" aria-labelledby="adminActionsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -1582,13 +1665,89 @@ function showAdminActionsModal() {
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" style="padding: 0;">
-                @include('partials.admin.approval-action-panel', [
-                    'entityType' => 'sender_id',
-                    'entityId' => 'SID-001',
-                    'validationProvider' => 'BrandAssure',
-                    'isModal' => true
-                ])
+            <div class="modal-body" style="padding: 1.25rem;">
+                <div class="admin-action-group">
+                    <div style="font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem;">ACTIONS</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem;" id="senderIdActionButtons">
+                        <button id="btnStartReview" class="admin-action-btn approve" onclick="startReview()" style="display:none;">
+                            <i class="fas fa-search"></i>
+                            <span>Start Review</span>
+                        </button>
+                        <button id="btnApprove" class="admin-action-btn approve" onclick="approveSenderId()" style="display:none;">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Approve</span>
+                        </button>
+                        <button id="btnReject" class="admin-action-btn reject" onclick="showRejectModal()" style="display:none;">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Reject</span>
+                        </button>
+                        <button id="btnRequestInfo" class="admin-action-btn return" onclick="returnToCustomer()" style="display:none;">
+                            <i class="fas fa-reply"></i>
+                            <span>Request Info</span>
+                        </button>
+                        <button id="btnSuspend" class="admin-action-btn submit-provider" onclick="suspendSenderId()" style="display:none;">
+                            <i class="fas fa-pause-circle"></i>
+                            <span>Suspend</span>
+                        </button>
+                        <button id="btnReactivate" class="admin-action-btn approve" onclick="reactivateSenderId()" style="display:none;">
+                            <i class="fas fa-play-circle"></i>
+                            <span>Reactivate</span>
+                        </button>
+                        <button id="btnRevoke" class="admin-action-btn reject" onclick="revokeSenderId()" style="display:none;">
+                            <i class="fas fa-ban"></i>
+                            <span>Revoke (Permanent)</span>
+                        </button>
+                        <div id="noActionsMsg" style="display:none; padding: 0.75rem 1rem; background: #f1f5f9; border-radius: 6px; font-size: 0.8rem; color: #64748b;">
+                            <i class="fas fa-info-circle me-2"></i>No actions available for the current status.
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height: 1px; background: #e2e8f0; margin: 1rem 0;"></div>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+                    <div style="display: flex; background: #fff; border-bottom: 1px solid #e2e8f0;">
+                        <button class="notes-tab active" onclick="switchNotesTab('internal', event)" style="flex: 1; padding: 0.75rem; font-size: 0.8rem; font-weight: 500; color: var(--admin-primary, #1e3a5f); background: #f8fafc; border: none; cursor: pointer; border-bottom: 2px solid var(--admin-primary, #1e3a5f);">
+                            <i class="fas fa-lock me-1"></i> Internal Notes
+                        </button>
+                        <button class="notes-tab" onclick="switchNotesTab('customer', event)" style="flex: 1; padding: 0.75rem; font-size: 0.8rem; font-weight: 500; color: #64748b; background: #fff; border: none; cursor: pointer;">
+                            <i class="fas fa-envelope me-1"></i> Customer Message
+                        </button>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <div class="notes-tab-pane active" id="tab-internal">
+                            <textarea class="notes-textarea" id="internalNoteText" placeholder="Add internal note (admin-only, never visible to customer)..." style="width: 100%; min-height: 100px; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem; resize: vertical;"></textarea>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                                <button class="btn btn-sm" onclick="addInternalNote()" style="background: var(--admin-primary, #1e3a5f); color: #fff; padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 4px; border: none;">
+                                    <i class="fas fa-plus me-1"></i> Add Note
+                                </button>
+                            </div>
+                        </div>
+                        <div class="notes-tab-pane" id="tab-customer" style="display: none;">
+                            <textarea class="notes-textarea" id="customerMessageText" placeholder="Message to customer (shown when returned/rejected)..." style="width: 100%; min-height: 100px; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.8rem; resize: vertical;"></textarea>
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                                <button class="btn btn-sm" onclick="previewCustomerMessage()" style="background: #fff; color: var(--admin-primary, #1e3a5f); border: 1px solid var(--admin-primary, #1e3a5f); padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 4px;">
+                                    <i class="fas fa-eye me-1"></i> Preview
+                                </button>
+                                <button class="btn btn-sm" onclick="sendCustomerMessage()" style="background: var(--admin-primary, #1e3a5f); color: #fff; padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 4px; border: none;">
+                                    <i class="fas fa-paper-plane me-1"></i> Send
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="rejectModalInline" style="display:none; margin-top: 1rem; background: #fff5f5; border: 1px solid #fca5a5; border-radius: 6px; padding: 1rem;">
+                    <h6 style="color: #991b1b; margin-bottom: 0.75rem;"><i class="fas fa-times-circle me-2"></i>Reject SenderID</h6>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" style="font-size: 0.8rem;">Rejection Reason <span class="text-danger">*</span></label>
+                        <textarea class="form-control form-control-sm" id="rejectReasonText" rows="3" placeholder="Explain why this SenderID is being rejected (min 10 characters)..." style="font-size: 0.8rem;"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-sm btn-danger" onclick="confirmRejectInline()"><i class="fas fa-times me-1"></i>Confirm Rejection</button>
+                        <button class="btn btn-sm btn-secondary" onclick="document.getElementById('rejectModalInline').style.display='none'">Cancel</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
