@@ -359,10 +359,11 @@ button.btn-save-draft:hover {
                                                     <label class="form-check-label small text-muted" for="selectAllSubaccounts">Select All</label>
                                                 </div>
                                                 <select class="form-select" id="inputSubaccount" multiple size="4">
-                                                    <option value="main">Main Account</option>
-                                                    <option value="marketing">Marketing Department</option>
-                                                    <option value="support">Customer Support</option>
-                                                    <option value="operations">Operations</option>
+                                                    @forelse($sub_accounts as $sa)
+                                                        <option value="{{ $sa->id }}">{{ $sa->name }}</option>
+                                                    @empty
+                                                        <option value="main" selected>Main Account (no sub-accounts configured)</option>
+                                                    @endforelse
                                                 </select>
                                             </div>
                                             <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
@@ -554,25 +555,12 @@ button.btn-save-draft:hover {
 <script>
 $(document).ready(function() {
     var selectedType = 'alphanumeric';
-    
-    var subaccountUsers = {
-        'main': [
-            { id: 'main-admin', name: 'Admin User' },
-            { id: 'main-john', name: 'John Smith' }
-        ],
-        'marketing': [
-            { id: 'mkt-amy', name: 'Amy Chen' },
-            { id: 'mkt-david', name: 'David Wilson' },
-            { id: 'mkt-sarah', name: 'Sarah Jones' }
-        ],
-        'support': [
-            { id: 'sup-mike', name: 'Mike Brown' },
-            { id: 'sup-lisa', name: 'Lisa Taylor' }
-        ],
-        'operations': [
-            { id: 'ops-james', name: 'James Anderson' },
-            { id: 'ops-emma', name: 'Emma Davis' }
-        ]
+    var serverValidationTimer = null;
+
+    var typeMap = {
+        'alphanumeric': 'ALPHA',
+        'numeric': 'NUMERIC',
+        'shortcode': 'SHORTCODE'
     };
 
     $('#senderIdWizard').smartWizard({
@@ -621,18 +609,33 @@ $(document).ready(function() {
         var selectedSubaccounts = $(this).val() || [];
         var totalOptions = $('#inputSubaccount option').length;
         $('#selectAllSubaccounts').prop('checked', selectedSubaccounts.length === totalOptions);
-        
+
         if (selectedSubaccounts.length > 0) {
-            var usersHtml = '';
-            selectedSubaccounts.forEach(function(subId) {
-                var users = subaccountUsers[subId] || [];
-                users.forEach(function(user) {
-                    usersHtml += '<option value="' + user.id + '">' + user.name + '</option>';
-                });
-            });
-            $('#inputUsers').html(usersHtml);
+            $('#inputUsers').html('');
             $('#selectAllUsers').prop('checked', false);
             $('#usersSection').show();
+
+            $.ajax({
+                url: '/api/sub-accounts/users',
+                method: 'POST',
+                data: JSON.stringify({ sub_account_ids: selectedSubaccounts }),
+                contentType: 'application/json',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function(response) {
+                    var usersHtml = '';
+                    if (response.data && response.data.length > 0) {
+                        response.data.forEach(function(user) {
+                            usersHtml += '<option value="' + user.id + '">' + user.name + '</option>';
+                        });
+                        $('#inputUsers').html(usersHtml);
+                    } else {
+                        $('#usersSection').hide();
+                    }
+                },
+                error: function() {
+                    $('#usersSection').hide();
+                }
+            });
         } else {
             $('#inputUsers').html('');
             $('#selectAllUsers').prop('checked', false);
@@ -771,6 +774,45 @@ $(document).ready(function() {
         }
     });
 
+    $('#inputSenderId').on('blur', function() {
+        var inputValue = $(this).val().trim();
+        if (!inputValue) return;
+        if ($(this).hasClass('is-invalid')) return;
+
+        if (serverValidationTimer) clearTimeout(serverValidationTimer);
+        serverValidationTimer = setTimeout(function() {
+            $.ajax({
+                url: '/api/sender-ids/validate',
+                method: 'POST',
+                data: JSON.stringify({
+                    sender_id_value: inputValue,
+                    sender_type: typeMap[selectedType]
+                }),
+                contentType: 'application/json',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function(response) {
+                    if (!response.valid) {
+                        $('#inputSenderId').addClass('is-invalid');
+                        var msgs = (response.errors || []).join('. ');
+                        $('#senderIdError').text(msgs).addClass('d-block').show();
+                    }
+                    if (response.spoofing && !response.spoofing.passed) {
+                        var warningHtml = '<div class="alert alert-warning mt-2" id="spoofingWarning">' +
+                            '<i class="fas fa-exclamation-triangle me-2"></i>' +
+                            '<strong>Anti-Spoofing Warning:</strong> This SenderID may be flagged. ' +
+                            'Normalised form: <code>' + (response.spoofing.normalised || '') + '</code>. ' +
+                            'Action: ' + (response.spoofing.action || 'review') +
+                            '</div>';
+                        $('#spoofingWarning').remove();
+                        $('#inputSenderId').closest('.mb-3').append(warningHtml);
+                    } else {
+                        $('#spoofingWarning').remove();
+                    }
+                }
+            });
+        }, 500);
+    });
+
     $('#inputPermission').on('change', function() {
         var val = $(this).val();
         if (val === 'yes') {
@@ -899,13 +941,42 @@ $(document).ready(function() {
     }
 
     $('#btnSaveDraft').on('click', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true);
         $('#autosaveIndicator').removeClass('saved').addClass('saving');
         $('#autosaveText').text('Saving...');
-        
-        setTimeout(function() {
-            $('#autosaveIndicator').removeClass('saving').addClass('saved');
-            $('#autosaveText').text('Draft saved');
-        }, 1000);
+
+        var payload = {
+            sender_id_value: $('#inputSenderId').val().trim(),
+            sender_type: typeMap[selectedType],
+            brand_name: $('#inputBrand').val().trim() || 'Draft',
+            country_code: 'GB',
+            use_case: $('#inputUseCase').val() || 'transactional',
+            use_case_description: $('#inputDescription').val().trim(),
+            permission_confirmed: $('#inputConfirmAuthorised').is(':checked'),
+            permission_explanation: $('#inputExplanation').val().trim(),
+            sub_account_ids: $('#inputSubaccount').val() || [],
+            user_ids: $('#inputUsers').val() || [],
+            submit: false
+        };
+
+        $.ajax({
+            url: '/api/sender-ids',
+            method: 'POST',
+            data: JSON.stringify(payload),
+            contentType: 'application/json',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function() {
+                $('#autosaveIndicator').removeClass('saving').addClass('saved');
+                $('#autosaveText').text('Draft saved');
+                $btn.prop('disabled', false);
+            },
+            error: function(xhr) {
+                $('#autosaveIndicator').removeClass('saving saved');
+                $('#autosaveText').text('Save failed');
+                $btn.prop('disabled', false);
+            }
+        });
     });
 
     $('#btnSubmit').on('click', function() {
@@ -914,58 +985,54 @@ $(document).ready(function() {
     });
 
     $('#confirmSubmitBtn').on('click', function() {
-        // Collect form data
-        var selectedSubaccounts = $('#inputSubaccount option:selected').map(function() {
-            return $(this).text();
-        }).get();
-        
-        var now = new Date().toISOString();
-        var newSenderId = {
-            id: 'sid_' + Date.now(),
-            senderId: $('#inputSenderId').val(),
-            senderIdNormalised: $('#inputSenderId').val().toUpperCase(),
-            type: selectedType,
-            brand: $('#inputBrand').val(),
-            useCase: $('#inputUseCase').val() || 'general',
-            description: $('#inputDescription').val() || '',
-            subaccount: selectedSubaccounts.length > 0 ? selectedSubaccounts.join(', ') : 'Main Account',
-            status: 'pending',
-            isImmutable: false,
-            submittedBy: { userId: 'usr_current', name: 'Current User', email: 'user@example.com' },
-            submittedAt: now,
-            created: now,
-            updated: now,
-            lastUsed: null,
-            permissionConfirmed: $('#inputPermission').val() === 'yes',
-            permissionExplanation: $('#inputPermissionExplanation').val() || '',
-            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
-            approvalDetails: { 
-                decision: 'pending', 
-                timestamp: now, 
-                reviewer: null, 
-                reviewerId: null,
-                reviewerType: 'pending',
-                notes: null
-            },
-            auditHistory: [
-                { 
-                    action: 'Submitted for Approval', 
-                    user: 'Current User', 
-                    userId: 'usr_current', 
-                    timestamp: now, 
-                    auditType: 'submitted' 
-                }
-            ]
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('Submitting...');
+
+        var payload = {
+            sender_id_value: $('#inputSenderId').val().trim(),
+            sender_type: typeMap[selectedType],
+            brand_name: $('#inputBrand').val().trim(),
+            country_code: 'GB',
+            use_case: $('#inputUseCase').val(),
+            use_case_description: $('#inputDescription').val().trim(),
+            permission_confirmed: $('#inputConfirmAuthorised').is(':checked'),
+            permission_explanation: $('#inputExplanation').val().trim(),
+            sub_account_ids: $('#inputSubaccount').val() || [],
+            user_ids: $('#inputUsers').val() || [],
+            submit: true
         };
-        
-        // Store in localStorage
-        var storedSenderIds = JSON.parse(localStorage.getItem('quicksms_senderids') || '[]');
-        storedSenderIds.push(newSenderId);
-        localStorage.setItem('quicksms_senderids', JSON.stringify(storedSenderIds));
-        
-        var modal = bootstrap.Modal.getInstance(document.getElementById('submitConfirmModal'));
-        modal.hide();
-        window.location.href = '{{ route("management.sms-sender-id") }}';
+
+        $.ajax({
+            url: '/api/sender-ids',
+            method: 'POST',
+            data: JSON.stringify(payload),
+            contentType: 'application/json',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function() {
+                var modal = bootstrap.Modal.getInstance(document.getElementById('submitConfirmModal'));
+                modal.hide();
+                window.location.href = '{{ route("management.sms-sender-id") }}?created=1';
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).text('Submit');
+                var resp = xhr.responseJSON;
+                var modal = bootstrap.Modal.getInstance(document.getElementById('submitConfirmModal'));
+                modal.hide();
+
+                var errorMsg = 'Failed to submit SenderID. Please try again.';
+                if (resp && resp.errors && resp.errors.length > 0) {
+                    errorMsg = resp.errors.join('<br>');
+                } else if (resp && resp.error) {
+                    errorMsg = resp.error;
+                }
+
+                var alertHtml = '<div class="alert alert-danger alert-dismissible fade show mt-3" id="submitErrorAlert">' +
+                    '<i class="fas fa-exclamation-circle me-2"></i>' + errorMsg +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                $('#submitErrorAlert').remove();
+                $('#step-review .col-lg-8').prepend(alertHtml);
+            }
+        });
     });
 });
 </script>

@@ -602,9 +602,9 @@ body > .dropdown-menu.dropdown-menu-end,
                                     <label class="form-label small fw-bold">Type</label>
                                     <select class="form-select form-select-sm" id="filterType">
                                         <option value="">All Types</option>
-                                        <option value="alphanumeric">Alphanumeric</option>
-                                        <option value="numeric">Numeric</option>
-                                        <option value="shortcode">Shortcode</option>
+                                        <option value="ALPHA">Alphanumeric</option>
+                                        <option value="NUMERIC">Numeric</option>
+                                        <option value="SHORTCODE">Shortcode</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
@@ -612,11 +612,14 @@ body > .dropdown-menu.dropdown-menu-end,
                                     <select class="form-select form-select-sm" id="filterStatus">
                                         <option value="">All Status</option>
                                         <option value="draft">Draft</option>
-                                        <option value="pending">Pending Approval</option>
+                                        <option value="submitted">Submitted</option>
+                                        <option value="in_review">In Review</option>
+                                        <option value="pending_info">Pending Info</option>
+                                        <option value="info_provided">Info Provided</option>
                                         <option value="approved">Approved</option>
                                         <option value="rejected">Rejected</option>
                                         <option value="suspended">Suspended</option>
-                                        <option value="archived">Archived</option>
+                                        <option value="revoked">Revoked</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-2">
@@ -624,9 +627,9 @@ body > .dropdown-menu.dropdown-menu-end,
                                     <select class="form-select form-select-sm" id="filterUseCase">
                                         <option value="">All Use Cases</option>
                                         <option value="otp">OTP / Verification</option>
-                                        <option value="marketing">Marketing</option>
+                                        <option value="promotional">Promotional</option>
                                         <option value="transactional">Transactional</option>
-                                        <option value="alerts">Alerts / Notifications</option>
+                                        <option value="mixed">Mixed</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-4 col-lg-3 d-flex align-items-end gap-2">
@@ -1191,278 +1194,11 @@ $(document).ready(function() {
         CAMPAIGN_API: 'campaign_api'       // Campaign API
     };
 
-    // Default scopes - all enabled
-    function getDefaultScopes() {
-        return {
-            send_message: true,
-            inbox_replies: true,
-            email_to_sms: true,
-            bulk_api: true,
-            campaign_api: true
-        };
-    }
-
-    // ============================================================================
-    // SENDERID DATA MODEL - Comprehensive audit and compliance structure
-    // ============================================================================
-    // Current capabilities:
-    // - All submitted fields, normalized value, userId, timestamps
-    // - Approval decisions with reviewer details
-    // - Status transitions with full audit trail
-    // - Immutability enforcement after archival
-    //
-    // FUTURE EXTENSIBILITY (data model supports without UI changes):
-    // ----------------------------------------------------------------------------
-    // 1. EVIDENCE UPLOAD (trademark certificates, website screenshots, authorization letters)
-    //    - Add: evidenceAttachments: [{ type: 'trademark'|'website'|'letter', 
-    //           fileUrl, fileName, fileSize, uploadedBy, uploadedAt, verified }]
-    //    - Add: evidenceVerification: { status, verifiedBy, verifiedAt, notes }
-    //
-    // 2. INTERNATIONAL SENDERIDS (multi-country support)
-    //    - Current 'country' field already supports extension
-    //    - Add: countryCode (ISO 3166-1 alpha-2), regionCode, localRegulations: {}
-    //    - Add: operatorRequirements: [{ operator, requirementType, status }]
-    //
-    // 3. AUTOMATIC BRAND MATCHING (link to verified brand database)
-    //    - Add: brandMatch: { brandId, matchConfidence, matchedAt, matchSource }
-    //    - Add: brandVerification: { verified, verifiedAt, verifiedBy, method }
-    //    - Add: companyRegistration: { number, jurisdiction, verifiedAt }
-    //
-    // 4. DUAL APPROVAL WORKFLOWS (multi-stage approval with escalation)
-    //    - Current approvalDetails supports extension to array: approvalStages: []
-    //    - Add: approvalWorkflow: { type: 'single'|'dual'|'escalation', 
-    //           stages: [{ order, approverRole, decision, timestamp, notes }] }
-    //    - Add: escalationRules: { triggerConditions, escalateTo, timeoutHours }
-    //    - Add: pendingApprovals: [{ stage, assignedTo, dueAt }]
-    // ============================================================================
-    var senderIds = [
-        {
-            id: 'sid_001',
-            senderId: 'QUICKSMS',
-            senderIdNormalised: 'QUICKSMS', // Normalized value for comparison
-            type: 'alphanumeric',
-            brand: 'QuickSMS Ltd',
-            useCase: 'transactional',
-            description: 'Order confirmations and delivery updates',
-            subaccount: 'Main Account',
-            status: 'approved',
-            isImmutable: false, // True only after archival
-            // Submission metadata
-            submittedBy: { userId: 'usr_001', name: 'John Smith', email: 'john.smith@quicksms.com' },
-            submittedAt: '2024-01-15T10:30:00Z',
-            submittedFromIp: '192.168.1.100',
-            // Timestamps
-            created: '2024-01-15T10:30:00Z',
-            updated: '2024-01-16T14:22:00Z',
-            lastUsed: '2024-03-14T16:45:00Z',
-            // Permission confirmation
-            permissionConfirmed: true,
-            permissionExplanation: 'Brand owner - QuickSMS Ltd is the trading name',
-            // Scopes and approval
-            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
-            approvalDetails: { 
-                decision: 'approved', 
-                timestamp: '2024-01-16T14:22:00Z', 
-                reviewer: 'Compliance Team', 
-                reviewerId: 'usr_admin_01',
-                reviewerType: 'manual',
-                notes: 'Verified brand ownership through company registration'
-            },
-            auditHistory: [
-                { action: 'Approved', user: 'Compliance Team', userId: 'usr_admin_01', timestamp: '2024-01-16T14:22:00Z', auditType: 'approved', ipAddress: '10.0.0.1' },
-                { action: 'Under Review', user: 'System', userId: 'system', timestamp: '2024-01-15T10:35:00Z', auditType: 'status_change', previousStatus: 'pending', newStatus: 'under_review' },
-                { action: 'Submitted for Approval', user: 'John Smith', userId: 'usr_001', timestamp: '2024-01-15T10:30:00Z', auditType: 'submitted', ipAddress: '192.168.1.100' }
-            ]
-        },
-        {
-            id: 'sid_002',
-            senderId: 'ALERTS',
-            type: 'alphanumeric',
-            brand: 'QuickSMS Ltd',
-            useCase: 'alerts',
-            description: 'System alerts and notifications',
-            subaccount: 'Operations',
-            status: 'approved',
-            created: '2024-02-01T09:00:00Z',
-            lastUsed: '2024-03-13T09:30:00Z',
-            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
-            approvalDetails: { decision: 'approved', timestamp: '2024-02-02T11:45:00Z', reviewer: 'Compliance Team', reviewerType: 'manual' },
-            auditHistory: [
-                { action: 'Approved', user: 'Compliance Team', timestamp: '2024-02-02T11:45:00Z', auditType: 'approved' },
-                { action: 'Under Review', user: 'System', timestamp: '2024-02-01T09:05:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Approval', user: 'Jane Doe', timestamp: '2024-02-01T09:00:00Z', auditType: 'submitted' }
-            ]
-        },
-        {
-            id: 'sid_003',
-            senderId: '+447700900123',
-            type: 'numeric',
-            brand: 'QuickSMS Ltd',
-            useCase: 'otp',
-            description: 'Two-way messaging for customer support',
-            subaccount: 'Customer Support',
-            status: 'approved',
-            created: '2024-02-15T11:30:00Z',
-            lastUsed: '2024-03-14T11:20:00Z',
-            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
-            approvalDetails: { decision: 'approved', timestamp: '2024-02-16T09:00:00Z', reviewer: 'Third-Party Validator', reviewerType: 'third_party' },
-            auditHistory: [
-                { action: 'Approved', user: 'Third-Party Validator', timestamp: '2024-02-16T09:00:00Z', auditType: 'approved' },
-                { action: 'Under Review', user: 'System', timestamp: '2024-02-15T11:35:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Approval', user: 'Support Team', timestamp: '2024-02-15T11:30:00Z', auditType: 'submitted' }
-            ]
-        },
-        {
-            id: 'sid_004',
-            senderId: '60123',
-            type: 'shortcode',
-            brand: 'QuickSMS Ltd',
-            useCase: 'marketing',
-            description: 'Marketing campaigns and promotional offers',
-            subaccount: 'Marketing Department',
-            status: 'approved',
-            created: '2024-01-20T14:00:00Z',
-            lastUsed: '2024-03-10T15:00:00Z',
-            scopes: { send_message: true, inbox_replies: true, email_to_sms: true, bulk_api: true, campaign_api: true },
-            approvalDetails: { decision: 'approved', timestamp: '2024-01-22T10:00:00Z', reviewer: 'UK Operator Check', reviewerType: 'operator' },
-            auditHistory: [
-                { action: 'Approved', user: 'UK Operator Check', timestamp: '2024-01-22T10:00:00Z', auditType: 'approved' },
-                { action: 'Under Review', user: 'System', timestamp: '2024-01-20T14:05:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Approval', user: 'Marketing Team', timestamp: '2024-01-20T14:00:00Z', auditType: 'submitted' }
-            ]
-        },
-        {
-            id: 'sid_005',
-            senderId: 'PROMO',
-            type: 'alphanumeric',
-            brand: 'QuickSMS Ltd',
-            useCase: 'marketing',
-            description: 'Marketing campaigns and special offers',
-            subaccount: 'Marketing Department',
-            status: 'pending',
-            created: '2024-03-10T14:20:00Z',
-            auditHistory: [
-                { action: 'Submitted for Approval', user: 'Marketing Team', timestamp: '2024-03-10T14:20:00Z', auditType: 'submitted' }
-            ]
-        },
-        {
-            id: 'sid_006',
-            senderId: 'VERIFY',
-            type: 'alphanumeric',
-            brand: 'QuickSMS Ltd',
-            useCase: 'otp',
-            description: 'Two-factor authentication codes',
-            subaccount: 'Main Account',
-            status: 'pending',
-            created: '2024-03-12T16:45:00Z',
-            auditHistory: [
-                { action: 'Submitted for Approval', user: 'Tech Team', timestamp: '2024-03-12T16:45:00Z', auditType: 'submitted' }
-            ]
-        },
-        {
-            id: 'sid_008',
-            senderId: 'NEWBRAND',
-            type: 'alphanumeric',
-            brand: 'QuickSMS Ltd',
-            useCase: 'transactional',
-            description: 'New brand identity - work in progress',
-            subaccount: 'Main Account',
-            status: 'draft',
-            created: '2024-03-15T10:00:00Z',
-            auditHistory: [
-                { action: 'Draft Created', user: 'John Smith', timestamp: '2024-03-15T10:00:00Z', auditType: 'created' }
-            ]
-        },
-        {
-            id: 'sid_009',
-            senderId: 'OLDPROMO',
-            senderIdNormalised: 'OLDPROMO',
-            type: 'alphanumeric',
-            brand: 'QuickSMS Ltd',
-            useCase: 'marketing',
-            description: 'Legacy promotional sender - no longer in use',
-            subaccount: 'Marketing Department',
-            status: 'archived',
-            isImmutable: true, // IMMUTABLE: Record locked after archival - no modifications allowed
-            archivedAt: '2024-02-28T15:30:00Z',
-            archivedBy: { userId: 'usr_admin_02', name: 'Admin User' },
-            archiveReason: 'No longer needed - replaced by PROMO',
-            submittedBy: { userId: 'usr_003', name: 'Marketing Team', email: 'marketing@quicksms.com' },
-            submittedAt: '2023-06-01T09:00:00Z',
-            created: '2023-06-01T09:00:00Z',
-            updated: '2024-02-28T15:30:00Z',
-            auditHistory: [
-                { action: 'Record Locked', user: 'System', userId: 'system', timestamp: '2024-02-28T15:30:01Z', auditType: 'immutable', note: 'Record is now immutable - no further changes permitted' },
-                { action: 'Archived', user: 'Admin User', userId: 'usr_admin_02', timestamp: '2024-02-28T15:30:00Z', auditType: 'archived', reason: 'No longer needed - replaced by PROMO', ipAddress: '10.0.0.5' },
-                { action: 'Approved', user: 'Compliance Team', userId: 'usr_admin_01', timestamp: '2023-06-02T11:00:00Z', auditType: 'approved' },
-                { action: 'Submitted for Approval', user: 'Marketing Team', userId: 'usr_003', timestamp: '2023-06-01T09:00:00Z', auditType: 'submitted' }
-            ]
-        },
-        {
-            id: 'sid_010',
-            senderId: '70123',
-            type: 'shortcode',
-            brand: 'QuickSMS Ltd',
-            useCase: 'marketing',
-            description: 'Campaign shortcode - suspended for compliance review',
-            subaccount: 'Marketing Department',
-            status: 'suspended',
-            created: '2023-09-15T14:00:00Z',
-            suspensionReason: 'Compliance review required following high complaint rate.',
-            auditHistory: [
-                { action: 'Suspended', user: 'QuickSMS Compliance', timestamp: '2024-03-01T10:00:00Z', auditType: 'suspended', reason: 'Compliance review required following high complaint rate.' },
-                { action: 'Approved', user: 'Compliance Team', timestamp: '2023-09-16T10:00:00Z', auditType: 'approved' },
-                { action: 'Submitted for Approval', user: 'Marketing Team', timestamp: '2023-09-15T14:00:00Z', auditType: 'submitted' }
-            ]
-        },
-        {
-            id: 'sid_007',
-            senderId: 'BANK',
-            type: 'alphanumeric',
-            brand: 'QuickSMS Ltd',
-            useCase: 'transactional',
-            description: 'Banking notifications',
-            subaccount: 'Main Account',
-            status: 'rejected',
-            created: '2024-03-05T11:00:00Z',
-            rejectionReason: 'SenderID "BANK" is a reserved term and cannot be registered without additional verification of financial institution status. Please provide proof of authorisation from a registered financial institution.',
-            approvalDetails: { decision: 'rejected', timestamp: '2024-03-06T10:30:00Z', reviewer: 'Compliance Team', reviewerType: 'manual', rejectionReason: 'Reserved term - requires financial verification' },
-            auditHistory: [
-                { action: 'Rejected', user: 'Compliance Team', timestamp: '2024-03-06T10:30:00Z', auditType: 'rejected', reason: 'Reserved term - requires financial verification' },
-                { action: 'Under Review', user: 'System', timestamp: '2024-03-05T11:05:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Approval', user: 'John Smith', timestamp: '2024-03-05T11:00:00Z', auditType: 'submitted' }
-            ]
-        },
-        {
-            id: 'sid_011',
-            senderId: 'HMRC',
-            type: 'alphanumeric',
-            brand: 'QuickSMS Ltd',
-            useCase: 'transactional',
-            description: 'Tax notifications',
-            subaccount: 'Main Account',
-            status: 'rejected',
-            created: '2024-02-20T09:00:00Z',
-            rejectionReason: 'SenderID "HMRC" impersonates a UK government agency. Only the official HM Revenue & Customs organisation may use this identifier. Impersonation of government bodies is strictly prohibited.',
-            approvalDetails: { decision: 'rejected', timestamp: '2024-02-21T14:00:00Z', reviewer: 'UK Operator Check', reviewerType: 'operator', rejectionReason: 'Government impersonation' },
-            auditHistory: [
-                { action: 'Rejected', user: 'UK Operator Check', timestamp: '2024-02-21T14:00:00Z', auditType: 'rejected', reason: 'Government impersonation' },
-                { action: 'Under Review', user: 'System', timestamp: '2024-02-20T09:05:00Z', auditType: 'submitted' },
-                { action: 'Submitted for Approval', user: 'John Smith', timestamp: '2024-02-20T09:00:00Z', auditType: 'submitted' }
-            ]
-        }
-    ];
-
-    // Load any user-created SenderIDs from localStorage and merge with mock data
-    // TODO: Replace with backend API call when implemented
-    var storedSenderIds = JSON.parse(localStorage.getItem('quicksms_senderids') || '[]');
-    if (storedSenderIds.length > 0) {
-        senderIds = storedSenderIds.concat(senderIds);
-    }
+    var senderIds = @json($sender_ids->map(fn($s) => $s->toPortalArray()));
 
     var currentPage = 1;
     var pageSize = 10;
-    var sortColumn = 'created';
+    var sortColumn = 'created_at';
     var sortDirection = 'desc';
     var selectedSenderId = null;
 
@@ -1496,11 +1232,14 @@ $(document).ready(function() {
     function getStatusBadge(status) {
         var badges = {
             'draft': '<span class="badge badge-draft">Draft</span>',
-            'pending': '<span class="badge badge-pending">Pending Approval</span>',
+            'submitted': '<span class="badge badge-pending">Submitted</span>',
+            'in_review': '<span class="badge badge-pending">In Review</span>',
+            'pending_info': '<span class="badge badge-pending">Pending Info</span>',
+            'info_provided': '<span class="badge badge-pending">Info Provided</span>',
             'approved': '<span class="badge badge-approved">Approved</span>',
             'rejected': '<span class="badge badge-rejected">Rejected</span>',
             'suspended': '<span class="badge badge-suspended">Suspended</span>',
-            'archived': '<span class="badge badge-archived">Archived</span>'
+            'revoked': '<span class="badge badge-archived">Revoked</span>'
         };
         return badges[status] || status;
     }
@@ -1508,27 +1247,27 @@ $(document).ready(function() {
     function getUseCaseBadge(useCase) {
         var badges = {
             'otp': '<span class="badge badge-otp">OTP / Verification</span>',
-            'marketing': '<span class="badge badge-marketing">Marketing</span>',
+            'promotional': '<span class="badge badge-marketing">Promotional</span>',
             'transactional': '<span class="badge badge-transactional">Transactional</span>',
-            'alerts': '<span class="badge badge-alerts">Alerts</span>'
+            'mixed': '<span class="badge badge-alerts">Mixed</span>'
         };
         return badges[useCase] || useCase;
     }
 
     function getTypeBadge(senderIdType) {
         var badges = {
-            'alphanumeric': '<span class="badge badge-alphanumeric">Alphanumeric</span>',
-            'numeric': '<span class="badge badge-numeric">Numeric</span>',
-            'shortcode': '<span class="badge badge-shortcode">Shortcode</span>'
+            'ALPHA': '<span class="badge badge-alphanumeric">Alphanumeric</span>',
+            'NUMERIC': '<span class="badge badge-numeric">Numeric</span>',
+            'SHORTCODE': '<span class="badge badge-shortcode">Shortcode</span>'
         };
         return badges[senderIdType] || senderIdType;
     }
 
     function getTypeLabel(senderIdType) {
         var labels = {
-            'alphanumeric': 'Alphanumeric',
-            'numeric': 'Numeric',
-            'shortcode': 'Shortcode'
+            'ALPHA': 'Alphanumeric',
+            'NUMERIC': 'Numeric',
+            'SHORTCODE': 'Shortcode'
         };
         return labels[senderIdType] || senderIdType;
     }
@@ -1536,11 +1275,14 @@ $(document).ready(function() {
     function getStatusLabel(status) {
         var statusConfig = {
             'draft': { label: 'Draft', class: 'badge-draft' },
-            'pending': { label: 'Pending Approval', class: 'badge-pending' },
+            'submitted': { label: 'Submitted', class: 'badge-pending' },
+            'in_review': { label: 'In Review', class: 'badge-pending' },
+            'pending_info': { label: 'Pending Info', class: 'badge-pending' },
+            'info_provided': { label: 'Info Provided', class: 'badge-pending' },
             'approved': { label: 'Approved', class: 'badge-approved' },
             'rejected': { label: 'Rejected', class: 'badge-rejected' },
             'suspended': { label: 'Suspended', class: 'badge-suspended' },
-            'archived': { label: 'Archived', class: 'badge-archived' }
+            'revoked': { label: 'Revoked', class: 'badge-archived' }
         };
         var config = statusConfig[status] || { label: status, class: 'badge-draft' };
         return '<span class="badge ' + config.class + '">' + config.label + '</span>';
@@ -1549,9 +1291,9 @@ $(document).ready(function() {
     function getUseCaseLabel(useCase) {
         var labels = {
             'otp': 'OTP / Verification',
-            'marketing': 'Marketing',
+            'promotional': 'Promotional',
             'transactional': 'Transactional',
-            'alerts': 'Alerts'
+            'mixed': 'Mixed'
         };
         return labels[useCase] || useCase;
     }
@@ -1564,12 +1306,12 @@ $(document).ready(function() {
 
         return senderIds.filter(function(item) {
             var matchSearch = !search || 
-                item.senderId.toLowerCase().includes(search) ||
-                item.brand.toLowerCase().includes(search) ||
-                (item.description && item.description.toLowerCase().includes(search));
-            var matchType = !filterType || item.type === filterType;
-            var matchStatus = !filterStatus || item.status === filterStatus;
-            var matchUseCase = !filterUseCase || item.useCase === filterUseCase;
+                (item.sender_id_value && item.sender_id_value.toLowerCase().includes(search)) ||
+                (item.brand_name && item.brand_name.toLowerCase().includes(search)) ||
+                (item.use_case_description && item.use_case_description.toLowerCase().includes(search));
+            var matchType = !filterType || item.sender_type === filterType;
+            var matchStatus = !filterStatus || item.workflow_status === filterStatus;
+            var matchUseCase = !filterUseCase || item.use_case === filterUseCase;
             return matchSearch && matchType && matchStatus && matchUseCase;
         });
     }
@@ -1578,7 +1320,7 @@ $(document).ready(function() {
         return data.sort(function(a, b) {
             var aVal = a[sortColumn] || '';
             var bVal = b[sortColumn] || '';
-            if (sortColumn === 'created') {
+            if (sortColumn === 'created_at') {
                 aVal = new Date(aVal);
                 bVal = new Date(bVal);
             }
@@ -1608,32 +1350,26 @@ $(document).ready(function() {
         var html = '';
         paged.forEach(function(item) {
             html += '<tr data-id="' + item.id + '">';
-            html += '<td><span class="senderid-name">' + escapeHtml(item.senderId) + '</span></td>';
-            html += '<td>' + getTypeLabel(item.type) + '</td>';
-            html += '<td>' + escapeHtml(item.brand) + '</td>';
-            html += '<td>' + getUseCaseLabel(item.useCase) + '</td>';
-            html += '<td>' + getStatusLabel(item.status) + '</td>';
-            html += '<td>' + formatDate(item.created) + '</td>';
-            html += '<td>' + (item.lastUsed ? formatDate(item.lastUsed) : '<span class="text-muted">Never</span>') + '</td>';
+            html += '<td><span class="senderid-name">' + escapeHtml(item.sender_id_value) + '</span></td>';
+            html += '<td>' + getTypeLabel(item.sender_type) + '</td>';
+            html += '<td>' + escapeHtml(item.brand_name) + '</td>';
+            html += '<td>' + getUseCaseLabel(item.use_case) + '</td>';
+            html += '<td>' + getStatusLabel(item.workflow_status) + '</td>';
+            html += '<td>' + formatDate(item.created_at) + '</td>';
+            html += '<td>' + (item.submitted_at ? formatDate(item.submitted_at) : '<span class="text-muted">-</span>') + '</td>';
             html += '<td class="text-center">';
             html += '<div class="dropdown">';
             html += '<button class="action-menu-btn" type="button" data-bs-toggle="dropdown" data-bs-container="body" aria-expanded="false"><i class="fas fa-ellipsis-v"></i></button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';
             html += '<li><a class="dropdown-item btn-view-details" href="#" data-id="' + item.id + '"><i class="fas fa-eye me-2"></i>View Details</a></li>';
-            html += '<li><a class="dropdown-item btn-view-audit" href="#" data-id="' + item.id + '"><i class="fas fa-history me-2"></i>View Audit History</a></li>';
-            if (item.status === 'approved') {
+            if (item.workflow_status === 'draft') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item btn-suspend" href="#" data-id="' + item.id + '"><i class="fas fa-pause me-2"></i>Suspend</a></li>';
-                html += '<li><a class="dropdown-item btn-archive-row" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+                html += '<li><a class="dropdown-item btn-submit-row" href="#" data-id="' + item.id + '"><i class="fas fa-paper-plane me-2"></i>Submit for Approval</a></li>';
+                html += '<li><a class="dropdown-item btn-delete-row text-danger" href="#" data-id="' + item.id + '"><i class="fas fa-trash me-2"></i>Delete</a></li>';
             }
-            if (item.status === 'suspended') {
+            if (item.workflow_status === 'rejected') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item btn-reactivate" href="#" data-id="' + item.id + '"><i class="fas fa-play me-2"></i>Reactivate</a></li>';
-                html += '<li><a class="dropdown-item btn-archive-row" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i>Archive</a></li>';
-            }
-            if (item.status === 'rejected') {
-                html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item btn-archive-row" href="#" data-id="' + item.id + '"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+                html += '<li><a class="dropdown-item btn-resubmit-row" href="#" data-id="' + item.id + '"><i class="fas fa-redo me-2"></i>Re-submit</a></li>';
             }
             html += '</ul>';
             html += '</div>';
@@ -1907,56 +1643,69 @@ $(document).ready(function() {
 
         selectedSenderId = item;
 
-        $('#detailSenderId').text(item.senderId);
-        $('#detailType').html(getTypeBadge(item.type));
-        $('#detailBrand').text(item.brand);
-        $('#detailUseCase').html(getUseCaseBadge(item.useCase));
-        $('#detailDescription').text(item.description || '-');
-        $('#detailSubaccount').text(item.subaccount);
-        $('#detailStatus').html(getStatusBadge(item.status));
-        $('#detailCreated').text(formatDateTime(item.created));
+        $('#detailSenderId').text(item.sender_id_value);
+        $('#detailType').html(getTypeBadge(item.sender_type));
+        $('#detailBrand').text(item.brand_name);
+        $('#detailUseCase').html(getUseCaseBadge(item.use_case));
+        $('#detailDescription').text(item.use_case_description || '-');
+        $('#detailSubaccount').text('-');
+        $('#detailStatus').html(getStatusBadge(item.workflow_status));
+        $('#detailCreated').text(formatDateTime(item.created_at));
 
-        if (item.status === 'rejected' && item.rejectionReason) {
+        if (item.workflow_status === 'rejected' && item.rejection_reason) {
             $('#rejectionReasonSection').show();
-            $('#rejectionReason').text(item.rejectionReason);
+            $('#rejectionReason').text(item.rejection_reason);
         } else {
             $('#rejectionReasonSection').hide();
         }
 
-        if (item.status === 'suspended' && item.suspensionReason) {
+        if (item.workflow_status === 'suspended') {
             $('#suspensionReasonSection').show();
-            $('#suspensionReason').text(item.suspensionReason);
+            $('#suspensionReason').text('This SenderID has been suspended by the administrator.');
         } else {
             $('#suspensionReasonSection').hide();
         }
 
-        var auditHtml = '';
-        item.auditHistory.forEach(function(audit) {
-            auditHtml += '<div class="audit-item ' + (audit.auditType || '') + '">';
-            auditHtml += '<div class="audit-action">' + escapeHtml(audit.action) + '</div>';
-            auditHtml += '<div class="audit-user">by ' + escapeHtml(audit.user) + '</div>';
-            auditHtml += '<div class="audit-time">' + formatDateTime(audit.timestamp) + '</div>';
-            if (audit.reason) {
-                auditHtml += '<div class="small text-muted mt-1">' + escapeHtml(audit.reason) + '</div>';
-            }
-            auditHtml += '</div>';
-        });
-        $('#auditTimeline').html(auditHtml);
+        $('#auditTimeline').html('<div class="text-muted text-center py-3">Loading audit history...</div>');
+
+        if (item.uuid) {
+            $.ajax({
+                url: '/api/sender-ids/' + item.uuid,
+                method: 'GET',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+                success: function(response) {
+                    var detail = response.data || response;
+                    if (detail.audit_history && detail.audit_history.length > 0) {
+                        var auditHtml = '';
+                        detail.audit_history.forEach(function(audit) {
+                            auditHtml += '<div class="audit-item ' + (audit.audit_type || '') + '">';
+                            auditHtml += '<div class="audit-action">' + escapeHtml(audit.action) + '</div>';
+                            auditHtml += '<div class="audit-user">by ' + escapeHtml(audit.user || 'System') + '</div>';
+                            auditHtml += '<div class="audit-time">' + formatDateTime(audit.timestamp || audit.created_at) + '</div>';
+                            if (audit.reason) {
+                                auditHtml += '<div class="small text-muted mt-1">' + escapeHtml(audit.reason) + '</div>';
+                            }
+                            auditHtml += '</div>';
+                        });
+                        $('#auditTimeline').html(auditHtml);
+                    } else {
+                        $('#auditTimeline').html('<div class="text-muted text-center py-3">No audit history available.</div>');
+                    }
+                },
+                error: function() {
+                    $('#auditTimeline').html('<div class="text-muted text-center py-3">Unable to load audit history.</div>');
+                }
+            });
+        } else {
+            $('#auditTimeline').html('<div class="text-muted text-center py-3">No audit history available.</div>');
+        }
 
         var actionsHtml = '';
-        if (item.status === 'draft') {
+        if (item.workflow_status === 'draft') {
             actionsHtml += '<button type="button" class="btn btn-primary btn-sm me-2" id="btnDetailSubmit"><i class="fas fa-paper-plane me-1"></i>Submit for Approval</button>';
-            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
-        } else if (item.status === 'pending') {
-            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
-        } else if (item.status === 'approved') {
-            actionsHtml += '<button type="button" class="btn btn-warning btn-sm me-2" id="btnDetailSuspend"><i class="fas fa-pause me-1"></i>Suspend</button>';
-            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
-        } else if (item.status === 'suspended') {
-            actionsHtml += '<button type="button" class="btn btn-success btn-sm me-2" id="btnDetailReactivate"><i class="fas fa-play me-1"></i>Reactivate</button>';
-            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
-        } else if (item.status === 'rejected') {
-            actionsHtml += '<button type="button" class="btn btn-outline-secondary btn-sm" id="btnDetailArchive"><i class="fas fa-archive me-1"></i>Archive</button>';
+            actionsHtml += '<button type="button" class="btn btn-outline-danger btn-sm" id="btnDetailDelete"><i class="fas fa-trash me-1"></i>Delete</button>';
+        } else if (item.workflow_status === 'rejected') {
+            actionsHtml += '<button type="button" class="btn btn-primary btn-sm me-2" id="btnDetailResubmit"><i class="fas fa-redo me-1"></i>Re-submit</button>';
         }
         $('#detailDrawerActions').html(actionsHtml);
 
@@ -2019,8 +1768,8 @@ $(document).ready(function() {
             }
             var normalised = result.normalised;
             var existingNormalised = senderIds.find(function(s) { 
-                if (s.type !== 'numeric') return false;
-                var n = normaliseUkMobile(s.senderId);
+                if (s.sender_type !== 'NUMERIC') return false;
+                var n = normaliseUkMobile(s.sender_id_value);
                 return n.valid && n.normalised === normalised;
             });
             if (existingNormalised) return { valid: false, message: 'This number is already registered' };
@@ -2037,18 +1786,18 @@ $(document).ready(function() {
             }
         }
 
-        var existing = senderIds.find(function(s) { return s.senderId.toUpperCase() === value.toUpperCase(); });
+        var existing = senderIds.find(function(s) { return s.sender_id_value && s.sender_id_value.toUpperCase() === value.toUpperCase(); });
         if (existing) {
-            if (existing.status === 'rejected') {
+            if (existing.workflow_status === 'rejected') {
                 return { valid: false, message: 'This SenderID was previously rejected. Please review the rejection reason and register with a different identifier.' };
-            } else if (existing.status === 'pending') {
+            } else if (existing.workflow_status === 'submitted' || existing.workflow_status === 'in_review' || existing.workflow_status === 'pending_info' || existing.workflow_status === 'info_provided') {
                 return { valid: false, message: 'This SenderID is already pending approval' };
-            } else if (existing.status === 'approved') {
+            } else if (existing.workflow_status === 'approved') {
                 return { valid: false, message: 'This SenderID is already registered and approved' };
-            } else if (existing.status === 'suspended') {
+            } else if (existing.workflow_status === 'suspended') {
                 return { valid: false, message: 'This SenderID is registered but currently suspended' };
-            } else if (existing.status === 'archived') {
-                return { valid: false, message: 'This SenderID is archived. Contact support to restore it.' };
+            } else if (existing.workflow_status === 'revoked') {
+                return { valid: false, message: 'This SenderID has been revoked. Contact support for more information.' };
             }
             return { valid: false, message: 'This SenderID is already registered' };
         }
@@ -2109,12 +1858,12 @@ $(document).ready(function() {
     $('#detailDrawerClose, #detailDrawerBackdrop').on('click', closeDetailDrawer);
 
     $('#btnSubmitRegister').on('click', function() {
+        var $btn = $(this);
         var senderIdType = $('#inputType').val();
         var senderId = $('#inputSenderId').val().trim();
         var brand = $('#inputBrand').val().trim();
         var useCase = $('#inputUseCase').val();
         var description = $('#inputDescription').val().trim();
-        var subaccount = $('#inputSubaccount option:selected').text();
         var explanation = $('#inputExplanation').val().trim();
 
         var senderIdResult = validateSenderId(senderId, senderIdType);
@@ -2123,71 +1872,47 @@ $(document).ready(function() {
             finalSenderId = '+' + senderIdResult.normalised;
         }
 
-        // Generate normalized SenderID for comparison and audit
-        var senderIdNormalised = finalSenderId.toUpperCase().replace(/[^A-Z0-9]/g, '');
-        if (senderIdType === 'numeric' && senderIdResult.normalised) {
-            senderIdNormalised = senderIdResult.normalised;
-        }
+        var typeMap = { 'alphanumeric': 'ALPHA', 'numeric': 'NUMERIC', 'shortcode': 'SHORTCODE' };
 
-        var now = new Date().toISOString();
-        var currentUser = {
-            userId: 'usr_current', // TODO: Replace with Auth::id() on backend
-            name: 'Current User',
-            email: 'user@quicksms.com'
-        };
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Submitting...');
 
-        var newEntry = {
-            id: 'sid_' + Date.now(),
-            senderId: finalSenderId,
-            senderIdNormalised: senderIdNormalised, // Normalized for comparison/audit
-            type: senderIdType,
-            brand: brand,
-            useCase: useCase,
-            description: description,
-            explanation: explanation,
-            subaccount: subaccount || 'Main Account',
-            country: 'United Kingdom',
-            status: 'pending',
-            isImmutable: false, // Will become true upon archival
-            // Submission metadata for audit trail
-            submittedBy: currentUser,
-            submittedAt: now,
-            submittedFromIp: '0.0.0.0', // TODO: Capture from request on backend
-            // Permission confirmation audit
-            permissionConfirmed: true,
-            permissionExplanation: explanation || null,
-            // Timestamps
-            created: now,
-            updated: now,
-            lastUsed: null,
-            // Scopes (all enabled by default, can be restricted later)
-            scopes: getDefaultScopes(),
-            // Full audit history with userId and timestamps
-            auditHistory: [
-                { 
-                    action: 'Submitted for Approval', 
-                    user: currentUser.name, 
-                    userId: currentUser.userId,
-                    timestamp: now, 
-                    auditType: 'submitted',
-                    ipAddress: '0.0.0.0', // TODO: Capture from request
-                    metadata: {
-                        senderIdOriginal: senderId,
-                        senderIdNormalised: senderIdNormalised,
-                        type: senderIdType,
-                        brand: brand,
-                        useCase: useCase
-                    }
+        $.ajax({
+            url: '/api/sender-ids',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                sender_id_value: finalSenderId,
+                sender_type: typeMap[senderIdType] || senderIdType,
+                brand_name: brand,
+                use_case: useCase,
+                use_case_description: description,
+                permission_confirmed: true,
+                country_code: 'GB'
+            }),
+            success: function(response) {
+                var newItem = response.data || response;
+                senderIds.unshift(newItem);
+                closeRegisterWizard();
+                currentWizardStep = 1;
+                renderTable();
+                showSubmissionConfirmation(finalSenderId);
+            },
+            error: function(xhr) {
+                var msg = 'Failed to register SenderID.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
                 }
-            ]
-        };
-
-        senderIds.unshift(newEntry);
-        closeRegisterWizard();
-        currentWizardStep = 1;
-        renderTable();
-
-        showSubmissionConfirmation(finalSenderId);
+                if (typeof showErrorToast === 'function') {
+                    showErrorToast(msg);
+                } else {
+                    alert(msg);
+                }
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-paper-plane me-1"></i>Submit Registration');
+            }
+        });
     });
 
     function showSubmissionConfirmation(senderId) {
@@ -2200,178 +1925,146 @@ $(document).ready(function() {
         openDetailDrawer($(this).data('id'));
     });
 
-    $(document).on('click', '.btn-suspend, #btnDetailSuspend', function(e) {
-        e.preventDefault();
-        var id = $(this).data('id') || (selectedSenderId && selectedSenderId.id);
-        var item = senderIds.find(function(s) { return s.id === id; });
-        if (item) {
-            $('#suspendModal').data('id', id);
-            $('#suspendModalTitle').text('Suspend SenderID');
-            $('#suspendModalMessage').html('Are you sure you want to suspend <strong>' + item.senderId + '</strong>?');
-            $('#btnConfirmSuspend').removeClass('btn-success').addClass('btn-warning').html('<i class="fas fa-pause me-1"></i>Suspend');
-            new bootstrap.Modal($('#suspendModal')[0]).show();
-        }
-    });
-
-    $(document).on('click', '.btn-reactivate, #btnDetailReactivate', function(e) {
-        e.preventDefault();
-        var id = $(this).data('id') || (selectedSenderId && selectedSenderId.id);
-        var item = senderIds.find(function(s) { return s.id === id; });
-        if (item) {
-            $('#suspendModal').data('id', id);
-            $('#suspendModalTitle').text('Reactivate SenderID');
-            $('#suspendModalMessage').html('Are you sure you want to reactivate <strong>' + item.senderId + '</strong>?');
-            $('#btnConfirmSuspend').removeClass('btn-warning').addClass('btn-success').html('<i class="fas fa-play me-1"></i>Reactivate');
-            new bootstrap.Modal($('#suspendModal')[0]).show();
-        }
-    });
-
-    $('#btnConfirmSuspend').on('click', function() {
-        var id = $('#suspendModal').data('id');
-        var item = senderIds.find(function(s) { return s.id === id; });
-        if (item) {
-            var action = item.status === 'suspended' ? 'reactivate' : 'suspend';
-            item.status = action === 'suspend' ? 'suspended' : 'approved';
-            item.auditHistory.unshift({
-                action: action === 'suspend' ? 'Suspended' : 'Reactivated',
-                user: 'Current User',
-                timestamp: new Date().toISOString(),
-                auditType: action === 'suspend' ? 'rejected' : 'approved'
-            });
-            bootstrap.Modal.getInstance($('#suspendModal')[0]).hide();
-            closeDetailDrawer();
-            renderTable();
-            if (typeof showSuccessToast === 'function') {
-                showSuccessToast('SenderID ' + (action === 'suspend' ? 'suspended' : 'reactivated'));
-            }
-        }
-    });
-
-    $(document).on('click', '.btn-view-audit', function(e) {
+    $(document).on('click', '.btn-submit-row', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
         var item = senderIds.find(function(s) { return s.id === id; });
-        if (item) {
-            selectedSenderId = item;
-            openDetailDrawer(id);
-            setTimeout(function() {
-                $('a[data-bs-target="#detailAudit"]').tab('show');
-            }, 100);
-        }
-    });
-
-    $(document).on('click', '.btn-archive-row', function(e) {
-        e.preventDefault();
-        var id = $(this).data('id');
-        var item = senderIds.find(function(s) { return s.id === id; });
-        if (item && (item.status === 'approved' || item.status === 'rejected' || item.status === 'suspended')) {
-            $('#archiveModal').data('id', id);
-            $('#archiveSenderId').text(item.senderId);
-            new bootstrap.Modal($('#archiveModal')[0]).show();
-        }
-    });
-
-    $(document).on('click', '#btnDetailArchive', function(e) {
-        e.preventDefault();
-        var id = selectedSenderId && selectedSenderId.id;
-        var item = senderIds.find(function(s) { return s.id === id; });
-        if (item) {
-            $('#archiveModal').data('id', id);
-            $('#archiveSenderId').text(item.senderId);
-            new bootstrap.Modal($('#archiveModal')[0]).show();
-        }
-    });
-
-    $('#btnConfirmArchive').on('click', function() {
-        var id = $('#archiveModal').data('id');
-        var item = senderIds.find(function(s) { return s.id === id; });
-        if (item) {
-            // Check immutability - archived records cannot be modified
-            if (item.isImmutable) {
-                if (typeof showErrorToast === 'function') {
-                    showErrorToast('This record is immutable and cannot be modified');
-                }
-                bootstrap.Modal.getInstance($('#archiveModal')[0]).hide();
-                return;
-            }
-
-            var now = new Date().toISOString();
-            var currentUser = { userId: 'usr_current', name: 'Current User' };
-            
-            // Update status and set immutability
-            item.status = 'archived';
-            item.isImmutable = true; // Record becomes immutable after archival
-            item.archivedAt = now;
-            item.archivedBy = currentUser;
-            item.updated = now;
-
-            // Add archive audit entry
-            item.auditHistory.unshift({
-                action: 'Archived',
-                user: currentUser.name,
-                userId: currentUser.userId,
-                timestamp: now,
-                auditType: 'archived',
-                ipAddress: '0.0.0.0' // TODO: Capture from request
-            });
-            
-            // Add immutability audit entry
-            item.auditHistory.unshift({
-                action: 'Record Locked',
-                user: 'System',
-                userId: 'system',
-                timestamp: now,
-                auditType: 'immutable',
-                note: 'Record is now immutable - no further changes permitted'
-            });
-
-            bootstrap.Modal.getInstance($('#archiveModal')[0]).hide();
-            closeDetailDrawer();
-            renderTable();
-            if (typeof showSuccessToast === 'function') {
-                showSuccessToast('SenderID archived and locked');
-            }
+        if (item && item.workflow_status === 'draft' && item.uuid) {
+            submitSenderIdForApproval(item);
         }
     });
 
     $(document).on('click', '#btnDetailSubmit', function(e) {
         e.preventDefault();
-        var id = selectedSenderId && selectedSenderId.id;
-        var item = senderIds.find(function(s) { return s.id === id; });
-        if (item && item.status === 'draft') {
-            // Check immutability
-            if (item.isImmutable) {
-                if (typeof showErrorToast === 'function') {
-                    showErrorToast('This record is immutable and cannot be modified');
-                }
-                return;
-            }
+        if (selectedSenderId && selectedSenderId.workflow_status === 'draft' && selectedSenderId.uuid) {
+            submitSenderIdForApproval(selectedSenderId);
+        }
+    });
 
-            var now = new Date().toISOString();
-            var currentUser = { userId: 'usr_current', name: 'Current User' };
-            
-            item.status = 'pending';
-            item.updated = now;
-            item.submittedAt = now;
-            item.submittedBy = currentUser;
-            
-            item.auditHistory.unshift({
-                action: 'Submitted for Approval',
-                user: currentUser.name,
-                userId: currentUser.userId,
-                timestamp: now,
-                auditType: 'submitted',
-                previousStatus: 'draft',
-                newStatus: 'pending',
-                ipAddress: '0.0.0.0'
-            });
-            closeDetailDrawer();
-            renderTable();
-            if (typeof showSuccessToast === 'function') {
-                showSuccessToast('SenderID submitted for approval');
+    function submitSenderIdForApproval(item) {
+        $.ajax({
+            url: '/api/sender-ids/' + item.uuid + '/submit',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(response) {
+                var updated = response.data || response;
+                var idx = senderIds.findIndex(function(s) { return s.id === item.id; });
+                if (idx !== -1) {
+                    senderIds[idx] = updated;
+                }
+                closeDetailDrawer();
+                renderTable();
+                if (typeof showSuccessToast === 'function') {
+                    showSuccessToast('SenderID submitted for approval');
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Failed to submit SenderID.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                if (typeof showErrorToast === 'function') {
+                    showErrorToast(msg);
+                } else {
+                    alert(msg);
+                }
+            }
+        });
+    }
+
+    $(document).on('click', '.btn-resubmit-row', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var item = senderIds.find(function(s) { return s.id === id; });
+        if (item && item.workflow_status === 'rejected' && item.uuid) {
+            resubmitSenderId(item);
+        }
+    });
+
+    $(document).on('click', '#btnDetailResubmit', function(e) {
+        e.preventDefault();
+        if (selectedSenderId && selectedSenderId.workflow_status === 'rejected' && selectedSenderId.uuid) {
+            resubmitSenderId(selectedSenderId);
+        }
+    });
+
+    function resubmitSenderId(item) {
+        $.ajax({
+            url: '/api/sender-ids/' + item.uuid + '/resubmit',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function(response) {
+                var updated = response.data || response;
+                var idx = senderIds.findIndex(function(s) { return s.id === item.id; });
+                if (idx !== -1) {
+                    senderIds[idx] = updated;
+                }
+                closeDetailDrawer();
+                renderTable();
+                if (typeof showSuccessToast === 'function') {
+                    showSuccessToast('SenderID re-submitted for approval');
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Failed to re-submit SenderID.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                if (typeof showErrorToast === 'function') {
+                    showErrorToast(msg);
+                } else {
+                    alert(msg);
+                }
+            }
+        });
+    }
+
+    $(document).on('click', '.btn-delete-row', function(e) {
+        e.preventDefault();
+        var id = $(this).data('id');
+        var item = senderIds.find(function(s) { return s.id === id; });
+        if (item && item.workflow_status === 'draft' && item.uuid) {
+            if (confirm('Are you sure you want to delete "' + item.sender_id_value + '"? This action cannot be undone.')) {
+                deleteSenderId(item);
             }
         }
     });
+
+    $(document).on('click', '#btnDetailDelete', function(e) {
+        e.preventDefault();
+        if (selectedSenderId && selectedSenderId.workflow_status === 'draft' && selectedSenderId.uuid) {
+            if (confirm('Are you sure you want to delete "' + selectedSenderId.sender_id_value + '"? This action cannot be undone.')) {
+                deleteSenderId(selectedSenderId);
+            }
+        }
+    });
+
+    function deleteSenderId(item) {
+        $.ajax({
+            url: '/api/sender-ids/' + item.uuid,
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            success: function() {
+                senderIds = senderIds.filter(function(s) { return s.id !== item.id; });
+                closeDetailDrawer();
+                renderTable();
+                if (typeof showSuccessToast === 'function') {
+                    showSuccessToast('SenderID deleted');
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Failed to delete SenderID.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                if (typeof showErrorToast === 'function') {
+                    showErrorToast(msg);
+                } else {
+                    alert(msg);
+                }
+            }
+        });
+    }
 
     $('#searchInput').on('input', function() {
         currentPage = 1;

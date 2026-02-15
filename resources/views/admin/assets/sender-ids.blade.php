@@ -219,19 +219,19 @@
 
     <div class="approval-queue-stats mb-3">
         <div class="approval-stat-card pending active" data-status="pending" onclick="filterByTile('pending')" style="cursor: pointer;">
-            <div class="stat-count" id="stat-pending">8</div>
+            <div class="stat-count" id="stat-pending">-</div>
             <div class="stat-label">Pending</div>
         </div>
         <div class="approval-stat-card approved" data-status="approved" onclick="filterByTile('approved')" style="cursor: pointer;">
-            <div class="stat-count" id="stat-approved">1,847</div>
+            <div class="stat-count" id="stat-approved">-</div>
             <div class="stat-label">Approved</div>
         </div>
         <div class="approval-stat-card rejected" data-status="rejected" onclick="filterByTile('rejected')" style="cursor: pointer;">
-            <div class="stat-count" id="stat-rejected">56</div>
+            <div class="stat-count" id="stat-rejected">-</div>
             <div class="stat-label">Rejected</div>
         </div>
         <div class="approval-stat-card total" data-status="all" onclick="filterByTile('all')" style="cursor: pointer;">
-            <div class="stat-count" id="stat-total">1,914</div>
+            <div class="stat-count" id="stat-total">-</div>
             <div class="stat-label">Total</div>
         </div>
     </div>
@@ -284,251 +284,11 @@
                     </tr>
                 </thead>
                 <tbody id="approvalQueueBody">
-                    <tr data-item-id="SID-001" data-status="pending">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('SID-001')"></td>
-                        <td>
-                            <div class="approval-item-name">ALERTS24</div>
-                            <div class="approval-item-id">SID-001</div>
-                        </td>
-                        <td><span class="senderid-type-badge alphanumeric">Alphanumeric</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-avatar">AC</div>
-                                <div class="account-info">
-                                    <div class="account-name">Acme Corporation</div>
-                                    <div class="account-id">ACC-1234</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 20, 2026</span><br>
-                                2 hours ago
-                            </div>
-                        </td>
-                        <td><span class="use-case-text" title="Transactional alerts and notifications">Transactional alerts and notifications</span></td>
-                        <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="goToDetail('SID-001')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="SID-002" data-status="pending">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('SID-002')"></td>
-                        <td>
-                            <div class="approval-item-name">MYBANK</div>
-                            <div class="approval-item-id">SID-002</div>
-                        </td>
-                        <td><span class="senderid-type-badge alphanumeric">Alphanumeric</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-avatar">FL</div>
-                                <div class="account-info">
-                                    <div class="account-name">Finance Ltd</div>
-                                    <div class="account-id">ACC-5678</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 20, 2026</span><br>
-                                4 hours ago
-                            </div>
-                        </td>
-                        <td><span class="use-case-text" title="OTP and security codes">OTP and security codes</span></td>
-                        <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="goToDetail('SID-002')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="SID-003" data-status="pending">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('SID-003')"></td>
-                        <td>
-                            <div class="approval-item-name">PROMO</div>
-                            <div class="approval-item-id">SID-003</div>
-                        </td>
-                        <td><span class="senderid-type-badge alphanumeric">Alphanumeric</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-avatar">RC</div>
-                                <div class="account-info">
-                                    <div class="account-name">RetailMax Group</div>
-                                    <div class="account-id">ACC-4001</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 19, 2026</span><br>
-                                1 day ago
-                            </div>
-                        </td>
-                        <td><span class="use-case-text" title="Marketing campaigns and promotional offers">Marketing campaigns and promotional offers</span></td>
-                        <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="goToDetail('SID-003')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="SID-004" data-status="pending">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('SID-004')"></td>
-                        <td>
-                            <div class="approval-item-name">HEALTHNOW</div>
-                            <div class="approval-item-id">SID-004</div>
-                        </td>
-                        <td><span class="senderid-type-badge alphanumeric">Alphanumeric</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-avatar">HP</div>
-                                <div class="account-info">
-                                    <div class="account-name">HealthPlus Care</div>
-                                    <div class="account-id">ACC-4005</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 19, 2026</span><br>
-                                1 day ago
-                            </div>
-                        </td>
-                        <td><span class="use-case-text" title="Appointment reminders and health alerts">Appointment reminders and health alerts</span></td>
-                        <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="goToDetail('SID-004')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="SID-005" data-status="pending">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('SID-005')"></td>
-                        <td>
-                            <div class="approval-item-name">447700</div>
-                            <div class="approval-item-id">SID-005</div>
-                        </td>
-                        <td><span class="senderid-type-badge numeric">Numeric</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-avatar">TS</div>
-                                <div class="account-info">
-                                    <div class="account-name">TechStartup Inc</div>
-                                    <div class="account-id">ACC-4008</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 18, 2026</span><br>
-                                2 days ago
-                            </div>
-                        </td>
-                        <td><span class="use-case-text" title="Two-way SMS communications">Two-way SMS communications</span></td>
-                        <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="goToDetail('SID-005')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="SID-006" data-status="pending">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('SID-006')"></td>
-                        <td>
-                            <div class="approval-item-name">88099</div>
-                            <div class="approval-item-id">SID-006</div>
-                        </td>
-                        <td><span class="senderid-type-badge shortcode">Shortcode</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-avatar">FD</div>
-                                <div class="account-info">
-                                    <div class="account-name">FoodDelivery Pro</div>
-                                    <div class="account-id">ACC-4009</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 18, 2026</span><br>
-                                2 days ago
-                            </div>
-                        </td>
-                        <td><span class="use-case-text" title="Order confirmations and delivery updates">Order confirmations and delivery updates</span></td>
-                        <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="goToDetail('SID-006')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="SID-007" data-status="pending">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('SID-007')"></td>
-                        <td>
-                            <div class="approval-item-name">EDULEARN</div>
-                            <div class="approval-item-id">SID-007</div>
-                        </td>
-                        <td><span class="senderid-type-badge alphanumeric">Alphanumeric</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-avatar">EA</div>
-                                <div class="account-info">
-                                    <div class="account-name">EduLearn Academy</div>
-                                    <div class="account-id">ACC-4006</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 17, 2026</span><br>
-                                3 days ago
-                            </div>
-                        </td>
-                        <td><span class="use-case-text" title="Course notifications and schedule reminders">Course notifications and schedule reminders</span></td>
-                        <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="goToDetail('SID-007')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="SID-008" data-status="pending">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('SID-008')"></td>
-                        <td>
-                            <div class="approval-item-name">SECUREBK</div>
-                            <div class="approval-item-id">SID-008</div>
-                        </td>
-                        <td><span class="senderid-type-badge alphanumeric">Alphanumeric</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-avatar">SB</div>
-                                <div class="account-info">
-                                    <div class="account-name">SecureBank Financial</div>
-                                    <div class="account-id">ACC-4012</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 17, 2026</span><br>
-                                3 days ago
-                            </div>
-                        </td>
-                        <td><span class="use-case-text" title="Fraud alerts and transaction notifications">Fraud alerts and transaction notifications</span></td>
-                        <td><span class="approval-status-badge pending"><i class="fas fa-clock"></i> Pending</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="goToDetail('SID-008')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
         <div class="card-footer d-flex justify-content-between align-items-center">
-            <span class="text-muted small">Showing 1-8 of 8 pending items</span>
+            <span class="text-muted small">Loading...</span>
             <nav>
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
@@ -739,75 +499,312 @@
 
 @push('scripts')
 <script>
+var csrfToken = $('meta[name="csrf-token"]').attr('content');
+var currentPage = 1;
+var currentFilterStatus = '';
+var currentFilterType = '';
+var currentFilterAccount = '';
+var currentSearchQuery = '';
+var currentRejectItem = null;
+var currentRejectItemUuid = null;
+var selectedItems = [];
+var allLoadedItems = [];
+
+function ajaxHeaders() {
+    return { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[SenderID Approvals] Initializing...');
     
     if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.ApprovalFramework.init('SENDERID');
+        if (AdminControlPlane.ApprovalFramework) {
+            AdminControlPlane.ApprovalFramework.init('SENDERID');
+        }
+        AdminControlPlane.logAdminAction('PAGE_VIEW', 'sender-id-approvals', {
+            module: 'messaging_assets'
+        });
     }
 
-    AdminControlPlane.logAdminAction('PAGE_VIEW', 'sender-id-approvals', {
-        module: 'messaging_assets'
-    });
+    loadSenderIds();
+    loadStatCounts();
 });
 
-var currentRejectItem = null;
-var selectedItems = [];
+function loadSenderIds() {
+    var params = { page: currentPage, per_page: 20 };
+    if (currentFilterStatus && currentFilterStatus !== 'all') {
+        params.status = currentFilterStatus;
+    }
+    if (currentFilterType) {
+        params.sender_type = currentFilterType;
+    }
+    if (currentFilterAccount) {
+        params.account_id = currentFilterAccount;
+    }
 
-function applyFilters() {
-    var status = document.getElementById('filterStatus').value;
-    var type = document.getElementById('filterType').value;
-    var account = document.getElementById('filterAccount').value;
-    var search = document.getElementById('searchInput').value.toLowerCase();
+    var tbody = document.getElementById('approvalQueueBody');
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading...</td></tr>';
 
-    document.querySelectorAll('.api-table tbody tr').forEach(function(row) {
-        var show = true;
-
-        if (status !== 'all' && row.dataset.status !== status) {
-            show = false;
+    $.ajax({
+        url: '/admin/api/sender-ids',
+        method: 'GET',
+        data: params,
+        headers: ajaxHeaders(),
+        success: function(response) {
+            if (response.success && response.data) {
+                var paginator = response.data;
+                var items = paginator.data || [];
+                allLoadedItems = items;
+                renderTableRows(items);
+                renderPagination(paginator);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No sender IDs found.</td></tr>';
+            }
+        },
+        error: function(xhr) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-danger">Failed to load data. Please try again.</td></tr>';
+            console.error('[SenderID] Load error:', xhr.responseText);
         }
+    });
+}
 
-        if (type && !row.querySelector('.senderid-type-badge').classList.contains(type)) {
-            show = false;
-        }
+function loadStatCounts() {
+    var statuses = ['submitted', 'approved', 'rejected'];
+    var totalCount = 0;
 
-        if (account && row.querySelector('.account-id').textContent !== account) {
-            show = false;
-        }
+    statuses.forEach(function(status) {
+        $.ajax({
+            url: '/admin/api/sender-ids',
+            method: 'GET',
+            data: { status: status, per_page: 1 },
+            headers: ajaxHeaders(),
+            success: function(response) {
+                if (response.success && response.data) {
+                    var count = response.data.total || 0;
+                    if (status === 'submitted') {
+                        document.getElementById('stat-pending').textContent = count.toLocaleString();
+                    } else if (status === 'approved') {
+                        document.getElementById('stat-approved').textContent = count.toLocaleString();
+                    } else if (status === 'rejected') {
+                        document.getElementById('stat-rejected').textContent = count.toLocaleString();
+                    }
+                }
+            }
+        });
+    });
 
-        if (search) {
-            var name = row.querySelector('.approval-item-name').textContent.toLowerCase();
-            if (name.indexOf(search) === -1) {
-                show = false;
+    $.ajax({
+        url: '/admin/api/sender-ids',
+        method: 'GET',
+        data: { per_page: 1 },
+        headers: ajaxHeaders(),
+        success: function(response) {
+            if (response.success && response.data) {
+                document.getElementById('stat-total').textContent = (response.data.total || 0).toLocaleString();
             }
         }
+    });
+}
 
-        row.style.display = show ? '' : 'none';
+function renderTableRows(items) {
+    var tbody = document.getElementById('approvalQueueBody');
+
+    if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No sender IDs found matching your filters.</td></tr>';
+        return;
+    }
+
+    var html = '';
+    items.forEach(function(item) {
+        var uuid = item.uuid || '';
+        var senderIdValue = item.sender_id_value || '';
+        var senderType = item.sender_type || '';
+        var typeLower = senderType.toLowerCase();
+        var typeLabel = senderType.charAt(0).toUpperCase() + senderType.slice(1).toLowerCase();
+        var workflowStatus = item.workflow_status || '';
+        var brandName = item.brand_name || '';
+        var useCase = item.use_case_description || item.use_case || '';
+        var submittedAt = item.submitted_at ? new Date(item.submitted_at) : (item.created_at ? new Date(item.created_at) : null);
+        var accountName = (item.account && item.account.company_name) ? item.account.company_name : (item.account_id || '');
+        var accountNumber = (item.account && item.account.account_number) ? item.account.account_number : '';
+        var accountInitials = accountName ? accountName.split(' ').map(function(w) { return w.charAt(0); }).join('').substring(0, 2).toUpperCase() : 'NA';
+
+        var dateStr = '';
+        var timeAgo = '';
+        if (submittedAt) {
+            dateStr = submittedAt.toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' });
+            timeAgo = getTimeAgo(submittedAt);
+        }
+
+        var statusBadge = getStatusBadge(workflowStatus);
+        var actionButtons = getActionButtons(uuid, workflowStatus);
+
+        html += '<tr data-item-id="' + uuid + '" data-status="' + workflowStatus + '">';
+        html += '<td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect(\'' + uuid + '\')"></td>';
+        html += '<td>';
+        html += '<div class="approval-item-name">' + escapeHtml(senderIdValue) + '</div>';
+        html += '<div class="approval-item-id">' + escapeHtml(uuid.substring(0, 8)) + '</div>';
+        html += '</td>';
+        html += '<td><span class="senderid-type-badge ' + escapeHtml(typeLower) + '">' + escapeHtml(typeLabel) + '</span></td>';
+        html += '<td>';
+        html += '<div class="approval-item-account">';
+        html += '<div class="account-avatar">' + escapeHtml(accountInitials) + '</div>';
+        html += '<div class="account-info">';
+        html += '<div class="account-name">' + escapeHtml(accountName) + '</div>';
+        html += '<div class="account-id">' + escapeHtml(accountNumber) + '</div>';
+        html += '</div></div>';
+        html += '</td>';
+        html += '<td>';
+        html += '<div class="submitted-time">';
+        html += '<span class="date">' + escapeHtml(dateStr) + '</span><br>';
+        html += escapeHtml(timeAgo);
+        html += '</div>';
+        html += '</td>';
+        html += '<td><span class="use-case-text" title="' + escapeHtml(useCase) + '">' + escapeHtml(useCase) + '</span></td>';
+        html += '<td>' + statusBadge + '</td>';
+        html += '<td><div class="approval-quick-actions">' + actionButtons + '</div></td>';
+        html += '</tr>';
     });
 
-    updateVisibleCount();
+    tbody.innerHTML = html;
+}
+
+function getStatusBadge(status) {
+    var map = {
+        'draft': { icon: 'fa-pencil-alt', label: 'Draft', cls: 'pending' },
+        'submitted': { icon: 'fa-clock', label: 'Submitted', cls: 'pending' },
+        'in_review': { icon: 'fa-search', label: 'In Review', cls: 'pending' },
+        'pending_info': { icon: 'fa-question-circle', label: 'Info Requested', cls: 'pending' },
+        'info_provided': { icon: 'fa-reply', label: 'Info Provided', cls: 'pending' },
+        'approved': { icon: 'fa-check-circle', label: 'Approved', cls: 'approved' },
+        'rejected': { icon: 'fa-times-circle', label: 'Rejected', cls: 'rejected' },
+        'suspended': { icon: 'fa-pause-circle', label: 'Suspended', cls: 'rejected' },
+        'revoked': { icon: 'fa-ban', label: 'Revoked', cls: 'rejected' }
+    };
+    var info = map[status] || { icon: 'fa-question', label: status, cls: 'pending' };
+    return '<span class="approval-status-badge ' + info.cls + '"><i class="fas ' + info.icon + '"></i> ' + info.label + '</span>';
+}
+
+function getActionButtons(uuid, status) {
+    if (status === 'submitted' || status === 'in_review' || status === 'pending_info' || status === 'info_provided') {
+        return '<button class="approval-action-btn review" onclick="goToDetail(\'' + uuid + '\')">Review</button>';
+    }
+    return '<button class="approval-action-btn review" onclick="goToDetail(\'' + uuid + '\')">View</button>';
+}
+
+function renderPagination(paginator) {
+    var current = paginator.current_page || 1;
+    var last = paginator.last_page || 1;
+    var total = paginator.total || 0;
+    var perPage = paginator.per_page || 20;
+    var from = ((current - 1) * perPage) + 1;
+    var to = Math.min(current * perPage, total);
+
+    document.querySelector('.card-footer .text-muted').textContent = 'Showing ' + (total > 0 ? from : 0) + '-' + to + ' of ' + total + ' items';
+
+    var paginationHtml = '';
+    paginationHtml += '<li class="page-item ' + (current <= 1 ? 'disabled' : '') + '"><a class="page-link" href="#" onclick="goToPage(' + (current - 1) + '); return false;">Previous</a></li>';
     
-    AdminControlPlane.logAdminAction('FILTER_APPLIED', 'sender-id-queue', {
-        status: status,
-        type: type,
-        account: account,
-        search: search
-    });
+    var startPage = Math.max(1, current - 2);
+    var endPage = Math.min(last, current + 2);
+    for (var i = startPage; i <= endPage; i++) {
+        paginationHtml += '<li class="page-item ' + (i === current ? 'active' : '') + '"><a class="page-link" href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a></li>';
+    }
+    
+    paginationHtml += '<li class="page-item ' + (current >= last ? 'disabled' : '') + '"><a class="page-link" href="#" onclick="goToPage(' + (current + 1) + '); return false;">Next</a></li>';
+
+    document.querySelector('.card-footer .pagination').innerHTML = paginationHtml;
+}
+
+function goToPage(page) {
+    if (page < 1) return;
+    currentPage = page;
+    loadSenderIds();
+}
+
+function getTimeAgo(date) {
+    var now = new Date();
+    var diffMs = now - date;
+    var diffMins = Math.floor(diffMs / 60000);
+    var diffHours = Math.floor(diffMs / 3600000);
+    var diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return diffMins + ' min ago';
+    if (diffHours < 24) return diffHours + ' hours ago';
+    if (diffDays === 1) return '1 day ago';
+    return diffDays + ' days ago';
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+function applyFilters() {
+    var statusCheckboxes = document.querySelectorAll('[data-filter="statuses"] .form-check-input:checked');
+    var typeCheckboxes = document.querySelectorAll('[data-filter="types"] .form-check-input:checked');
+    
+    var statuses = [];
+    statusCheckboxes.forEach(function(cb) { statuses.push(cb.value.toLowerCase()); });
+    
+    var types = [];
+    typeCheckboxes.forEach(function(cb) { types.push(cb.value.toUpperCase()); });
+    
+    currentFilterStatus = statuses.length === 1 ? statuses[0] : (statuses.length > 1 ? statuses[0] : '');
+    currentFilterType = types.length === 1 ? types[0] : '';
+    currentFilterAccount = document.getElementById('filterAccount').value;
+    currentSearchQuery = document.getElementById('quickSearchInput').value;
+    currentPage = 1;
+
+    loadSenderIds();
+
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('FILTER_APPLIED', 'sender-id-queue', {
+            status: currentFilterStatus,
+            type: currentFilterType,
+            account: currentFilterAccount,
+            search: currentSearchQuery
+        });
+    }
 }
 
 function clearFilters() {
-    document.getElementById('filterStatus').value = 'pending';
-    document.getElementById('filterType').value = '';
+    document.querySelectorAll('.multiselect-dropdown .form-check-input').forEach(function(cb) { cb.checked = false; });
     document.getElementById('filterAccount').value = '';
-    document.getElementById('searchInput').value = '';
-    applyFilters();
+    document.getElementById('quickSearchInput').value = '';
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
+    currentFilterStatus = '';
+    currentFilterType = '';
+    currentFilterAccount = '';
+    currentSearchQuery = '';
+    currentPage = 1;
+    loadSenderIds();
 }
 
-function updateVisibleCount() {
-    var visible = document.querySelectorAll('.api-table tbody tr:not([style*="display: none"])').length;
-    var total = document.querySelectorAll('.api-table tbody tr').length;
-    document.querySelector('.card-footer .text-muted').textContent = 'Showing 1-' + visible + ' of ' + visible + ' items';
-}
+document.addEventListener('DOMContentLoaded', function() {
+    var applyBtn = document.getElementById('btnApplyFilters');
+    if (applyBtn) applyBtn.addEventListener('click', applyFilters);
+    
+    var resetBtn = document.getElementById('btnResetFilters');
+    if (resetBtn) resetBtn.addEventListener('click', clearFilters);
+
+    var searchInput = document.getElementById('quickSearchInput');
+    if (searchInput) {
+        var searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                currentSearchQuery = searchInput.value;
+                currentPage = 1;
+                loadSenderIds();
+            }, 400);
+        });
+    }
+});
 
 function toggleSelectAll() {
     var checked = document.getElementById('selectAllCheckbox').checked;
@@ -851,15 +848,6 @@ function clearSelection() {
 }
 
 function filterByTile(status) {
-    // Update the dropdown
-    var dropdown = document.getElementById('filterStatus');
-    if (status === 'all') {
-        dropdown.value = 'all';
-    } else {
-        dropdown.value = status;
-    }
-    
-    // Update active tile
     document.querySelectorAll('.approval-stat-card').forEach(function(card) {
         card.classList.remove('active');
     });
@@ -867,37 +855,59 @@ function filterByTile(status) {
     if (activeCard) {
         activeCard.classList.add('active');
     }
-    
-    // Apply filters
-    applyFilters();
+
+    if (status === 'all') {
+        currentFilterStatus = '';
+    } else if (status === 'pending') {
+        currentFilterStatus = 'submitted';
+    } else {
+        currentFilterStatus = status;
+    }
+    currentPage = 1;
+    loadSenderIds();
 }
 
-function goToDetail(itemId) {
-    window.location.href = '/admin/assets/sender-ids/' + itemId;
+function goToDetail(uuid) {
+    window.location.href = '/admin/assets/sender-ids/' + uuid;
 }
 
-function quickApprove(itemId) {
-    if (confirm('Approve Sender ID ' + itemId + '?')) {
-        var result = AdminControlPlane.approveItem('SENDERID', itemId, '');
-        if (result.success) {
-            updateRowStatus(itemId, 'approved');
-            showToast('Sender ID approved successfully', 'success');
-        }
+function quickApprove(uuid) {
+    if (confirm('Approve this Sender ID?')) {
+        $.ajax({
+            url: '/admin/api/sender-ids/' + uuid + '/approve',
+            method: 'POST',
+            headers: ajaxHeaders(),
+            data: JSON.stringify({ notes: '' }),
+            success: function(response) {
+                if (response.success) {
+                    showToast('Sender ID approved successfully', 'success');
+                    loadSenderIds();
+                    loadStatCounts();
+                } else {
+                    showToast(response.error || 'Failed to approve', 'error');
+                }
+            },
+            error: function(xhr) {
+                var msg = 'Failed to approve';
+                try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+                showToast(msg, 'error');
+            }
+        });
     }
 }
 
-function showRejectModal(itemId) {
-    currentRejectItem = itemId;
-    var row = document.querySelector('[data-item-id="' + itemId + '"]');
-    var name = row.querySelector('.approval-item-name').textContent;
+function showRejectModal(uuid) {
+    currentRejectItemUuid = uuid;
+    var row = document.querySelector('[data-item-id="' + uuid + '"]');
+    var name = row ? row.querySelector('.approval-item-name').textContent : uuid;
     document.getElementById('rejectItemName').textContent = name;
     document.getElementById('rejectReason').value = '';
     new bootstrap.Modal(document.getElementById('rejectModal')).show();
 }
 
 function showRejectModalFromDrawer() {
-    var itemId = document.getElementById('drawerRequestId').textContent;
-    showRejectModal(itemId);
+    var uuid = document.getElementById('drawerRequestId').textContent;
+    showRejectModal(uuid);
 }
 
 function useRejectTemplate(el) {
@@ -913,99 +923,135 @@ function confirmReject() {
         return;
     }
 
-    var result = AdminControlPlane.rejectItem('SENDERID', currentRejectItem, reason);
-    if (result.success) {
-        updateRowStatus(currentRejectItem, 'rejected');
-        bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
-        closeDrawer();
-        showToast('Sender ID rejected', 'warning');
-    } else {
-        alert(result.error);
+    var uuid = currentRejectItemUuid;
+    if (uuid === 'BULK') {
+        bulkRejectConfirm(reason);
+        return;
     }
+
+    $.ajax({
+        url: '/admin/api/sender-ids/' + uuid + '/reject',
+        method: 'POST',
+        headers: ajaxHeaders(),
+        data: JSON.stringify({ reason: reason }),
+        success: function(response) {
+            if (response.success) {
+                bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+                closeDrawer();
+                showToast('Sender ID rejected', 'warning');
+                loadSenderIds();
+                loadStatCounts();
+            } else {
+                alert(response.error || 'Failed to reject');
+            }
+        },
+        error: function(xhr) {
+            var msg = 'Failed to reject';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            alert(msg);
+        }
+    });
 }
 
 function approveFromDrawer() {
-    var itemId = document.getElementById('drawerRequestId').textContent;
+    var uuid = document.getElementById('drawerRequestId').textContent;
     var notes = document.getElementById('drawerNotes').value;
     
-    var result = AdminControlPlane.approveItem('SENDERID', itemId, notes);
-    if (result.success) {
-        updateRowStatus(itemId, 'approved');
-        closeDrawer();
-        showToast('Sender ID approved successfully', 'success');
-    }
-}
-
-function updateRowStatus(itemId, newStatus) {
-    var row = document.querySelector('[data-item-id="' + itemId + '"]');
-    if (row) {
-        row.dataset.status = newStatus;
-        var badge = row.querySelector('.approval-status-badge');
-        badge.className = 'approval-status-badge ' + newStatus;
-        
-        var icons = {
-            approved: '<i class="fas fa-check-circle"></i>',
-            rejected: '<i class="fas fa-times-circle"></i>',
-            pending: '<i class="fas fa-clock"></i>'
-        };
-        var labels = {
-            approved: 'Approved',
-            rejected: 'Rejected',
-            pending: 'Pending'
-        };
-        badge.innerHTML = icons[newStatus] + ' ' + labels[newStatus];
-
-        var actions = row.querySelector('.approval-quick-actions');
-        if (newStatus === 'approved' || newStatus === 'rejected') {
-            actions.innerHTML = '<span class="text-muted small">Completed</span>';
-        }
-    }
-    updateStatCounts();
-}
-
-function updateStatCounts() {
-    var counts = { pending: 0, approved: 0, rejected: 0 };
-    document.querySelectorAll('.api-table tbody tr').forEach(function(row) {
-        var status = row.dataset.status;
-        if (counts.hasOwnProperty(status)) {
-            counts[status]++;
+    $.ajax({
+        url: '/admin/api/sender-ids/' + uuid + '/approve',
+        method: 'POST',
+        headers: ajaxHeaders(),
+        data: JSON.stringify({ notes: notes }),
+        success: function(response) {
+            if (response.success) {
+                closeDrawer();
+                showToast('Sender ID approved successfully', 'success');
+                loadSenderIds();
+                loadStatCounts();
+            }
+        },
+        error: function(xhr) {
+            var msg = 'Failed to approve';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            showToast(msg, 'error');
         }
     });
-    
-    document.getElementById('stat-pending').textContent = counts.pending;
-    document.getElementById('stat-approved').textContent = (1839 + counts.approved).toLocaleString();
-    document.getElementById('stat-rejected').textContent = (48 + counts.rejected);
 }
 
 function closeDrawer() {
-    document.querySelector('.approval-drawer').classList.remove('open');
-    document.querySelector('.approval-drawer-overlay').classList.remove('open');
+    var drawer = document.querySelector('.approval-drawer');
+    var overlay = document.querySelector('.approval-drawer-overlay');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
     document.body.style.overflow = '';
 }
 
 function bulkApprove() {
-    if (confirm('Approve ' + selectedItems.length + ' items?')) {
-        selectedItems.forEach(function(id) {
-            AdminControlPlane.approveItem('SENDERID', id, 'Bulk approval');
-            updateRowStatus(id, 'approved');
+    if (selectedItems.length === 0) return;
+    if (!confirm('Approve ' + selectedItems.length + ' items?')) return;
+
+    var completed = 0;
+    var errors = 0;
+    selectedItems.forEach(function(uuid) {
+        $.ajax({
+            url: '/admin/api/sender-ids/' + uuid + '/approve',
+            method: 'POST',
+            headers: ajaxHeaders(),
+            data: JSON.stringify({ notes: 'Bulk approval' }),
+            success: function() { completed++; checkBulkDone(); },
+            error: function() { errors++; completed++; checkBulkDone(); }
         });
-        clearSelection();
-        showToast(selectedItems.length + ' items approved', 'success');
+    });
+
+    function checkBulkDone() {
+        if (completed === selectedItems.length) {
+            clearSelection();
+            showToast((completed - errors) + ' items approved' + (errors > 0 ? ', ' + errors + ' failed' : ''), errors > 0 ? 'warning' : 'success');
+            loadSenderIds();
+            loadStatCounts();
+        }
+    }
+}
+
+function bulkRejectConfirm(reason) {
+    var completed = 0;
+    var errors = 0;
+    selectedItems.forEach(function(uuid) {
+        $.ajax({
+            url: '/admin/api/sender-ids/' + uuid + '/reject',
+            method: 'POST',
+            headers: ajaxHeaders(),
+            data: JSON.stringify({ reason: reason }),
+            success: function() { completed++; checkBulkDone(); },
+            error: function() { errors++; completed++; checkBulkDone(); }
+        });
+    });
+
+    function checkBulkDone() {
+        if (completed === selectedItems.length) {
+            bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+            clearSelection();
+            showToast((completed - errors) + ' items rejected' + (errors > 0 ? ', ' + errors + ' failed' : ''), errors > 0 ? 'warning' : 'success');
+            loadSenderIds();
+            loadStatCounts();
+        }
     }
 }
 
 function showBulkRejectModal() {
-    currentRejectItem = 'BULK';
+    currentRejectItemUuid = 'BULK';
     document.getElementById('rejectItemName').textContent = selectedItems.length + ' items';
     document.getElementById('rejectReason').value = '';
     new bootstrap.Modal(document.getElementById('rejectModal')).show();
 }
 
 function exportQueue(format) {
-    AdminControlPlane.logAdminAction('EXPORT_INITIATED', 'sender-id-queue', {
-        format: format,
-        count: document.querySelectorAll('.api-table tbody tr').length
-    });
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('EXPORT_INITIATED', 'sender-id-queue', {
+            format: format,
+            count: allLoadedItems.length
+        });
+    }
     showToast('Export started...', 'info');
 }
 

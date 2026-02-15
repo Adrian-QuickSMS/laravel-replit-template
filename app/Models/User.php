@@ -39,6 +39,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'tenant_id',
+        'sub_account_id',
         'user_type',
         'email',
         'password',
@@ -71,6 +72,7 @@ class User extends Authenticatable
     protected $casts = [
         'id' => 'string',
         'tenant_id' => 'string',
+        'sub_account_id' => 'string',
         'email_verified_at' => 'datetime',
         'mobile_verified_at' => 'datetime',
         'mobile_verification_expires_at' => 'datetime',
@@ -144,6 +146,16 @@ class User extends Authenticatable
     public function passwordHistory(): HasMany
     {
         return $this->hasMany(PasswordHistory::class, 'user_id');
+    }
+
+    public function subAccount(): BelongsTo
+    {
+        return $this->belongsTo(SubAccount::class, 'sub_account_id');
+    }
+
+    public function senderIdAssignments(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(SenderIdAssignment::class, 'assignable');
     }
 
     // =====================================================

@@ -3,9 +3,34 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\SenderId;
 
 class QuickSMSController extends Controller
 {
+    private function getApprovedSenderIds(): array
+    {
+        $tenantId = session('customer_tenant_id');
+        if (!$tenantId) {
+            return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
+        }
+
+        $senderIds = SenderId::where('account_id', $tenantId)
+            ->where('workflow_status', 'approved')
+            ->orderByDesc('is_default')
+            ->orderBy('sender_id_value')
+            ->get();
+
+        if ($senderIds->isEmpty()) {
+            return [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']];
+        }
+
+        return $senderIds->map(fn($s) => [
+            'id' => $s->id,
+            'name' => $s->sender_id_value,
+            'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
+        ])->toArray();
+    }
+
     public function login()
     {
         // If already logged in, redirect to dashboard
@@ -254,17 +279,9 @@ class QuickSMSController extends Controller
 
     public function sendMessage()
     {
-        // TODO: Replace with database query - GET /api/sender-ids
-        $sender_ids = [
-            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
-            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
-            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
-        ];
+        $sender_ids = $this->getApprovedSenderIds();
 
         // TODO: Replace with database query - GET /api/rcs-agents?status=approved
-        // Only approved RCS agents are selectable in Send Message, Inbox, and RCS Wizard
-        // Status lifecycle: Draft -> Submitted -> In Review -> Approved/Rejected
-        // Draft/Rejected: editable | Submitted/In Review: locked | Approved: selectable across platform
         $rcs_agents = [
             ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
             ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
@@ -437,13 +454,7 @@ class QuickSMSController extends Controller
 
     public function inbox()
     {
-        $sender_ids = [
-            ['id' => 'sid_1', 'name' => 'QuickSMS', 'type' => 'Alpha'],
-            ['id' => 'sid_2', 'name' => 'Alerts', 'type' => 'Alpha'],
-            ['id' => 'sid_3', 'name' => '+447700900100', 'type' => 'VMN'],
-            ['id' => 'sid_4', 'name' => '60777', 'type' => 'Shortcode'],
-            ['id' => 'sid_5', 'name' => '82345', 'type' => 'Shortcode'],
-        ];
+        $sender_ids = $this->getApprovedSenderIds();
 
         // TODO: Replace with database query - GET /api/rcs-agents?status=approved
         // Only approved RCS agents are selectable in Inbox compose
@@ -1868,32 +1879,11 @@ class QuickSMSController extends Controller
         ]);
     }
 
-    public function smsSenderIdRegistration()
-    {
-        return view('quicksms.management.sms-sender-id', [
-            'page_title' => 'SMS SenderID Registration'
-        ]);
-    }
-
-    public function smsSenderIdRegister()
-    {
-        return view('quicksms.management.sms-sender-id-wizard', [
-            'page_title' => 'Register SenderID'
-        ]);
-    }
-
     public function templates()
     {
-        // TODO: Replace with database query - GET /api/sender-ids
-        $sender_ids = [
-            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
-            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
-            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
-        ];
+        $sender_ids = $this->getApprovedSenderIds();
 
         // TODO: Replace with database query - GET /api/rcs-agents?status=approved
-        // Only approved RCS agents are selectable in Template wizard
-        // Status lifecycle: Draft -> Submitted -> In Review -> Approved/Rejected
         $rcs_agents = [
             ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
             ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
@@ -1940,11 +1930,7 @@ class QuickSMSController extends Controller
 
     public function templateCreateStep2()
     {
-        $sender_ids = [
-            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
-            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
-            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
-        ];
+        $sender_ids = $this->getApprovedSenderIds();
 
         $rcs_agents = [
             ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
@@ -2018,11 +2004,7 @@ class QuickSMSController extends Controller
 
     public function templateEditStep2($templateId)
     {
-        $sender_ids = [
-            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
-            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
-            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
-        ];
+        $sender_ids = $this->getApprovedSenderIds();
 
         $rcs_agents = [
             ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
@@ -2116,11 +2098,19 @@ class QuickSMSController extends Controller
 
     public function adminTemplateEditStep2($accountId, $templateId)
     {
-        $sender_ids = [
-            ['id' => 1, 'name' => 'QuickSMS', 'type' => 'alphanumeric'],
-            ['id' => 2, 'name' => 'ALERTS', 'type' => 'alphanumeric'],
-            ['id' => 3, 'name' => '+447700900100', 'type' => 'numeric'],
-        ];
+        $approvedIds = SenderId::where('account_id', $accountId)
+            ->where('workflow_status', 'approved')
+            ->orderByDesc('is_default')
+            ->orderBy('sender_id_value')
+            ->get();
+
+        $sender_ids = $approvedIds->isEmpty()
+            ? [['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric']]
+            : $approvedIds->map(fn($s) => [
+                'id' => $s->id,
+                'name' => $s->sender_id_value,
+                'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
+            ])->toArray();
 
         $rcs_agents = [
             ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
