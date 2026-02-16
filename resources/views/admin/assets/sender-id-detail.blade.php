@@ -1555,15 +1555,104 @@ function renderCommentThread(comments) {
 }
 
 function returnToCustomer() {
-    var notes = prompt('What information do you need from the customer?');
-    if (!notes || notes.trim().length < 5) {
-        alert('Please provide details about what information is needed (min 5 characters).');
+    var rejectPanel = document.getElementById('rejectModalInline');
+    if (rejectPanel) rejectPanel.style.display = 'none';
+
+    var panel = document.getElementById('returnToCustomerPanel');
+    if (panel) {
+        var textarea = document.getElementById('returnInfoText');
+        if (textarea) {
+            textarea.value = '';
+            textarea.classList.remove('is-invalid');
+        }
+        var charCount = document.getElementById('returnInfoCharCount');
+        if (charCount) charCount.textContent = '0';
+        var validation = document.getElementById('returnInfoValidation');
+        if (validation) validation.style.display = 'none';
+
+        panel.style.display = '';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        if (textarea) {
+            textarea.addEventListener('input', function() {
+                var count = this.value.length;
+                var charEl = document.getElementById('returnInfoCharCount');
+                if (charEl) charEl.textContent = count.toLocaleString();
+                if (count >= 5) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        }
+    }
+}
+
+function closeReturnPanel() {
+    var panel = document.getElementById('returnToCustomerPanel');
+    if (panel) panel.style.display = 'none';
+}
+
+function confirmReturnToCustomer() {
+    var textarea = document.getElementById('returnInfoText');
+    var notes = textarea ? textarea.value.trim() : '';
+
+    if (!notes || notes.length < 5) {
+        if (textarea) textarea.classList.add('is-invalid');
+        var validation = document.getElementById('returnInfoValidation');
+        if (validation) validation.style.display = 'block';
         return;
     }
-    performAction('request-info', { notes: notes.trim() }, 'Information request sent to customer.');
+
+    var btn = document.getElementById('btnConfirmReturn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending...';
+    }
+
+    $.ajax({
+        url: '/admin/api/sender-ids/' + senderIdUuid + '/request-info',
+        method: 'POST',
+        headers: ajaxHeaders(),
+        data: JSON.stringify({ notes: notes }),
+        success: function(response) {
+            if (response.success) {
+                closeReturnPanel();
+                var modal = document.getElementById('adminActionsModal');
+                if (modal) {
+                    var instance = bootstrap.Modal.getInstance(modal);
+                    if (instance) instance.hide();
+                }
+                loadSenderIdDetail();
+
+                var toast = document.createElement('div');
+                toast.className = 'alert alert-success alert-dismissible fade show';
+                toast.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 350px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: none; border-left: 4px solid #22c55e;';
+                toast.innerHTML = '<div class="d-flex align-items-center"><i class="fas fa-check-circle text-success me-2" style="font-size: 1.2rem;"></i><div><strong>Returned to Customer</strong><br><small class="text-muted">Customer has been notified and your comments are visible to them.</small></div></div><button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.body.appendChild(toast);
+                setTimeout(function() { toast.remove(); }, 5000);
+            } else {
+                alert(response.error || 'Failed to return to customer.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send & Return';
+                }
+            }
+        },
+        error: function(xhr) {
+            var msg = 'Failed to return to customer.';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            alert(msg);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send & Return';
+            }
+        }
+    });
 }
 
 function showRejectModal() {
+    var returnPanel = document.getElementById('returnToCustomerPanel');
+    if (returnPanel) returnPanel.style.display = 'none';
+
     var panel = document.getElementById('rejectModalInline');
     if (panel) {
         var textarea = document.getElementById('rejectReasonText');
@@ -1857,6 +1946,27 @@ function showAdminActionsModal() {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div id="returnToCustomerPanel" style="display:none; margin-top: 1rem; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #f59e0b; border-radius: 6px; padding: 1rem;">
+                    <h6 style="color: #92400e; margin-bottom: 0.75rem;"><i class="fas fa-reply me-2"></i>Return to Customer</h6>
+                    <p style="font-size: 0.8rem; color: #78350f; margin-bottom: 0.75rem;">
+                        This will change the status to <strong>Returned to Customer</strong> and notify them to provide additional information. Your comments below will be visible to the customer.
+                    </p>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold" style="font-size: 0.8rem;">What information do you need from the customer? <span class="text-danger">*</span></label>
+                        <textarea class="form-control form-control-sm" id="returnInfoText" rows="4" placeholder="e.g. Please provide a letter of authorisation from the brand owner, or proof of business registration under this name..." style="font-size: 0.8rem;"></textarea>
+                        <div class="invalid-feedback" id="returnInfoValidation">Please provide details about what information is needed (minimum 5 characters).</div>
+                        <div class="d-flex justify-content-end mt-1">
+                            <small class="text-muted"><span id="returnInfoCharCount">0</span> / 2,000 characters</small>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button class="btn btn-sm" id="btnConfirmReturn" onclick="confirmReturnToCustomer()" style="background: #f59e0b; color: #fff; border: none; padding: 0.5rem 1rem; font-size: 0.75rem; border-radius: 4px; font-weight: 600;">
+                            <i class="fas fa-paper-plane me-1"></i> Send & Return
+                        </button>
+                        <button class="btn btn-sm btn-secondary" onclick="closeReturnPanel()" style="font-size: 0.75rem;">Cancel</button>
                     </div>
                 </div>
 
