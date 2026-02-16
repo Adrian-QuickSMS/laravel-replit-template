@@ -1027,8 +1027,14 @@ var filteredUsers = [...allUsers];
 var currentPage = 1;
 var rowsPerPage = 20;
 
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
 var AdminUsersService = (function() {
-    var mockMode = true;
     var baseUrl = '/admin/api/admin-users';
     
     function generateRefId() {
@@ -1037,17 +1043,6 @@ var AdminUsersService = (function() {
     
     function makeRequest(endpoint, method, data) {
         return new Promise(function(resolve, reject) {
-            if (mockMode) {
-                setTimeout(function() {
-                    if (Math.random() < 0.02) {
-                        reject({ success: false, error: 'Simulated server error', refId: generateRefId() });
-                    } else {
-                        resolve({ success: true, data: data, timestamp: new Date().toISOString() });
-                    }
-                }, 400 + Math.random() * 400);
-                return;
-            }
-            
             fetch(baseUrl + endpoint, {
                 method: method,
                 headers: {

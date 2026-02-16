@@ -252,6 +252,11 @@ class AdminUserController extends Controller
 
     public function resendInvite(string $id)
     {
+        $currentRole = session('admin_auth.role');
+        if (!in_array($currentRole, ['super_admin', 'admin'])) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
         $user = AdminUser::findOrFail($id);
         $token = $user->generateInviteToken();
 

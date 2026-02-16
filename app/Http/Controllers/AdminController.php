@@ -63,7 +63,8 @@ class AdminController extends Controller
             
             return response()->json($result);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 403);
+            Log::error('[AdminController] Operation failed', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Operation failed'], 403);
         }
     }
     
@@ -1046,7 +1047,6 @@ class AdminController extends Controller
             
             return response()->json([
                 'error' => 'Enforcement test failed',
-                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -1082,7 +1082,6 @@ class AdminController extends Controller
             
             return response()->json([
                 'error' => 'Normalisation failed',
-                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -1109,9 +1108,9 @@ class AdminController extends Controller
                 'message' => 'Enforcement rules reloaded successfully',
             ]);
         } catch (\Exception $e) {
+            Log::error('[AdminController] Rule reload failed', ['error' => $e->getMessage()]);
             return response()->json([
                 'error' => 'Failed to reload rules',
-                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -1192,7 +1191,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingAddGateway failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to add gateway: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to add gateway'], 500);
         }
     }
 
@@ -1221,7 +1220,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingChangeWeight failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to update weight: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to update weight'], 500);
         }
     }
 
@@ -1256,7 +1255,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingSetPrimary failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to set primary: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to set primary'], 500);
         }
     }
 
@@ -1286,7 +1285,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingToggleBlock failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to toggle block: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to toggle block'], 500);
         }
     }
 
@@ -1320,7 +1319,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingRemoveGateway failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to remove gateway: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to remove gateway'], 500);
         }
     }
 
@@ -1374,7 +1373,7 @@ class AdminController extends Controller
             return response()->json(['success' => true, 'message' => 'Override created successfully']);
         } catch (\Exception $e) {
             Log::error('[AdminController] routingCreateOverride failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to create override: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to create override'], 500);
         }
     }
 
@@ -1391,7 +1390,7 @@ class AdminController extends Controller
             return response()->json(['success' => true, 'message' => 'Override cancelled successfully']);
         } catch (\Exception $e) {
             Log::error('[AdminController] routingCancelOverride failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to cancel override: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to cancel override'], 500);
         }
     }
 

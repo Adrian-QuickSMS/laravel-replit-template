@@ -18,6 +18,9 @@ DB_USERNAME = "postgres"
 DB_PASSWORD = "password"
 APP_NAME = "QuickSMS"
 
+[userenv.development]
+ADMIN_DEV_AUTOLOGIN = "true"
+
 [workflows]
 runButton = "Project"
 
