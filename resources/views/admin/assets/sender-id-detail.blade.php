@@ -7,6 +7,11 @@
 <link rel="stylesheet" href="{{ asset('css/admin-external-validation.css') }}">
 <link rel="stylesheet" href="{{ asset('css/admin-notifications.css') }}">
 <style>
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
 .detail-page { 
     padding: 1.5rem; 
     padding-bottom: 5rem;
@@ -1016,7 +1021,7 @@ function loadSenderIdDetail() {
         },
         error: function(xhr) {
             console.error('[SenderID Detail] Load error:', xhr.responseText);
-            alert('Failed to load SenderID details.');
+            showToast('Failed to load SenderID details.', 'error');
         }
     });
 }
@@ -1480,6 +1485,23 @@ function switchNotesTab(tab, evt) {
     if (pane) { pane.style.display = 'block'; pane.classList.add('active'); }
 }
 
+function showToast(message, type) {
+    type = type || 'success';
+    var colors = {
+        success: { bg: '#059669', icon: 'fa-check-circle' },
+        error: { bg: '#dc2626', icon: 'fa-times-circle' },
+        warning: { bg: '#d97706', icon: 'fa-exclamation-triangle' },
+        info: { bg: '#1e3a5f', icon: 'fa-info-circle' }
+    };
+    var c = colors[type] || colors.info;
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:99999;background:' + c.bg + ';color:#fff;padding:0.75rem 1.25rem;border-radius:8px;font-size:0.85rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:flex;align-items:center;gap:0.5rem;animation:slideInRight 0.3s ease;max-width:400px;';
+    toast.innerHTML = '<i class="fas ' + c.icon + '"></i> ' + message;
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 4000);
+    setTimeout(function() { toast.remove(); }, 4500);
+}
+
 function performAction(action, body, successMsg) {
     $.ajax({
         url: '/admin/api/sender-ids/' + senderIdUuid + '/' + action,
@@ -1493,24 +1515,83 @@ function performAction(action, body, successMsg) {
                     var instance = bootstrap.Modal.getInstance(modal);
                     if (instance) instance.hide();
                 }
-                alert(successMsg || response.message || 'Action completed.');
+                showToast(successMsg || response.message || 'Action completed.', 'success');
                 loadSenderIdDetail();
             } else {
-                alert(response.error || 'Action failed.');
+                showToast(response.error || 'Action failed.', 'error');
             }
         },
         error: function(xhr) {
             var msg = 'Action failed.';
             try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
-            alert(msg);
+            showToast(msg, 'error');
         }
     });
 }
 
-function startReview() {
-    if (confirm('Start review for this SenderID?')) {
-        performAction('review', {}, 'SenderID is now in review.');
+function showConfirmModal(options) {
+    var modal = document.getElementById('confirmActionModal');
+    document.getElementById('confirmModalIcon').className = 'fas ' + (options.icon || 'fa-question-circle') + ' me-2';
+    document.getElementById('confirmModalTitle').textContent = options.title || 'Confirm Action';
+    document.getElementById('confirmModalMessage').textContent = options.message || 'Are you sure?';
+    
+    var headerEl = document.getElementById('confirmModalHeader');
+    headerEl.style.background = options.headerBg || 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)';
+    
+    var confirmBtn = document.getElementById('confirmModalBtn');
+    confirmBtn.className = 'btn btn-sm ' + (options.btnClass || 'btn-primary');
+    confirmBtn.innerHTML = '<i class="fas ' + (options.btnIcon || 'fa-check') + ' me-1"></i> ' + (options.btnText || 'Confirm');
+    confirmBtn.onclick = function() {
+        var bsModal = bootstrap.Modal.getInstance(modal);
+        if (bsModal) bsModal.hide();
+        if (options.onConfirm) options.onConfirm();
+    };
+
+    var hasInput = !!options.inputRequired;
+    var inputGroup = document.getElementById('confirmModalInputGroup');
+    var inputEl = document.getElementById('confirmModalInput');
+    var inputLabel = document.getElementById('confirmModalInputLabel');
+    inputGroup.style.display = hasInput ? '' : 'none';
+    if (hasInput) {
+        inputEl.value = '';
+        inputEl.placeholder = options.inputPlaceholder || '';
+        inputLabel.textContent = options.inputLabel || 'Reason';
+        confirmBtn.disabled = true;
+        inputEl.oninput = function() {
+            confirmBtn.disabled = inputEl.value.trim().length < (options.inputMinLength || 5);
+        };
+        confirmBtn.onclick = function() {
+            if (inputEl.value.trim().length < (options.inputMinLength || 5)) return;
+            var bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) bsModal.hide();
+            if (options.onConfirm) options.onConfirm(inputEl.value.trim());
+        };
     }
+
+    var warningEl = document.getElementById('confirmModalWarning');
+    if (options.warning) {
+        warningEl.style.display = '';
+        warningEl.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> ' + options.warning;
+    } else {
+        warningEl.style.display = 'none';
+    }
+
+    new bootstrap.Modal(modal).show();
+}
+
+function startReview() {
+    showConfirmModal({
+        title: 'Start Review',
+        message: 'Begin reviewing this SenderID registration request?',
+        icon: 'fa-search',
+        headerBg: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
+        btnClass: 'btn-primary',
+        btnIcon: 'fa-search',
+        btnText: 'Start Review',
+        onConfirm: function() {
+            performAction('review', {}, 'SenderID is now in review.');
+        }
+    });
 }
 
 function renderCommentThread(comments) {
@@ -1630,7 +1711,7 @@ function confirmReturnToCustomer() {
                 document.body.appendChild(toast);
                 setTimeout(function() { toast.remove(); }, 5000);
             } else {
-                alert(response.error || 'Failed to return to customer.');
+                showToast(response.error || 'Failed to return to customer.', 'error');
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send & Return';
@@ -1640,7 +1721,7 @@ function confirmReturnToCustomer() {
         error: function(xhr) {
             var msg = 'Failed to return to customer.';
             try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
-            alert(msg);
+            showToast(msg, 'error');
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Send & Return';
@@ -1665,7 +1746,7 @@ function showRejectModal() {
 function confirmRejectInline() {
     var reason = document.getElementById('rejectReasonText').value.trim();
     if (!reason || reason.length < 10) {
-        alert('Please provide a rejection reason (minimum 10 characters).');
+        showToast('Please provide a rejection reason (minimum 10 characters).', 'warning');
         return;
     }
 
@@ -1678,71 +1759,125 @@ function confirmRejectInline() {
             if (response.success) {
                 document.getElementById('rejectModalInline').style.display = 'none';
                 bootstrap.Modal.getInstance(document.getElementById('adminActionsModal')).hide();
-                alert('SenderID rejected.');
+                showToast('SenderID rejected.', 'success');
                 loadSenderIdDetail();
             } else {
-                alert(response.error || 'Failed to reject.');
+                showToast(response.error || 'Failed to reject.', 'error');
             }
         },
         error: function(xhr) {
             var msg = 'Failed to reject';
             try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
-            alert(msg);
+            showToast(msg, 'error');
         }
     });
 }
 
 function approveSenderId() {
-    if (confirm('Approve this SenderID request?')) {
-        performAction('approve', { notes: 'Manual approval by admin' }, 'SenderID approved successfully.');
-    }
+    showConfirmModal({
+        title: 'Approve SenderID',
+        message: 'This will approve the SenderID registration request and make it available for use. The customer will be notified.',
+        icon: 'fa-check-circle',
+        headerBg: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+        btnClass: 'btn-success',
+        btnIcon: 'fa-check-circle',
+        btnText: 'Approve SenderID',
+        onConfirm: function() {
+            performAction('approve', { notes: 'Manual approval by admin' }, 'SenderID approved successfully.');
+        }
+    });
 }
 
 function suspendSenderId() {
-    var reason = prompt('Reason for suspending this SenderID (required):');
-    if (!reason || reason.trim().length < 5) {
-        alert('Suspension reason is required (min 5 characters).');
-        return;
-    }
-    performAction('suspend', { reason: reason.trim() }, 'SenderID suspended.');
+    showConfirmModal({
+        title: 'Suspend SenderID',
+        message: 'This will suspend the SenderID and prevent it from being used for sending messages until reactivated.',
+        icon: 'fa-pause-circle',
+        headerBg: 'linear-gradient(135deg, #d97706 0%, #f59e0b 100%)',
+        btnClass: 'btn-warning',
+        btnIcon: 'fa-pause-circle',
+        btnText: 'Suspend SenderID',
+        inputRequired: true,
+        inputLabel: 'Suspension Reason *',
+        inputPlaceholder: 'Explain why this SenderID is being suspended (min 5 characters)...',
+        inputMinLength: 5,
+        onConfirm: function(reason) {
+            performAction('suspend', { reason: reason }, 'SenderID suspended.');
+        }
+    });
 }
 
 function reactivateSenderId() {
-    if (confirm('Reactivate this suspended SenderID?')) {
-        performAction('reactivate', { notes: 'Reactivated by admin' }, 'SenderID reactivated.');
-    }
+    showConfirmModal({
+        title: 'Reactivate SenderID',
+        message: 'This will reactivate the suspended SenderID, making it available for sending messages again.',
+        icon: 'fa-play-circle',
+        headerBg: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+        btnClass: 'btn-success',
+        btnIcon: 'fa-play-circle',
+        btnText: 'Reactivate',
+        onConfirm: function() {
+            performAction('reactivate', { notes: 'Reactivated by admin' }, 'SenderID reactivated.');
+        }
+    });
 }
 
 function revokeSenderId() {
-    var reason = prompt('Reason for permanently revoking this SenderID (required):');
-    if (!reason || reason.trim().length < 5) {
-        alert('Revocation reason is required (min 5 characters).');
-        return;
-    }
-    if (confirm('This action is PERMANENT. Revoke this SenderID?')) {
-        performAction('revoke', { reason: reason.trim() }, 'SenderID revoked permanently.');
-    }
+    showConfirmModal({
+        title: 'Revoke SenderID',
+        message: 'This will permanently revoke the SenderID. This action cannot be undone.',
+        icon: 'fa-ban',
+        headerBg: 'linear-gradient(135deg, #dc2626 0%, #ef4444 100%)',
+        btnClass: 'btn-danger',
+        btnIcon: 'fa-ban',
+        btnText: 'Revoke Permanently',
+        warning: 'WARNING: This action is permanent and cannot be reversed.',
+        inputRequired: true,
+        inputLabel: 'Revocation Reason *',
+        inputPlaceholder: 'Explain why this SenderID is being permanently revoked (min 5 characters)...',
+        inputMinLength: 5,
+        onConfirm: function(reason) {
+            performAction('revoke', { reason: reason }, 'SenderID revoked permanently.');
+        }
+    });
 }
 
 function submitToExternalProvider() {
-    if (confirm('Submit this SenderID to BrandAssure for external validation?')) {
-        if (typeof UNIFIED_APPROVAL !== 'undefined') {
-            var entity = UNIFIED_APPROVAL.getCurrentEntity();
-            UNIFIED_APPROVAL.submitToExternalProvider(entity ? entity.data : {});
+    showConfirmModal({
+        title: 'Submit to BrandAssure',
+        message: 'This will submit the SenderID to BrandAssure for external validation. The process may take up to 48 hours.',
+        icon: 'fa-external-link-alt',
+        headerBg: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
+        btnClass: 'btn-primary',
+        btnIcon: 'fa-paper-plane',
+        btnText: 'Submit for Validation',
+        onConfirm: function() {
+            if (typeof UNIFIED_APPROVAL !== 'undefined') {
+                var entity = UNIFIED_APPROVAL.getCurrentEntity();
+                UNIFIED_APPROVAL.submitToExternalProvider(entity ? entity.data : {});
+            }
         }
-    }
+    });
 }
 
 function forceApprove() {
-    var reason = prompt('ENTERPRISE OVERRIDE: Enter reason for force approve (required for audit):');
-    if (!reason) {
-        alert('Reason is required for force approve.');
-        return;
-    }
-    
-    if (confirm('Force approve this SenderID bypassing validation? This action is logged with CRITICAL severity.')) {
-        performAction('approve', { notes: 'FORCE APPROVE: ' + reason }, 'SenderID force approved (enterprise override).');
-    }
+    showConfirmModal({
+        title: 'Enterprise Override — Force Approve',
+        message: 'This will approve the SenderID bypassing all validation checks. This action is logged with CRITICAL severity for audit compliance.',
+        icon: 'fa-exclamation-triangle',
+        headerBg: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+        btnClass: 'btn-danger',
+        btnIcon: 'fa-bolt',
+        btnText: 'Force Approve',
+        warning: 'ENTERPRISE OVERRIDE: This bypasses all validation and is logged with CRITICAL severity.',
+        inputRequired: true,
+        inputLabel: 'Override Reason (required for audit) *',
+        inputPlaceholder: 'Enter the business justification for this override...',
+        inputMinLength: 5,
+        onConfirm: function(reason) {
+            performAction('approve', { notes: 'FORCE APPROVE: ' + reason }, 'SenderID force approved (enterprise override).');
+        }
+    });
 }
 
 function updateStatus(status, label, icon) {
@@ -1756,7 +1891,7 @@ function addInternalNote() {
     if (!textarea) return;
     var note = textarea.value.trim();
     if (!note) {
-        alert('Please enter a note');
+        showToast('Please enter a note.', 'warning');
         return;
     }
     
@@ -1765,13 +1900,22 @@ function addInternalNote() {
     }
     
     textarea.value = '';
-    alert('Internal note added.');
+    showToast('Internal note added.', 'success');
 }
 
 function previewCustomerMessage() {
     var textarea = document.querySelector('#tab-customer .notes-textarea');
     var message = textarea ? textarea.value : '';
-    alert('Preview:\n\n' + (message || '(No message entered)'));
+    showConfirmModal({
+        title: 'Message Preview',
+        message: message || '(No message entered)',
+        icon: 'fa-eye',
+        headerBg: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
+        btnClass: 'btn-secondary',
+        btnIcon: 'fa-times',
+        btnText: 'Close',
+        onConfirm: function() {}
+    });
 }
 
 function sendCustomerMessage() {
@@ -1779,7 +1923,7 @@ function sendCustomerMessage() {
     if (!textarea) return;
     var message = textarea.value.trim();
     if (!message) {
-        alert('Please enter a message');
+        showToast('Please enter a message.', 'warning');
         return;
     }
     
@@ -1788,7 +1932,7 @@ function sendCustomerMessage() {
     }
     
     textarea.value = '';
-    alert('Message sent to customer.');
+    showToast('Message sent to customer.', 'success');
 }
 
 function showAdminActionsModal() {
@@ -1981,6 +2125,36 @@ function showAdminActionsModal() {
                         <button class="btn btn-sm btn-secondary" onclick="document.getElementById('rejectModalInline').style.display='none'">Cancel</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border: none; border-radius: 8px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+            <div class="modal-header" id="confirmModalHeader" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: #fff; padding: 1rem 1.25rem; border: none;">
+                <h6 class="modal-title" style="margin: 0; font-weight: 600;">
+                    <i id="confirmModalIcon" class="fas fa-question-circle me-2"></i>
+                    <span id="confirmModalTitle">Confirm Action</span>
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem;">
+                <p id="confirmModalMessage" style="font-size: 0.85rem; color: #334155; line-height: 1.6; margin-bottom: 0.75rem;"></p>
+                <div id="confirmModalWarning" style="display: none; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 0.75rem; font-size: 0.8rem; color: #991b1b; font-weight: 500; margin-bottom: 0.75rem;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                </div>
+                <div id="confirmModalInputGroup" style="display: none; margin-top: 0.75rem;">
+                    <label id="confirmModalInputLabel" class="form-label fw-semibold" style="font-size: 0.8rem;">Reason</label>
+                    <textarea id="confirmModalInput" class="form-control form-control-sm" rows="3" style="font-size: 0.8rem;"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 0.75rem 1.25rem; background: #f8fafc;">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal" style="font-size: 0.8rem;">Cancel</button>
+                <button type="button" id="confirmModalBtn" class="btn btn-sm btn-primary" style="font-size: 0.8rem;">
+                    <i class="fas fa-check me-1"></i> Confirm
+                </button>
             </div>
         </div>
     </div>
