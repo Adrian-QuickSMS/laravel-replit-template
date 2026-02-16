@@ -354,7 +354,9 @@ class AdminAuthController extends Controller
         $code = $adminUser->generateSmsMfaCode();
 
         // TODO: Send SMS via your SMS gateway
-        Log::info('[DEV ONLY] Admin SMS MFA code', ['code' => $code, 'email' => $adminUser->email]);
+        if (config('app.env') === 'local' || config('app.debug') === true) {
+            Log::info('[DEV ONLY] Admin SMS MFA code', ['code' => $code, 'email' => $adminUser->email]);
+        }
 
         return response()->json([
             'success' => true,
@@ -418,7 +420,12 @@ class AdminAuthController extends Controller
     public function showPasswordChange()
     {
         $adminSession = session('admin_auth');
-        if (!$adminSession || !$adminSession['authenticated'] || !$adminSession['mfa_verified']) {
+        if (!$adminSession || !$adminSession['authenticated']) {
+            return redirect()->route('admin.login');
+        }
+
+        $mfaRequired = config('admin.mfa.required', true);
+        if ($mfaRequired && empty($adminSession['mfa_verified'])) {
             return redirect()->route('admin.login');
         }
 

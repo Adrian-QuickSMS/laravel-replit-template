@@ -30,7 +30,7 @@ class AdminAuthenticate
         
         if (config('app.env') === 'local' || config('app.debug') === true) {
             if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
-                $devAdmin = AdminUser::where('status', 'active')->orderBy('created_at', 'asc')->first();
+                $devAdmin = AdminUser::where('status', 'active')->where('role', 'super_admin')->first();
                 if ($devAdmin) {
                     session()->put('admin_auth', [
                         'authenticated' => true,
@@ -43,18 +43,6 @@ class AdminAuthenticate
                         'ip_address' => $request->ip(),
                     ]);
                     session()->put('admin_user_email', $devAdmin->email);
-                } else {
-                    session()->put('admin_auth', [
-                        'authenticated' => true,
-                        'mfa_verified' => true,
-                        'admin_id' => 'dev-fallback',
-                        'email' => 'admin@quicksms.com',
-                        'name' => 'Dev Administrator',
-                        'role' => 'super_admin',
-                        'last_activity' => now()->timestamp,
-                        'ip_address' => $request->ip(),
-                    ]);
-                    session()->put('admin_user_email', 'admin@quicksms.com');
                 }
             }
         }
@@ -96,6 +84,25 @@ class AdminAuthenticate
                 return redirect()->route('admin.mfa.setup');
             }
             return redirect()->route('admin.mfa.verify');
+        }
+        
+        $adminUser = AdminUser::find($adminSession['admin_id'] ?? null);
+        if ($adminUser) {
+            if ($adminUser->status !== 'active') {
+                $this->logSecurityEvent('admin_session_revoked_inactive', [
+                    'email' => $adminSession['email'] ?? 'unknown',
+                    'status' => $adminUser->status
+                ]);
+                session()->forget('admin_auth');
+                return redirect()->route('admin.login')->with('error', 'Your account has been deactivated.');
+            }
+            if ($adminUser->isLocked()) {
+                $this->logSecurityEvent('admin_session_revoked_locked', [
+                    'email' => $adminSession['email'] ?? 'unknown'
+                ]);
+                session()->forget('admin_auth');
+                return redirect()->route('admin.login')->with('error', 'Your account has been locked.');
+            }
         }
         
         session()->put('admin_auth.last_activity', now()->timestamp);
@@ -160,15 +167,7 @@ class AdminAuthenticate
 
             return $adminUser !== null;
         } catch (\Exception $e) {
-            \Log::warning('[AdminAuth] DB lookup failed, falling back to config', ['error' => $e->getMessage()]);
-
-            $adminUsers = config('admin.users', []);
-            foreach ($adminUsers as $user) {
-                if (strtolower($user['email']) === strtolower($email) && ($user['status'] ?? '') === 'active') {
-                    return true;
-                }
-            }
-
+            \Log::error('[AdminAuth] DB lookup failed — failing closed', ['error' => $e->getMessage()]);
             return false;
         }
     }
@@ -197,6 +196,10 @@ class AdminAuthenticate
     
     protected function ipInCidr(string $ip, string $cidr): bool
     {
+        if (!str_contains($cidr, '/')) {
+            return $ip === $cidr;
+        }
+
         list($subnet, $mask) = explode('/', $cidr);
         $mask = (int) $mask;
         

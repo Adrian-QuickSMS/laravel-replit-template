@@ -185,6 +185,66 @@ class AdminAuditService
             'category' => self::CATEGORY_SECURITY,
             'description' => 'Admin login blocked due to IP restriction',
             'severity' => self::SEVERITY_CRITICAL
+        ],
+        'admin_user_created' => [
+            'category' => self::CATEGORY_ADMIN_USER,
+            'description' => 'Admin user account created',
+            'severity' => self::SEVERITY_HIGH
+        ],
+        'admin_user_updated' => [
+            'category' => self::CATEGORY_ADMIN_USER,
+            'description' => 'Admin user account updated',
+            'severity' => self::SEVERITY_MEDIUM
+        ],
+        'admin_user_suspended' => [
+            'category' => self::CATEGORY_ADMIN_USER,
+            'description' => 'Admin user account suspended',
+            'severity' => self::SEVERITY_HIGH
+        ],
+        'admin_user_activated' => [
+            'category' => self::CATEGORY_ADMIN_USER,
+            'description' => 'Admin user account activated',
+            'severity' => self::SEVERITY_HIGH
+        ],
+        'admin_user_unlocked' => [
+            'category' => self::CATEGORY_ADMIN_USER,
+            'description' => 'Admin user account unlocked',
+            'severity' => self::SEVERITY_MEDIUM
+        ],
+        'admin_user_deleted' => [
+            'category' => self::CATEGORY_ADMIN_USER,
+            'description' => 'Admin user account deleted',
+            'severity' => self::SEVERITY_CRITICAL
+        ],
+        'admin_mfa_reset' => [
+            'category' => self::CATEGORY_ADMIN_USER,
+            'description' => 'Admin user MFA reset by administrator',
+            'severity' => self::SEVERITY_HIGH
+        ],
+        'admin_invite_resent' => [
+            'category' => self::CATEGORY_ADMIN_USER,
+            'description' => 'Admin user invite resent',
+            'severity' => self::SEVERITY_LOW
+        ],
+        'admin_password_changed' => [
+            'category' => self::CATEGORY_AUTH,
+            'description' => 'Admin user password changed',
+            'severity' => self::SEVERITY_HIGH
+        ],
+        'admin_mfa_skipped_dev' => [
+            'category' => self::CATEGORY_AUTH,
+            'description' => 'Admin MFA setup skipped in development',
+            'severity' => self::SEVERITY_MEDIUM
+        ],
+        'admin_session_revoked_inactive' => [
+            'category' => self::CATEGORY_SECURITY,
+            'description' => 'Admin session revoked due to inactive account',
+            'severity' => self::SEVERITY_HIGH
+        ],
+        'admin_session_revoked_locked' => [
+            'category' => self::CATEGORY_SECURITY,
+            'description' => 'Admin session revoked due to locked account',
+            'severity' => self::SEVERITY_HIGH
         ]
     ];
     

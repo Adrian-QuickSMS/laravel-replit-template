@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,7 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class AdminUser extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, SoftDeletes;
 
     protected $table = 'admin_users';
 
@@ -200,8 +201,10 @@ class AdminUser extends Authenticatable
     {
         $this->increment('failed_login_attempts');
 
-        if ($this->failed_login_attempts >= 3) {
-            $this->lockAccount(60);
+        $maxAttempts = config('admin.security.max_login_attempts', 5);
+        $lockoutSeconds = config('admin.security.lockout_duration', 900);
+        if ($this->failed_login_attempts >= $maxAttempts) {
+            $this->lockAccount((int) ceil($lockoutSeconds / 60));
         }
     }
 
@@ -243,6 +246,7 @@ class AdminUser extends Authenticatable
         return $this->update([
             'mfa_enabled' => true,
             'mfa_secret' => encrypt($secret),
+            'mfa_enabled_at' => now(),
         ]);
     }
 
@@ -471,11 +475,11 @@ class AdminUser extends Authenticatable
             return false;
         }
 
-        if ($this->sms_mfa_attempts >= 3) {
+        $this->increment('sms_mfa_attempts');
+
+        if ($this->sms_mfa_attempts > 3) {
             return false;
         }
-
-        $this->increment('sms_mfa_attempts');
 
         return hash_equals($this->sms_mfa_code, hash('sha256', $code));
     }

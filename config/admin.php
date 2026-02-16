@@ -37,49 +37,8 @@ return [
     ],
     
     // DEPRECATED: Admin users now stored in admin_users DB table.
-    // Kept as fallback only if DB is unreachable.
-    'users' => [
-        [
-            'id' => 'admin-001',
-            'email' => 'admin@quicksms.co.uk',
-            'password_hash' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'name' => 'System Administrator',
-            'role' => 'super_admin',
-            'mfa_secret' => null,
-            'mfa_enabled' => false,
-            'status' => 'active'
-        ],
-        [
-            'id' => 'admin-002',
-            'email' => 'support@quicksms.co.uk',
-            'password_hash' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-            'name' => 'Support Team',
-            'role' => 'support',
-            'mfa_secret' => null,
-            'mfa_enabled' => false,
-            'status' => 'active'
-        ],
-        [
-            'id' => 'admin-003',
-            'email' => 'finance@quicksms.co.uk',
-            'password_hash' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-            'name' => 'Finance Team',
-            'role' => 'finance',
-            'mfa_secret' => null,
-            'mfa_enabled' => false,
-            'status' => 'active'
-        ],
-        [
-            'id' => 'admin-004',
-            'email' => 'compliance@quicksms.co.uk',
-            'password_hash' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
-            'name' => 'Compliance Team',
-            'role' => 'compliance',
-            'mfa_secret' => null,
-            'mfa_enabled' => false,
-            'status' => 'active'
-        ]
-    ],
+    // Config users array emptied — no hardcoded credentials in source.
+    'users' => [],
     
     'audit' => [
         'retention_days' => 2555,

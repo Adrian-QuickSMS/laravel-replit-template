@@ -1,0 +1,235 @@
+Replit Task: Pull Audit Fixes & Complete Admin Login Wiring
+1. PULL THE AUDIT FIXES FIRST
+git pull origin claude/quicksms-security-performance-dr8sw
+
+Commit 769e1aa contains 12 bug/security fixes across 8 files. Do NOT revert any of these changes. Read the commit message for the full list. The key changes are summarized below so you understand what changed and why.
+
+2. WHAT WAS FIXED (DO NOT UNDO)
+2a. AdminUser model — 4 fixes
+Fix	What Changed	Why
+Added SoftDeletes trait	use HasApiTokens, Notifiable, SoftDeletes;	Migration defines softDeletes() column. Without the trait, $user->delete() in AdminUserController::destroy() was permanently deleting records instead of soft-deleting.
+enableMfa() sets mfa_enabled_at	Added 'mfa_enabled_at' => now() to the update array	The timestamp was never being recorded when MFA was first enabled via TOTP setup.
+incrementFailedLogins() uses config	Reads config('admin.security.max_login_attempts', 5) and config('admin.security.lockout_duration', 900)	Was hardcoded to lock after 3 attempts for 60 minutes. Config says 5 attempts and 900 seconds (15 minutes).
+verifySmsMfaCode() off-by-one fixed	Changed if ($this->sms_mfa_attempts >= 3) to increment first, then if ($this->sms_mfa_attempts > 3)	The old logic only allowed 2 actual verification attempts instead of 3. Now increments to 1, 2, 3 — all three get a chance to verify.
+2b. AdminAuthenticate middleware — 5 fixes
+Fix	What Changed	Why
+Dev auto-login no longer has fake fallback	Removed the else block that created admin_id = 'dev-fallback'	A non-UUID admin_id would crash any AdminUser::find() call. If no DB user exists, middleware now falls through to the login redirect naturally.
+Dev auto-login targets super_admin	Changed orderBy('created_at', 'asc') to where('role', 'super_admin')	Ensures dev auto-login gets a super_admin, not whichever user was created first.
+Per-request active-user revalidation	New block after MFA check: AdminUser::find() → check status === 'active' and !isLocked()	If an admin is suspended or locked while they have an active session, they now get kicked out on the next request instead of staying logged in until session expires.
+isWhitelistedUser() cleaned up	DB check + domain whitelist fallback, removed config users fallback	Config users array is now empty. Old code would fall back to it on DB failure, but it had no entries. New code falls back to domain whitelist check (quicksms.com, quicksms.co.uk) and returns false on DB failure (fail-closed).
+ipInCidr() handles malformed CIDR	Added if (!str_contains($cidr, '/')) guard	If a CIDR value in config doesn't contain /, list($subnet, $mask) = explode('/', $cidr) would throw a ValueError. Now treats bare IPs as exact matches.
+2c. AdminAuthController — 2 fixes
+Fix	What Changed	Why
+SMS MFA code logging guarded by env	Wrapped Log::info() in if (config('app.env') === 'local' || config('app.debug') === true)	The plaintext 6-digit MFA code was being logged to storage/logs/laravel.log in ALL environments including production. This defeats the purpose of hashing the code in the database.
+showPasswordChange() allows access when MFA not required	Changed from strict !$adminSession['mfa_verified'] check to allowing access if MFA config is disabled	When ADMIN_MFA_REQUIRED=false, forced password change would redirect back to login in a loop because mfa_verified was false.
+2d. AdminUserController — 2 fixes
+Fix	What Changed	Why
+Role authorization on mutating endpoints	Added super_admin/admin role check to suspend(), activate(), unlock(), resendInvite()	These endpoints had no authorization — any authenticated admin (including readonly and support) could suspend other admins.
+Pagination capped at 100	$perPage = min((int) $request->get('per_page', 25), 100)	per_page was user-controlled and unbounded. An attacker could pass per_page=999999 to dump all admin users in one request.
+2e. config/admin.php — 1 fix
+Fix	What Changed	Why
+Removed hardcoded credentials	Replaced the 4-user users array with 'users' => []	The config file contained bcrypt hashes of the password password for all 4 admin users. Even though auth now uses the database, leaving known password hashes in a config file committed to git is a security risk.
+2f. AdminController — 1 fix
+Fix	What Changed	Why
+Session email fallback	Changed session('admin_email', 'admin@quicksms.co.uk') to session('admin_auth.email', session('admin_email', 'unknown'))	Two places in the controller used a hardcoded @quicksms.co.uk email as a fallback. Now reads from the correct session key and falls back to 'unknown' instead of a real email address.
+2g. AdminAuditService — 1 fix
+Fix	What Changed	Why
+11 new event types registered	Added admin_user_created, admin_user_updated, admin_user_suspended, admin_user_activated, admin_user_unlocked, admin_user_deleted, admin_mfa_reset, admin_invite_resent, admin_password_changed, admin_mfa_skipped_dev to $eventCatalogue	These events are logged by AdminUserController and AdminAuthController but were not in the catalogue, causing "Unknown admin audit event" warnings and missing category/severity metadata.
+2h. login.blade.php — 1 fix
+Fix	What Changed	Why
+Placeholder email updated	admin@quicksms.co.uk → admin@quicksms.com	Email domain migrated to @quicksms.com. The DB CHECK constraint rejects @quicksms.co.uk emails, so the placeholder was misleading.
+3. REMAINING WORK — Admin Users Page JS Wiring
+File: resources/views/admin/security/admin-users.blade.php
+
+The server-side data is now wired correctly (securityAdminUsers() queries the DB). But the JavaScript action buttons in the user table likely still use mock functions or alert() confirmations. Wire them to the real API endpoints.
+
+3a. Action Dropdown Per User Row
+Each user row has an actions dropdown. Wire these buttons to fetch() calls:
+
+Action	Method	Endpoint	Condition
+View Details	GET	/admin/api/admin-users/{id}	Always available
+Edit User	PUT	/admin/api/admin-users/{id}	super_admin or admin only
+Suspend	POST	/admin/api/admin-users/{id}/suspend	Status is Active
+Activate	POST	/admin/api/admin-users/{id}/activate	Status is Suspended
+Unlock	POST	/admin/api/admin-users/{id}/unlock	Status is Locked or locked_until is set
+Reset MFA	POST	/admin/api/admin-users/{id}/reset-mfa	super_admin only
+Resend Invite	POST	/admin/api/admin-users/{id}/resend-invite	Has invite_token
+Delete	DELETE	/admin/api/admin-users/{id}	super_admin only, NOT self
+Pattern for each action button:
+
+function adminUserAction(userId, action, confirmMessage) {
+    if (!confirm(confirmMessage)) return;
+
+    var method = action === 'delete' ? 'DELETE' : 'POST';
+    var url = '/admin/api/admin-users/' + userId;
+    if (action !== 'delete') {
+        url += '/' + action;
+    }
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
+    .then(function(result) {
+        if (result.ok && result.data.success) {
+            // Show success toast and reload table
+            showToast('success', 'Action completed successfully');
+            location.reload();
+        } else {
+            showToast('error', result.data.error || 'Action failed');
+        }
+    })
+    .catch(function() {
+        showToast('error', 'Connection error. Please try again.');
+    });
+}
+
+IMPORTANT: Replace any alert() / confirm() with proper styled modal confirmations if the page already has a modal component. If not, confirm() is acceptable as a temporary measure.
+
+3b. Stats Cards
+The stats cards at the top of the page should show real counts. If they're currently hardcoded, update them to use data from the API response or from the server-rendered $adminUsers array:
+
+// If stats are rendered server-side via Blade:
+var stats = {
+    total: {{ count($adminUsers) }},
+    active: {{ collect($adminUsers)->where('status', 'Active')->count() }},
+    suspended: {{ collect($adminUsers)->where('status', 'Suspended')->count() }},
+    mfaEnrolled: {{ collect($adminUsers)->where('mfa_status', 'Enrolled')->count() }},
+};
+
+Or fetch from the API: GET /admin/api/admin-users returns a stats object.
+
+3c. "Add User" Modal
+If there's an "Add User" or "Invite User" button, wire it to POST /admin/api/admin-users:
+
+function createAdminUser(formData) {
+    fetch('/admin/api/admin-users', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            email: formData.email,        // Must be @quicksms.com
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            role: formData.role,           // super_admin|admin|support|finance|readonly
+            department: formData.department,
+            phone: formData.phone || null,
+        }),
+    })
+    .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, status: res.status, data: d }; }); })
+    .then(function(result) {
+        if (result.ok && result.data.success) {
+            showToast('success', 'User created and invite sent');
+            location.reload();
+        } else {
+            showToast('error', result.data.error || 'Failed to create user');
+        }
+    });
+}
+
+3d. User Detail Slide-out Panel
+If the page has a detail panel that shows when clicking a user row, populate it from the GET /admin/api/admin-users/{id} response:
+
+function showUserDetail(userId) {
+    fetch('/admin/api/admin-users/' + userId, {
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        },
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        // data.user — the admin user object (from toAdminArray())
+        // data.ip_whitelist — array of whitelisted IPs
+        // data.recent_activity — last 20 audit log entries
+        populateDetailPanel(data);
+    });
+}
+
+The data.user object has these fields:
+
+id, email, first_name, last_name, full_name, role, role_display, department,
+status, mfa_enabled, mfa_method, has_ip_whitelist, phone (masked: ****42),
+last_login_at, failed_login_attempts, password_needs_change, is_locked,
+created_at, created_by, invite_sent_at
+
+4. REMAINING WORK — Remove Any Leftover Mock Data
+Search the entire admin-users.blade.php file for any hardcoded mock data arrays like ADM001, ADM002, etc. These should have been replaced by the $adminUsers variable from the controller but double-check the JavaScript section.
+
+Also search for any setTimeout fake delay patterns or mockAdminUsers objects. Remove them entirely.
+
+Verification command:
+
+grep -n 'ADM00\|mockAdmin\|setTimeout.*auth\|fake.*password\|hardcoded' resources/views/admin/security/admin-users.blade.php
+
+If any results appear, replace with real API calls.
+
+5. REMAINING WORK — Security Compliance Controls Page
+File: resources/views/admin/security/security-compliance-controls.blade.php
+
+This page was also changed in the merge. Verify it doesn't still reference config('admin.users') or hardcoded user data. It should read from the database.
+
+6. VERIFICATION CHECKLIST
+After pulling and completing the wiring, verify:
+
+ V1: Admin login with admin@quicksms.com / QuickSMS2026! works
+ V2: Login with wrong password shows "Invalid credentials" (NOT "user not found")
+ V3: Login with admin@quicksms.co.uk shows "Invalid credentials" (old domain rejected)
+ V4: After 5 failed attempts, account is locked (not 3)
+ V5: MFA setup page shows QR code, entering valid TOTP code enables MFA
+ V6: After MFA setup, redirects to password change page (all seed users have force_password_change = true)
+ V7: Password change enforces 12-char minimum + uppercase + lowercase + number + symbol
+ V8: After password change, redirects to dashboard
+ V9: Admin users page loads with 3 real users from DB (not mock ADM001-ADM024)
+ V10: Suspend action button calls /admin/api/admin-users/{id}/suspend and returns success
+ V11: Suspended admin gets kicked out on their next page load (middleware revalidation)
+ V12: readonly and support role admins cannot suspend/activate/unlock other admins (403)
+ V13: super_admin can reset another user's MFA
+ V14: Delete action soft-deletes (record still in DB with deleted_at set, not gone)
+ V15: No mockAdminUsers JavaScript object anywhere in admin login or admin users pages
+ V16: No bcrypt password hashes in config/admin.php
+ V17: SMS MFA code is NOT logged to storage/logs/laravel.log when APP_ENV=production
+ V18: Login placeholder says admin@quicksms.com (not co.uk)
+7. CRITICAL RULES
+RULE 1: Do NOT revert any of the audit fixes from commit 769e1aa. If something breaks, fix forward — the old code had security vulnerabilities.
+
+RULE 2: The SoftDeletes trait on AdminUser is mandatory. The migration creates a deleted_at column. Without the trait, AdminUser::all() would include deleted users and $user->delete() would permanently destroy records.
+
+RULE 3: The MFA DB trigger (enforce_admin_mfa()) prevents mfa_enabled = false. For MFA reset, the AdminUserController::resetMfa() method correctly sets mfa_secret = null and mfa_method = null while leaving mfa_enabled alone. hasMfaEnabled() returns false when mfa_secret is null, which triggers re-enrollment on next login.
+
+RULE 4: The config('admin.users') array is now empty. Do NOT re-add users to it. All authentication goes through the admin_users database table.
+
+RULE 5: All admin user management API calls require CSRF token via X-CSRF-TOKEN header. The Blade meta tag <meta name="csrf-token" content="{{ csrf_token() }}"> is in the layout. JavaScript must read it from there.
+
+8. FILES YOU NEED TO EDIT
+File	What To Do
+resources/views/admin/security/admin-users.blade.php	Wire action buttons to real API endpoints, remove any mock data
+resources/views/admin/security/security-compliance-controls.blade.php	Verify no hardcoded user references
+9. FILES YOU MUST NOT EDIT
+These files were already fixed in the audit. Do not modify them:
+
+File	Reason
+app/Models/AdminUser.php	SoftDeletes, enableMfa, incrementFailedLogins, verifySmsMfaCode all fixed
+app/Http/Middleware/AdminAuthenticate.php	Dev auto-login, revalidation, whitelist check, ipInCidr all fixed
+app/Http/Controllers/AdminAuthController.php	SMS logging guard, password change access fixed
+app/Http/Controllers/Admin/AdminUserController.php	Role checks, pagination cap fixed
+config/admin.php	Credentials removed
+app/Services/Admin/AdminAuditService.php	Event catalogue expanded
+10. COMPLETION REPORT FORMAT
+When finished, provide:
+
+A. MOCK DATA REMOVED — List each mock block found and replaced
+
+B. API WIRING — List each action button and its endpoint
+
+C. VERIFICATION RESULTS — V1-V18 as PASS/FAIL
+
+D. SCREENSHOTS — Admin users page with real data, action dropdown working
