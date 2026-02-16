@@ -225,6 +225,10 @@ Route::prefix('admin')->group(function () {
                 Route::post('/{id}/unlock', 'unlock')->name('admin.api.admin-users.unlock');
                 Route::post('/{id}/reset-mfa', 'resetMfa')->name('admin.api.admin-users.reset-mfa');
                 Route::post('/{id}/resend-invite', 'resendInvite')->name('admin.api.admin-users.resend-invite');
+                Route::post('/{id}/reset-password', 'resetPassword')->name('admin.api.admin-users.reset-password');
+                Route::post('/{id}/force-logout', 'forceLogout')->name('admin.api.admin-users.force-logout');
+                Route::post('/{id}/update-mfa', 'updateMfa')->name('admin.api.admin-users.update-mfa');
+                Route::post('/{id}/update-email', 'updateEmail')->name('admin.api.admin-users.update-email');
                 Route::delete('/{id}', 'destroy')->name('admin.api.admin-users.destroy');
             });
 
