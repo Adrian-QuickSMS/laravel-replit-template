@@ -811,7 +811,29 @@
 </div>
 
 <script>
-// TODO: Replace with API data - local in-memory state for demonstration
+var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+function _apiHeaders() {
+    return { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': _csrfToken };
+}
+function _handleApiResponse(response) {
+    if (!response.ok) {
+        return response.json().then(function(err) {
+            var msg = err.message || '';
+            if (err.errors) {
+                var firstField = Object.keys(err.errors)[0];
+                if (firstField && err.errors[firstField].length) {
+                    msg = err.errors[firstField][0];
+                }
+            }
+            throw new Error(msg || 'Request failed');
+        }).catch(function(e) {
+            if (e instanceof Error && e.message) throw e;
+            throw new Error('Request failed');
+        });
+    }
+    return response.json();
+}
+
 var optOutLists = @json($opt_out_lists);
 var optOuts = @json($opt_outs);
 var importStep = 1;
@@ -893,9 +915,8 @@ function toggleMobileVisibility(el) {
 }
 
 function createOptOutList() {
-    // TODO: Connect to API - POST /api/opt-out-lists
-    const name = document.getElementById('newOptOutListName').value.trim();
-    const desc = document.getElementById('newOptOutListDesc').value.trim();
+    var name = document.getElementById('newOptOutListName').value.trim();
+    var desc = document.getElementById('newOptOutListDesc').value.trim();
     
     if (!name) {
         document.getElementById('newOptOutListName').classList.add('is-invalid');
@@ -903,28 +924,31 @@ function createOptOutList() {
         return;
     }
     
-    // Local validation - check for duplicate names
-    if (optOutLists.some(l => l.name.toLowerCase() === name.toLowerCase())) {
-        document.getElementById('newOptOutListName').classList.add('is-invalid');
-        document.getElementById('listNameError').textContent = 'A list with this name already exists';
-        return;
-    }
-    
-    alert('List "' + name + '" would be created. TODO: Connect to backend API.');
-    bootstrap.Modal.getInstance(document.getElementById('createOptOutListModal')).hide();
-    document.getElementById('newOptOutListName').value = '';
-    document.getElementById('newOptOutListDesc').value = '';
+    fetch('/api/opt-out-lists', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ name: name, description: desc })
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast('List "' + name + '" created successfully', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('createOptOutListModal')).hide();
+        document.getElementById('newOptOutListName').value = '';
+        document.getElementById('newOptOutListDesc').value = '';
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to create list', 'error');
+    });
 }
 
 function addOptOut() {
-    // TODO: Connect to API - POST /api/opt-outs
-    const mobile = document.getElementById('addOptOutMobile').value.trim();
-    const listId = document.getElementById('addOptOutList').value;
-    const source = document.getElementById('addOptOutSource').value;
-    const campaign = document.getElementById('addOptOutCampaign').value.trim();
+    var mobile = document.getElementById('addOptOutMobile').value.trim();
+    var listId = document.getElementById('addOptOutList').value;
+    var source = document.getElementById('addOptOutSource').value;
+    var campaign = document.getElementById('addOptOutCampaign').value.trim();
     
-    // Validate mobile format
-    const mobileRegex = /^\+[1-9]\d{6,14}$/;
+    var mobileRegex = /^\+[1-9]\d{6,14}$/;
     if (!mobile) {
         document.getElementById('addOptOutMobile').classList.add('is-invalid');
         document.getElementById('mobileError').textContent = 'Mobile number is required';
@@ -936,44 +960,45 @@ function addOptOut() {
         return;
     }
     
-    // Local validation - check for duplicates
-    if (optOuts.some(o => o.mobile === mobile)) {
-        document.getElementById('addOptOutMobile').classList.add('is-invalid');
-        document.getElementById('mobileError').textContent = 'This number is already opted out';
-        return;
-    }
-    
-    alert('Opt-out for ' + mobile + ' would be added. TODO: Connect to backend API.');
-    bootstrap.Modal.getInstance(document.getElementById('addOptOutModal')).hide();
-    document.getElementById('addOptOutMobile').value = '';
-    document.getElementById('addOptOutMobile').classList.remove('is-invalid');
+    fetch('/api/opt-out-lists/' + listId + '/records', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ msisdn: mobile, source: source, campaign_ref: campaign })
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast('Opt-out for ' + mobile + ' added successfully', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('addOptOutModal')).hide();
+        document.getElementById('addOptOutMobile').value = '';
+        document.getElementById('addOptOutMobile').classList.remove('is-invalid');
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to add opt-out', 'error');
+    });
 }
 
 function viewOptOuts(listId, listName) {
-    // TODO: Connect to API - GET /api/opt-out-lists/{id}/opt-outs
     document.getElementById('view-optouts-tab').click();
     document.getElementById('filterList').value = listId;
     filterOptOuts();
 }
 
 function exportOptOuts(listId, listName) {
-    // TODO: Connect to API - GET /api/opt-out-lists/{id}/export
     document.getElementById('exportListId').value = listId;
     document.getElementById('exportListName').textContent = 'Exporting: ' + listName;
     new bootstrap.Modal(document.getElementById('exportModal')).show();
 }
 
 function exportAllOptOuts() {
-    // TODO: Connect to API - GET /api/opt-outs/export
     document.getElementById('exportListId').value = '';
     document.getElementById('exportListName').textContent = 'Exporting: All Opt-Outs';
     new bootstrap.Modal(document.getElementById('exportModal')).show();
 }
 
 function downloadExport() {
-    // TODO: Connect to API and trigger download
-    const format = document.querySelector('input[name="exportFormat"]:checked').value;
-    alert('Export would download as .' + format + '. TODO: Connect to backend API.');
+    var format = document.querySelector('input[name="exportFormat"]:checked').value;
+    showToast('Export as .' + format + ' will be available in a future update.', 'warning');
     bootstrap.Modal.getInstance(document.getElementById('exportModal')).hide();
 }
 
@@ -1033,8 +1058,7 @@ function importPrevStep() {
 }
 
 function confirmImport() {
-    // TODO: Connect to API - POST /api/opt-outs/import
-    alert('238 opt-outs would be imported. TODO: Connect to backend API.');
+    showToast('Import functionality will be available in a future update.', 'warning');
     bootstrap.Modal.getInstance(document.getElementById('importOptOutsModal')).hide();
     resetImportWizard();
 }
@@ -1055,7 +1079,7 @@ function resetImportWizard() {
 
 function applyExcelCorrection() {
     document.getElementById('excelZeroWarning').style.display = 'none';
-    alert('Excel zero-strip correction applied.');
+    showToast('Excel zero-strip correction applied.', 'success');
 }
 
 function skipExcelCorrection() {
@@ -1071,20 +1095,44 @@ function renameOptOutList(listId, name, desc) {
 }
 
 function saveRenameList() {
-    // TODO: Connect to API - PUT /api/opt-out-lists/{id}
-    const name = document.getElementById('renameListName').value.trim();
+    var id = document.getElementById('renameListId').value;
+    var name = document.getElementById('renameListName').value.trim();
+    var desc = document.getElementById('renameListDesc').value.trim();
     if (!name) {
-        alert('List name is required');
+        showToast('List name is required', 'warning');
         return;
     }
-    alert('List would be renamed to "' + name + '". TODO: Connect to backend API.');
-    bootstrap.Modal.getInstance(document.getElementById('renameOptOutListModal')).hide();
+    
+    fetch('/api/opt-out-lists/' + id, {
+        method: 'PUT',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ name: name, description: desc })
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast('List renamed to "' + name + '"', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('renameOptOutListModal')).hide();
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to rename list', 'error');
+    });
 }
 
 function deleteOptOutList(listId, name) {
-    // TODO: Connect to API - DELETE /api/opt-out-lists/{id}
     if (confirm('Are you sure you want to delete "' + name + '"? This action cannot be undone.')) {
-        alert('List "' + name + '" would be deleted. TODO: Connect to backend API.');
+        fetch('/api/opt-out-lists/' + listId, {
+            method: 'DELETE',
+            headers: _apiHeaders()
+        })
+        .then(_handleApiResponse)
+        .then(function() {
+            showToast('List "' + name + '" deleted', 'success');
+            setTimeout(function() { location.reload(); }, 800);
+        })
+        .catch(function(err) {
+            showToast(err.message || 'Failed to delete list', 'error');
+        });
     }
 }
 
@@ -1137,13 +1185,9 @@ function confirmMoveToList() {
         return;
     }
     
-    // TODO: Connect to API - PUT /api/opt-outs/{id}/move
-    console.log('TODO: API call PUT /api/opt-outs/' + optOutId + '/move to list ' + targetListId);
-    
+    showToast('Move functionality will be available in a future update.', 'warning');
     var modal = bootstrap.Modal.getInstance(document.getElementById('moveToListModal'));
     modal.hide();
-    
-    showToast('Opt-out moved to "' + targetListName + '" successfully', 'success');
 }
 
 var pendingRemoveOptOut = null;
@@ -1160,14 +1204,21 @@ function removeOptOut(optOutId) {
 function executeRemoveOptOut() {
     if (!pendingRemoveOptOut) return;
     
-    // TODO: Connect to API - DELETE /api/opt-outs/{id}
-    console.log('TODO: API call DELETE /api/opt-outs/' + pendingRemoveOptOut.id);
-    
-    var confirmModal = bootstrap.Modal.getInstance(document.getElementById('removeOptOutConfirmModal'));
-    confirmModal.hide();
-    
-    showToast('Opt-out removed successfully', 'success');
-    pendingRemoveOptOut = null;
+    fetch('/api/opt-out-records/' + pendingRemoveOptOut.id, {
+        method: 'DELETE',
+        headers: _apiHeaders()
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        var confirmModal = bootstrap.Modal.getInstance(document.getElementById('removeOptOutConfirmModal'));
+        confirmModal.hide();
+        showToast('Opt-out removed successfully', 'success');
+        pendingRemoveOptOut = null;
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to remove opt-out', 'error');
+    });
 }
 
 // Set up confirm remove button click handler
@@ -1179,14 +1230,12 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function bulkMoveToList() {
-    // TODO: Connect to API - PUT /api/opt-outs/bulk/move
-    const count = document.querySelectorAll('.optout-checkbox:checked').length;
-    alert('Moving ' + count + ' opt-outs to another list. TODO: Implement modal.');
+    var count = document.querySelectorAll('.optout-checkbox:checked').length;
+    showToast('Bulk move (' + count + ' opt-outs) will be available in a future update.', 'warning');
 }
 
 function bulkExport() {
-    // TODO: Connect to API - POST /api/opt-outs/bulk/export
-    const count = document.querySelectorAll('.optout-checkbox:checked').length;
+    var count = document.querySelectorAll('.optout-checkbox:checked').length;
     document.getElementById('exportListId').value = '';
     document.getElementById('exportListName').textContent = 'Exporting: ' + count + ' selected opt-outs';
     new bootstrap.Modal(document.getElementById('exportModal')).show();
@@ -1195,25 +1244,37 @@ function bulkExport() {
 var pendingBulkRemove = null;
 
 function bulkRemove() {
-    const count = document.querySelectorAll('.optout-checkbox:checked').length;
-    pendingBulkRemove = { count: count };
+    var selectedIds = [];
+    document.querySelectorAll('.optout-checkbox:checked').forEach(function(cb) {
+        selectedIds.push(cb.value);
+    });
+    var count = selectedIds.length;
+    pendingBulkRemove = { count: count, ids: selectedIds };
     
     document.getElementById('removeOptOutMessage').textContent = 'Are you sure you want to remove ' + count + ' opt-out(s)?';
     
-    // Update button handler for bulk remove
     var confirmBtn = document.getElementById('confirmRemoveOptOutBtn');
     confirmBtn.onclick = function() {
-        // TODO: Connect to API - DELETE /api/opt-outs/bulk
-        console.log('TODO: API call DELETE /api/opt-outs/bulk, count:', pendingBulkRemove.count);
+        var deletePromises = pendingBulkRemove.ids.map(function(id) {
+            return fetch('/api/opt-out-records/' + id, {
+                method: 'DELETE',
+                headers: _apiHeaders()
+            }).then(_handleApiResponse);
+        });
         
-        var confirmModal = bootstrap.Modal.getInstance(document.getElementById('removeOptOutConfirmModal'));
-        confirmModal.hide();
-        
-        showToast(pendingBulkRemove.count + ' opt-out(s) removed successfully', 'success');
-        pendingBulkRemove = null;
-        
-        // Reset button handler
-        confirmBtn.onclick = executeRemoveOptOut;
+        Promise.all(deletePromises)
+        .then(function() {
+            var confirmModal = bootstrap.Modal.getInstance(document.getElementById('removeOptOutConfirmModal'));
+            confirmModal.hide();
+            showToast(pendingBulkRemove.count + ' opt-out(s) removed successfully', 'success');
+            pendingBulkRemove = null;
+            confirmBtn.onclick = executeRemoveOptOut;
+            setTimeout(function() { location.reload(); }, 800);
+        })
+        .catch(function(err) {
+            showToast(err.message || 'Failed to remove opt-outs', 'error');
+            confirmBtn.onclick = executeRemoveOptOut;
+        });
     };
     
     var confirmModal = new bootstrap.Modal(document.getElementById('removeOptOutConfirmModal'));
