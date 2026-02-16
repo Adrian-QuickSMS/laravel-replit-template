@@ -28,12 +28,13 @@ class AdminAuthenticate
             }
         }
         
-        if ((config('app.env') === 'local' || config('app.debug') === true)) {
+        // Dev auto-login disabled — use /admin/login to authenticate
+        // To re-enable, set ADMIN_DEV_AUTOLOGIN=true in environment
+        if (env('ADMIN_DEV_AUTOLOGIN', false) && (config('app.env') === 'local' || config('app.debug') === true)) {
             if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
                 $devAdmin = AdminUser::where('role', 'super_admin')
                     ->where('status', 'active')
                     ->first();
-
                 if ($devAdmin) {
                     session()->put('admin_auth', [
                         'authenticated' => true,
@@ -92,12 +93,33 @@ class AdminAuthenticate
 
         // Revalidate admin user is still active on each request
         $adminUser = AdminUser::find($adminSession['admin_id'] ?? null);
-        if (!$adminUser || $adminUser->status !== 'active' || $adminUser->isLocked()) {
+        if (!$adminUser) {
             session()->forget('admin_auth');
             if ($request->ajax() || $request->wantsJson()) {
-                return response()->json(['error' => 'Account suspended or locked'], 403);
+                return response()->json(['error' => 'Account not found'], 403);
             }
-            return redirect()->route('admin.login')->with('error', 'Your account has been suspended or locked.');
+            return redirect()->route('admin.login')->with('error', 'Your account could not be found.');
+        }
+        if ($adminUser->status !== 'active') {
+            $this->logSecurityEvent('admin_session_revoked_inactive', [
+                'email' => $adminSession['email'] ?? 'unknown',
+                'status' => $adminUser->status
+            ]);
+            session()->forget('admin_auth');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => 'Account deactivated'], 403);
+            }
+            return redirect()->route('admin.login')->with('error', 'Your account has been deactivated.');
+        }
+        if ($adminUser->isLocked()) {
+            $this->logSecurityEvent('admin_session_revoked_locked', [
+                'email' => $adminSession['email'] ?? 'unknown'
+            ]);
+            session()->forget('admin_auth');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => 'Account locked'], 403);
+            }
+            return redirect()->route('admin.login')->with('error', 'Your account has been locked.');
         }
 
         session()->put('admin_auth.last_activity', now()->timestamp);
@@ -161,25 +183,9 @@ class AdminAuthenticate
                 ->where('status', 'active')
                 ->exists();
 
-            if ($exists) {
-                return true;
-            }
-
-            // Fallback: check whitelisted email domains
-            $whitelistedDomains = config('admin.security.whitelisted_domains', []);
-            $emailParts = explode('@', $email);
-            if (count($emailParts) === 2) {
-                $domain = strtolower($emailParts[1]);
-                foreach ($whitelistedDomains as $whitelistedDomain) {
-                    if ($domain === strtolower($whitelistedDomain)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return $exists;
         } catch (\Exception $e) {
-            \Log::error('[AdminAuth] DB lookup failed during whitelist check', ['error' => $e->getMessage()]);
+            \Log::error('[AdminAuth] DB lookup failed — failing closed', ['error' => $e->getMessage()]);
             return false;
         }
     }

@@ -416,6 +416,13 @@ body {
 </div>
 
 <script>
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str)));
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     var currentMfaMethod = null;
     var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
@@ -477,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!result.ok) {
                 var msg = result.data.error || result.data.errors?.email?.[0] || 'Invalid email or password.';
-                loginStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + msg + ' All login attempts are logged.</div>';
+                loginStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + escapeHtml(msg) + ' All login attempts are logged.</div>';
                 loginStatus.classList.remove('d-none');
                 return;
             }
@@ -585,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(function() { window.location.href = result.data.redirect; }, 500);
             } else {
                 var msg = result.data.error || 'Invalid verification code';
-                mfaStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + msg + '</div>';
+                mfaStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + escapeHtml(msg) + '</div>';
                 mfaStatus.classList.remove('d-none');
                 verifyBtn.disabled = false;
                 verifyBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Verify';
@@ -641,9 +648,9 @@ document.addEventListener('DOMContentLoaded', function() {
             link.style.pointerEvents = 'auto';
 
             if (data.success) {
-                document.getElementById('mfaStatus').innerHTML = '<div class="alert alert-info mb-0"><i class="fas fa-check me-2"></i>New code sent to ' + (data.masked_phone || 'your phone') + '</div>';
+                document.getElementById('mfaStatus').innerHTML = '<div class="alert alert-info mb-0"><i class="fas fa-check me-2"></i>New code sent to ' + escapeHtml(data.masked_phone || 'your phone') + '</div>';
             } else {
-                document.getElementById('mfaStatus').innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + (data.error || 'Failed to send code') + '</div>';
+                document.getElementById('mfaStatus').innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + escapeHtml(data.error || 'Failed to send code') + '</div>';
             }
             document.getElementById('mfaStatus').classList.remove('d-none');
             otpInputs.forEach(function(input) { input.value = ''; });

@@ -188,7 +188,7 @@ class AdminAuditService
         ],
         'admin_user_created' => [
             'category' => self::CATEGORY_ADMIN_USER,
-            'description' => 'New admin user account created',
+            'description' => 'Admin user account created',
             'severity' => self::SEVERITY_HIGH
         ],
         'admin_user_updated' => [
@@ -204,7 +204,7 @@ class AdminAuditService
         'admin_user_activated' => [
             'category' => self::CATEGORY_ADMIN_USER,
             'description' => 'Admin user account activated',
-            'severity' => self::SEVERITY_MEDIUM
+            'severity' => self::SEVERITY_HIGH
         ],
         'admin_user_unlocked' => [
             'category' => self::CATEGORY_ADMIN_USER,
@@ -218,12 +218,12 @@ class AdminAuditService
         ],
         'admin_mfa_reset' => [
             'category' => self::CATEGORY_ADMIN_USER,
-            'description' => 'Admin user MFA reset performed',
+            'description' => 'Admin user MFA reset by administrator',
             'severity' => self::SEVERITY_HIGH
         ],
         'admin_invite_resent' => [
             'category' => self::CATEGORY_ADMIN_USER,
-            'description' => 'Admin user invitation resent',
+            'description' => 'Admin user invite resent',
             'severity' => self::SEVERITY_LOW
         ],
         'admin_password_changed' => [
@@ -233,9 +233,19 @@ class AdminAuditService
         ],
         'admin_mfa_skipped_dev' => [
             'category' => self::CATEGORY_AUTH,
-            'description' => 'Admin MFA skipped in development mode',
+            'description' => 'Admin MFA setup skipped in development',
             'severity' => self::SEVERITY_MEDIUM
         ],
+        'admin_session_revoked_inactive' => [
+            'category' => self::CATEGORY_SECURITY,
+            'description' => 'Admin session revoked due to inactive account',
+            'severity' => self::SEVERITY_HIGH
+        ],
+        'admin_session_revoked_locked' => [
+            'category' => self::CATEGORY_SECURITY,
+            'description' => 'Admin session revoked due to locked account',
+            'severity' => self::SEVERITY_HIGH
+        ]
     ];
     
     public static function log(string $eventCode, array $data = [], ?string $severityOverride = null): void

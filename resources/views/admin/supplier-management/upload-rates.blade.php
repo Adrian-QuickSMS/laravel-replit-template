@@ -315,6 +315,13 @@ let uploadedFile = null;
 let validatedData = null;
 let selectedGatewayId = null;
 
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
 function loadGateways() {
     const supplierId = document.getElementById('selectSupplier').value;
     const gatewaySelect = document.getElementById('selectGateway');
@@ -331,7 +338,7 @@ function loadGateways() {
         .then(gateways => {
             gatewaySelect.innerHTML = '<option value="">Choose gateway...</option>';
             gateways.forEach(gateway => {
-                gatewaySelect.innerHTML += `<option value="${gateway.id}">${gateway.name} (${gateway.gateway_code})</option>`;
+                gatewaySelect.innerHTML += `<option value="${escapeHtml(String(gateway.id))}">${escapeHtml(gateway.name)} (${escapeHtml(gateway.gateway_code)})</option>`;
             });
             gatewaySelect.disabled = false;
         });
@@ -391,20 +398,20 @@ function displayValidationResults(data) {
     if (data.errors && data.errors.length > 0) {
         html += '<div class="alert alert-danger"><strong>Validation Errors Found:</strong></div>';
         data.errors.forEach(error => {
-            html += `<div class="validation-error">${error}</div>`;
+            html += `<div class="validation-error">${escapeHtml(error)}</div>`;
         });
         document.getElementById('step3NextBtn').disabled = true;
     } else {
         html += '<div class="validation-success mb-3">';
         html += '<i class="fas fa-check-circle me-2"></i>';
-        html += `<strong>Validation Successful!</strong> ${data.total_rows} rate cards ready to import`;
+        html += `<strong>Validation Successful!</strong> ${escapeHtml(String(data.total_rows))} rate cards ready to import`;
         html += '</div>';
 
         html += '<div class="summary-card">';
         html += '<h6>Import Summary:</h6>';
-        html += `<p class="mb-1">Total Rows: <strong>${data.total_rows}</strong></p>`;
-        html += `<p class="mb-1">New Rates: <strong>${data.new_rates}</strong></p>`;
-        html += `<p class="mb-0">Rate Updates: <strong>${data.updated_rates}</strong></p>`;
+        html += `<p class="mb-1">Total Rows: <strong>${escapeHtml(String(data.total_rows))}</strong></p>`;
+        html += `<p class="mb-1">New Rates: <strong>${escapeHtml(String(data.new_rates))}</strong></p>`;
+        html += `<p class="mb-0">Rate Updates: <strong>${escapeHtml(String(data.updated_rates))}</strong></p>`;
         html += '</div>';
 
         html += '<div class="preview-table">';
@@ -413,11 +420,11 @@ function displayValidationResults(data) {
         html += '<tbody>';
         data.preview.forEach(row => {
             html += `<tr>
-                <td><code>${row.mcc}/${row.mnc}</code></td>
-                <td>${row.network_name}</td>
-                <td>${row.rate}</td>
-                <td>${row.currency}</td>
-                <td>${row.product_type}</td>
+                <td><code>${escapeHtml(String(row.mcc))}/${escapeHtml(String(row.mnc))}</code></td>
+                <td>${escapeHtml(row.network_name)}</td>
+                <td>${escapeHtml(String(row.rate))}</td>
+                <td>${escapeHtml(row.currency)}</td>
+                <td>${escapeHtml(row.product_type)}</td>
             </tr>`;
         });
         html += '</tbody></table>';

@@ -202,10 +202,9 @@ class AdminUser extends Authenticatable
         $this->increment('failed_login_attempts');
 
         $maxAttempts = config('admin.security.max_login_attempts', 5);
-        $lockoutMinutes = (int) ceil(config('admin.security.lockout_duration', 900) / 60);
-
+        $lockoutSeconds = config('admin.security.lockout_duration', 900);
         if ($this->failed_login_attempts >= $maxAttempts) {
-            $this->lockAccount($lockoutMinutes);
+            $this->lockAccount((int) ceil($lockoutSeconds / 60));
         }
     }
 

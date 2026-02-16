@@ -306,6 +306,13 @@
 
 @push('scripts')
 <script>
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str)));
+    return div.innerHTML;
+}
+
 function filterRates() {
     const supplierFilter = document.getElementById('filterSupplier').value;
     const gatewayFilter = document.getElementById('filterGateway').value;
@@ -377,15 +384,15 @@ function viewHistory(rateId) {
                     <div class="timeline-item mb-3 ${index === 0 ? 'border-start border-3 border-success ps-3' : 'ps-3'}">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <span class="version-badge">v${version.version}</span>
+                                <span class="version-badge">v${escapeHtml(version.version)}</span>
                                 ${index === 0 ? '<span class="badge bg-success ms-2">Current</span>' : ''}
                             </div>
-                            <small class="text-muted">${version.created_at}</small>
+                            <small class="text-muted">${escapeHtml(version.created_at)}</small>
                         </div>
-                        <div class="rate-value">${version.currency} ${parseFloat(version.native_rate).toFixed(4)} → £${parseFloat(version.gbp_rate).toFixed(4)}</div>
-                        <div class="text-muted small">Valid: ${version.valid_from} ${version.valid_to ? '→ ' + version.valid_to : '(ongoing)'}</div>
-                        ${version.change_reason ? '<div class="text-muted small mt-1"><i class="fas fa-comment me-1"></i>' + version.change_reason + '</div>' : ''}
-                        ${version.created_by ? '<div class="text-muted small"><i class="fas fa-user me-1"></i>' + version.created_by + '</div>' : ''}
+                        <div class="rate-value">${escapeHtml(version.currency)} ${parseFloat(version.native_rate).toFixed(4)} → £${parseFloat(version.gbp_rate).toFixed(4)}</div>
+                        <div class="text-muted small">Valid: ${escapeHtml(version.valid_from)} ${version.valid_to ? '→ ' + escapeHtml(version.valid_to) : '(ongoing)'}</div>
+                        ${version.change_reason ? '<div class="text-muted small mt-1"><i class="fas fa-comment me-1"></i>' + escapeHtml(version.change_reason) + '</div>' : ''}
+                        ${version.created_by ? '<div class="text-muted small"><i class="fas fa-user me-1"></i>' + escapeHtml(version.created_by) + '</div>' : ''}
                     </div>
                 `;
             });

@@ -353,6 +353,13 @@
 
 @push('scripts')
 <script>
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str)));
+    return div.innerHTML;
+}
+
 function openAddMccMncModal() {
     new bootstrap.Modal(document.getElementById('addMccMncModal')).show();
 }
@@ -374,7 +381,7 @@ function submitAddMccMnc() {
         if (data.success) {
             location.reload();
         } else {
-            alert('Error: ' + data.message);
+            alert('Error: ' + escapeHtml(data.message));
         }
     })
     .catch(error => {
@@ -414,7 +421,7 @@ function submitEditMccMnc() {
         if (data.success) {
             location.reload();
         } else {
-            alert('Error: ' + data.message);
+            alert('Error: ' + escapeHtml(data.message));
         }
     });
 }
@@ -478,10 +485,10 @@ function submitImport() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(`Successfully imported ${data.imported} networks`);
+            alert(`Successfully imported ${escapeHtml(data.imported)} networks`);
             location.reload();
         } else {
-            alert('Import failed: ' + data.message);
+            alert('Import failed: ' + escapeHtml(data.message));
         }
     })
     .catch(error => {

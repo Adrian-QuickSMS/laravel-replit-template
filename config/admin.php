@@ -36,8 +36,8 @@ return [
         'log_all_actions' => true,
     ],
     
-    // Admin users are stored in admin_users database table.
-    // Config-based auth has been fully removed.
+    // DEPRECATED: Admin users now stored in admin_users DB table.
+    // Config users array emptied — no hardcoded credentials in source.
     'users' => [],
     
     'audit' => [
