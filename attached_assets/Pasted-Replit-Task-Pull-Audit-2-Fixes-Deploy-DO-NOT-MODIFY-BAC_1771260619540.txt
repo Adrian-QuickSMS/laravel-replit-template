@@ -1,0 +1,191 @@
+Replit Task: Pull Audit #2 Fixes & Deploy — DO NOT MODIFY BACKEND FILES
+STEP 1: Pull the fixes
+git pull origin claude/quicksms-security-performance-dr8sw
+
+This commit (d913624) merges your 4 commits with 15 security/performance fixes. All merge conflicts have been resolved. There should be no conflicts on pull.
+
+CRITICAL RULE: FILES YOU MUST NOT EDIT
+DO NOT open, modify, refactor, "improve", or rewrite ANY of these files. They contain security fixes that took 2 audit cycles to get right. Even a single-line change can reintroduce vulnerabilities:
+
+File	Why It Must Not Be Touched
+app/Models/AdminUser.php	SoftDeletes, MFA timing, lockout config, SMS attempt counting
+app/Http/Middleware/AdminAuthenticate.php	ADMIN_DEV_AUTOLOGIN gate, deleted-user revalidation, fail-closed whitelist
+app/Http/Controllers/AdminAuthController.php	SMS code logging guard, password change MFA bypass
+app/Http/Controllers/Admin/AdminUserController.php	Role authorization on all mutating endpoints, pagination cap
+app/Http/Controllers/AdminController.php	Exception detail suppression on 8 endpoints, PII logging fix
+app/Services/Admin/AdminAuditService.php	14 event types including session revocation events
+config/admin.php	Empty users array — no hardcoded credentials
+resources/views/admin/auth/login.blade.php	XSS fixes + placeholder admin@quicksms.com
+If you need to change behaviour in any of these files, describe what you want changed and I will do it in the next audit cycle.
+
+STEP 2: Verify the pull worked
+Run these exact commands and confirm all pass:
+
+# 1. Confirm no hardcoded credentials in config
+grep -c "'users' => \[\]" config/admin.php
+# Expected: 1
+
+# 2. Confirm mockMode is gone from admin-users page
+grep -c "mockMode" resources/views/admin/security/admin-users.blade.php
+# Expected: 0
+
+# 3. Confirm escapeHtml exists in admin-users page
+grep -c "function escapeHtml" resources/views/admin/security/admin-users.blade.php
+# Expected: 1
+
+# 4. Confirm ADMIN_DEV_AUTOLOGIN gate exists
+grep -c "ADMIN_DEV_AUTOLOGIN" app/Http/Middleware/AdminAuthenticate.php
+# Expected: 1
+
+# 5. Confirm SoftDeletes on AdminUser
+grep -c "SoftDeletes" app/Models/AdminUser.php
+# Expected: 2 (import + use)
+
+# 6. Confirm no exception leakage in AdminController
+grep -c '\\$e->getMessage()' app/Http/Controllers/AdminController.php
+# Expected: 8 (only in Log::error calls, NOT in response()->json calls)
+
+# 7. Confirm resendInvite has role check
+grep -A3 "function resendInvite" app/Http/Controllers/Admin/AdminUserController.php | grep -c "admin_auth.role"
+# Expected: 1
+
+If ANY of these checks fail, STOP. Do not proceed. Report the failure.
+
+STEP 3: Set environment variable for dev auto-login
+The dev auto-login now requires an explicit opt-in. Add this to your .env:
+
+ADMIN_DEV_AUTOLOGIN=true
+
+Without this, visiting /admin will redirect to /admin/login instead of auto-logging you in. This is intentional — it prevents accidental super_admin access if APP_DEBUG=true leaks to production.
+
+If you do NOT want auto-login (i.e., you want to test the real login flow), skip this step.
+
+STEP 4: Run the sessions migration
+Commit 113888e added a sessions migration. Run it:
+
+php artisan migrate
+
+If it fails because the sessions table already exists, that is fine — skip it.
+
+STEP 5: Test the admin user actions are wired to real endpoints
+The admin-users page (/admin/security/admin-users) now calls real API endpoints instead of mock mode. Test these actions:
+
+Load the page — Should show real users from DB (not ADM001/ADM002 mock data)
+Click Suspend on a non-super_admin user — Should call POST /admin/api/admin-users/{id}/suspend and return {"success":true}
+Click Activate on the suspended user — Should call POST /admin/api/admin-users/{id}/activate and return {"success":true}
+Try Suspend on yourself — Should return {"error":"Cannot suspend your own account"} with 422 status
+If actions fail with network errors or 404s, check that the routes are registered:
+
+php artisan route:list --path=admin/api/admin-users
+
+Expected routes:
+
+POST   admin/api/admin-users            → AdminUserController@store
+GET    admin/api/admin-users            → AdminUserController@index
+GET    admin/api/admin-users/{id}       → AdminUserController@show
+PUT    admin/api/admin-users/{id}       → AdminUserController@update
+POST   admin/api/admin-users/{id}/suspend      → AdminUserController@suspend
+POST   admin/api/admin-users/{id}/activate     → AdminUserController@activate
+POST   admin/api/admin-users/{id}/unlock       → AdminUserController@unlock
+POST   admin/api/admin-users/{id}/reset-mfa    → AdminUserController@resetMfa
+POST   admin/api/admin-users/{id}/resend-invite → AdminUserController@resendInvite
+DELETE admin/api/admin-users/{id}       → AdminUserController@destroy
+
+STEP 6: Remaining work for YOU (only these items)
+These are the ONLY things you should write code for. Everything else is already done.
+
+6a. Wire 4 missing admin-user action endpoints (server-side)
+The admin-users page JS has buttons for these actions that currently have NO server-side route:
+
+Action	JS calls	Route needed	Controller method needed
+Reset Password	POST /admin/api/admin-users/{id}/reset-password	Add to routes/web.php	Add resetPassword(string $id) to AdminUserController
+Force Logout	POST /admin/api/admin-users/{id}/force-logout	Add to routes/web.php	Add forceLogout(string $id) to AdminUserController
+Update MFA Method	POST /admin/api/admin-users/{id}/update-mfa	Add to routes/web.php	Add updateMfa(string $id) to AdminUserController
+Update Email	POST /admin/api/admin-users/{id}/update-email	Add to routes/web.php	Add updateEmail(string $id) to AdminUserController
+For each new method you add, you MUST include:
+
+$currentRole = session('admin_auth.role');
+if (!in_array($currentRole, ['super_admin', 'admin'])) {
+    return response()->json(['error' => 'Insufficient permissions'], 403);
+}
+
+For resetPassword specifically:
+
+Set force_password_change = true on the target user
+Do NOT email the password — just force a change on next login
+Log with AdminAuditService::log('admin_password_changed', [...])
+For forceLogout specifically:
+
+You need a mechanism to invalidate the target user's sessions. The simplest approach: set locked_until = now() briefly (1 second), then clear it. Or add a session_invalidated_at column.
+Log with AdminAuditService::logSessionsRevoked()
+For updateMfa:
+
+Accept method (authenticator|sms|both) and optional phone
+Update the user's mfa_method and phone fields
+Log with AdminAuditService::logMfaUpdated()
+For updateEmail:
+
+Accept new_email and reason
+Validate new_email ends with @quicksms.com
+super_admin role only (not admin)
+Log with AdminAuditService::logEmailUpdated()
+6b. Add routes for the new endpoints
+In routes/web.php, inside the prefix('api/admin-users') group, add:
+
+Route::post('/{id}/reset-password', 'resetPassword')->name('admin.api.admin-users.reset-password');
+Route::post('/{id}/force-logout', 'forceLogout')->name('admin.api.admin-users.force-logout');
+Route::post('/{id}/update-mfa', 'updateMfa')->name('admin.api.admin-users.update-mfa');
+Route::post('/{id}/update-email', 'updateEmail')->name('admin.api.admin-users.update-email');
+
+6c. Generate and render actual QR code in MFA setup
+resources/views/admin/auth/mfa-setup.blade.php currently shows a placeholder icon instead of a real QR code. The $qr_code_url variable is passed from the controller and contains a valid otpauth://totp/... URI.
+
+Option A (recommended — no external dependencies):
+Use a JavaScript QR code library. Add this before </head>:
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+Then replace the placeholder with:
+
+<canvas id="qrCanvas"></canvas>
+<script>
+QRCode.toCanvas(document.getElementById('qrCanvas'), @json($qr_code_url), { width: 200 });
+</script>
+
+Option B (server-side):
+Install simplesoftwareio/simple-qrcode via composer and render server-side.
+
+6d. Update @quicksms.co.uk mock emails in compliance page
+In resources/views/admin/security/security-compliance-controls.blade.php, find and replace all @quicksms.co.uk with @quicksms.com. There are approximately 6 occurrences in JavaScript mock data objects.
+
+Similarly in resources/views/shared/partials/audit-log-component.blade.php, replace the 5 dropdown option emails from @quicksms.co.uk to @quicksms.com.
+
+STEP 7: What you MUST NOT do
+DO NOT set mockMode = true anywhere. It was the #1 critical bug — all admin actions were fake.
+DO NOT remove escapeHtml() calls from any view. They prevent XSS.
+DO NOT add $e->getMessage() to any response()->json() in catch blocks. Log it, don't return it.
+DO NOT remove the ADMIN_DEV_AUTOLOGIN env check from the middleware. It's a security gate.
+DO NOT add users back to config/admin.php. Auth is DB-only.
+DO NOT change empty($adminSession['authenticated']) back to !$adminSession['authenticated'] — the empty() prevents PHP warnings on missing keys.
+DO NOT remove the !$adminUser null check in the middleware revalidation block. It catches deleted users.
+DO NOT create new JavaScript functions that use innerHTML with user data without wrapping in escapeHtml().
+DO NOT add new controller methods without role authorization checks.
+DO NOT log raw user input (message content, phone numbers, etc.) to Laravel logs. Log the length or a hash instead.
+STEP 8: Completion report
+When done, provide:
+
+A. VERIFICATION — Output of all 7 checks from Step 2
+
+B. MIGRATION — Output of php artisan migrate
+
+C. ROUTE LIST — Output of php artisan route:list --path=admin/api/admin-users
+
+D. NEW ENDPOINTS — For each of the 4 new methods: the method signature, the role check used, and the audit log event
+
+E. QR CODE — Confirm the MFA setup page renders an actual scannable QR code
+
+F. MOCK EMAIL CLEANUP — Count of @quicksms.co.uk remaining in the codebase:
+
+grep -r "quicksms\.co\.uk" --include="*.blade.php" --include="*.php" -l | grep -v vendor | grep -v node_modules
+
+Target: only config/admin.php (whitelisted_domains array — this one is intentional)
