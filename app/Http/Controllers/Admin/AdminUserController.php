@@ -7,8 +7,11 @@ use App\Models\AdminUser;
 use App\Models\AuthAuditLog;
 use App\Services\Admin\AdminAuditService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AdminUserController extends Controller
 {
@@ -284,5 +287,164 @@ class AdminUserController extends Controller
         AdminAuditService::log('admin_user_deleted', ['user_id' => $user->id, 'email' => $user->email]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function resetPassword(string $id)
+    {
+        $currentRole = session('admin_auth.role');
+        if (!in_array($currentRole, ['super_admin', 'admin'])) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
+        try {
+            $user = AdminUser::findOrFail($id);
+
+            $user->update([
+                'force_password_change' => true,
+                'updated_by' => session('admin_auth.email'),
+            ]);
+
+            AdminAuditService::logPasswordReset(
+                session('admin_auth.email', 'unknown'),
+                $user->email
+            );
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('[AdminUserController] resetPassword failed', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to reset password'], 500);
+        }
+    }
+
+    public function forceLogout(string $id)
+    {
+        $currentRole = session('admin_auth.role');
+        if (!in_array($currentRole, ['super_admin', 'admin'])) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
+        try {
+            $user = AdminUser::findOrFail($id);
+
+            if ($user->id === session('admin_auth.admin_id')) {
+                return response()->json(['error' => 'Cannot force logout your own account'], 422);
+            }
+
+            $sessionsDeleted = DB::table('sessions')
+                ->where('user_id', $user->id)
+                ->delete();
+
+            $user->update([
+                'updated_by' => session('admin_auth.email'),
+            ]);
+
+            AdminAuditService::logSessionsRevoked(
+                session('admin_auth.email', 'unknown'),
+                $user->email,
+                $sessionsDeleted
+            );
+
+            return response()->json(['success' => true, 'sessions_revoked' => $sessionsDeleted]);
+        } catch (\Exception $e) {
+            Log::error('[AdminUserController] forceLogout failed', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to force logout'], 500);
+        }
+    }
+
+    public function updateMfa(Request $request, string $id)
+    {
+        $currentRole = session('admin_auth.role');
+        if (!in_array($currentRole, ['super_admin', 'admin'])) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'method' => 'required|string|in:authenticator,sms,both',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Invalid input'], 422);
+        }
+
+        try {
+            $user = AdminUser::findOrFail($id);
+            $previousMethod = $user->mfa_method ?? 'authenticator';
+
+            $updateData = [
+                'mfa_method' => $request->input('method'),
+                'updated_by' => session('admin_auth.email'),
+            ];
+
+            if ($request->filled('phone')) {
+                $updateData['phone'] = $request->input('phone');
+            }
+
+            $user->update($updateData);
+
+            AdminAuditService::logMfaUpdated(
+                session('admin_auth.email', 'unknown'),
+                $user->email,
+                $previousMethod,
+                $request->input('method'),
+                $request->input('phone')
+            );
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('[AdminUserController] updateMfa failed', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to update MFA method'], 500);
+        }
+    }
+
+    public function updateEmail(Request $request, string $id)
+    {
+        $currentRole = session('admin_auth.role');
+        if ($currentRole !== 'super_admin') {
+            return response()->json(['error' => 'Only super admins can update email addresses'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'new_email' => 'required|email|max:255',
+            'reason' => 'required|string|max:500',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => 'Invalid input'], 422);
+        }
+
+        $newEmail = $request->input('new_email');
+
+        if (!str_ends_with(strtolower($newEmail), '@quicksms.com')) {
+            return response()->json(['error' => 'Email must end with @quicksms.com'], 422);
+        }
+
+        try {
+            $user = AdminUser::findOrFail($id);
+            $previousEmail = $user->email;
+
+            $existing = AdminUser::where('email', $newEmail)->where('id', '!=', $id)->first();
+            if ($existing) {
+                return response()->json(['error' => 'Email address already in use'], 422);
+            }
+
+            $user->update([
+                'email' => $newEmail,
+                'updated_by' => session('admin_auth.email'),
+            ]);
+
+            AdminAuditService::logEmailUpdated(
+                session('admin_auth.email', 'unknown'),
+                $previousEmail,
+                $previousEmail,
+                $newEmail,
+                $request->input('reason')
+            );
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('[AdminUserController] updateEmail failed', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to update email'], 500);
+        }
     }
 }

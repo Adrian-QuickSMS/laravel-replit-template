@@ -480,11 +480,11 @@ $cardSubtitle = $cardSubtitle ?? 'Centralised, chronological record of all platf
                         <label class="form-label small fw-bold">Admin User</label>
                         <select class="form-select form-select-sm" id="{{ $prefix }}AdminUserFilter">
                             <option value="">All Admin Users</option>
-                            <option value="sarah.johnson@quicksms.co.uk">Sarah Johnson</option>
-                            <option value="james.mitchell@quicksms.co.uk">James Mitchell</option>
-                            <option value="emily.chen@quicksms.co.uk">Emily Chen</option>
-                            <option value="david.lee@quicksms.co.uk">David Lee</option>
-                            <option value="anna.williams@quicksms.co.uk">Anna Williams</option>
+                            <option value="sarah.johnson@quicksms.com">Sarah Johnson</option>
+                            <option value="james.mitchell@quicksms.com">James Mitchell</option>
+                            <option value="emily.chen@quicksms.com">Emily Chen</option>
+                            <option value="david.lee@quicksms.com">David Lee</option>
+                            <option value="anna.williams@quicksms.com">Anna Williams</option>
                         </select>
                     </div>
                     <div class="col-6 col-md-2">

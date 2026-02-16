@@ -1261,11 +1261,11 @@ function openUserDetail(userId) {
     var html = '';
     
     html += '<div class="panel-user-header" style="display: flex; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e9ecef; margin-bottom: 1rem;">' +
-        '<div class="user-avatar" style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1e3a5f, #4a90d9); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; font-weight: 600;">' + getInitials(user.name) + '</div>' +
+        '<div class="user-avatar" style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1e3a5f, #4a90d9); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; font-weight: 600;">' + escapeHtml(getInitials(user.name)) + '</div>' +
         '<div class="user-header-info" style="flex: 1;">' +
-            '<h5 style="margin: 0; font-weight: 600; color: #343a40;">' + user.name + '</h5>' +
-            '<div style="font-size: 0.85rem; color: #6c757d;">' + user.email + '</div>' +
-            '<div style="margin-top: 0.35rem;"><span class="badge-pill ' + statusClass + '">' + user.status + '</span></div>' +
+            '<h5 style="margin: 0; font-weight: 600; color: #343a40;">' + escapeHtml(user.name) + '</h5>' +
+            '<div style="font-size: 0.85rem; color: #6c757d;">' + escapeHtml(user.email) + '</div>' +
+            '<div style="margin-top: 0.35rem;"><span class="badge-pill ' + statusClass + '">' + escapeHtml(user.status) + '</span></div>' +
         '</div>' +
         '</div>';
     
@@ -1278,10 +1278,10 @@ function openUserDetail(userId) {
     
     html += '<div class="detail-section">' +
         '<h6><i class="fas fa-id-card me-2" style="color: #1e3a5f;"></i>Identity</h6>' +
-        '<div class="detail-row"><span class="label">User ID</span><span class="value">' + user.id + '</span></div>' +
-        '<div class="detail-row"><span class="label">Created By</span><span class="value">' + (user.created_by || 'System') + '</span></div>' +
+        '<div class="detail-row"><span class="label">User ID</span><span class="value">' + escapeHtml(user.id) + '</span></div>' +
+        '<div class="detail-row"><span class="label">Created By</span><span class="value">' + escapeHtml(user.created_by || 'System') + '</span></div>' +
         '<div class="detail-row"><span class="label">Created At</span><span class="value">' + formatDate(user.created_at) + '</span></div>' +
-        '<div class="detail-row"><span class="label">Department</span><span class="value">' + user.department + '</span></div>' +
+        '<div class="detail-row"><span class="label">Department</span><span class="value">' + escapeHtml(user.department) + '</span></div>' +
         '</div>';
     
     if (user.status === 'Invited') {
@@ -1289,14 +1289,14 @@ function openUserDetail(userId) {
             '<h6><i class="fas fa-envelope me-2" style="color: #1e3a5f;"></i>Invitation</h6>' +
             '<div class="detail-row"><span class="label">Invite Sent</span><span class="value">' + (user.invite_sent_at ? formatDate(user.invite_sent_at) : formatDate(user.created_at)) + '</span></div>' +
             '<div class="detail-row"><span class="label">Expires</span><span class="value">' + (inviteExpired ? '<span class="text-danger">Expired</span>' : '7 days after sent') + '</span></div>' +
-            (user.internal_note ? '<div class="detail-row"><span class="label">Internal Note</span><span class="value" style="font-style: italic;">' + user.internal_note + '</span></div>' : '') +
+            (user.internal_note ? '<div class="detail-row"><span class="label">Internal Note</span><span class="value" style="font-style: italic;">' + escapeHtml(user.internal_note) + '</span></div>' : '') +
             '</div>';
     }
     
     html += '<div class="detail-section">' +
         '<h6><i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i>Access & Security</h6>' +
-        '<div class="detail-row"><span class="label">MFA Enrolled</span><span class="value"><span class="badge-pill ' + mfaClass + '">' + user.mfa_status + '</span></span></div>' +
-        '<div class="detail-row"><span class="label">MFA Method</span><span class="value">' + (user.mfa_method || 'Not configured') + '</span></div>' +
+        '<div class="detail-row"><span class="label">MFA Enrolled</span><span class="value"><span class="badge-pill ' + mfaClass + '">' + escapeHtml(user.mfa_status) + '</span></span></div>' +
+        '<div class="detail-row"><span class="label">MFA Method</span><span class="value">' + escapeHtml(user.mfa_method || 'Not configured') + '</span></div>' +
         '<div class="detail-row"><span class="label">Last Login</span><span class="value">' + (user.last_login ? formatDate(user.last_login) : 'Never') + '</span></div>' +
         '<div class="detail-row"><span class="label">Last Activity</span><span class="value">' + (user.last_activity ? formatDate(user.last_activity) : '-') + '</span></div>' +
         '<div class="detail-row"><span class="label">Active Sessions</span><span class="value">' + (user.active_sessions || 0) + (user.active_sessions > 0 ? ' <i class="fas fa-circle text-success" style="font-size: 0.5rem;"></i>' : '') + '</span></div>' +
@@ -1305,7 +1305,7 @@ function openUserDetail(userId) {
     
     html += '<div class="detail-section">' +
         '<h6><i class="fas fa-user-shield me-2" style="color: #1e3a5f;"></i>Permissions</h6>' +
-        '<div class="detail-row"><span class="label">Role</span><span class="value"><strong>' + user.role + '</strong></span></div>';
+        '<div class="detail-row"><span class="label">Role</span><span class="value"><strong>' + escapeHtml(user.role) + '</strong></span></div>';
     
     if (user.role === 'Super Admin') {
         html += '<div class="detail-row"><span class="label">Access Level</span><span class="value">Full administrative access</span></div>' +
@@ -1542,10 +1542,10 @@ function addTableRow(user) {
     tr.dataset.user = JSON.stringify(user);
     tr.onclick = function() { openUserDetail(user.id); };
     
-    tr.innerHTML = '<td><div class="user-name">' + user.name + '</div></td>' +
-        '<td title="' + user.email + '">' + user.email + '</td>' +
-        '<td><span class="badge-pill ' + statusClass + '">' + user.status + '</span></td>' +
-        '<td><span class="badge-pill ' + mfaClass + '">' + user.mfa_status + '</span></td>' +
+    tr.innerHTML = '<td><div class="user-name">' + escapeHtml(user.name) + '</div></td>' +
+        '<td title="' + escapeHtml(user.email) + '">' + escapeHtml(user.email) + '</td>' +
+        '<td><span class="badge-pill ' + statusClass + '">' + escapeHtml(user.status) + '</span></td>' +
+        '<td><span class="badge-pill ' + mfaClass + '">' + escapeHtml(user.mfa_status) + '</span></td>' +
         '<td>-</td>' +
         '<td><span class="text-muted">Never</span></td>' +
         '<td><span class="text-muted">-</span></td>' +
@@ -1834,7 +1834,7 @@ function updateTableRowStatus(userId, newStatus) {
         'Archived': 'badge-archived'
     }[newStatus] || 'badge-archived';
     
-    statusCell.innerHTML = '<span class="badge-pill ' + statusClass + '">' + newStatus + '</span>';
+    statusCell.innerHTML = '<span class="badge-pill ' + statusClass + '">' + escapeHtml(newStatus) + '</span>';
     
     // Update action menu based on new status
     var actionsCell = row.querySelector('td:last-child');
@@ -1905,7 +1905,7 @@ function updateTableRowMfa(userId, mfaStatus) {
     if (!mfaCell) return;
     
     var mfaClass = mfaStatus === 'Enrolled' ? 'badge-enrolled' : 'badge-not-enrolled';
-    mfaCell.innerHTML = '<span class="badge-pill ' + mfaClass + '">' + mfaStatus + '</span>';
+    mfaCell.innerHTML = '<span class="badge-pill ' + mfaClass + '">' + escapeHtml(mfaStatus) + '</span>';
 }
 
 var currentAdminRole = '{{ session("admin_role", "super_admin") }}';

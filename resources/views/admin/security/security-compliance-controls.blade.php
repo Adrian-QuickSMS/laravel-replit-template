@@ -4002,7 +4002,7 @@
     var AdminAccessControl = {
         currentAdmin: {
             id: 'admin-001',
-            email: 'admin@quicksms.co.uk',
+            email: 'admin@quicksms.com',
             role: 'super_admin',
             isAdmin: true
         },
@@ -4121,7 +4121,7 @@ function toggleFeatureFlag(flagKey, enabled) {
     var result = MessageEnforcementService.setFeatureFlag(flagKey, enabled, {
         isAdmin: true,
         adminId: 'admin-001',
-        adminEmail: 'admin@quicksms.co.uk'
+        adminEmail: 'admin@quicksms.com'
     });
     
     if (result.success) {
@@ -4383,7 +4383,7 @@ document.getElementById('featureFlagsModal').addEventListener('show.bs.modal', f
 <script>
 var currentAdmin = {
     id: 'admin-001',
-    email: 'admin@quicksms.co.uk',
+    email: 'admin@quicksms.com',
     role: 'super_admin'
 };
 
@@ -4972,15 +4972,15 @@ var SecurityComplianceControlsService = (function() {
             };
 
             mockData.domainAllowlist = [
-                { id: 'DA-001', domain: 'google.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:00', addedBy: 'admin@quicksms.co.uk' },
-                { id: 'DA-002', domain: 'microsoft.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:05', addedBy: 'admin@quicksms.co.uk' },
-                { id: 'DA-003', domain: 'apple.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:10', addedBy: 'admin@quicksms.co.uk' },
-                { id: 'DA-004', domain: 'amazon.co.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:00', addedBy: 'admin@quicksms.co.uk' },
-                { id: 'DA-005', domain: 'gov.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:15', addedBy: 'compliance@quicksms.co.uk' }
+                { id: 'DA-001', domain: 'google.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:00', addedBy: 'admin@quicksms.com' },
+                { id: 'DA-002', domain: 'microsoft.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:05', addedBy: 'admin@quicksms.com' },
+                { id: 'DA-003', domain: 'apple.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:10', addedBy: 'admin@quicksms.com' },
+                { id: 'DA-004', domain: 'amazon.co.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:00', addedBy: 'admin@quicksms.com' },
+                { id: 'DA-005', domain: 'gov.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:15', addedBy: 'compliance@quicksms.com' }
             ];
 
             mockData.thresholdOverrides = [
-                { id: 'TO-001', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: ['all'], thresholdHours: 24, action: 'quarantine', reason: 'Trusted healthcare provider', createdAt: '22-01-2026 11:00', createdBy: 'admin@quicksms.co.uk' }
+                { id: 'TO-001', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: ['all'], thresholdHours: 24, action: 'quarantine', reason: 'Trusted healthcare provider', createdAt: '22-01-2026 11:00', createdBy: 'admin@quicksms.com' }
             ];
 
             mockData.domainAgeExceptions = [];
@@ -11521,7 +11521,7 @@ function createNormRuleVersion(base, beforeState, afterState, action) {
         version: window.normRuleVersionHistory[base].length + 1,
         timestamp: new Date().toISOString(),
         action: action || 'update',
-        actor: 'admin@quicksms.co.uk',
+        actor: 'admin@quicksms.com',
         before: JSON.parse(JSON.stringify(beforeState)),
         after: JSON.parse(JSON.stringify(afterState))
     };
@@ -11893,7 +11893,7 @@ function toggleBaseCharacterStatus(base, enabled) {
     
     char.enabled = enabled;
     char.updated = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
-    char.updatedBy = 'admin@quicksms.co.uk';
+    char.updatedBy = 'admin@quicksms.com';
     
     var afterState = {
         enabled: char.enabled,
@@ -12010,7 +12010,7 @@ function createNormExpansionContent(char) {
 
 function generateCharHistory(char) {
     var history = char.history || [
-        { action: 'updated', description: 'Equivalents modified', time: char.updated || '28-01-2026', actor: 'admin@quicksms.co.uk' },
+        { action: 'updated', description: 'Equivalents modified', time: char.updated || '28-01-2026', actor: 'admin@quicksms.com' },
         { action: 'created', description: 'Character initialized', time: '01-01-2026', actor: 'system' }
     ];
     
@@ -13094,7 +13094,7 @@ function saveNewNormRule() {
         status: 'active',
         createdAt: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
         updatedAt: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
-        createdBy: 'admin@quicksms.co.uk'
+        createdBy: 'admin@quicksms.com'
     };
     
     mockData.normalisationRules.push(newRule);
@@ -14722,8 +14722,8 @@ window.addEventListener('load', function() {
             { id: 'QM001', timestamp: '03-02-2026 09:15', account: 'TechCorp Ltd', subAccount: 'Marketing', senderId: 'TECHCORP', messageSnippet: 'Get 50% OFF now! Visit our...', hasUrl: true, ruleTriggered: 'Promotional Spam', status: 'pending_review', reviewer: 'Unassigned', decisionAt: '-' },
             { id: 'QM002', timestamp: '03-02-2026 09:12', account: 'Finance Pro', subAccount: 'Alerts', senderId: 'FINPRO', messageSnippet: 'URGENT: Your account needs...', hasUrl: false, ruleTriggered: 'Urgency Spam', status: 'pending_review', reviewer: 'Unassigned', decisionAt: '-' },
             { id: 'QM003', timestamp: '03-02-2026 09:08', account: 'RetailMax', subAccount: 'Sales', senderId: 'RETAIL', messageSnippet: 'Congratulations! You won a...', hasUrl: true, ruleTriggered: 'Prize Scam', status: 'pending_review', reviewer: 'Unassigned', decisionAt: '-' },
-            { id: 'QM004', timestamp: '03-02-2026 08:55', account: 'HealthPlus', subAccount: 'Main', senderId: 'HEALTH', messageSnippet: 'Limited offer: Weight loss...', hasUrl: true, ruleTriggered: 'Health Scam', status: 'released', reviewer: 'admin@quicksms.co.uk', decisionAt: '03-02-2026 09:30' },
-            { id: 'QM005', timestamp: '03-02-2026 08:45', account: 'CryptoEx', subAccount: 'Trading', senderId: 'CRYPTO', messageSnippet: 'Double your Bitcoin! Send...', hasUrl: true, ruleTriggered: 'Crypto Scam', status: 'blocked', reviewer: 'admin@quicksms.co.uk', decisionAt: '03-02-2026 09:25' }
+            { id: 'QM004', timestamp: '03-02-2026 08:55', account: 'HealthPlus', subAccount: 'Main', senderId: 'HEALTH', messageSnippet: 'Limited offer: Weight loss...', hasUrl: true, ruleTriggered: 'Health Scam', status: 'released', reviewer: 'admin@quicksms.com', decisionAt: '03-02-2026 09:30' },
+            { id: 'QM005', timestamp: '03-02-2026 08:45', account: 'CryptoEx', subAccount: 'Trading', senderId: 'CRYPTO', messageSnippet: 'Double your Bitcoin! Send...', hasUrl: true, ruleTriggered: 'Crypto Scam', status: 'blocked', reviewer: 'admin@quicksms.com', decisionAt: '03-02-2026 09:25' }
         ];
         
         var html = '';

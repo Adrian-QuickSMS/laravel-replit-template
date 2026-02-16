@@ -323,8 +323,8 @@ body {
             </div>
             <div class="step-content">
                 <div class="qr-section">
-                    <div class="qr-placeholder">
-                        <i class="fas fa-qrcode fa-3x"></i>
+                    <div class="qr-placeholder" style="background: #fff; border: none;">
+                        <canvas id="qrCanvas"></canvas>
                         <p>Scan with your authenticator app</p>
                     </div>
                     <div class="secret-section">
@@ -386,8 +386,16 @@ body {
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    if (typeof QRCode !== 'undefined') {
+        var qrUrl = @json($qr_code_url);
+        QRCode.toCanvas(document.getElementById('qrCanvas'), qrUrl, { width: 200, margin: 2 }, function(error) {
+            if (error) console.error('QR generation failed:', error);
+        });
+    }
+
     var otpInputs = document.querySelectorAll('.otp-input');
 
     otpInputs.forEach(function(input, index) {
