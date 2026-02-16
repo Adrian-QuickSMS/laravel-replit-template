@@ -164,12 +164,35 @@ class AdminAuthController extends Controller
 
     public function logout(Request $request)
     {
-        AdminAuditService::log('admin_logout', []);
+        $adminSession = session('admin_auth');
+        $adminId = $adminSession['admin_id'] ?? null;
+        $adminEmail = $adminSession['email'] ?? 'unknown';
+
+        AdminAuditService::log('admin_logout', [
+            'admin_id' => $adminId,
+            'email' => $adminEmail,
+            'ip' => $request->ip(),
+        ]);
+
+        if ($adminId) {
+            $adminUser = AdminUser::find($adminId);
+            if ($adminUser) {
+                $adminUser->update([
+                    'last_login_ip' => $request->ip(),
+                ]);
+            }
+        }
 
         session()->forget('admin_auth');
         session()->forget('admin_impersonation');
+        session()->forget('admin_user_email');
+        session()->forget('admin_email');
+        session()->forget('admin_mfa_setup_secret');
 
-        return redirect()->route('admin.login')->with('success', 'You have been logged out');
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('admin.login')->with('success', 'You have been logged out successfully.');
     }
 
     public function showMfaSetup()

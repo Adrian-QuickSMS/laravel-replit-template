@@ -50,11 +50,11 @@
                                 <i class="fas fa-user-cog text-primary"></i>
                                 <span class="ms-2">Admin Settings</span>
                             </a>
-                            <a href="#" class="dropdown-item ai-icon">
+                            <a href="{{ route('admin.security.audit-logs') }}" class="dropdown-item ai-icon">
                                 <i class="fas fa-history text-info"></i>
                                 <span class="ms-2">My Activity</span>
                             </a>
-                            <a href="#" class="dropdown-item ai-icon">
+                            <a href="{{ route('admin.logout') }}" class="dropdown-item ai-icon" onclick="return confirm('Are you sure you want to log out?');">
                                 <i class="fas fa-sign-out-alt text-danger"></i>
                                 <span class="ms-2">Logout</span>
                             </a>
