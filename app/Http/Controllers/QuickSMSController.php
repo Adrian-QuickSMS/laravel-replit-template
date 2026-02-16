@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Contact;
+use App\Models\ContactList;
+use App\Models\OptOutList;
+use App\Models\OptOutRecord;
+use App\Models\Tag;
 use App\Models\SenderId;
 
 class QuickSMSController extends Controller
@@ -1317,315 +1322,70 @@ class QuickSMSController extends Controller
 
     public function allContacts()
     {
-        $contacts = [
-            [
-                'id' => 1,
-                'first_name' => 'Emma',
-                'last_name' => 'Thompson',
-                'initials' => 'ET',
-                'email' => 'emma.thompson@example.com',
-                'mobile' => '+44 7700 900123',
-                'mobile_masked' => '+44 77** ***123',
-                'tags' => ['VIP', 'Newsletter'],
-                'lists' => ['Marketing'],
-                'status' => 'active',
-                'source' => 'UI',
-                'created_at' => '2024-11-15',
-            ],
-            [
-                'id' => 2,
-                'first_name' => 'James',
-                'last_name' => 'Wilson',
-                'initials' => 'JW',
-                'email' => 'james.wilson@example.com',
-                'mobile' => '+44 7700 900456',
-                'mobile_masked' => '+44 77** ***456',
-                'tags' => ['Customer'],
-                'lists' => ['Promotions', 'Updates'],
-                'status' => 'active',
-                'source' => 'Import',
-                'created_at' => '2024-10-22',
-            ],
-            [
-                'id' => 3,
-                'first_name' => 'Sarah',
-                'last_name' => 'Mitchell',
-                'initials' => 'SM',
-                'email' => 'sarah.m@example.com',
-                'mobile' => '+44 7700 900789',
-                'mobile_masked' => '+44 77** ***789',
-                'tags' => ['VIP', 'Partner'],
-                'lists' => ['Marketing'],
-                'status' => 'active',
-                'source' => 'API',
-                'created_at' => '2024-12-01',
-            ],
-            [
-                'id' => 4,
-                'first_name' => 'Michael',
-                'last_name' => 'Brown',
-                'initials' => 'MB',
-                'email' => 'michael.brown@example.com',
-                'mobile' => '+44 7700 900321',
-                'mobile_masked' => '+44 77** ***321',
-                'tags' => [],
-                'lists' => ['Updates'],
-                'status' => 'opted-out',
-                'source' => 'UI',
-                'created_at' => '2024-09-10',
-            ],
-            [
-                'id' => 5,
-                'first_name' => 'Lisa',
-                'last_name' => 'Anderson',
-                'initials' => 'LA',
-                'email' => 'lisa.anderson@example.com',
-                'mobile' => '+44 7700 900654',
-                'mobile_masked' => '+44 77** ***654',
-                'tags' => ['Newsletter', 'Customer'],
-                'lists' => ['Promotions'],
-                'status' => 'active',
-                'source' => 'Email-to-SMS',
-                'created_at' => '2024-11-28',
-            ],
-            [
-                'id' => 6,
-                'first_name' => 'David',
-                'last_name' => 'Taylor',
-                'initials' => 'DT',
-                'email' => '',
-                'mobile' => '+44 7700 900987',
-                'mobile_masked' => '+44 77** ***987',
-                'tags' => ['VIP'],
-                'lists' => [],
-                'status' => 'active',
-                'source' => 'Import',
-                'created_at' => '2024-12-05',
-            ],
-            [
-                'id' => 7,
-                'first_name' => 'Jennifer',
-                'last_name' => 'Davis',
-                'initials' => 'JD',
-                'email' => 'jen.davis@example.com',
-                'mobile' => '+44 7700 900111',
-                'mobile_masked' => '+44 77** ***111',
-                'tags' => ['Partner'],
-                'lists' => ['Marketing', 'Updates'],
-                'status' => 'opted-out',
-                'source' => 'UI',
-                'created_at' => '2024-08-20',
-            ],
-            [
-                'id' => 8,
-                'first_name' => 'Robert',
-                'last_name' => 'Garcia',
-                'initials' => 'RG',
-                'email' => 'r.garcia@example.com',
-                'mobile' => '+44 7700 900222',
-                'mobile_masked' => '+44 77** ***222',
-                'tags' => ['Customer', 'Newsletter'],
-                'lists' => ['Promotions'],
-                'status' => 'active',
-                'source' => 'API',
-                'created_at' => '2024-12-10',
-            ],
-        ];
+        $contacts = Contact::with(['tags', 'lists'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($c) => $c->toPortalArray())
+            ->toArray();
 
-        $available_tags = ['VIP', 'Newsletter', 'Customer', 'Partner'];
-        $available_lists = ['Marketing', 'Promotions', 'Updates'];
+        $totalContacts = Contact::count();
+        $availableTags = Tag::orderBy('name')->pluck('name')->toArray();
+        $availableLists = ContactList::orderBy('name')->pluck('name')->toArray();
 
         return view('quicksms.contacts.all-contacts', [
             'page_title' => 'All Contacts',
             'contacts' => $contacts,
-            'total_contacts' => 432,
-            'available_tags' => $available_tags,
-            'available_lists' => $available_lists,
+            'total_contacts' => $totalContacts,
+            'available_tags' => $availableTags,
+            'available_lists' => $availableLists,
         ]);
     }
 
     public function lists()
     {
-        // TODO: Fetch lists from database via API
-        $static_lists = [
-            [
-                'id' => 1,
-                'name' => 'Marketing',
-                'description' => 'Main marketing campaign recipients',
-                'type' => 'static',
-                'contact_count' => 1247,
-                'created_at' => '2024-10-15',
-                'updated_at' => '2024-12-20',
-            ],
-            [
-                'id' => 2,
-                'name' => 'Promotions',
-                'description' => 'Customers interested in special offers',
-                'type' => 'static',
-                'contact_count' => 856,
-                'created_at' => '2024-09-22',
-                'updated_at' => '2024-12-18',
-            ],
-            [
-                'id' => 3,
-                'name' => 'Updates',
-                'description' => 'Product and service updates subscribers',
-                'type' => 'static',
-                'contact_count' => 2103,
-                'created_at' => '2024-08-10',
-                'updated_at' => '2024-12-21',
-            ],
-            [
-                'id' => 4,
-                'name' => 'Newsletter',
-                'description' => 'Monthly newsletter recipients',
-                'type' => 'static',
-                'contact_count' => 3421,
-                'created_at' => '2024-07-05',
-                'updated_at' => '2024-12-19',
-            ],
-        ];
+        $allLists = ContactList::orderBy('name')->get();
 
-        $dynamic_lists = [
-            [
-                'id' => 101,
-                'name' => 'New Contacts (30 days)',
-                'description' => 'Contacts added in the last 30 days',
-                'type' => 'dynamic',
-                'rules' => [
-                    ['field' => 'created_date', 'operator' => 'last_n_days', 'value' => '30']
-                ],
-                'contact_count' => 89,
-                'created_at' => '2024-11-01',
-                'last_evaluated' => '2024-12-22',
-            ],
-            [
-                'id' => 102,
-                'name' => 'Active VIPs',
-                'description' => 'VIP tagged contacts with active status',
-                'type' => 'dynamic',
-                'rules' => [
-                    ['field' => 'tag', 'operator' => 'contains', 'value' => 'VIP'],
-                    ['field' => 'status', 'operator' => 'equals', 'value' => 'Active']
-                ],
-                'contact_count' => 156,
-                'created_at' => '2024-10-20',
-                'last_evaluated' => '2024-12-22',
-            ],
-            [
-                'id' => 103,
-                'name' => 'London Area',
-                'description' => 'Contacts with London postcodes',
-                'type' => 'dynamic',
-                'rules' => [
-                    ['field' => 'postcode', 'operator' => 'starts_with', 'value' => 'L']
-                ],
-                'contact_count' => 421,
-                'created_at' => '2024-09-15',
-                'last_evaluated' => '2024-12-22',
-            ],
-        ];
+        $staticLists = $allLists
+            ->filter(fn($l) => $l->isStatic())
+            ->map(fn($l) => $l->toPortalArray())
+            ->values()
+            ->toArray();
 
-        // TODO: Fetch contacts from database for adding to lists
-        $available_contacts = [
-            ['id' => 1, 'name' => 'Emma Thompson', 'mobile' => '+44 7700 900123'],
-            ['id' => 2, 'name' => 'James Wilson', 'mobile' => '+44 7700 900456'],
-            ['id' => 3, 'name' => 'Sarah Mitchell', 'mobile' => '+44 7700 900789'],
-            ['id' => 4, 'name' => 'Michael Brown', 'mobile' => '+44 7700 900321'],
-            ['id' => 5, 'name' => 'Lisa Anderson', 'mobile' => '+44 7700 900654'],
-        ];
+        $dynamicLists = $allLists
+            ->filter(fn($l) => $l->isDynamic())
+            ->map(fn($l) => $l->toPortalArray())
+            ->values()
+            ->toArray();
 
-        $available_tags = ['VIP', 'Newsletter', 'Customer', 'Partner'];
+        $availableContacts = Contact::orderBy('first_name')
+            ->limit(100)
+            ->get()
+            ->map(fn($c) => [
+                'id' => $c->id,
+                'name' => trim($c->first_name . ' ' . $c->last_name),
+                'mobile' => $c->mobile_number,
+            ])
+            ->toArray();
+
+        $availableTags = Tag::orderBy('name')->pluck('name')->toArray();
 
         return view('quicksms.contacts.lists', [
             'page_title' => 'Lists',
-            'static_lists' => $static_lists,
-            'dynamic_lists' => $dynamic_lists,
-            'available_contacts' => $available_contacts,
-            'available_tags' => $available_tags,
+            'static_lists' => $staticLists,
+            'dynamic_lists' => $dynamicLists,
+            'available_contacts' => $availableContacts,
+            'available_tags' => $availableTags,
         ]);
     }
 
     public function tags()
     {
-        // TODO: Fetch tags from database via API
-        $tags = [
-            [
-                'id' => 1,
-                'name' => 'VIP',
-                'color' => '#6f42c1',
-                'contact_count' => 156,
-                'created_at' => '2024-06-15',
-                'last_used' => '2024-12-22',
-                'source' => 'manual',
-            ],
-            [
-                'id' => 2,
-                'name' => 'Newsletter',
-                'color' => '#0d6efd',
-                'contact_count' => 1847,
-                'created_at' => '2024-05-20',
-                'last_used' => '2024-12-21',
-                'source' => 'manual',
-            ],
-            [
-                'id' => 3,
-                'name' => 'Customer',
-                'color' => '#198754',
-                'contact_count' => 2341,
-                'created_at' => '2024-04-10',
-                'last_used' => '2024-12-22',
-                'source' => 'api',
-            ],
-            [
-                'id' => 4,
-                'name' => 'Partner',
-                'color' => '#fd7e14',
-                'contact_count' => 89,
-                'created_at' => '2024-07-22',
-                'last_used' => '2024-12-18',
-                'source' => 'manual',
-            ],
-            [
-                'id' => 5,
-                'name' => 'Flu Clinic 2025',
-                'color' => '#dc3545',
-                'contact_count' => 423,
-                'created_at' => '2024-11-01',
-                'last_used' => '2024-12-20',
-                'source' => 'campaign',
-            ],
-            [
-                'id' => 6,
-                'name' => 'Black Friday 2024',
-                'color' => '#212529',
-                'contact_count' => 1256,
-                'created_at' => '2024-11-15',
-                'last_used' => '2024-11-29',
-                'source' => 'campaign',
-            ],
-            [
-                'id' => 7,
-                'name' => 'Responded',
-                'color' => '#20c997',
-                'contact_count' => 567,
-                'created_at' => '2024-08-05',
-                'last_used' => '2024-12-22',
-                'source' => 'api',
-            ],
-            [
-                'id' => 8,
-                'name' => 'Inactive',
-                'color' => '#6c757d',
-                'contact_count' => 234,
-                'created_at' => '2024-09-12',
-                'last_used' => '2024-12-15',
-                'source' => 'api',
-            ],
-        ];
+        $tags = Tag::orderBy('name')
+            ->get()
+            ->map(fn($t) => $t->toPortalArray())
+            ->toArray();
 
-        // Available colors for tag creation
-        $available_colors = [
+        $availableColors = [
             '#6f42c1' => 'Purple',
             '#0d6efd' => 'Blue',
             '#198754' => 'Green',
@@ -1641,133 +1401,32 @@ class QuickSMSController extends Controller
         return view('quicksms.contacts.tags', [
             'page_title' => 'Tags',
             'tags' => $tags,
-            'available_colors' => $available_colors,
+            'available_colors' => $availableColors,
         ]);
     }
 
     public function optOutLists()
     {
-        // TODO: Replace with database query - GET /api/opt-out-lists
-        $opt_out_lists = [
-            [
-                'id' => 1,
-                'name' => 'Master Opt-Out List',
-                'description' => 'Global suppression list for all campaigns',
-                'is_master' => true,
-                'count' => 2847,
-                'created_at' => '2024-01-15',
-                'updated_at' => '2024-12-21',
-            ],
-            [
-                'id' => 2,
-                'name' => 'Marketing Opt-Outs',
-                'description' => 'Contacts who opted out of marketing messages',
-                'is_master' => false,
-                'count' => 1245,
-                'created_at' => '2024-03-10',
-                'updated_at' => '2024-12-20',
-            ],
-            [
-                'id' => 3,
-                'name' => 'Promotions Opt-Outs',
-                'description' => 'Contacts who opted out of promotional offers',
-                'is_master' => false,
-                'count' => 892,
-                'created_at' => '2024-05-22',
-                'updated_at' => '2024-12-18',
-            ],
-            [
-                'id' => 4,
-                'name' => 'Newsletter Opt-Outs',
-                'description' => 'Unsubscribed from newsletter communications',
-                'is_master' => false,
-                'count' => 456,
-                'created_at' => '2024-07-08',
-                'updated_at' => '2024-12-15',
-            ],
-        ];
+        $optOutLists = OptOutList::orderByDesc('is_master')
+            ->orderBy('name')
+            ->get()
+            ->map(fn($l) => $l->toPortalArray())
+            ->toArray();
 
-        // TODO: Replace with database query - GET /api/opt-outs
-        $opt_outs = [
-            [
-                'id' => 1,
-                'mobile' => '+447700900123',
-                'source' => 'sms_reply',
-                'timestamp' => '2024-12-21 14:32:15',
-                'campaign_ref' => 'XMAS2024',
-                'list_id' => 1,
-                'list_name' => 'Master Opt-Out List',
-            ],
-            [
-                'id' => 2,
-                'mobile' => '+447700900456',
-                'source' => 'url_click',
-                'timestamp' => '2024-12-20 09:15:42',
-                'campaign_ref' => 'WINTER_SALE',
-                'list_id' => 2,
-                'list_name' => 'Marketing Opt-Outs',
-            ],
-            [
-                'id' => 3,
-                'mobile' => '+447700900789',
-                'source' => 'api',
-                'timestamp' => '2024-12-19 16:45:00',
-                'campaign_ref' => null,
-                'list_id' => 1,
-                'list_name' => 'Master Opt-Out List',
-            ],
-            [
-                'id' => 4,
-                'mobile' => '+447700900321',
-                'source' => 'manual',
-                'timestamp' => '2024-12-18 11:20:33',
-                'campaign_ref' => 'BLACK_FRIDAY',
-                'list_id' => 3,
-                'list_name' => 'Promotions Opt-Outs',
-            ],
-            [
-                'id' => 5,
-                'mobile' => '+447700900654',
-                'source' => 'sms_reply',
-                'timestamp' => '2024-12-17 08:55:12',
-                'campaign_ref' => 'WEEKLY_UPDATE',
-                'list_id' => 4,
-                'list_name' => 'Newsletter Opt-Outs',
-            ],
-            [
-                'id' => 6,
-                'mobile' => '+447700900987',
-                'source' => 'url_click',
-                'timestamp' => '2024-12-16 13:10:45',
-                'campaign_ref' => 'LOYALTY_PROG',
-                'list_id' => 2,
-                'list_name' => 'Marketing Opt-Outs',
-            ],
-            [
-                'id' => 7,
-                'mobile' => '+447700900111',
-                'source' => 'api',
-                'timestamp' => '2024-12-15 17:30:00',
-                'campaign_ref' => 'CRM_SYNC',
-                'list_id' => 1,
-                'list_name' => 'Master Opt-Out List',
-            ],
-            [
-                'id' => 8,
-                'mobile' => '+447700900222',
-                'source' => 'manual',
-                'timestamp' => '2024-12-14 10:05:22',
-                'campaign_ref' => null,
-                'list_id' => 1,
-                'list_name' => 'Master Opt-Out List',
-            ],
-        ];
+        $optOuts = OptOutRecord::with('optOutList')
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->map(fn($r) => $r->toPortalArray())
+            ->toArray();
+
+        $totalOptOuts = OptOutRecord::count();
 
         return view('quicksms.contacts.opt-out-lists', [
             'page_title' => 'Opt-Out Lists',
-            'opt_out_lists' => $opt_out_lists,
-            'opt_outs' => $opt_outs,
-            'total_opt_outs' => 2847,
+            'opt_out_lists' => $optOutLists,
+            'opt_outs' => $optOuts,
+            'total_opt_outs' => $totalOptOuts,
         ]);
     }
 
