@@ -32,7 +32,9 @@ class AdminAuthenticate
         // To re-enable, set ADMIN_DEV_AUTOLOGIN=true in environment
         if (env('ADMIN_DEV_AUTOLOGIN', false) && (config('app.env') === 'local' || config('app.debug') === true)) {
             if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
-                $devAdmin = AdminUser::where('status', 'active')->where('role', 'super_admin')->first();
+                $devAdmin = AdminUser::where('role', 'super_admin')
+                    ->where('status', 'active')
+                    ->first();
                 if ($devAdmin) {
                     session()->put('admin_auth', [
                         'authenticated' => true,
@@ -46,6 +48,7 @@ class AdminAuthenticate
                     ]);
                     session()->put('admin_user_email', $devAdmin->email);
                 }
+                // If no DB user exists, do NOT create a fake session — redirect to login instead
             }
         }
         
@@ -87,29 +90,41 @@ class AdminAuthenticate
             }
             return redirect()->route('admin.mfa.verify');
         }
-        
+
+        // Revalidate admin user is still active on each request
         $adminUser = AdminUser::find($adminSession['admin_id'] ?? null);
-        if ($adminUser) {
-            if ($adminUser->status !== 'active') {
-                $this->logSecurityEvent('admin_session_revoked_inactive', [
-                    'email' => $adminSession['email'] ?? 'unknown',
-                    'status' => $adminUser->status
-                ]);
-                session()->forget('admin_auth');
-                return redirect()->route('admin.login')->with('error', 'Your account has been deactivated.');
+        if (!$adminUser) {
+            session()->forget('admin_auth');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => 'Account not found'], 403);
             }
-            if ($adminUser->isLocked()) {
-                $this->logSecurityEvent('admin_session_revoked_locked', [
-                    'email' => $adminSession['email'] ?? 'unknown'
-                ]);
-                session()->forget('admin_auth');
-                return redirect()->route('admin.login')->with('error', 'Your account has been locked.');
-            }
+            return redirect()->route('admin.login')->with('error', 'Your account could not be found.');
         }
-        
+        if ($adminUser->status !== 'active') {
+            $this->logSecurityEvent('admin_session_revoked_inactive', [
+                'email' => $adminSession['email'] ?? 'unknown',
+                'status' => $adminUser->status
+            ]);
+            session()->forget('admin_auth');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => 'Account deactivated'], 403);
+            }
+            return redirect()->route('admin.login')->with('error', 'Your account has been deactivated.');
+        }
+        if ($adminUser->isLocked()) {
+            $this->logSecurityEvent('admin_session_revoked_locked', [
+                'email' => $adminSession['email'] ?? 'unknown'
+            ]);
+            session()->forget('admin_auth');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => 'Account locked'], 403);
+            }
+            return redirect()->route('admin.login')->with('error', 'Your account has been locked.');
+        }
+
         session()->put('admin_auth.last_activity', now()->timestamp);
         session()->put('admin_auth.ip_address', $request->ip());
-        
+
         return $next($request);
     }
     
@@ -163,11 +178,12 @@ class AdminAuthenticate
         }
 
         try {
-            $adminUser = AdminUser::where('email', strtolower($email))
+            // Primary auth source: admin_users database table
+            $exists = AdminUser::where('email', strtolower($email))
                 ->where('status', 'active')
-                ->first();
+                ->exists();
 
-            return $adminUser !== null;
+            return $exists;
         } catch (\Exception $e) {
             \Log::error('[AdminAuth] DB lookup failed — failing closed', ['error' => $e->getMessage()]);
             return false;

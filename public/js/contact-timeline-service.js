@@ -8,8 +8,8 @@ var ContactTimelineService = (function() {
     'use strict';
 
     var config = {
-        useMockData: true,
-        baseUrl: '/api/v1',
+        useMockData: false,
+        baseUrl: '/api',
         endpoints: {
             timeline: '/contacts/{contactId}/timeline',
             revealMsisdn: '/contacts/{contactId}/reveal-msisdn'
@@ -119,16 +119,7 @@ var ContactTimelineService = (function() {
         CAMPAIGN: { method: 'campaign', label: 'Campaign', icon: 'fa-bullhorn', description: 'Added from campaign targeting' }
     };
 
-    var CONTACT_BOOK_LISTS = [
-        { id: 'list_001', name: 'Marketing Contacts', description: 'General marketing list', contact_count: 2450 },
-        { id: 'list_002', name: 'Newsletter Subscribers', description: 'Weekly newsletter recipients', contact_count: 8920 },
-        { id: 'list_003', name: 'Active Customers', description: 'Customers with recent orders', contact_count: 1580 },
-        { id: 'list_004', name: 'Leads', description: 'Prospective customers', contact_count: 3200 },
-        { id: 'list_005', name: 'Premium Members', description: 'VIP subscription holders', contact_count: 420 },
-        { id: 'list_006', name: 'Event Attendees', description: 'Registered for upcoming events', contact_count: 890 },
-        { id: 'list_007', name: 'Product Updates', description: 'Opted-in for product news', contact_count: 5670 },
-        { id: 'list_008', name: 'Seasonal Promos', description: 'Holiday and seasonal offers', contact_count: 4100 }
-    ];
+    var CONTACT_BOOK_LISTS = [];
 
     var TAG_CHANGE_METHODS = {
         MANUAL: { method: 'manual', label: 'Manual', icon: 'fa-hand-pointer', description: 'Manually applied by user' },
@@ -137,18 +128,7 @@ var ContactTimelineService = (function() {
         AUTOMATION: { method: 'automation', label: 'Automation', icon: 'fa-robot', description: 'Applied by automation rule' }
     };
 
-    var CONTACT_BOOK_TAGS = [
-        { id: 'tag_001', name: 'VIP', color: 'warning' },
-        { id: 'tag_002', name: 'Newsletter', color: 'info' },
-        { id: 'tag_003', name: 'Customer', color: 'success' },
-        { id: 'tag_004', name: 'Promotions', color: 'primary' },
-        { id: 'tag_005', name: 'High Value', color: 'danger' },
-        { id: 'tag_006', name: 'New Lead', color: 'secondary' },
-        { id: 'tag_007', name: 'Partner', color: 'info' },
-        { id: 'tag_008', name: 'Inactive', color: 'secondary' },
-        { id: 'tag_009', name: 'Priority', color: 'warning' },
-        { id: 'tag_010', name: 'Verified', color: 'success' }
-    ];
+    var CONTACT_BOOK_TAGS = [];
 
     var OPTOUT_SCOPES = {
         MASTER: { scope: 'master', label: 'Master Opt-Out', description: 'Blocks all messaging across entire account', blocks_all: true },
@@ -193,18 +173,7 @@ var ContactTimelineService = (function() {
         { field: 'address', label: 'Address', sensitive: true }
     ];
 
-    var SAMPLE_FIELD_VALUES = {
-        first_name: ['John', 'Jane', 'Michael', 'Sarah', 'David'],
-        last_name: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones'],
-        email: ['john@example.com', 'jane@company.co.uk', 'info@business.com'],
-        mobile: ['+44 7700 900123', '+44 7700 900456', '+44 7700 900789'],
-        company: ['Acme Ltd', 'Tech Corp', 'Global Industries', 'Local Business'],
-        notes: ['VIP customer', 'Prefers email contact', 'Follow up required'],
-        custom_field_1: ['Value A', 'Value B', 'Value C'],
-        custom_field_2: ['Option 1', 'Option 2', 'Option 3'],
-        date_of_birth: ['1985-03-15', '1990-07-22', '1978-11-08'],
-        address: ['123 Main St, London', '456 High St, Manchester', '789 Oak Ave, Bristol']
-    };
+    var SAMPLE_FIELD_VALUES = {};
 
     function generateUUID() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -1409,22 +1378,6 @@ var ContactTimelineService = (function() {
     }
 
     var mockEventCache = {};
-
-    function getMockEvents(contactId, tenantId) {
-        var cacheKey = tenantId + '_' + contactId;
-        if (!mockEventCache[cacheKey]) {
-            var events = [];
-            var eventCount = 100 + Math.floor(Math.random() * 50);
-            for (var i = 0; i < eventCount; i++) {
-                events.push(generateMockEvent(contactId, tenantId, i, 90));
-            }
-            events.sort(function(a, b) {
-                return new Date(b.timestamp) - new Date(a.timestamp);
-            });
-            mockEventCache[cacheKey] = events;
-        }
-        return mockEventCache[cacheKey];
-    }
 
     /**
      * Get timeline events for a contact

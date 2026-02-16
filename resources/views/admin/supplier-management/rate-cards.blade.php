@@ -98,58 +98,61 @@
     </div>
 </div>
 
-<form method="GET" action="{{ route('admin.rate-cards.index') }}" id="filterForm" class="filter-toolbar">
+<div class="filter-toolbar">
     <div class="row g-3">
         <div class="col-md-3">
-            <select class="form-select" name="supplier_id" onchange="this.form.submit()">
+            <select class="form-select" id="filterSupplier" onchange="filterRates()">
                 <option value="">All Suppliers</option>
                 @foreach($suppliers as $supplier)
-                <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
+                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-3">
-            <select class="form-select" name="gateway_id" onchange="this.form.submit()">
+            <select class="form-select" id="filterGateway" onchange="filterRates()">
                 <option value="">All Gateways</option>
                 @foreach($gateways as $gateway)
-                <option value="{{ $gateway->id }}" {{ request('gateway_id') == $gateway->id ? 'selected' : '' }}>{{ $gateway->name }}</option>
+                <option value="{{ $gateway->id }}">{{ $gateway->name }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-2">
-            <select class="form-select" name="country_iso" onchange="this.form.submit()">
+            <select class="form-select" id="filterCountry" onchange="filterRates()">
                 <option value="">All Countries</option>
                 @foreach($countries as $country)
-                <option value="{{ $country->country_iso }}" {{ request('country_iso') == $country->country_iso ? 'selected' : '' }}>{{ $country->country_name }}</option>
+                <option value="{{ $country }}">{{ $country }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-2">
-            <select class="form-select" name="status" onchange="this.form.submit()">
+            <select class="form-select" id="filterStatus" onchange="filterRates()">
                 <option value="">All Status</option>
-                <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Active</option>
-                <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
             </select>
         </div>
         <div class="col-md-2">
-            <input type="text" class="form-control" name="search" placeholder="Search MCC/MNC..." value="{{ request('search') }}" onchange="this.form.submit()">
+            <input type="text" class="form-control" id="searchRate" placeholder="Search MCC/MNC..." onkeyup="filterRates()">
         </div>
     </div>
-</form>
+</div>
 
 <div class="rate-card-table">
     <div class="table-responsive">
         <table class="table mb-0">
             <thead>
                 <tr>
-                    <th>Supplier</th>
-                    <th>Country</th>
                     <th>Network</th>
+                    <th>MCC/MNC</th>
+                    <th>Gateway</th>
                     <th>Product</th>
-                    <th>Rate Updated</th>
-                    <th>Billing</th>
+                    <th>Rate (Native)</th>
                     <th>Rate (GBP)</th>
-                    <th style="width: 80px;">Actions</th>
+                    <th>Valid From</th>
+                    <th>Valid To</th>
+                    <th>Version</th>
+                    <th>Status</th>
+                    <th style="width: 100px;">Actions</th>
                 </tr>
             </thead>
             <tbody id="rateTableBody">
@@ -160,26 +163,25 @@
                     data-status="{{ $rate->active ? 'active' : 'inactive' }}"
                     data-search="{{ strtolower($rate->mcc . $rate->mnc . $rate->network_name) }}">
                     <td>
-                        <strong>{{ $rate->supplier->name ?? '—' }}</strong>
-                        <br><small class="text-muted">{{ $rate->gateway->name ?? '—' }}</small>
-                    </td>
-                    <td>{{ $rate->country_name ?? '—' }}</td>
-                    <td>
                         <strong>{{ $rate->network_name }}</strong>
-                        <br><small class="text-muted">{{ $rate->mcc }}/{{ $rate->mnc }}</small>
+                        <br><small class="text-muted">{{ $rate->country_name }}</small>
                     </td>
+                    <td><code>{{ $rate->mcc }}/{{ $rate->mnc }}</code></td>
+                    <td>{{ $rate->gateway->name }}</td>
                     <td>
                         <span class="badge bg-secondary">{{ $rate->product_type }}</span>
                     </td>
-                    <td>{{ $rate->updated_at ? $rate->updated_at->format('d-m-Y') : '—' }}</td>
-                    <td>
-                        @if($rate->billing_method === 'delivered')
-                            <span class="badge" style="background: #d1fae5; color: #065f46;">Delivered</span>
-                        @else
-                            <span class="badge" style="background: #fef3c7; color: #92400e;">Submitted</span>
-                        @endif
-                    </td>
+                    <td class="rate-value">{{ $rate->currency }} {{ number_format($rate->native_rate, 4) }}</td>
                     <td class="rate-value">£{{ number_format($rate->gbp_rate, 4) }}</td>
+                    <td>{{ \Carbon\Carbon::parse($rate->valid_from)->format('d M Y') }}</td>
+                    <td>{{ $rate->valid_to ? \Carbon\Carbon::parse($rate->valid_to)->format('d M Y') : '—' }}</td>
+                    <td><span class="version-badge">v{{ $rate->version }}</span></td>
+                    <td>
+                        <span class="status-badge {{ $rate->active ? 'active' : 'inactive' }}">
+                            <i class="fas fa-circle" style="font-size: 6px;"></i>
+                            {{ $rate->active ? 'Active' : 'Inactive' }}
+                        </span>
+                    </td>
                     <td>
                         <div class="dropdown">
                             <button class="action-menu-btn" data-bs-toggle="dropdown">
@@ -197,7 +199,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="8" class="text-center py-4 text-muted">
+                    <td colspan="11" class="text-center py-4 text-muted">
                         <i class="fas fa-inbox fa-2x mb-2"></i>
                         <p>No rate cards found</p>
                         <a href="{{ route('admin.rate-cards.upload') }}" class="btn btn-sm btn-admin-primary mt-2">
@@ -261,18 +263,9 @@
                             <input type="text" class="form-control" id="editRateCurrency" readonly>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Billing Method</label>
-                            <select class="form-select" name="billing_method" id="editRateBillingMethod">
-                                <option value="submitted">Submitted</option>
-                                <option value="delivered">Delivered</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Valid From <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" name="valid_from" required>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Valid From <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" name="valid_from" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Change Reason <span class="text-danger">*</span></label>
@@ -313,29 +306,46 @@
 
 @push('scripts')
 <script>
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str)));
+    return div.innerHTML;
+}
+
+function filterRates() {
+    const supplierFilter = document.getElementById('filterSupplier').value;
+    const gatewayFilter = document.getElementById('filterGateway').value;
+    const countryFilter = document.getElementById('filterCountry').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+    const searchText = document.getElementById('searchRate').value.toLowerCase();
+    const rows = document.querySelectorAll('#rateTableBody tr[data-supplier-id]');
+
+    rows.forEach(row => {
+        let show = true;
+
+        if (supplierFilter && row.dataset.supplierId !== supplierFilter) show = false;
+        if (gatewayFilter && row.dataset.gatewayId !== gatewayFilter) show = false;
+        if (countryFilter && row.dataset.country !== countryFilter) show = false;
+        if (statusFilter && row.dataset.status !== statusFilter) show = false;
+        if (searchText && !row.dataset.search.includes(searchText)) show = false;
+
+        row.style.display = show ? '' : 'none';
+    });
+}
 
 function editRate(rateId) {
-    fetch(`/admin/supplier-management/rate-cards/${rateId}`, {
-        headers: { 'Accept': 'application/json' }
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Failed to load rate card');
-        return response.json();
-    })
-    .then(data => {
-        document.getElementById('editRateId').value = data.id;
-        document.getElementById('editRateNetwork').value = data.network_name;
-        document.getElementById('editRateMcc').value = data.mcc;
-        document.getElementById('editRateMnc').value = data.mnc;
-        document.getElementById('editRateValue').value = data.native_rate;
-        document.getElementById('editRateCurrency').value = data.currency;
-        document.getElementById('editRateBillingMethod').value = data.billing_method || 'submitted';
-        new bootstrap.Modal(document.getElementById('editRateModal')).show();
-    })
-    .catch(err => {
-        alert('Could not load rate card details. Please try again.');
-        console.error(err);
-    });
+    fetch(`/admin/supplier-management/rate-cards/${rateId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('editRateId').value = data.id;
+            document.getElementById('editRateNetwork').value = data.network_name;
+            document.getElementById('editRateMcc').value = data.mcc;
+            document.getElementById('editRateMnc').value = data.mnc;
+            document.getElementById('editRateValue').value = data.native_rate;
+            document.getElementById('editRateCurrency').value = data.currency;
+            new bootstrap.Modal(document.getElementById('editRateModal')).show();
+        });
 }
 
 function submitEditRate() {
@@ -343,18 +353,13 @@ function submitEditRate() {
     const form = document.getElementById('editRateForm');
     const formData = new FormData(form);
 
-    const payload = Object.fromEntries(formData);
-    if (payload.change_reason && !payload.reason) {
-        payload.reason = payload.change_reason;
-    }
-
     fetch(`/admin/supplier-management/rate-cards/${rateId}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(Object.fromEntries(formData))
     })
     .then(response => response.json())
     .then(data => {
@@ -379,15 +384,15 @@ function viewHistory(rateId) {
                     <div class="timeline-item mb-3 ${index === 0 ? 'border-start border-3 border-success ps-3' : 'ps-3'}">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <span class="version-badge">v${version.version}</span>
+                                <span class="version-badge">v${escapeHtml(version.version)}</span>
                                 ${index === 0 ? '<span class="badge bg-success ms-2">Current</span>' : ''}
                             </div>
-                            <small class="text-muted">${version.created_at}</small>
+                            <small class="text-muted">${escapeHtml(version.created_at)}</small>
                         </div>
-                        <div class="rate-value">${version.currency} ${parseFloat(version.native_rate).toFixed(4)} → £${parseFloat(version.gbp_rate).toFixed(4)}</div>
-                        <div class="text-muted small">Valid: ${version.valid_from} ${version.valid_to ? '→ ' + version.valid_to : '(ongoing)'}</div>
-                        ${version.change_reason ? '<div class="text-muted small mt-1"><i class="fas fa-comment me-1"></i>' + version.change_reason + '</div>' : ''}
-                        ${version.created_by ? '<div class="text-muted small"><i class="fas fa-user me-1"></i>' + version.created_by + '</div>' : ''}
+                        <div class="rate-value">${escapeHtml(version.currency)} ${parseFloat(version.native_rate).toFixed(4)} → £${parseFloat(version.gbp_rate).toFixed(4)}</div>
+                        <div class="text-muted small">Valid: ${escapeHtml(version.valid_from)} ${version.valid_to ? '→ ' + escapeHtml(version.valid_to) : '(ongoing)'}</div>
+                        ${version.change_reason ? '<div class="text-muted small mt-1"><i class="fas fa-comment me-1"></i>' + escapeHtml(version.change_reason) + '</div>' : ''}
+                        ${version.created_by ? '<div class="text-muted small"><i class="fas fa-user me-1"></i>' + escapeHtml(version.created_by) + '</div>' : ''}
                     </div>
                 `;
             });
@@ -418,12 +423,12 @@ function deactivateRate(rateId) {
 }
 
 function exportRates() {
-    const form = document.getElementById('filterForm');
-    const formData = new FormData(form);
-    const params = new URLSearchParams();
-    for (const [key, value] of formData.entries()) {
-        if (value) params.set(key, value);
-    }
+    const params = new URLSearchParams({
+        supplier_id: document.getElementById('filterSupplier').value,
+        gateway_id: document.getElementById('filterGateway').value,
+        country: document.getElementById('filterCountry').value,
+        status: document.getElementById('filterStatus').value
+    });
     window.location.href = `/admin/supplier-management/rate-cards/export?${params}`;
 }
 </script>

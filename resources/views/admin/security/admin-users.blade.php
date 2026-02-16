@@ -1027,37 +1027,43 @@ var filteredUsers = [...allUsers];
 var currentPage = 1;
 var rowsPerPage = 20;
 
+// XSS protection: escape HTML entities in user-supplied strings
 function escapeHtml(str) {
-    if (!str) return '';
+    if (str === null || str === undefined) return '';
     var div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
+    div.appendChild(document.createTextNode(String(str)));
     return div.innerHTML;
 }
 
 var AdminUsersService = (function() {
     var baseUrl = '/admin/api/admin-users';
-    
+
     function generateRefId() {
         return 'ERR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
     }
-    
-    function makeRequest(endpoint, method, data) {
+
+    function makeRequest(url, method, data) {
         return new Promise(function(resolve, reject) {
-            fetch(baseUrl + endpoint, {
+            var fetchOptions = {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify(data)
-            })
-            .then(function(response) {
-                if (!response.ok) {
-                    return response.json().then(function(err) {
-                        throw { success: false, error: err.message || 'Request failed', refId: generateRefId() };
-                    });
                 }
-                return response.json();
+            };
+            if (data && method !== 'GET') {
+                fetchOptions.body = JSON.stringify(data);
+            }
+
+            fetch(url, fetchOptions)
+            .then(function(response) {
+                return response.json().then(function(body) {
+                    if (!response.ok) {
+                        throw { success: false, error: body.error || body.message || 'Request failed', refId: generateRefId() };
+                    }
+                    return body;
+                });
             })
             .then(resolve)
             .catch(function(err) {
@@ -1065,51 +1071,42 @@ var AdminUsersService = (function() {
             });
         });
     }
-    
+
     return {
-        suspendUser: function(userId, reason) {
-            return makeRequest('/suspend', 'POST', { user_id: userId, reason: reason });
+        suspendUser: function(userId) {
+            return makeRequest(baseUrl + '/' + userId + '/suspend', 'POST');
         },
-        reactivateUser: function(userId, requireMfa) {
-            return makeRequest('/reactivate', 'POST', { user_id: userId, require_mfa: requireMfa });
+        activateUser: function(userId) {
+            return makeRequest(baseUrl + '/' + userId + '/activate', 'POST');
         },
-        archiveUser: function(userId, reason) {
-            return makeRequest('/archive', 'POST', { user_id: userId, reason: reason });
+        unlockUser: function(userId) {
+            return makeRequest(baseUrl + '/' + userId + '/unlock', 'POST');
         },
-        inviteUser: function(userData) {
-            return makeRequest('/invite', 'POST', userData);
+        createUser: function(userData) {
+            return makeRequest(baseUrl, 'POST', userData);
         },
         resendInvite: function(userId) {
-            return makeRequest('/resend-invite', 'POST', { user_id: userId });
+            return makeRequest(baseUrl + '/' + userId + '/resend-invite', 'POST');
         },
-        resetPassword: function(userId) {
-            return makeRequest('/reset-password', 'POST', { user_id: userId });
+        resetMfa: function(userId) {
+            return makeRequest(baseUrl + '/' + userId + '/reset-mfa', 'POST');
         },
-        forceLogout: function(userId) {
-            return makeRequest('/force-logout', 'POST', { user_id: userId });
+        deleteUser: function(userId) {
+            return makeRequest(baseUrl + '/' + userId, 'DELETE');
         },
-        resetMfa: function(userId, tempDisable, reason) {
-            return makeRequest('/reset-mfa', 'POST', { user_id: userId, temp_disable: tempDisable, reason: reason });
+        getUser: function(userId) {
+            return makeRequest(baseUrl + '/' + userId, 'GET');
         },
-        updateMfa: function(userId, method, phone) {
-            return makeRequest('/update-mfa', 'POST', { user_id: userId, method: method, phone: phone });
-        },
-        updateEmail: function(userId, newEmail, reason) {
-            return makeRequest('/update-email', 'POST', { user_id: userId, new_email: newEmail, reason: reason });
-        },
-        startImpersonation: function(userId, duration, reason) {
-            return makeRequest('/impersonate', 'POST', { user_id: userId, duration: duration, reason: reason });
-        },
-        endImpersonation: function(sessionId) {
-            return makeRequest('/end-impersonation', 'POST', { session_id: sessionId });
+        updateUser: function(userId, data) {
+            return makeRequest(baseUrl + '/' + userId, 'PUT', data);
         }
     };
 })();
 
 function showErrorToast(message, refId) {
-    var fullMessage = message;
+    var fullMessage = escapeHtml(message);
     if (refId) {
-        fullMessage += ' (Ref: ' + refId + ')';
+        fullMessage += ' (Ref: ' + escapeHtml(refId) + ')';
     }
     showToast(fullMessage, 'error');
     console.error('[AdminUsers] Error:', message, 'RefId:', refId);
@@ -1261,11 +1258,11 @@ function openUserDetail(userId) {
     var html = '';
     
     html += '<div class="panel-user-header" style="display: flex; align-items: center; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #e9ecef; margin-bottom: 1rem;">' +
-        '<div class="user-avatar" style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1e3a5f, #4a90d9); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; font-weight: 600;">' + escapeHtml(getInitials(user.name)) + '</div>' +
+        '<div class="user-avatar" style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #1e3a5f, #4a90d9); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; font-weight: 600;">' + getInitials(user.name) + '</div>' +
         '<div class="user-header-info" style="flex: 1;">' +
             '<h5 style="margin: 0; font-weight: 600; color: #343a40;">' + escapeHtml(user.name) + '</h5>' +
             '<div style="font-size: 0.85rem; color: #6c757d;">' + escapeHtml(user.email) + '</div>' +
-            '<div style="margin-top: 0.35rem;"><span class="badge-pill ' + statusClass + '">' + escapeHtml(user.status) + '</span></div>' +
+            '<div style="margin-top: 0.35rem;"><span class="badge-pill ' + statusClass + '">' + user.status + '</span></div>' +
         '</div>' +
         '</div>';
     
@@ -1278,8 +1275,8 @@ function openUserDetail(userId) {
     
     html += '<div class="detail-section">' +
         '<h6><i class="fas fa-id-card me-2" style="color: #1e3a5f;"></i>Identity</h6>' +
-        '<div class="detail-row"><span class="label">User ID</span><span class="value">' + escapeHtml(user.id) + '</span></div>' +
-        '<div class="detail-row"><span class="label">Created By</span><span class="value">' + escapeHtml(user.created_by || 'System') + '</span></div>' +
+        '<div class="detail-row"><span class="label">User ID</span><span class="value">' + user.id + '</span></div>' +
+        '<div class="detail-row"><span class="label">Created By</span><span class="value">' + (user.created_by || 'System') + '</span></div>' +
         '<div class="detail-row"><span class="label">Created At</span><span class="value">' + formatDate(user.created_at) + '</span></div>' +
         '<div class="detail-row"><span class="label">Department</span><span class="value">' + escapeHtml(user.department) + '</span></div>' +
         '</div>';
@@ -1295,8 +1292,8 @@ function openUserDetail(userId) {
     
     html += '<div class="detail-section">' +
         '<h6><i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i>Access & Security</h6>' +
-        '<div class="detail-row"><span class="label">MFA Enrolled</span><span class="value"><span class="badge-pill ' + mfaClass + '">' + escapeHtml(user.mfa_status) + '</span></span></div>' +
-        '<div class="detail-row"><span class="label">MFA Method</span><span class="value">' + escapeHtml(user.mfa_method || 'Not configured') + '</span></div>' +
+        '<div class="detail-row"><span class="label">MFA Enrolled</span><span class="value"><span class="badge-pill ' + mfaClass + '">' + user.mfa_status + '</span></span></div>' +
+        '<div class="detail-row"><span class="label">MFA Method</span><span class="value">' + (user.mfa_method || 'Not configured') + '</span></div>' +
         '<div class="detail-row"><span class="label">Last Login</span><span class="value">' + (user.last_login ? formatDate(user.last_login) : 'Never') + '</span></div>' +
         '<div class="detail-row"><span class="label">Last Activity</span><span class="value">' + (user.last_activity ? formatDate(user.last_activity) : '-') + '</span></div>' +
         '<div class="detail-row"><span class="label">Active Sessions</span><span class="value">' + (user.active_sessions || 0) + (user.active_sessions > 0 ? ' <i class="fas fa-circle text-success" style="font-size: 0.5rem;"></i>' : '') + '</span></div>' +
@@ -1305,7 +1302,7 @@ function openUserDetail(userId) {
     
     html += '<div class="detail-section">' +
         '<h6><i class="fas fa-user-shield me-2" style="color: #1e3a5f;"></i>Permissions</h6>' +
-        '<div class="detail-row"><span class="label">Role</span><span class="value"><strong>' + escapeHtml(user.role) + '</strong></span></div>';
+        '<div class="detail-row"><span class="label">Role</span><span class="value"><strong>' + user.role + '</strong></span></div>';
     
     if (user.role === 'Super Admin') {
         html += '<div class="detail-row"><span class="label">Access Level</span><span class="value">Full administrative access</span></div>' +
@@ -1485,42 +1482,13 @@ function sendInvite() {
         note: note
     };
     
-    AdminUsersService.inviteUser(userData)
+    AdminUsersService.createUser(userData)
         .then(function(response) {
-            var newId = 'ADM' + String(allUsers.length + 1).padStart(3, '0');
-            var newUser = {
-                id: newId,
-                name: firstName + ' ' + lastName,
-                email: email,
-                role: role,
-                department: department,
-                status: 'Invited',
-                mfa_status: 'Not Enrolled',
-                mfa_method: null,
-                last_login: null,
-                last_activity: null,
-                failed_logins_24h: 0,
-                created_at: new Date().toISOString().split('T')[0],
-                internal_note: note,
-                invite_sent_at: new Date().toISOString()
-            };
-            
-            allUsers.unshift(newUser);
-            filteredUsers = [...allUsers];
-            
-            logAdminUserAudit('ADMIN_USER_INVITED', email, 
-                null, 
-                { status: 'Invited', role: role }
-            );
-            
-            addTableRow(newUser);
-            updateStats();
-            filterTable();
-            highlightRow(newId);
-            
             bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
-            showToast('Invitation sent to ' + email, 'success');
-            console.log('[AdminUsers] Invite sent:', { email: email, role: role, note: note || 'none' });
+            showToast('Invitation sent to ' + escapeHtml(email), 'success');
+            console.log('[AdminUsers] Invite sent:', { email: email, role: role });
+            // Reload to get fresh server data
+            setTimeout(function() { location.reload(); }, 1000);
         })
         .catch(function(err) {
             showErrorToast('Failed to send invitation: ' + err.error, err.refId);
@@ -1544,8 +1512,8 @@ function addTableRow(user) {
     
     tr.innerHTML = '<td><div class="user-name">' + escapeHtml(user.name) + '</div></td>' +
         '<td title="' + escapeHtml(user.email) + '">' + escapeHtml(user.email) + '</td>' +
-        '<td><span class="badge-pill ' + statusClass + '">' + escapeHtml(user.status) + '</span></td>' +
-        '<td><span class="badge-pill ' + mfaClass + '">' + escapeHtml(user.mfa_status) + '</span></td>' +
+        '<td><span class="badge-pill ' + statusClass + '">' + user.status + '</span></td>' +
+        '<td><span class="badge-pill ' + mfaClass + '">' + user.mfa_status + '</span></td>' +
         '<td>-</td>' +
         '<td><span class="text-muted">Never</span></td>' +
         '<td><span class="text-muted">-</span></td>' +
@@ -1641,25 +1609,11 @@ function confirmSuspend() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Suspending...';
     
-    AdminUsersService.suspendUser(userId, reason || 'No reason provided')
+    AdminUsersService.suspendUser(userId)
         .then(function(response) {
-            user.status = 'Suspended';
-            user.active_sessions = 0;
-            user.suspended_at = new Date().toISOString();
-            user.suspended_reason = reason || null;
-            
-            logAdminUserAudit('ADMIN_USER_SUSPENDED', user.email, 
-                { status: previousStatus }, 
-                { status: 'Suspended' }, 
-                reason || 'No reason provided'
-            );
-            
-            updateTableRowStatus(userId, 'Suspended');
-            updateStats();
-            
             bootstrap.Modal.getInstance(document.getElementById('suspendUserModal')).hide();
-            showToast(user.name + ' has been suspended. All sessions revoked.', 'warning');
-            console.log('[AdminUsers] User suspended:', { userId: userId, reason: reason || 'none' });
+            showToast(escapeHtml(user.name) + ' has been suspended.', 'warning');
+            setTimeout(function() { location.reload(); }, 1000);
         })
         .catch(function(err) {
             showErrorToast('Failed to suspend user: ' + err.error, err.refId);
@@ -1703,32 +1657,11 @@ function confirmReactivate() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Reactivating...';
     
-    AdminUsersService.reactivateUser(userId, requireMfa)
+    AdminUsersService.activateUser(userId)
         .then(function(response) {
-            user.status = 'Active';
-            user.reactivated_at = new Date().toISOString();
-            if (requireMfa) {
-                user.mfa_status = 'Not Enrolled';
-                user.mfa_method = null;
-                user.require_mfa_reenrol = true;
-            }
-            
-            logAdminUserAudit('ADMIN_USER_REACTIVATED', user.email, 
-                { status: 'Suspended' }, 
-                { status: 'Active', require_mfa_reenrol: requireMfa },
-                'User reactivated'
-            );
-            
-            updateTableRowStatus(userId, 'Active');
-            updateTableRowMfa(userId, requireMfa ? 'Not Enrolled' : user.mfa_status);
-            updateStats();
-            
             bootstrap.Modal.getInstance(document.getElementById('reactivateUserModal')).hide();
-            
-            var msg = user.name + ' has been reactivated.';
-            if (requireMfa) msg += ' MFA re-enrollment required on next login.';
-            showToast(msg, 'success');
-            console.log('[AdminUsers] User reactivated:', { userId: userId, requireMfa: requireMfa });
+            showToast(escapeHtml(user.name) + ' has been reactivated.', 'success');
+            setTimeout(function() { location.reload(); }, 1000);
         })
         .catch(function(err) {
             showErrorToast('Failed to reactivate user: ' + err.error, err.refId);
@@ -1792,24 +1725,11 @@ function confirmArchive() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Archiving...';
     
-    AdminUsersService.archiveUser(userId, reason)
+    AdminUsersService.deleteUser(userId)
         .then(function(response) {
-            user.status = 'Archived';
-            user.archived_at = new Date().toISOString();
-            user.archived_reason = reason;
-            
-            logAdminUserAudit('ADMIN_USER_ARCHIVED', user.email, 
-                { status: previousStatus }, 
-                { status: 'Archived' },
-                reason
-            );
-            
-            updateTableRowStatus(userId, 'Archived');
-            updateStats();
-            
             bootstrap.Modal.getInstance(document.getElementById('archiveUserModal')).hide();
-            showToast(user.name + ' has been permanently archived.', 'warning');
-            console.log('[AdminUsers] User archived:', { userId: userId, reason: reason });
+            showToast(escapeHtml(user.name) + ' has been deleted.', 'warning');
+            setTimeout(function() { location.reload(); }, 1000);
         })
         .catch(function(err) {
             showErrorToast('Failed to archive user: ' + err.error, err.refId);
@@ -1834,7 +1754,7 @@ function updateTableRowStatus(userId, newStatus) {
         'Archived': 'badge-archived'
     }[newStatus] || 'badge-archived';
     
-    statusCell.innerHTML = '<span class="badge-pill ' + statusClass + '">' + escapeHtml(newStatus) + '</span>';
+    statusCell.innerHTML = '<span class="badge-pill ' + statusClass + '">' + newStatus + '</span>';
     
     // Update action menu based on new status
     var actionsCell = row.querySelector('td:last-child');
@@ -1905,7 +1825,7 @@ function updateTableRowMfa(userId, mfaStatus) {
     if (!mfaCell) return;
     
     var mfaClass = mfaStatus === 'Enrolled' ? 'badge-enrolled' : 'badge-not-enrolled';
-    mfaCell.innerHTML = '<span class="badge-pill ' + mfaClass + '">' + escapeHtml(mfaStatus) + '</span>';
+    mfaCell.innerHTML = '<span class="badge-pill ' + mfaClass + '">' + mfaStatus + '</span>';
 }
 
 var currentAdminRole = '{{ session("admin_role", "super_admin") }}';
@@ -1953,7 +1873,7 @@ function confirmResetPassword() {
             );
             
             bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
-            showToast('Password reset email sent to ' + user.email + '. All sessions revoked.', 'success');
+            showToast('Password reset email sent to ' + escapeHtml(user.email) + '. All sessions revoked.', 'success');
             console.log('[AdminUsers][Security] Password reset:', { userId: userId, email: user.email });
         })
         .catch(function(err) {
@@ -2012,7 +1932,7 @@ function confirmForceLogout() {
             );
             
             bootstrap.Modal.getInstance(document.getElementById('forceLogoutModal')).hide();
-            showToast(sessionCount + ' session(s) terminated for ' + user.name, 'warning');
+            showToast(sessionCount + ' session(s) terminated for ' + escapeHtml(user.name), 'warning');
             console.log('[AdminUsers][Security] Force logout:', { userId: userId, sessionsTerminated: sessionCount });
         })
         .catch(function(err) {
@@ -2100,35 +2020,11 @@ function confirmResetMfa() {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processing...';
     
-    AdminUsersService.resetMfa(userId, isTempDisable, reason)
+    AdminUsersService.resetMfa(userId)
         .then(function(response) {
-            user.mfa_status = 'Not Enrolled';
-            user.mfa_method = null;
-            if (isTempDisable) {
-                user.mfa_temp_disabled = true;
-                user.mfa_temp_disabled_reason = reason;
-                user.mfa_temp_disabled_at = new Date().toISOString();
-            } else {
-                user.mfa_temp_disabled = false;
-                user.require_mfa_reenrol = true;
-            }
-            
-            logAdminUserAudit('ADMIN_USER_MFA_RESET', user.email, 
-                { mfa_enrolled: true }, 
-                { mfa_reset: true, temporary_disable: isTempDisable, disable_hours: isTempDisable ? 24 : null }
-            );
-            
-            updateTableRowMfa(userId, 'Not Enrolled');
-            
             bootstrap.Modal.getInstance(document.getElementById('resetMfaModal')).hide();
-            
-            if (isTempDisable) {
-                showToast('MFA temporarily disabled for ' + user.name + '. Action logged.', 'warning');
-                console.log('[AdminUsers][Security][CRITICAL] MFA temporarily disabled:', { userId: userId, reason: reason });
-            } else {
-                showToast('MFA reset. ' + user.name + ' must re-enroll on next login.', 'success');
-                console.log('[AdminUsers][Security] MFA reset:', { userId: userId });
-            }
+            showToast('MFA reset for ' + escapeHtml(user.name) + '. Must re-enroll on next login.', 'success');
+            setTimeout(function() { location.reload(); }, 1000);
         })
         .catch(function(err) {
             showErrorToast('Failed to reset MFA: ' + err.error, err.refId);
@@ -2222,7 +2118,7 @@ function confirmUpdateMfa() {
             }
             
             bootstrap.Modal.getInstance(document.getElementById('updateMfaModal')).hide();
-            showToast('MFA settings updated for ' + user.name, 'success');
+            showToast('MFA settings updated for ' + escapeHtml(user.name), 'success');
             console.log('[AdminUsers][Security] MFA settings updated:', { userId: userId, method: method });
         })
         .catch(function(err) {
@@ -2346,16 +2242,11 @@ function resendInvite(userId) {
         return;
     }
     
-    showToast('Resending invitation to ' + user.email + '...', 'info');
+    showToast('Resending invitation to ' + escapeHtml(user.email) + '...', 'info');
     
     AdminUsersService.resendInvite(userId)
         .then(function(response) {
-            user.invite_sent_at = new Date().toISOString();
-            
-            logAdminUserAudit('ADMIN_USER_INVITE_RESENT', user.email, null, null);
-            
-            showToast('Invitation resent to ' + user.email, 'success');
-            console.log('[AdminUsers] Invite resent:', userId);
+            showToast('Invitation resent to ' + escapeHtml(user.email), 'success');
         })
         .catch(function(err) {
             showErrorToast('Failed to resend invitation: ' + err.error, err.refId);
@@ -2450,7 +2341,7 @@ function confirmImpersonate() {
     var sessionId = 'IMP-' + Date.now();
     console.log('[AdminUsers][Impersonation][AUDIT] Session started:', {
         sessionId: sessionId,
-        adminEmail: '{{ session("admin_email", "admin@quicksms.co.uk") }}',
+        adminEmail: '{{ session("admin_email", "unknown") }}',
         targetUserId: userId,
         targetUserEmail: user.email,
         duration: duration + ' minutes',
@@ -2479,7 +2370,7 @@ function confirmImpersonate() {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-user-secret me-1"></i> Start Support Session';
         
-        showToast('Support session started for ' + user.name + '. PII areas are masked.', 'warning');
+        showToast('Support session started for ' + escapeHtml(user.name) + '. PII areas are masked.', 'warning');
     }, 800);
 }
 

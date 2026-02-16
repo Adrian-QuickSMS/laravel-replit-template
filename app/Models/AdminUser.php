@@ -475,6 +475,7 @@ class AdminUser extends Authenticatable
             return false;
         }
 
+        // Increment first, then check — allows exactly 3 attempts (1, 2, 3)
         $this->increment('sms_mfa_attempts');
 
         if ($this->sms_mfa_attempts > 3) {

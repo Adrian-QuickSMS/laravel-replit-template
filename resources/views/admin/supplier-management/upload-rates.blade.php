@@ -77,7 +77,7 @@
 }
 
 .step-label {
-    font-size: 0.8rem;
+    font-size: 0.875rem;
     color: #6c757d;
 }
 
@@ -107,90 +107,9 @@
     margin-bottom: 1rem;
 }
 
-.preview-table-wrap {
+.preview-table {
     max-height: 400px;
-    overflow: auto;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-}
-
-.preview-table-wrap table {
-    font-size: 0.78rem;
-    margin: 0;
-}
-
-.preview-table-wrap th {
-    background: #f8f9fa;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    font-size: 0.72rem;
-    padding: 0.4rem 0.5rem;
-}
-
-.preview-table-wrap td {
-    padding: 0.35rem 0.5rem;
-    white-space: nowrap;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.row-selector {
-    cursor: pointer;
-    transition: background 0.15s;
-}
-
-.row-selector:hover {
-    background: #eef3f9 !important;
-}
-
-.row-selector.selected-header {
-    background: #d4e6f9 !important;
-    font-weight: 600;
-}
-
-.row-selector.skipped-row {
-    background: #f8f9fa;
-    color: #adb5bd;
-}
-
-.header-badge {
-    display: inline-block;
-    background: var(--admin-primary);
-    color: #fff;
-    font-size: 0.65rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-left: 4px;
-}
-
-.mapping-card {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 1rem;
-    border: 1px solid #e9ecef;
-}
-
-.mapping-field {
-    margin-bottom: 0.75rem;
-}
-
-.mapping-field label {
-    font-size: 0.82rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.mapping-field .required-star {
-    color: #dc3545;
-}
-
-.mapping-field select {
-    font-size: 0.82rem;
+    overflow-y: auto;
 }
 
 .validation-error {
@@ -198,15 +117,12 @@
     border-left: 4px solid #ffc107;
     padding: 0.75rem;
     margin-bottom: 0.5rem;
-    font-size: 0.82rem;
-    border-radius: 0 6px 6px 0;
 }
 
 .validation-success {
     background: #d1e7dd;
     border-left: 4px solid #198754;
     padding: 0.75rem;
-    border-radius: 0 6px 6px 0;
 }
 
 .summary-card {
@@ -214,113 +130,6 @@
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
-    border: 1px solid #e9ecef;
-}
-
-.summary-stat {
-    text-align: center;
-    padding: 0.75rem;
-}
-
-.summary-stat .stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--admin-primary);
-}
-
-.summary-stat .stat-label {
-    font-size: 0.78rem;
-    color: #6c757d;
-}
-
-.btn-admin-primary {
-    background: var(--admin-primary);
-    border-color: var(--admin-primary);
-    color: #fff;
-}
-
-.btn-admin-primary:hover {
-    background: var(--admin-secondary);
-    border-color: var(--admin-secondary);
-    color: #fff;
-}
-
-.error-list-wrap {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.billing-review-wrap {
-    max-height: 500px;
-    overflow: auto;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-}
-
-.billing-review-wrap table {
-    font-size: 0.8rem;
-    margin: 0;
-}
-
-.billing-review-wrap th {
-    background: #f8f9fa;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    font-size: 0.75rem;
-    padding: 0.5rem;
-    font-weight: 600;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.billing-review-wrap td {
-    padding: 0.4rem 0.5rem;
-    vertical-align: middle;
-    border-bottom: 1px solid #f1f3f5;
-}
-
-.billing-toggle {
-    display: inline-flex;
-    align-items: center;
-    background: #f1f3f5;
-    border-radius: 20px;
-    padding: 2px;
-    cursor: pointer;
-    user-select: none;
-}
-
-.billing-toggle .toggle-option {
-    padding: 3px 12px;
-    border-radius: 18px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    transition: all 0.2s;
-    color: #6c757d;
-}
-
-.billing-toggle .toggle-option.active-submitted {
-    background: #e67e22;
-    color: #fff;
-}
-
-.billing-toggle .toggle-option.active-delivered {
-    background: #198754;
-    color: #fff;
-}
-
-.billing-toggle .toggle-option:hover:not(.active-submitted):not(.active-delivered) {
-    background: #e2e6ea;
-}
-
-.country-group-header td {
-    background: #eef3f9;
-    font-weight: 600;
-    font-size: 0.8rem;
-    color: var(--admin-primary);
-}
-
-.billing-changed {
-    background: #fff3cd !important;
 }
 </style>
 @endpush
@@ -348,6 +157,7 @@
 </div>
 
 <div class="upload-wizard p-4">
+    <!-- Step Indicator -->
     <div class="step-indicator">
         <div class="step-item active" id="stepIndicator1">
             <div class="step-circle">1</div>
@@ -359,19 +169,11 @@
         </div>
         <div class="step-item" id="stepIndicator3">
             <div class="step-circle">3</div>
-            <div class="step-label">Select Header Row</div>
+            <div class="step-label">Validate Data</div>
         </div>
         <div class="step-item" id="stepIndicator4">
             <div class="step-circle">4</div>
-            <div class="step-label">Map Columns</div>
-        </div>
-        <div class="step-item" id="stepIndicator5">
-            <div class="step-circle">5</div>
             <div class="step-label">Confirm Import</div>
-        </div>
-        <div class="step-item" id="stepIndicator6">
-            <div class="step-circle">6</div>
-            <div class="step-label">Billing Review</div>
         </div>
     </div>
 
@@ -401,7 +203,7 @@
                     <input type="date" class="form-control form-control-lg" id="validFromDate" value="{{ date('Y-m-d') }}">
                     <small class="text-muted">When should these rates become active?</small>
                 </div>
-                <button class="btn btn-admin-primary btn-lg mt-3" onclick="goToStep(2)" disabled id="step1NextBtn">
+                <button class="btn btn-admin-primary btn-lg mt-3" onclick="nextStep(2)" disabled id="step1NextBtn">
                     Continue to Upload <i class="fas fa-arrow-right ms-2"></i>
                 </button>
             </div>
@@ -413,23 +215,26 @@
         <h4 class="mb-4">Step 2: Upload Rate Card File</h4>
         <div class="row">
             <div class="col-md-10 mx-auto">
+                <div class="alert alert-info">
+                    <strong>Required CSV Format:</strong>
+                    <code>mcc,mnc,rate,currency,product_type</code>
+                    <br><small>Example: 234,10,0.0350,GBP,SMS</small>
+                </div>
+
                 <div class="upload-dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
                     <div class="upload-icon">
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
                     <h5>Drop your file here or click to browse</h5>
-                    <p class="text-muted mb-0">Supports CSV, Excel (.xlsx, .xls) files up to 10MB</p>
-                    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" style="display: none" onchange="handleFileSelect(event)">
+                    <p class="text-muted mb-0">Supports CSV and Excel (.xlsx) files up to 10MB</p>
+                    <input type="file" id="fileInput" accept=".csv,.xlsx" style="display: none" onchange="handleFileSelect(event)">
                 </div>
 
                 <div id="fileInfo" class="mt-3" style="display: none;">
                     <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-file-alt fa-2x text-primary me-3"></i>
-                            <div>
-                                <strong id="fileName"></strong>
-                                <div class="text-muted" style="font-size: 0.8rem;" id="fileSize"></div>
-                            </div>
+                        <div>
+                            <i class="fas fa-file-csv fa-2x text-success me-3"></i>
+                            <span id="fileName"></span>
                         </div>
                         <button class="btn btn-sm btn-outline-danger" onclick="clearFile()">
                             <i class="fas fa-times"></i>
@@ -437,169 +242,68 @@
                     </div>
                 </div>
 
-                <div id="uploadProgress" class="mt-3" style="display: none;">
-                    <div class="text-center py-3">
-                        <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
-                        <span class="ms-2">Parsing file...</span>
-                    </div>
-                </div>
-
                 <div class="mt-4">
-                    <button class="btn btn-secondary" onclick="goToStep(1)">
+                    <button class="btn btn-secondary" onclick="previousStep(1)">
                         <i class="fas fa-arrow-left me-2"></i>Back
                     </button>
-                    <button class="btn btn-admin-primary ms-2" onclick="uploadFile()" disabled id="step2NextBtn">
-                        Parse File <i class="fas fa-arrow-right ms-2"></i>
+                    <button class="btn btn-admin-primary ms-2" onclick="uploadAndValidate()" disabled id="step2NextBtn">
+                        Validate File <i class="fas fa-arrow-right ms-2"></i>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Step 3: Select Header Row -->
+    <!-- Step 3: Validate Data -->
     <div class="wizard-step" id="step3">
-        <h4 class="mb-3">Step 3: Select Header Row</h4>
-        <p class="text-muted mb-3">Click the row that contains the column headings. Rows above it (filler rows) will be skipped during import.</p>
-        <div class="d-flex align-items-center mb-3 gap-2">
-            <span class="badge bg-primary" style="background: var(--admin-primary) !important;">
-                <i class="fas fa-file me-1"></i><span id="parsedFileName"></span>
-            </span>
-            <span class="badge bg-secondary"><span id="parsedRowCount"></span> rows</span>
+        <h4 class="mb-4">Step 3: Validation Results</h4>
+        <div id="validationResults">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Validating...</span>
+                </div>
+                <p class="mt-3 text-muted">Validating rate data...</p>
+            </div>
         </div>
-        <div class="preview-table-wrap" id="headerSelectionTable"></div>
-        <div class="mt-4">
-            <button class="btn btn-secondary" onclick="goToStep(2)">
+        <div id="validationActions" style="display: none;">
+            <button class="btn btn-secondary" onclick="previousStep(2)">
                 <i class="fas fa-arrow-left me-2"></i>Back
             </button>
-            <button class="btn btn-admin-primary ms-2" onclick="goToStep(4)" disabled id="step3NextBtn">
-                Continue to Map Columns <i class="fas fa-arrow-right ms-2"></i>
+            <button class="btn btn-admin-primary ms-2" onclick="nextStep(4)" id="step3NextBtn">
+                Continue to Import <i class="fas fa-arrow-right ms-2"></i>
             </button>
         </div>
     </div>
 
-    <!-- Step 4: Map Columns -->
+    <!-- Step 4: Confirm Import -->
     <div class="wizard-step" id="step4">
-        <h4 class="mb-3">Step 4: Map Columns</h4>
-        <p class="text-muted mb-3">Map the columns from your file to the required rate card fields.</p>
-        <div class="row">
-            <div class="col-md-5">
-                <div class="mapping-card">
-                    <h6 class="mb-3"><i class="fas fa-link me-2"></i>Column Mapping</h6>
-                    <div class="mapping-field">
-                        <label>MCC <span class="required-star">*</span></label>
-                        <select class="form-select form-select-sm" id="mapMcc">
-                            <option value="">-- Select column --</option>
-                        </select>
-                    </div>
-                    <div class="mapping-field">
-                        <label>MNC <span class="required-star">*</span></label>
-                        <select class="form-select form-select-sm" id="mapMnc">
-                            <option value="">-- Select column --</option>
-                        </select>
-                    </div>
-                    <div class="mapping-field">
-                        <label>Rate <span class="required-star">*</span></label>
-                        <select class="form-select form-select-sm" id="mapRate">
-                            <option value="">-- Select column --</option>
-                        </select>
-                    </div>
-                    <div class="mapping-field">
-                        <label>Product Type <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional - defaults to SMS)</span></label>
-                        <select class="form-select form-select-sm" id="mapProductTypeManual">
-                            <option value="SMS">SMS</option>
-                            <option value="MMS">MMS</option>
-                            <option value="RCS">RCS</option>
-                            <option value="Voice">Voice</option>
-                        </select>
-                    </div>
-                    <div class="mapping-field">
-                        <label>Country <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional)</span></label>
-                        <select class="form-select form-select-sm" id="mapCountry">
-                            <option value="">-- Not in file (lookup from MCC/MNC) --</option>
-                        </select>
-                    </div>
-                    <div class="mapping-field mb-0">
-                        <label>Network <span class="text-muted" style="font-weight:400; font-size:0.75rem;">(optional)</span></label>
-                        <select class="form-select form-select-sm" id="mapNetwork">
-                            <option value="">-- Not in file (lookup from MCC/MNC) --</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-7">
-                <h6 class="mb-2"><i class="fas fa-table me-2"></i>Data Preview</h6>
-                <div class="preview-table-wrap" id="mappingPreviewTable"></div>
-            </div>
-        </div>
+        <h4 class="mb-4">Step 4: Confirm Import</h4>
+        <div id="importSummary"></div>
         <div class="mt-4">
-            <button class="btn btn-secondary" onclick="goToStep(3)">
+            <button class="btn btn-secondary" onclick="previousStep(3)">
                 <i class="fas fa-arrow-left me-2"></i>Back
             </button>
-            <button class="btn btn-admin-primary ms-2" onclick="validateAndPreview()" disabled id="step4NextBtn">
-                <i class="fas fa-check-circle me-1"></i>Validate & Preview
+            <button class="btn btn-success btn-lg ms-2" onclick="confirmImport()">
+                <i class="fas fa-check me-2"></i>Import Rate Cards
             </button>
         </div>
     </div>
+</div>
 
-    <!-- Step 5: Confirm Import -->
-    <div class="wizard-step" id="step5">
-        <h4 class="mb-3">Step 5: Review & Import</h4>
-        <div id="validationResults"></div>
-        <div id="importActions" style="display: none;">
-            <div class="mt-4">
-                <button class="btn btn-secondary" onclick="goToStep(4)">
-                    <i class="fas fa-arrow-left me-2"></i>Back
-                </button>
-                <button class="btn btn-success btn-lg ms-2" onclick="confirmImport()" id="confirmImportBtn">
-                    <i class="fas fa-check me-2"></i>Import Rate Cards
-                </button>
+<!-- Download Template Modal -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Download CSV Template</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-        </div>
-    </div>
-
-    <!-- Step 6: Billing Review -->
-    <div class="wizard-step" id="step6">
-        <h4 class="mb-3">Step 6: Review Billing Methods</h4>
-        <p class="text-muted mb-3">
-            The gateway default billing method is <strong id="gatewayBillingLabel"></strong>.
-            Some networks may be billed differently. Toggle individual networks below as needed.
-        </p>
-
-        <div class="d-flex align-items-center justify-content-between mb-3">
-            <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-secondary" id="billingTotalCount"></span>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-secondary active" onclick="filterBillingView('all', this)">All</button>
-                    <button class="btn btn-outline-secondary" onclick="filterBillingView('delivered', this)">Delivered</button>
-                    <button class="btn btn-outline-secondary" onclick="filterBillingView('submitted', this)">Submitted</button>
-                </div>
+            <div class="modal-body">
+                <p>Download a pre-formatted CSV template to ensure your data is correctly structured:</p>
+                <a href="/downloads/rate-card-template.csv" class="btn btn-admin-primary" download>
+                    <i class="fas fa-download me-2"></i>Download Template
+                </a>
             </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-primary" onclick="setAllBilling('delivered')">
-                    <i class="fas fa-check-double me-1"></i>Set All Delivered
-                </button>
-                <button class="btn btn-sm btn-outline-primary" onclick="setAllBilling('submitted')">
-                    <i class="fas fa-check-double me-1"></i>Set All Submitted
-                </button>
-            </div>
-        </div>
-
-        <div class="billing-review-wrap" id="billingReviewTable"></div>
-
-        <div class="mt-3" id="billingChangeSummary" style="display:none;">
-            <div class="alert alert-info mb-0">
-                <i class="fas fa-info-circle me-2"></i>
-                <strong id="billingChangeCount">0</strong> network(s) changed from gateway default.
-            </div>
-        </div>
-
-        <div class="mt-4">
-            <button class="btn btn-success btn-lg" onclick="saveBillingMethods()" id="saveBillingBtn">
-                <i class="fas fa-save me-2"></i>Save & Finish
-            </button>
-            <a href="{{ route('admin.rate-cards.index') }}" class="btn btn-outline-secondary ms-2">
-                Skip — Keep Defaults
-            </a>
         </div>
     </div>
 </div>
@@ -608,15 +312,15 @@
 @push('scripts')
 <script>
 let uploadedFile = null;
+let validatedData = null;
 let selectedGatewayId = null;
-let importId = null;
-let parsedRows = [];
-let selectedHeaderRow = -1;
-let headerColumns = [];
-let validatedRates = null;
-let importedRatesData = [];
-let gatewayDefaultBilling = 'delivered';
-let billingOverrides = {};
+
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
 
 function loadGateways() {
     const supplierId = document.getElementById('selectSupplier').value;
@@ -630,11 +334,11 @@ function loadGateways() {
     }
 
     fetch(`/admin/supplier-management/suppliers/${supplierId}/gateways`)
-        .then(r => r.json())
+        .then(response => response.json())
         .then(gateways => {
             gatewaySelect.innerHTML = '<option value="">Choose gateway...</option>';
-            gateways.forEach(gw => {
-                gatewaySelect.innerHTML += `<option value="${gw.id}">${gw.name} (${gw.gateway_code})</option>`;
+            gateways.forEach(gateway => {
+                gatewaySelect.innerHTML += `<option value="${escapeHtml(String(gateway.id))}">${escapeHtml(gateway.name)} (${escapeHtml(gateway.gateway_code)})</option>`;
             });
             gatewaySelect.disabled = false;
         });
@@ -647,10 +351,7 @@ document.getElementById('selectGateway').addEventListener('change', function() {
 
 function handleFileSelect(event) {
     uploadedFile = event.target.files[0];
-    if (!uploadedFile) return;
     document.getElementById('fileName').textContent = uploadedFile.name;
-    const sizeKB = (uploadedFile.size / 1024).toFixed(1);
-    document.getElementById('fileSize').textContent = sizeKB > 1024 ? (sizeKB / 1024).toFixed(1) + ' MB' : sizeKB + ' KB';
     document.getElementById('fileInfo').style.display = 'block';
     document.getElementById('step2NextBtn').disabled = false;
 }
@@ -662,374 +363,109 @@ function clearFile() {
     document.getElementById('step2NextBtn').disabled = true;
 }
 
-function uploadFile() {
+function uploadAndValidate() {
     if (!uploadedFile) return;
-
-    document.getElementById('uploadProgress').style.display = 'block';
-    document.getElementById('step2NextBtn').disabled = true;
 
     const formData = new FormData();
     formData.append('file', uploadedFile);
+    formData.append('gateway_id', selectedGatewayId);
+    formData.append('valid_from', document.getElementById('validFromDate').value);
 
-    fetch('{{ route("admin.rate-cards.parse-file") }}', {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        document.getElementById('uploadProgress').style.display = 'none';
-        document.getElementById('step2NextBtn').disabled = false;
+    nextStep(3);
 
-        if (!data.success) {
-            alert(data.message || 'Failed to parse file.');
-            return;
-        }
-
-        importId = data.importId;
-        parsedRows = data.preview;
-        document.getElementById('parsedFileName').textContent = data.fileName;
-        document.getElementById('parsedRowCount').textContent = data.totalRows;
-
-        selectedHeaderRow = -1;
-        document.getElementById('step3NextBtn').disabled = true;
-        renderHeaderSelectionTable();
-        goToStep(3);
-    })
-    .catch(err => {
-        document.getElementById('uploadProgress').style.display = 'none';
-        document.getElementById('step2NextBtn').disabled = false;
-        alert('Error parsing file. Please check the file format.');
-        console.error(err);
-    });
-}
-
-function renderHeaderSelectionTable() {
-    const wrap = document.getElementById('headerSelectionTable');
-    if (!parsedRows.length) {
-        wrap.innerHTML = '<p class="p-3 text-muted">No data found in file.</p>';
-        return;
-    }
-
-    const maxCols = Math.max(...parsedRows.map(r => r.length));
-    let html = '<table class="table table-bordered mb-0">';
-    html += '<thead><tr><th style="width:60px">#</th>';
-    for (let c = 0; c < maxCols; c++) {
-        html += `<th>Col ${String.fromCharCode(65 + (c % 26))}${c >= 26 ? Math.floor(c / 26) : ''}</th>`;
-    }
-    html += '</tr></thead><tbody>';
-
-    parsedRows.forEach((row, idx) => {
-        const isHeader = idx === selectedHeaderRow;
-        const isSkipped = selectedHeaderRow >= 0 && idx < selectedHeaderRow;
-        let cls = 'row-selector';
-        if (isHeader) cls += ' selected-header';
-        else if (isSkipped) cls += ' skipped-row';
-
-        html += `<tr class="${cls}" onclick="selectHeaderRow(${idx})" title="Click to set row ${idx + 1} as header">`;
-        html += `<td><strong>${idx + 1}</strong>`;
-        if (isHeader) html += ' <span class="header-badge">HEADER</span>';
-        if (isSkipped) html += ' <span class="badge bg-secondary" style="font-size:0.6rem">skip</span>';
-        html += '</td>';
-        for (let c = 0; c < maxCols; c++) {
-            const val = row[c] !== undefined && row[c] !== null ? row[c] : '';
-            html += `<td title="${escapeHtml(String(val))}">${escapeHtml(String(val).substring(0, 40))}</td>`;
-        }
-        html += '</tr>';
-    });
-
-    html += '</tbody></table>';
-    wrap.innerHTML = html;
-}
-
-function selectHeaderRow(idx) {
-    selectedHeaderRow = idx;
-    headerColumns = parsedRows[idx] || [];
-    document.getElementById('step3NextBtn').disabled = false;
-    renderHeaderSelectionTable();
-}
-
-function populateMappingDropdowns() {
-    const selects = ['mapMcc', 'mapMnc', 'mapRate', 'mapCountry', 'mapNetwork'];
-    const requiredSelects = ['mapMcc', 'mapMnc', 'mapRate'];
-
-    selects.forEach(id => {
-        const sel = document.getElementById(id);
-        const isRequired = requiredSelects.includes(id);
-        const defaultLabel = isRequired ? '-- Select column --' : sel.options[0].text;
-        sel.innerHTML = `<option value="">${defaultLabel}</option>`;
-
-        headerColumns.forEach((col, idx) => {
-            const label = col ? String(col).trim() : `Column ${idx + 1}`;
-            sel.innerHTML += `<option value="${idx}">${label}</option>`;
-        });
-    });
-
-    autoMapColumns();
-    updateMappingNextBtn();
-    renderMappingPreview();
-
-    selects.forEach(id => {
-        document.getElementById(id).addEventListener('change', () => {
-            updateMappingNextBtn();
-            renderMappingPreview();
-        });
-    });
-}
-
-function autoMapColumns() {
-    const patterns = {
-        mapMcc: [/^mcc$/i, /mcc/i, /mobile.country/i],
-        mapMnc: [/^mnc$/i, /mnc/i, /mobile.network/i],
-        mapRate: [/^rate$/i, /price/i, /cost/i, /charge/i],
-        mapCountry: [/^country$/i, /country.name/i, /destination/i],
-        mapNetwork: [/^network$/i, /operator/i, /carrier/i, /network.name/i],
-    };
-
-    Object.entries(patterns).forEach(([selectId, regexes]) => {
-        const sel = document.getElementById(selectId);
-        if (sel.value) return;
-
-        for (const regex of regexes) {
-            const matchIdx = headerColumns.findIndex(col => col && regex.test(String(col).trim()));
-            if (matchIdx >= 0) {
-                sel.value = String(matchIdx);
-                break;
-            }
-        }
-    });
-}
-
-function updateMappingNextBtn() {
-    const mcc = document.getElementById('mapMcc').value;
-    const mnc = document.getElementById('mapMnc').value;
-    const rate = document.getElementById('mapRate').value;
-    document.getElementById('step4NextBtn').disabled = !(mcc !== '' && mnc !== '' && rate !== '');
-}
-
-function renderMappingPreview() {
-    const mccCol = document.getElementById('mapMcc').value;
-    const mncCol = document.getElementById('mapMnc').value;
-    const rateCol = document.getElementById('mapRate').value;
-    const productType = document.getElementById('mapProductTypeManual').value;
-
-    if (mccCol === '' || mncCol === '' || rateCol === '') {
-        document.getElementById('mappingPreviewTable').innerHTML = '<p class="p-3 text-muted">Map the required columns to see a preview.</p>';
-        return;
-    }
-
-    const dataRows = parsedRows.slice(selectedHeaderRow + 1, selectedHeaderRow + 6);
-    let html = '<table class="table table-sm table-bordered mb-0">';
-    html += '<thead><tr><th>MCC</th><th>MNC</th><th>Rate</th><th>Product</th>';
-    html += '</tr></thead><tbody>';
-
-    dataRows.forEach(row => {
-        html += '<tr>';
-        html += `<td>${escapeHtml(String(row[parseInt(mccCol)] || ''))}</td>`;
-        html += `<td>${escapeHtml(String(row[parseInt(mncCol)] || ''))}</td>`;
-        html += `<td>${escapeHtml(String(row[parseInt(rateCol)] || ''))}</td>`;
-        html += `<td>${escapeHtml(productType)}</td>`;
-        html += '</tr>';
-    });
-
-    html += '</tbody></table>';
-    document.getElementById('mappingPreviewTable').innerHTML = html;
-}
-
-function validateAndPreview() {
-    const mapping = {
-        mcc: parseInt(document.getElementById('mapMcc').value),
-        mnc: parseInt(document.getElementById('mapMnc').value),
-        rate: parseInt(document.getElementById('mapRate').value),
-    };
-
-    const countryVal = document.getElementById('mapCountry').value;
-    if (countryVal !== '') mapping.country_name = parseInt(countryVal);
-
-    const networkVal = document.getElementById('mapNetwork').value;
-    if (networkVal !== '') mapping.network_name = parseInt(networkVal);
-
-    const productType = document.getElementById('mapProductTypeManual').value;
-
-    goToStep(5);
-
-    document.getElementById('validationResults').innerHTML = `
-        <div class="text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-3 text-muted">Validating rate data against MCC/MNC master reference...</p>
-        </div>`;
-    document.getElementById('importActions').style.display = 'none';
-
-    fetch('{{ route("admin.rate-cards.validate-mapping") }}', {
+    fetch('{{ route('admin.rate-cards.validate') }}', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
-        body: JSON.stringify({
-            importId: importId,
-            headerRow: selectedHeaderRow,
-            mapping: mapping,
-            gateway_id: selectedGatewayId,
-            product_type: productType,
-        })
+        body: formData
     })
-    .then(r => {
-        if (!r.ok) {
-            return r.json().then(errData => {
-                throw new Error(errData.message || errData.errors ? JSON.stringify(errData.errors) : 'Server error (' + r.status + ')');
-            }).catch(parseErr => {
-                if (parseErr.message && !parseErr.message.includes('Unexpected')) throw parseErr;
-                throw new Error('Server error (' + r.status + '). Please try uploading the file again.');
-            });
-        }
-        return r.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        if (!data.success) {
-            document.getElementById('validationResults').innerHTML = `
-                <div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>${data.message}</div>`;
-            document.getElementById('importActions').style.display = 'block';
-            document.getElementById('confirmImportBtn').style.display = 'none';
-            return;
-        }
-
-        validatedRates = data.rates;
+        validatedData = data;
         displayValidationResults(data);
     })
-    .catch(err => {
-        console.error('Validation error:', err);
-        let errorMsg = err.message || 'Validation failed. Please try again.';
-        document.getElementById('validationResults').innerHTML = `
-            <div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>${errorMsg}</div>`;
-        document.getElementById('importActions').style.display = 'block';
-        document.getElementById('confirmImportBtn').style.display = 'none';
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Validation failed. Please check your file format.');
     });
 }
 
 function displayValidationResults(data) {
+    const resultsDiv = document.getElementById('validationResults');
     let html = '';
 
-    html += '<div class="row mb-3">';
-    html += `<div class="col-md-3"><div class="summary-card summary-stat"><div class="stat-value">${data.totalRows}</div><div class="stat-label">Total Data Rows</div></div></div>`;
-    html += `<div class="col-md-3"><div class="summary-card summary-stat"><div class="stat-value text-success">${data.validRows}</div><div class="stat-label">Valid Rows</div></div></div>`;
-    html += `<div class="col-md-3"><div class="summary-card summary-stat"><div class="stat-value" style="color:#4a90d9">${data.newRates}</div><div class="stat-label">New Rates</div></div></div>`;
-    html += `<div class="col-md-3"><div class="summary-card summary-stat"><div class="stat-value" style="color:#e67e22">${data.updateRates}</div><div class="stat-label">Rate Updates</div></div></div>`;
-    html += '</div>';
-
     if (data.errors && data.errors.length > 0) {
-        html += `<div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i><strong>${data.errors.length} row(s) with errors</strong> (these will be skipped during import)</div>`;
-        html += '<div class="error-list-wrap">';
-        data.errors.slice(0, 50).forEach(err => {
-            html += `<div class="validation-error"><strong>Row ${err.row}:</strong> ${err.errors.join(', ')}`;
-            if (err.data) html += ` <span class="text-muted">(MCC: ${err.data.mcc || '-'}, MNC: ${err.data.mnc || '-'})</span>`;
-            html += '</div>';
+        html += '<div class="alert alert-danger"><strong>Validation Errors Found:</strong></div>';
+        data.errors.forEach(error => {
+            html += `<div class="validation-error">${escapeHtml(error)}</div>`;
         });
-        if (data.errors.length > 50) {
-            html += `<div class="text-muted p-2">... and ${data.errors.length - 50} more errors</div>`;
-        }
-        html += '</div>';
-    }
-
-    if (data.validRows > 0) {
-        html += '<div class="validation-success mb-3"><i class="fas fa-check-circle me-2"></i>';
-        html += `<strong>${data.validRows} rate(s)</strong> ready to import`;
+        document.getElementById('step3NextBtn').disabled = true;
+    } else {
+        html += '<div class="validation-success mb-3">';
+        html += '<i class="fas fa-check-circle me-2"></i>';
+        html += `<strong>Validation Successful!</strong> ${escapeHtml(String(data.total_rows))} rate cards ready to import`;
         html += '</div>';
 
-        html += '<h6 class="mt-3 mb-2">Preview (first 20 rows)</h6>';
-        html += '<div class="preview-table-wrap"><table class="table table-sm table-bordered mb-0">';
-        html += '<thead><tr><th>MCC</th><th>MNC</th><th>Country</th><th>Network</th><th>Rate</th><th>Currency</th><th>Product</th></tr></thead>';
+        html += '<div class="summary-card">';
+        html += '<h6>Import Summary:</h6>';
+        html += `<p class="mb-1">Total Rows: <strong>${escapeHtml(String(data.total_rows))}</strong></p>`;
+        html += `<p class="mb-1">New Rates: <strong>${escapeHtml(String(data.new_rates))}</strong></p>`;
+        html += `<p class="mb-0">Rate Updates: <strong>${escapeHtml(String(data.updated_rates))}</strong></p>`;
+        html += '</div>';
+
+        html += '<div class="preview-table">';
+        html += '<table class="table table-sm">';
+        html += '<thead><tr><th>MCC/MNC</th><th>Network</th><th>Rate</th><th>Currency</th><th>Product</th></tr></thead>';
         html += '<tbody>';
         data.preview.forEach(row => {
             html += `<tr>
-                <td><code>${row.mcc}</code></td>
-                <td><code>${row.mnc}</code></td>
-                <td>${escapeHtml(row.country_name || '')}</td>
-                <td>${escapeHtml(row.network_name || '')}</td>
-                <td>${row.rate}</td>
-                <td>${row.currency}</td>
-                <td><span class="badge bg-secondary">${row.product_type}</span></td>
+                <td><code>${escapeHtml(String(row.mcc))}/${escapeHtml(String(row.mnc))}</code></td>
+                <td>${escapeHtml(row.network_name)}</td>
+                <td>${escapeHtml(String(row.rate))}</td>
+                <td>${escapeHtml(row.currency)}</td>
+                <td>${escapeHtml(row.product_type)}</td>
             </tr>`;
         });
-        html += '</tbody></table></div>';
+        html += '</tbody></table>';
+        html += '</div>';
 
-        document.getElementById('confirmImportBtn').style.display = '';
-    } else {
-        html += '<div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>No valid rows to import. Please fix the errors and try again.</div>';
-        document.getElementById('confirmImportBtn').style.display = 'none';
+        document.getElementById('step3NextBtn').disabled = false;
     }
 
-    document.getElementById('validationResults').innerHTML = html;
-    document.getElementById('importActions').style.display = 'block';
+    resultsDiv.innerHTML = html;
+    document.getElementById('validationActions').style.display = 'block';
 }
 
 function confirmImport() {
-    if (!validatedRates || !validatedRates.length) return;
+    if (!validatedData) return;
 
-    const btn = document.getElementById('confirmImportBtn');
-    const origText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importing...';
-
-    fetch('{{ route("admin.rate-cards.process-upload") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            gateway_id: selectedGatewayId,
-            valid_from: document.getElementById('validFromDate').value,
-            rates: validatedRates
+    if (confirm(`Are you sure you want to import ${validatedData.total_rows} rate cards?`)) {
+        fetch('{{ route('admin.rate-cards.process') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                gateway_id: selectedGatewayId,
+                valid_from: document.getElementById('validFromDate').value,
+                rates: validatedData.rates
+            })
         })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            importedRatesData = data.importedRates || [];
-            gatewayDefaultBilling = data.gatewayBillingMethod || 'delivered';
-
-            if (importedRatesData.length > 0) {
-                goToStep(6);
-                renderBillingReview();
-            } else {
-                showImportComplete(data);
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Rate cards imported successfully!');
+                window.location.href = '{{ route('admin.rate-cards.index') }}';
             }
-        } else {
-            alert(data.message || 'Import failed.');
-            btn.disabled = false;
-            btn.innerHTML = origText;
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('Import failed. Please try again.');
-        btn.disabled = false;
-        btn.innerHTML = origText;
-    });
+        });
+    }
 }
 
-function showImportComplete(data) {
-    document.getElementById('validationResults').innerHTML = `
-        <div class="text-center py-5">
-            <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-            <h4 class="text-success">Import Complete</h4>
-            <p class="text-muted">${data.message}</p>
-            <div class="row justify-content-center mt-3">
-                <div class="col-auto"><div class="summary-card summary-stat"><div class="stat-value text-success">${data.imported}</div><div class="stat-label">New Rates</div></div></div>
-                <div class="col-auto"><div class="summary-card summary-stat"><div class="stat-value" style="color:#e67e22">${data.updated}</div><div class="stat-label">Updated</div></div></div>
-            </div>
-            <a href="{{ route('admin.rate-cards.index') }}" class="btn btn-admin-primary mt-3"><i class="fas fa-arrow-left me-2"></i>Back to Rate Cards</a>
-        </div>`;
-    document.getElementById('importActions').style.display = 'none';
-}
-
-function goToStep(step) {
+function nextStep(step) {
     document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.step-item').forEach(el => {
-        el.classList.remove('active');
-        el.classList.remove('completed');
-    });
+    document.querySelectorAll('.step-item').forEach(el => el.classList.remove('active'));
 
     for (let i = 1; i < step; i++) {
         document.getElementById(`stepIndicator${i}`).classList.add('completed');
@@ -1037,18 +473,13 @@ function goToStep(step) {
 
     document.getElementById(`step${step}`).classList.add('active');
     document.getElementById(`stepIndicator${step}`).classList.add('active');
-
-    if (step === 4) {
-        populateMappingDropdowns();
-    }
 }
 
-function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
+function previousStep(step) {
+    nextStep(step);
 }
 
+// Drag and drop handlers
 const dropzone = document.getElementById('dropzone');
 
 dropzone.addEventListener('dragover', (e) => {
@@ -1063,207 +494,13 @@ dropzone.addEventListener('dragleave', () => {
 dropzone.addEventListener('drop', (e) => {
     e.preventDefault();
     dropzone.classList.remove('dragover');
+
     const files = e.dataTransfer.files;
     if (files.length > 0) {
+        uploadedFile = files[0];
         document.getElementById('fileInput').files = files;
         handleFileSelect({ target: { files: files } });
     }
 });
-
-function renderBillingReview(filter, resetOverrides) {
-    filter = filter || 'all';
-    if (resetOverrides === true) billingOverrides = {};
-    const label = document.getElementById('gatewayBillingLabel');
-    label.textContent = gatewayDefaultBilling.charAt(0).toUpperCase() + gatewayDefaultBilling.slice(1);
-    document.getElementById('billingTotalCount').textContent = importedRatesData.length + ' networks';
-
-    const grouped = {};
-    importedRatesData.forEach(rate => {
-        const key = rate.country_name || 'Unknown';
-        if (!grouped[key]) grouped[key] = [];
-        grouped[key].push(rate);
-    });
-
-    let html = '<table class="table table-sm mb-0">';
-    html += '<thead><tr>';
-    html += '<th>MCC</th><th>MNC</th><th>Country</th><th>Network</th>';
-    html += '<th>Rate</th><th>Product</th><th style="width:180px;">Billing Method</th>';
-    html += '</tr></thead><tbody>';
-
-    const sortedCountries = Object.keys(grouped).sort();
-    sortedCountries.forEach(country => {
-        const rates = grouped[country];
-        let visibleInGroup = rates;
-        if (filter !== 'all') {
-            visibleInGroup = rates.filter(r => {
-                const current = billingOverrides[r.id] || r.billing_method;
-                return current === filter;
-            });
-        }
-
-        if (filter !== 'all' && visibleInGroup.length === 0) return;
-
-        const safeCountry = country.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        html += `<tr class="country-group-header">
-            <td colspan="7">
-                <i class="fas fa-globe me-1"></i>${escapeHtml(country)}
-                <span class="text-muted ms-2" style="font-weight:400; font-size:0.75rem;">${rates.length} network(s)</span>
-                <button class="btn btn-sm btn-link p-0 ms-3" style="font-size:0.72rem;" onclick="setCountryBilling('${safeCountry}', 'delivered')">All Delivered</button>
-                <button class="btn btn-sm btn-link p-0 ms-2" style="font-size:0.72rem;" onclick="setCountryBilling('${safeCountry}', 'submitted')">All Submitted</button>
-            </td></tr>`;
-
-        const displayRates = filter !== 'all' ? visibleInGroup : rates;
-        displayRates.forEach(rate => {
-            const currentMethod = billingOverrides[rate.id] || rate.billing_method;
-            const isChanged = currentMethod !== gatewayDefaultBilling;
-            const rowClass = isChanged ? 'billing-changed' : '';
-            const submittedActive = currentMethod === 'submitted' ? 'active-submitted' : '';
-            const deliveredActive = currentMethod === 'delivered' ? 'active-delivered' : '';
-
-            html += `<tr class="${rowClass}" data-rate-id="${rate.id}" data-country="${escapeHtml(country)}">
-                <td><code>${rate.mcc}</code></td>
-                <td><code>${rate.mnc}</code></td>
-                <td>${escapeHtml(rate.country_name || '')}</td>
-                <td>${escapeHtml(rate.network_name || '')}</td>
-                <td>${rate.native_rate} ${rate.currency}</td>
-                <td><span class="badge bg-secondary">${rate.product_type}</span></td>
-                <td>
-                    <div class="billing-toggle" data-rate-id="${rate.id}">
-                        <span class="toggle-option ${submittedActive}" onclick="toggleBilling(${rate.id}, 'submitted')">Submitted</span>
-                        <span class="toggle-option ${deliveredActive}" onclick="toggleBilling(${rate.id}, 'delivered')">Delivered</span>
-                    </div>
-                </td>
-            </tr>`;
-        });
-    });
-
-    html += '</tbody></table>';
-    document.getElementById('billingReviewTable').innerHTML = html;
-    updateBillingChangeSummary();
-}
-
-function toggleBilling(rateId, method) {
-    const rate = importedRatesData.find(r => r.id === rateId);
-    if (!rate) return;
-
-    billingOverrides[rateId] = method;
-
-    const row = document.querySelector(`tr[data-rate-id="${rateId}"]`);
-    if (row) {
-        const isChanged = method !== gatewayDefaultBilling;
-        row.classList.toggle('billing-changed', isChanged);
-
-        const toggle = row.querySelector('.billing-toggle');
-        const options = toggle.querySelectorAll('.toggle-option');
-        options[0].classList.toggle('active-submitted', method === 'submitted');
-        options[0].classList.remove('active-delivered');
-        options[1].classList.toggle('active-delivered', method === 'delivered');
-        options[1].classList.remove('active-submitted');
-    }
-
-    updateBillingChangeSummary();
-}
-
-function setCountryBilling(countryName, method) {
-    importedRatesData.forEach(rate => {
-        if (rate.country_name === countryName) {
-            billingOverrides[rate.id] = method;
-        }
-    });
-    renderBillingReview(getCurrentBillingFilter(), false);
-}
-
-function setAllBilling(method) {
-    importedRatesData.forEach(rate => {
-        billingOverrides[rate.id] = method;
-    });
-    renderBillingReview(getCurrentBillingFilter(), false);
-}
-
-function filterBillingView(filter, btn) {
-    document.querySelectorAll('#step6 .btn-group .btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    renderBillingReview(filter, false);
-}
-
-function getCurrentBillingFilter() {
-    const activeBtn = document.querySelector('#step6 .btn-group .btn.active');
-    if (!activeBtn) return 'all';
-    const text = activeBtn.textContent.trim().toLowerCase();
-    if (text === 'delivered' || text === 'submitted') return text;
-    return 'all';
-}
-
-function updateBillingChangeSummary() {
-    let changeCount = 0;
-    importedRatesData.forEach(rate => {
-        const current = billingOverrides[rate.id] || rate.billing_method;
-        if (current !== gatewayDefaultBilling) changeCount++;
-    });
-
-    const summaryEl = document.getElementById('billingChangeSummary');
-    const countEl = document.getElementById('billingChangeCount');
-    if (changeCount > 0) {
-        summaryEl.style.display = 'block';
-        countEl.textContent = changeCount;
-    } else {
-        summaryEl.style.display = 'none';
-    }
-}
-
-function saveBillingMethods() {
-    const updates = [];
-    importedRatesData.forEach(rate => {
-        const newMethod = billingOverrides[rate.id];
-        if (newMethod && newMethod !== rate.billing_method) {
-            updates.push({ id: rate.id, billing_method: newMethod });
-        }
-    });
-
-    if (updates.length === 0) {
-        window.location.href = '{{ route("admin.rate-cards.index") }}';
-        return;
-    }
-
-    const btn = document.getElementById('saveBillingBtn');
-    const origText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
-
-    fetch('{{ route("admin.rate-cards.update-billing-methods") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ gateway_id: selectedGatewayId, updates: updates })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('billingReviewTable').innerHTML = `
-                <div class="text-center py-5">
-                    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
-                    <h4 class="text-success">All Done</h4>
-                    <p class="text-muted">${data.message || 'Billing methods saved successfully.'}</p>
-                    <a href="{{ route('admin.rate-cards.index') }}" class="btn btn-admin-primary mt-2">
-                        <i class="fas fa-arrow-left me-2"></i>Back to Rate Cards
-                    </a>
-                </div>`;
-            document.getElementById('billingChangeSummary').style.display = 'none';
-            document.querySelector('#step6 .mt-4').style.display = 'none';
-        } else {
-            alert(data.message || 'Failed to save billing methods.');
-            btn.disabled = false;
-            btn.innerHTML = origText;
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('Failed to save billing methods. Please try again.');
-        btn.disabled = false;
-        btn.innerHTML = origText;
-    });
-}
 </script>
 @endpush

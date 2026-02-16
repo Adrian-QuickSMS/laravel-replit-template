@@ -443,12 +443,11 @@ class AdminAuthController extends Controller
     public function showPasswordChange()
     {
         $adminSession = session('admin_auth');
-        if (!$adminSession || !$adminSession['authenticated']) {
+        if (!$adminSession || empty($adminSession['authenticated'])) {
             return redirect()->route('admin.login');
         }
-
-        $mfaRequired = config('admin.mfa.required', true);
-        if ($mfaRequired && empty($adminSession['mfa_verified'])) {
+        // Allow access if MFA is verified OR if MFA is not required
+        if (empty($adminSession['mfa_verified']) && config('admin.mfa.required', true)) {
             return redirect()->route('admin.login');
         }
 

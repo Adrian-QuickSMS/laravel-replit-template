@@ -44,7 +44,7 @@ class AdminController extends Controller
         ]);
         
         $adminEmail = session('admin_auth.email', session('admin_email', 'unknown'));
-        
+
         if (!$this->impersonationService->canImpersonate($adminEmail)) {
             Log::warning('[AdminController] Unauthorized impersonation attempt', [
                 'admin_email' => $adminEmail,
@@ -63,11 +63,11 @@ class AdminController extends Controller
             
             return response()->json($result);
         } catch (\Exception $e) {
-            Log::error('[AdminController] Operation failed', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Operation failed'], 403);
+            Log::error('[AdminController] Impersonation failed', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Impersonation failed. Please try again or contact support.'], 403);
         }
     }
-    
+
     public function endImpersonation(Request $request)
     {
         $sessionId = $request->input('session_id');
@@ -1030,9 +1030,10 @@ class AdminController extends Controller
         try {
             $result = $this->enforcementService->testEnforcement($engine, $input);
             
+            // M12 FIX: Do not log raw user input (PII risk) — service already logs normalised form
             Log::info('[AdminController] Enforcement test executed', [
                 'engine' => $engine,
-                'input' => $input,
+                'input_length' => strlen($input),
                 'result' => $result['result'],
                 'admin_email' => session('admin_email', 'unknown'),
             ]);
@@ -1041,19 +1042,20 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             Log::error('[AdminController] Enforcement test failed', [
                 'engine' => $engine,
-                'input' => $input,
+                'input_length' => strlen($input),
                 'error' => $e->getMessage(),
             ]);
             
+            // M9 FIX: Do not leak exception details to client
             return response()->json([
-                'error' => 'Enforcement test failed',
+                'error' => 'Enforcement test failed. Please try again or contact support.',
             ], 500);
         }
     }
-    
+
     /**
      * Normalise input only (without rule evaluation)
-     * 
+     *
      * POST /admin/enforcement/normalise
      * 
      * @param Request $request
@@ -1076,12 +1078,13 @@ class AdminController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('[AdminController] Normalisation failed', [
-                'input' => $input,
+                'input_length' => strlen($input),
                 'error' => $e->getMessage(),
             ]);
             
+            // M9 FIX: Do not leak exception details to client
             return response()->json([
-                'error' => 'Normalisation failed',
+                'error' => 'Normalisation failed. Please try again or contact support.',
             ], 500);
         }
     }
@@ -1108,9 +1111,9 @@ class AdminController extends Controller
                 'message' => 'Enforcement rules reloaded successfully',
             ]);
         } catch (\Exception $e) {
-            Log::error('[AdminController] Rule reload failed', ['error' => $e->getMessage()]);
+            // M9 FIX: Do not leak exception details to client
             return response()->json([
-                'error' => 'Failed to reload rules',
+                'error' => 'Failed to reload rules. Please try again or contact support.',
             ], 500);
         }
     }
@@ -1191,7 +1194,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingAddGateway failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to add gateway'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to add gateway. Please try again.'], 500);
         }
     }
 
@@ -1220,7 +1223,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingChangeWeight failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to update weight'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to update weight. Please try again.'], 500);
         }
     }
 
@@ -1255,7 +1258,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingSetPrimary failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to set primary'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to set primary. Please try again.'], 500);
         }
     }
 
@@ -1285,7 +1288,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingToggleBlock failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to toggle block'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to toggle block. Please try again.'], 500);
         }
     }
 
@@ -1319,7 +1322,7 @@ class AdminController extends Controller
             });
         } catch (\Exception $e) {
             Log::error('[AdminController] routingRemoveGateway failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to remove gateway'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to remove gateway. Please try again.'], 500);
         }
     }
 
@@ -1373,7 +1376,7 @@ class AdminController extends Controller
             return response()->json(['success' => true, 'message' => 'Override created successfully']);
         } catch (\Exception $e) {
             Log::error('[AdminController] routingCreateOverride failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to create override'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to create override. Please try again.'], 500);
         }
     }
 
@@ -1390,7 +1393,7 @@ class AdminController extends Controller
             return response()->json(['success' => true, 'message' => 'Override cancelled successfully']);
         } catch (\Exception $e) {
             Log::error('[AdminController] routingCancelOverride failed', ['error' => $e->getMessage()]);
-            return response()->json(['success' => false, 'message' => 'Failed to cancel override'], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to cancel override. Please try again.'], 500);
         }
     }
 

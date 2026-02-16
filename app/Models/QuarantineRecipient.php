@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Separated from quarantine_messages to handle campaigns with
  * thousands of recipients without bloating the main review table.
  *
- * DATA CLASSIFICATION: Internal - Message Metadata
+ * DATA CLASSIFICATION: Internal - Message Metadata (contains PII)
  * SIDE: RED (admin-only)
  */
 class QuarantineRecipient extends Model
@@ -23,6 +23,17 @@ class QuarantineRecipient extends Model
     protected $fillable = [
         'quarantine_message_id',
         'recipient_number',
+    ];
+
+    // H4 FIX: Phone numbers are PII — prevent accidental leakage via serialization.
+    // Admin controllers should explicitly select this field when needed for review.
+    protected $hidden = [
+        'recipient_number',
+    ];
+
+    // L5 FIX: Cast created_at to datetime since $timestamps = false
+    protected $casts = [
+        'created_at' => 'datetime',
     ];
 
     // =====================================================

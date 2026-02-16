@@ -1,11 +1,10 @@
 /**
  * ContactsService
- * Backend-ready abstraction layer for Contact Management
- * 
+ * Backend-connected abstraction layer for Contact Management
+ *
  * All methods return Promises for async operation.
- * Mock data mode for development (configurable via ContactsService.config.useMockData)
- * Easy swap to real endpoints by changing config only.
- * 
+ * Wired to /api/contacts/* endpoints (ContactBookApiController).
+ *
  * Bulk Operations:
  * - bulkAddToList(contactIds, listName)
  * - bulkRemoveFromList(contactIds, listName)
@@ -20,142 +19,75 @@
 
     var ContactsService = {
         config: {
-            useMockData: true,
-            baseUrl: '/api/contacts',
-            mockDelay: { min: 300, max: 800 }
+            useMockData: false,
+            baseUrl: '/api/contacts'
         },
 
-        _mockDelay: function() {
-            var delay = Math.random() * (this.config.mockDelay.max - this.config.mockDelay.min) + this.config.mockDelay.min;
-            return new Promise(function(resolve) { setTimeout(resolve, delay); });
+        _headers: function() {
+            return {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+            };
+        },
+
+        _handleResponse: function(response) {
+            if (!response.ok) {
+                return response.json().then(function(err) {
+                    throw new Error(err.message || 'Request failed: ' + response.status);
+                });
+            }
+            return response.json();
         },
 
         bulkAddToList: function(contactIds, listName) {
-            var self = this;
-
-            if (this.config.useMockData) {
-                return this._mockDelay().then(function() {
-                    console.log('[ContactsService] bulkAddToList:', { contactIds: contactIds, listName: listName });
-                    return {
-                        success: true,
-                        message: 'Added ' + contactIds.length + ' contact(s) to "' + listName + '"',
-                        affectedCount: contactIds.length
-                    };
-                });
-            }
-
             return fetch(this.config.baseUrl + '/bulk/add-to-list', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+                headers: this._headers(),
                 body: JSON.stringify({ contact_ids: contactIds, list_name: listName })
-            }).then(function(response) { return response.json(); });
+            }).then(this._handleResponse);
         },
 
         bulkRemoveFromList: function(contactIds, listName) {
-            var self = this;
-
-            if (this.config.useMockData) {
-                return this._mockDelay().then(function() {
-                    console.log('[ContactsService] bulkRemoveFromList:', { contactIds: contactIds, listName: listName });
-                    return {
-                        success: true,
-                        message: 'Removed ' + contactIds.length + ' contact(s) from "' + listName + '"',
-                        affectedCount: contactIds.length
-                    };
-                });
-            }
-
             return fetch(this.config.baseUrl + '/bulk/remove-from-list', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+                headers: this._headers(),
                 body: JSON.stringify({ contact_ids: contactIds, list_name: listName })
-            }).then(function(response) { return response.json(); });
+            }).then(this._handleResponse);
         },
 
         bulkAddTags: function(contactIds, tags) {
-            var self = this;
-
-            if (this.config.useMockData) {
-                return this._mockDelay().then(function() {
-                    console.log('[ContactsService] bulkAddTags:', { contactIds: contactIds, tags: tags });
-                    return {
-                        success: true,
-                        message: 'Added tag(s) "' + tags.join(', ') + '" to ' + contactIds.length + ' contact(s)',
-                        affectedCount: contactIds.length
-                    };
-                });
-            }
-
             return fetch(this.config.baseUrl + '/bulk/add-tags', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+                headers: this._headers(),
                 body: JSON.stringify({ contact_ids: contactIds, tags: tags })
-            }).then(function(response) { return response.json(); });
+            }).then(this._handleResponse);
         },
 
         bulkRemoveTags: function(contactIds, tags) {
-            var self = this;
-
-            if (this.config.useMockData) {
-                return this._mockDelay().then(function() {
-                    console.log('[ContactsService] bulkRemoveTags:', { contactIds: contactIds, tags: tags });
-                    return {
-                        success: true,
-                        message: 'Removed tag(s) "' + tags.join(', ') + '" from ' + contactIds.length + ' contact(s)',
-                        affectedCount: contactIds.length
-                    };
-                });
-            }
-
             return fetch(this.config.baseUrl + '/bulk/remove-tags', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+                headers: this._headers(),
                 body: JSON.stringify({ contact_ids: contactIds, tags: tags })
-            }).then(function(response) { return response.json(); });
+            }).then(this._handleResponse);
         },
 
         bulkDelete: function(contactIds) {
-            var self = this;
-
-            if (this.config.useMockData) {
-                return this._mockDelay().then(function() {
-                    console.log('[ContactsService] bulkDelete:', { contactIds: contactIds });
-                    return {
-                        success: true,
-                        message: 'Deleted ' + contactIds.length + ' contact(s)',
-                        affectedCount: contactIds.length
-                    };
-                });
-            }
-
             return fetch(this.config.baseUrl + '/bulk/delete', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+                headers: this._headers(),
                 body: JSON.stringify({ contact_ids: contactIds })
-            }).then(function(response) { return response.json(); });
+            }).then(this._handleResponse);
         },
 
         bulkExport: function(contactIds, fields, format) {
-            var self = this;
             format = format || 'csv';
-
-            if (this.config.useMockData) {
-                return this._mockDelay().then(function() {
-                    console.log('[ContactsService] bulkExport:', { contactIds: contactIds, fields: fields, format: format });
-                    return {
-                        success: true,
-                        message: 'Export of ' + contactIds.length + ' contact(s) initiated',
-                        downloadUrl: '/downloads/contacts-export-' + Date.now() + '.' + format,
-                        affectedCount: contactIds.length
-                    };
-                });
-            }
 
             return fetch(this.config.baseUrl + '/bulk/export', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content },
+                headers: this._headers(),
                 body: JSON.stringify({ contact_ids: contactIds, fields: fields, format: format })
-            }).then(function(response) { return response.json(); });
+            }).then(this._handleResponse);
         }
     };
 
