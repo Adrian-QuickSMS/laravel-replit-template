@@ -475,8 +475,17 @@ class AdminController extends Controller
 
     public function securityComplianceControls()
     {
+        $enforcementData = [
+            'senderidRules' => \App\Models\SenderidRule::byPriority()->get()->toArray(),
+            'contentRules' => \App\Models\ContentRule::byPriority()->get()->toArray(),
+            'urlRules' => \App\Models\UrlRule::byPriority()->get()->toArray(),
+            'normalisationChars' => \App\Models\NormalisationCharacter::orderBy('base_character')->get()->toArray(),
+            'domainAgeSettings' => \App\Models\SystemSetting::where('setting_group', 'domain_age')->get()->toArray(),
+        ];
+
         return view('admin.security.security-compliance-controls', [
-            'page_title' => 'Security & Compliance Controls'
+            'page_title' => 'Security & Compliance Controls',
+            'enforcementData' => $enforcementData,
         ]);
     }
 

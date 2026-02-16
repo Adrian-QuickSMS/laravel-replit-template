@@ -280,7 +280,48 @@ var MessageEnforcementService = (function() {
         };
     }
 
+    function hydrateRules(senderidData, contentData, urlData, normData, daSettingsData) {
+        activeRules.normalisation = (normData || []).filter(function(c) { return c.is_active; }).map(function(c) {
+            return { id: c.id, name: c.base_character, type: c.character_type || 'letter', base: c.base_character, equivalents: c.equivalents || [], priority: c.sort_order || 0, status: 'active' };
+        });
+
+        activeRules.senderid = (senderidData || []).filter(function(r) { return r.is_active; }).map(function(r) {
+            return { id: r.id, name: r.name, type: r.match_type || 'contains', pattern: r.pattern, action: r.action, status: 'active', priority: r.priority || 100 };
+        });
+
+        activeRules.content = (contentData || []).filter(function(r) { return r.is_active; }).map(function(r) {
+            return { id: r.id, name: r.name, category: r.category || 'general', pattern: r.pattern, action: r.action, status: 'active', priority: r.priority || 100 };
+        });
+
+        activeRules.url = (urlData || []).filter(function(r) { return r.is_active; }).map(function(r) {
+            return { id: r.id, name: r.name, domain: r.pattern, pattern: r.pattern, type: r.match_type === 'exact_domain' ? 'blacklist' : 'pattern_blacklist', action: r.action, status: 'active', priority: r.priority || 100 };
+        });
+
+        var daThreshold = 30;
+        (daSettingsData || []).forEach(function(s) {
+            if (s.setting_key === 'domain_age.threshold_hours') daThreshold = Math.round(Number(s.setting_value) / 24) || 30;
+        });
+        activeRules.url.push({ id: 'URL-AGE-001', name: 'New Domain Check', type: 'domain_age', minAgeDays: daThreshold, action: 'quarantine', status: 'active' });
+    }
+
     function loadActiveRules() {
+        @if(isset($enforcementData))
+        var preloaded = @json($enforcementData);
+        hydrateRules(
+            preloaded.senderidRules || [],
+            preloaded.contentRules || [],
+            preloaded.urlRules || [],
+            preloaded.normalisationChars || [],
+            preloaded.domainAgeSettings || []
+        );
+        console.log('[MessageEnforcementService] Rules loaded from server-injected @json:', {
+            normalisation: activeRules.normalisation.length,
+            senderid: activeRules.senderid.length,
+            content: activeRules.content.length,
+            url: activeRules.url.length
+        });
+        return Promise.resolve();
+        @else
         var basePath = '/admin/api/enforcement';
         var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
         var csrfToken = document.querySelector('meta[name="csrf-token"]');
@@ -293,33 +334,13 @@ var MessageEnforcementService = (function() {
             fetch(basePath + '/normalisation', { headers: headers }).then(function(r) { return r.json(); }).catch(function() { return { data: [] }; }),
             fetch(basePath + '/settings?group=domain_age', { headers: headers }).then(function(r) { return r.json(); }).catch(function() { return { data: [] }; })
         ]).then(function(results) {
-            var senderidData = results[0].data || [];
-            var contentData = results[1].data || [];
-            var urlData = results[2].data || [];
-            var normData = results[3].data || [];
-            var daSettingsData = results[4].data || [];
-
-            activeRules.normalisation = normData.filter(function(c) { return c.is_active; }).map(function(c) {
-                return { id: c.id, name: c.base_character, type: c.character_type || 'letter', base: c.base_character, equivalents: c.equivalents || [], priority: c.sort_order || 0, status: 'active' };
-            });
-
-            activeRules.senderid = senderidData.filter(function(r) { return r.is_active; }).map(function(r) {
-                return { id: r.id, name: r.name, type: r.match_type || 'contains', pattern: r.pattern, action: r.action, status: 'active', priority: r.priority || 100 };
-            });
-
-            activeRules.content = contentData.filter(function(r) { return r.is_active; }).map(function(r) {
-                return { id: r.id, name: r.name, category: r.category || 'general', pattern: r.pattern, action: r.action, status: 'active', priority: r.priority || 100 };
-            });
-
-            activeRules.url = urlData.filter(function(r) { return r.is_active; }).map(function(r) {
-                return { id: r.id, name: r.name, domain: r.pattern, pattern: r.pattern, type: r.match_type === 'exact_domain' ? 'blacklist' : 'pattern_blacklist', action: r.action, status: 'active', priority: r.priority || 100 };
-            });
-
-            var daThreshold = 30;
-            (daSettingsData || []).forEach(function(s) {
-                if (s.setting_key === 'domain_age.threshold_hours') daThreshold = Math.round(Number(s.setting_value) / 24) || 30;
-            });
-            activeRules.url.push({ id: 'URL-AGE-001', name: 'New Domain Check', type: 'domain_age', minAgeDays: daThreshold, action: 'quarantine', status: 'active' });
+            hydrateRules(
+                results[0].data || [],
+                results[1].data || [],
+                results[2].data || [],
+                results[3].data || [],
+                results[4].data || []
+            );
 
             console.log('[MessageEnforcementService] Rules loaded from API:', {
                 normalisation: activeRules.normalisation.length,
@@ -330,6 +351,7 @@ var MessageEnforcementService = (function() {
         }).catch(function(err) {
             console.error('[MessageEnforcementService] Failed to load rules from API, using empty defaults:', err);
         });
+        @endif
     }
 
     function evaluate(message, options) {

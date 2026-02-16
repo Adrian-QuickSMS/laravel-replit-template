@@ -210,6 +210,25 @@ class MessageEnforcementService
             return false;
         }
 
+        if (strlen($pattern) > 500) {
+            return false;
+        }
+
+        $redosPatterns = [
+            '/\([^)]*[+*]\)[+*]/',
+            '/\([^)]*\|[^)]*\)[+*]/',
+            '/\.\*.*\.\*/',
+            '/\([^)]*\?\)[+*]/',
+            '/(\{[0-9]+,\}){2,}/',
+        ];
+
+        foreach ($redosPatterns as $redos) {
+            if (preg_match($redos, $pattern)) {
+                Log::warning('[MessageEnforcementService] Rejected potentially unsafe regex pattern', ['pattern' => $pattern]);
+                return false;
+            }
+        }
+
         $previousLimit = ini_get('pcre.backtrack_limit');
         ini_set('pcre.backtrack_limit', '10000');
 

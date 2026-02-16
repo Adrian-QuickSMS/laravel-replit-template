@@ -14,6 +14,7 @@ use App\Models\SystemSetting;
 use App\Services\Admin\MessageEnforcementService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class EnforcementController extends Controller
 {
@@ -27,6 +28,23 @@ class EnforcementController extends Controller
     private function adminEmail(): string
     {
         return session('admin_email', 'system');
+    }
+
+    private function validateRegexPattern(Request $request): ?JsonResponse
+    {
+        $matchType = $request->input('match_type');
+        $pattern = $request->input('pattern');
+
+        if (in_array($matchType, ['regex']) && $pattern) {
+            if (!MessageEnforcementService::isValidRegex($pattern)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Invalid or unsafe regex pattern. Avoid catastrophic backtracking constructs.',
+                ], 422);
+            }
+        }
+
+        return null;
     }
 
     public function senderidRulesIndex(): JsonResponse
@@ -49,12 +67,22 @@ class EnforcementController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        if ($regexError = $this->validateRegexPattern($request)) {
+            return $regexError;
+        }
+
         $validated['created_by'] = $this->adminEmail();
         $validated['use_normalisation'] = $validated['use_normalisation'] ?? true;
         $validated['is_active'] = $validated['is_active'] ?? true;
         $validated['priority'] = $validated['priority'] ?? 100;
 
-        $rule = SenderidRule::create($validated);
+        try {
+            $rule = SenderidRule::create($validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('SenderID rule creation failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to create rule. Check constraint violation.'], 422);
+        }
+
         $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true, 'data' => $rule], 201);
@@ -76,8 +104,19 @@ class EnforcementController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        if ($regexError = $this->validateRegexPattern($request)) {
+            return $regexError;
+        }
+
         $validated['updated_by'] = $this->adminEmail();
-        $rule->update($validated);
+
+        try {
+            $rule->update($validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('SenderID rule update failed', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update rule. Check constraint violation.'], 422);
+        }
+
         $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true, 'data' => $rule->fresh()]);
@@ -120,11 +159,21 @@ class EnforcementController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        if ($regexError = $this->validateRegexPattern($request)) {
+            return $regexError;
+        }
+
         $validated['created_by'] = $this->adminEmail();
         $validated['is_active'] = $validated['is_active'] ?? true;
         $validated['priority'] = $validated['priority'] ?? 100;
 
-        $rule = ContentRule::create($validated);
+        try {
+            $rule = ContentRule::create($validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Content rule creation failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to create rule. Check constraint violation.'], 422);
+        }
+
         $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true, 'data' => $rule], 201);
@@ -145,8 +194,19 @@ class EnforcementController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        if ($regexError = $this->validateRegexPattern($request)) {
+            return $regexError;
+        }
+
         $validated['updated_by'] = $this->adminEmail();
-        $rule->update($validated);
+
+        try {
+            $rule->update($validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Content rule update failed', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update rule. Check constraint violation.'], 422);
+        }
+
         $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true, 'data' => $rule->fresh()]);
@@ -189,11 +249,21 @@ class EnforcementController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        if ($regexError = $this->validateRegexPattern($request)) {
+            return $regexError;
+        }
+
         $validated['created_by'] = $this->adminEmail();
         $validated['is_active'] = $validated['is_active'] ?? true;
         $validated['priority'] = $validated['priority'] ?? 100;
 
-        $rule = UrlRule::create($validated);
+        try {
+            $rule = UrlRule::create($validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('URL rule creation failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to create rule. Check constraint violation.'], 422);
+        }
+
         $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true, 'data' => $rule], 201);
@@ -214,8 +284,19 @@ class EnforcementController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
+        if ($regexError = $this->validateRegexPattern($request)) {
+            return $regexError;
+        }
+
         $validated['updated_by'] = $this->adminEmail();
-        $rule->update($validated);
+
+        try {
+            $rule->update($validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('URL rule update failed', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update rule. Check constraint violation.'], 422);
+        }
+
         $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true, 'data' => $rule->fresh()]);
@@ -289,21 +370,27 @@ class EnforcementController extends Controller
     {
         $validated = $request->validate([
             'engine' => 'required|string|in:senderid,content,url',
-            'exemption_type' => 'required|string|in:value,rule,account',
-            'scope' => 'nullable|string|in:global,account',
+            'exemption_type' => 'required|string|in:value,rule,engine',
+            'scope' => 'nullable|string|in:global,account,sub_account',
             'value' => 'required|string|max:500',
-            'rule_id' => 'nullable|string|max:255',
+            'rule_id' => 'nullable|integer',
             'account_id' => 'nullable|uuid',
             'reason' => 'nullable|string',
             'is_active' => 'nullable|boolean',
-            'expires_at' => 'nullable|date',
         ]);
 
         $validated['created_by'] = $this->adminEmail();
         $validated['scope'] = $validated['scope'] ?? 'global';
         $validated['is_active'] = $validated['is_active'] ?? true;
 
-        $exemption = EnforcementExemption::create($validated);
+        try {
+            $exemption = EnforcementExemption::create($validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Exemption creation failed', ['error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to create exemption. Check constraint violation.'], 422);
+        }
+
+        $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true, 'data' => $exemption], 201);
     }
@@ -314,17 +401,23 @@ class EnforcementController extends Controller
 
         $validated = $request->validate([
             'engine' => 'sometimes|string|in:senderid,content,url',
-            'exemption_type' => 'sometimes|string|in:value,rule,account',
-            'scope' => 'nullable|string|in:global,account',
+            'exemption_type' => 'sometimes|string|in:value,rule,engine',
+            'scope' => 'nullable|string|in:global,account,sub_account',
             'value' => 'sometimes|string|max:500',
-            'rule_id' => 'nullable|string|max:255',
+            'rule_id' => 'nullable|integer',
             'account_id' => 'nullable|uuid',
             'reason' => 'nullable|string',
             'is_active' => 'nullable|boolean',
-            'expires_at' => 'nullable|date',
         ]);
 
-        $exemption->update($validated);
+        try {
+            $exemption->update($validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error('Exemption update failed', ['id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['success' => false, 'error' => 'Failed to update exemption. Check constraint violation.'], 422);
+        }
+
+        $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true, 'data' => $exemption->fresh()]);
     }
@@ -333,6 +426,7 @@ class EnforcementController extends Controller
     {
         $exemption = EnforcementExemption::findOrFail($id);
         $exemption->delete();
+        $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true]);
     }
@@ -341,6 +435,7 @@ class EnforcementController extends Controller
     {
         $exemption = EnforcementExemption::findOrFail($id);
         $exemption->update(['is_active' => !$exemption->is_active]);
+        $this->enforcementService->hotReloadRules();
 
         return response()->json(['success' => true, 'data' => $exemption->fresh()]);
     }
@@ -370,13 +465,18 @@ class EnforcementController extends Controller
     {
         $message = QuarantineMessage::findOrFail($id);
 
-        if (!$message->isReviewable()) {
-            return response()->json(['success' => false, 'error' => 'Message is not reviewable.'], 422);
-        }
-
         $request->validate(['notes' => 'nullable|string']);
 
-        $message->release($this->adminEmail(), $request->input('notes'));
+        try {
+            if (!$message->isReviewable()) {
+                return response()->json(['success' => false, 'error' => 'Message is not in a reviewable state.'], 422);
+            }
+
+            $message->release($this->adminEmail(), $request->input('notes', ''));
+        } catch (\LogicException $e) {
+            Log::warning('Quarantine release failed', ['id' => $id]);
+            return response()->json(['success' => false, 'error' => 'Unable to release message. It may have already been processed.'], 422);
+        }
 
         return response()->json(['success' => true, 'data' => $message->fresh()]);
     }
@@ -385,13 +485,18 @@ class EnforcementController extends Controller
     {
         $message = QuarantineMessage::findOrFail($id);
 
-        if (!$message->isReviewable()) {
-            return response()->json(['success' => false, 'error' => 'Message is not reviewable.'], 422);
-        }
-
         $request->validate(['notes' => 'nullable|string']);
 
-        $message->block($this->adminEmail(), $request->input('notes'));
+        try {
+            if (!$message->isReviewable()) {
+                return response()->json(['success' => false, 'error' => 'Message is not in a reviewable state.'], 422);
+            }
+
+            $message->block($this->adminEmail(), $request->input('notes', ''));
+        } catch (\LogicException $e) {
+            Log::warning('Quarantine block failed', ['id' => $id]);
+            return response()->json(['success' => false, 'error' => 'Unable to block message. It may have already been processed.'], 422);
+        }
 
         return response()->json(['success' => true, 'data' => $message->fresh()]);
     }
