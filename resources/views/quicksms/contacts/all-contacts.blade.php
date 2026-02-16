@@ -536,49 +536,49 @@ var customFieldDefinitions = [
     { id: 2, name: 'Job Title', slug: 'job_title', type: 'text', defaultValue: '' }
 ];
 
-// TODO: Backend integration - Replace with actual API calls
-var ContactsService = {
-    bulkAddToList: function(contactIds, listId) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkAddToList:', contactIds, listId);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
-    bulkRemoveFromList: function(contactIds, listId) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkRemoveFromList:', contactIds, listId);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
-    bulkAddTags: function(contactIds, tagIds) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkAddTags:', contactIds, tagIds);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
-    bulkRemoveTags: function(contactIds, tagIds) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkRemoveTags:', contactIds, tagIds);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
-    bulkDelete: function(contactIds) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkDelete:', contactIds);
-                resolve({ success: true });
-            }, 500);
+var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+function _apiHeaders() {
+    return { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': _csrfToken };
+}
+function _handleApiResponse(response) {
+    if (!response.ok) {
+        return response.json().then(function(err) {
+            var msg = err.message || '';
+            if (err.errors) {
+                var firstField = Object.keys(err.errors)[0];
+                if (firstField && err.errors[firstField].length) {
+                    msg = err.errors[firstField][0];
+                }
+            }
+            throw new Error(msg || 'Request failed');
+        }).catch(function(e) {
+            if (e instanceof Error && e.message) throw e;
+            throw new Error('Request failed');
         });
     }
-};
+    return response.json();
+}
+function reloadContactsFromServer() {
+    fetch('/api/contacts?per_page=500', { headers: _apiHeaders() })
+        .then(_handleApiResponse)
+        .then(function(result) {
+            contactsData = result.data || [];
+            renderContactsTable(contactsData);
+        })
+        .catch(function(err) { console.error('Failed to reload contacts:', err); });
+}
+function showSuccessToast(message) {
+    if (typeof toastr !== 'undefined') {
+        toastr.success(message);
+    } else {
+        var toast = document.createElement('div');
+        toast.className = 'alert alert-success position-fixed';
+        toast.style.cssText = 'top:20px;right:20px;z-index:99999;min-width:300px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+        toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + message;
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 3000);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const checkAll = document.getElementById('checkAll');
@@ -969,7 +969,6 @@ function renderContactsTable(contacts) {
 }
 
 function viewContact(id) {
-    console.log('TODO: viewContact - Fetch from API: GET /api/contacts/' + id);
     var contact = contactsData.find(c => c.id === id);
     if (!contact) return;
     
@@ -998,7 +997,6 @@ function viewContact(id) {
 }
 
 function editContact(id) {
-    console.log('TODO: editContact - Submit updates via API: PUT /api/contacts/' + id);
     var contact = contactsData.find(c => c.id === id);
     if (!contact) return;
     
@@ -1135,11 +1133,18 @@ function renderStatusPill(status, listScope) {
 
 function deleteContact(id) {
     if (confirm('Are you sure you want to delete this contact?\n\nThis action cannot be undone.')) {
-        console.log('TODO: deleteContact - Permission check required');
-        console.log('TODO: Call API: DELETE /api/contacts/' + id);
-        console.log('TODO: Remove row from table on success');
-        console.log('TODO: Show success/error notification');
-        alert('Delete Contact\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- Permission check\n- API endpoint: DELETE /api/contacts/{id}\n- Cascade delete or soft delete logic');
+        fetch('/api/contacts/' + id, {
+            method: 'DELETE',
+            headers: _apiHeaders()
+        })
+        .then(_handleApiResponse)
+        .then(function(result) {
+            reloadContactsFromServer();
+            showSuccessToast('Contact deleted successfully');
+        })
+        .catch(function(err) {
+            alert('Failed to delete contact: ' + (err.message || 'Unknown error'));
+        });
     }
 }
 
@@ -1147,8 +1152,8 @@ function getSelectedContactIds() {
     var ids = [];
     document.querySelectorAll('.contact-checkbox:checked').forEach(cb => {
         var row = cb.closest('tr');
-        if (row) {
-            ids.push(parseInt(row.dataset.contactId));
+        if (row && row.dataset.contactId) {
+            ids.push(row.dataset.contactId);
         }
     });
     return ids;
@@ -1797,14 +1802,19 @@ function performExport() {
 function bulkDelete() {
     var ids = getSelectedContactIds();
     var names = getSelectedContactNames();
-    
+
     if (confirm('Are you sure you want to delete ' + ids.length + ' contact(s)?\n\n' + names.join('\n') + '\n\nThis action cannot be undone.')) {
-        console.log('TODO: Delete contacts: ' + ids.join(', '));
-        alert('Deleted ' + ids.length + ' contact(s)!\n\nThis requires backend implementation:\n- API endpoint: DELETE /api/contacts/bulk\n- Permission checks');
-        
-        document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
-        document.getElementById('checkAll').checked = false;
-        document.getElementById('bulkActionBar').classList.add('d-none');
+        ContactsService.bulkDelete(ids)
+            .then(function(result) {
+                document.querySelectorAll('.contact-checkbox:checked').forEach(function(cb) { cb.checked = false; });
+                document.getElementById('checkAll').checked = false;
+                document.getElementById('bulkActionBar').classList.add('d-none');
+                reloadContactsFromServer();
+                showSuccessToast(result.message || 'Contacts deleted successfully');
+            })
+            .catch(function(err) {
+                alert('Failed to delete contacts: ' + (err.message || 'Unknown error'));
+            });
     }
 }
 
@@ -2171,57 +2181,139 @@ function updateContact() {
     var id = document.getElementById('editContactId').value;
     var mobile = document.getElementById('editContactMobile').value.trim();
     var validationMsg = document.getElementById('editFormValidationMessage');
-    
+
     validationMsg.classList.add('d-none');
-    
+
     if (!mobile) {
         validationMsg.textContent = 'Mobile number is required.';
         validationMsg.classList.remove('d-none');
         return;
     }
-    
-    console.log('TODO: updateContact - Submit to API: PUT /api/contacts/' + id);
-    
-    alert('Contact Updated!\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- API endpoint: PUT /api/contacts/{id}\n- Database persistence');
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('editContactModal'));
-    modal.hide();
+
+    var cleanMobile = mobile.replace(/[\s\-]/g, '');
+    var firstNameEl = document.getElementById('editContactFirstName');
+    var lastNameEl = document.getElementById('editContactLastName');
+    var emailEl = document.getElementById('editContactEmail');
+    var statusEl = document.getElementById('editContactStatus');
+
+    var payload = {
+        mobile_number: cleanMobile,
+        first_name: firstNameEl ? firstNameEl.value.trim() || null : null,
+        last_name: lastNameEl ? lastNameEl.value.trim() || null : null,
+        email: emailEl ? emailEl.value.trim() || null : null
+    };
+
+    var saveBtn = document.querySelector('#editContactModal .btn-primary');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    }
+
+    fetch('/api/contacts/' + id, {
+        method: 'PUT',
+        headers: _apiHeaders(),
+        body: JSON.stringify(payload)
+    })
+    .then(_handleApiResponse)
+    .then(function(result) {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('editContactModal'));
+        modal.hide();
+        reloadContactsFromServer();
+        showSuccessToast('Contact updated successfully');
+    })
+    .catch(function(err) {
+        validationMsg.textContent = err.message || 'Failed to update contact. Please try again.';
+        validationMsg.classList.remove('d-none');
+    })
+    .finally(function() {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
+        }
+    });
 }
 </script>
 
 <script>
 function saveContact() {
-    const form = document.getElementById('addContactForm');
-    const mobile = document.getElementById('contactMobile').value.trim();
-    const firstName = document.getElementById('contactFirstName').value.trim();
-    const lastName = document.getElementById('contactLastName').value.trim();
-    const validationMsg = document.getElementById('formValidationMessage');
-    
+    var form = document.getElementById('addContactForm');
+    var mobile = document.getElementById('contactMobile').value.trim();
+    var firstName = document.getElementById('contactFirstName').value.trim();
+    var lastName = document.getElementById('contactLastName').value.trim();
+    var validationMsg = document.getElementById('formValidationMessage');
+    var emailField = document.getElementById('contactEmail');
+    var dobField = document.getElementById('contactDob');
+    var postcodeField = document.getElementById('contactPostcode');
+    var cityField = document.getElementById('contactCity');
+    var countryField = document.getElementById('contactCountry');
+
     validationMsg.classList.add('d-none');
-    
+
     if (!mobile) {
         validationMsg.textContent = 'Mobile number is required.';
         validationMsg.classList.remove('d-none');
         return;
     }
-    
+
     if (!mobile.match(/^\+?[0-9\s\-]{10,}$/)) {
         validationMsg.textContent = 'Please enter a valid mobile number (E.164 format preferred, e.g., +44 7700 900000).';
         validationMsg.classList.remove('d-none');
         return;
     }
-    
-    console.log('TODO: saveContact - Submit to API');
-    console.log('TODO: POST /api/contacts with form data');
-    console.log('TODO: Validate mobile number format on server');
-    console.log('TODO: Check for duplicate mobile numbers');
-    console.log('TODO: Persist to database and refresh table');
-    
-    alert('Contact Validated Successfully!\n\nFirst Name: ' + firstName + '\nLast Name: ' + lastName + '\nMobile: ' + mobile + '\n\nThis feature requires backend implementation:\n- API endpoint: POST /api/contacts\n- Database persistence\n- Duplicate check');
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('addContactModal'));
-    modal.hide();
-    form.reset();
+
+    var cleanMobile = mobile.replace(/[\s\-]/g, '');
+
+    var payload = {
+        mobile_number: cleanMobile,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        email: (emailField && emailField.value.trim()) || null,
+        date_of_birth: (dobField && dobField.value) || null,
+        postcode: (postcodeField && postcodeField.value.trim()) || null,
+        city: (cityField && cityField.value.trim()) || null,
+        country: (countryField && countryField.value) || null
+    };
+
+    var customData = {};
+    customFieldDefinitions.forEach(function(field) {
+        var el = document.getElementById('custom_' + field.slug);
+        if (el && el.value) {
+            customData[field.slug] = el.value;
+        }
+    });
+    if (Object.keys(customData).length > 0) {
+        payload.custom_data = customData;
+    }
+
+    var saveBtn = document.querySelector('#addContactModal .btn-primary');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    }
+
+    fetch('/api/contacts', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify(payload)
+    })
+    .then(_handleApiResponse)
+    .then(function(result) {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('addContactModal'));
+        modal.hide();
+        form.reset();
+        reloadContactsFromServer();
+        showSuccessToast('Contact created successfully');
+    })
+    .catch(function(err) {
+        validationMsg.textContent = err.message || 'Failed to save contact. Please try again.';
+        validationMsg.classList.remove('d-none');
+    })
+    .finally(function() {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Contact';
+        }
+    });
 }
 
 function renderCustomFields() {
