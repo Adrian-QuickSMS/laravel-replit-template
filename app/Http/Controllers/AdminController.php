@@ -1023,9 +1023,10 @@ class AdminController extends Controller
         try {
             $result = $this->enforcementService->testEnforcement($engine, $input);
             
+            // M12 FIX: Do not log raw user input (PII risk) — service already logs normalised form
             Log::info('[AdminController] Enforcement test executed', [
                 'engine' => $engine,
-                'input' => $input,
+                'input_length' => strlen($input),
                 'result' => $result['result'],
                 'admin_email' => session('admin_email', 'unknown'),
             ]);
@@ -1038,16 +1039,16 @@ class AdminController extends Controller
                 'error' => $e->getMessage(),
             ]);
             
+            // M9 FIX: Do not leak exception details to client
             return response()->json([
-                'error' => 'Enforcement test failed',
-                'message' => $e->getMessage(),
+                'error' => 'Enforcement test failed. Please try again or contact support.',
             ], 500);
         }
     }
-    
+
     /**
      * Normalise input only (without rule evaluation)
-     * 
+     *
      * POST /admin/enforcement/normalise
      * 
      * @param Request $request
@@ -1074,9 +1075,9 @@ class AdminController extends Controller
                 'error' => $e->getMessage(),
             ]);
             
+            // M9 FIX: Do not leak exception details to client
             return response()->json([
-                'error' => 'Normalisation failed',
-                'message' => $e->getMessage(),
+                'error' => 'Normalisation failed. Please try again or contact support.',
             ], 500);
         }
     }
@@ -1103,9 +1104,9 @@ class AdminController extends Controller
                 'message' => 'Enforcement rules reloaded successfully',
             ]);
         } catch (\Exception $e) {
+            // M9 FIX: Do not leak exception details to client
             return response()->json([
-                'error' => 'Failed to reload rules',
-                'message' => $e->getMessage(),
+                'error' => 'Failed to reload rules. Please try again or contact support.',
             ], 500);
         }
     }

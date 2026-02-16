@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Seed default enforcement data:
@@ -85,6 +86,7 @@ return new class extends Migration
 
         foreach ($senderidRules as $rule) {
             DB::table('senderid_rules')->insert(array_merge($rule, [
+                'uuid' => (string) Str::uuid(),
                 'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -102,6 +104,7 @@ return new class extends Migration
 
         foreach ($contentRules as $rule) {
             DB::table('content_rules')->insert(array_merge($rule, [
+                'uuid' => (string) Str::uuid(),
                 'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -118,6 +121,7 @@ return new class extends Migration
 
         foreach ($urlRules as $rule) {
             DB::table('url_rules')->insert(array_merge($rule, [
+                'uuid' => (string) Str::uuid(),
                 'is_active' => true,
                 'created_at' => $now,
                 'updated_at' => $now,
@@ -162,13 +166,33 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Only delete seeded settings, not admin-created ones
         DB::table('system_settings')->where('group', 'feature_flags')->delete();
         DB::table('system_settings')->where('group', 'anti_spam')->delete();
         DB::table('system_settings')->where('group', 'domain_age')->delete();
         DB::table('system_settings')->where('group', 'enforcement')->delete();
-        DB::table('url_rules')->truncate();
-        DB::table('content_rules')->truncate();
-        DB::table('senderid_rules')->truncate();
-        DB::table('normalisation_characters')->truncate();
+
+        // Delete only the seeded rules by name (preserve admin-created rules)
+        $seededSenderidNames = [
+            'Block HMRC Impersonation', 'Block HSBC Impersonation', 'Block LLOYDS Impersonation',
+            'Block BARCLAYS Impersonation', 'Quarantine GOV Pattern', 'Block BANK Keyword',
+            'Block NHS Impersonation', 'Block DVLA Impersonation',
+        ];
+        DB::table('senderid_rules')->whereIn('name', $seededSenderidNames)->delete();
+
+        $seededContentNames = [
+            'Block Urgent Payment Request', 'Block Account Suspended', 'Quarantine Click Link Urgency',
+            'Block Verify Identity', 'Block Tax Refund Scam',
+        ];
+        DB::table('content_rules')->whereIn('name', $seededContentNames)->delete();
+
+        $seededUrlNames = [
+            'Block Bit.ly Shorteners', 'Block TinyURL Shorteners',
+            'Quarantine Unknown Domains', 'Block IP-based URLs',
+        ];
+        DB::table('url_rules')->whereIn('name', $seededUrlNames)->delete();
+
+        // Normalisation characters are reference data - safe to clear and reseed
+        DB::table('normalisation_characters')->delete();
     }
 };

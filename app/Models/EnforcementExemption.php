@@ -21,6 +21,12 @@ class EnforcementExemption extends Model
 
     protected $table = 'enforcement_exemptions';
 
+    // M1 FIX: Allowlist of valid table names for rule_table
+    public const VALID_RULE_TABLES = ['senderid_rules', 'content_rules', 'url_rules'];
+    public const VALID_ENGINES = ['senderid', 'content', 'url'];
+    public const VALID_EXEMPTION_TYPES = ['rule', 'engine', 'value'];
+    public const VALID_SCOPE_TYPES = ['global', 'account', 'sub_account'];
+
     protected $fillable = [
         'engine',
         'exemption_type',
@@ -33,6 +39,9 @@ class EnforcementExemption extends Model
         'is_active',
         'created_by',
     ];
+
+    // Hide internal audit fields from default serialization.
+    protected $hidden = ['created_by'];
 
     protected $casts = [
         'is_active' => 'boolean',
@@ -47,6 +56,33 @@ class EnforcementExemption extends Model
         static::creating(function ($model) {
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();
+            }
+
+            // M1 FIX: Validate rule_table against allowlist before saving
+            if ($model->rule_table !== null && !in_array($model->rule_table, self::VALID_RULE_TABLES, true)) {
+                throw new \InvalidArgumentException(
+                    "Invalid rule_table value: '{$model->rule_table}'. Must be one of: " .
+                    implode(', ', self::VALID_RULE_TABLES)
+                );
+            }
+
+            // Validate engine
+            if (!in_array($model->engine, self::VALID_ENGINES, true)) {
+                throw new \InvalidArgumentException(
+                    "Invalid engine value: '{$model->engine}'. Must be one of: " .
+                    implode(', ', self::VALID_ENGINES)
+                );
+            }
+        });
+
+        static::updating(function ($model) {
+            // M1 FIX: Also validate on update
+            if ($model->isDirty('rule_table') && $model->rule_table !== null
+                && !in_array($model->rule_table, self::VALID_RULE_TABLES, true)) {
+                throw new \InvalidArgumentException(
+                    "Invalid rule_table value: '{$model->rule_table}'. Must be one of: " .
+                    implode(', ', self::VALID_RULE_TABLES)
+                );
             }
         });
     }
