@@ -316,7 +316,7 @@ body {
             <form id="loginForm" novalidate>
                 <div class="mb-3">
                     <label class="form-label" for="email">Email Address</label>
-                    <input type="email" class="form-control" id="email" placeholder="admin@quicksms.co.uk" required autocomplete="email">
+                    <input type="email" class="form-control" id="email" placeholder="you@quicksms.com" required autocomplete="email">
                     <div class="invalid-feedback" id="emailError">Please enter a valid email address</div>
                 </div>
                 

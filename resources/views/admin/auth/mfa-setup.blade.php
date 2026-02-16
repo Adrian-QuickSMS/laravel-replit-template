@@ -1,199 +1,442 @@
-<!DOCTYPE html>
-<html lang="en" class="h-100">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Setup MFA - QuickSMS Admin</title>
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon.png') }}?v={{ time() }}">
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #1e3a5f 100%);
-        }
-        .admin-mfa-card {
-            background: #fff;
-            border-radius: 1rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-        }
-        .admin-badge {
-            background: linear-gradient(135deg, #1e3a5f, #2d5a87);
-            color: #fff;
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-        .admin-mfa-header {
-            background: linear-gradient(135deg, #1e3a5f, #2d5a87);
-            color: #fff;
-            padding: 2rem;
-            border-radius: 1rem 1rem 0 0;
-            text-align: center;
-        }
-        .admin-mfa-body {
-            padding: 2rem;
-        }
-        .btn-admin-primary {
-            background: linear-gradient(135deg, #1e3a5f, #2d5a87);
-            border: none;
-            color: #fff;
-            padding: 0.75rem 2rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            width: 100%;
-        }
-        .btn-admin-primary:hover {
-            background: linear-gradient(135deg, #2d5a87, #4a90d9);
-            color: #fff;
-        }
-        .form-control:focus {
-            border-color: #2d5a87;
-            box-shadow: 0 0 0 0.2rem rgba(45, 90, 135, 0.25);
-        }
-        .qr-placeholder {
-            background: #f8f9fa;
-            border: 2px dashed #dee2e6;
-            border-radius: 0.5rem;
-            padding: 2rem;
-            text-align: center;
-        }
-        .secret-code {
-            font-family: monospace;
-            font-size: 1.25rem;
-            letter-spacing: 0.1em;
-            background: #f8f9fa;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            word-break: break-all;
-        }
-        .step-badge {
-            background: #2d5a87;
-            color: #fff;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-right: 0.5rem;
-        }
-        .verification-input {
-            font-size: 1.5rem;
-            text-align: center;
-            letter-spacing: 0.5em;
-            font-family: monospace;
-        }
-    </style>
-</head>
-<body class="vh-100">
-    <div class="authincation h-100">
-        <div class="container h-100">
-            <div class="row justify-content-center h-100 align-items-center">
-                <div class="col-md-8 col-lg-6">
-                    <div class="admin-mfa-card">
-                        <div class="admin-mfa-header">
-                            <div class="mb-3">
-                                <span class="admin-badge">SECURITY SETUP</span>
-                            </div>
-                            <h3 class="mb-1">
-                                <i class="fas fa-mobile-alt me-2"></i>Setup Two-Factor Authentication
-                            </h3>
-                            <p class="mb-0 opacity-75">MFA is mandatory for all admin accounts</p>
-                        </div>
-                        <div class="admin-mfa-body">
-                            @if($errors->any())
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    {{ $errors->first() }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            @endif
-                            
-                            <div class="mb-4">
-                                <h6><span class="step-badge">1</span>Install an authenticator app</h6>
-                                <p class="text-muted ms-4 mb-0">
-                                    Download Google Authenticator, Microsoft Authenticator, or Authy on your mobile device.
-                                </p>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <h6><span class="step-badge">2</span>Scan the QR code or enter the secret key</h6>
-                                <div class="row mt-3">
-                                    <div class="col-md-6">
-                                        <div class="qr-placeholder">
-                                            <i class="fas fa-qrcode fa-4x text-muted mb-3"></i>
-                                            <p class="text-muted mb-2 small">Scan with your authenticator app</p>
-                                            <small class="text-muted">QR code generation requires backend integration</small>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p class="text-muted small mb-2">Or enter this secret key manually:</p>
-                                        <div class="secret-code" id="secretCode">{{ $secret }}</div>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary mt-2" onclick="copySecret()">
-                                            <i class="fas fa-copy me-1"></i>Copy
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <h6><span class="step-badge">3</span>Enter the verification code</h6>
-                                <form action="{{ route('admin.mfa.setup.complete') }}" method="POST" class="mt-3">
-                                    @csrf
-                                    <div class="mb-3">
-                                        <input type="text" 
-                                               class="form-control form-control-lg verification-input" 
-                                               name="code" 
-                                               maxlength="6"
-                                               placeholder="000000"
-                                               pattern="[0-9]{6}"
-                                               inputmode="numeric"
-                                               autocomplete="one-time-code"
-                                               required>
-                                        <div class="form-text text-center">Enter the 6-digit code from your authenticator app</div>
-                                    </div>
-                                    <button type="submit" class="btn btn-admin-primary">
-                                        <i class="fas fa-check-circle me-2"></i>Verify and Enable MFA
-                                    </button>
-                                </form>
-                            </div>
-                            
-                            <div class="alert alert-info mb-0">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Important:</strong> Save your secret key in a secure location. 
-                                You will need it to recover your account if you lose access to your authenticator app.
-                            </div>
+@extends('layouts.fullwidth')
+@section('title', 'Setup MFA - QuickSMS Admin')
+@section('content')
+<style>
+:root {
+    --admin-primary: #1e3a5f;
+    --admin-primary-light: #2d5a87;
+    --admin-primary-dark: #152a45;
+}
 
-                            @if(config('app.env') !== 'production')
-                            <div class="mt-4 pt-3 border-top">
-                                <div class="alert alert-warning mb-3">
-                                    <i class="fas fa-flask me-2"></i>
-                                    <strong>Development Mode</strong> - MFA can be skipped for testing purposes only.
-                                </div>
-                                <form action="{{ route('admin.mfa.setup.skip') }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="btn btn-outline-secondary w-100">
-                                        <i class="fas fa-forward me-2"></i>Skip MFA Setup (Development Only)
-                                    </button>
-                                </form>
-                            </div>
-                            @endif
-                        </div>
+body {
+    background-color: #e8eef4 !important;
+}
+
+.mfa-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+.mfa-card {
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 520px;
+    padding: 2.5rem;
+}
+
+.mfa-logo {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.mfa-logo img {
+    height: 45px;
+}
+
+.admin-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--admin-primary), var(--admin-primary-light));
+    color: #fff;
+    padding: 0.35rem 0.85rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.mfa-title {
+    text-align: center;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+    font-size: 1.25rem;
+}
+
+.mfa-subtitle {
+    text-align: center;
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 2rem;
+}
+
+.setup-step {
+    margin-bottom: 1.75rem;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.step-number {
+    background: var(--admin-primary);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.step-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+.step-content {
+    margin-left: 2.75rem;
+}
+
+.step-content p {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 0;
+}
+
+.qr-section {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.qr-placeholder {
+    background: #f8f9fa;
+    border: 2px dashed #dee2e6;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    text-align: center;
+    flex-shrink: 0;
+    width: 140px;
+}
+
+.qr-placeholder i {
+    color: #adb5bd;
+}
+
+.qr-placeholder p {
+    font-size: 0.75rem;
+    color: #adb5bd;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+.secret-section {
+    flex: 1;
+}
+
+.secret-section .label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.secret-code {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    padding: 0.625rem 0.875rem;
+    border-radius: 0.5rem;
+    word-break: break-all;
+    color: #333;
+}
+
+.btn-copy {
+    background: none;
+    border: 1px solid #dee2e6;
+    color: var(--admin-primary);
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-copy:hover {
+    background: var(--admin-primary);
+    color: #fff;
+    border-color: var(--admin-primary);
+}
+
+.otp-input-group {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.otp-input {
+    width: 48px;
+    height: 56px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border: 2px solid #e0e6ed;
+    border-radius: 0.5rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.otp-input:focus {
+    border-color: var(--admin-primary);
+    box-shadow: 0 0 0 0.15rem rgba(30, 58, 95, 0.15);
+}
+
+.btn-verify {
+    background: var(--admin-primary);
+    border: none;
+    padding: 0.875rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 1rem;
+    color: #fff;
+    width: 100%;
+    margin-top: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.btn-verify:hover {
+    background: var(--admin-primary-dark);
+    color: #fff;
+}
+
+.btn-verify:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.info-notice {
+    background: rgba(30, 58, 95, 0.06);
+    border: 1px solid rgba(30, 58, 95, 0.15);
+    border-radius: 0.5rem;
+    padding: 0.875rem 1rem;
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    color: #495057;
+}
+
+.info-notice i {
+    color: var(--admin-primary);
+}
+
+.dev-notice {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    border-radius: 0.5rem;
+    padding: 0.875rem 1rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #6d4c00;
+}
+
+.btn-skip {
+    background: none;
+    border: 1px solid #dee2e6;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #6c757d;
+    width: 100%;
+    margin-top: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.btn-skip:hover {
+    background: #f8f9fa;
+    border-color: #adb5bd;
+    color: #495057;
+}
+
+.otp-hint {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #adb5bd;
+    margin-top: 0.5rem;
+}
+
+.copyright-text {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.divider {
+    height: 1px;
+    background: #e9ecef;
+    margin: 1.5rem 0;
+}
+</style>
+
+<div class="mfa-wrapper">
+    <div class="mfa-card">
+        <div class="mfa-logo">
+            <img src="{{ asset('images/quicksms-logo.png') }}" alt="QuickSMS" style="height: 50px;">
+        </div>
+
+        <div class="text-center mb-3">
+            <span class="admin-badge">Security Setup</span>
+        </div>
+
+        <h4 class="mfa-title">Setup Two-Factor Authentication</h4>
+        <p class="mfa-subtitle">MFA is mandatory for all admin accounts</p>
+
+        @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 0.5rem; font-size: 0.9rem;">
+                <i class="fas fa-exclamation-circle me-2"></i>{{ $errors->first() }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <div class="setup-step">
+            <div class="step-header">
+                <span class="step-number">1</span>
+                <span class="step-label">Install an authenticator app</span>
+            </div>
+            <div class="step-content">
+                <p>Download Google Authenticator, Microsoft Authenticator, or Authy on your mobile device.</p>
+            </div>
+        </div>
+
+        <div class="setup-step">
+            <div class="step-header">
+                <span class="step-number">2</span>
+                <span class="step-label">Scan the QR code or enter the secret key</span>
+            </div>
+            <div class="step-content">
+                <div class="qr-section">
+                    <div class="qr-placeholder">
+                        <i class="fas fa-qrcode fa-3x"></i>
+                        <p>Scan with your authenticator app</p>
+                    </div>
+                    <div class="secret-section">
+                        <div class="label">Or enter this secret key manually:</div>
+                        <div class="secret-code" id="secretCode">{{ $secret }}</div>
+                        <button type="button" class="btn-copy" id="copyBtn" onclick="copySecret()">
+                            <i class="fas fa-copy me-1"></i>Copy
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="setup-step" style="margin-bottom: 0;">
+            <div class="step-header">
+                <span class="step-number">3</span>
+                <span class="step-label">Enter the verification code</span>
+            </div>
+            <div class="step-content">
+                <form action="{{ route('admin.mfa.setup.complete') }}" method="POST" id="mfaForm">
+                    @csrf
+                    <input type="hidden" name="code" id="hiddenCode">
+                    <div class="otp-input-group">
+                        <input type="text" class="otp-input" maxlength="1" data-index="0" inputmode="numeric" autocomplete="off">
+                        <input type="text" class="otp-input" maxlength="1" data-index="1" inputmode="numeric" autocomplete="off">
+                        <input type="text" class="otp-input" maxlength="1" data-index="2" inputmode="numeric" autocomplete="off">
+                        <input type="text" class="otp-input" maxlength="1" data-index="3" inputmode="numeric" autocomplete="off">
+                        <input type="text" class="otp-input" maxlength="1" data-index="4" inputmode="numeric" autocomplete="off">
+                        <input type="text" class="otp-input" maxlength="1" data-index="5" inputmode="numeric" autocomplete="off">
+                    </div>
+                    <div class="otp-hint">Enter the 6-digit code from your authenticator app</div>
+                    <button type="submit" class="btn-verify" id="verifyBtn">
+                        <i class="fas fa-check-circle me-2"></i>Verify and Enable MFA
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="info-notice">
+            <i class="fas fa-lock me-2"></i>
+            <strong>Important:</strong> Save your secret key in a secure location. You will need it to recover your account if you lose access to your authenticator app.
+        </div>
+
+        @if(config('app.env') !== 'production')
+        <div class="divider"></div>
+        <div class="dev-notice">
+            <i class="fas fa-flask me-2"></i>
+            <strong>Development Mode</strong> — MFA can be skipped for testing purposes only.
+        </div>
+        <form action="{{ route('admin.mfa.setup.skip') }}" method="POST">
+            @csrf
+            <button type="submit" class="btn-skip">
+                <i class="fas fa-forward me-2"></i>Skip MFA Setup (Development Only)
+            </button>
+        </form>
+        @endif
+
+        <p class="copyright-text">&copy; {{ date('Y') }} QuickSMS Ltd. All rights reserved.</p>
     </div>
-    <script src="{{ asset('vendor/global/global.min.js') }}"></script>
-    <script>
-        function copySecret() {
-            const secretCode = document.getElementById('secretCode').textContent;
-            navigator.clipboard.writeText(secretCode).then(() => {
-                alert('Secret key copied to clipboard');
-            });
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var otpInputs = document.querySelectorAll('.otp-input');
+
+    otpInputs.forEach(function(input, index) {
+        input.addEventListener('input', function(e) {
+            var value = e.target.value.replace(/[^0-9]/g, '');
+            e.target.value = value;
+            if (value && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
+        });
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                otpInputs[index - 1].focus();
+            }
+        });
+
+        input.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var pastedData = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+            for (var i = 0; i < pastedData.length && i < otpInputs.length; i++) {
+                otpInputs[i].value = pastedData[i];
+            }
+        });
+    });
+
+    document.getElementById('mfaForm').addEventListener('submit', function(e) {
+        var code = Array.from(otpInputs).map(function(i) { return i.value; }).join('');
+        if (code.length !== 6) {
+            e.preventDefault();
+            otpInputs[0].focus();
+            return;
         }
-    </script>
-</body>
-</html>
+        document.getElementById('hiddenCode').value = code;
+        var btn = document.getElementById('verifyBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying...';
+    });
+});
+
+function copySecret() {
+    var secretCode = document.getElementById('secretCode').textContent;
+    var btn = document.getElementById('copyBtn');
+    navigator.clipboard.writeText(secretCode).then(function() {
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        setTimeout(function() {
+            btn.innerHTML = '<i class="fas fa-copy me-1"></i>Copy';
+        }, 2000);
+    });
+}
+</script>
+@endsection
