@@ -151,6 +151,8 @@
                 </div>
             </div>
             <!-- END TEST MODE BANNER -->
+
+            @include('partials.customer.senderid-returned-banner')
             
             <div class="qsms-main">
                 <div class="qsms-content-wrap">

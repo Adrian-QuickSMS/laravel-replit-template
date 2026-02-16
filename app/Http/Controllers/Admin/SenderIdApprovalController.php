@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminNotification;
+use App\Models\Notification;
 use App\Models\SenderId;
+use App\Models\SenderIdComment;
 use App\Models\SenderIdStatusHistory;
 use App\Services\SenderIdValidationService;
 use Illuminate\Http\JsonResponse;
@@ -57,7 +60,8 @@ class SenderIdApprovalController extends Controller
             $query->where('sender_type', $type);
         }
 
-        $requests = $query->orderBy('created_at', 'desc')
+        $requests = $query->orderByRaw("CASE WHEN workflow_status = 'info_provided' THEN 0 ELSE 1 END ASC")
+            ->orderBy('created_at', 'desc')
             ->paginate($request->input('per_page', 20));
 
         return response()->json([
@@ -104,11 +108,17 @@ class SenderIdApprovalController extends Controller
                 ->count();
         }
 
+        $comments = $senderId->comments()
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($c) => $c->toAdminArray());
+
         return response()->json([
             'success' => true,
             'data' => $senderId->toAdminArray(),
             'spoofing_check' => $spoofingCheck,
             'status_history' => $senderId->statusHistory,
+            'comments' => $comments,
             'account' => $accountData,
         ]);
     }
@@ -159,7 +169,56 @@ class SenderIdApprovalController extends Controller
             'notes' => 'required|string|max:2000',
         ]);
 
-        return $this->performTransition($request, $uuid, SenderId::STATUS_PENDING_INFO, null, $validated['notes']);
+        $senderId = SenderId::withoutGlobalScope('tenant')
+            ->where('uuid', $uuid)
+            ->first();
+
+        if (!$senderId) {
+            return response()->json(['success' => false, 'error' => 'SenderID not found.'], 404);
+        }
+
+        $response = $this->performTransition($request, $uuid, SenderId::STATUS_PENDING_INFO, null, $validated['notes']);
+
+        $responseData = $response->getData(true);
+        if ($responseData['success'] ?? false) {
+            try {
+                Notification::create([
+                    'tenant_id' => $senderId->account_id,
+                    'type' => 'SENDERID_RETURNED',
+                    'severity' => 'warning',
+                    'title' => "Sender ID needs more information",
+                    'body' => "Your Sender ID '{$senderId->sender_id_value}' was returned with comments. Please review and resubmit.",
+                    'deep_link' => "/management/sms-sender-id?view={$senderId->uuid}",
+                    'meta' => [
+                        'sender_id_value' => $senderId->sender_id_value,
+                        'request_uuid' => $senderId->uuid,
+                        'request_id' => $senderId->id,
+                    ],
+                ]);
+
+                $adminUser = $request->user();
+                SenderIdComment::create([
+                    'sender_id_id' => $senderId->id,
+                    'comment_type' => SenderIdComment::TYPE_CUSTOMER,
+                    'comment_text' => $validated['notes'],
+                    'created_by_actor_type' => SenderIdComment::ACTOR_ADMIN,
+                    'created_by_actor_id' => $adminUser->id ?? null,
+                    'created_by_actor_name' => $adminUser ? (($adminUser->first_name ?? '') . ' ' . ($adminUser->last_name ?? '')) : 'Admin',
+                ]);
+
+                $this->logGovernanceEvent(
+                    $senderId,
+                    ['workflow_status' => 'in_review'],
+                    'SENDERID_RETURNED_TO_CUSTOMER',
+                    $request,
+                    $validated['notes']
+                );
+            } catch (\Exception $e) {
+                Log::error('[SenderIdApproval] Failed to create notification/comment: ' . $e->getMessage());
+            }
+        }
+
+        return $response;
     }
 
     /**
@@ -279,31 +338,42 @@ class SenderIdApprovalController extends Controller
     private function logGovernanceEvent(
         SenderId $senderId,
         array $beforeState,
-        string $newStatus,
-        Request $request
+        string $newStatusOrEventType,
+        Request $request,
+        ?string $reason = null
     ): void {
         try {
+            $customEventTypes = [
+                'SENDERID_RETURNED_TO_CUSTOMER',
+                'SENDERID_ADMIN_REVIEW_REOPENED',
+                'SENDERID_COMMENT_ADDED',
+            ];
+
+            $isCustomEvent = in_array($newStatusOrEventType, $customEventTypes);
+            $eventType = $isCustomEvent ? $newStatusOrEventType : 'SENDER_ID_STATUS_CHANGED';
+            $afterStatus = $isCustomEvent ? ($senderId->workflow_status) : $newStatusOrEventType;
+
             DB::table('governance_audit_events')->insert([
                 'event_uuid' => Str::uuid()->toString(),
-                'event_type' => 'SENDER_ID_STATUS_CHANGED',
+                'event_type' => $eventType,
                 'entity_type' => 'sender_id',
                 'entity_id' => $senderId->id,
-                'account_id' => null, // bigint column - can't store UUID directly
+                'account_id' => null,
                 'sub_account_id' => null,
                 'actor_id' => $request->user()->id ?? null,
                 'actor_type' => 'ADMIN',
                 'actor_email' => $request->user()->email ?? 'admin@quicksms.co.uk',
                 'before_state' => json_encode([
-                    'workflow_status' => $beforeState['workflow_status'],
-                    'sender_id_value' => $beforeState['sender_id_value'],
-                    'uuid' => $beforeState['uuid'],
+                    'workflow_status' => $beforeState['workflow_status'] ?? null,
+                    'sender_id_value' => $beforeState['sender_id_value'] ?? $senderId->sender_id_value,
+                    'uuid' => $beforeState['uuid'] ?? $senderId->uuid,
                 ]),
                 'after_state' => json_encode([
-                    'workflow_status' => $newStatus,
+                    'workflow_status' => $afterStatus,
                     'sender_id_value' => $senderId->sender_id_value,
                     'uuid' => $senderId->uuid,
                 ]),
-                'reason' => $senderId->rejection_reason ?? $senderId->suspension_reason ?? $senderId->revocation_reason ?? null,
+                'reason' => $reason ?? $senderId->rejection_reason ?? $senderId->suspension_reason ?? $senderId->revocation_reason ?? null,
                 'source_ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'created_at' => now(),

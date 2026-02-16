@@ -114,6 +114,12 @@ Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderI
 
 Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
 
+Route::middleware('customer.auth')->prefix('api/notifications')->controller(\App\Http\Controllers\NotificationController::class)->group(function () {
+    Route::get('/', 'index')->name('api.notifications.index');
+    Route::post('/{uuid}/read', 'markRead')->name('api.notifications.read');
+    Route::post('/{uuid}/dismiss', 'dismiss')->name('api.notifications.dismiss');
+});
+
 Route::prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
     Route::post('/process-url', 'processUrl')->name('api.rcs.assets.process-url');
     Route::post('/process-upload', 'processUpload')->name('api.rcs.assets.process-upload');
@@ -229,6 +235,12 @@ Route::prefix('admin')->group(function () {
                 Route::delete('/overrides/{override}', 'deleteOverride')->name('admin.api.uk-network-controls.delete-override');
             });
             
+            Route::prefix('api/notifications')->controller(\App\Http\Controllers\Admin\AdminNotificationController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.notifications.index');
+                Route::post('/mark-all-read', 'markAllRead')->name('admin.api.notifications.markAllRead');
+                Route::post('/{uuid}/read', 'markRead')->name('admin.api.notifications.read');
+            });
+
             Route::prefix('api/sender-ids')->controller(\App\Http\Controllers\Admin\SenderIdApprovalController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.sender-ids.index');
                 Route::get('/{uuid}', 'show')->name('admin.api.sender-ids.show');

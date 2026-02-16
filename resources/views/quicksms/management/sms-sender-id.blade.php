@@ -614,8 +614,8 @@ body > .dropdown-menu.dropdown-menu-end,
                                         <option value="draft">Draft</option>
                                         <option value="submitted">Submitted</option>
                                         <option value="in_review">In Review</option>
-                                        <option value="pending_info">Pending Info</option>
-                                        <option value="info_provided">Info Provided</option>
+                                        <option value="pending_info">Returned — Action Required</option>
+                                        <option value="info_provided">Resubmitted</option>
                                         <option value="approved">Approved</option>
                                         <option value="rejected">Rejected</option>
                                         <option value="suspended">Suspended</option>
@@ -1067,8 +1067,10 @@ body > .dropdown-menu.dropdown-menu-end,
             </div>
         </div>
 
+        <div id="returnedInfoSection" style="display: none;"></div>
+
         <div>
-            <h6 class="text-muted mb-3">Audit History</h6>
+            <h6 class="text-muted mb-3">History</h6>
             <div class="audit-timeline" id="auditTimeline">
             </div>
         </div>
@@ -1234,8 +1236,8 @@ $(document).ready(function() {
             'draft': '<span class="badge badge-draft">Draft</span>',
             'submitted': '<span class="badge badge-pending">Submitted</span>',
             'in_review': '<span class="badge badge-pending">In Review</span>',
-            'pending_info': '<span class="badge badge-pending">Pending Info</span>',
-            'info_provided': '<span class="badge badge-pending">Info Provided</span>',
+            'pending_info': '<span class="badge badge-warning text-dark" data-bs-toggle="tooltip" title="Returned with comments — action required">Returned — Action Required <i class="fas fa-exclamation-circle text-warning ms-1"></i></span>',
+            'info_provided': '<span class="badge badge-info">Resubmitted</span>',
             'approved': '<span class="badge badge-approved">Approved</span>',
             'rejected': '<span class="badge badge-rejected">Rejected</span>',
             'suspended': '<span class="badge badge-suspended">Suspended</span>',
@@ -1277,8 +1279,8 @@ $(document).ready(function() {
             'draft': { label: 'Draft', class: 'badge-draft' },
             'submitted': { label: 'Submitted', class: 'badge-pending' },
             'in_review': { label: 'In Review', class: 'badge-pending' },
-            'pending_info': { label: 'Pending Info', class: 'badge-pending' },
-            'info_provided': { label: 'Info Provided', class: 'badge-pending' },
+            'pending_info': { label: 'Returned — Action Required', class: 'badge-warning text-dark' },
+            'info_provided': { label: 'Resubmitted', class: 'badge-info' },
             'approved': { label: 'Approved', class: 'badge-approved' },
             'rejected': { label: 'Rejected', class: 'badge-rejected' },
             'suspended': { label: 'Suspended', class: 'badge-suspended' },
@@ -1666,6 +1668,7 @@ $(document).ready(function() {
             $('#suspensionReasonSection').hide();
         }
 
+        $('#returnedInfoSection').hide();
         $('#auditTimeline').html('<div class="text-muted text-center py-3">Loading audit history...</div>');
 
         if (item.uuid) {
@@ -1675,7 +1678,54 @@ $(document).ready(function() {
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                 success: function(response) {
                     var detail = response.data || response;
-                    if (detail.audit_history && detail.audit_history.length > 0) {
+
+                    if (item.workflow_status === 'pending_info') {
+                        var returnHtml = '';
+                        returnHtml += '<div class="card mb-3" style="border-left: 4px solid #f59e0b; background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%);">';
+                        returnHtml += '<div class="card-header" style="background: transparent; border-bottom: 1px solid #fcd34d;">';
+                        returnHtml += '<h6 class="mb-0" style="color: #92400e;"><i class="fas fa-comment-alt me-2"></i>Comments from QuickSMS Review Team</h6>';
+                        returnHtml += '</div><div class="card-body">';
+
+                        if (response.return_info && response.return_info.reason) {
+                            returnHtml += '<div class="mb-2" style="color: #1e293b; line-height: 1.6; white-space: pre-wrap;">' + escapeHtml(response.return_info.reason) + '</div>';
+                            returnHtml += '<div class="text-muted small"><i class="fas fa-clock me-1"></i>Returned on ' + formatDateTime(response.return_info.returned_at) + '</div>';
+                        } else if (response.comments && response.comments.length > 0) {
+                            var adminComment = response.comments.find(function(c) { return c.created_by_actor_type === 'QuickSMS Review Team'; });
+                            if (adminComment) {
+                                returnHtml += '<div class="mb-2" style="color: #1e293b; line-height: 1.6; white-space: pre-wrap;">' + escapeHtml(adminComment.comment_text) + '</div>';
+                                returnHtml += '<div class="text-muted small"><i class="fas fa-clock me-1"></i>' + formatDateTime(adminComment.created_at) + '</div>';
+                            }
+                        }
+
+                        returnHtml += '</div></div>';
+
+                        returnHtml += '<div class="card mb-3"><div class="card-header"><h6 class="mb-0"><i class="fas fa-reply me-2"></i>Your Response</h6></div>';
+                        returnHtml += '<div class="card-body">';
+                        returnHtml += '<textarea id="customer-response-text" class="form-control mb-2" rows="4" placeholder="Provide supporting information, proof of brand ownership, intended use, etc." required></textarea>';
+                        returnHtml += '<div class="invalid-feedback" id="response-validation-error">Please provide a response before resubmitting.</div>';
+                        returnHtml += '<div class="text-muted small mb-3"><i class="fas fa-paperclip me-1"></i>File attachments coming soon</div>';
+                        returnHtml += '<button type="button" class="btn btn-primary btn-sm" id="btnProvideInfo"><i class="fas fa-paper-plane me-1"></i>Resubmit</button>';
+                        returnHtml += '</div></div>';
+
+                        $('#returnedInfoSection').html(returnHtml).show();
+                    }
+
+                    if (response.comments && response.comments.length > 0) {
+                        var commentsHtml = '<div class="card mb-3"><div class="card-header"><h6 class="mb-0"><i class="fas fa-history me-2"></i>Comment History</h6></div><div class="card-body p-0">';
+                        response.comments.forEach(function(comment) {
+                            var isAdmin = comment.created_by_actor_type === 'QuickSMS Review Team';
+                            commentsHtml += '<div class="p-3 border-bottom">';
+                            commentsHtml += '<div class="d-flex align-items-center mb-1">';
+                            commentsHtml += '<i class="fas ' + (isAdmin ? 'fa-shield-alt text-primary' : 'fa-user text-success') + ' me-2"></i>';
+                            commentsHtml += '<strong class="small">' + escapeHtml(comment.created_by_actor_type) + '</strong>';
+                            commentsHtml += '<span class="text-muted small ms-auto">' + formatDateTime(comment.created_at) + '</span>';
+                            commentsHtml += '</div>';
+                            commentsHtml += '<div class="small" style="white-space: pre-wrap;">' + escapeHtml(comment.comment_text) + '</div>';
+                            commentsHtml += '</div>';
+                        });
+                        commentsHtml += '</div></div>';
+                        $('#auditTimeline').html(commentsHtml);
+                    } else if (detail.audit_history && detail.audit_history.length > 0) {
                         var auditHtml = '';
                         detail.audit_history.forEach(function(audit) {
                             auditHtml += '<div class="audit-item ' + (audit.audit_type || '') + '">';
@@ -1689,15 +1739,15 @@ $(document).ready(function() {
                         });
                         $('#auditTimeline').html(auditHtml);
                     } else {
-                        $('#auditTimeline').html('<div class="text-muted text-center py-3">No audit history available.</div>');
+                        $('#auditTimeline').html('<div class="text-muted text-center py-3">No history available.</div>');
                     }
                 },
                 error: function() {
-                    $('#auditTimeline').html('<div class="text-muted text-center py-3">Unable to load audit history.</div>');
+                    $('#auditTimeline').html('<div class="text-muted text-center py-3">Unable to load history.</div>');
                 }
             });
         } else {
-            $('#auditTimeline').html('<div class="text-muted text-center py-3">No audit history available.</div>');
+            $('#auditTimeline').html('<div class="text-muted text-center py-3">No history available.</div>');
         }
 
         var actionsHtml = '';
@@ -2018,6 +2068,55 @@ $(document).ready(function() {
             }
         });
     }
+
+    $(document).on('click', '#btnProvideInfo', function(e) {
+        e.preventDefault();
+        if (!selectedSenderId || selectedSenderId.workflow_status !== 'pending_info' || !selectedSenderId.uuid) return;
+
+        var responseText = $('#customer-response-text').val();
+        if (!responseText || responseText.trim().length === 0) {
+            $('#customer-response-text').addClass('is-invalid');
+            $('#response-validation-error').show();
+            return;
+        }
+        $('#customer-response-text').removeClass('is-invalid');
+        $('#response-validation-error').hide();
+
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Submitting...');
+
+        $.ajax({
+            url: '/api/sender-ids/' + selectedSenderId.uuid + '/provide-info',
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+            contentType: 'application/json',
+            data: JSON.stringify({ additional_info: responseText.trim() }),
+            success: function(response) {
+                var updated = response.data || response;
+                var idx = senderIds.findIndex(function(s) { return s.id === selectedSenderId.id; });
+                if (idx !== -1) {
+                    senderIds[idx] = updated;
+                }
+                closeDetailDrawer();
+                renderTable();
+                var banner = document.getElementById('senderid-returned-banner');
+                if (banner) banner.style.display = 'none';
+                if (typeof showSuccessToast === 'function') {
+                    showSuccessToast('Response submitted successfully. Your SenderID is now under review.');
+                }
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html('<i class="fas fa-paper-plane me-1"></i>Resubmit');
+                var msg = 'Failed to submit response.';
+                if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                if (typeof showErrorToast === 'function') {
+                    showErrorToast(msg);
+                } else {
+                    alert(msg);
+                }
+            }
+        });
+    });
 
     $(document).on('click', '.btn-delete-row', function(e) {
         e.preventDefault();

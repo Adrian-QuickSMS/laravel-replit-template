@@ -177,6 +177,21 @@ class SenderId extends Model
             ->orderBy('created_at', 'desc');
     }
 
+    public function comments(): HasMany
+    {
+        return $this->hasMany(SenderIdComment::class, 'sender_id_id');
+    }
+
+    public function customerComments(): HasMany
+    {
+        return $this->comments()->customerVisible()->orderBy('created_at', 'desc');
+    }
+
+    public function internalComments(): HasMany
+    {
+        return $this->comments()->internal()->orderBy('created_at', 'desc');
+    }
+
     // =====================================================
     // STATE MACHINE
     // =====================================================

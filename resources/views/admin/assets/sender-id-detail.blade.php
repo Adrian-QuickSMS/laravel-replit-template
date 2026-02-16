@@ -983,6 +983,7 @@ function loadSenderIdDetail() {
             if (response.success) {
                 currentSenderIdData = response.data;
                 populateDetailPage(response.data, response.spoofing_check, response.status_history, response.account);
+                renderCommentThread(response.comments || []);
                 $('#sender-id-overview-loading').hide();
                 $('#sender-id-overview-content').show();
 
@@ -1027,8 +1028,8 @@ function populateDetailPage(data, spoofingCheck, statusHistory, account) {
         'draft': { cls: 'submitted', icon: 'fa-pencil-alt', label: 'Draft' },
         'submitted': { cls: 'submitted', icon: 'fa-paper-plane', label: 'Submitted' },
         'in_review': { cls: 'in-review', icon: 'fa-search', label: 'In Review' },
-        'pending_info': { cls: 'returned-to-customer', icon: 'fa-question-circle', label: 'Info Requested' },
-        'info_provided': { cls: 'submitted', icon: 'fa-reply', label: 'Info Provided' },
+        'pending_info': { cls: 'returned-to-customer', icon: 'fa-undo', label: 'Returned to Customer' },
+        'info_provided': { cls: 'in-review', icon: 'fa-reply', label: 'Resubmitted' },
         'approved': { cls: 'approved', icon: 'fa-check-circle', label: 'Approved' },
         'rejected': { cls: 'rejected', icon: 'fa-times-circle', label: 'Rejected' },
         'suspended': { cls: 'rejected', icon: 'fa-pause-circle', label: 'Suspended' },
@@ -1512,6 +1513,47 @@ function startReview() {
     }
 }
 
+function renderCommentThread(comments) {
+    var section = document.getElementById('commentThreadSection');
+    var body = document.getElementById('commentThreadBody');
+    var countEl = document.getElementById('commentCount');
+
+    if (!comments || comments.length === 0) {
+        if (section) section.style.display = 'none';
+        return;
+    }
+
+    if (section) section.style.display = '';
+    if (countEl) countEl.textContent = comments.length;
+
+    var html = '';
+    comments.forEach(function(comment) {
+        var isAdmin = comment.created_by_actor_type === 'admin';
+        var isCustomer = comment.created_by_actor_type === 'customer';
+        var bgColor = isAdmin ? '#f0f4ff' : (isCustomer ? '#f0fdf4' : '#f8fafc');
+        var borderColor = isAdmin ? '#dbeafe' : (isCustomer ? '#bbf7d0' : '#e2e8f0');
+        var icon = isAdmin ? 'fa-shield-alt' : (isCustomer ? 'fa-user' : 'fa-robot');
+        var iconColor = isAdmin ? '#3b82f6' : (isCustomer ? '#22c55e' : '#94a3b8');
+        var label = isAdmin ? 'Admin' : (isCustomer ? 'Customer' : 'System');
+        var date = comment.created_at ? new Date(comment.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+
+        html += '<div style="background: ' + bgColor + '; border: 1px solid ' + borderColor + '; border-radius: 6px; padding: 0.75rem; margin-bottom: 0.75rem;">';
+        html += '<div style="display: flex; align-items: center; margin-bottom: 0.5rem;">';
+        html += '<i class="fas ' + icon + ' me-2" style="color: ' + iconColor + ';"></i>';
+        html += '<strong style="font-size: 0.8rem;">' + label + '</strong>';
+        if (comment.created_by_name) html += '<span class="text-muted small ms-2">(' + escapeHtml(comment.created_by_name) + ')</span>';
+        html += '<span class="text-muted small ms-auto">' + date + '</span>';
+        html += '</div>';
+        html += '<div style="font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap;">' + escapeHtml(comment.comment_text) + '</div>';
+        if (comment.comment_type === 'customer' && isCustomer) {
+            html += '<div style="margin-top: 0.5rem;"><span class="badge" style="background: #dcfce7; color: #166534; font-size: 0.7rem;">Customer Response</span></div>';
+        }
+        html += '</div>';
+    });
+
+    if (body) body.innerHTML = html;
+}
+
 function returnToCustomer() {
     var notes = prompt('What information do you need from the customer?');
     if (!notes || notes.trim().length < 5) {
@@ -1768,6 +1810,18 @@ function showAdminActionsModal() {
                         </button>
                         <div id="noActionsMsg" style="display:none; padding: 0.75rem 1rem; background: #f1f5f9; border-radius: 6px; font-size: 0.8rem; color: #64748b;">
                             <i class="fas fa-info-circle me-2"></i>No actions available for the current status.
+                        </div>
+                    </div>
+                </div>
+
+                <div id="commentThreadSection" style="display: none; margin-top: 1rem;">
+                    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: #f1f5f9; border-bottom: 1px solid #e2e8f0;">
+                            <h6 style="margin: 0; font-size: 0.85rem; color: #1e3a5f;"><i class="fas fa-comments me-2"></i>Comment Thread</h6>
+                            <span id="commentCount" class="badge" style="background: var(--admin-primary, #1e3a5f); color: #fff; font-size: 0.7rem;">0</span>
+                        </div>
+                        <div id="commentThreadBody" style="max-height: 400px; overflow-y: auto; padding: 1rem;">
+                            <div class="text-muted text-center py-2 small">No comments yet.</div>
                         </div>
                     </div>
                 </div>
