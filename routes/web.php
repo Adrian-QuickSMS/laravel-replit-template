@@ -114,6 +114,52 @@ Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderI
 
 Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
 
+// Contact Book API — must be in web.php (not api.php) so session auth works
+Route::middleware('customer.auth')->prefix('api/contacts')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'contactsIndex'])->name('api.contacts.index');
+    Route::post('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'contactsStore'])->name('api.contacts.store');
+    Route::get('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'contactsShow'])->name('api.contacts.show');
+    Route::put('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'contactsUpdate'])->name('api.contacts.update');
+    Route::delete('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'contactsDestroy'])->name('api.contacts.destroy');
+
+    Route::post('/bulk/add-to-list', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkAddToList'])->name('api.contacts.bulk.add-to-list');
+    Route::post('/bulk/remove-from-list', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveFromList'])->name('api.contacts.bulk.remove-from-list');
+    Route::post('/bulk/add-tags', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkAddTags'])->name('api.contacts.bulk.add-tags');
+    Route::post('/bulk/remove-tags', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveTags'])->name('api.contacts.bulk.remove-tags');
+    Route::post('/bulk/delete', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkDelete'])->name('api.contacts.bulk.delete');
+    Route::post('/bulk/export', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkExport'])->name('api.contacts.bulk.export');
+
+    Route::get('/{id}/timeline', [\App\Http\Controllers\Api\ContactBookApiController::class, 'timeline'])->name('api.contacts.timeline');
+    Route::post('/{id}/reveal-msisdn', [\App\Http\Controllers\Api\ContactBookApiController::class, 'revealMsisdn'])->name('api.contacts.reveal-msisdn');
+});
+
+Route::middleware('customer.auth')->prefix('api/tags')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'tagsIndex'])->name('api.tags.index');
+    Route::post('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'tagsStore'])->name('api.tags.store');
+    Route::put('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'tagsUpdate'])->name('api.tags.update');
+    Route::delete('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'tagsDestroy'])->name('api.tags.destroy');
+});
+
+Route::middleware('customer.auth')->prefix('api/contact-lists')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsIndex'])->name('api.contact-lists.index');
+    Route::post('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsStore'])->name('api.contact-lists.store');
+    Route::put('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsUpdate'])->name('api.contact-lists.update');
+    Route::delete('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsDestroy'])->name('api.contact-lists.destroy');
+    Route::post('/{id}/members', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsAddMembers'])->name('api.contact-lists.add-members');
+    Route::delete('/{id}/members', [\App\Http\Controllers\Api\ContactBookApiController::class, 'listsRemoveMembers'])->name('api.contact-lists.remove-members');
+});
+
+Route::middleware('customer.auth')->prefix('api/opt-out-lists')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutListsIndex'])->name('api.opt-out-lists.index');
+    Route::post('/', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutListsStore'])->name('api.opt-out-lists.store');
+    Route::put('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutListsUpdate'])->name('api.opt-out-lists.update');
+    Route::delete('/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutListsDestroy'])->name('api.opt-out-lists.destroy');
+    Route::get('/{id}/records', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutRecordsIndex'])->name('api.opt-out-records.index');
+    Route::post('/{id}/records', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutRecordsStore'])->name('api.opt-out-records.store');
+});
+
+Route::middleware('customer.auth')->delete('/api/opt-out-records/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutRecordsDestroy'])->name('api.opt-out-records.destroy');
+
 Route::middleware('customer.auth')->prefix('api/notifications')->controller(\App\Http\Controllers\NotificationController::class)->group(function () {
     Route::get('/', 'index')->name('api.notifications.index');
     Route::post('/{uuid}/read', 'markRead')->name('api.notifications.read');

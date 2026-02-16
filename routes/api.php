@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\PurchaseApiController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\InvoiceApiController;
 use App\Http\Controllers\Api\TopUpApiController;
-use App\Http\Controllers\Api\ContactBookApiController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -82,53 +82,5 @@ Route::prefix('invoices')->group(function () {
     Route::post('/{invoiceId}/create-checkout-session', [InvoiceApiController::class, 'createCheckoutSession']);
 });
 
-// =====================================================
-// Contact Book API
-// =====================================================
-Route::prefix('contacts')->group(function () {
-    // Contact CRUD
-    Route::get('/', [ContactBookApiController::class, 'contactsIndex']);
-    Route::post('/', [ContactBookApiController::class, 'contactsStore']);
-    Route::get('/{id}', [ContactBookApiController::class, 'contactsShow']);
-    Route::put('/{id}', [ContactBookApiController::class, 'contactsUpdate']);
-    Route::delete('/{id}', [ContactBookApiController::class, 'contactsDestroy']);
-
-    // Bulk operations (used by contacts-service.js)
-    Route::post('/bulk/add-to-list', [ContactBookApiController::class, 'bulkAddToList']);
-    Route::post('/bulk/remove-from-list', [ContactBookApiController::class, 'bulkRemoveFromList']);
-    Route::post('/bulk/add-tags', [ContactBookApiController::class, 'bulkAddTags']);
-    Route::post('/bulk/remove-tags', [ContactBookApiController::class, 'bulkRemoveTags']);
-    Route::post('/bulk/delete', [ContactBookApiController::class, 'bulkDelete']);
-    Route::post('/bulk/export', [ContactBookApiController::class, 'bulkExport']);
-
-    // Per-contact timeline + reveal
-    Route::get('/{id}/timeline', [ContactBookApiController::class, 'timeline']);
-    Route::post('/{id}/reveal-msisdn', [ContactBookApiController::class, 'revealMsisdn']);
-});
-
-Route::prefix('tags')->group(function () {
-    Route::get('/', [ContactBookApiController::class, 'tagsIndex']);
-    Route::post('/', [ContactBookApiController::class, 'tagsStore']);
-    Route::put('/{id}', [ContactBookApiController::class, 'tagsUpdate']);
-    Route::delete('/{id}', [ContactBookApiController::class, 'tagsDestroy']);
-});
-
-Route::prefix('contact-lists')->group(function () {
-    Route::get('/', [ContactBookApiController::class, 'listsIndex']);
-    Route::post('/', [ContactBookApiController::class, 'listsStore']);
-    Route::put('/{id}', [ContactBookApiController::class, 'listsUpdate']);
-    Route::delete('/{id}', [ContactBookApiController::class, 'listsDestroy']);
-    Route::post('/{id}/members', [ContactBookApiController::class, 'listsAddMembers']);
-    Route::delete('/{id}/members', [ContactBookApiController::class, 'listsRemoveMembers']);
-});
-
-Route::prefix('opt-out-lists')->group(function () {
-    Route::get('/', [ContactBookApiController::class, 'optOutListsIndex']);
-    Route::post('/', [ContactBookApiController::class, 'optOutListsStore']);
-    Route::put('/{id}', [ContactBookApiController::class, 'optOutListsUpdate']);
-    Route::delete('/{id}', [ContactBookApiController::class, 'optOutListsDestroy']);
-    Route::get('/{id}/records', [ContactBookApiController::class, 'optOutRecordsIndex']);
-    Route::post('/{id}/records', [ContactBookApiController::class, 'optOutRecordsStore']);
-});
-
-Route::delete('opt-out-records/{id}', [ContactBookApiController::class, 'optOutRecordsDestroy']);
+// Contact Book API routes moved to routes/web.php under customer.auth middleware
+// (api middleware group lacks session cookies, breaking tenant-scoped queries)
