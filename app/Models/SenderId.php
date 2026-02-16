@@ -56,7 +56,7 @@ class SenderId extends Model
         self::STATUS_SUBMITTED     => [self::STATUS_IN_REVIEW],
         self::STATUS_IN_REVIEW     => [self::STATUS_APPROVED, self::STATUS_REJECTED, self::STATUS_PENDING_INFO],
         self::STATUS_PENDING_INFO  => [self::STATUS_INFO_PROVIDED],
-        self::STATUS_INFO_PROVIDED => [self::STATUS_IN_REVIEW],
+        self::STATUS_INFO_PROVIDED => [self::STATUS_IN_REVIEW, self::STATUS_APPROVED, self::STATUS_REJECTED, self::STATUS_PENDING_INFO],
         self::STATUS_APPROVED      => [self::STATUS_SUSPENDED],
         self::STATUS_REJECTED      => [self::STATUS_DRAFT],
         self::STATUS_SUSPENDED     => [self::STATUS_APPROVED, self::STATUS_REVOKED],
