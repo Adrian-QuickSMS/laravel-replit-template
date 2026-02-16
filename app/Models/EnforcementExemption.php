@@ -25,10 +25,9 @@ class EnforcementExemption extends Model
         'engine',
         'exemption_type',
         'rule_id',
-        'rule_table',
-        'exempted_value',
-        'scope_type',
-        'scope_id',
+        'scope',
+        'value',
+        'account_id',
         'reason',
         'is_active',
         'created_by',
@@ -68,20 +67,19 @@ class EnforcementExemption extends Model
     public function scopeForScope($query, string $scopeType, ?string $scopeId = null)
     {
         $query->where(function ($q) use ($scopeType, $scopeId) {
-            // Always include global exemptions
-            $q->where('scope_type', 'global');
+            $q->where('scope', 'global');
 
             if ($scopeType === 'account' && $scopeId) {
                 $q->orWhere(function ($q2) use ($scopeId) {
-                    $q2->where('scope_type', 'account')
-                       ->where('scope_id', $scopeId);
+                    $q2->where('scope', 'account')
+                       ->where('account_id', $scopeId);
                 });
             }
 
             if ($scopeType === 'sub_account' && $scopeId) {
                 $q->orWhere(function ($q2) use ($scopeId) {
-                    $q2->where('scope_type', 'sub_account')
-                       ->where('scope_id', $scopeId);
+                    $q2->where('scope', 'sub_account')
+                       ->where('account_id', $scopeId);
                 });
             }
         });
@@ -119,7 +117,7 @@ class EnforcementExemption extends Model
         }
 
         if ($this->exemption_type === 'value') {
-            return strtoupper($this->exempted_value) === strtoupper($value);
+            return strtoupper($this->value) === strtoupper($value);
         }
 
         return false;
