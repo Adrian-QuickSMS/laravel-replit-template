@@ -41,7 +41,8 @@ class AdminUserController extends Controller
             $query->orderBy($sortField, $sortDir === 'asc' ? 'asc' : 'desc');
         }
 
-        $users = $query->paginate($request->get('per_page', 25));
+        $perPage = min((int) $request->get('per_page', 25), 100);
+        $users = $query->paginate($perPage);
 
         return response()->json([
             'data' => $users->getCollection()->map->toAdminArray(),
@@ -182,6 +183,11 @@ class AdminUserController extends Controller
 
     public function suspend(string $id)
     {
+        $currentRole = session('admin_auth.role');
+        if (!in_array($currentRole, ['super_admin', 'admin'])) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
         $user = AdminUser::findOrFail($id);
 
         if ($user->id === session('admin_auth.admin_id')) {
@@ -196,6 +202,11 @@ class AdminUserController extends Controller
 
     public function activate(string $id)
     {
+        $currentRole = session('admin_auth.role');
+        if (!in_array($currentRole, ['super_admin', 'admin'])) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
         $user = AdminUser::findOrFail($id);
         $user->update(['status' => 'active', 'updated_by' => session('admin_auth.email')]);
         AdminAuditService::log('admin_user_activated', ['user_id' => $user->id, 'email' => $user->email]);
@@ -205,6 +216,11 @@ class AdminUserController extends Controller
 
     public function unlock(string $id)
     {
+        $currentRole = session('admin_auth.role');
+        if (!in_array($currentRole, ['super_admin', 'admin'])) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
         $user = AdminUser::findOrFail($id);
         $user->unlockAccount();
         AdminAuditService::log('admin_user_unlocked', ['user_id' => $user->id, 'email' => $user->email]);
@@ -236,6 +252,11 @@ class AdminUserController extends Controller
 
     public function resendInvite(string $id)
     {
+        $currentRole = session('admin_auth.role');
+        if (!in_array($currentRole, ['super_admin', 'admin'])) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
         $user = AdminUser::findOrFail($id);
         $token = $user->generateInviteToken();
 

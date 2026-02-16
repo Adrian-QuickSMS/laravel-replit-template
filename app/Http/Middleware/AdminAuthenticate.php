@@ -28,9 +28,12 @@ class AdminAuthenticate
             }
         }
         
-        if (config('app.env') === 'local' || config('app.debug') === true) {
+        if ((config('app.env') === 'local' || config('app.debug') === true)) {
             if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
-                $devAdmin = AdminUser::where('status', 'active')->orderBy('created_at', 'asc')->first();
+                $devAdmin = AdminUser::where('role', 'super_admin')
+                    ->where('status', 'active')
+                    ->first();
+
                 if ($devAdmin) {
                     session()->put('admin_auth', [
                         'authenticated' => true,
@@ -43,19 +46,8 @@ class AdminAuthenticate
                         'ip_address' => $request->ip(),
                     ]);
                     session()->put('admin_user_email', $devAdmin->email);
-                } else {
-                    session()->put('admin_auth', [
-                        'authenticated' => true,
-                        'mfa_verified' => true,
-                        'admin_id' => 'dev-fallback',
-                        'email' => 'admin@quicksms.com',
-                        'name' => 'Dev Administrator',
-                        'role' => 'super_admin',
-                        'last_activity' => now()->timestamp,
-                        'ip_address' => $request->ip(),
-                    ]);
-                    session()->put('admin_user_email', 'admin@quicksms.com');
                 }
+                // If no DB user exists, do NOT create a fake session — redirect to login instead
             }
         }
         
@@ -97,10 +89,20 @@ class AdminAuthenticate
             }
             return redirect()->route('admin.mfa.verify');
         }
-        
+
+        // Revalidate admin user is still active on each request
+        $adminUser = AdminUser::find($adminSession['admin_id'] ?? null);
+        if (!$adminUser || $adminUser->status !== 'active' || $adminUser->isLocked()) {
+            session()->forget('admin_auth');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => 'Account suspended or locked'], 403);
+            }
+            return redirect()->route('admin.login')->with('error', 'Your account has been suspended or locked.');
+        }
+
         session()->put('admin_auth.last_activity', now()->timestamp);
         session()->put('admin_auth.ip_address', $request->ip());
-        
+
         return $next($request);
     }
     
@@ -154,21 +156,30 @@ class AdminAuthenticate
         }
 
         try {
-            $adminUser = AdminUser::where('email', strtolower($email))
+            // Primary auth source: admin_users database table
+            $exists = AdminUser::where('email', strtolower($email))
                 ->where('status', 'active')
-                ->first();
+                ->exists();
 
-            return $adminUser !== null;
-        } catch (\Exception $e) {
-            \Log::warning('[AdminAuth] DB lookup failed, falling back to config', ['error' => $e->getMessage()]);
+            if ($exists) {
+                return true;
+            }
 
-            $adminUsers = config('admin.users', []);
-            foreach ($adminUsers as $user) {
-                if (strtolower($user['email']) === strtolower($email) && ($user['status'] ?? '') === 'active') {
-                    return true;
+            // Fallback: check whitelisted email domains
+            $whitelistedDomains = config('admin.security.whitelisted_domains', []);
+            $emailParts = explode('@', $email);
+            if (count($emailParts) === 2) {
+                $domain = strtolower($emailParts[1]);
+                foreach ($whitelistedDomains as $whitelistedDomain) {
+                    if ($domain === strtolower($whitelistedDomain)) {
+                        return true;
+                    }
                 }
             }
 
+            return false;
+        } catch (\Exception $e) {
+            \Log::error('[AdminAuth] DB lookup failed during whitelist check', ['error' => $e->getMessage()]);
             return false;
         }
     }
@@ -197,6 +208,10 @@ class AdminAuthenticate
     
     protected function ipInCidr(string $ip, string $cidr): bool
     {
+        if (!str_contains($cidr, '/')) {
+            return $ip === $cidr;
+        }
+
         list($subnet, $mask) = explode('/', $cidr);
         $mask = (int) $mask;
         

@@ -34,27 +34,6 @@ class MessageEnforcementService
     private const REGEX_BACKTRACK_LIMIT = 10000;
 
     /**
-     * Validate a regex pattern is safe to execute.
-     * Returns true if valid, false if malformed or dangerous.
-     * Use this before storing a regex rule to the database.
-     */
-    public static function isValidRegex(string $pattern): bool
-    {
-        if ($pattern === '') {
-            return false;
-        }
-
-        $previousLimit = ini_get('pcre.backtrack_limit');
-        ini_set('pcre.backtrack_limit', (string) self::REGEX_BACKTRACK_LIMIT);
-
-        $result = @preg_match('~' . str_replace('~', '\\~', $pattern) . '~i', '');
-
-        ini_set('pcre.backtrack_limit', $previousLimit);
-
-        return $result !== false;
-    }
-
-    /**
      * Test enforcement against a given input
      *
      * @param string $engine The enforcement engine (senderid, content, url)
@@ -298,10 +277,10 @@ class MessageEnforcementService
         }
 
         $previousLimit = ini_get('pcre.backtrack_limit');
-        ini_set('pcre.backtrack_limit', '10000');
+        ini_set('pcre.backtrack_limit', (string) self::REGEX_BACKTRACK_LIMIT);
 
         try {
-            $result = @preg_match('~' . $pattern . '~i', '');
+            $result = @preg_match('~' . str_replace('~', '\\~', $pattern) . '~i', '');
             ini_set('pcre.backtrack_limit', $previousLimit);
             return $result !== false;
         } catch (\Exception $e) {

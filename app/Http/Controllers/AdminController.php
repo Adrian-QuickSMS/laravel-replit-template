@@ -43,8 +43,8 @@ class AdminController extends Controller
             'reason' => 'required|string|min:10',
         ]);
         
-        $adminEmail = session('admin_email', 'admin@quicksms.co.uk');
-        
+        $adminEmail = session('admin_auth.email', session('admin_email', 'unknown'));
+
         if (!$this->impersonationService->canImpersonate($adminEmail)) {
             Log::warning('[AdminController] Unauthorized impersonation attempt', [
                 'admin_email' => $adminEmail,
@@ -127,7 +127,7 @@ class AdminController extends Controller
             'target_admin_email' => 'required|string',
         ]);
         
-        $actorAdmin = session('admin_email', 'admin@quicksms.co.uk');
+        $actorAdmin = session('admin_auth.email', session('admin_email', 'unknown'));
         $eventType = $request->input('event_type');
         $targetEmail = $request->input('target_admin_email');
         $beforeValues = $request->input('before_values');

@@ -23,6 +23,7 @@ class ContentRule extends Model
         'pattern',
         'match_type',
         'action',
+        'category',
         'use_normalisation',
         'is_active',
         'priority',
@@ -30,6 +31,9 @@ class ContentRule extends Model
         'created_by',
         'updated_by',
     ];
+
+    // H5 FIX: Hide internal audit fields from default serialization.
+    protected $hidden = ['created_by', 'updated_by'];
 
     protected $casts = [
         'use_normalisation' => 'boolean',
@@ -62,6 +66,12 @@ class ContentRule extends Model
     public function scopeByPriority($query)
     {
         return $query->orderBy('priority', 'asc');
+    }
+
+    // L9 FIX: Category scope for parity with SenderidRule
+    public function scopeCategory($query, string $category)
+    {
+        return $query->where('category', $category);
     }
 
     // =====================================================
