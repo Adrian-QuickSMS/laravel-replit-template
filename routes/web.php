@@ -145,6 +145,10 @@ Route::prefix('admin')->group(function () {
         Route::post('/mfa/setup/skip', 'skipMfaSetup')->name('admin.mfa.setup.skip');
         Route::get('/mfa/verify', 'showMfaVerify')->name('admin.mfa.verify');
         Route::post('/mfa/verify', 'verifyMfa')->name('admin.mfa.verify.submit');
+        Route::post('/mfa/sms/send', 'sendSmsMfa')->name('admin.mfa.sms.send');
+        Route::post('/mfa/sms/verify', 'verifySmsMfa')->name('admin.mfa.sms.verify');
+        Route::get('/password/change', 'showPasswordChange')->name('admin.password.change');
+        Route::post('/password/change', 'changePassword')->name('admin.password.change.submit');
     });
     
     Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class])
@@ -210,7 +214,20 @@ Route::prefix('admin')->group(function () {
             Route::get('/api/impersonation/status', 'getImpersonationStatus')->name('admin.api.impersonation.status');
             Route::post('/api/login-policy/validate', 'validateLoginPolicy')->name('admin.api.login-policy.validate');
             Route::post('/api/admin-users/audit', 'logAdminUserEvent')->name('admin.api.admin-users.audit');
-            
+
+            Route::prefix('api/admin-users')->controller(\App\Http\Controllers\Admin\AdminUserController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.admin-users.index');
+                Route::post('/', 'store')->name('admin.api.admin-users.store');
+                Route::get('/{id}', 'show')->name('admin.api.admin-users.show');
+                Route::put('/{id}', 'update')->name('admin.api.admin-users.update');
+                Route::post('/{id}/suspend', 'suspend')->name('admin.api.admin-users.suspend');
+                Route::post('/{id}/activate', 'activate')->name('admin.api.admin-users.activate');
+                Route::post('/{id}/unlock', 'unlock')->name('admin.api.admin-users.unlock');
+                Route::post('/{id}/reset-mfa', 'resetMfa')->name('admin.api.admin-users.reset-mfa');
+                Route::post('/{id}/resend-invite', 'resendInvite')->name('admin.api.admin-users.resend-invite');
+                Route::delete('/{id}', 'destroy')->name('admin.api.admin-users.destroy');
+            });
+
             Route::post('/enforcement/test', 'testEnforcement')->name('admin.enforcement.test');
             Route::post('/enforcement/normalise', 'normaliseInput')->name('admin.enforcement.normalise');
             Route::post('/enforcement/reload', 'reloadEnforcementRules')->name('admin.enforcement.reload');
