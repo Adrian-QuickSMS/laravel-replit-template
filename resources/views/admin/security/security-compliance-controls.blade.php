@@ -4621,12 +4621,18 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function initialize() {
-        loadMockData();
-        console.log('[SecurityComplianceControls] mockData loaded with ' + mockData.quarantinedMessages.length + ' quarantine messages');
-        renderAllTabs();
-        setupEventListeners();
-        initDomainAgeSettings();
-        console.log('[SecurityComplianceControls] Initialized successfully');
+        loadDataFromAPI().then(function() {
+            console.log('[SecurityComplianceControls] Data loaded from API');
+            renderAllTabs();
+            setupEventListeners();
+            initDomainAgeSettings();
+            console.log('[SecurityComplianceControls] Initialized successfully');
+        }).catch(function(err) {
+            console.error('[SecurityComplianceControls] Failed to load data:', err);
+            renderAllTabs();
+            setupEventListeners();
+            initDomainAgeSettings();
+        });
     }
     
     function buildExemptionsList() {
@@ -4765,212 +4771,247 @@ var SecurityComplianceControlsService = (function() {
         console.log('[SecurityComplianceControls] Enforcement override set:', sourceId, status);
     }
 
-    function loadMockData() {
-        // TODO: Backend integration - fetch data from API endpoints
-        
-        // SenderID Rules mock data
-        mockData.senderIdRules = [
-            { id: 'SID-001', name: 'HSBC Banking Brand', baseSenderId: 'HSBC', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', updatedAt: '15-01-2026 09:30' },
-            { id: 'SID-002', name: 'Barclays Banking Brand', baseSenderId: 'Barclays', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', updatedAt: '15-01-2026 09:32' },
-            { id: 'SID-003', name: 'HMRC Government', baseSenderId: 'HMRC', ruleType: 'block', category: 'government_healthcare', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', updatedAt: '16-01-2026 10:15' },
-            { id: 'SID-004', name: 'NHS Healthcare', baseSenderId: 'NHS', ruleType: 'flag', category: 'government_healthcare', applyNormalisation: false, status: 'active', createdBy: 'compliance@quicksms.co.uk', updatedAt: '17-01-2026 14:20' }
-        ];
-
-        // Content Rules mock data
-        mockData.contentRules = [
-            { id: 'CR-001', name: 'Bitcoin Investment Scam', matchType: 'keyword', matchValue: 'bitcoin investment', ruleType: 'block', applyNormalisation: true, status: 'active', updatedAt: '10-01-2026 11:00' },
-            { id: 'CR-002', name: 'Guaranteed Returns Fraud', matchType: 'keyword', matchValue: 'guaranteed returns', ruleType: 'block', applyNormalisation: true, status: 'active', updatedAt: '10-01-2026 11:05' },
-            { id: 'CR-003', name: 'Click to Claim Phishing', matchType: 'keyword', matchValue: 'click here to claim', ruleType: 'flag', applyNormalisation: false, status: 'active', updatedAt: '12-01-2026 09:45' },
-            { id: 'CR-004', name: 'Urgency Scam Indicator', matchType: 'regex', matchValue: 'urgent.*action.*required', ruleType: 'flag', applyNormalisation: true, status: 'active', updatedAt: '14-01-2026 16:30' },
-            { id: 'CR-005', name: 'Free Prize Scam', matchType: 'keyword', matchValue: 'free iphone', ruleType: 'block', applyNormalisation: false, status: 'inactive', updatedAt: '18-01-2026 10:00' }
-        ];
-
-        mockData.senderIdApprovals = [
-            { id: 'SID-001', senderId: 'NHSUK', normalisedValue: 'NHSUK', type: 'alphanumeric', category: 'government_healthcare', scope: 'global', accountId: null, accountName: '-', subAccounts: [], approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '15-01-2026 09:00', updatedAt: '15-01-2026 09:00', notes: 'NHS official sender' },
-            { id: 'SID-002', senderId: 'Barclays', normalisedValue: 'BARCLAYS', type: 'alphanumeric', category: 'banking_finance', scope: 'account', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: [], approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '16-01-2026 11:30', updatedAt: '16-01-2026 11:30', notes: 'Banking alerts' },
-            { id: 'SID-003', senderId: 'DPD', normalisedValue: 'DPD', type: 'alphanumeric', category: 'delivery_logistics', scope: 'account', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccounts: ['SUB-001', 'SUB-002'], approvalStatus: 'approved', approvedBy: 'compliance@quicksms.co.uk', approvedAt: '17-01-2026 14:00', updatedAt: '17-01-2026 14:00', notes: 'Delivery notifications' },
-            { id: 'SID-004', senderId: 'HMRC', normalisedValue: 'HMRC', type: 'alphanumeric', category: 'government_healthcare', scope: 'global', accountId: null, accountName: '-', subAccounts: [], approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '18-01-2026 10:15', updatedAt: '18-01-2026 10:15', notes: 'Government tax authority' },
-            { id: 'SID-005', senderId: 'RoyalMail', normalisedValue: 'ROYALMAIL', type: 'alphanumeric', category: 'delivery_logistics', scope: 'global', accountId: null, accountName: '-', subAccounts: [], approvalStatus: 'approved', approvedBy: 'admin@quicksms.co.uk', approvedAt: '19-01-2026 09:45', updatedAt: '19-01-2026 09:45', notes: 'Postal service notifications' }
-        ];
-        mockData.manualExemptions = [
-            { id: 'MAN-001', senderId: 'Amazon', normalisedValue: 'AMAZON', type: 'alphanumeric', category: 'delivery_logistics', scope: 'global', accountId: null, accountName: '-', subAccounts: [], addedBy: 'admin@quicksms.co.uk', addedAt: '10-01-2026 15:00', updatedAt: '10-01-2026 15:00', notes: 'Manual exemption for Amazon delivery alerts' },
-            { id: 'MAN-002', senderId: '82345', normalisedValue: '82345', type: 'shortcode', category: 'miscellaneous', scope: 'account', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: [], addedBy: 'compliance@quicksms.co.uk', addedAt: '12-01-2026 11:30', updatedAt: '12-01-2026 11:30', notes: 'Approved shortcode for TechStart' }
-        ];
-        mockData.enforcementOverrides = {};
-        mockData.senderIdExemptions = buildExemptionsList();
-        
-        // Content Exemptions mock data
-        mockData.contentExemptions = [
-            { id: 'CEX-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: ['all'], exemptionType: 'content_rules', rulesExempted: ['CR-003'], reason: 'Legitimate marketing campaigns', status: 'active', createdAt: '20-01-2026 14:00', createdBy: 'admin@quicksms.co.uk' }
-        ];
-        
-        // URL Rules mock data
-        mockData.urlRules = [
-            { id: 'URL-001', name: 'Bit.ly Shortener', pattern: 'bit.ly', matchType: 'wildcard', ruleType: 'flag', status: 'active', updatedAt: '08-01-2026 10:00' },
-            { id: 'URL-002', name: 'TinyURL Shortener', pattern: 'tinyurl.com', matchType: 'wildcard', ruleType: 'flag', status: 'active', updatedAt: '08-01-2026 10:05' },
-            { id: 'URL-003', name: 'High-Risk TLD .xyz', pattern: '*.xyz', matchType: 'wildcard', ruleType: 'block', status: 'active', updatedAt: '09-01-2026 11:30' },
-            { id: 'URL-004', name: 'High-Risk TLD .tk', pattern: '*.tk', matchType: 'wildcard', ruleType: 'block', status: 'active', updatedAt: '09-01-2026 11:35' },
-            { id: 'URL-005', name: 'Verify Account Phishing', pattern: 'verify-account', matchType: 'exact', ruleType: 'block', status: 'active', updatedAt: '11-01-2026 09:00' },
-            { id: 'URL-006', name: 'Login Secure Phishing', pattern: 'login-secure', matchType: 'regex', ruleType: 'block', status: 'active', updatedAt: '11-01-2026 09:05' }
-        ];
-        
-        mockData.domainAgeSettings = {
-            enabled: true,
-            minAgeHours: 72,
-            action: 'quarantine',
-            updatedAt: '25-01-2026 16:45',
-            updatedBy: 'admin@quicksms.co.uk'
+    function loadDataFromAPI() {
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
         };
-        
-        // Domain Allowlist mock data
-        mockData.domainAllowlist = [
-            { id: 'DA-001', domain: 'google.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:00', addedBy: 'admin@quicksms.co.uk' },
-            { id: 'DA-002', domain: 'microsoft.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:05', addedBy: 'admin@quicksms.co.uk' },
-            { id: 'DA-003', domain: 'apple.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:10', addedBy: 'admin@quicksms.co.uk' },
-            { id: 'DA-004', domain: 'amazon.co.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:00', addedBy: 'admin@quicksms.co.uk' },
-            { id: 'DA-005', domain: 'gov.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:15', addedBy: 'compliance@quicksms.co.uk' }
-        ];
-        
-        // Threshold Overrides mock data
-        mockData.thresholdOverrides = [
-            { id: 'TO-001', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: ['all'], thresholdHours: 24, action: 'quarantine', reason: 'Trusted healthcare provider', createdAt: '22-01-2026 11:00', createdBy: 'admin@quicksms.co.uk' }
-        ];
-        
-        mockData.domainAgeExceptions = [];
-        
-        // URL Exemptions mock data
-        mockData.urlExemptions = [
-            { id: 'UEX-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccounts: ['all'], exemptionType: 'url_rules', rulesExempted: ['URL-001', 'URL-002'], reason: 'Uses branded short URLs', status: 'active', createdAt: '23-01-2026 10:30', createdBy: 'admin@quicksms.co.uk' }
-        ];
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
 
-        mockData.baseCharacterLibrary = (function() {
-            var library = [];
-            
-            var letterEquivalents = {
-                'A': { equivalents: ['a', '4', '@', 'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'à', 'á', 'â', 'ã', 'ä', 'å', 'Α', 'α', 'А', 'а', 'Ά'], notes: 'Lowercase a, digit 4, @, accented variants, Greek Alpha, Cyrillic A' },
-                'B': { equivalents: ['b', '8', 'Β', 'β', 'В', 'в', 'ϐ', 'ь'], notes: 'Lowercase b, digit 8, Greek Beta, Cyrillic Ve' },
-                'C': { equivalents: ['c', '(', 'С', 'с', 'Ϲ', 'ϲ'], notes: 'Lowercase c, parenthesis, Cyrillic Es' },
-                'D': { equivalents: ['d'], notes: 'Lowercase d' },
-                'E': { equivalents: ['e', '3', 'È', 'É', 'Ê', 'Ë', 'è', 'é', 'ê', 'ë', 'Ε', 'ε', 'Е', 'е', 'ё', 'Έ'], notes: 'Lowercase e, digit 3, accented variants, Greek Epsilon, Cyrillic Ie' },
-                'F': { equivalents: ['f'], notes: 'Lowercase f' },
-                'G': { equivalents: ['g', '9', 'ɡ'], notes: 'Lowercase g, digit 9' },
-                'H': { equivalents: ['h', 'Η', 'Н', 'Ή', 'һ'], notes: 'Lowercase h, Greek Eta, Cyrillic En, Cyrillic Shha' },
-                'I': { equivalents: ['i', '1', 'l', 'L', '|', 'Ì', 'Í', 'Î', 'Ï', 'ì', 'í', 'î', 'ï', 'Ι', 'ι', 'І', 'і', 'Ί', 'ί', 'ӏ'], notes: 'Lowercase i/l, digit 1, pipe, accented variants, Greek Iota, Cyrillic I' },
-                'J': { equivalents: ['j', 'Ј', 'ј'], notes: 'Lowercase j, Cyrillic Je' },
-                'K': { equivalents: ['k', 'Κ', 'κ', 'К', 'к'], notes: 'Lowercase k, Greek Kappa, Cyrillic Ka' },
-                'L': { equivalents: ['l', '1', 'I', 'i', '|', 'ӏ', 'Ł', 'Ĺ', 'Ľ'], notes: 'Lowercase l, digit 1, I variants, Cyrillic Palochka, Polish L' },
-                'M': { equivalents: ['m', 'Μ', 'М', 'м'], notes: 'Lowercase m, Greek Mu, Cyrillic Em' },
-                'N': { equivalents: ['n', 'Ν', 'ν', 'Ň', 'п'], notes: 'Lowercase n, Greek Nu, Cyrillic Pe' },
-                'O': { equivalents: ['o', '0', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'ò', 'ó', 'ô', 'õ', 'ö', 'Ο', 'ο', 'О', 'о', 'Ό', 'ό'], notes: 'Lowercase o, digit 0, accented variants, Greek Omicron, Cyrillic O' },
-                'P': { equivalents: ['p', 'Ρ', 'ρ', 'Р', 'р'], notes: 'Lowercase p, Greek Rho, Cyrillic Er' },
-                'Q': { equivalents: ['q'], notes: 'Lowercase q' },
-                'R': { equivalents: ['r', 'г'], notes: 'Lowercase r, Cyrillic Ghe' },
-                'S': { equivalents: ['s', '5', '$', 'Ѕ', 'ѕ'], notes: 'Lowercase s, digit 5, dollar sign, Cyrillic Dze' },
-                'T': { equivalents: ['t', '7', 'Τ', 'τ', 'Т'], notes: 'Lowercase t, digit 7, Greek Tau, Cyrillic Te' },
-                'U': { equivalents: ['u', 'υ', 'ս'], notes: 'Lowercase u, Greek Upsilon, Armenian U' },
-                'V': { equivalents: ['v', 'ν'], notes: 'Lowercase v, Greek Nu' },
-                'W': { equivalents: ['w'], notes: 'Lowercase w' },
-                'X': { equivalents: ['x', 'Χ', 'χ', 'Х', 'х'], notes: 'Lowercase x, Greek Chi, Cyrillic Ha' },
-                'Y': { equivalents: ['y', 'Υ', 'У', 'у', 'γ', 'Ύ'], notes: 'Lowercase y, Greek Upsilon, Cyrillic U, Greek Gamma' },
-                'Z': { equivalents: ['z', '2', 'Ζ', 'ζ'], notes: 'Lowercase z, digit 2, Greek Zeta' }
+        function mapSenderidRule(r) {
+            return {
+                id: r.id,
+                dbId: r.id,
+                uuid: r.uuid,
+                name: r.name || '',
+                baseSenderId: r.pattern || '',
+                ruleType: r.action === 'quarantine' ? 'flag' : (r.action || 'block'),
+                category: r.category || 'miscellaneous',
+                applyNormalisation: r.use_normalisation !== false,
+                status: r.is_active ? 'active' : 'inactive',
+                createdBy: r.created_by || 'system',
+                updatedAt: r.updated_at ? formatDateTime(new Date(r.updated_at)) : '',
+                matchType: r.match_type || 'contains',
+                description: r.description || '',
+                priority: r.priority || 100
             };
-            
-            var digitEquivalents = {
-                '0': { equivalents: ['O', 'o', 'Ο', 'ο', 'О', 'о'], notes: 'Latin O, Greek Omicron, Cyrillic O' },
-                '1': { equivalents: ['I', 'i', 'l', 'L', '|', 'Ι', 'ι'], notes: 'Latin I/l, Greek Iota, pipe' },
-                '2': { equivalents: ['Z', 'z'], notes: 'Visual similarity to Z' },
-                '3': { equivalents: ['E', 'e', 'Ε', 'ε'], notes: 'Reversed E appearance' },
-                '4': { equivalents: ['A', 'a'], notes: 'Common leet substitution' },
-                '5': { equivalents: ['S', 's', 'Ѕ', 'ѕ'], notes: 'Cyrillic Dze' },
-                '6': { equivalents: ['b', 'G', 'g'], notes: 'Visual similarity' },
-                '7': { equivalents: ['T', 't', 'Τ', 'τ'], notes: 'Common leet substitution' },
-                '8': { equivalents: ['B', 'Β', 'β'], notes: 'Greek Beta' },
-                '9': { equivalents: ['g', 'q'], notes: 'Visual similarity' }
+        }
+
+        function mapContentRule(r) {
+            return {
+                id: r.id,
+                dbId: r.id,
+                uuid: r.uuid,
+                name: r.name || '',
+                matchType: r.match_type || 'keyword',
+                matchValue: r.pattern || '',
+                ruleType: r.action === 'quarantine' ? 'flag' : (r.action || 'block'),
+                applyNormalisation: true,
+                status: r.is_active ? 'active' : 'inactive',
+                updatedAt: r.updated_at ? formatDateTime(new Date(r.updated_at)) : '',
+                createdBy: r.created_by || 'system',
+                description: r.description || '',
+                priority: r.priority || 100
             };
-            
-            function dedupeEquivalents(arr) {
-                var seen = {};
-                return arr.filter(function(item) {
-                    if (seen[item]) return false;
-                    seen[item] = true;
-                    return true;
-                });
-            }
-            
+        }
+
+        function mapUrlRule(r) {
+            var uiMatchType = r.match_type;
+            if (uiMatchType === 'exact_domain') uiMatchType = 'exact';
+            return {
+                id: r.id,
+                dbId: r.id,
+                uuid: r.uuid,
+                name: r.name || '',
+                pattern: r.pattern || '',
+                matchType: uiMatchType || 'wildcard',
+                ruleType: r.action === 'quarantine' ? 'flag' : (r.action || 'block'),
+                status: r.is_active ? 'active' : 'inactive',
+                updatedAt: r.updated_at ? formatDateTime(new Date(r.updated_at)) : '',
+                createdBy: r.created_by || 'system',
+                description: r.description || '',
+                priority: r.priority || 100
+            };
+        }
+
+        function mapNormChar(c) {
+            var equivs = c.equivalents || [];
             function computeRiskInternal(equivalents) {
                 if (equivalents.length === 0) return 'none';
                 var hasDigits = equivalents.some(function(eq) { return /[0-9]/.test(eq); });
                 var hasPunctuation = equivalents.some(function(eq) { return /[!@#$%^&*(),.?":{}|<>]/.test(eq); });
                 var digitCount = equivalents.filter(function(eq) { return /[0-9]/.test(eq); }).length;
-                
                 if (digitCount >= 2 && hasPunctuation) return 'high';
                 if (equivalents.length > 8) return 'high';
                 if (hasDigits || equivalents.length > 5) return 'medium';
                 return 'low';
             }
-            
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(function(char) {
-                var data = letterEquivalents[char] || { equivalents: [], notes: '' };
-                var dedupedEquivs = dedupeEquivalents(data.equivalents);
-                library.push({
-                    base: char,
-                    type: 'letter',
-                    equivalents: dedupedEquivs,
-                    notes: data.notes,
-                    enabled: dedupedEquivs.length > 0,
-                    risk: computeRiskInternal(dedupedEquivs),
-                    updatedAt: '28-01-2026',
-                    updatedBy: 'admin@quicksms.co.uk'
-                });
-            });
-            
-            '0123456789'.split('').forEach(function(char) {
-                var data = digitEquivalents[char] || { equivalents: [], notes: '' };
-                var dedupedEquivs = dedupeEquivalents(data.equivalents);
-                library.push({
-                    base: char,
-                    type: 'digit',
-                    equivalents: dedupedEquivs,
-                    notes: data.notes,
-                    enabled: dedupedEquivs.length > 0,
-                    risk: computeRiskInternal(dedupedEquivs),
-                    updatedAt: '28-01-2026',
-                    updatedBy: 'admin@quicksms.co.uk'
-                });
-            });
-            
-            return library;
-        })();
+            return {
+                id: c.id,
+                dbId: c.id,
+                base: c.base_character,
+                type: c.character_type || 'letter',
+                equivalents: equivs,
+                enabled: c.is_active !== false,
+                risk: computeRiskInternal(equivs),
+                notes: '',
+                updatedAt: c.updated_at ? formatDateTime(new Date(c.updated_at)) : '',
+                updatedBy: 'system'
+            };
+        }
 
-        // Quarantine Queue mock data - using ruleTriggered as type for badge lookup
-        mockData.quarantinedMessages = [
-            { id: 'QM-001', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccount: null, senderId: 'TechStart', recipient: '+447700900123', messageSnippet: 'Click here to claim your prize...', url: 'bit.ly/abc123', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-001', ruleName: 'URL shortener - bit.ly', status: 'pending', quarantinedAt: '03-02-2026 08:15', decisionAt: null, reviewedBy: null },
-            { id: 'QM-002', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccount: 'NHS Partnership', senderId: 'HealthFirst', recipient: '+447700900456', messageSnippet: 'Urgent action required for your account...', url: null, hasUrl: false, ruleTriggered: 'content', ruleId: 'CR-004', ruleName: 'Social engineering indicator', status: 'pending', quarantinedAt: '03-02-2026 09:30', decisionAt: null, reviewedBy: null },
-            { id: 'QM-003', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccount: null, senderId: 'EComHub', recipient: '+447700900789', messageSnippet: 'Your package is ready at tinyurl.com/xyz...', url: 'tinyurl.com/xyz789', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-002', ruleName: 'URL shortener - tinyurl', status: 'pending', quarantinedAt: '03-02-2026 10:45', decisionAt: null, reviewedBy: null },
-            { id: 'QM-004', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccount: null, senderId: 'NHS-Partner', recipient: '+447700900234', messageSnippet: 'Your NHS appointment reminder...', url: null, hasUrl: false, ruleTriggered: 'senderid', ruleId: 'SID-004', ruleName: 'NHS - requires verification', status: 'pending', quarantinedAt: '03-02-2026 11:00', decisionAt: null, reviewedBy: null },
-            { id: 'QM-005', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccount: null, senderId: 'HealthUK', recipient: '+447700900567', messageSnippet: 'New domain detected: newsite.xyz/promo...', url: 'newsite.xyz/promo', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-003', ruleName: 'High-risk TLD .xyz', status: 'pending', quarantinedAt: '03-02-2026 11:30', decisionAt: null, reviewedBy: null },
-            { id: 'QM-006', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccount: null, senderId: 'ShopNow', recipient: '+447700900890', messageSnippet: 'Verify your account at verify-account.com...', url: 'verify-account.com/login', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-005', ruleName: 'Phishing indicator', status: 'pending', quarantinedAt: '02-02-2026 16:20', decisionAt: null, reviewedBy: null },
-            { id: 'QM-007', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccount: null, senderId: 'Promo', recipient: '+447700900111', messageSnippet: 'Bitcoin investment opportunity...', url: null, hasUrl: false, ruleTriggered: 'content', ruleId: 'CR-001', ruleName: 'Crypto scam indicator', status: 'pending', quarantinedAt: '02-02-2026 14:45', decisionAt: null, reviewedBy: null },
-            { id: 'QM-008', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccount: 'NHS Partnership', senderId: 'Health', recipient: '+447700900222', messageSnippet: 'Guaranteed returns on your health plan...', url: null, hasUrl: false, ruleTriggered: 'content', ruleId: 'CR-002', ruleName: 'Financial fraud indicator', status: 'pending', quarantinedAt: '02-02-2026 12:30', decisionAt: null, reviewedBy: null },
-            { id: 'QM-009', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccount: null, senderId: 'Shop', recipient: '+447700900333', messageSnippet: 'Login at login-secure.shop/auth...', url: 'login-secure.shop/auth', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-006', ruleName: 'Phishing indicator - login', status: 'pending', quarantinedAt: '02-02-2026 10:15', decisionAt: null, reviewedBy: null },
-            { id: 'QM-010', accountId: 'ACC-10045', accountName: 'TechStart Ltd', subAccount: null, senderId: 'Alert', recipient: '+447700900444', messageSnippet: 'Appointment confirmed via bit.ly/appt...', url: 'bit.ly/appt456', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-001', ruleName: 'URL shortener - bit.ly', status: 'pending', quarantinedAt: '01-02-2026 17:00', decisionAt: null, reviewedBy: null },
-            { id: 'QM-011', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccount: null, senderId: 'HealthAlert', recipient: '+447700900555', messageSnippet: 'Domain age check: freshsite.tk/offer...', url: 'freshsite.tk/offer', hasUrl: true, ruleTriggered: 'domain_age', ruleId: 'DOMAIN-AGE', ruleName: 'Domain less than 72 hours old', status: 'pending', quarantinedAt: '01-02-2026 15:30', decisionAt: null, reviewedBy: null },
-            { id: 'QM-012', accountId: 'ACC-10112', accountName: 'E-Commerce Hub', subAccount: null, senderId: 'Deals', recipient: '+447700900666', messageSnippet: 'Special offer at newdomain.xyz...', url: 'newdomain.xyz/special', hasUrl: true, ruleTriggered: 'url', ruleId: 'URL-003', ruleName: 'High-risk TLD .xyz', status: 'released', quarantinedAt: '01-02-2026 11:00', decisionAt: '03-02-2026 14:30', reviewedBy: 'admin@quicksms.co.uk' }
-        ];
-        
-        mockData.quarantineFeatureFlags = {
-            notifyCustomerAdminOnRelease: true,
-            requireNoteOnBlock: false,
-            allowAddExceptionFromQuarantine: true,
-            allowCreateRuleFromQuarantine: true
-        };
-        
-        mockData.antiSpamSettings = {
-            preventRepeatContent: false,
-            windowHours: 24,
-            lastUpdated: null,
-            updatedBy: null
-        };
+        function mapQuarantineMsg(m) {
+            return {
+                id: m.id,
+                dbId: m.id,
+                uuid: m.uuid,
+                accountId: m.account_id || '',
+                accountName: m.account_id || 'Unknown',
+                subAccount: null,
+                senderId: m.sender_id_value || '',
+                recipient: (m.recipients && m.recipients.length > 0) ? m.recipients[0].recipient_number : '',
+                messageSnippet: m.message_body ? m.message_body.substring(0, 80) + (m.message_body.length > 80 ? '...' : '') : '',
+                url: null,
+                hasUrl: false,
+                ruleTriggered: m.primary_engine || 'content',
+                ruleId: m.matched_rule_id || '',
+                ruleName: m.matched_rule_name || '',
+                status: m.status || 'pending',
+                quarantinedAt: m.created_at ? formatDateTime(new Date(m.created_at)) : '',
+                decisionAt: m.reviewed_at ? formatDateTime(new Date(m.reviewed_at)) : null,
+                reviewedBy: m.reviewer_id || null,
+                reviewerNotes: m.reviewer_notes || null
+            };
+        }
+
+        function mapExemption(e) {
+            return {
+                id: e.id,
+                dbId: e.id,
+                uuid: e.uuid,
+                engine: e.engine,
+                exemptionType: e.exemption_type,
+                scope: e.scope || 'global',
+                value: e.value || '',
+                ruleId: e.rule_id || null,
+                accountId: e.account_id || null,
+                accountName: e.account_id || '-',
+                subAccounts: [],
+                reason: e.reason || '',
+                status: e.is_active ? 'active' : 'inactive',
+                createdAt: e.created_at ? formatDateTime(new Date(e.created_at)) : '',
+                createdBy: e.created_by || 'system',
+                expiresAt: e.expires_at || null,
+                rulesExempted: e.rule_id ? [e.rule_id] : []
+            };
+        }
+
+        function mapSettings(settingsArr, group) {
+            var result = {};
+            (settingsArr || []).forEach(function(s) {
+                var shortKey = s.setting_key.replace(group + '.', '');
+                var val = s.setting_value;
+                if (val === 'true') val = true;
+                else if (val === 'false') val = false;
+                else if (val !== null && !isNaN(val) && val !== '') val = Number(val);
+                result[shortKey] = val;
+            });
+            return result;
+        }
+
+        var basePath = '/admin/api/enforcement';
+
+        return Promise.all([
+            fetch(basePath + '/senderid-rules', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/content-rules', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/url-rules', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/normalisation', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/quarantine', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/exemptions?engine=senderid', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/exemptions?engine=content', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/exemptions?engine=url', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/settings?group=domain_age', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/settings?group=anti_spam', { headers: headers }).then(function(r) { return r.json(); }),
+            fetch(basePath + '/settings?group=feature_flags', { headers: headers }).then(function(r) { return r.json(); })
+        ]).then(function(results) {
+            var senderidData = results[0].data || [];
+            var contentData = results[1].data || [];
+            var urlData = results[2].data || [];
+            var normData = results[3].data || [];
+            var quarantineData = results[4].data || [];
+            var senderidExemptionsData = results[5].data || [];
+            var contentExemptionsData = results[6].data || [];
+            var urlExemptionsData = results[7].data || [];
+            var domainAgeSettingsData = results[8].data || [];
+            var antiSpamSettingsData = results[9].data || [];
+            var featureFlagsData = results[10].data || [];
+
+            mockData.senderIdRules = senderidData.map(mapSenderidRule);
+            mockData.contentRules = contentData.map(mapContentRule);
+            mockData.urlRules = urlData.map(mapUrlRule);
+            mockData.baseCharacterLibrary = normData.map(mapNormChar);
+            mockData.quarantinedMessages = quarantineData.map(mapQuarantineMsg);
+
+            mockData.senderIdApprovals = [];
+            mockData.manualExemptions = [];
+            mockData.enforcementOverrides = {};
+
+            var senderidExemptions = senderidExemptionsData.map(mapExemption);
+            mockData.senderIdExemptions = senderidExemptions;
+            mockData.contentExemptions = contentExemptionsData.map(mapExemption);
+            mockData.urlExemptions = urlExemptionsData.map(mapExemption);
+
+            var daSettings = mapSettings(domainAgeSettingsData, 'domain_age');
+            mockData.domainAgeSettings = {
+                enabled: daSettings.enabled !== false,
+                minAgeHours: daSettings.threshold_hours || 72,
+                action: daSettings.action || 'quarantine',
+                updatedAt: '',
+                updatedBy: ''
+            };
+
+            mockData.domainAllowlist = [
+                { id: 'DA-001', domain: 'google.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:00', addedBy: 'admin@quicksms.co.uk' },
+                { id: 'DA-002', domain: 'microsoft.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:05', addedBy: 'admin@quicksms.co.uk' },
+                { id: 'DA-003', domain: 'apple.com', scope: 'global', type: 'trusted', addedAt: '01-01-2026 10:10', addedBy: 'admin@quicksms.co.uk' },
+                { id: 'DA-004', domain: 'amazon.co.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:00', addedBy: 'admin@quicksms.co.uk' },
+                { id: 'DA-005', domain: 'gov.uk', scope: 'global', type: 'trusted', addedAt: '02-01-2026 09:15', addedBy: 'compliance@quicksms.co.uk' }
+            ];
+
+            mockData.thresholdOverrides = [
+                { id: 'TO-001', accountId: 'ACC-10089', accountName: 'HealthFirst UK', subAccounts: ['all'], thresholdHours: 24, action: 'quarantine', reason: 'Trusted healthcare provider', createdAt: '22-01-2026 11:00', createdBy: 'admin@quicksms.co.uk' }
+            ];
+
+            mockData.domainAgeExceptions = [];
+
+            var asSettings = mapSettings(antiSpamSettingsData, 'antispam');
+            mockData.antiSpamSettings = {
+                preventRepeatContent: asSettings['dedup.enabled'] || false,
+                windowHours: asSettings['dedup.window_minutes'] ? Math.round(asSettings['dedup.window_minutes'] / 60) : 24,
+                lastUpdated: null,
+                updatedBy: null
+            };
+
+            var ffSettings = mapSettings(featureFlagsData, 'enforcement');
+            mockData.quarantineFeatureFlags = {
+                notifyCustomerAdminOnRelease: true,
+                requireNoteOnBlock: false,
+                allowAddExceptionFromQuarantine: true,
+                allowCreateRuleFromQuarantine: true
+            };
+
+            console.log('[loadDataFromAPI] Data loaded successfully:', {
+                senderIdRules: mockData.senderIdRules.length,
+                contentRules: mockData.contentRules.length,
+                urlRules: mockData.urlRules.length,
+                normalisation: mockData.baseCharacterLibrary.length,
+                quarantine: mockData.quarantinedMessages.length,
+                senderIdExemptions: mockData.senderIdExemptions.length,
+                contentExemptions: mockData.contentExemptions.length,
+                urlExemptions: mockData.urlExemptions.length
+            });
+        });
     }
 
     function renderAllTabs() {
@@ -5737,41 +5778,52 @@ var SecurityComplianceControlsService = (function() {
             updatedAt: formatDateTime(new Date())
         };
         
-        var eventType, beforeState = null;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+        
+        var apiPayload = {
+            name: ruleData.name,
+            pattern: ruleData.matchValue,
+            match_type: ruleData.matchType,
+            action: ruleData.ruleType === 'flag' ? 'quarantine' : 'block',
+            is_active: true,
+            engine: 'content'
+        };
+        
+        var basePath = '/admin/api/enforcement/content-rules';
+        var method = ruleId ? 'PUT' : 'POST';
+        var url = ruleId ? basePath + '/' + ruleId : basePath;
         var isNewRule = !ruleId;
         
-        if (ruleId) {
-            var existingRule = mockData.contentRules.find(function(r) { return r.id === ruleId; });
-            if (existingRule) {
-                beforeState = JSON.parse(JSON.stringify(existingRule));
-                Object.assign(existingRule, ruleData);
-                eventType = 'CONTENT_RULE_UPDATED';
-            }
-        } else {
-            ruleData.id = 'CNT-' + String(mockData.contentRules.length + 1).padStart(3, '0');
-            ruleData.createdBy = currentAdmin.email;
-            ruleData.createdAt = ruleData.updatedAt;
-            mockData.contentRules.push(ruleData);
-            eventType = 'CONTENT_RULE_CREATED';
-        }
-        
-        logAuditEvent(eventType, {
-            ruleId: ruleId || ruleData.id,
-            ruleName: ruleData.name,
-            matchType: ruleData.matchType,
-            ruleType: ruleData.ruleType,
-            before: beforeState,
-            after: ruleData
-        });
-        
-        // Hide confirmation modal
-        bootstrap.Modal.getInstance(document.getElementById('contentRuleConfirmModal')).hide();
-        
-        // Refresh Rules table immediately
-        renderContentTab();
-        
-        // Show success toast
-        showContentRuleToast(isNewRule ? 'Rule added successfully.' : 'Rule updated successfully.');
+        fetch(url, { method: method, headers: headers, body: JSON.stringify(apiPayload) })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.error) {
+                    alert('Error saving content rule: ' + result.error);
+                    return;
+                }
+                
+                var eventType = isNewRule ? 'CONTENT_RULE_CREATED' : 'CONTENT_RULE_UPDATED';
+                logAuditEvent(eventType, {
+                    ruleId: result.data ? result.data.id : ruleId,
+                    ruleName: ruleData.name,
+                    matchType: ruleData.matchType,
+                    ruleType: ruleData.ruleType
+                });
+                
+                bootstrap.Modal.getInstance(document.getElementById('contentRuleConfirmModal')).hide();
+                
+                SecurityComplianceControlsService.loadDataFromAPI().then(function() {
+                    renderContentTab();
+                });
+                
+                showContentRuleToast(isNewRule ? 'Rule added successfully.' : 'Rule updated successfully.');
+            })
+            .catch(function(err) {
+                console.error('[ContentRule] API error:', err);
+                alert('Failed to save content rule. Please try again.');
+            });
     }
     
     function showContentRuleToast(message) {
@@ -5950,20 +6002,25 @@ var SecurityComplianceControlsService = (function() {
         var rule = mockData.contentRules.find(function(r) { return r.id === ruleId; });
         if (!rule) return;
         
-        var beforeStatus = rule.status;
-        rule.status = rule.status === 'active' ? 'disabled' : 'active';
-        rule.updatedAt = formatDateTime(new Date());
+        var newActive = rule.status !== 'active';
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
         
-        logAuditEvent('CONTENT_RULE_STATUS_CHANGED', {
-            ruleId: ruleId,
-            ruleName: rule.name,
-            beforeStatus: beforeStatus,
-            afterStatus: rule.status
-        });
-        
-        closeAllContentMenus();
-        renderContentTab();
-        showToast('Content rule ' + (rule.status === 'active' ? 'enabled' : 'disabled'), 'success');
+        fetch('/admin/api/enforcement/content-rules/' + ruleId + '/toggle', {
+            method: 'PATCH',
+            headers: headers,
+            body: JSON.stringify({ is_active: newActive })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+            if (result.error) { alert('Error toggling rule: ' + result.error); return; }
+            logAuditEvent('CONTENT_RULE_STATUS_CHANGED', { ruleId: ruleId, ruleName: rule.name });
+            closeAllContentMenus();
+            SecurityComplianceControlsService.loadDataFromAPI().then(function() { renderContentTab(); });
+            showToast('Content rule ' + (newActive ? 'enabled' : 'disabled'), 'success');
+        })
+        .catch(function(err) { console.error('[ContentRule] Toggle error:', err); alert('Failed to toggle rule.'); });
     }
     
     function deleteContentRule(ruleId) {
@@ -7865,71 +7922,85 @@ var SecurityComplianceControlsService = (function() {
             updatedAt: formatDateTime(new Date())
         };
         
-        var eventType, beforeState = null;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
         
-        if (ruleId) {
-            var existingRule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
-            if (existingRule) {
-                beforeState = JSON.parse(JSON.stringify(existingRule));
-                Object.assign(existingRule, ruleData);
-                eventType = 'URL_RULE_UPDATED';
-            }
-        } else {
-            ruleData.id = 'URL-' + String(mockData.urlRules.length + 1).padStart(3, '0');
-            ruleData.createdBy = currentAdmin.email;
-            ruleData.createdAt = ruleData.updatedAt;
-            mockData.urlRules.push(ruleData);
-            eventType = 'URL_RULE_CREATED';
-        }
+        var apiMatchType = ruleData.matchType;
+        if (apiMatchType === 'exact') apiMatchType = 'exact_domain';
         
-        logAuditEvent(eventType, {
-            entityType: 'url_rule',
-            ruleId: ruleId || ruleData.id,
+        var apiPayload = {
             name: ruleData.name,
             pattern: ruleData.pattern,
-            matchType: ruleData.matchType,
-            ruleType: ruleData.ruleType,
-            before: beforeState,
-            after: ruleData,
-            adminUserId: currentAdmin.id,
-            adminUser: currentAdmin.email,
-            timestamp: new Date().toISOString(),
-            sourceIp: getClientIP(),
-            affectedScope: { type: 'global', description: 'All messages containing matching URLs' }
-        });
+            match_type: apiMatchType,
+            action: ruleData.ruleType === 'flag' ? 'quarantine' : 'block',
+            is_active: ruleData.status === 'active',
+            engine: 'url'
+        };
         
-        bootstrap.Modal.getInstance(document.getElementById('urlRuleConfirmModal')).hide();
-        bootstrap.Modal.getInstance(document.getElementById('urlRuleModal')).hide();
-        renderUrlTab();
-        showToast(ruleId ? 'Rule updated successfully' : 'Rule added successfully', 'success');
+        var basePath = '/admin/api/enforcement/url-rules';
+        var method = ruleId ? 'PUT' : 'POST';
+        var url = ruleId ? basePath + '/' + ruleId : basePath;
+        var isEdit = !!ruleId;
+        
+        fetch(url, { method: method, headers: headers, body: JSON.stringify(apiPayload) })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.error) {
+                    alert('Error saving URL rule: ' + result.error);
+                    return;
+                }
+                
+                var eventType = isEdit ? 'URL_RULE_UPDATED' : 'URL_RULE_CREATED';
+                logAuditEvent(eventType, {
+                    entityType: 'url_rule',
+                    ruleId: result.data ? result.data.id : ruleId,
+                    name: ruleData.name,
+                    pattern: ruleData.pattern,
+                    matchType: ruleData.matchType,
+                    ruleType: ruleData.ruleType,
+                    adminUser: currentAdmin.email
+                });
+                
+                bootstrap.Modal.getInstance(document.getElementById('urlRuleConfirmModal')).hide();
+                bootstrap.Modal.getInstance(document.getElementById('urlRuleModal')).hide();
+                SecurityComplianceControlsService.loadDataFromAPI().then(function() { renderUrlTab(); });
+                showToast(isEdit ? 'Rule updated successfully' : 'Rule added successfully', 'success');
+            })
+            .catch(function(err) {
+                console.error('[UrlRule] API error:', err);
+                alert('Failed to save URL rule. Please try again.');
+            });
     }
     
     function toggleUrlRuleStatus(ruleId) {
         var rule = mockData.urlRules.find(function(r) { return r.id === ruleId; });
         if (!rule) return;
         
-        var beforeStatus = rule.status;
-        rule.status = rule.status === 'active' ? 'disabled' : 'active';
-        rule.updatedAt = formatDateTime(new Date());
+        var newActive = rule.status !== 'active';
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
         
-        var statusEventType = rule.status === 'active' ? 'URL_RULE_ENABLED' : 'URL_RULE_DISABLED';
-        logAuditEvent(statusEventType, {
-            entityType: 'url_rule',
-            ruleId: ruleId,
-            ruleName: rule.name,
-            pattern: rule.pattern,
-            before: { status: beforeStatus },
-            after: { status: rule.status },
-            adminUserId: currentAdmin.id,
-            adminUser: currentAdmin.email,
-            timestamp: new Date().toISOString(),
-            sourceIp: getClientIP(),
-            affectedScope: { type: 'global', description: 'All messages containing matching URLs' }
-        });
-        
-        closeAllUrlMenus();
-        renderUrlTab();
-        showToast('URL rule ' + (rule.status === 'active' ? 'enabled' : 'disabled'), 'success');
+        fetch('/admin/api/enforcement/url-rules/' + ruleId + '/toggle', {
+            method: 'PATCH',
+            headers: headers,
+            body: JSON.stringify({ is_active: newActive })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+            if (result.error) { alert('Error toggling rule: ' + result.error); return; }
+            logAuditEvent(newActive ? 'URL_RULE_ENABLED' : 'URL_RULE_DISABLED', {
+                entityType: 'url_rule',
+                ruleId: ruleId,
+                ruleName: rule.name,
+                adminUser: currentAdmin.email
+            });
+            closeAllUrlMenus();
+            SecurityComplianceControlsService.loadDataFromAPI().then(function() { renderUrlTab(); });
+            showToast('URL rule ' + (newActive ? 'enabled' : 'disabled'), 'success');
+        })
+        .catch(function(err) { console.error('[UrlRule] Toggle error:', err); alert('Failed to toggle URL rule.'); });
     }
     
     function deleteUrlRule(ruleId) {
@@ -7946,27 +8017,23 @@ var SecurityComplianceControlsService = (function() {
     }
     
     function deleteUrlRuleById(ruleId) {
-        var ruleIndex = mockData.urlRules.findIndex(function(r) { return r.id === ruleId; });
-        if (ruleIndex === -1) return;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
         
-        var deletedRule = mockData.urlRules[ruleIndex];
-        mockData.urlRules.splice(ruleIndex, 1);
-        
-        logAuditEvent('URL_RULE_DELETED', {
-            entityType: 'url_rule',
-            ruleId: ruleId,
-            ruleName: deletedRule.name,
-            pattern: deletedRule.pattern,
-            before: deletedRule,
-            after: null,
-            adminUserId: currentAdmin.id,
-            adminUser: currentAdmin.email,
-            timestamp: new Date().toISOString(),
-            sourceIp: getClientIP(),
-            affectedScope: { type: 'global', description: 'All messages containing matching URLs' }
-        });
-        
-        showToast('URL rule deleted successfully', 'success');
+        fetch('/admin/api/enforcement/url-rules/' + ruleId, { method: 'DELETE', headers: headers })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.error) { alert('Error deleting URL rule: ' + result.error); return; }
+                logAuditEvent('URL_RULE_DELETED', {
+                    entityType: 'url_rule',
+                    ruleId: ruleId,
+                    adminUser: currentAdmin.email
+                });
+                SecurityComplianceControlsService.loadDataFromAPI().then(function() { renderUrlTab(); });
+                showToast('URL rule deleted successfully', 'success');
+            })
+            .catch(function(err) { console.error('[UrlRule] Delete error:', err); alert('Failed to delete URL rule.'); });
     }
     
     function closeAllUrlMenus() {
@@ -10553,19 +10620,19 @@ var SecurityComplianceControlsService = (function() {
     
 
     function deleteContentRuleById(ruleId) {
-        var ruleIndex = mockData.contentRules.findIndex(function(r) { return r.id === ruleId; });
-        if (ruleIndex === -1) return;
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
         
-        var deletedRule = mockData.contentRules[ruleIndex];
-        mockData.contentRules.splice(ruleIndex, 1);
-        
-        logAuditEvent('CONTENT_RULE_DELETED', {
-            ruleId: ruleId,
-            ruleName: deletedRule.name,
-            deletedRule: deletedRule
-        });
-        
-        showToast('Content rule deleted successfully', 'success');
+        fetch('/admin/api/enforcement/content-rules/' + ruleId, { method: 'DELETE', headers: headers })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.error) { alert('Error deleting rule: ' + result.error); return; }
+                logAuditEvent('CONTENT_RULE_DELETED', { ruleId: ruleId });
+                SecurityComplianceControlsService.loadDataFromAPI().then(function() { renderContentTab(); });
+                showToast('Content rule deleted successfully', 'success');
+            })
+            .catch(function(err) { console.error('[ContentRule] Delete error:', err); alert('Failed to delete rule.'); });
     }
     
     function setupContentTabListeners() {
@@ -10716,6 +10783,7 @@ var SecurityComplianceControlsService = (function() {
     return {
         initialize: initialize,
         getMockData: getMockData,
+        loadDataFromAPI: loadDataFromAPI,
         renderAllTabs: renderAllTabs,
         renderQuarantineTab: renderQuarantineTab,
         updateQuarantineFilterChips: updateQuarantineFilterChips,
@@ -11499,6 +11567,35 @@ function executeSaveNormRule(changeData) {
     
     var version = createNormRuleVersion(changeData.base, beforeState, afterState, 'update');
     char.currentVersion = version.version;
+    
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+    
+    var apiPayload = {
+        base_character: changeData.base,
+        character_type: char.type || 'letter',
+        equivalents: char.equivalents,
+        is_active: changeData.enabled
+    };
+    
+    var apiMethod = char.dbId ? 'PUT' : 'POST';
+    var apiUrl = char.dbId 
+        ? '/admin/api/enforcement/normalisation/' + char.dbId 
+        : '/admin/api/enforcement/normalisation';
+    
+    fetch(apiUrl, { method: apiMethod, headers: headers, body: JSON.stringify(apiPayload) })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+            if (result.error) {
+                console.error('[NormRule] API error:', result.error);
+            } else {
+                console.log('[NormRule] Saved to API successfully');
+            }
+        })
+        .catch(function(err) {
+            console.error('[NormRule] API save failed:', err);
+        });
     
     logAuditEvent('NORMALISATION_RULE_UPDATED', {
         entityType: 'normalisation_rule',
@@ -13292,16 +13389,8 @@ function showAddSenderIdRuleModal() {
 }
 
 function editSenderIdRule(ruleId) {
-    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
-    if (rules.length === 0) {
-        rules = [
-            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
-            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
-            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government_healthcare', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
-            { id: 'SID-004', name: 'Block DPD Sender', baseSenderId: 'DPD', ruleType: 'block', category: 'delivery_logistics', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
-            { id: 'SID-005', name: 'Flag Generic Sender', baseSenderId: 'INFO', ruleType: 'flag', category: 'generic', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
-        ];
-    }
+    var mockData = SecurityComplianceControlsService.getMockData();
+    var rules = mockData.senderIdRules || [];
     
     var rule = rules.find(r => r.id === ruleId);
     if (!rule) {
@@ -13325,16 +13414,8 @@ function editSenderIdRule(ruleId) {
 }
 
 function viewSenderIdRule(ruleId) {
-    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
-    if (rules.length === 0) {
-        rules = [
-            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
-            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
-            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government_healthcare', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
-            { id: 'SID-004', name: 'Block DPD Sender', baseSenderId: 'DPD', ruleType: 'block', category: 'delivery_logistics', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
-            { id: 'SID-005', name: 'Flag Generic Sender', baseSenderId: 'INFO', ruleType: 'flag', category: 'generic', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
-        ];
-    }
+    var mockData = SecurityComplianceControlsService.getMockData();
+    var rules = mockData.senderIdRules || [];
     
     var rule = rules.find(r => r.id === ruleId);
     if (!rule) return;
@@ -13484,74 +13565,57 @@ function confirmSaveSenderIdRule() {
     }
     
     var data = pendingSenderIdRule;
-    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
-    if (rules.length === 0) {
-        rules = [
-            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
-            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
-            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government_healthcare', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
-            { id: 'SID-004', name: 'Block DPD Sender', baseSenderId: 'DPD', ruleType: 'block', category: 'delivery_logistics', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
-            { id: 'SID-005', name: 'Flag Generic Sender', baseSenderId: 'INFO', ruleType: 'flag', category: 'generic', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
-        ];
-    }
-    
-    var now = new Date();
-    var timestamp = now.toLocaleDateString('en-GB').replace(/\//g, '-') + ' ' + now.toTimeString().slice(0, 5);
-    var beforeState = null;
-    var ruleId = data.ruleId;
-    
-    if (data.isEdit) {
-        var existingIndex = rules.findIndex(function(r) { return r.id === ruleId; });
-        if (existingIndex !== -1) {
-            beforeState = JSON.parse(JSON.stringify(rules[existingIndex]));
-            rules[existingIndex] = Object.assign({}, rules[existingIndex], {
-                name: data.name,
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+
+    var apiPayload = {
+        name: data.name,
+        pattern: data.baseSenderId,
+        action: data.ruleType === 'flag' ? 'quarantine' : 'block',
+        category: data.category,
+        use_normalisation: data.applyNormalisation,
+        is_active: true,
+        engine: 'senderid'
+    };
+
+    var basePath = '/admin/api/enforcement/senderid-rules';
+    var method = data.isEdit ? 'PUT' : 'POST';
+    var url = data.isEdit ? basePath + '/' + data.ruleId : basePath;
+
+    fetch(url, { method: method, headers: headers, body: JSON.stringify(apiPayload) })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+            if (result.error) {
+                alert('Error saving rule: ' + result.error);
+                return;
+            }
+            
+            logAuditEvent(data.isEdit ? 'SENDERID_RULE_UPDATED' : 'SENDERID_RULE_CREATED', {
+                ruleId: result.data ? result.data.id : data.ruleId,
+                ruleName: data.name,
                 baseSenderId: data.baseSenderId,
                 ruleType: data.ruleType,
                 category: data.category,
                 applyNormalisation: data.applyNormalisation,
-                updatedAt: timestamp
+                entityType: 'senderid_rule'
             });
-        }
-    } else {
-        ruleId = 'SID-' + String(rules.length + 1).padStart(3, '0');
-        rules.push({
-            id: ruleId,
-            name: data.name,
-            baseSenderId: data.baseSenderId,
-            ruleType: data.ruleType,
-            category: data.category,
-            applyNormalisation: data.applyNormalisation,
-            status: 'active',
-            createdBy: currentAdmin.email,
-            createdAt: timestamp,
-            updatedAt: timestamp
+            
+            bootstrap.Modal.getInstance(document.getElementById('senderIdConfirmModal')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('senderIdRuleModal')).hide();
+            
+            SecurityComplianceControlsService.loadDataFromAPI().then(function() {
+                SecurityComplianceControlsService.renderAllTabs();
+            });
+            
+            showSuccessToast(data.isEdit ? 'Rule updated successfully' : 'Rule created successfully');
+            pendingSenderIdRule = null;
+            console.log('[SenderIdControls] Rule saved via API');
+        })
+        .catch(function(err) {
+            console.error('[SenderIdControls] API error:', err);
+            alert('Failed to save rule. Please try again.');
         });
-    }
-    
-    localStorage.setItem('senderIdRules', JSON.stringify(rules));
-    
-    logAuditEvent(data.isEdit ? 'SENDERID_RULE_UPDATED' : 'SENDERID_RULE_CREATED', {
-        ruleId: ruleId,
-        ruleName: data.name,
-        baseSenderId: data.baseSenderId,
-        ruleType: data.ruleType,
-        category: data.category,
-        applyNormalisation: data.applyNormalisation,
-        before: beforeState,
-        after: { name: data.name, baseSenderId: data.baseSenderId, ruleType: data.ruleType, category: data.category, applyNormalisation: data.applyNormalisation },
-        entityType: 'senderid_rule'
-    });
-    
-    bootstrap.Modal.getInstance(document.getElementById('senderIdConfirmModal')).hide();
-    bootstrap.Modal.getInstance(document.getElementById('senderIdRuleModal')).hide();
-    
-    SecurityComplianceControlsService.renderAllTabs();
-    
-    showSuccessToast(data.isEdit ? 'Rule updated successfully' : 'Rule created successfully');
-    
-    pendingSenderIdRule = null;
-    console.log('[SenderIdControls] Rule saved:', ruleId);
 }
 
 function showSuccessToast(message) {
@@ -13832,80 +13896,66 @@ function confirmImportRules() {
         return;
     }
     
-    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
-    if (rules.length === 0) {
-        rules = [
-            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
-            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
-            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government_healthcare', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
-            { id: 'SID-004', name: 'Block DPD Sender', baseSenderId: 'DPD', ruleType: 'block', category: 'delivery_logistics', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
-            { id: 'SID-005', name: 'Flag Generic Sender', baseSenderId: 'INFO', ruleType: 'flag', category: 'generic', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
-        ];
-    }
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
     
-    var now = new Date();
-    var timestamp = now.toLocaleDateString('en-GB').replace(/\//g, '-') + ' ' + now.toTimeString().slice(0, 5);
     var createdCount = 0;
     var failedCount = 0;
-    var createdIds = [];
+    var promises = [];
     
     pendingImportRules.forEach(function(importRow) {
-        try {
-            var newId = 'SID-' + String(rules.length + 1).padStart(3, '0');
-            rules.push({
-                id: newId,
-                name: importRow.rule_name,
-                baseSenderId: importRow.base_senderid,
-                ruleType: importRow.rule_type,
-                category: importRow.category,
-                applyNormalisation: importRow.normalisation_applied,
-                status: importRow.status,
-                createdBy: currentAdmin.email,
-                createdAt: timestamp,
-                updatedAt: timestamp
-            });
-            createdCount++;
-            createdIds.push(newId);
-        } catch (err) {
-            console.error('[Import] Failed to create rule:', err);
-            failedCount++;
+        var apiPayload = {
+            name: importRow.rule_name,
+            pattern: importRow.base_senderid,
+            action: importRow.rule_type === 'flag' ? 'quarantine' : 'block',
+            category: importRow.category,
+            use_normalisation: importRow.normalisation_applied,
+            is_active: importRow.status === 'active',
+            engine: 'senderid'
+        };
+        
+        var p = fetch('/admin/api/enforcement/senderid-rules', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(apiPayload)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(result) {
+            if (result.error) { failedCount++; } else { createdCount++; }
+        })
+        .catch(function() { failedCount++; });
+        
+        promises.push(p);
+    });
+    
+    Promise.all(promises).then(function() {
+        logAuditEvent('SENDERID_RULES_BULK_IMPORT', {
+            createdCount: createdCount,
+            failedCount: failedCount,
+            totalAttempted: pendingImportRules.length,
+            entityType: 'senderid_rule'
+        });
+        
+        bootstrap.Modal.getInstance(document.getElementById('importRulesModal')).hide();
+        SecurityComplianceControlsService.loadDataFromAPI().then(function() {
+            SecurityComplianceControlsService.renderAllTabs();
+        });
+        
+        var message = createdCount + ' rule' + (createdCount !== 1 ? 's' : '') + ' imported successfully';
+        if (failedCount > 0) {
+            message += ' (' + failedCount + ' failed)';
         }
+        showSuccessToast(message);
+        
+        pendingImportRules = [];
+        console.log('[Import] Bulk import complete:', { created: createdCount, failed: failedCount });
     });
-    
-    localStorage.setItem('senderIdRules', JSON.stringify(rules));
-    
-    logAuditEvent('SENDERID_RULES_BULK_IMPORT', {
-        createdCount: createdCount,
-        failedCount: failedCount,
-        createdIds: createdIds,
-        totalAttempted: pendingImportRules.length,
-        entityType: 'senderid_rule'
-    });
-    
-    bootstrap.Modal.getInstance(document.getElementById('importRulesModal')).hide();
-    SecurityComplianceControlsService.renderAllTabs();
-    
-    var message = createdCount + ' rule' + (createdCount !== 1 ? 's' : '') + ' imported successfully';
-    if (failedCount > 0) {
-        message += ' (' + failedCount + ' failed)';
-    }
-    showSuccessToast(message);
-    
-    pendingImportRules = [];
-    console.log('[Import] Bulk import complete:', { created: createdCount, failed: failedCount });
 }
 
 function toggleSenderIdRuleStatus(ruleId, newStatus) {
-    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
-    if (rules.length === 0) {
-        rules = [
-            { id: 'SID-001', name: 'Block HSBC Impersonation', baseSenderId: 'HSBC', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 09:30', updatedAt: '15-01-2026 09:30' },
-            { id: 'SID-002', name: 'Block Barclays Impersonation', baseSenderId: 'BARCLAYS', ruleType: 'block', category: 'banking_finance', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '15-01-2026 10:15', updatedAt: '20-01-2026 14:22' },
-            { id: 'SID-003', name: 'Flag HMRC Messages', baseSenderId: 'HMRC', ruleType: 'flag', category: 'government_healthcare', applyNormalisation: true, status: 'active', createdBy: 'compliance@quicksms.co.uk', createdAt: '12-01-2026 11:00', updatedAt: '12-01-2026 11:00' },
-            { id: 'SID-004', name: 'Block DPD Sender', baseSenderId: 'DPD', ruleType: 'block', category: 'delivery_logistics', applyNormalisation: true, status: 'active', createdBy: 'admin@quicksms.co.uk', createdAt: '10-01-2026 08:45', updatedAt: '25-01-2026 16:30' },
-            { id: 'SID-005', name: 'Flag Generic Sender', baseSenderId: 'INFO', ruleType: 'flag', category: 'generic', applyNormalisation: false, status: 'disabled', createdBy: 'admin@quicksms.co.uk', createdAt: '05-01-2026 14:00', updatedAt: '28-01-2026 09:15' }
-        ];
-    }
+    var mockData = SecurityComplianceControlsService.getMockData();
+    var rules = mockData.senderIdRules || [];
     
     var rule = rules.find(function(r) { return r.id === ruleId; });
     if (!rule) return;
@@ -13934,25 +13984,36 @@ function toggleSenderIdRuleStatus(ruleId, newStatus) {
 }
 
 function executeToggleSenderIdRuleStatus(ruleId, newStatus) {
-    var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
-    var ruleIndex = rules.findIndex(function(r) { return r.id === ruleId; });
-    if (ruleIndex !== -1) {
-        var beforeStatus = rules[ruleIndex].status;
-        rules[ruleIndex].status = newStatus;
-        rules[ruleIndex].updatedAt = new Date().toLocaleDateString('en-GB').replace(/\//g, '-') + ' ' + new Date().toTimeString().slice(0, 5);
-        localStorage.setItem('senderIdRules', JSON.stringify(rules));
-        
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+
+    var isActive = newStatus !== 'disabled' && newStatus !== 'inactive';
+    fetch('/admin/api/enforcement/senderid-rules/' + ruleId + '/toggle', {
+        method: 'PATCH',
+        headers: headers,
+        body: JSON.stringify({ is_active: isActive })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        if (result.error) {
+            alert('Error toggling rule: ' + result.error);
+            return;
+        }
         logAuditEvent('SENDERID_RULE_STATUS_CHANGED', {
             ruleId: ruleId,
-            ruleName: rules[ruleIndex].name,
-            beforeStatus: beforeStatus,
             afterStatus: newStatus,
             entityType: 'senderid_rule'
         });
-        
-        SecurityComplianceControlsService.renderAllTabs();
-        showSuccessToast('Rule ' + (newStatus === 'disabled' ? 'disabled' : 'enabled') + ' successfully');
-    }
+        SecurityComplianceControlsService.loadDataFromAPI().then(function() {
+            SecurityComplianceControlsService.renderAllTabs();
+        });
+        showSuccessToast('Rule ' + (isActive ? 'enabled' : 'disabled') + ' successfully');
+    })
+    .catch(function(err) {
+        console.error('[SenderIdControls] Toggle error:', err);
+        alert('Failed to toggle rule status.');
+    });
 }
 
 function showActionConfirmation(opts) {
@@ -14029,27 +14090,44 @@ function confirmDeleteRule() {
         return;
     }
     
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+    
+    var endpoint = '';
     if (ruleType === 'senderid') {
-        var rules = JSON.parse(localStorage.getItem('senderIdRules') || '[]');
-        var deletedRule = rules.find(r => r.id === ruleId);
-        rules = rules.filter(r => r.id !== ruleId);
-        localStorage.setItem('senderIdRules', JSON.stringify(rules));
-        
-        logAuditEvent('SENDERID_RULE_DELETED', {
-            ruleId: ruleId,
-            ruleName: deletedRule ? deletedRule.name : null,
-            before: deletedRule,
-            after: null,
-            entityType: 'senderid_rule'
-        });
+        endpoint = '/admin/api/enforcement/senderid-rules/' + ruleId;
     } else if (ruleType === 'content') {
-        SecurityComplianceControlsService.deleteContentRuleById(ruleId);
+        endpoint = '/admin/api/enforcement/content-rules/' + ruleId;
     } else if (ruleType === 'url') {
-        SecurityComplianceControlsService.deleteUrlRuleById(ruleId);
+        endpoint = '/admin/api/enforcement/url-rules/' + ruleId;
     }
     
-    bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
-    SecurityComplianceControlsService.renderAllTabs();
+    if (endpoint) {
+        fetch(endpoint, { method: 'DELETE', headers: headers })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.error) {
+                    alert('Error deleting rule: ' + result.error);
+                    return;
+                }
+                logAuditEvent(ruleType.toUpperCase() + '_RULE_DELETED', {
+                    ruleId: ruleId,
+                    entityType: ruleType + '_rule'
+                });
+                bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+                SecurityComplianceControlsService.loadDataFromAPI().then(function() {
+                    SecurityComplianceControlsService.renderAllTabs();
+                });
+                showSuccessToast('Rule deleted successfully');
+            })
+            .catch(function(err) {
+                console.error('[ConfirmDelete] API error:', err);
+                alert('Failed to delete rule.');
+            });
+    } else {
+        bootstrap.Modal.getInstance(document.getElementById('confirmDeleteModal')).hide();
+    }
 }
 
 function showAddContentRuleModal() {

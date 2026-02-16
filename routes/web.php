@@ -214,6 +214,47 @@ Route::prefix('admin')->group(function () {
             Route::post('/enforcement/test', 'testEnforcement')->name('admin.enforcement.test');
             Route::post('/enforcement/normalise', 'normaliseInput')->name('admin.enforcement.normalise');
             Route::post('/enforcement/reload', 'reloadEnforcementRules')->name('admin.enforcement.reload');
+
+            Route::prefix('api/enforcement')->controller(\App\Http\Controllers\Admin\EnforcementController::class)->group(function () {
+                Route::get('/senderid-rules', 'senderidRulesIndex');
+                Route::post('/senderid-rules', 'senderidRulesStore');
+                Route::put('/senderid-rules/{id}', 'senderidRulesUpdate');
+                Route::delete('/senderid-rules/{id}', 'senderidRulesDestroy');
+                Route::patch('/senderid-rules/{id}/toggle', 'senderidRulesToggle');
+
+                Route::get('/content-rules', 'contentRulesIndex');
+                Route::post('/content-rules', 'contentRulesStore');
+                Route::put('/content-rules/{id}', 'contentRulesUpdate');
+                Route::delete('/content-rules/{id}', 'contentRulesDestroy');
+                Route::patch('/content-rules/{id}/toggle', 'contentRulesToggle');
+
+                Route::get('/url-rules', 'urlRulesIndex');
+                Route::post('/url-rules', 'urlRulesStore');
+                Route::put('/url-rules/{id}', 'urlRulesUpdate');
+                Route::delete('/url-rules/{id}', 'urlRulesDestroy');
+                Route::patch('/url-rules/{id}/toggle', 'urlRulesToggle');
+
+                Route::get('/normalisation', 'normalisationIndex');
+                Route::put('/normalisation/{id}', 'normalisationUpdate');
+                Route::patch('/normalisation/{id}/toggle', 'normalisationToggle');
+
+                Route::get('/exemptions', 'exemptionsIndex');
+                Route::post('/exemptions', 'exemptionsStore');
+                Route::put('/exemptions/{id}', 'exemptionsUpdate');
+                Route::delete('/exemptions/{id}', 'exemptionsDestroy');
+                Route::patch('/exemptions/{id}/toggle', 'exemptionsToggle');
+
+                Route::get('/quarantine', 'quarantineIndex');
+                Route::get('/quarantine/{id}', 'quarantineShow');
+                Route::post('/quarantine/{id}/release', 'quarantineRelease');
+                Route::post('/quarantine/{id}/block', 'quarantineBlock');
+
+                Route::get('/settings', 'settingsIndex');
+                Route::put('/settings/{key}', 'settingsUpdate')->where('key', '[a-zA-Z0-9_.]+');
+
+                Route::get('/domain-age-cache', 'domainAgeCacheIndex');
+                Route::delete('/domain-age-cache/{id}', 'domainAgeCacheDestroy');
+            });
             
             Route::prefix('api/country-controls')->controller(\App\Http\Controllers\Admin\CountryControlController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.country-controls.index');

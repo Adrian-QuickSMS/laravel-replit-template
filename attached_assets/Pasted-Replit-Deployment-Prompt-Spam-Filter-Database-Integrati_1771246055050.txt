@@ -1,0 +1,288 @@
+Replit Deployment Prompt: Spam Filter Database Integration
+1. GIT — Pull Latest Changes
+git fetch origin claude/quicksms-security-performance-dr8sw
+git merge origin/claude/quicksms-security-performance-dr8sw
+
+If conflicts occur, take YOUR (Replit's) version for any blade templates, take THE REMOTE version for any file under app/Models/, app/Services/, and database/migrations/.
+
+2. MIGRATION — Run Database Migrations
+php artisan migrate
+
+This will create the following 11 new tables (from 10 migration files):
+
+Migration	Tables Created
+2026_02_16_000001	system_settings
+2026_02_16_000002	senderid_rules
+2026_02_16_000003	content_rules
+2026_02_16_000004	url_rules
+2026_02_16_000005	normalisation_characters
+2026_02_16_000006	enforcement_exemptions
+2026_02_16_000007	quarantine_messages + quarantine_recipients
+2026_02_16_000008	domain_age_cache
+2026_02_16_000009	message_dedup_log
+2026_02_16_000010	Seeds default data into all tables above
+After migration, the database will contain default seed data: 8 SenderID rules, 5 content rules, 4 URL rules, 36 normalisation characters, and 15 system settings.
+
+3. WHAT WAS ADDED — New Files (21 files, all backend)
+Migrations (10 files in database/migrations/):
+2026_02_16_000001_create_system_settings_table.php
+2026_02_16_000002_create_senderid_rules_table.php
+2026_02_16_000003_create_content_rules_table.php
+2026_02_16_000004_create_url_rules_table.php
+2026_02_16_000005_create_normalisation_characters_table.php
+2026_02_16_000006_create_enforcement_exemptions_table.php
+2026_02_16_000007_create_quarantine_messages_table.php
+2026_02_16_000008_create_domain_age_cache_table.php
+2026_02_16_000009_create_message_dedup_log_table.php
+2026_02_16_000010_seed_default_enforcement_data.php
+Models (10 files in app/Models/):
+SystemSetting.php — key-value store with getValue(), setValue(), getGroup() static helpers
+SenderidRule.php — scopes: active(), byPriority(), category(). Has toEnforcementArray()
+ContentRule.php — scopes: active(), byPriority(). Has toEnforcementArray()
+UrlRule.php — scopes: active(), byPriority(). Has toEnforcementArray()
+NormalisationCharacter.php — scopes: active(), letters(), digits(). Has toLibraryArray()
+EnforcementExemption.php — scopes: active(), forEngine(), forScope(). Has appliesToRule(), appliesToValue()
+QuarantineMessage.php — scopes: pending(), notExpired(), expired(), forEngine(), forAccount(). Has release(), block(), isReviewable()
+QuarantineRecipient.php — belongs to QuarantineMessage
+DomainAgeCache.php — scopes: fresh(), stale(), successful(). Has isYoung(), needsRefresh(), findOrCreateForDomain()
+MessageDedupLog.php — scopes: notExpired(), forAccount(). Static helpers: isDuplicate(), record(), purgeExpired()
+Modified File:
+app/Services/Admin/MessageEnforcementService.php — loadRulesFromDatabase() and loadNormalisationLibraryFromDatabase() now query real DB tables (SenderidRule, ContentRule, UrlRule, NormalisationCharacter models) instead of returning mock arrays. The service's test/normalise/evaluate methods and existing admin controller endpoints (/admin/enforcement/test, /admin/enforcement/normalise, /admin/enforcement/reload) work unchanged.
+4. YOUR TASK — Wire the Admin UI to the Database
+The existing Spam Filter admin page at resources/views/admin/security/security-compliance-controls.blade.php (14,688 lines) currently uses a massive loadMockData() JavaScript function (starting at line ~4768) that populates everything from hardcoded arrays. You need to:
+
+Create admin API routes for CRUD operations on all rule/exemption/quarantine/normalisation tables
+Create admin controller methods (or a new dedicated controller) for each API endpoint
+Replace loadMockData() with API calls that fetch real data from the database
+Wire all save/edit/delete/toggle UI actions to POST/PUT/DELETE API endpoints
+5. CRITICAL RULES — Read These Before Writing Any Code
+RULE 1: FIELD NAME MAPPING — The UI mock data uses different field names than the database. You MUST map correctly:
+
+UI Mock Field (JS)	DB Column	Table	Notes
+mockData.senderIdRules[].id	id (auto-increment)	senderid_rules	UI uses SID-001 strings, DB uses integer IDs
+mockData.senderIdRules[].baseSenderId	pattern	senderid_rules	DIFFERENT NAME
+mockData.senderIdRules[].ruleType	action	senderid_rules	UI says "block"/"flag", DB says "block"/"quarantine". Map "flag" → "quarantine"
+mockData.senderIdRules[].applyNormalisation	use_normalisation	senderid_rules	DIFFERENT NAME
+mockData.senderIdRules[].status	is_active	senderid_rules	UI "active"/"inactive" → DB boolean true/false
+mockData.senderIdRules[].createdBy	created_by	senderid_rules	DB stores UUID, UI shows email
+mockData.contentRules[].matchValue	pattern	content_rules	DIFFERENT NAME
+mockData.contentRules[].matchType	match_type	content_rules	Same concept, UI uses "keyword"/"regex"
+mockData.contentRules[].ruleType	action	content_rules	Map "flag" → "quarantine"
+mockData.urlRules[].pattern	pattern	url_rules	Same name but match_type values differ
+mockData.urlRules[].matchType	match_type	url_rules	UI uses "wildcard"/"exact"/"regex", DB uses "exact_domain"/"wildcard"/"regex"
+mockData.urlRules[].ruleType	action	url_rules	Map "flag" → "quarantine"
+mockData.baseCharacterLibrary[].base	base_character	normalisation_characters	DIFFERENT NAME
+mockData.baseCharacterLibrary[].type	character_type	normalisation_characters	DIFFERENT NAME
+mockData.baseCharacterLibrary[].enabled	is_active	normalisation_characters	DIFFERENT NAME
+mockData.baseCharacterLibrary[].notes	NOT IN DB	—	UI-only field, not stored in DB. Remove or handle gracefully.
+mockData.baseCharacterLibrary[].risk	NOT IN DB	—	Computed in JS. Keep computing client-side.
+mockData.quarantinedMessages[].quarantinedAt	created_at	quarantine_messages	DIFFERENT NAME
+mockData.quarantinedMessages[].ruleTriggered	primary_engine	quarantine_messages	DIFFERENT NAME
+mockData.quarantinedMessages[].messageSnippet	message_body	quarantine_messages	DB stores full body, UI can truncate for display
+mockData.quarantinedMessages[].decisionAt	reviewed_at	quarantine_messages	DIFFERENT NAME
+mockData.quarantinedMessages[].reviewedBy	reviewer_id	quarantine_messages	DB stores UUID, UI shows email
+RULE 2: REMOVE ALL MOCK DATA. The loadMockData() function (lines ~4768-4974) must be completely replaced with API calls. No hardcoded arrays should remain. This includes:
+
+mockData.senderIdRules → fetch from /admin/api/enforcement/senderid-rules
+mockData.contentRules → fetch from /admin/api/enforcement/content-rules
+mockData.urlRules → fetch from /admin/api/enforcement/url-rules
+mockData.baseCharacterLibrary → fetch from /admin/api/enforcement/normalisation
+mockData.quarantinedMessages → fetch from /admin/api/enforcement/quarantine
+mockData.senderIdExemptions, mockData.manualExemptions, mockData.senderIdApprovals → fetch from /admin/api/enforcement/exemptions?engine=senderid
+mockData.contentExemptions → fetch from /admin/api/enforcement/exemptions?engine=content
+mockData.urlExemptions → fetch from /admin/api/enforcement/exemptions?engine=url
+mockData.domainAgeSettings → fetch from /admin/api/enforcement/settings?group=domain_age
+mockData.domainAllowlist → can remain as local data for now (no DB table yet)
+mockData.thresholdOverrides → can remain as local data for now
+mockData.antiSpamSettings → fetch from /admin/api/enforcement/settings?group=anti_spam
+mockData.quarantineFeatureFlags → fetch from /admin/api/enforcement/settings?group=feature_flags
+mockData.accounts → keep this as mock for now (accounts table exists but accounts API is a separate feature)
+RULE 3: ACTION TERMINOLOGY. The UI uses "flag" in several places where the DB uses "quarantine". When rendering data from the API:
+
+DB action = 'quarantine' → display as "Flag" or "Quarantine" (your choice, but be consistent)
+DB action = 'block' → display as "Block"
+When sending data TO the API:
+UI "flag" → send action: 'quarantine'
+UI "block" → send action: 'block'
+RULE 4: EXISTING ENDPOINTS STILL WORK. These 3 endpoints already exist and function correctly with the new DB-backed service. Do NOT recreate them:
+
+POST /admin/enforcement/test — tests a string against an engine
+POST /admin/enforcement/normalise — normalises input text
+POST /admin/enforcement/reload — hot-reloads the rule cache
+RULE 5: UUID AUTO-GENERATION. SenderidRule, ContentRule, UrlRule, and EnforcementExemption models auto-generate UUIDs on creation. Do NOT send UUIDs from the frontend — they are created server-side.
+
+RULE 6: SOFT DELETES. SenderidRule, ContentRule, UrlRule, and EnforcementExemption use soft deletes. Use model ->delete() which will set deleted_at, NOT raw DB delete.
+
+RULE 7: QUARANTINE ACTIONS. QuarantineMessage has release() and block() methods. Use these for review actions — they set status, reviewer_id, reviewed_at, and reviewer_notes atomically. Call $message->release($reviewerId, $notes) or $message->block($reviewerId, $notes).
+
+RULE 8: CACHE INVALIDATION. After any rule CRUD operation (create/update/delete for senderid_rules, content_rules, url_rules, or normalisation_characters), call $this->enforcementService->hotReloadRules() to invalidate the cache. This ensures the enforcement test endpoint and production enforcement use the latest rules immediately.
+
+RULE 9: SYSTEM SETTINGS. Use SystemSetting::getValue('key', default) and SystemSetting::setValue('key', value) for reading/writing settings. Settings are grouped:
+
+feature_flags group: enforcement.senderid.enabled, enforcement.content.enabled, enforcement.url.enabled, enforcement.normalisation.enabled, enforcement.quarantine.enabled
+anti_spam group: antispam.dedup.enabled, antispam.dedup.window_minutes, antispam.dedup.use_normalisation
+domain_age group: domain_age.enabled, domain_age.threshold_hours, domain_age.cache_ttl_hours, domain_age.action
+enforcement group: quarantine.expiry_hours, quarantine.require_notes, enforcement.pipeline_order
+RULE 10: JS ENFORCEMENT SERVICE BLADE TEMPLATE. The file resources/views/shared/services/message-enforcement-service.blade.php (1,627 lines) also has hardcoded mock rules in its loadActiveRules() function (lines ~272-310). This JS-side enforcement is a UX preview layer (the server is authoritative). You should either:
+
+(a) Replace loadActiveRules() with an API call to fetch rules from the server, OR
+(b) Have the Blade template inject rules from PHP using @json() so they come from the DB at page load time
+Option (b) is simpler and recommended. Example: activeRules.senderid = @json($senderidRules);
+6. SUGGESTED API ENDPOINTS TO CREATE
+All routes should be within the existing admin middleware group in routes/web.php. Suggested structure:
+
+GET    /admin/api/enforcement/senderid-rules          → list all SenderID rules
+POST   /admin/api/enforcement/senderid-rules          → create new SenderID rule
+PUT    /admin/api/enforcement/senderid-rules/{id}     → update SenderID rule
+DELETE /admin/api/enforcement/senderid-rules/{id}     → soft-delete SenderID rule
+PATCH  /admin/api/enforcement/senderid-rules/{id}/toggle → toggle is_active
+
+GET    /admin/api/enforcement/content-rules            → list all content rules
+POST   /admin/api/enforcement/content-rules            → create new content rule
+PUT    /admin/api/enforcement/content-rules/{id}       → update content rule
+DELETE /admin/api/enforcement/content-rules/{id}       → soft-delete content rule
+PATCH  /admin/api/enforcement/content-rules/{id}/toggle → toggle is_active
+
+GET    /admin/api/enforcement/url-rules                → list all URL rules
+POST   /admin/api/enforcement/url-rules                → create new URL rule
+PUT    /admin/api/enforcement/url-rules/{id}           → update URL rule
+DELETE /admin/api/enforcement/url-rules/{id}           → soft-delete URL rule
+PATCH  /admin/api/enforcement/url-rules/{id}/toggle    → toggle is_active
+
+GET    /admin/api/enforcement/normalisation            → list all normalisation characters
+PUT    /admin/api/enforcement/normalisation/{id}       → update equivalents for a character
+PATCH  /admin/api/enforcement/normalisation/{id}/toggle → toggle is_active
+
+GET    /admin/api/enforcement/exemptions               → list exemptions (filter by ?engine=)
+POST   /admin/api/enforcement/exemptions               → create new exemption
+PUT    /admin/api/enforcement/exemptions/{id}          → update exemption
+DELETE /admin/api/enforcement/exemptions/{id}          → soft-delete exemption
+PATCH  /admin/api/enforcement/exemptions/{id}/toggle   → toggle is_active
+
+GET    /admin/api/enforcement/quarantine               → list quarantined messages (filter by ?status=, ?engine=)
+GET    /admin/api/enforcement/quarantine/{id}          → get single quarantine message with recipients
+POST   /admin/api/enforcement/quarantine/{id}/release  → release message (requires notes)
+POST   /admin/api/enforcement/quarantine/{id}/block    → block message (requires notes)
+
+GET    /admin/api/enforcement/settings                 → get all settings (filter by ?group=)
+PUT    /admin/api/enforcement/settings/{key}           → update a setting value
+
+GET    /admin/api/enforcement/domain-age-cache         → list cached domains
+DELETE /admin/api/enforcement/domain-age-cache/{id}    → remove cached entry (force re-check)
+
+7. CONTROLLER APPROACH
+Create a new controller: app/Http/Controllers/Admin/EnforcementController.php
+
+This controller should:
+
+Inject MessageEnforcementService in the constructor
+Call $this->enforcementService->hotReloadRules() after any rule/normalisation CRUD
+Use session('admin_email') for audit fields (created_by, updated_by, reviewer_id)
+Return JSON responses for all API endpoints
+Use model scopes (e.g., SenderidRule::active()->byPriority()->get())
+8. TEST PLAN
+Complete ALL tests before reporting back. Mark each as PASS/FAIL.
+
+T1: Database Verification
+
+ T1.1: php artisan migrate runs without errors
+ T1.2: All 11 tables exist in the database
+ T1.3: Default seed data exists: run SELECT COUNT(*) FROM senderid_rules (expect 8), SELECT COUNT(*) FROM content_rules (expect 5), SELECT COUNT(*) FROM url_rules (expect 4), SELECT COUNT(*) FROM normalisation_characters (expect 36), SELECT COUNT(*) FROM system_settings (expect 15)
+T2: SenderID Rules Tab
+
+ T2.1: Navigate to Spam Filter → SenderID Controls → Blocking Rules tab. Rules load from database (not mock data)
+ T2.2: Create a new SenderID rule via the Add Rule modal. Verify it appears in the table and exists in senderid_rules DB table
+ T2.3: Edit an existing rule — change the pattern. Verify the change persists after page refresh
+ T2.4: Toggle a rule's active status. Verify is_active changes in the DB
+ T2.5: Delete a rule. Verify deleted_at is set (soft delete) and rule disappears from the list
+ T2.6: After any CRUD, use the Test Enforcement panel (SenderID engine) to verify the change took effect immediately (cache was invalidated)
+T3: Content Rules Tab
+
+ T3.1: Navigate to Message Content Controls → Rules tab. Rules load from database
+ T3.2: Create a new content rule (keyword type and regex type). Both appear correctly
+ T3.3: Edit a content rule. Change persists after refresh
+ T3.4: Toggle active/inactive status
+ T3.5: Delete a content rule (soft delete)
+ T3.6: Test with the enforcement test panel (Content engine) after changes
+T4: URL Rules Tab
+
+ T4.1: Navigate to URL Controls → URL Rule Library tab. Rules load from database
+ T4.2: CRUD operations work (create, edit, toggle, delete)
+ T4.3: Test with enforcement test panel (URL engine) after changes
+T5: Normalisation Tab
+
+ T5.1: Navigate to Normalisation Rules tab. Both Letters and Digits sub-tabs load from database
+ T5.2: All 36 characters display (A-Z + 0-9) with their equivalents
+ T5.3: Edit a character's equivalents (e.g., add a new equivalent to 'A'). Verify it persists
+ T5.4: Toggle a character's enabled status
+ T5.5: Use the Test Enforcement panel normalisation feature — verify it uses the updated library
+ T5.6: The risk field is computed client-side (not from DB). Verify it still displays
+T6: Exemptions Tab
+
+ T6.1: SenderID Controls → Exemptions tab loads exemptions from database
+ T6.2: Create a new exemption (engine=senderid, exemption_type=value, scope=account). Verify it persists
+ T6.3: Message Content Controls → Exemptions tab loads content engine exemptions
+ T6.4: URL Controls → Exemptions tab loads URL engine exemptions
+ T6.5: Toggle exemption active/inactive
+ T6.6: Delete an exemption (soft delete)
+T7: Quarantine Inbox Tab
+
+ T7.1: Quarantine Review tab loads messages from the quarantine_messages table
+ T7.2: Note: The quarantine table will initially be empty (no messages have been quarantined yet since the DB is new). The page should handle zero results gracefully (show "No quarantined messages" or similar)
+ T7.3: If there are quarantine records: verify Release action calls POST /admin/api/enforcement/quarantine/{id}/release with notes
+ T7.4: If there are quarantine records: verify Block action calls POST /admin/api/enforcement/quarantine/{id}/block with notes
+ T7.5: Filter by engine and status works
+T8: Settings & Feature Flags
+
+ T8.1: Domain Age settings (enabled, threshold hours, action) load from system_settings table
+ T8.2: Changing Domain Age settings persists to the DB
+ T8.3: Anti-spam settings load from DB
+ T8.4: Feature flags (engine toggles) load from DB via system settings
+T9: Mock Data Removal Verification
+
+ T9.1: Search security-compliance-controls.blade.php for the string loadMockData. The function should no longer contain hardcoded arrays
+ T9.2: Search for SID-001, CR-001, URL-001 string literals in the blade file. They should NOT exist as hardcoded data (they may exist as DB references but NOT as inline JS objects)
+ T9.3: Search message-enforcement-service.blade.php for hardcoded rules in loadActiveRules(). They should be replaced with data from DB/PHP
+ T9.4: Verify no mockData.accounts hardcoded array was accidentally removed (this one should STAY as mock for now — accounts integration is separate)
+ T9.5: After full page refresh, all tabs still populate correctly from the database
+T10: Enforcement Pipeline Integration
+
+ T10.1: The existing Test Enforcement panel (which calls POST /admin/enforcement/test) still works and returns results from DB rules (not mock data)
+ T10.2: The Normalise button (which calls POST /admin/enforcement/normalise) still works using DB normalisation library
+ T10.3: The Reload/Refresh button (which calls POST /admin/enforcement/reload) works and clears cache
+9. REQUIRED COMPLETION REPORT
+When you finish, provide a structured report with these sections:
+
+A. CHANGES MADE
+
+List every file created, modified, or deleted
+For modified files, briefly describe what changed
+B. MOCK DATA REMOVED
+
+List each mock data block that was replaced
+State what it was replaced with (which API endpoint)
+C. FIELD NAME MISMATCHES FOUND
+
+List any additional field name mismatches beyond those documented in RULE 1
+How you resolved each one
+D. NEW API ENDPOINTS CREATED
+
+Full list of routes with HTTP method, URL, and controller method
+E. DEVIATIONS FROM PLAN
+
+Any places where you had to deviate from this guide and why
+Any new decisions you made that weren't covered here
+F. TEST RESULTS
+
+Mark every test T1-T10 as PASS/FAIL
+For any FAIL, explain what went wrong and what was attempted
+G. KNOWN ISSUES
+
+Any bugs, incomplete features, or technical debt introduced
+Any UI elements that couldn't be wired due to missing backend functionality
+H. SECURITY NOTES
+
+Any CSRF tokens added
+Any input validation added
+Any authorisation checks added
+Any SQL injection or XSS mitigations
