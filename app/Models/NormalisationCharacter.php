@@ -4,15 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * RED SIDE: Character equivalence library for normalisation
- *
- * Maps look-alike characters (Cyrillic, leet-speak, homoglyphs) to their
- * canonical Latin/digit form. 36 base characters: A-Z + 0-9.
- *
- * DATA CLASSIFICATION: Internal - Enforcement Configuration
- * SIDE: RED (admin-only)
- */
 class NormalisationCharacter extends Model
 {
     protected $table = 'normalisation_characters';
@@ -22,17 +13,12 @@ class NormalisationCharacter extends Model
         'character_type',
         'equivalents',
         'is_active',
-        'updated_by',
     ];
 
     protected $casts = [
-        'equivalents' => 'array',
         'is_active' => 'boolean',
+        'equivalents' => 'array',
     ];
-
-    // =====================================================
-    // SCOPES
-    // =====================================================
 
     public function scopeActive($query)
     {
@@ -49,13 +35,6 @@ class NormalisationCharacter extends Model
         return $query->where('character_type', 'digit');
     }
 
-    // =====================================================
-    // HELPERS
-    // =====================================================
-
-    /**
-     * Convert to the array format used by MessageEnforcementService normalisation.
-     */
     public function toLibraryArray(): array
     {
         return [

@@ -26,9 +26,6 @@ class DomainAgeCache extends Model
         'lookup_status',
     ];
 
-    // L3 FIX: Prevent large WHOIS payloads from leaking in default serialization
-    protected $hidden = ['whois_raw'];
-
     protected $casts = [
         'registered_at' => 'datetime',
         'checked_at' => 'datetime',

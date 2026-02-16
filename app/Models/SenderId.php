@@ -56,7 +56,7 @@ class SenderId extends Model
         self::STATUS_SUBMITTED     => [self::STATUS_IN_REVIEW],
         self::STATUS_IN_REVIEW     => [self::STATUS_APPROVED, self::STATUS_REJECTED, self::STATUS_PENDING_INFO],
         self::STATUS_PENDING_INFO  => [self::STATUS_INFO_PROVIDED],
-        self::STATUS_INFO_PROVIDED => [self::STATUS_IN_REVIEW],
+        self::STATUS_INFO_PROVIDED => [self::STATUS_IN_REVIEW, self::STATUS_APPROVED, self::STATUS_REJECTED, self::STATUS_PENDING_INFO],
         self::STATUS_APPROVED      => [self::STATUS_SUSPENDED],
         self::STATUS_REJECTED      => [self::STATUS_DRAFT],
         self::STATUS_SUSPENDED     => [self::STATUS_APPROVED, self::STATUS_REVOKED],
@@ -175,6 +175,21 @@ class SenderId extends Model
     {
         return $this->hasMany(SenderIdStatusHistory::class, 'sender_id_id')
             ->orderBy('created_at', 'desc');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(SenderIdComment::class, 'sender_id_id');
+    }
+
+    public function customerComments(): HasMany
+    {
+        return $this->comments()->customerVisible()->orderBy('created_at', 'desc');
+    }
+
+    public function internalComments(): HasMany
+    {
+        return $this->comments()->internal()->orderBy('created_at', 'desc');
     }
 
     // =====================================================

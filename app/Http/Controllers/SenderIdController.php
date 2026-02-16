@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AdminNotification;
+use App\Models\Notification;
 use App\Models\SenderId;
 use App\Models\SenderIdAssignment;
+use App\Models\SenderIdComment;
 use App\Models\SubAccount;
 use App\Models\User;
 use App\Services\SenderIdValidationService;
@@ -11,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Customer Portal SenderID Controller
@@ -227,6 +231,18 @@ class SenderIdController extends Controller
             return response()->json(['success' => false, 'error' => 'SenderID not found.'], 404);
         }
 
+        $customerComments = $senderId->customerComments()
+            ->get()
+            ->map(fn($c) => $c->toPortalArray());
+
+        $latestReturnHistory = null;
+        if ($senderId->workflow_status === SenderId::STATUS_PENDING_INFO) {
+            $latestReturnHistory = $senderId->statusHistory()
+                ->where('to_status', 'pending_info')
+                ->orderBy('created_at', 'desc')
+                ->first();
+        }
+
         return response()->json([
             'success' => true,
             'data' => $senderId->toPortalArray(),
@@ -236,6 +252,11 @@ class SenderIdController extends Controller
                     'id' => $a->assignable_id,
                 ];
             }),
+            'comments' => $customerComments,
+            'return_info' => $latestReturnHistory ? [
+                'reason' => $latestReturnHistory->reason ?? $latestReturnHistory->notes,
+                'returned_at' => $latestReturnHistory->created_at?->toIso8601String(),
+            ] : null,
         ]);
     }
 
@@ -460,10 +481,66 @@ class SenderIdController extends Controller
                 $actingUser
             );
 
+            SenderIdComment::create([
+                'sender_id_id' => $senderId->id,
+                'comment_type' => SenderIdComment::TYPE_CUSTOMER,
+                'comment_text' => $validated['additional_info'],
+                'created_by_actor_type' => SenderIdComment::ACTOR_CUSTOMER,
+                'created_by_actor_id' => $userId,
+                'created_by_actor_name' => $actingUser ? trim(($actingUser->first_name ?? '') . ' ' . ($actingUser->last_name ?? '')) : null,
+            ]);
+
+            Notification::where('type', 'SENDERID_RETURNED')
+                ->where('tenant_id', $senderId->account_id)
+                ->whereJsonContains('meta->request_uuid', $senderId->uuid)
+                ->whereNull('resolved_at')
+                ->update(['resolved_at' => now()]);
+
+            try {
+                $senderId->loadMissing('account');
+                AdminNotification::create([
+                    'type' => 'CUSTOMER_RESPONDED_SENDERID',
+                    'severity' => 'info',
+                    'title' => 'Customer responded to SenderID review',
+                    'body' => ($senderId->account->company_name ?? 'Unknown') . ' has provided additional info for SenderID ' . $senderId->sender_id_value,
+                    'deep_link' => '/admin/assets/sender-ids/' . $senderId->id,
+                    'meta' => [
+                        'request_uuid' => $senderId->uuid,
+                        'sender_id_value' => $senderId->sender_id_value,
+                        'account_name' => $senderId->account->company_name ?? 'Unknown',
+                        'account_id' => $senderId->account_id,
+                    ],
+                ]);
+            } catch (\Exception $e) {
+                Log::error('[SenderIdController] Failed to create admin notification: ' . $e->getMessage());
+            }
+
+            try {
+                DB::table('governance_audit_events')->insert([
+                    'event_uuid' => Str::uuid()->toString(),
+                    'event_type' => 'SENDERID_CUSTOMER_RESUBMITTED',
+                    'entity_type' => 'sender_id',
+                    'entity_id' => $senderId->id,
+                    'account_id' => null,
+                    'sub_account_id' => null,
+                    'actor_id' => $userId,
+                    'actor_type' => 'CUSTOMER',
+                    'actor_email' => $actingUser->email ?? null,
+                    'before_state' => json_encode(['workflow_status' => 'pending_info']),
+                    'after_state' => json_encode(['workflow_status' => 'info_provided']),
+                    'reason' => null,
+                    'source_ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'created_at' => now(),
+                ]);
+            } catch (\Exception $e) {
+                Log::error('[SenderIdController] Failed to log governance event: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $senderId->toPortalArray(),
-                'message' => 'Additional information submitted. Your request will be reviewed again shortly.',
+                'message' => 'Your response has been submitted for review.',
             ]);
         } catch (\InvalidArgumentException $e) {
             return response()->json([
@@ -527,6 +604,75 @@ class SenderIdController extends Controller
                 'normalised' => $result['spoofing']['normalised'],
             ] : null,
         ]);
+    }
+
+    /**
+     * Delete a draft SenderID (soft-delete)
+     * DELETE /api/sender-ids/{uuid}
+     */
+    public function destroy(string $uuid): JsonResponse
+    {
+        $senderId = SenderId::where('uuid', $uuid)
+            ->where('account_id', session('customer_tenant_id'))
+            ->first();
+
+        if (!$senderId) {
+            return response()->json(['success' => false, 'error' => 'SenderID not found.'], 404);
+        }
+
+        if ($senderId->workflow_status !== SenderId::STATUS_DRAFT) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Only draft SenderIDs can be deleted.',
+            ], 422);
+        }
+
+        $senderId->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'SenderID deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Get users for given sub-account IDs (tenant-validated)
+     * POST /api/sub-accounts/users
+     */
+    public function subAccountUsers(Request $request): JsonResponse
+    {
+        $request->validate([
+            'sub_account_ids' => 'required|array',
+            'sub_account_ids.*' => 'integer',
+        ]);
+
+        $tenantId = session('customer_tenant_id');
+
+        $subAccounts = SubAccount::where('account_id', $tenantId)
+            ->whereIn('id', $request->input('sub_account_ids'))
+            ->get();
+
+        if ($subAccounts->isEmpty()) {
+            return response()->json(['success' => true, 'data' => []]);
+        }
+
+        $validSubAccountIds = $subAccounts->pluck('id');
+
+        $users = User::withoutGlobalScope('tenant')
+            ->where('account_id', $tenantId)
+            ->whereIn('sub_account_id', $validSubAccountIds)
+            ->where('is_active', true)
+            ->select('id', 'first_name', 'last_name', 'email', 'sub_account_id')
+            ->orderBy('first_name')
+            ->get()
+            ->map(fn($u) => [
+                'id' => $u->id,
+                'name' => trim($u->first_name . ' ' . $u->last_name),
+                'email' => $u->email,
+                'sub_account_id' => $u->sub_account_id,
+            ]);
+
+        return response()->json(['success' => true, 'data' => $users]);
     }
 
     /**

@@ -1,0 +1,80 @@
+Security & Performance Audit — SenderID Integration (Round 3)
+Verdict: Good implementation. 3 issues found (1 functional bug, 2 gaps). No critical security vulnerabilities.
+Issues Found
+#	Severity	Issue	Location
+B1	BUG	DELETE route missing — UI calls DELETE /api/sender-ids/{uuid} but no route or controller method exists	sms-sender-id.blade.php:2042-2058, routes/web.php
+B2	BUG	Sub-account users route missing — wizard calls POST /api/sub-accounts/users but no route exists	sms-sender-id-wizard.blade.php:619, routes/web.php
+M1	MEDIUM	Admin detail page has hardcoded mock data in @php block that renders on initial page load before AJAX replaces it — shows fake data ("ACMEBANK", "Acme Bank Ltd", "m.johnson@acmebank.com") briefly	admin/assets/sender-id-detail.blade.php:613-650
+B1: DELETE Route Missing (Functional Bug)
+What happens: Customer clicks "Delete" on a draft SenderID → JS calls DELETE /api/sender-ids/{uuid} → Laravel returns 405 Method Not Allowed because there is no DELETE route defined.
+
+The blade template has:
+
+// sms-sender-id.blade.php:2042
+function deleteSenderId(item) {
+    $.ajax({
+        url: '/api/sender-ids/' + item.uuid,
+        method: 'DELETE',
+        ...
+    });
+}
+
+The route file has:
+
+GET    /api/sender-ids/{uuid}         → show
+PUT    /api/sender-ids/{uuid}         → update
+POST   /api/sender-ids/{uuid}/submit  → submit
+// NO DELETE ROUTE
+
+Fix needed: Either add a DELETE /api/sender-ids/{uuid} route + destroy() method to SenderIdController, or remove the delete buttons from the blade template. Deleting draft SenderIDs is a reasonable feature — soft-delete via the model's SoftDeletes trait.
+
+B2: Sub-Account Users Route Missing (Functional Bug)
+What happens: In the registration wizard Step 2, when a customer selects sub-accounts, the wizard tries to load users for those sub-accounts via POST /api/sub-accounts/users. No such route exists → 404 error → the users section silently hides (graceful degradation, but feature doesn't work).
+
+The wizard has:
+
+// sms-sender-id-wizard.blade.php:619
+$.ajax({
+    url: '/api/sub-accounts/users',
+    method: 'POST',
+    data: JSON.stringify({ sub_account_ids: selectedSubaccounts }),
+    ...
+});
+
+Fix needed: Add a route and controller endpoint to return users for given sub-account IDs. This should be under customer.auth middleware and must validate that the sub-account IDs belong to the current tenant.
+
+M1: Admin Detail Mock Data Flash (Medium — UX, not security)
+The admin sender ID detail page (sender-id-detail.blade.php:613-650) has a hardcoded $senderIdData array with fake values ("ACMEBANK", "Acme Bank Ltd", "m.johnson@acmebank.com") that is passed to the @include('partials.review.sender-id-review-summary') partial. This renders on initial page load before the AJAX call at line 972 fetches real data.
+
+This means admins briefly see fake data before it's replaced. Not a security issue (it's clearly template data), but unprofessional for a production admin console.
+
+Fix: Replace the static $senderIdData with empty/placeholder values, or show a loading skeleton until the AJAX call completes.
+
+What Replit Got Right
+Area	Assessment
+State machine	All 9 statuses and transition rules preserved exactly as designed
+Tenant isolation	Global scopes on SenderId and SubAccount models intact, session-based tenant checks in all controller methods
+RED/GREEN separation	$hidden = ['admin_notes'] preserved, toPortalArray() vs toAdminArray() separation intact
+Anti-spoofing	SenderIdValidationService fully integrated — blocked patterns reject, quarantine patterns flag for admin review
+Account lifecycle	AccountObserver hooks intact — suspension cascades to SenderIDs, activation creates default "QuickSMS"
+RLS policies	All PostgreSQL RLS policies on sub_accounts and sender_ids tables intact
+Mock data removal for SenderIDs	getApprovedSenderIds() helper correctly queries DB, used in 5 places (sendMessage, inbox, templates, emailToSms, etc.)
+Customer blade wiring	List page and wizard both call correct API endpoints with correct field names and CSRF tokens
+Admin blade wiring	Approval queue and detail page both call correct admin API endpoints
+CSRF protection	All AJAX calls include X-CSRF-TOKEN header
+XSS prevention	@json() used for JS context, escapeHtml() function used for dynamic HTML
+Governance audit	All admin actions logged to governance_audit_events table
+Remaining Mock Data (Non-SenderID — pre-existing)
+These are not SenderID issues — they're mock data for features that haven't been DB-backed yet:
+
+Location	Mock Data
+QuickSMSController@sendMessage() lines 284-343	rcs_agents, templates, lists, tags, opt_out_lists, virtual_numbers, optout_domains
+QuickSMSController@inbox() lines 459-714	rcs_agents, templates, conversations (large fake dataset)
+QuickSMSController@campaignHistory() lines 1260-1275	16 hardcoded campaign records
+These are for other features (RCS, Templates, Campaigns, Contacts) — not part of the SenderID scope. They'll need replacing when those features are DB-backed.
+
+Performance Notes
+getApprovedSenderIds() runs a DB query on every page load for sendMessage, inbox, templates, emailToSms — 4-5 queries per navigation. Consider caching approved SenderIDs in session (invalidate on status change)
+The SenderId model's usableByUser scope uses whereDoesntHave + orWhereHas with nested queries — could be slow at scale. Fine for now, may need optimisation later with a denormalised "effective_sender_ids" view
+Summary
+Replit delivered a solid integration. The core security architecture (state machine, tenant isolation, anti-spoofing, audit trail, RED/GREEN separation) is fully intact. The two functional bugs (B1, B2) are missing routes that Replit's UI expects — straightforward to fix. No critical or high severity security issues found.

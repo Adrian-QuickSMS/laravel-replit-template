@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\AdminUser;
 use App\Services\Admin\AdminAuditService;
 
 class AdminAuthenticate
@@ -29,17 +30,32 @@ class AdminAuthenticate
         
         if (config('app.env') === 'local' || config('app.debug') === true) {
             if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
-                session()->put('admin_auth', [
-                    'authenticated' => true,
-                    'mfa_verified' => true,
-                    'user_id' => 1,
-                    'email' => 'admin@quicksms.co.uk',
-                    'name' => 'System Administrator',
-                    'role' => 'super_admin',
-                    'last_activity' => now()->timestamp,
-                    'ip_address' => $request->ip(),
-                ]);
-                session()->put('admin_user_email', 'admin@quicksms.co.uk');
+                $devAdmin = AdminUser::where('status', 'active')->orderBy('created_at', 'asc')->first();
+                if ($devAdmin) {
+                    session()->put('admin_auth', [
+                        'authenticated' => true,
+                        'mfa_verified' => true,
+                        'admin_id' => $devAdmin->id,
+                        'email' => $devAdmin->email,
+                        'name' => $devAdmin->full_name,
+                        'role' => $devAdmin->role,
+                        'last_activity' => now()->timestamp,
+                        'ip_address' => $request->ip(),
+                    ]);
+                    session()->put('admin_user_email', $devAdmin->email);
+                } else {
+                    session()->put('admin_auth', [
+                        'authenticated' => true,
+                        'mfa_verified' => true,
+                        'admin_id' => 'dev-fallback',
+                        'email' => 'admin@quicksms.com',
+                        'name' => 'Dev Administrator',
+                        'role' => 'super_admin',
+                        'last_activity' => now()->timestamp,
+                        'ip_address' => $request->ip(),
+                    ]);
+                    session()->put('admin_user_email', 'admin@quicksms.com');
+                }
             }
         }
         
@@ -136,26 +152,25 @@ class AdminAuthenticate
         if (empty($email)) {
             return false;
         }
-        
-        $adminUsers = config('admin.users', []);
-        foreach ($adminUsers as $user) {
-            if (strtolower($user['email']) === strtolower($email) && ($user['status'] ?? '') === 'active') {
-                return true;
-            }
-        }
-        
-        $whitelistedDomains = config('admin.security.whitelisted_domains', []);
-        $emailParts = explode('@', $email);
-        if (count($emailParts) === 2) {
-            $domain = strtolower($emailParts[1]);
-            foreach ($whitelistedDomains as $whitelistedDomain) {
-                if ($domain === strtolower($whitelistedDomain)) {
+
+        try {
+            $adminUser = AdminUser::where('email', strtolower($email))
+                ->where('status', 'active')
+                ->first();
+
+            return $adminUser !== null;
+        } catch (\Exception $e) {
+            \Log::warning('[AdminAuth] DB lookup failed, falling back to config', ['error' => $e->getMessage()]);
+
+            $adminUsers = config('admin.users', []);
+            foreach ($adminUsers as $user) {
+                if (strtolower($user['email']) === strtolower($email) && ($user['status'] ?? '') === 'active') {
                     return true;
                 }
             }
+
+            return false;
         }
-        
-        return false;
     }
     
     protected function isIpAllowed(string $ip): bool

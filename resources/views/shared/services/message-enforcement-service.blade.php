@@ -76,17 +76,28 @@ var MessageEnforcementService = (function() {
     var currentTenantId = null;
 
     function initialize() {
-        loadActiveRules();
-        initializeRuleIndex();
-        startCacheRefreshMonitor();
-        console.log('[MessageEnforcementService] Initialized with rule counts:', {
-            normalisation: activeRules.normalisation.length,
-            senderid: activeRules.senderid.length,
-            content: activeRules.content.length,
-            url: activeRules.url.length
-        });
-        console.log('[MessageEnforcementService] Feature flags:', featureFlags);
-        console.log('[MessageEnforcementService] Cache version:', cacheMetadata.version);
+        var rulesPromise = loadActiveRules();
+        if (rulesPromise && typeof rulesPromise.then === 'function') {
+            rulesPromise.then(function() {
+                initializeRuleIndex();
+                startCacheRefreshMonitor();
+                console.log('[MessageEnforcementService] Initialized with rule counts:', {
+                    normalisation: activeRules.normalisation.length,
+                    senderid: activeRules.senderid.length,
+                    content: activeRules.content.length,
+                    url: activeRules.url.length
+                });
+                console.log('[MessageEnforcementService] Feature flags:', featureFlags);
+                console.log('[MessageEnforcementService] Cache version:', cacheMetadata.version);
+            }).catch(function(err) {
+                console.error('[MessageEnforcementService] Init error:', err);
+                initializeRuleIndex();
+                startCacheRefreshMonitor();
+            });
+        } else {
+            initializeRuleIndex();
+            startCacheRefreshMonitor();
+        }
     }
 
     // Initialize indexed rule storage for O(1) lookups
@@ -269,44 +280,78 @@ var MessageEnforcementService = (function() {
         };
     }
 
-    function loadActiveRules() {
-        activeRules.normalisation = [
-            { id: 'NORM-001', name: 'UK Number Format', type: 'phone', pattern: '^0([0-9]{10})$', replacement: '+44$1', priority: 1, status: 'active' },
-            { id: 'NORM-002', name: 'UTF-8 Encoding', type: 'encoding', charset: 'UTF-8', fallback: 'GSM-7', priority: 2, status: 'active' },
-            { id: 'NORM-003', name: 'Strip Non-GSM', type: 'format', pattern: '[^\x20-\x7E\u00A0-\u00FF]', replacement: '', priority: 3, status: 'active' }
-        ];
-
-        activeRules.senderid = [
-            { id: 'SID-001', name: 'Block Bank Names', type: 'pattern', pattern: 'HSBC|BARCLAYS|LLOYDS|NATWEST|SANTANDER', action: 'block', status: 'active' },
-            { id: 'SID-002', name: 'Block HMRC', type: 'exact', value: 'HMRC', action: 'block', status: 'active' },
-            { id: 'SID-003', name: 'Block Gov Impersonation', type: 'pattern', pattern: 'GOV\\.UK|DVLA|NHS', action: 'quarantine', status: 'active' },
-            { id: 'SID-004', name: 'Block Lottery', type: 'keyword', keywords: ['WINNER', 'PRIZE', 'LOTTERY', 'JACKPOT'], action: 'block', status: 'active' }
-        ];
-
-        activeRules.content = [
-            { id: 'CNT-001', name: 'Phishing Keywords', category: 'fraud', pattern: 'verify your account|click here immediately|urgent action required|suspended.*account', action: 'block', status: 'active' },
-            { id: 'CNT-002', name: 'Financial Scam', category: 'fraud', pattern: 'you have won|claim your prize|transfer fee|inheritance', action: 'block', status: 'active' },
-            { id: 'CNT-003', name: 'Adult Content', category: 'adult', pattern: '(adult content patterns)', action: 'quarantine', status: 'active' },
-            { id: 'CNT-004', name: 'Gambling Promotion', category: 'gambling', pattern: 'bet now|free spins|casino bonus|betting odds', action: 'quarantine', status: 'active' },
-            { id: 'CNT-005', name: 'Crypto Scam', category: 'fraud', pattern: 'bitcoin.*double|crypto.*guaranteed|invest.*returns', action: 'block', status: 'active' }
-        ];
-
-        activeRules.url = [
-            { id: 'URL-001', name: 'Bit.ly Allowed', domain: 'bit.ly', type: 'whitelist', category: 'shortener', status: 'active' },
-            { id: 'URL-002', name: 'TinyURL Allowed', domain: 'tinyurl.com', type: 'whitelist', category: 'shortener', status: 'active' },
-            { id: 'URL-003', name: 'Known Phishing', domain: 'secure-bank-verify.com', type: 'blacklist', category: 'phishing', status: 'active' },
-            { id: 'URL-004', name: 'Known Malware', domain: 'free-download-now.net', type: 'blacklist', category: 'malware', status: 'active' },
-            { id: 'URL-005', name: 'Block Raw IP URLs', pattern: '^https?://\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}', type: 'pattern_blacklist', category: 'suspicious', status: 'active' }
-        ];
-
-        activeRules.url.push({
-            id: 'URL-AGE-001',
-            name: 'New Domain Check',
-            type: 'domain_age',
-            minAgeDays: 30,
-            action: 'quarantine',
-            status: 'active'
+    function hydrateRules(senderidData, contentData, urlData, normData, daSettingsData) {
+        activeRules.normalisation = (normData || []).filter(function(c) { return c.is_active; }).map(function(c) {
+            return { id: c.id, name: c.base_character, type: c.character_type || 'letter', base: c.base_character, equivalents: c.equivalents || [], priority: c.sort_order || 0, status: 'active' };
         });
+
+        activeRules.senderid = (senderidData || []).filter(function(r) { return r.is_active; }).map(function(r) {
+            return { id: r.id, name: r.name, type: r.match_type || 'contains', pattern: r.pattern, action: r.action, status: 'active', priority: r.priority || 100 };
+        });
+
+        activeRules.content = (contentData || []).filter(function(r) { return r.is_active; }).map(function(r) {
+            return { id: r.id, name: r.name, category: r.category || 'general', pattern: r.pattern, action: r.action, status: 'active', priority: r.priority || 100 };
+        });
+
+        activeRules.url = (urlData || []).filter(function(r) { return r.is_active; }).map(function(r) {
+            return { id: r.id, name: r.name, domain: r.pattern, pattern: r.pattern, type: r.match_type === 'exact_domain' ? 'blacklist' : 'pattern_blacklist', action: r.action, status: 'active', priority: r.priority || 100 };
+        });
+
+        var daThreshold = 30;
+        (daSettingsData || []).forEach(function(s) {
+            if (s.setting_key === 'domain_age.threshold_hours') daThreshold = Math.round(Number(s.setting_value) / 24) || 30;
+        });
+        activeRules.url.push({ id: 'URL-AGE-001', name: 'New Domain Check', type: 'domain_age', minAgeDays: daThreshold, action: 'quarantine', status: 'active' });
+    }
+
+    function loadActiveRules() {
+        @if(isset($enforcementData))
+        var preloaded = @json($enforcementData);
+        hydrateRules(
+            preloaded.senderidRules || [],
+            preloaded.contentRules || [],
+            preloaded.urlRules || [],
+            preloaded.normalisationChars || [],
+            preloaded.domainAgeSettings || []
+        );
+        console.log('[MessageEnforcementService] Rules loaded from server-injected @json:', {
+            normalisation: activeRules.normalisation.length,
+            senderid: activeRules.senderid.length,
+            content: activeRules.content.length,
+            url: activeRules.url.length
+        });
+        return Promise.resolve();
+        @else
+        var basePath = '/admin/api/enforcement';
+        var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        if (csrfToken) headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+
+        return Promise.all([
+            fetch(basePath + '/senderid-rules', { headers: headers }).then(function(r) { return r.json(); }).catch(function() { return { data: [] }; }),
+            fetch(basePath + '/content-rules', { headers: headers }).then(function(r) { return r.json(); }).catch(function() { return { data: [] }; }),
+            fetch(basePath + '/url-rules', { headers: headers }).then(function(r) { return r.json(); }).catch(function() { return { data: [] }; }),
+            fetch(basePath + '/normalisation', { headers: headers }).then(function(r) { return r.json(); }).catch(function() { return { data: [] }; }),
+            fetch(basePath + '/settings?group=domain_age', { headers: headers }).then(function(r) { return r.json(); }).catch(function() { return { data: [] }; })
+        ]).then(function(results) {
+            hydrateRules(
+                results[0].data || [],
+                results[1].data || [],
+                results[2].data || [],
+                results[3].data || [],
+                results[4].data || []
+            );
+
+            console.log('[MessageEnforcementService] Rules loaded from API:', {
+                normalisation: activeRules.normalisation.length,
+                senderid: activeRules.senderid.length,
+                content: activeRules.content.length,
+                url: activeRules.url.length
+            });
+        }).catch(function(err) {
+            console.error('[MessageEnforcementService] Failed to load rules from API, using empty defaults:', err);
+        });
+        @endif
     }
 
     function evaluate(message, options) {

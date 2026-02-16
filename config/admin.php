@@ -36,6 +36,8 @@ return [
         'log_all_actions' => true,
     ],
     
+    // DEPRECATED: Admin users now stored in admin_users DB table.
+    // Kept as fallback only if DB is unreachable.
     'users' => [
         [
             'id' => 'admin-001',

@@ -43,6 +43,58 @@
         });
     }
     
+    // SenderID Returned Banner Logic
+    (function() {
+        fetch('/api/notifications?type=SENDERID_RETURNED')
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.success && result.data && result.data.length > 0) {
+                    var notification = result.data[0];
+                    var banner = document.getElementById('senderid-returned-banner');
+                    if (banner) {
+                        var nameEl = document.getElementById('senderid-returned-name');
+                        var linkEl = document.getElementById('senderid-returned-link');
+                        if (nameEl && notification.meta) nameEl.textContent = notification.meta.sender_id_value || '';
+                        if (linkEl) {
+                            linkEl.href = notification.deep_link || '#';
+                            linkEl.setAttribute('data-notification-uuid', notification.uuid);
+                            linkEl.addEventListener('click', function(e) {
+                                var uuid = this.getAttribute('data-notification-uuid');
+                                if (uuid) {
+                                    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+                                    fetch('/api/notifications/' + uuid + '/read', {
+                                        method: 'POST',
+                                        headers: {
+                                            'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+                                            'Content-Type': 'application/json'
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        banner.setAttribute('data-notification-uuid', notification.uuid);
+                        banner.style.display = 'block';
+                    }
+                }
+            })
+            .catch(function() {});
+    })();
+
+    window.dismissSenderIdBanner = function(btn) {
+        var banner = document.getElementById('senderid-returned-banner');
+        var uuid = banner ? banner.getAttribute('data-notification-uuid') : null;
+        if (uuid) {
+            var csrfToken = document.querySelector('meta[name="csrf-token"]');
+            fetch('/api/notifications/' + uuid + '/dismiss', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+    };
+
     // Show/hide TEST mode activation banner based on account state
     // Default: Show banner if no lifecycle state is set (new accounts default to TEST)
     var testModeBanner = document.getElementById('test-mode-activation-banner');

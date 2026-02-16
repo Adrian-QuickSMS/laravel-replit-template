@@ -41,30 +41,51 @@ class AdminUser extends Authenticatable
         'last_name',
         'role',
         'status',
+        'department',
         'mfa_secret',
+        'mfa_method',
+        'mfa_enabled',
+        'mfa_enabled_at',
+        'sms_mfa_code',
+        'sms_mfa_expires_at',
+        'sms_mfa_attempts',
+        'invite_token',
+        'invite_sent_at',
+        'invite_expires_at',
         'ip_whitelist',
         'last_login_at',
         'last_login_ip',
         'failed_login_attempts',
-        'account_locked_until',
+        'locked_until',
         'password_changed_at',
+        'force_password_change',
+        'phone',
+        'created_by',
+        'updated_by',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
         'mfa_secret',
+        'sms_mfa_code',
     ];
 
     protected $casts = [
         'id' => 'string',
         'email_verified_at' => 'datetime',
         'last_login_at' => 'datetime',
-        'account_locked_until' => 'datetime',
+        'locked_until' => 'datetime',
         'password_changed_at' => 'datetime',
         'mfa_enabled' => 'boolean',
+        'mfa_enabled_at' => 'datetime',
+        'force_password_change' => 'boolean',
         'ip_whitelist' => 'array',
         'failed_login_attempts' => 'integer',
+        'sms_mfa_expires_at' => 'datetime',
+        'sms_mfa_attempts' => 'integer',
+        'invite_sent_at' => 'datetime',
+        'invite_expires_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -130,8 +151,8 @@ class AdminUser extends Authenticatable
      */
     public function scopeLocked($query)
     {
-        return $query->whereNotNull('account_locked_until')
-            ->where('account_locked_until', '>', now());
+        return $query->whereNotNull('locked_until')
+            ->where('locked_until', '>', now());
     }
 
     // =====================================================
@@ -151,7 +172,7 @@ class AdminUser extends Authenticatable
      */
     public function isLocked(): bool
     {
-        return $this->account_locked_until && $this->account_locked_until->isFuture();
+        return $this->locked_until && $this->locked_until->isFuture();
     }
 
     /**
@@ -160,7 +181,7 @@ class AdminUser extends Authenticatable
     public function lockAccount(int $minutes = 60): void
     {
         $this->update([
-            'account_locked_until' => now()->addMinutes($minutes),
+            'locked_until' => now()->addMinutes($minutes),
         ]);
     }
 
@@ -170,45 +191,35 @@ class AdminUser extends Authenticatable
     public function unlockAccount(): void
     {
         $this->update([
-            'account_locked_until' => null,
+            'locked_until' => null,
             'failed_login_attempts' => 0,
         ]);
     }
 
-    /**
-     * Increment failed login attempts
-     */
     public function incrementFailedLogins(): void
     {
         $this->increment('failed_login_attempts');
 
-        // Lock after 3 failed attempts (stricter for admins)
         if ($this->failed_login_attempts >= 3) {
             $this->lockAccount(60);
         }
     }
 
-    /**
-     * Reset failed login attempts
-     */
     public function resetFailedLogins(): void
     {
         $this->update([
             'failed_login_attempts' => 0,
-            'account_locked_until' => null,
+            'locked_until' => null,
         ]);
     }
 
-    /**
-     * Record successful login
-     */
     public function recordLogin(string $ipAddress): void
     {
         $this->update([
             'last_login_at' => now(),
             'last_login_ip' => $ipAddress,
             'failed_login_attempts' => 0,
-            'account_locked_until' => null,
+            'locked_until' => null,
         ]);
     }
 
@@ -417,13 +428,101 @@ class AdminUser extends Authenticatable
             'full_name' => $this->full_name,
             'role' => $this->role,
             'role_display' => $this->getRoleDisplayName(),
+            'department' => $this->department,
             'status' => $this->status,
             'mfa_enabled' => $this->mfa_enabled,
+            'mfa_method' => $this->mfa_method,
             'has_ip_whitelist' => !empty($this->ip_whitelist),
+            'phone' => $this->masked_phone,
             'last_login_at' => $this->last_login_at?->toIso8601String(),
+            'failed_login_attempts' => $this->failed_login_attempts,
             'password_needs_change' => $this->needsPasswordChange(),
-            'created_at' => $this->created_at->toIso8601String(),
+            'is_locked' => $this->isLocked(),
+            'created_at' => $this->created_at?->toIso8601String(),
+            'created_by' => $this->created_by,
+            'invite_sent_at' => $this->invite_sent_at?->toIso8601String(),
         ];
+    }
+
+    // =====================================================
+    // SMS MFA METHODS
+    // =====================================================
+
+    public function generateSmsMfaCode(): string
+    {
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $this->update([
+            'sms_mfa_code' => hash('sha256', $code),
+            'sms_mfa_expires_at' => now()->addMinutes(5),
+            'sms_mfa_attempts' => 0,
+        ]);
+
+        return $code;
+    }
+
+    public function verifySmsMfaCode(string $code): bool
+    {
+        if (!$this->sms_mfa_code || !$this->sms_mfa_expires_at) {
+            return false;
+        }
+
+        if ($this->sms_mfa_expires_at->isPast()) {
+            return false;
+        }
+
+        if ($this->sms_mfa_attempts >= 3) {
+            return false;
+        }
+
+        $this->increment('sms_mfa_attempts');
+
+        return hash_equals($this->sms_mfa_code, hash('sha256', $code));
+    }
+
+    public function clearSmsMfaCode(): void
+    {
+        $this->update([
+            'sms_mfa_code' => null,
+            'sms_mfa_expires_at' => null,
+            'sms_mfa_attempts' => 0,
+        ]);
+    }
+
+    public function getMaskedPhoneAttribute(): ?string
+    {
+        if (!$this->phone) return null;
+        return '****' . substr($this->phone, -2);
+    }
+
+    // =====================================================
+    // INVITE METHODS
+    // =====================================================
+
+    public function generateInviteToken(): string
+    {
+        $token = bin2hex(random_bytes(32));
+        $this->update([
+            'invite_token' => hash('sha256', $token),
+            'invite_sent_at' => now(),
+            'invite_expires_at' => now()->addHours(72),
+        ]);
+        return $token;
+    }
+
+    public function hasValidInvite(): bool
+    {
+        return $this->invite_token && $this->invite_expires_at && $this->invite_expires_at->isFuture();
+    }
+
+    public function scopeByDepartment($query, string $department)
+    {
+        return $query->where('department', $department);
+    }
+
+    public function scopeInvited($query)
+    {
+        return $query->whereNotNull('invite_token')->whereNotNull('invite_expires_at');
     }
 
     /**

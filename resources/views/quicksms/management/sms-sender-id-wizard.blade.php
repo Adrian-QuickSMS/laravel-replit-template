@@ -515,8 +515,8 @@ button.btn-save-draft:hover {
                                             </div>
                                         </div>
                                         
-                                        <div class="alert alert-info mt-4">
-                                            <i class="fas fa-info-circle me-2"></i>
+                                        <div class="mt-4" style="background-color: #f0ebf8; border: 1px solid #d5c8e8; border-radius: 0.5rem; padding: 1rem; color: #333;">
+                                            <i class="fas fa-info-circle me-2" style="color: #886CC0;"></i>
                                             After submission, your SenderID will be reviewed by our compliance team. This typically takes 1-2 business days.
                                         </div>
                                     </div>
@@ -955,7 +955,7 @@ $(document).ready(function() {
             use_case_description: $('#inputDescription').val().trim(),
             permission_confirmed: $('#inputConfirmAuthorised').is(':checked'),
             permission_explanation: $('#inputExplanation').val().trim(),
-            sub_account_ids: $('#inputSubaccount').val() || [],
+            sub_account_ids: ($('#inputSubaccount').val() || []).filter(function(v) { return v !== 'main'; }),
             user_ids: $('#inputUsers').val() || [],
             submit: false
         };
@@ -997,7 +997,7 @@ $(document).ready(function() {
             use_case_description: $('#inputDescription').val().trim(),
             permission_confirmed: $('#inputConfirmAuthorised').is(':checked'),
             permission_explanation: $('#inputExplanation').val().trim(),
-            sub_account_ids: $('#inputSubaccount').val() || [],
+            sub_account_ids: ($('#inputSubaccount').val() || []).filter(function(v) { return v !== 'main'; }),
             user_ids: $('#inputUsers').val() || [],
             submit: true
         };

@@ -33,7 +33,10 @@
                     <span class="nav-text">Management</span>
                 </a>
                 <ul aria-expanded="false">
-                    <li><a href="{{ route('admin.assets.sender-ids') }}" class="{{ request()->routeIs('admin.assets.sender-ids') ? 'mm-active' : '' }}">Sender ID Approvals <span class="badge bg-danger rounded-circle" style="font-size: 0.6rem; padding: 0.25rem 0.4rem; margin-left: 0.25rem;">8</span></a></li>
+                    @php
+                        $senderIdPendingCount = \App\Models\SenderId::withoutGlobalScopes()->whereIn('workflow_status', ['submitted', 'info_provided'])->count();
+                    @endphp
+                    <li><a href="{{ route('admin.assets.sender-ids') }}" class="{{ request()->routeIs('admin.assets.sender-ids') ? 'mm-active' : '' }}">Sender ID Approvals @if($senderIdPendingCount > 0)<span class="badge bg-danger" style="font-size: 0.6rem; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-left: 0.25rem; padding: 0;">{{ $senderIdPendingCount }}</span>@endif</a></li>
                     <li><a href="{{ route('admin.assets.rcs-agents') }}" class="{{ request()->routeIs('admin.assets.rcs-agents') ? 'mm-active' : '' }}">RCS Agent Registration <span class="badge bg-danger rounded-circle" style="font-size: 0.6rem; padding: 0.25rem 0.4rem; margin-left: 0.25rem;">3</span></a></li>
                     <li><a href="{{ route('admin.assets.campaigns') }}" class="{{ request()->routeIs('admin.assets.campaigns') ? 'mm-active' : '' }}">Campaigns</a></li>
                     <li><a href="{{ route('admin.management.templates') }}" class="{{ request()->routeIs('admin.management.templates') ? 'mm-active' : '' }}">Templates</a></li>

@@ -1,0 +1,1235 @@
+Replit Task: Wire Admin Login to Database & Add SMS MFA
+1. CONTEXT — What Replit Already Knows
+Your overview is accurate. The AdminAuthController::findAdminUser() reads from config('admin.users'). The AdminUser model and admin_users table exist with lockout, password rotation, and MFA methods already coded but unwired. The login view (admin/auth/login.blade.php) has client-side mock auth with hardcoded passwords in JavaScript.
+
+This task wires everything to the database and adds SMS as a second MFA option alongside the existing TOTP.
+
+2. MIGRATION — Add Missing Columns
+The admin user management UI (admin/security/admin-users.blade.php) expects fields that don't exist in the table yet. Create a single new migration:
+
+php artisan make:migration add_admin_user_profile_columns --table=admin_users
+
+Add these columns:
+
+Column	Type	Default	Notes
+department	VARCHAR(100)	NULL	Engineering, Operations, Customer Success, Technical Support, Security
+mfa_method	VARCHAR(20)	NULL	CHECK constraint: 'authenticator', 'sms', 'both', or NULL
+sms_mfa_code	VARCHAR(255)	NULL	SHA-256 hashed 6-digit SMS code (transient, cleared after verify)
+sms_mfa_expires_at	TIMESTAMP	NULL	SMS code expiry
+sms_mfa_attempts	INTEGER	0	Rate limiter (max 3 attempts)
+invite_token	VARCHAR(255)	NULL	UNIQUE, for invited users who haven't set up yet
+invite_sent_at	TIMESTAMP	NULL	
+invite_expires_at	TIMESTAMP	NULL	72-hour expiry
+Use raw SQL for the CHECK constraint:
+
+DB::statement("ALTER TABLE admin_users ADD CONSTRAINT chk_admin_mfa_method CHECK (mfa_method IN ('authenticator', 'sms', 'both') OR mfa_method IS NULL)");
+
+Also add a CHECK constraint on email domain:
+
+DB::statement("ALTER TABLE admin_users ADD CONSTRAINT chk_admin_email_domain CHECK (email LIKE '%@quicksms.com')");
+
+Do NOT modify the existing 2026_02_10_100001_create_admin_users_table_postgres.php migration.
+
+3. SEED MIGRATION — Initial Admin Users
+Create a second migration to seed admin users into the database:
+
+// database/migrations/2026_02_16_200002_seed_initial_admin_users.php
+
+Seed these users (passwords will be auto-hashed by the AdminUser model's saving event):
+
+Email	First Name	Last Name	Role	Department	Status	force_password_change
+admin@quicksms.com	System	Administrator	super_admin	Engineering	active	true
+support@quicksms.com	Support	Team	support	Customer Success	active	true
+finance@quicksms.com	Finance	Team	finance	Operations	active	true
+All users get default password QuickSMS2026! with force_password_change = true. MFA not enabled — will be forced on first login.
+
+The down() method should delete by email (targeted), not truncate:
+
+AdminUser::whereIn('email', ['admin@quicksms.com', 'support@quicksms.com', 'finance@quicksms.com'])->forceDelete();
+
+IMPORTANT: The config users use @quicksms.co.uk but the DB users must use @quicksms.com (per business requirement). Both domains should remain whitelisted in the middleware during the transition period.
+
+4. UPDATE AdminUser MODEL
+File: app/Models/AdminUser.php
+
+Add these to $fillable:
+
+'department', 'mfa_method', 'sms_mfa_code', 'sms_mfa_expires_at', 'sms_mfa_attempts',
+'invite_token', 'invite_sent_at', 'invite_expires_at',
+
+Add these to $hidden:
+
+'sms_mfa_code',
+
+Add these to $casts:
+
+'sms_mfa_expires_at' => 'datetime',
+'invite_sent_at' => 'datetime',
+'invite_expires_at' => 'datetime',
+'sms_mfa_attempts' => 'integer',
+
+Add these methods:
+
+/**
+ * Generate and store SMS MFA code (hashed)
+ * Returns the plaintext code for sending via SMS
+ */
+public function generateSmsMfaCode(): string
+{
+    $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+    $this->update([
+        'sms_mfa_code' => hash('sha256', $code),
+        'sms_mfa_expires_at' => now()->addMinutes(5),
+        'sms_mfa_attempts' => 0,
+    ]);
+
+    return $code;
+}
+
+/**
+ * Verify SMS MFA code
+ */
+public function verifySmsMfaCode(string $code): bool
+{
+    if (!$this->sms_mfa_code || !$this->sms_mfa_expires_at) {
+        return false;
+    }
+
+    if ($this->sms_mfa_expires_at->isPast()) {
+        return false;
+    }
+
+    if ($this->sms_mfa_attempts >= 3) {
+        return false;
+    }
+
+    $this->increment('sms_mfa_attempts');
+
+    return hash_equals($this->sms_mfa_code, hash('sha256', $code));
+}
+
+/**
+ * Clear SMS MFA state after successful verification
+ */
+public function clearSmsMfaCode(): void
+{
+    $this->update([
+        'sms_mfa_code' => null,
+        'sms_mfa_expires_at' => null,
+        'sms_mfa_attempts' => 0,
+    ]);
+}
+
+/**
+ * Get masked phone number for display (e.g. ****42)
+ */
+public function getMaskedPhoneAttribute(): ?string
+{
+    if (!$this->phone) return null;
+    return '****' . substr($this->phone, -2);
+}
+
+/**
+ * Generate invite token
+ */
+public function generateInviteToken(): string
+{
+    $token = bin2hex(random_bytes(32));
+    $this->update([
+        'invite_token' => hash('sha256', $token),
+        'invite_sent_at' => now(),
+        'invite_expires_at' => now()->addHours(72),
+    ]);
+    return $token;
+}
+
+/**
+ * Check if invite is still valid
+ */
+public function hasValidInvite(): bool
+{
+    return $this->invite_token && $this->invite_expires_at && $this->invite_expires_at->isFuture();
+}
+
+public function scopeByDepartment($query, string $department)
+{
+    return $query->where('department', $department);
+}
+
+public function scopeInvited($query)
+{
+    return $query->whereNotNull('invite_token')->whereNotNull('invite_expires_at');
+}
+
+Update toAdminArray() to include the new fields:
+
+public function toAdminArray(): array
+{
+    return [
+        'id' => $this->id,
+        'email' => $this->email,
+        'first_name' => $this->first_name,
+        'last_name' => $this->last_name,
+        'full_name' => $this->full_name,
+        'role' => $this->role,
+        'role_display' => $this->getRoleDisplayName(),
+        'department' => $this->department,
+        'status' => $this->status,
+        'mfa_enabled' => $this->mfa_enabled,
+        'mfa_method' => $this->mfa_method,
+        'has_ip_whitelist' => !empty($this->ip_whitelist),
+        'phone' => $this->masked_phone,
+        'last_login_at' => $this->last_login_at?->toIso8601String(),
+        'failed_login_attempts' => $this->failed_login_attempts,
+        'password_needs_change' => $this->needsPasswordChange(),
+        'is_locked' => $this->isLocked(),
+        'created_at' => $this->created_at?->toIso8601String(),
+        'created_by' => $this->created_by,
+        'invite_sent_at' => $this->invite_sent_at?->toIso8601String(),
+    ];
+}
+
+5. REWRITE AdminAuthController — The Core Change
+File: app/Http/Controllers/AdminAuthController.php
+
+5a. Replace findAdminUser()
+BEFORE (config-based):
+
+protected function findAdminUser(string $email): ?array
+{
+    $adminUsers = config('admin.users', []);
+    foreach ($adminUsers as $user) {
+        if (strtolower($user['email']) === strtolower($email)) {
+            return $user;
+        }
+    }
+    return null;
+}
+
+AFTER (database-based):
+
+protected function findAdminUser(string $email): ?\App\Models\AdminUser
+{
+    return \App\Models\AdminUser::where('email', strtolower($email))->first();
+}
+
+5b. Rewrite login() method
+The full new login() method must:
+
+Validate email/password presence
+Validate email domain is @quicksms.com (application-level, in addition to DB constraint)
+Find user via AdminUser::where('email', ...)->first()
+If not found → log admin_login_failed with reason user_not_found, return generic "Invalid credentials"
+If found but status !== 'active' → log with reason account_inactive, return "Account is not active"
+If isLocked() → log with reason account_locked, return "Account is temporarily locked. Try again later."
+If !Hash::check($password, $adminUser->password) → call $adminUser->incrementFailedLogins(), log with reason invalid_password, return generic "Invalid credentials"
+On successful password check → call $adminUser->recordLogin($request->ip())
+Store session:
+session()->put('admin_auth', [
+    'admin_id' => $adminUser->id,
+    'email' => $adminUser->email,
+    'name' => $adminUser->full_name,
+    'role' => $adminUser->role,
+    'authenticated' => true,
+    'mfa_verified' => false,
+    'mfa_setup_required' => config('admin.mfa.required', true) && !$adminUser->hasMfaEnabled(),
+    'mfa_enabled' => $adminUser->hasMfaEnabled(),
+    'mfa_method' => $adminUser->mfa_method,
+    'has_phone' => !empty($adminUser->phone),
+    'last_activity' => now()->timestamp,
+    'login_at' => now()->toIso8601String(),
+]);
+
+If MFA required:
+If not enabled → redirect to MFA setup
+If enabled → redirect to MFA verify (which now offers method choice)
+If MFA not required → set mfa_verified = true, check needsPasswordChange():
+If needs change → redirect to /admin/password/change
+Otherwise → redirect to dashboard
+CRITICAL: Never return different error messages for "user not found" vs "wrong password". Always return "Invalid credentials" for both to prevent user enumeration.
+
+5c. Update completeMfaSetup() — Persist to DB
+After verifying the TOTP code, persist the secret to the database:
+
+$adminUser = AdminUser::find(session('admin_auth.admin_id'));
+if ($adminUser) {
+    $adminUser->enableMfa($secret); // This encrypts and stores
+    $adminUser->update(['mfa_method' => 'authenticator']);
+}
+
+Remove the // TODO comment about persisting MFA secret.
+
+5d. Update verifyMfa() — Read from DB
+Replace the config lookup with:
+
+$adminUser = AdminUser::find($adminSession['admin_id']);
+$mfaSecret = $adminUser?->getMfaSecret(); // Returns decrypted secret
+
+After successful verification, check needsPasswordChange():
+
+if ($adminUser->needsPasswordChange()) {
+    return redirect()->route('admin.password.change');
+}
+return redirect()->route('admin.dashboard');
+
+5e. Add SMS MFA methods (NEW)
+public function sendSmsMfa(Request $request)
+{
+    $adminSession = session('admin_auth');
+    if (!$adminSession || !$adminSession['authenticated']) {
+        return response()->json(['error' => 'Not authenticated'], 401);
+    }
+
+    $adminUser = AdminUser::find($adminSession['admin_id']);
+    if (!$adminUser || !$adminUser->phone) {
+        return response()->json(['error' => 'No phone number configured'], 422);
+    }
+
+    $code = $adminUser->generateSmsMfaCode();
+
+    // TODO: Send SMS via your SMS gateway
+    // For now, log it (DEVELOPMENT ONLY — remove in production)
+    Log::info('[DEV ONLY] Admin SMS MFA code', ['code' => $code, 'email' => $adminUser->email]);
+
+    return response()->json([
+        'success' => true,
+        'masked_phone' => $adminUser->masked_phone,
+    ]);
+}
+
+public function verifySmsMfa(Request $request)
+{
+    $request->validate(['code' => 'required|string|size:6']);
+
+    $adminSession = session('admin_auth');
+    if (!$adminSession) {
+        return redirect()->route('admin.login');
+    }
+
+    $adminUser = AdminUser::find($adminSession['admin_id']);
+    if (!$adminUser) {
+        return redirect()->route('admin.login');
+    }
+
+    if (!$adminUser->verifySmsMfaCode($request->code)) {
+        AdminAuditService::log('admin_mfa_failed', [
+            'reason' => 'invalid_sms_code',
+            'attempts' => $adminUser->sms_mfa_attempts,
+        ]);
+
+        if ($adminUser->sms_mfa_attempts >= 3) {
+            return response()->json(['error' => 'Too many attempts. Request a new code.'], 429);
+        }
+
+        return response()->json(['error' => 'Invalid code'], 422);
+    }
+
+    $adminUser->clearSmsMfaCode();
+
+    // Update mfa_method if this is first SMS verification
+    if (!$adminUser->mfa_method || $adminUser->mfa_method === 'authenticator') {
+        $newMethod = $adminUser->mfa_method === 'authenticator' ? 'both' : 'sms';
+        $adminUser->update(['mfa_method' => $newMethod]);
+        if (!$adminUser->mfa_enabled) {
+            // For SMS-only MFA, we still mark mfa_enabled
+            // But we can't use enableMfa() since that requires a TOTP secret
+            // Instead update directly, being careful of the DB trigger
+            $adminUser->update(['mfa_enabled' => true, 'mfa_enabled_at' => now()]);
+        }
+    }
+
+    $adminSession['mfa_verified'] = true;
+    session()->put('admin_auth', $adminSession);
+
+    AdminAuditService::log('admin_mfa_verified', ['method' => 'sms']);
+
+    if ($adminUser->needsPasswordChange()) {
+        return response()->json(['redirect' => route('admin.password.change')]);
+    }
+
+    return response()->json(['redirect' => route('admin.dashboard')]);
+}
+
+5f. Add Forced Password Change (NEW)
+public function showPasswordChange()
+{
+    $adminSession = session('admin_auth');
+    if (!$adminSession || !$adminSession['authenticated'] || !$adminSession['mfa_verified']) {
+        return redirect()->route('admin.login');
+    }
+
+    return view('admin.auth.password-change', [
+        'page_title' => 'Change Password',
+    ]);
+}
+
+public function changePassword(Request $request)
+{
+    $request->validate([
+        'current_password' => 'required|string',
+        'new_password' => 'required|string|min:12|confirmed',
+    ]);
+
+    $adminUser = AdminUser::find(session('admin_auth.admin_id'));
+    if (!$adminUser || !Hash::check($request->current_password, $adminUser->password)) {
+        return back()->withErrors(['current_password' => 'Current password is incorrect']);
+    }
+
+    // Enforce complexity: uppercase, lowercase, number, symbol
+    $password = $request->new_password;
+    if (!preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) ||
+        !preg_match('/[0-9]/', $password) || !preg_match('/[^A-Za-z0-9]/', $password)) {
+        return back()->withErrors(['new_password' => 'Password must contain uppercase, lowercase, number, and symbol']);
+    }
+
+    $adminUser->changePassword($password);
+    $adminUser->update(['force_password_change' => false]);
+
+    AdminAuditService::log('admin_password_changed', ['admin_id' => $adminUser->id]);
+
+    return redirect()->route('admin.dashboard')->with('success', 'Password changed successfully');
+}
+
+6. UPDATE AdminAuthenticate MIDDLEWARE
+File: app/Http/Middleware/AdminAuthenticate.php
+
+6a. Replace isWhitelistedUser() — Check DB instead of config
+BEFORE:
+
+protected function isWhitelistedUser(string $email): bool
+{
+    // ... checks config('admin.users') and whitelisted domains
+}
+
+AFTER:
+
+protected function isWhitelistedUser(string $email): bool
+{
+    if (empty($email)) {
+        return false;
+    }
+
+    // Check database first — this is the primary auth source
+    $existsInDb = \App\Models\AdminUser::where('email', strtolower($email))
+        ->whereNull('deleted_at')
+        ->exists();
+
+    if ($existsInDb) {
+        return true;
+    }
+
+    // Fallback: check whitelisted domains (for transition period)
+    $whitelistedDomains = config('admin.security.whitelisted_domains', []);
+    $emailParts = explode('@', $email);
+    if (count($emailParts) === 2) {
+        $domain = strtolower($emailParts[1]);
+        foreach ($whitelistedDomains as $whitelistedDomain) {
+            if ($domain === strtolower($whitelistedDomain)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+6b. Remove Dev Auto-Login or Make It Use DB
+The auto-login block at lines 30-44 creates a fake session with admin@quicksms.co.uk. This is a security issue. Replace it:
+
+OPTION A (Recommended) — Auto-login from DB in dev:
+
+if ((config('app.env') === 'local' || config('app.debug') === true)) {
+    if (!session()->has('admin_auth') || session('admin_auth.authenticated') !== true) {
+        $devAdmin = \App\Models\AdminUser::where('role', 'super_admin')
+            ->where('status', 'active')
+            ->first();
+
+        if ($devAdmin) {
+            session()->put('admin_auth', [
+                'authenticated' => true,
+                'mfa_verified' => true,
+                'admin_id' => $devAdmin->id,
+                'email' => $devAdmin->email,
+                'name' => $devAdmin->full_name,
+                'role' => $devAdmin->role,
+                'last_activity' => now()->timestamp,
+                'ip_address' => $request->ip(),
+            ]);
+            session()->put('admin_user_email', $devAdmin->email);
+        }
+    }
+}
+
+OPTION B — Remove entirely and force login even in dev. (More secure, but slows development.)
+
+Use Option A for now.
+
+6c. Add active-status revalidation
+After the session timeout check and before MFA check, add:
+
+// Revalidate admin user is still active on each request
+$adminUser = \App\Models\AdminUser::find($adminSession['admin_id'] ?? null);
+if (!$adminUser || $adminUser->status !== 'active' || $adminUser->isLocked()) {
+    session()->forget('admin_auth');
+    if ($request->ajax() || $request->wantsJson()) {
+        return response()->json(['error' => 'Account suspended or locked'], 403);
+    }
+    return redirect()->route('admin.login')->with('error', 'Your account has been suspended or locked.');
+}
+
+7. UPDATE ROUTES
+File: routes/web.php
+
+Add these routes inside the existing Route::prefix('admin') → AdminAuthController group (lines 130-139):
+
+Route::post('/mfa/send-sms', 'sendSmsMfa')->name('admin.mfa.send-sms');
+Route::post('/mfa/verify-sms', 'verifySmsMfa')->name('admin.mfa.verify-sms');
+Route::get('/password/change', 'showPasswordChange')->name('admin.password.change');
+Route::post('/password/change', 'changePassword')->name('admin.password.change.submit');
+
+Add these routes inside the existing admin middleware group (after line 203):
+
+Route::prefix('api/admin-users')->controller(\App\Http\Controllers\Admin\AdminUserController::class)->group(function () {
+    Route::get('/', 'index')->name('admin.api.admin-users.index');
+    Route::post('/', 'store')->name('admin.api.admin-users.store');
+    Route::get('/{id}', 'show')->name('admin.api.admin-users.show');
+    Route::put('/{id}', 'update')->name('admin.api.admin-users.update');
+    Route::post('/{id}/suspend', 'suspend')->name('admin.api.admin-users.suspend');
+    Route::post('/{id}/activate', 'activate')->name('admin.api.admin-users.activate');
+    Route::post('/{id}/unlock', 'unlock')->name('admin.api.admin-users.unlock');
+    Route::post('/{id}/reset-mfa', 'resetMfa')->name('admin.api.admin-users.reset-mfa');
+    Route::post('/{id}/resend-invite', 'resendInvite')->name('admin.api.admin-users.resend-invite');
+    Route::delete('/{id}', 'destroy')->name('admin.api.admin-users.destroy');
+});
+
+8. REWRITE LOGIN VIEW JAVASCRIPT
+File: resources/views/admin/auth/login.blade.php
+
+The current JS (lines 418-628) uses mockAdminUsers with hardcoded passwords and setTimeout for fake delays. Replace the entire <script> block.
+
+DELETE the mockAdminUsers object and all mock authentication logic.
+
+REPLACE the form submit handler with a real fetch() call:
+
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    var loginBtn = document.getElementById('loginBtn');
+    var loginStatus = document.getElementById('loginStatus');
+
+    // Client-side validation
+    document.getElementById('email').classList.remove('is-invalid');
+    document.getElementById('password').classList.remove('is-invalid');
+    loginStatus.classList.add('d-none');
+
+    var isValid = true;
+    if (!email || !email.includes('@')) {
+        document.getElementById('email').classList.add('is-invalid');
+        isValid = false;
+    }
+    if (!password) {
+        document.getElementById('password').classList.add('is-invalid');
+        isValid = false;
+    }
+    if (!isValid) return;
+
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Authenticating...';
+
+    fetch('{{ route("admin.login.submit") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email: email, password: password }),
+    })
+    .then(function(response) { return response.json().then(function(data) { return { status: response.status, data: data }; }); })
+    .then(function(result) {
+        if (result.data.redirect) {
+            // Server says redirect (MFA setup, MFA verify, dashboard, password change)
+            window.location.href = result.data.redirect;
+            return;
+        }
+
+        if (result.data.mfa_required) {
+            // Show MFA step
+            currentEmail = email;
+            currentMfaMethod = result.data.mfa_method; // 'authenticator', 'sms', 'both', or null
+            currentHasPhone = result.data.has_phone || false;
+
+            document.getElementById('loginStep1').classList.add('d-none');
+            document.getElementById('loginStep2').classList.remove('d-none');
+
+            // If only one MFA method available, skip method choice
+            if (currentMfaMethod === 'authenticator') {
+                selectMfaMethod('authenticator');
+            } else if (currentMfaMethod === 'sms') {
+                selectMfaMethod('sms');
+            } else {
+                // 'both' or first-time setup — show method choice
+                resetMfaStep();
+                // Hide SMS option if no phone number
+                if (!currentHasPhone) {
+                    document.getElementById('chooseSmsRcs').style.display = 'none';
+                }
+            }
+            return;
+        }
+
+        if (result.data.errors || result.data.error) {
+            var errorMsg = result.data.error || Object.values(result.data.errors).flat()[0] || 'Login failed';
+            loginStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + errorMsg + '</div>';
+            loginStatus.classList.remove('d-none');
+        }
+    })
+    .catch(function() {
+        loginStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Connection error. Please try again.</div>';
+        loginStatus.classList.remove('d-none');
+    })
+    .finally(function() {
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = '<i class="fas fa-shield-alt me-2"></i>Sign In';
+    });
+});
+
+IMPORTANT: The login() controller method currently returns a redirect(). You need to make it return JSON when the request wants JSON (the fetch sends Accept: application/json). Update the controller's login() method to detect $request->wantsJson() and return JSON responses:
+
+// In login() method, after successful password check:
+if ($request->wantsJson()) {
+    if ($mfaRequired) {
+        return response()->json([
+            'mfa_required' => true,
+            'mfa_method' => $adminUser->mfa_method,
+            'has_phone' => !empty($adminUser->phone),
+            'mfa_setup_required' => !$adminUser->hasMfaEnabled(),
+        ]);
+    }
+    return response()->json(['redirect' => route('admin.dashboard')]);
+}
+
+// Keep existing redirect responses for non-AJAX fallback
+
+For MFA verification via TOTP, update the verify button handler:
+
+document.getElementById('verifyMfaBtn').addEventListener('click', function() {
+    var code = Array.from(otpInputs).map(function(i) { return i.value; }).join('');
+    var mfaStatus = document.getElementById('mfaStatus');
+    var verifyBtn = this;
+
+    if (code.length !== 6) {
+        mfaStatus.innerHTML = '<div class="alert alert-danger mb-0">Please enter all 6 digits</div>';
+        mfaStatus.classList.remove('d-none');
+        return;
+    }
+
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying...';
+
+    var verifyUrl = currentMfaType === 'sms'
+        ? '{{ route("admin.mfa.verify-sms") }}'
+        : '{{ route("admin.mfa.verify.submit") }}';
+
+    fetch(verifyUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ code: code }),
+    })
+    .then(function(r) { return r.json().then(function(d) { return { status: r.status, data: d }; }); })
+    .then(function(result) {
+        if (result.data.redirect) {
+            mfaStatus.innerHTML = '<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-2"></i>Verified! Redirecting...</div>';
+            mfaStatus.classList.remove('d-none');
+            setTimeout(function() { window.location.href = result.data.redirect; }, 500);
+        } else {
+            mfaStatus.innerHTML = '<div class="alert alert-danger mb-0">' + (result.data.error || 'Verification failed') + '</div>';
+            mfaStatus.classList.remove('d-none');
+            otpInputs.forEach(function(i) { i.value = ''; });
+            otpInputs[0].focus();
+        }
+    })
+    .catch(function() {
+        mfaStatus.innerHTML = '<div class="alert alert-danger mb-0">Connection error</div>';
+        mfaStatus.classList.remove('d-none');
+    })
+    .finally(function() {
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Verify & Sign In';
+    });
+});
+
+For SMS method selection, when the user clicks "SMS / RCS":
+
+function selectMfaMethod(method) {
+    currentMfaType = method;
+    document.getElementById('mfaMethodChoice').classList.add('d-none');
+    document.getElementById('backToLoginSection').classList.add('d-none');
+
+    if (method === 'authenticator') {
+        document.getElementById('mfaSubtitle').textContent = 'Authenticator App';
+        document.getElementById('mfaCodeInstruction').textContent = 'Enter the 6-digit code from your authenticator app';
+        document.getElementById('smsResendSection').classList.add('d-none');
+        document.getElementById('mfaCodeEntry').classList.remove('d-none');
+        otpInputs[0].focus();
+    } else {
+        document.getElementById('mfaSubtitle').textContent = 'SMS / RCS Verification';
+        document.getElementById('mfaCodeInstruction').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending code...';
+        document.getElementById('mfaCodeEntry').classList.remove('d-none');
+
+        // Actually send the SMS code
+        fetch('{{ route("admin.mfa.send-sms") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                document.getElementById('mfaCodeInstruction').textContent = 'Enter the 6-digit code sent to ' + (data.masked_phone || 'your phone');
+                document.getElementById('smsResendSection').classList.remove('d-none');
+                otpInputs[0].focus();
+            } else {
+                document.getElementById('mfaCodeInstruction').textContent = data.error || 'Failed to send code';
+            }
+        })
+        .catch(function() {
+            document.getElementById('mfaCodeInstruction').textContent = 'Failed to send code. Try another method.';
+        });
+    }
+}
+
+Also update the verifyMfa controller method to return JSON when the request wants JSON:
+
+// At the end of verifyMfa(), after setting mfa_verified:
+if ($request->wantsJson()) {
+    $adminUser = AdminUser::find($adminSession['admin_id']);
+    if ($adminUser && $adminUser->needsPasswordChange()) {
+        return response()->json(['redirect' => route('admin.password.change')]);
+    }
+    return response()->json(['redirect' => route('admin.dashboard')]);
+}
+// Keep existing redirect for non-AJAX
+
+9. CREATE PASSWORD CHANGE VIEW
+File: resources/views/admin/auth/password-change.blade.php (NEW)
+
+Use the same styling as mfa-setup.blade.php (standalone page, not admin layout). Contents:
+
+Header: "Password Change Required"
+Subtitle: "Your password has expired or this is your first login"
+Form with: Current Password, New Password, Confirm New Password
+Password requirements text: "12+ characters, uppercase, lowercase, number, symbol"
+Submit button: "Update Password"
+Uses standard form POST to {{ route('admin.password.change.submit') }}
+10. CREATE AdminUserController — Admin User Management API
+File: app/Http/Controllers/Admin/AdminUserController.php (NEW)
+
+This controller serves the admin user management page (admin/security/admin-users.blade.php).
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\AdminUser;
+use App\Models\AuthAuditLog;
+use App\Services\Admin\AdminAuditService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+
+class AdminUserController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = AdminUser::query();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+        if ($request->filled('department')) {
+            $query->where('department', $request->department);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('email', 'ilike', "%{$search}%")
+                  ->orWhere('first_name', 'ilike', "%{$search}%")
+                  ->orWhere('last_name', 'ilike', "%{$search}%");
+            });
+        }
+
+        $sortField = $request->get('sort', 'created_at');
+        $sortDir = $request->get('dir', 'desc');
+        $allowedSorts = ['email', 'first_name', 'last_name', 'role', 'status', 'last_login_at', 'created_at'];
+        if (in_array($sortField, $allowedSorts)) {
+            $query->orderBy($sortField, $sortDir === 'asc' ? 'asc' : 'desc');
+        }
+
+        $users = $query->paginate($request->get('per_page', 25));
+
+        return response()->json([
+            'data' => $users->getCollection()->map->toAdminArray(),
+            'meta' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total(),
+            ],
+            'stats' => [
+                'total' => AdminUser::count(),
+                'active' => AdminUser::where('status', 'active')->count(),
+                'suspended' => AdminUser::where('status', 'suspended')->count(),
+                'locked' => AdminUser::where('status', 'locked')->orWhere(function ($q) {
+                    $q->whereNotNull('locked_until')->where('locked_until', '>', now());
+                })->count(),
+                'mfa_enrolled' => AdminUser::where('mfa_enabled', true)->count(),
+                'invited' => AdminUser::whereNotNull('invite_token')->whereNotNull('invite_expires_at')->where('invite_expires_at', '>', now())->count(),
+            ],
+        ]);
+    }
+
+    public function show(string $id)
+    {
+        $user = AdminUser::findOrFail($id);
+
+        $recentActivity = AuthAuditLog::where('actor_id', $user->id)
+            ->where('actor_type', 'admin_user')
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        return response()->json([
+            'user' => $user->toAdminArray(),
+            'ip_whitelist' => $user->ip_whitelist ?? [],
+            'recent_activity' => $recentActivity,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        // Only super_admin can create users
+        $currentRole = session('admin_auth.role');
+        if ($currentRole !== 'super_admin') {
+            return response()->json(['error' => 'Only super admins can create users'], 403);
+        }
+
+        $request->validate([
+            'email' => 'required|email|unique:admin_users,email',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'role' => 'required|in:super_admin,admin,support,finance,readonly',
+            'department' => 'nullable|string|max:100',
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        // Validate email domain
+        $email = strtolower($request->email);
+        if (!str_ends_with($email, '@quicksms.com')) {
+            return response()->json(['error' => 'Email must be @quicksms.com'], 422);
+        }
+
+        try {
+            $tempPassword = bin2hex(random_bytes(16)); // Random temp password
+
+            $user = AdminUser::create([
+                'email' => $email,
+                'password' => $tempPassword, // Will be hashed by model saving event
+                'first_name' => $request->first_name,
+                'last_name' => $request->last_name,
+                'role' => $request->role,
+                'department' => $request->department,
+                'phone' => $request->phone,
+                'status' => 'active',
+                'force_password_change' => true,
+                'created_by' => session('admin_auth.email'),
+            ]);
+
+            $inviteToken = $user->generateInviteToken();
+
+            AdminAuditService::log('admin_user_created', [
+                'created_user_id' => $user->id,
+                'created_email' => $user->email,
+                'role' => $user->role,
+            ]);
+
+            // TODO: Send invite email with $inviteToken
+
+            return response()->json([
+                'success' => true,
+                'user' => $user->toAdminArray(),
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('[AdminUser] Failed to create user', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to create user'], 500);
+        }
+    }
+
+    public function update(Request $request, string $id)
+    {
+        $currentRole = session('admin_auth.role');
+        if (!in_array($currentRole, ['super_admin', 'admin'])) {
+            return response()->json(['error' => 'Insufficient permissions'], 403);
+        }
+
+        $user = AdminUser::findOrFail($id);
+
+        $request->validate([
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
+            'role' => 'sometimes|in:super_admin,admin,support,finance,readonly',
+            'department' => 'sometimes|nullable|string|max:100',
+            'phone' => 'sometimes|nullable|string|max:20',
+        ]);
+
+        // Prevent non-super-admins from promoting to super_admin
+        if ($request->role === 'super_admin' && $currentRole !== 'super_admin') {
+            return response()->json(['error' => 'Only super admins can assign super admin role'], 403);
+        }
+
+        try {
+            $user->update(array_merge(
+                $request->only(['first_name', 'last_name', 'role', 'department', 'phone']),
+                ['updated_by' => session('admin_auth.email')]
+            ));
+
+            AdminAuditService::log('admin_user_updated', [
+                'updated_user_id' => $user->id,
+                'changes' => $request->only(['first_name', 'last_name', 'role', 'department']),
+            ]);
+
+            return response()->json(['success' => true, 'user' => $user->fresh()->toAdminArray()]);
+        } catch (\Exception $e) {
+            Log::error('[AdminUser] Failed to update user', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to update user'], 500);
+        }
+    }
+
+    public function suspend(string $id)
+    {
+        $user = AdminUser::findOrFail($id);
+
+        // Prevent self-suspension
+        if ($user->id === session('admin_auth.admin_id')) {
+            return response()->json(['error' => 'Cannot suspend your own account'], 422);
+        }
+
+        $user->update(['status' => 'suspended', 'updated_by' => session('admin_auth.email')]);
+        AdminAuditService::log('admin_user_suspended', ['user_id' => $user->id, 'email' => $user->email]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function activate(string $id)
+    {
+        $user = AdminUser::findOrFail($id);
+        $user->update(['status' => 'active', 'updated_by' => session('admin_auth.email')]);
+        AdminAuditService::log('admin_user_activated', ['user_id' => $user->id, 'email' => $user->email]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function unlock(string $id)
+    {
+        $user = AdminUser::findOrFail($id);
+        $user->unlockAccount();
+        AdminAuditService::log('admin_user_unlocked', ['user_id' => $user->id, 'email' => $user->email]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function resetMfa(string $id)
+    {
+        $currentRole = session('admin_auth.role');
+        if ($currentRole !== 'super_admin') {
+            return response()->json(['error' => 'Only super admins can reset MFA'], 403);
+        }
+
+        $user = AdminUser::findOrFail($id);
+
+        // IMPORTANT: The DB trigger prevents setting mfa_enabled=false.
+        // To reset MFA, we need to clear the secret and method but keep mfa_enabled=true.
+        // The user will be forced to re-enroll on next login because mfa_secret will be null.
+        $user->update([
+            'mfa_secret' => null,
+            'mfa_method' => null,
+            'mfa_recovery_codes' => null,
+            'mfa_enabled_at' => null,
+            'updated_by' => session('admin_auth.email'),
+        ]);
+
+        AdminAuditService::log('admin_mfa_reset', ['user_id' => $user->id, 'email' => $user->email]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function resendInvite(string $id)
+    {
+        $user = AdminUser::findOrFail($id);
+        $token = $user->generateInviteToken();
+
+        // TODO: Send invite email
+
+        AdminAuditService::log('admin_invite_resent', ['user_id' => $user->id, 'email' => $user->email]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroy(string $id)
+    {
+        $currentRole = session('admin_auth.role');
+        if ($currentRole !== 'super_admin') {
+            return response()->json(['error' => 'Only super admins can delete users'], 403);
+        }
+
+        $user = AdminUser::findOrFail($id);
+
+        if ($user->id === session('admin_auth.admin_id')) {
+            return response()->json(['error' => 'Cannot delete your own account'], 422);
+        }
+
+        $user->update(['updated_by' => session('admin_auth.email')]);
+        $user->delete(); // Soft delete
+
+        AdminAuditService::log('admin_user_deleted', ['user_id' => $user->id, 'email' => $user->email]);
+
+        return response()->json(['success' => true]);
+    }
+}
+
+11. WIRE admin-users.blade.php TO REAL DATA
+File: resources/views/admin/security/admin-users.blade.php
+
+The view currently receives $adminUsers as a PHP array of mock data from the controller. Two options:
+
+Option A (Server-rendered — minimal JS change): Update AdminController::securityAdminUsers() to query the DB:
+
+public function securityAdminUsers()
+{
+    $allowedRoles = ['super_admin', 'admin'];
+    $currentRole = session('admin_auth.role', 'super_admin');
+
+    if (!in_array($currentRole, $allowedRoles)) {
+        abort(403, 'Access denied.');
+    }
+
+    $adminUsers = \App\Models\AdminUser::orderBy('created_at', 'desc')
+        ->get()
+        ->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->full_name,
+                'email' => $user->email,
+                'role' => $user->getRoleDisplayName(),
+                'department' => $user->department ?? 'Unassigned',
+                'status' => ucfirst($user->status),
+                'mfa_status' => $user->mfa_enabled ? 'Enrolled' : 'Not Enrolled',
+                'mfa_method' => $user->mfa_method ? ucfirst($user->mfa_method) : null,
+                'last_login' => $user->last_login_at?->format('Y-m-d H:i:s'),
+                'last_activity' => $user->last_login_at?->format('Y-m-d H:i:s'),
+                'failed_logins_24h' => $user->failed_login_attempts,
+                'created_at' => $user->created_at?->format('Y-m-d'),
+                'created_by' => $user->created_by ?? 'System',
+                'active_sessions' => 0, // TODO: Implement session tracking
+            ];
+        })
+        ->toArray();
+
+    return view('admin.security.admin-users', [
+        'page_title' => 'Admin Users',
+        'adminUsers' => $adminUsers,
+    ]);
+}
+
+Option B (API-driven): Have the Blade JS call GET /admin/api/admin-users instead. Choose this if the view already has client-side table rendering.
+
+Use Option A — the view already receives $adminUsers from PHP and renders it server-side, so this is the simplest change.
+
+Then wire the action buttons (suspend, activate, unlock, reset MFA, delete) to use fetch() calls to the API endpoints from Step 10.
+
+12. UPDATE config/admin.php
+File: config/admin.php
+
+Remove the users array entirely. Replace with:
+
+'users' => [], // Migrated to admin_users database table
+
+Update whitelisted domains to include both:
+
+'security' => [
+    'whitelisted_domains' => [
+        'quicksms.com',
+        'quicksms.co.uk', // Legacy — remove after migration
+    ],
+    // ... rest unchanged
+],
+
+13. FIELD MAPPING — Mock Data vs Database
+The admin-users.blade.php JS and the securityAdminUsers() controller use mock fields that map to DB columns:
+
+Mock Field	DB Column	Notes
+id (ADM001 etc.)	id (UUID)	Different format — UI should use UUID
+name	first_name + last_name	Concatenate via full_name accessor
+email	email	Same
+role (display text)	role (enum)	Use getRoleDisplayName() for display
+department	department	NEW column — add via migration
+status	status (enum)	DB has active/suspended/locked. Mock also has Invited and Archived. Invited = has invite_token. Archived = soft deleted.
+mfa_status	mfa_enabled (boolean)	true → "Enrolled", false → "Not Enrolled"
+mfa_method	mfa_method	NEW column — authenticator, sms, both, or null
+last_login	last_login_at	Same
+last_activity	N/A	No separate field — use last_login_at for now
+failed_logins_24h	failed_login_attempts	DB tracks total, not 24h window. Use as-is.
+created_at	created_at	Same
+created_by	created_by	Same
+active_sessions	N/A	Not tracked yet — return 0
+invite_sent_at	invite_sent_at	NEW column
+14. CRITICAL RULES
+RULE 1: NEVER LEAK DIFFERENT ERRORS FOR USER-NOT-FOUND vs WRONG-PASSWORD. Always return "Invalid credentials" for both. This prevents user enumeration attacks.
+
+RULE 2: MFA DB TRIGGER. The enforce_admin_mfa() trigger prevents setting mfa_enabled = false. For MFA reset, set mfa_secret = null and mfa_method = null while keeping mfa_enabled = true. The user will be forced to re-enroll because hasMfaEnabled() checks both mfa_enabled === true && !empty(mfa_secret).
+
+RULE 3: PASSWORD HASHING. The AdminUser model's saving event auto-hashes the password. Do NOT double-hash. When creating/updating, pass the plaintext password — the model handles hashing.
+
+RULE 4: ENCRYPTED MFA SECRET. AdminUser::enableMfa($secret) stores the secret using Laravel's encrypt(). getMfaSecret() uses decrypt(). The TOTP verification in AdminAuthController works with the plaintext secret. Make sure APP_KEY is set in .env.
+
+RULE 5: EMAIL DOMAIN. All new admin users must have @quicksms.com email addresses. The DB CHECK constraint enforces this. Application-level validation should also check before attempting to insert.
+
+RULE 6: ROLE ENUM. The database enum admin_role has 5 values: super_admin, admin, support, finance, readonly. The config file had a compliance role user — this role doesn't exist in the DB enum. Do NOT try to insert it. Map compliance → readonly or finance as appropriate.
+
+RULE 7: LOCKED_UNTIL vs STATUS. The locked status in the enum is for manual admin locks. The locked_until timestamp is for automatic lockout after failed attempts. isLocked() checks locked_until. The middleware should check both: status !== 'active' || isLocked().
+
+RULE 8: AUDIT EVERYTHING. Every login attempt (success/failure), MFA verify, password change, user create/update/suspend/delete must be logged via AdminAuditService::log(). Use AuthAuditLog::logLoginFailure() and logLoginSuccess() for login events.
+
+RULE 9: NO EXCEPTION MESSAGES IN RESPONSES. Catch exceptions in controllers, log the real error with Log::error(), return generic messages to the client.
+
+RULE 10: CSRF. All POST/PUT/DELETE requests must include CSRF token. The Blade @csrf directive handles form submissions. For fetch() calls, send X-CSRF-TOKEN: '{{ csrf_token() }}' header.
+
+15. TEST PLAN
+T1: Database
+
+ T1.1: Migration adds department, mfa_method, sms_mfa_code, sms_mfa_expires_at, sms_mfa_attempts, invite_token, invite_sent_at, invite_expires_at to admin_users
+ T1.2: CHECK constraint on mfa_method works (try inserting mfa_method = 'invalid' → error)
+ T1.3: CHECK constraint on email domain works (try inserting email = 'test@gmail.com' → error)
+ T1.4: Seed migration creates 3 admin users with @quicksms.com emails
+ T1.5: All 3 seed users have force_password_change = true
+T2: Login Flow
+
+ T2.1: POST /admin/login with valid DB credentials → redirects to MFA setup (first login, no MFA)
+ T2.2: POST /admin/login with wrong password → "Invalid credentials" (not "user not found")
+ T2.3: POST /admin/login with non-existent email → same "Invalid credentials" message
+ T2.4: POST /admin/login 3 times with wrong password → account locked, returns "Account is temporarily locked"
+ T2.5: Locked account cannot login even with correct password until lock expires
+ T2.6: After successful login + MFA, needsPasswordChange() redirects to /admin/password/change
+ T2.7: After password change, redirects to dashboard
+ T2.8: Config-based users (admin@quicksms.co.uk) can NO LONGER log in (config users removed)
+ T2.9: Login page no longer has mockAdminUsers JavaScript object
+T3: MFA — TOTP
+
+ T3.1: First login → MFA setup page with QR code and secret
+ T3.2: Enter valid TOTP code → MFA enabled, secret persisted to DB (encrypted)
+ T3.3: Subsequent login → MFA verify page, TOTP code works
+ T3.4: Invalid TOTP code → "Invalid verification code" error
+ T3.5: mfa_method set to 'authenticator' in DB after TOTP setup
+T4: MFA — SMS
+
+ T4.1: User with phone number sees both MFA method buttons
+ T4.2: Clicking "SMS / RCS" calls POST /admin/mfa/send-sms → returns masked_phone
+ T4.3: Entering correct 6-digit SMS code → verifies and redirects
+ T4.4: Entering wrong code 3 times → "Too many attempts" error
+ T4.5: Code expires after 5 minutes
+ T4.6: User without phone number → SMS option hidden or returns error
+ T4.7: mfa_method updates to 'sms' or 'both' as appropriate
+T5: MFA Method Choice
+
+ T5.1: User with mfa_method = 'authenticator' → goes straight to TOTP verify (no method choice)
+ T5.2: User with mfa_method = 'sms' → goes straight to SMS send + verify
+ T5.3: User with mfa_method = 'both' → shows method choice screen
+ T5.4: "Choose different method" link works and returns to method choice
+T6: Password Change
+
+ T6.1: /admin/password/change shows form with current + new + confirm fields
+ T6.2: Wrong current password → error
+ T6.3: Weak new password (no symbol) → complexity error
+ T6.4: Password < 12 chars → error
+ T6.5: Successful change → force_password_change = false, password_changed_at updated, redirects to dashboard
+ T6.6: After password change, old password no longer works
+T7: Middleware
+
+ T7.1: Unauthenticated access to /admin/ → redirects to login
+ T7.2: Authenticated but MFA not verified → redirects to MFA verify
+ T7.3: Session expired (idle > 1 hour) → redirects to login with "session expired" message
+ T7.4: Suspended admin user → kicked out on next request
+ T7.5: Customer session cannot access admin routes (logged as CRITICAL)
+ T7.6: Dev mode auto-login uses DB user (not hardcoded email)
+T8: Admin User Management
+
+ T8.1: GET /admin/api/admin-users returns paginated list from DB
+ T8.2: Search filter works (by name, email)
+ T8.3: Role and status filters work
+ T8.4: Create new user with @quicksms.com email → appears in list
+ T8.5: Create user with @gmail.com → 422 error
+ T8.6: Suspend user → status changes, user can't login
+ T8.7: Activate suspended user → can login again
+ T8.8: Unlock locked user → locked_until cleared
+ T8.9: Reset MFA → mfa_secret cleared, user forced to re-enroll
+ T8.10: Delete user → soft deleted, no longer appears in list
+ T8.11: Non-super-admin cannot create/delete users → 403
+ T8.12: Cannot suspend or delete your own account → 422
+T9: Admin Users Page UI
+
+ T9.1: Page loads with real data from DB (not mock ADM001-ADM024)
+ T9.2: Stats cards show correct counts (Total, Active, Suspended, MFA Enrolled)
+ T9.3: Action dropdown (suspend/activate/unlock/reset MFA/delete) calls correct API endpoints
+ T9.4: User detail slide-out panel shows real user data
+ T9.5: "Add User" button opens modal, submits to create endpoint
+T10: Security Regression
+
+ T10.1: Error responses do NOT contain $e->getMessage() or stack traces
+ T10.2: All login attempts (success/failure) appear in audit log
+ T10.3: MFA verify events appear in audit log
+ T10.4: CSRF protection active on all POST endpoints (try without token → 419)
+ T10.5: SQL injection test: email field with ' OR 1=1 -- → handled safely
+ T10.6: Config admin.users array is empty (credentials fully migrated to DB)
+16. FILES CHANGED — Summary
+File	Action	Description
+database/migrations/2026_02_16_200001_*.php	NEW	Add missing columns to admin_users
+database/migrations/2026_02_16_200002_*.php	NEW	Seed initial @quicksms.com admin users
+app/Models/AdminUser.php	EDIT	Add fillable, casts, SMS MFA methods, invite methods
+app/Http/Controllers/AdminAuthController.php	EDIT	Switch from config to DB, add SMS MFA + password change
+app/Http/Middleware/AdminAuthenticate.php	EDIT	DB whitelist check, dev auto-login from DB, revalidation
+resources/views/admin/auth/login.blade.php	EDIT	Replace mock JS with real fetch() API calls
+resources/views/admin/auth/password-change.blade.php	NEW	Forced password change page
+routes/web.php	EDIT	Add SMS MFA, password change, admin user CRUD routes
+app/Http/Controllers/Admin/AdminUserController.php	NEW	Full CRUD for admin user management
+app/Http/Controllers/AdminController.php	EDIT	securityAdminUsers() reads from DB instead of mock array
+config/admin.php	EDIT	Remove users array, add quicksms.com domain
+17. COMPLETION REPORT FORMAT
+When finished, provide:
+
+A. FILES CHANGED — Every file with what changed
+
+B. MOCK DATA REMOVED — List each mock block replaced and what replaced it
+
+C. DB MIGRATION RESULTS — Output of php artisan migrate
+
+D. TEST RESULTS — T1-T10 as PASS/FAIL with explanation for any FAIL
+
+E. SECURITY NOTES — Confirm: no exception leaks, CSRF active, audit logging working, user enumeration prevented, config users removed
+
+F. KNOWN ISSUES — Anything incomplete (e.g., SMS sending is TODO, invite emails are TODO, active_sessions not tracked)
+
+Let me clean up the plan file and push the changes.

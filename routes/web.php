@@ -106,9 +106,18 @@ Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderI
     Route::post('/', 'store')->name('api.sender-ids.store');
     Route::get('/{uuid}', 'show')->name('api.sender-ids.show');
     Route::put('/{uuid}', 'update')->name('api.sender-ids.update');
+    Route::delete('/{uuid}', 'destroy')->name('api.sender-ids.destroy');
     Route::post('/{uuid}/submit', 'submit')->name('api.sender-ids.submit');
     Route::post('/{uuid}/provide-info', 'provideInfo')->name('api.sender-ids.provide-info');
     Route::post('/{uuid}/resubmit', 'resubmit')->name('api.sender-ids.resubmit');
+});
+
+Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
+
+Route::middleware('customer.auth')->prefix('api/notifications')->controller(\App\Http\Controllers\NotificationController::class)->group(function () {
+    Route::get('/', 'index')->name('api.notifications.index');
+    Route::post('/{uuid}/read', 'markRead')->name('api.notifications.read');
+    Route::post('/{uuid}/dismiss', 'dismiss')->name('api.notifications.dismiss');
 });
 
 Route::prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
@@ -136,6 +145,10 @@ Route::prefix('admin')->group(function () {
         Route::post('/mfa/setup/skip', 'skipMfaSetup')->name('admin.mfa.setup.skip');
         Route::get('/mfa/verify', 'showMfaVerify')->name('admin.mfa.verify');
         Route::post('/mfa/verify', 'verifyMfa')->name('admin.mfa.verify.submit');
+        Route::post('/mfa/sms/send', 'sendSmsMfa')->name('admin.mfa.sms.send');
+        Route::post('/mfa/sms/verify', 'verifySmsMfa')->name('admin.mfa.sms.verify');
+        Route::get('/password/change', 'showPasswordChange')->name('admin.password.change');
+        Route::post('/password/change', 'changePassword')->name('admin.password.change.submit');
     });
     
     Route::middleware([\App\Http\Middleware\AdminIpAllowlist::class, \App\Http\Middleware\AdminAuthenticate::class])
@@ -201,10 +214,64 @@ Route::prefix('admin')->group(function () {
             Route::get('/api/impersonation/status', 'getImpersonationStatus')->name('admin.api.impersonation.status');
             Route::post('/api/login-policy/validate', 'validateLoginPolicy')->name('admin.api.login-policy.validate');
             Route::post('/api/admin-users/audit', 'logAdminUserEvent')->name('admin.api.admin-users.audit');
-            
+
+            Route::prefix('api/admin-users')->controller(\App\Http\Controllers\Admin\AdminUserController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.admin-users.index');
+                Route::post('/', 'store')->name('admin.api.admin-users.store');
+                Route::get('/{id}', 'show')->name('admin.api.admin-users.show');
+                Route::put('/{id}', 'update')->name('admin.api.admin-users.update');
+                Route::post('/{id}/suspend', 'suspend')->name('admin.api.admin-users.suspend');
+                Route::post('/{id}/activate', 'activate')->name('admin.api.admin-users.activate');
+                Route::post('/{id}/unlock', 'unlock')->name('admin.api.admin-users.unlock');
+                Route::post('/{id}/reset-mfa', 'resetMfa')->name('admin.api.admin-users.reset-mfa');
+                Route::post('/{id}/resend-invite', 'resendInvite')->name('admin.api.admin-users.resend-invite');
+                Route::delete('/{id}', 'destroy')->name('admin.api.admin-users.destroy');
+            });
+
             Route::post('/enforcement/test', 'testEnforcement')->name('admin.enforcement.test');
             Route::post('/enforcement/normalise', 'normaliseInput')->name('admin.enforcement.normalise');
             Route::post('/enforcement/reload', 'reloadEnforcementRules')->name('admin.enforcement.reload');
+
+            Route::prefix('api/enforcement')->controller(\App\Http\Controllers\Admin\EnforcementController::class)->group(function () {
+                Route::get('/senderid-rules', 'senderidRulesIndex');
+                Route::post('/senderid-rules', 'senderidRulesStore');
+                Route::put('/senderid-rules/{id}', 'senderidRulesUpdate');
+                Route::delete('/senderid-rules/{id}', 'senderidRulesDestroy');
+                Route::patch('/senderid-rules/{id}/toggle', 'senderidRulesToggle');
+
+                Route::get('/content-rules', 'contentRulesIndex');
+                Route::post('/content-rules', 'contentRulesStore');
+                Route::put('/content-rules/{id}', 'contentRulesUpdate');
+                Route::delete('/content-rules/{id}', 'contentRulesDestroy');
+                Route::patch('/content-rules/{id}/toggle', 'contentRulesToggle');
+
+                Route::get('/url-rules', 'urlRulesIndex');
+                Route::post('/url-rules', 'urlRulesStore');
+                Route::put('/url-rules/{id}', 'urlRulesUpdate');
+                Route::delete('/url-rules/{id}', 'urlRulesDestroy');
+                Route::patch('/url-rules/{id}/toggle', 'urlRulesToggle');
+
+                Route::get('/normalisation', 'normalisationIndex');
+                Route::put('/normalisation/{id}', 'normalisationUpdate');
+                Route::patch('/normalisation/{id}/toggle', 'normalisationToggle');
+
+                Route::get('/exemptions', 'exemptionsIndex');
+                Route::post('/exemptions', 'exemptionsStore');
+                Route::put('/exemptions/{id}', 'exemptionsUpdate');
+                Route::delete('/exemptions/{id}', 'exemptionsDestroy');
+                Route::patch('/exemptions/{id}/toggle', 'exemptionsToggle');
+
+                Route::get('/quarantine', 'quarantineIndex');
+                Route::get('/quarantine/{id}', 'quarantineShow');
+                Route::post('/quarantine/{id}/release', 'quarantineRelease');
+                Route::post('/quarantine/{id}/block', 'quarantineBlock');
+
+                Route::get('/settings', 'settingsIndex');
+                Route::put('/settings/{key}', 'settingsUpdate')->where('key', '[a-zA-Z0-9_.]+');
+
+                Route::get('/domain-age-cache', 'domainAgeCacheIndex');
+                Route::delete('/domain-age-cache/{id}', 'domainAgeCacheDestroy');
+            });
             
             Route::prefix('api/country-controls')->controller(\App\Http\Controllers\Admin\CountryControlController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.country-controls.index');
@@ -226,6 +293,12 @@ Route::prefix('admin')->group(function () {
                 Route::delete('/overrides/{override}', 'deleteOverride')->name('admin.api.uk-network-controls.delete-override');
             });
             
+            Route::prefix('api/notifications')->controller(\App\Http\Controllers\Admin\AdminNotificationController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.notifications.index');
+                Route::post('/mark-all-read', 'markAllRead')->name('admin.api.notifications.markAllRead');
+                Route::post('/{uuid}/read', 'markRead')->name('admin.api.notifications.read');
+            });
+
             Route::prefix('api/sender-ids')->controller(\App\Http\Controllers\Admin\SenderIdApprovalController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.sender-ids.index');
                 Route::get('/{uuid}', 'show')->name('admin.api.sender-ids.show');

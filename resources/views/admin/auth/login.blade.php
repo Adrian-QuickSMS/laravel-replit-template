@@ -417,18 +417,13 @@ body {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var currentEmail = '';
-    
-    var mockAdminUsers = {
-        'admin@quicksms.co.uk': { password: 'Admin123!', name: 'System Admin', role: 'super_admin', mfa_enabled: true },
-        'support@quicksms.co.uk': { password: 'Support123!', name: 'Support Team', role: 'support', mfa_enabled: true },
-        'billing@quicksms.co.uk': { password: 'Billing123!', name: 'Billing Admin', role: 'billing', mfa_enabled: true }
-    };
-    
+    var currentMfaMethod = null;
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+
     document.getElementById('togglePassword').addEventListener('click', function() {
         var passwordInput = document.getElementById('password');
         var toggleIcon = document.getElementById('toggleIcon');
-        
+
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
             toggleIcon.classList.remove('fa-eye');
@@ -439,159 +434,227 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleIcon.classList.add('fa-eye');
         }
     });
-    
+
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
         var email = document.getElementById('email').value.trim();
         var password = document.getElementById('password').value;
         var loginBtn = document.getElementById('loginBtn');
         var loginStatus = document.getElementById('loginStatus');
-        
+
         document.getElementById('email').classList.remove('is-invalid');
         document.getElementById('password').classList.remove('is-invalid');
         loginStatus.classList.add('d-none');
-        
+
         var isValid = true;
-        
         if (!email || !email.includes('@')) {
             document.getElementById('email').classList.add('is-invalid');
             isValid = false;
         }
-        
         if (!password) {
             document.getElementById('password').classList.add('is-invalid');
             isValid = false;
         }
-        
         if (!isValid) return;
-        
+
         loginBtn.disabled = true;
         loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Authenticating...';
-        
-        setTimeout(function() {
-            var user = mockAdminUsers[email.toLowerCase()];
-            
-            if (user && user.password === password) {
-                currentEmail = email;
-                
-                if (user.mfa_enabled) {
-                    document.getElementById('loginStep1').classList.add('d-none');
-                    document.getElementById('loginStep2').classList.remove('d-none');
-                    resetMfaStep();
-                } else {
-                    loginStatus.innerHTML = '<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-2"></i>Login successful! Redirecting...</div>';
-                    loginStatus.classList.remove('d-none');
-                    setTimeout(function() {
-                        window.location.href = '/admin/';
-                    }, 1000);
-                }
-            } else {
-                loginStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Invalid email or password. All login attempts are logged.</div>';
-                loginStatus.classList.remove('d-none');
-            }
-            
+
+        fetch('{{ route("admin.login.submit") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ email: email, password: password })
+        })
+        .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, status: res.status, data: data }; }); })
+        .then(function(result) {
             loginBtn.disabled = false;
             loginBtn.innerHTML = '<i class="fas fa-shield-alt me-2"></i>Sign In';
-        }, 1500);
+
+            if (!result.ok) {
+                var msg = result.data.error || result.data.errors?.email?.[0] || 'Invalid email or password.';
+                loginStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + msg + ' All login attempts are logged.</div>';
+                loginStatus.classList.remove('d-none');
+                return;
+            }
+
+            var data = result.data;
+
+            if (data.mfa_required) {
+                currentMfaMethod = data.mfa_method;
+
+                if (data.mfa_setup_required) {
+                    window.location.href = data.redirect || '/admin/mfa/setup';
+                    return;
+                }
+
+                document.getElementById('loginStep1').classList.add('d-none');
+                document.getElementById('loginStep2').classList.remove('d-none');
+
+                if (currentMfaMethod === 'sms') {
+                    selectMfaMethod('sms');
+                } else if (currentMfaMethod === 'both') {
+                    resetMfaStep();
+                } else {
+                    selectMfaMethod('authenticator');
+                }
+            } else if (data.redirect) {
+                loginStatus.innerHTML = '<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-2"></i>Login successful! Redirecting...</div>';
+                loginStatus.classList.remove('d-none');
+                setTimeout(function() { window.location.href = data.redirect; }, 500);
+            }
+        })
+        .catch(function(err) {
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i class="fas fa-shield-alt me-2"></i>Sign In';
+            loginStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Connection error. Please try again.</div>';
+            loginStatus.classList.remove('d-none');
+        });
     });
-    
+
     var otpInputs = document.querySelectorAll('.otp-input');
     otpInputs.forEach(function(input, index) {
         input.addEventListener('input', function(e) {
             var value = e.target.value.replace(/[^0-9]/g, '');
             e.target.value = value;
-            
+
             if (value && index < otpInputs.length - 1) {
                 otpInputs[index + 1].focus();
             }
-            
+
             var fullCode = Array.from(otpInputs).map(function(i) { return i.value; }).join('');
             if (fullCode.length === 6) {
                 document.getElementById('verifyMfaBtn').click();
             }
         });
-        
+
         input.addEventListener('keydown', function(e) {
             if (e.key === 'Backspace' && !e.target.value && index > 0) {
                 otpInputs[index - 1].focus();
             }
         });
-        
+
         input.addEventListener('paste', function(e) {
             e.preventDefault();
             var pastedData = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
-            
             for (var i = 0; i < pastedData.length && i < otpInputs.length; i++) {
                 otpInputs[i].value = pastedData[i];
             }
-            
             if (pastedData.length === 6) {
                 document.getElementById('verifyMfaBtn').click();
             }
         });
     });
-    
+
     document.getElementById('verifyMfaBtn').addEventListener('click', function() {
         var code = Array.from(otpInputs).map(function(i) { return i.value; }).join('');
         var mfaStatus = document.getElementById('mfaStatus');
         var verifyBtn = document.getElementById('verifyMfaBtn');
-        
+
         if (code.length !== 6) {
             mfaStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Please enter all 6 digits</div>';
             mfaStatus.classList.remove('d-none');
             return;
         }
-        
+
         verifyBtn.disabled = true;
         verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying...';
-        
-        setTimeout(function() {
-            mfaStatus.innerHTML = '<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-2"></i>Verification successful! Redirecting...</div>';
+
+        var verifyUrl = currentMfaMethod === 'sms'
+            ? '{{ route("admin.mfa.sms.verify") }}'
+            : '{{ route("admin.mfa.verify.submit") }}';
+
+        fetch(verifyUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ code: code })
+        })
+        .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+        .then(function(result) {
+            if (result.ok && result.data.redirect) {
+                mfaStatus.innerHTML = '<div class="alert alert-success mb-0"><i class="fas fa-check-circle me-2"></i>Verification successful! Redirecting...</div>';
+                mfaStatus.classList.remove('d-none');
+                setTimeout(function() { window.location.href = result.data.redirect; }, 500);
+            } else {
+                var msg = result.data.error || 'Invalid verification code';
+                mfaStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + msg + '</div>';
+                mfaStatus.classList.remove('d-none');
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Verify';
+                otpInputs.forEach(function(input) { input.value = ''; });
+                otpInputs[0].focus();
+            }
+        })
+        .catch(function() {
+            mfaStatus.innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>Connection error. Please try again.</div>';
             mfaStatus.classList.remove('d-none');
-            
-            setTimeout(function() {
-                window.location.href = '/admin/';
-            }, 1000);
-        }, 1500);
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = '<i class="fas fa-check-circle me-2"></i>Verify';
+        });
     });
-    
+
     document.getElementById('backToLogin').addEventListener('click', function(e) {
         e.preventDefault();
         document.getElementById('loginStep2').classList.add('d-none');
         document.getElementById('loginStep1').classList.remove('d-none');
         resetMfaStep();
     });
-    
+
     document.getElementById('chooseAuthenticator').addEventListener('click', function() {
         selectMfaMethod('authenticator');
     });
-    
+
     document.getElementById('chooseSmsRcs').addEventListener('click', function() {
         selectMfaMethod('sms');
     });
-    
+
     document.getElementById('backToMethodChoice').addEventListener('click', function(e) {
         e.preventDefault();
         resetMfaStep();
     });
-    
+
     document.getElementById('resendCode').addEventListener('click', function(e) {
         e.preventDefault();
         var link = this;
         link.textContent = 'Sending...';
         link.style.pointerEvents = 'none';
-        
-        setTimeout(function() {
+
+        fetch('{{ route("admin.mfa.sms.send") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
             link.textContent = 'Resend';
             link.style.pointerEvents = 'auto';
-            document.getElementById('mfaStatus').innerHTML = '<div class="alert alert-info mb-0"><i class="fas fa-check me-2"></i>New code sent to your phone</div>';
+
+            if (data.success) {
+                document.getElementById('mfaStatus').innerHTML = '<div class="alert alert-info mb-0"><i class="fas fa-check me-2"></i>New code sent to ' + (data.masked_phone || 'your phone') + '</div>';
+            } else {
+                document.getElementById('mfaStatus').innerHTML = '<div class="alert alert-danger mb-0"><i class="fas fa-exclamation-circle me-2"></i>' + (data.error || 'Failed to send code') + '</div>';
+            }
             document.getElementById('mfaStatus').classList.remove('d-none');
             otpInputs.forEach(function(input) { input.value = ''; });
             otpInputs[0].focus();
-        }, 1500);
+        })
+        .catch(function() {
+            link.textContent = 'Resend';
+            link.style.pointerEvents = 'auto';
+        });
     });
-    
+
     function resetMfaStep() {
         document.getElementById('mfaMethodChoice').classList.remove('d-none');
         document.getElementById('mfaCodeEntry').classList.add('d-none');
@@ -601,11 +664,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('backToLoginSection').classList.remove('d-none');
         otpInputs.forEach(function(input) { input.value = ''; });
     }
-    
+
     function selectMfaMethod(method) {
+        currentMfaMethod = method;
         document.getElementById('mfaMethodChoice').classList.add('d-none');
         document.getElementById('backToLoginSection').classList.add('d-none');
-        
+
         if (method === 'authenticator') {
             document.getElementById('mfaSubtitle').textContent = 'Authenticator App';
             document.getElementById('mfaCodeInstruction').textContent = 'Enter the 6-digit code from your authenticator app';
@@ -616,12 +680,29 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('mfaSubtitle').textContent = 'SMS / RCS Verification';
             document.getElementById('mfaCodeInstruction').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending code to your registered phone...';
             document.getElementById('mfaCodeEntry').classList.remove('d-none');
-            
-            setTimeout(function() {
-                document.getElementById('mfaCodeInstruction').textContent = 'Enter the 6-digit code sent to your phone ending in ****42';
+
+            fetch('{{ route("admin.mfa.sms.send") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    document.getElementById('mfaCodeInstruction').textContent = 'Enter the 6-digit code sent to ' + (data.masked_phone || 'your phone');
+                } else {
+                    document.getElementById('mfaCodeInstruction').textContent = data.error || 'Failed to send SMS code';
+                }
                 document.getElementById('smsResendSection').classList.remove('d-none');
                 otpInputs[0].focus();
-            }, 2000);
+            })
+            .catch(function() {
+                document.getElementById('mfaCodeInstruction').textContent = 'Failed to send code. Please try again.';
+                document.getElementById('smsResendSection').classList.remove('d-none');
+            });
         }
     }
 });

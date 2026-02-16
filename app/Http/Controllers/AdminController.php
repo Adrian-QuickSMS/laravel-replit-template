@@ -475,8 +475,17 @@ class AdminController extends Controller
 
     public function securityComplianceControls()
     {
+        $enforcementData = [
+            'senderidRules' => \App\Models\SenderidRule::byPriority()->get()->toArray(),
+            'contentRules' => \App\Models\ContentRule::byPriority()->get()->toArray(),
+            'urlRules' => \App\Models\UrlRule::byPriority()->get()->toArray(),
+            'normalisationChars' => \App\Models\NormalisationCharacter::orderBy('base_character')->get()->toArray(),
+            'domainAgeSettings' => \App\Models\SystemSetting::where('setting_group', 'domain_age')->get()->toArray(),
+        ];
+
         return view('admin.security.security-compliance-controls', [
-            'page_title' => 'Security & Compliance Controls'
+            'page_title' => 'Security & Compliance Controls',
+            'enforcementData' => $enforcementData,
         ]);
     }
 
@@ -496,42 +505,39 @@ class AdminController extends Controller
 
     public function securityAdminUsers()
     {
-        // INTERNAL ONLY - Gate access to Super Admin and Internal Support roles
-        // Hardcoded role check for v1 - TODO: Replace with proper RBAC
-        $allowedRoles = ['super_admin', 'internal_support'];
-        $currentRole = session('admin_role', 'super_admin'); // Default to super_admin for development
-        
+        $allowedRoles = ['super_admin', 'admin'];
+        $currentRole = session('admin_auth.role', 'super_admin');
+
         if (!in_array($currentRole, $allowedRoles)) {
-            abort(403, 'Access denied. This module is restricted to Super Admin and Internal Support roles.');
+            abort(403, 'Access denied. This module is restricted to Super Admin and Admin roles.');
         }
-        
-        // Mock admin users data with expanded fields including created_by and active_sessions
-        $adminUsers = [
-            ['id' => 'ADM001', 'name' => 'Sarah Johnson', 'email' => 'sarah.johnson@quicksms.co.uk', 'role' => 'Super Admin', 'department' => 'Engineering', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2026-01-27 09:15:00', 'last_activity' => '2026-01-27 11:20:00', 'failed_logins_24h' => 0, 'created_at' => '2024-03-15', 'created_by' => 'System', 'active_sessions' => 2],
-            ['id' => 'ADM002', 'name' => 'James Mitchell', 'email' => 'james.mitchell@quicksms.co.uk', 'role' => 'Super Admin', 'department' => 'Operations', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Both', 'last_login' => '2026-01-27 08:45:00', 'last_activity' => '2026-01-27 10:30:00', 'failed_logins_24h' => 0, 'created_at' => '2024-06-20', 'created_by' => 'Sarah Johnson', 'active_sessions' => 1],
-            ['id' => 'ADM003', 'name' => 'Emily Chen', 'email' => 'emily.chen@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Customer Success', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'SMS', 'last_login' => '2026-01-26 16:30:00', 'last_activity' => '2026-01-26 17:45:00', 'failed_logins_24h' => 1, 'created_at' => '2024-09-10', 'created_by' => 'Sarah Johnson', 'active_sessions' => 0],
-            ['id' => 'ADM004', 'name' => 'Michael Brown', 'email' => 'michael.brown@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Customer Success', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2026-01-25 14:20:00', 'last_activity' => '2026-01-25 16:00:00', 'failed_logins_24h' => 0, 'created_at' => '2025-01-05', 'created_by' => 'James Mitchell', 'active_sessions' => 0],
-            ['id' => 'ADM005', 'name' => 'Anna Williams', 'email' => 'anna.williams@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Technical Support', 'status' => 'Suspended', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2026-01-10 11:00:00', 'last_activity' => '2026-01-10 11:00:00', 'failed_logins_24h' => 5, 'created_at' => '2024-11-22', 'created_by' => 'David Lee', 'active_sessions' => 0],
-            ['id' => 'ADM006', 'name' => 'David Lee', 'email' => 'david.lee@quicksms.co.uk', 'role' => 'Super Admin', 'department' => 'Security', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Both', 'last_login' => '2026-01-27 10:00:00', 'last_activity' => '2026-01-27 11:15:00', 'failed_logins_24h' => 0, 'created_at' => '2023-08-01', 'created_by' => 'System', 'active_sessions' => 1],
-            ['id' => 'ADM007', 'name' => 'Rachel Green', 'email' => 'rachel.green@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Customer Success', 'status' => 'Invited', 'mfa_status' => 'Not Enrolled', 'mfa_method' => null, 'last_login' => null, 'last_activity' => null, 'failed_logins_24h' => 0, 'created_at' => '2026-01-25', 'created_by' => 'Sarah Johnson', 'active_sessions' => 0, 'invite_sent_at' => '2026-01-25 10:00:00'],
-            ['id' => 'ADM008', 'name' => 'Tom Harris', 'email' => 'tom.harris@quicksms.co.uk', 'role' => 'Super Admin', 'department' => 'Engineering', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2026-01-27 07:30:00', 'last_activity' => '2026-01-27 09:45:00', 'failed_logins_24h' => 0, 'created_at' => '2023-05-12', 'created_by' => 'System', 'active_sessions' => 1],
-            ['id' => 'ADM009', 'name' => 'Lisa Wong', 'email' => 'lisa.wong@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Technical Support', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'SMS', 'last_login' => '2026-01-26 09:00:00', 'last_activity' => '2026-01-26 12:30:00', 'failed_logins_24h' => 0, 'created_at' => '2024-02-18', 'created_by' => 'Tom Harris', 'active_sessions' => 0],
-            ['id' => 'ADM010', 'name' => 'Chris Taylor', 'email' => 'chris.taylor@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Operations', 'status' => 'Archived', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2025-12-15 10:00:00', 'last_activity' => '2025-12-15 10:00:00', 'failed_logins_24h' => 0, 'created_at' => '2023-11-01', 'created_by' => 'Sarah Johnson', 'active_sessions' => 0],
-            ['id' => 'ADM011', 'name' => 'Maria Garcia', 'email' => 'maria.garcia@quicksms.co.uk', 'role' => 'Super Admin', 'department' => 'Security', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Both', 'last_login' => '2026-01-27 08:00:00', 'last_activity' => '2026-01-27 11:00:00', 'failed_logins_24h' => 0, 'created_at' => '2024-01-15', 'created_by' => 'David Lee', 'active_sessions' => 1],
-            ['id' => 'ADM012', 'name' => 'Kevin Patel', 'email' => 'kevin.patel@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Customer Success', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2026-01-26 14:00:00', 'last_activity' => '2026-01-26 17:30:00', 'failed_logins_24h' => 2, 'created_at' => '2024-08-22', 'created_by' => 'Emily Chen', 'active_sessions' => 0],
-            ['id' => 'ADM013', 'name' => 'Sophie Martin', 'email' => 'sophie.martin@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Technical Support', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'SMS', 'last_login' => '2026-01-27 09:30:00', 'last_activity' => '2026-01-27 10:45:00', 'failed_logins_24h' => 0, 'created_at' => '2024-07-10', 'created_by' => 'Lisa Wong', 'active_sessions' => 1],
-            ['id' => 'ADM014', 'name' => 'Alex Thompson', 'email' => 'alex.thompson@quicksms.co.uk', 'role' => 'Super Admin', 'department' => 'Engineering', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2026-01-27 06:45:00', 'last_activity' => '2026-01-27 08:30:00', 'failed_logins_24h' => 0, 'created_at' => '2023-09-05', 'created_by' => 'System', 'active_sessions' => 0],
-            ['id' => 'ADM015', 'name' => 'Nina Roberts', 'email' => 'nina.roberts@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Operations', 'status' => 'Invited', 'mfa_status' => 'Not Enrolled', 'mfa_method' => null, 'last_login' => null, 'last_activity' => null, 'failed_logins_24h' => 0, 'created_at' => '2026-01-26', 'created_by' => 'James Mitchell', 'active_sessions' => 0, 'invite_sent_at' => '2026-01-26 14:30:00'],
-            ['id' => 'ADM016', 'name' => 'Ben Wilson', 'email' => 'ben.wilson@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Customer Success', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Both', 'last_login' => '2026-01-25 11:00:00', 'last_activity' => '2026-01-25 15:00:00', 'failed_logins_24h' => 0, 'created_at' => '2024-04-18', 'created_by' => 'Sarah Johnson', 'active_sessions' => 0],
-            ['id' => 'ADM017', 'name' => 'Claire Adams', 'email' => 'claire.adams@quicksms.co.uk', 'role' => 'Super Admin', 'department' => 'Security', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2026-01-27 07:15:00', 'last_activity' => '2026-01-27 09:00:00', 'failed_logins_24h' => 0, 'created_at' => '2023-12-01', 'created_by' => 'David Lee', 'active_sessions' => 1],
-            ['id' => 'ADM018', 'name' => 'Daniel Scott', 'email' => 'daniel.scott@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Technical Support', 'status' => 'Suspended', 'mfa_status' => 'Enrolled', 'mfa_method' => 'SMS', 'last_login' => '2026-01-20 09:00:00', 'last_activity' => '2026-01-20 09:00:00', 'failed_logins_24h' => 3, 'created_at' => '2024-05-30', 'created_by' => 'Tom Harris', 'active_sessions' => 0],
-            ['id' => 'ADM019', 'name' => 'Emma Davis', 'email' => 'emma.davis@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Customer Success', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2026-01-26 13:00:00', 'last_activity' => '2026-01-26 16:45:00', 'failed_logins_24h' => 0, 'created_at' => '2024-10-05', 'created_by' => 'Emily Chen', 'active_sessions' => 0],
-            ['id' => 'ADM020', 'name' => 'Frank Miller', 'email' => 'frank.miller@quicksms.co.uk', 'role' => 'Super Admin', 'department' => 'Operations', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Both', 'last_login' => '2026-01-27 08:30:00', 'last_activity' => '2026-01-27 10:15:00', 'failed_logins_24h' => 0, 'created_at' => '2023-07-22', 'created_by' => 'System', 'active_sessions' => 1],
-            ['id' => 'ADM021', 'name' => 'Grace Hill', 'email' => 'grace.hill@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Technical Support', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2026-01-25 10:30:00', 'last_activity' => '2026-01-25 14:00:00', 'failed_logins_24h' => 1, 'created_at' => '2024-06-15', 'created_by' => 'Lisa Wong', 'active_sessions' => 0],
-            ['id' => 'ADM022', 'name' => 'Henry Clark', 'email' => 'henry.clark@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Operations', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'SMS', 'last_login' => '2026-01-26 08:45:00', 'last_activity' => '2026-01-26 11:30:00', 'failed_logins_24h' => 0, 'created_at' => '2024-03-20', 'created_by' => 'James Mitchell', 'active_sessions' => 0],
-            ['id' => 'ADM023', 'name' => 'Ivy Moore', 'email' => 'ivy.moore@quicksms.co.uk', 'role' => 'Super Admin', 'department' => 'Engineering', 'status' => 'Active', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Both', 'last_login' => '2026-01-27 07:00:00', 'last_activity' => '2026-01-27 09:30:00', 'failed_logins_24h' => 0, 'created_at' => '2023-10-10', 'created_by' => 'Sarah Johnson', 'active_sessions' => 2],
-            ['id' => 'ADM024', 'name' => 'Jack White', 'email' => 'jack.white@quicksms.co.uk', 'role' => 'Internal Support', 'department' => 'Customer Success', 'status' => 'Archived', 'mfa_status' => 'Enrolled', 'mfa_method' => 'Authenticator', 'last_login' => '2025-11-30 09:00:00', 'last_activity' => '2025-11-30 09:00:00', 'failed_logins_24h' => 0, 'created_at' => '2023-06-01', 'created_by' => 'System', 'active_sessions' => 0],
-        ];
+
+        try {
+            $dbUsers = \App\Models\AdminUser::orderBy('created_at', 'desc')->get();
+
+            $adminUsers = $dbUsers->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->full_name,
+                    'email' => $user->email,
+                    'role' => $user->getRoleDisplayName(),
+                    'department' => $user->department ?? 'N/A',
+                    'status' => ucfirst($user->status),
+                    'mfa_status' => $user->mfa_enabled ? 'Enrolled' : 'Not Enrolled',
+                    'mfa_method' => $user->mfa_method ? ucfirst($user->mfa_method) : null,
+                    'last_login' => $user->last_login_at?->format('Y-m-d H:i:s'),
+                    'last_activity' => $user->last_login_at?->format('Y-m-d H:i:s'),
+                    'failed_logins_24h' => $user->failed_login_attempts,
+                    'created_at' => $user->created_at?->format('Y-m-d'),
+                    'created_by' => $user->created_by ?? 'System',
+                    'active_sessions' => 0,
+                    'invite_sent_at' => $user->invite_sent_at?->format('Y-m-d H:i:s'),
+                ];
+            })->toArray();
+        } catch (\Exception $e) {
+            \Log::warning('[AdminUsers] DB query failed, returning empty list', ['error' => $e->getMessage()]);
+            $adminUsers = [];
+        }
 
         return view('admin.security.admin-users', [
             'page_title' => 'Admin Users',

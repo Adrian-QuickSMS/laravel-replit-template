@@ -38,9 +38,7 @@ class SenderidRule extends Model
         'priority' => 'integer',
     ];
 
-    // H5 FIX: Hide internal audit fields from default serialization.
-    // Admin controllers should use toEnforcementArray() or explicit selects.
-    protected $hidden = ['created_by', 'updated_by'];
+    protected $hidden = [];
 
     // =====================================================
     // LIFECYCLE

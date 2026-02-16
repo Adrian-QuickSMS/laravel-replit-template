@@ -269,6 +269,48 @@ class MessageEnforcementService
     }
 
     /**
+     * Validate a regex pattern for safety (ReDoS prevention).
+     * Uses tilde delimiter and backtrack limit to prevent catastrophic backtracking.
+     */
+    public static function isValidRegex(string $pattern): bool
+    {
+        if (empty($pattern)) {
+            return false;
+        }
+
+        if (strlen($pattern) > 500) {
+            return false;
+        }
+
+        $redosPatterns = [
+            '/\([^)]*[+*]\)[+*]/',
+            '/\([^)]*\|[^)]*\)[+*]/',
+            '/\.\*.*\.\*/',
+            '/\([^)]*\?\)[+*]/',
+            '/(\{[0-9]+,\}){2,}/',
+        ];
+
+        foreach ($redosPatterns as $redos) {
+            if (preg_match($redos, $pattern)) {
+                Log::warning('[MessageEnforcementService] Rejected potentially unsafe regex pattern', ['pattern' => $pattern]);
+                return false;
+            }
+        }
+
+        $previousLimit = ini_get('pcre.backtrack_limit');
+        ini_set('pcre.backtrack_limit', '10000');
+
+        try {
+            $result = @preg_match('~' . $pattern . '~i', '');
+            ini_set('pcre.backtrack_limit', $previousLimit);
+            return $result !== false;
+        } catch (\Exception $e) {
+            ini_set('pcre.backtrack_limit', $previousLimit);
+            return false;
+        }
+    }
+
+    /**
      * Hot reload rules - invalidate cache
      */
     public function hotReloadRules(): void
@@ -283,7 +325,7 @@ class MessageEnforcementService
 
     /**
      * Load rules from database for a given engine.
-     * H1 FIX: On DB failure, falls back to last-known-good cached rules.
+     * On DB failure, falls back to last-known-good cached rules.
      * Only returns empty (fail-open) if no fallback exists.
      *
      * @param string $engine The engine type
@@ -328,7 +370,7 @@ class MessageEnforcementService
                 'error' => $e->getMessage(),
             ]);
 
-            // H1 FIX: Use last-known-good rules instead of empty array
+            // Use last-known-good rules instead of empty array
             $fallback = Cache::get($lastGoodKey);
             if ($fallback !== null) {
                 Log::warning('[MessageEnforcementService] Using last-known-good rules fallback', [
@@ -347,7 +389,7 @@ class MessageEnforcementService
 
     /**
      * Load normalisation library from database.
-     * H1 FIX: On DB failure, falls back to last-known-good cached library.
+     * On DB failure, falls back to last-known-good cached library.
      *
      * @return array The normalisation library in service format
      */

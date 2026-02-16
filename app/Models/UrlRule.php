@@ -23,7 +23,6 @@ class UrlRule extends Model
         'pattern',
         'match_type',
         'action',
-        'use_normalisation',
         'is_active',
         'priority',
         'description',
@@ -31,11 +30,7 @@ class UrlRule extends Model
         'updated_by',
     ];
 
-    // H5 FIX: Hide internal audit fields from default serialization.
-    protected $hidden = ['created_by', 'updated_by'];
-
     protected $casts = [
-        'use_normalisation' => 'boolean',
         'is_active' => 'boolean',
         'priority' => 'integer',
     ];
