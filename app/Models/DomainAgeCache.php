@@ -4,35 +4,47 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * RED SIDE: Cached WHOIS domain registration data
+ *
+ * Used by URL enforcement to detect freshly registered domains.
+ * Caches WHOIS lookups to avoid repeated external calls.
+ *
+ * DATA CLASSIFICATION: Internal - External Lookup Cache
+ * SIDE: RED (system-level)
+ */
 class DomainAgeCache extends Model
 {
     protected $table = 'domain_age_cache';
 
     protected $fillable = [
         'domain',
-        'first_seen_at',
+        'registered_at',
+        'checked_at',
         'age_hours',
+        'whois_raw',
         'lookup_status',
-        'last_checked_at',
     ];
 
     protected $casts = [
-        'first_seen_at' => 'datetime',
-        'last_checked_at' => 'datetime',
+        'registered_at' => 'datetime',
+        'checked_at' => 'datetime',
         'age_hours' => 'integer',
+        'whois_raw' => 'array',
     ];
 
-    public function scopeFresh($query)
+    // =====================================================
+    // SCOPES
+    // =====================================================
+
+    public function scopeFresh($query, int $maxAgeHours = 24)
     {
-        return $query->where('last_checked_at', '>', now()->subHours(24));
+        return $query->where('checked_at', '>=', now()->subHours($maxAgeHours));
     }
 
-    public function scopeStale($query)
+    public function scopeStale($query, int $maxAgeHours = 24)
     {
-        return $query->where(function ($q) {
-            $q->whereNull('last_checked_at')
-              ->orWhere('last_checked_at', '<=', now()->subHours(24));
-        });
+        return $query->where('checked_at', '<', now()->subHours($maxAgeHours));
     }
 
     public function scopeSuccessful($query)
@@ -40,18 +52,43 @@ class DomainAgeCache extends Model
         return $query->where('lookup_status', 'success');
     }
 
-    public function isYoung($thresholdHours = 72): bool
+    // =====================================================
+    // HELPERS
+    // =====================================================
+
+    /**
+     * Check if this domain is considered "young" based on the threshold.
+     */
+    public function isYoung(int $thresholdHours = 72): bool
     {
-        return $this->age_hours !== null && $this->age_hours < $thresholdHours;
+        if ($this->lookup_status !== 'success' || $this->age_hours === null) {
+            return true; // Unknown domains treated as suspicious
+        }
+
+        return $this->age_hours < $thresholdHours;
     }
 
-    public function needsRefresh($ttlHours = 24): bool
+    /**
+     * Check if cache entry needs refreshing.
+     */
+    public function needsRefresh(int $cacheTtlHours = 24): bool
     {
-        return $this->last_checked_at === null || $this->last_checked_at->lt(now()->subHours($ttlHours));
+        return $this->checked_at < now()->subHours($cacheTtlHours);
     }
 
-    public static function findOrCreateForDomain($domain)
+    /**
+     * Look up or create a cache entry for a domain.
+     */
+    public static function findOrCreateForDomain(string $domain): self
     {
-        return static::firstOrCreate(['domain' => $domain]);
+        $domain = strtolower(trim($domain));
+
+        return static::firstOrCreate(
+            ['domain' => $domain],
+            [
+                'checked_at' => now(),
+                'lookup_status' => 'unknown',
+            ]
+        );
     }
 }

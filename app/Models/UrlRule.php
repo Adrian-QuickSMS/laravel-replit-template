@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
+/**
+ * RED SIDE: URL/domain enforcement rules
+ *
+ * DATA CLASSIFICATION: Internal - Enforcement Configuration
+ * SIDE: RED (admin-only)
+ */
 class UrlRule extends Model
 {
     use SoftDeletes;
@@ -13,14 +19,13 @@ class UrlRule extends Model
     protected $table = 'url_rules';
 
     protected $fillable = [
+        'name',
         'pattern',
         'match_type',
         'action',
-        'category',
-        'name',
-        'description',
-        'priority',
         'is_active',
+        'priority',
+        'description',
         'created_by',
         'updated_by',
     ];
@@ -30,16 +35,22 @@ class UrlRule extends Model
         'priority' => 'integer',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
+    // =====================================================
+    // LIFECYCLE
+    // =====================================================
 
+    protected static function booted(): void
+    {
         static::creating(function ($model) {
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();
             }
         });
     }
+
+    // =====================================================
+    // SCOPES
+    // =====================================================
 
     public function scopeActive($query)
     {
@@ -51,10 +62,17 @@ class UrlRule extends Model
         return $query->orderBy('priority', 'asc');
     }
 
+    // =====================================================
+    // HELPERS
+    // =====================================================
+
+    /**
+     * Convert to the array format used by MessageEnforcementService.
+     */
     public function toEnforcementArray(): array
     {
         return [
-            'id' => $this->uuid,
+            'id' => $this->id,
             'name' => $this->name,
             'pattern' => $this->pattern,
             'matchType' => $this->match_type,

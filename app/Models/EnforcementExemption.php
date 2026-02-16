@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
+/**
+ * RED SIDE: Enforcement exemptions for all engines
+ *
+ * Supports three exemption types: rule, engine, value
+ * Supports three scope levels: global, account, sub_account
+ *
+ * DATA CLASSIFICATION: Internal - Enforcement Configuration
+ * SIDE: RED (admin-only)
+ */
 class EnforcementExemption extends Model
 {
     use SoftDeletes;
@@ -15,25 +24,26 @@ class EnforcementExemption extends Model
     protected $fillable = [
         'engine',
         'exemption_type',
-        'scope',
-        'value',
         'rule_id',
-        'account_id',
+        'rule_table',
+        'exempted_value',
+        'scope_type',
+        'scope_id',
         'reason',
         'is_active',
         'created_by',
-        'expires_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'expires_at' => 'datetime',
     ];
 
-    protected static function boot()
-    {
-        parent::boot();
+    // =====================================================
+    // LIFECYCLE
+    // =====================================================
 
+    protected static function booted(): void
+    {
         static::creating(function ($model) {
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();
@@ -41,28 +51,77 @@ class EnforcementExemption extends Model
         });
     }
 
+    // =====================================================
+    // SCOPES
+    // =====================================================
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    public function scopeForEngine($query, $engine)
+    public function scopeForEngine($query, string $engine)
     {
         return $query->where('engine', $engine);
     }
 
-    public function scopeForScope($query, $scope)
+    public function scopeForScope($query, string $scopeType, ?string $scopeId = null)
     {
-        return $query->where('scope', $scope);
+        $query->where(function ($q) use ($scopeType, $scopeId) {
+            // Always include global exemptions
+            $q->where('scope_type', 'global');
+
+            if ($scopeType === 'account' && $scopeId) {
+                $q->orWhere(function ($q2) use ($scopeId) {
+                    $q2->where('scope_type', 'account')
+                       ->where('scope_id', $scopeId);
+                });
+            }
+
+            if ($scopeType === 'sub_account' && $scopeId) {
+                $q->orWhere(function ($q2) use ($scopeId) {
+                    $q2->where('scope_type', 'sub_account')
+                       ->where('scope_id', $scopeId);
+                });
+            }
+        });
+
+        return $query;
     }
 
-    public function appliesToRule($ruleId): bool
+    // =====================================================
+    // HELPERS
+    // =====================================================
+
+    /**
+     * Check if this exemption applies to a specific rule.
+     */
+    public function appliesToRule(int $ruleId, string $ruleTable): bool
     {
-        return $this->rule_id == $ruleId;
+        if ($this->exemption_type === 'engine') {
+            return true; // Engine-wide exemption applies to all rules
+        }
+
+        if ($this->exemption_type === 'rule') {
+            return $this->rule_id === $ruleId && $this->rule_table === $ruleTable;
+        }
+
+        return false;
     }
 
-    public function appliesToValue($val): bool
+    /**
+     * Check if this exemption applies to a specific value.
+     */
+    public function appliesToValue(string $value): bool
     {
-        return $this->value == $val;
+        if ($this->exemption_type === 'engine') {
+            return true;
+        }
+
+        if ($this->exemption_type === 'value') {
+            return strtoupper($this->exempted_value) === strtoupper($value);
+        }
+
+        return false;
     }
 }

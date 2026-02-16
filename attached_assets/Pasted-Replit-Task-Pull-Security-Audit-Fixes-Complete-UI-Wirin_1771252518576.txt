@@ -1,0 +1,323 @@
+Replit Task: Pull Security Audit Fixes & Complete UI Wiring
+1. GIT — Pull Latest Changes
+git fetch origin claude/quicksms-security-performance-dr8sw
+git merge origin/claude/quicksms-security-performance-dr8sw
+
+If conflicts occur, take THE REMOTE version for all files under app/Models/, app/Services/, database/migrations/, and app/Http/Controllers/AdminController.php. These files contain security fixes that must not be overwritten.
+
+2. MIGRATION — Run Database Migrations
+php artisan migrate
+
+This will run two migrations:
+
+2026_02_16_000010 — Seeds default enforcement data (now with UUID fixes)
+2026_02_16_000011 — Security audit remediation (CHECK constraints, RLS, index fixes, new columns)
+After migration, verify:
+
+url_rules table now has a use_normalisation boolean column
+content_rules table now has a category varchar(50) column
+All enum-like columns have CHECK constraints (run \d+ senderid_rules in psql to verify)
+quarantine_recipients has RLS enabled
+3. WHAT CHANGED — Security Audit Fixes (11 files, 1 new migration)
+Do NOT modify or revert any of these files. They contain security fixes.
+
+File	What Changed
+MessageEnforcementService.php	ReDoS prevention (tilde delimiter, backtrack limit 10k), isValidRegex() static validator, last-known-good fallback on DB failure, memoised equivalence map, preg_match error handling
+QuarantineMessage.php	status, reviewer_id, reviewed_at, reviewer_notes removed from $fillable — only settable via release() and block() methods. $hidden added for message_body. isReviewable() guard enforced in release/block.
+QuarantineRecipient.php	$hidden added for recipient_number (PII). created_at cast to datetime.
+SenderidRule.php	$hidden for created_by, updated_by
+ContentRule.php	$hidden for audit fields. category added to $fillable. scopeCategory() added.
+UrlRule.php	$hidden for audit fields. use_normalisation added to $fillable and $casts.
+EnforcementExemption.php	rule_table validated against allowlist on create/update. Constants: VALID_RULE_TABLES, VALID_ENGINES, VALID_EXEMPTION_TYPES, VALID_SCOPE_TYPES. $hidden for created_by.
+DomainAgeCache.php	$hidden for whois_raw
+AdminController.php	Exception messages no longer leaked to API clients. Raw user input removed from logs.
+000010_seed_...data.php	UUIDs generated for all rule inserts. down() uses targeted deletes instead of truncate.
+000011_...audit_fixes.php	NEW — CHECK constraints, RLS on quarantine_recipients, account-scoped dedup index, use_normalisation column on url_rules, category column on content_rules
+4. YOUR TASK — Wire the Admin UI to the Database
+The Spam Filter admin page at resources/views/admin/security/security-compliance-controls.blade.php (14,688 lines) still uses a loadMockData() JavaScript function (starting at line ~4768) with hardcoded arrays. You need to:
+
+Create admin API routes for CRUD operations on all rule/exemption/quarantine/normalisation tables
+Create a new controller app/Http/Controllers/Admin/EnforcementController.php for all API endpoints
+Replace loadMockData() with API calls that fetch real data from the database
+Wire all save/edit/delete/toggle UI actions to POST/PUT/DELETE API endpoints
+5. CRITICAL RULES — Read ALL of These Before Writing Any Code
+RULE 1: SECURITY FIXES ARE LOCKED. Do NOT modify any of the 11 files listed in Section 3. If you need to change model behaviour, work around it in your controller or create a new file. Specifically:
+
+QuarantineMessage status is NOT in $fillable. To create quarantine records, set status in the creating boot event (it defaults to 'pending'). To change status, use $message->release($reviewerId, $notes) or $message->block($reviewerId, $notes).
+Models have $hidden arrays. If your API response needs hidden fields (e.g., message_body for quarantine detail view), use $model->makeVisible(['message_body']) explicitly in the controller.
+EnforcementExemption validates rule_table and engine on create/update. Only pass values from the allowlists: EnforcementExemption::VALID_RULE_TABLES, EnforcementExemption::VALID_ENGINES.
+RULE 2: REGEX VALIDATION ON RULE CREATION. When creating or updating any rule with match_type = 'regex', validate the pattern before saving:
+
+if ($request->input('match_type') === 'regex') {
+    if (!MessageEnforcementService::isValidRegex($request->input('pattern'))) {
+        return response()->json(['error' => 'Invalid regex pattern'], 422);
+    }
+}
+
+This prevents ReDoS attacks. The static method MessageEnforcementService::isValidRegex() is available for this purpose.
+
+RULE 3: FIELD NAME MAPPING — The UI mock data uses different field names than the database. You MUST map correctly:
+
+UI Mock Field (JS)	DB Column	Table	Notes
+mockData.senderIdRules[].id	id (auto-increment)	senderid_rules	UI uses SID-001 strings, DB uses integer IDs
+mockData.senderIdRules[].baseSenderId	pattern	senderid_rules	DIFFERENT NAME
+mockData.senderIdRules[].ruleType	action	senderid_rules	UI says "block"/"flag", DB says "block"/"quarantine". Map "flag" → "quarantine"
+mockData.senderIdRules[].applyNormalisation	use_normalisation	senderid_rules	DIFFERENT NAME
+mockData.senderIdRules[].status	is_active	senderid_rules	UI "active"/"inactive" → DB boolean true/false
+mockData.senderIdRules[].createdBy	created_by	senderid_rules	created_by is in $hidden — when reading, use ->makeVisible(['created_by'])
+mockData.contentRules[].matchValue	pattern	content_rules	DIFFERENT NAME
+mockData.contentRules[].matchType	match_type	content_rules	Same concept, UI uses "keyword"/"regex"
+mockData.contentRules[].ruleType	action	content_rules	Map "flag" → "quarantine"
+mockData.urlRules[].pattern	pattern	url_rules	Same name but match_type values differ
+mockData.urlRules[].matchType	match_type	url_rules	UI uses "wildcard"/"exact"/"regex", DB uses "exact_domain"/"wildcard"/"regex"
+mockData.urlRules[].ruleType	action	url_rules	Map "flag" → "quarantine"
+mockData.baseCharacterLibrary[].base	base_character	normalisation_characters	DIFFERENT NAME
+mockData.baseCharacterLibrary[].type	character_type	normalisation_characters	DIFFERENT NAME
+mockData.baseCharacterLibrary[].enabled	is_active	normalisation_characters	DIFFERENT NAME
+mockData.baseCharacterLibrary[].notes	NOT IN DB	—	UI-only field. Compute or omit.
+mockData.baseCharacterLibrary[].risk	NOT IN DB	—	Computed client-side. Keep computing in JS.
+mockData.quarantinedMessages[].quarantinedAt	created_at	quarantine_messages	DIFFERENT NAME
+mockData.quarantinedMessages[].ruleTriggered	primary_engine	quarantine_messages	DIFFERENT NAME
+mockData.quarantinedMessages[].messageSnippet	message_body	quarantine_messages	message_body is in $hidden. Use ->makeVisible(['message_body']) and truncate for list view
+mockData.quarantinedMessages[].decisionAt	reviewed_at	quarantine_messages	DIFFERENT NAME
+mockData.quarantinedMessages[].reviewedBy	reviewer_id	quarantine_messages	DB stores UUID, UI shows email
+RULE 4: REMOVE ALL MOCK DATA. The loadMockData() function (lines ~4768-4974) must be completely replaced with API calls. No hardcoded arrays should remain. Replace:
+
+mockData.senderIdRules → fetch from GET /admin/api/enforcement/senderid-rules
+mockData.contentRules → fetch from GET /admin/api/enforcement/content-rules
+mockData.urlRules → fetch from GET /admin/api/enforcement/url-rules
+mockData.baseCharacterLibrary → fetch from GET /admin/api/enforcement/normalisation
+mockData.quarantinedMessages → fetch from GET /admin/api/enforcement/quarantine
+mockData.senderIdExemptions, mockData.manualExemptions, mockData.senderIdApprovals → fetch from GET /admin/api/enforcement/exemptions?engine=senderid
+mockData.contentExemptions → fetch from GET /admin/api/enforcement/exemptions?engine=content
+mockData.urlExemptions → fetch from GET /admin/api/enforcement/exemptions?engine=url
+mockData.domainAgeSettings → fetch from GET /admin/api/enforcement/settings?group=domain_age
+mockData.domainAllowlist → keep as local data for now (no DB table yet)
+mockData.thresholdOverrides → keep as local data for now
+mockData.antiSpamSettings → fetch from GET /admin/api/enforcement/settings?group=anti_spam
+mockData.quarantineFeatureFlags → fetch from GET /admin/api/enforcement/settings?group=feature_flags
+mockData.accounts → keep as mock for now (accounts API is separate)
+RULE 5: ACTION TERMINOLOGY. The UI uses "flag" where the DB uses "quarantine". When rendering from API: DB 'quarantine' → display as "Flag" or "Quarantine" (be consistent). When sending TO the API: UI "flag" → send action: 'quarantine'.
+
+RULE 6: EXISTING ENDPOINTS STILL WORK. These 3 endpoints exist and function correctly. Do NOT recreate them:
+
+POST /admin/enforcement/test — tests a string against an engine
+POST /admin/enforcement/normalise — normalises input text
+POST /admin/enforcement/reload — hot-reloads the rule cache
+RULE 7: UUID AUTO-GENERATION. SenderidRule, ContentRule, UrlRule, and EnforcementExemption auto-generate UUIDs on creation. Do NOT send UUIDs from the frontend.
+
+RULE 8: SOFT DELETES. SenderidRule, ContentRule, UrlRule, and EnforcementExemption use soft deletes. Use $model->delete() which sets deleted_at.
+
+RULE 9: QUARANTINE WORKFLOW. QuarantineMessage has release() and block() methods that enforce isReviewable(). If the message is expired or already reviewed, they throw \LogicException. Catch this in your controller:
+
+try {
+    $message->release($reviewerId, $notes);
+    return response()->json(['success' => true]);
+} catch (\LogicException $e) {
+    return response()->json(['error' => 'Message is no longer reviewable'], 409);
+}
+
+RULE 10: CACHE INVALIDATION. After any rule CRUD operation, call $this->enforcementService->hotReloadRules().
+
+RULE 11: SYSTEM SETTINGS. Use SystemSetting::getValue('key', default) and SystemSetting::setValue('key', value, $updatedBy). Settings are grouped:
+
+feature_flags: enforcement.senderid.enabled, enforcement.content.enabled, enforcement.url.enabled, enforcement.normalisation.enabled, enforcement.quarantine.enabled
+anti_spam: antispam.dedup.enabled, antispam.dedup.window_minutes, antispam.dedup.use_normalisation
+domain_age: domain_age.enabled, domain_age.threshold_hours, domain_age.cache_ttl_hours, domain_age.action
+enforcement: quarantine.expiry_hours, quarantine.require_notes, enforcement.pipeline_order
+RULE 12: CHECK CONSTRAINTS. The database now enforces valid values for enum-like columns. If you send an invalid value (e.g., action: 'warn'), the INSERT will fail with a constraint violation. Valid values are:
+
+action: 'block' or 'quarantine' (all rule tables)
+match_type for senderid/content: 'exact', 'contains', 'regex', 'startswith', 'endswith'
+match_type for url: 'exact_domain', 'wildcard', 'regex', 'exact', 'contains'
+engine: 'senderid', 'content', 'url'
+exemption_type: 'rule', 'engine', 'value'
+scope_type: 'global', 'account', 'sub_account'
+status (quarantine): 'pending', 'released', 'blocked', 'expired'
+source (quarantine): 'single_send', 'campaigns', 'inbox', 'api', 'email_to_sms', 'templates', 'rcs'
+character_type: 'letter', 'digit'
+lookup_status: 'success', 'failed', 'timeout', 'unknown'
+RULE 13: DO NOT LEAK EXCEPTION MESSAGES. The AdminController has been patched so that $e->getMessage() is never returned in JSON responses. Follow the same pattern in your new controller — return generic user-facing error messages, log the real exception server-side.
+
+RULE 14: JS ENFORCEMENT SERVICE BLADE. resources/views/shared/services/message-enforcement-service.blade.php has hardcoded mock rules in loadActiveRules() (lines ~272-310). Replace with Blade @json() injection from PHP. Example:
+
+// In controller — pass rules to the layout
+view()->share('enforcementRules', [
+    'senderid' => SenderidRule::active()->byPriority()->get()->map->toEnforcementArray(),
+    'content' => ContentRule::active()->byPriority()->get()->map->toEnforcementArray(),
+    'url' => UrlRule::active()->byPriority()->get()->map->toEnforcementArray(),
+]);
+
+// In message-enforcement-service.blade.php, replace loadActiveRules() body:
+activeRules.senderid = @json($enforcementRules['senderid'] ?? []);
+activeRules.content = @json($enforcementRules['content'] ?? []);
+activeRules.url = @json($enforcementRules['url'] ?? []);
+
+6. SUGGESTED API ENDPOINTS
+All routes within the existing admin middleware group in routes/web.php:
+
+GET    /admin/api/enforcement/senderid-rules           → list all SenderID rules
+POST   /admin/api/enforcement/senderid-rules           → create new SenderID rule
+PUT    /admin/api/enforcement/senderid-rules/{id}      → update SenderID rule
+DELETE /admin/api/enforcement/senderid-rules/{id}      → soft-delete SenderID rule
+PATCH  /admin/api/enforcement/senderid-rules/{id}/toggle → toggle is_active
+
+GET    /admin/api/enforcement/content-rules             → list all content rules
+POST   /admin/api/enforcement/content-rules             → create new content rule
+PUT    /admin/api/enforcement/content-rules/{id}        → update content rule
+DELETE /admin/api/enforcement/content-rules/{id}        → soft-delete content rule
+PATCH  /admin/api/enforcement/content-rules/{id}/toggle → toggle is_active
+
+GET    /admin/api/enforcement/url-rules                 → list all URL rules
+POST   /admin/api/enforcement/url-rules                 → create new URL rule
+PUT    /admin/api/enforcement/url-rules/{id}            → update URL rule
+DELETE /admin/api/enforcement/url-rules/{id}            → soft-delete URL rule
+PATCH  /admin/api/enforcement/url-rules/{id}/toggle     → toggle is_active
+
+GET    /admin/api/enforcement/normalisation             → list all normalisation characters
+PUT    /admin/api/enforcement/normalisation/{id}        → update equivalents
+PATCH  /admin/api/enforcement/normalisation/{id}/toggle → toggle is_active
+
+GET    /admin/api/enforcement/exemptions                → list exemptions (?engine= filter)
+POST   /admin/api/enforcement/exemptions                → create exemption
+PUT    /admin/api/enforcement/exemptions/{id}           → update exemption
+DELETE /admin/api/enforcement/exemptions/{id}           → soft-delete exemption
+PATCH  /admin/api/enforcement/exemptions/{id}/toggle    → toggle is_active
+
+GET    /admin/api/enforcement/quarantine                → list (?status=, ?engine= filters)
+GET    /admin/api/enforcement/quarantine/{id}           → single message detail (makeVisible)
+POST   /admin/api/enforcement/quarantine/{id}/release   → release (catch LogicException)
+POST   /admin/api/enforcement/quarantine/{id}/block     → block (catch LogicException)
+
+GET    /admin/api/enforcement/settings                  → get all settings (?group= filter)
+PUT    /admin/api/enforcement/settings/{key}            → update setting value
+
+GET    /admin/api/enforcement/domain-age-cache          → list cached domains
+DELETE /admin/api/enforcement/domain-age-cache/{id}     → remove cached entry
+
+7. CONTROLLER SKELETON
+Create app/Http/Controllers/Admin/EnforcementController.php:
+
+<?php
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\SenderidRule;
+use App\Models\ContentRule;
+use App\Models\UrlRule;
+use App\Models\NormalisationCharacter;
+use App\Models\EnforcementExemption;
+use App\Models\QuarantineMessage;
+use App\Models\SystemSetting;
+use App\Models\DomainAgeCache;
+use App\Services\Admin\MessageEnforcementService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+
+class EnforcementController extends Controller
+{
+    public function __construct(private MessageEnforcementService $enforcementService) {}
+
+    // Inject session('admin_email') into created_by/updated_by
+    // Call $this->enforcementService->hotReloadRules() after any rule CRUD
+    // Validate match_type=regex patterns via MessageEnforcementService::isValidRegex()
+    // Use ->makeVisible() for hidden fields when needed in responses
+    // Catch \LogicException on quarantine release/block
+    // Never return $e->getMessage() in JSON responses
+}
+
+8. TEST PLAN
+Complete ALL tests. Mark each PASS/FAIL.
+
+T1: Database Verification
+
+ T1.1: php artisan migrate runs without errors
+ T1.2: All 11 tables exist in the database
+ T1.3: Seed data: SELECT COUNT(*) FROM senderid_rules = 8, content_rules = 5, url_rules = 4, normalisation_characters = 36, system_settings = 15
+ T1.4: CHECK constraints exist: SELECT conname FROM pg_constraint WHERE conrelid = 'senderid_rules'::regclass AND contype = 'c' returns chk_senderid_rules_match_type and chk_senderid_rules_action
+ T1.5: url_rules has use_normalisation column, content_rules has category column
+T2: SenderID Rules Tab
+
+ T2.1: Rules load from database (not mock data)
+ T2.2: Create a new rule via Add Rule modal → appears in table and DB
+ T2.3: Edit a rule → change persists after refresh
+ T2.4: Toggle active status → is_active changes in DB
+ T2.5: Delete a rule → soft delete (deleted_at set)
+ T2.6: After CRUD, Test Enforcement panel (SenderID engine) reflects change immediately
+ T2.7: Creating a rule with match_type=regex and invalid pattern (a+)+$ → returns 422 error
+T3: Content Rules Tab
+
+ T3.1: Rules load from database
+ T3.2: Create keyword and regex rules → both appear correctly
+ T3.3: Edit → persists after refresh
+ T3.4: Toggle active/inactive
+ T3.5: Delete (soft)
+ T3.6: Test with enforcement test panel after changes
+ T3.7: Regex validation rejects invalid patterns
+T4: URL Rules Tab
+
+ T4.1: Rules load from database
+ T4.2: CRUD works (create, edit, toggle, delete)
+ T4.3: Test with enforcement test panel after changes
+ T4.4: Regex validation rejects invalid patterns
+T5: Normalisation Tab
+
+ T5.1: Letters and Digits sub-tabs load 36 characters from database
+ T5.2: Edit equivalents → persists
+ T5.3: Toggle enabled status
+ T5.4: Normalisation test reflects updates
+ T5.5: risk field still computed client-side (not from DB)
+T6: Exemptions
+
+ T6.1: SenderID exemptions load from DB
+ T6.2: Create exemption → persists. Verify engine and rule_table validation works (try invalid value → error)
+ T6.3: Content exemptions load
+ T6.4: URL exemptions load
+ T6.5: Toggle/delete work
+T7: Quarantine Inbox
+
+ T7.1: Loads from quarantine_messages table (will be empty initially — handle gracefully)
+ T7.2: Release action uses POST .../release with notes
+ T7.3: Block action uses POST .../block with notes
+ T7.4: Attempting to release an expired message returns 409 error
+ T7.5: Filter by engine and status works
+T8: Settings
+
+ T8.1: Domain Age settings load from system_settings
+ T8.2: Changing settings persists to DB
+ T8.3: Anti-spam settings load and save
+ T8.4: Feature flags load and save
+T9: Mock Data Removal
+
+ T9.1: loadMockData no longer contains hardcoded arrays (search for SID-001, CR-001, URL-001 string literals)
+ T9.2: message-enforcement-service.blade.php loadActiveRules() uses DB data (via @json() or API)
+ T9.3: mockData.accounts still present as mock (not accidentally removed)
+ T9.4: After full page refresh, all tabs populate from DB
+T10: Security Regression
+
+ T10.1: Enforcement test endpoint POST /admin/enforcement/test still works
+ T10.2: Normalise endpoint POST /admin/enforcement/normalise still works
+ T10.3: Reload endpoint POST /admin/enforcement/reload works
+ T10.4: Error responses do NOT contain $e->getMessage() or stack traces (check network tab)
+ T10.5: Creating a rule with action: 'warn' fails with constraint violation (not silently accepted)
+ T10.6: Creating an exemption with rule_table: 'users' fails with validation error
+9. REQUIRED COMPLETION REPORT
+When finished, provide a structured report with these sections:
+
+A. CHANGES MADE — Every file created, modified, or deleted with brief description
+
+B. MOCK DATA REMOVED — Each mock block replaced and what API endpoint replaced it
+
+C. FIELD NAME MISMATCHES FOUND — Any additional mismatches beyond RULE 3 and how resolved
+
+D. NEW API ENDPOINTS CREATED — Full route list with HTTP method, URL, and controller method
+
+E. DEVIATIONS FROM PLAN — Where you had to deviate and why
+
+F. TEST RESULTS — Every test T1-T10 as PASS/FAIL. For FAIL, explain what went wrong
+
+G. KNOWN ISSUES — Bugs, incomplete features, or technical debt introduced
+
+H. SECURITY NOTES — CSRF tokens, input validation, authorisation checks, SQL injection mitigations. Confirm you did NOT modify any of the 11 security-fixed files from Section 3.
+
+This report will be used for a security audit, so be thorough and honest about deviations or issues.

@@ -9,12 +9,32 @@ use App\Models\NormalisationCharacter;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 
+/**
+ * MessageEnforcementService - Unified message security enforcement
+ * 
+ * This service is the SINGLE SOURCE OF TRUTH for message enforcement.
+ * Both the test endpoint and production enforcement MUST use this service.
+ * 
+ * Features:
+ * - Normalisation using character equivalence library
+ * - Rule evaluation for SenderID, Content, and URL engines
+ * - O(1) rule lookups via indexed storage
+ * - Hot reload support
+ * - Tenant isolation
+ */
 class MessageEnforcementService
 {
     private const CACHE_TTL_SECONDS = 60;
     private const CACHE_KEY_RULES = 'enforcement_rules';
     private const CACHE_KEY_NORMALISATION = 'normalisation_library';
 
+    /**
+     * Test enforcement against a given input
+     * 
+     * @param string $engine The enforcement engine (senderid, content, url)
+     * @param string $input The input string to test
+     * @return array The enforcement result
+     */
     public function testEnforcement(string $engine, string $input): array
     {
         $normalisationResult = $this->normalise($input);
@@ -40,6 +60,13 @@ class MessageEnforcementService
         ];
     }
 
+    /**
+     * Normalise input using character equivalence library
+     * This is the SAME normalisation used by production
+     * 
+     * @param string $input The input string to normalise
+     * @return array Normalisation result with mappings
+     */
     public function normalise(string $input): array
     {
         $library = $this->getNormalisationLibrary();
@@ -81,6 +108,15 @@ class MessageEnforcementService
         ];
     }
 
+    /**
+     * Evaluate rules against normalised input
+     * This is the SAME evaluation used by production
+     * 
+     * @param string $normalisedInput The normalised input
+     * @param array $rules The rules to evaluate
+     * @param string $engine The engine type
+     * @return array Evaluation result
+     */
     public function evaluateRules(string $normalisedInput, array $rules, string $engine): array
     {
         foreach ($rules as $rule) {
@@ -91,11 +127,9 @@ class MessageEnforcementService
             try {
                 switch ($matchType) {
                     case 'exact':
-                    case 'exact_domain':
                         $isMatch = strtoupper($normalisedInput) === strtoupper($pattern);
                         break;
                     case 'contains':
-                    case 'keyword':
                         $isMatch = stripos($normalisedInput, $pattern) !== false;
                         break;
                     case 'regex':
@@ -106,10 +140,6 @@ class MessageEnforcementService
                         break;
                     case 'endswith':
                         $isMatch = substr(strtoupper($normalisedInput), -strlen($pattern)) === strtoupper($pattern);
-                        break;
-                    case 'wildcard':
-                        $regexPattern = str_replace(['\*', '\?'], ['.*', '.'], preg_quote($pattern, '/'));
-                        $isMatch = preg_match('/^' . $regexPattern . '$/i', $normalisedInput) === 1;
                         break;
                     default:
                         $isMatch = stripos($normalisedInput, $pattern) !== false;
@@ -143,6 +173,12 @@ class MessageEnforcementService
         ];
     }
 
+    /**
+     * Get rules for a specific engine
+     * 
+     * @param string $engine The engine type (senderid, content, url)
+     * @return array The rules for the engine
+     */
     public function getRulesForEngine(string $engine): array
     {
         $cacheKey = self::CACHE_KEY_RULES . '_' . $engine;
@@ -152,6 +188,11 @@ class MessageEnforcementService
         });
     }
 
+    /**
+     * Get the normalisation library
+     * 
+     * @return array The normalisation library
+     */
     public function getNormalisationLibrary(): array
     {
         return Cache::remember(self::CACHE_KEY_NORMALISATION, self::CACHE_TTL_SECONDS, function () {
@@ -159,6 +200,32 @@ class MessageEnforcementService
         });
     }
 
+    /**
+     * Validate a regex pattern for safety (ReDoS prevention).
+     * Uses tilde delimiter and backtrack limit to prevent catastrophic backtracking.
+     */
+    public static function isValidRegex(string $pattern): bool
+    {
+        if (empty($pattern)) {
+            return false;
+        }
+
+        $previousLimit = ini_get('pcre.backtrack_limit');
+        ini_set('pcre.backtrack_limit', '10000');
+
+        try {
+            $result = @preg_match('~' . $pattern . '~i', '');
+            ini_set('pcre.backtrack_limit', $previousLimit);
+            return $result !== false;
+        } catch (\Exception $e) {
+            ini_set('pcre.backtrack_limit', $previousLimit);
+            return false;
+        }
+    }
+
+    /**
+     * Hot reload rules - invalidate cache
+     */
     public function hotReloadRules(): void
     {
         Cache::forget(self::CACHE_KEY_RULES . '_senderid');
@@ -169,27 +236,42 @@ class MessageEnforcementService
         Log::info('[MessageEnforcementService] Hot reload - cache invalidated');
     }
 
+    /**
+     * Load rules from database for a given engine.
+     *
+     * @param string $engine The engine type
+     * @return array The rules in enforcement array format
+     */
     private function loadRulesFromDatabase(string $engine): array
     {
         try {
             switch ($engine) {
                 case 'senderid':
-                    return SenderidRule::active()->byPriority()->get()
-                        ->map(fn($r) => $r->toEnforcementArray())
+                    return SenderidRule::active()
+                        ->byPriority()
+                        ->get()
+                        ->map(fn ($rule) => $rule->toEnforcementArray())
                         ->toArray();
+
                 case 'content':
-                    return ContentRule::active()->byPriority()->get()
-                        ->map(fn($r) => $r->toEnforcementArray())
+                    return ContentRule::active()
+                        ->byPriority()
+                        ->get()
+                        ->map(fn ($rule) => $rule->toEnforcementArray())
                         ->toArray();
+
                 case 'url':
-                    return UrlRule::active()->byPriority()->get()
-                        ->map(fn($r) => $r->toEnforcementArray())
+                    return UrlRule::active()
+                        ->byPriority()
+                        ->get()
+                        ->map(fn ($rule) => $rule->toEnforcementArray())
                         ->toArray();
+
                 default:
                     return [];
             }
         } catch (\Exception $e) {
-            Log::error('[MessageEnforcementService] Failed to load rules from DB', [
+            Log::error('[MessageEnforcementService] Failed to load rules from database', [
                 'engine' => $engine,
                 'error' => $e->getMessage(),
             ]);
@@ -197,14 +279,20 @@ class MessageEnforcementService
         }
     }
 
+    /**
+     * Load normalisation library from database.
+     *
+     * @return array The normalisation library in service format
+     */
     private function loadNormalisationLibraryFromDatabase(): array
     {
         try {
-            return NormalisationCharacter::active()->get()
-                ->map(fn($c) => $c->toLibraryArray())
+            return NormalisationCharacter::active()
+                ->get()
+                ->map(fn ($char) => $char->toLibraryArray())
                 ->toArray();
         } catch (\Exception $e) {
-            Log::error('[MessageEnforcementService] Failed to load normalisation library from DB', [
+            Log::error('[MessageEnforcementService] Failed to load normalisation library', [
                 'error' => $e->getMessage(),
             ]);
             return [];
