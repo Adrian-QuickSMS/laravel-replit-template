@@ -399,31 +399,42 @@ class ContactBookApiController extends Controller
 
     public function listsAddMembers(Request $request, string $id): JsonResponse
     {
-        $list = ContactList::findOrFail($id);
+        $accountId = session('customer_tenant_id');
+        $listExists = DB::table('contact_lists')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$listExists) {
+            return response()->json(['status' => 'error', 'message' => 'List not found'], 404);
+        }
 
         $request->validate([
             'contact_ids' => 'required|array|min:1',
-            'contact_ids.*' => 'uuid',
+            'contact_ids.*' => 'string',
         ]);
 
         $inserted = 0;
         foreach ($request->input('contact_ids') as $contactId) {
             $exists = DB::table('contact_list_member')
                 ->where('contact_id', $contactId)
-                ->where('list_id', $list->id)
+                ->where('list_id', $id)
                 ->exists();
 
             if (!$exists) {
                 DB::table('contact_list_member')->insert([
                     'contact_id' => $contactId,
-                    'list_id' => $list->id,
+                    'list_id' => $id,
                     'created_at' => now(),
                 ]);
                 $inserted++;
             }
         }
 
-        $list->refreshContactCount();
+        DB::table('contact_lists')
+            ->where('id', $id)
+            ->update(['contact_count' => DB::table('contact_list_member')->where('list_id', $id)->count()]);
+
         return response()->json(['success' => true, 'added' => $inserted]);
     }
 
