@@ -362,6 +362,11 @@ class ContactBookApiController extends Controller
 
         $validated['account_id'] = session('customer_tenant_id');
 
+        $existing = ContactList::where('name', $validated['name'])->first();
+        if ($existing) {
+            return response()->json(['status' => 'error', 'message' => 'A list with this name already exists. Please choose a different name.'], 422);
+        }
+
         $list = ContactList::create($validated);
 
         // Set type via raw SQL since Blueprint can't set enum

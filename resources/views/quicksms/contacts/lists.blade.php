@@ -453,8 +453,8 @@
 
                 <div id="createStep3" class="d-none">
                     <h6 class="mb-3">Step 3: Confirm</h6>
-                    <div class="card bg-light">
-                        <div class="card-body">
+                    <div class="card" style="background-color: #f0ebf8; border: 1px solid #d4c5f0;">
+                        <div class="card-body" style="color: #000;">
                             <div class="row">
                                 <div class="col-md-6">
                                     <p class="mb-1"><strong>List Name:</strong></p>
@@ -480,7 +480,7 @@
                 <button type="button" class="btn btn-primary" id="createNextBtn" onclick="createListNextStep()">
                     Next <i class="fas fa-arrow-right ms-1"></i>
                 </button>
-                <button type="button" class="btn btn-success d-none" id="createConfirmBtn" onclick="confirmCreateList()">
+                <button type="button" class="btn d-none text-white" id="createConfirmBtn" onclick="confirmCreateList()" style="background-color: #886CC0;">
                     <i class="fas fa-check me-1"></i> Create List
                 </button>
             </div>
