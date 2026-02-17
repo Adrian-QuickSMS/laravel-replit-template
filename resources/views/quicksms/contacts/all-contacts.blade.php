@@ -4,6 +4,134 @@
 
 @push('styles')
 <style>
+.fillow-multiselect {
+    position: relative;
+}
+.fillow-multiselect .fillow-ms-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    color: #495057;
+    background-color: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    min-height: 40px;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+.fillow-multiselect .fillow-ms-toggle:hover {
+    border-color: #886CC0;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-placeholder {
+    color: #a1a1a1;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    background-color: #f0ebf8;
+    color: #886CC0;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-badge .fillow-ms-badge-remove {
+    margin-left: 0.35rem;
+    cursor: pointer;
+    font-size: 0.65rem;
+    opacity: 0.7;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-badge .fillow-ms-badge-remove:hover {
+    opacity: 1;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-arrow {
+    margin-left: auto;
+    padding-left: 0.5rem;
+    flex-shrink: 0;
+}
+.fillow-multiselect .fillow-ms-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1060;
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 0.625rem;
+    margin-top: 0.25rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    max-height: 220px;
+    overflow: hidden;
+    flex-direction: column;
+}
+.fillow-multiselect.open .fillow-ms-dropdown {
+    display: flex !important;
+}
+.fillow-multiselect .fillow-ms-search {
+    padding: 0.5rem;
+    border-bottom: 1px solid #f1f3f5;
+}
+.fillow-multiselect .fillow-ms-search input {
+    width: 100%;
+    border: 1px solid #e6e6e6;
+    border-radius: 0.5rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    outline: none;
+}
+.fillow-multiselect .fillow-ms-search input:focus {
+    border-color: #886CC0;
+}
+.fillow-multiselect .fillow-ms-options {
+    overflow-y: auto;
+    max-height: 160px;
+    flex: 1;
+}
+.fillow-multiselect .fillow-ms-option {
+    display: flex;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #495057;
+    transition: background-color 0.15s;
+}
+.fillow-multiselect .fillow-ms-option:hover {
+    background-color: #f8f9fa;
+}
+.fillow-multiselect .fillow-ms-option.selected {
+    background-color: #f0ebf8;
+    color: #886CC0;
+    font-weight: 500;
+}
+.fillow-multiselect .fillow-ms-option .fillow-ms-check {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d1d5db;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+.fillow-multiselect .fillow-ms-option.selected .fillow-ms-check {
+    background-color: #886CC0;
+    border-color: #886CC0;
+    color: #fff;
+}
+.fillow-multiselect .fillow-ms-no-results {
+    padding: 0.75rem;
+    text-align: center;
+    color: #a1a1a1;
+    font-size: 0.8rem;
+}
 /* API Integration code blocks - black background with white text */
 #contacts-api code.bg-light,
 #contacts-api pre.bg-light {
@@ -54,6 +182,9 @@
     border-radius: 0.75rem;
     border: 1px solid #e9ecef;
     overflow: visible;
+}
+.table-responsive {
+    overflow: visible !important;
 }
 .filter-chip {
     display: inline-flex;
@@ -370,20 +501,20 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end border py-0">
                                                 <div class="py-2">
-                                                    <a class="dropdown-item" href="#!" onclick="viewContact({{ $contact['id'] }}); return false;">
+                                                    <a class="dropdown-item" href="#!" onclick="viewContact('{{ $contact['id'] }}'); return false;">
                                                         <i class="fas fa-eye me-2 text-dark"></i> View Details
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="editContact({{ $contact['id'] }}); return false;">
+                                                    <a class="dropdown-item" href="#!" onclick="editContact('{{ $contact['id'] }}'); return false;">
                                                         <i class="fas fa-edit me-2 text-dark"></i> Edit
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="sendMessage({{ $contact['id'] }}); return false;">
+                                                    <a class="dropdown-item" href="#!" onclick="sendMessage('{{ $contact['id'] }}'); return false;">
                                                         <i class="fas fa-paper-plane me-2 text-dark"></i> Send Message
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="viewTimeline({{ $contact['id'] }}); return false;">
+                                                    <a class="dropdown-item" href="#!" onclick="viewTimeline('{{ $contact['id'] }}'); return false;">
                                                         <i class="fas fa-history me-2 text-dark"></i> Activity Timeline
                                                     </a>
                                                     <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteContact({{ $contact['id'] }}); return false;">
+                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteContact('{{ $contact['id'] }}'); return false;">
                                                         <i class="fas fa-trash me-2"></i> Delete
                                                     </a>
                                                 </div>
@@ -527,6 +658,23 @@
     </div>
 </div>
 
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="confirmActionTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2" id="confirmActionBody"></div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="{{ asset('js/contacts-service.js') }}"></script>
 <script src="{{ asset('js/contact-timeline-service.js') }}"></script>
 <script>
@@ -536,51 +684,168 @@ var customFieldDefinitions = [
     { id: 2, name: 'Job Title', slug: 'job_title', type: 'text', defaultValue: '' }
 ];
 
-// TODO: Backend integration - Replace with actual API calls
-var ContactsService = {
-    bulkAddToList: function(contactIds, listId) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkAddToList:', contactIds, listId);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
-    bulkRemoveFromList: function(contactIds, listId) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkRemoveFromList:', contactIds, listId);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
-    bulkAddTags: function(contactIds, tagIds) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkAddTags:', contactIds, tagIds);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
-    bulkRemoveTags: function(contactIds, tagIds) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkRemoveTags:', contactIds, tagIds);
-                resolve({ success: true });
-            }, 500);
-        });
-    },
-    bulkDelete: function(contactIds) {
-        return new Promise(function(resolve) {
-            setTimeout(function() {
-                console.log('[ContactsService] bulkDelete:', contactIds);
-                resolve({ success: true });
-            }, 500);
+var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+function _apiHeaders() {
+    return { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': _csrfToken };
+}
+function _handleApiResponse(response) {
+    if (!response.ok) {
+        return response.json().then(function(err) {
+            var msg = err.message || '';
+            if (err.errors) {
+                var firstField = Object.keys(err.errors)[0];
+                if (firstField && err.errors[firstField].length) {
+                    msg = err.errors[firstField][0];
+                }
+            }
+            throw new Error(msg || 'Request failed');
+        }).catch(function(e) {
+            if (e instanceof Error && e.message) throw e;
+            throw new Error('Request failed');
         });
     }
+    return response.json();
+}
+function showConfirmModal(title, body, btnText, btnClass, onConfirm) {
+    document.getElementById('confirmActionTitle').textContent = title;
+    document.getElementById('confirmActionBody').innerHTML = body;
+    var btn = document.getElementById('confirmActionBtn');
+    btn.textContent = btnText;
+    btn.className = 'btn ' + btnClass;
+    btn.onclick = function() {
+        bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+        onConfirm();
+    };
+    var confirmModal = new bootstrap.Modal(document.getElementById('confirmActionModal'), { backdrop: true });
+    confirmModal.show();
+    document.getElementById('confirmActionModal').addEventListener('shown.bs.modal', function handler() {
+        var backdrops = document.querySelectorAll('.modal-backdrop');
+        if (backdrops.length > 1) {
+            backdrops[backdrops.length - 1].style.zIndex = '1055';
+        }
+        this.removeEventListener('shown.bs.modal', handler);
+    });
+}
+function reloadContactsFromServer() {
+    fetch('/api/contacts?per_page=500', { headers: _apiHeaders() })
+        .then(_handleApiResponse)
+        .then(function(result) {
+            contactsData = result.data || [];
+            renderContactsTable(contactsData);
+        })
+        .catch(function(err) { console.error('Failed to reload contacts:', err); });
+}
+function showSuccessToast(message) {
+    if (typeof toastr !== 'undefined') {
+        toastr.success(message);
+    } else {
+        var toast = document.createElement('div');
+        toast.className = 'alert alert-success position-fixed';
+        toast.style.cssText = 'top:20px;right:20px;z-index:99999;min-width:300px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+        toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + message;
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 3000);
+    }
+}
+
+function FillowMultiSelect(el) {
+    this.el = typeof el === 'string' ? document.getElementById(el) : el;
+    if (!this.el) return;
+    this.selected = [];
+    this.placeholder = this.el.dataset.placeholder || 'Select...';
+    this.toggle = this.el.querySelector('.fillow-ms-toggle');
+    this.dropdown = this.el.querySelector('.fillow-ms-dropdown');
+    this.searchInput = this.el.querySelector('.fillow-ms-search input');
+    this.optionsContainer = this.el.querySelector('.fillow-ms-options');
+    this.allOptions = this.el.querySelectorAll('.fillow-ms-option');
+    var self = this;
+
+    this.toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.querySelectorAll('.fillow-multiselect.open').forEach(function(ms) { if (ms !== self.el) ms.classList.remove('open'); });
+        self.el.classList.toggle('open');
+        if (self.el.classList.contains('open') && self.searchInput) {
+            self.searchInput.value = '';
+            self.filterOptions('');
+            setTimeout(function() { self.searchInput.focus(); }, 50);
+        }
+    });
+
+    if (this.searchInput) {
+        this.searchInput.addEventListener('input', function() { self.filterOptions(this.value); });
+        this.searchInput.addEventListener('click', function(e) { e.stopPropagation(); });
+    }
+
+    this.allOptions.forEach(function(opt) {
+        opt.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var val = opt.dataset.value;
+            var idx = self.selected.indexOf(val);
+            if (idx > -1) { self.selected.splice(idx, 1); opt.classList.remove('selected'); }
+            else { self.selected.push(val); opt.classList.add('selected'); }
+            self.renderToggle();
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!self.el.contains(e.target)) self.el.classList.remove('open');
+    });
+}
+
+FillowMultiSelect.prototype.filterOptions = function(query) {
+    var q = query.toLowerCase();
+    this.allOptions.forEach(function(opt) {
+        opt.style.display = opt.dataset.value.toLowerCase().indexOf(q) > -1 ? '' : 'none';
+    });
 };
 
+FillowMultiSelect.prototype.renderToggle = function() {
+    var self = this;
+    var inner = '';
+    if (this.selected.length === 0) {
+        inner = '<span class="fillow-ms-placeholder">' + this.placeholder + '</span>';
+    } else if (this.selected.length <= 3) {
+        inner = this.selected.map(function(v) {
+            return '<span class="fillow-ms-badge">' + v + '<span class="fillow-ms-badge-remove" data-val="' + v + '">&times;</span></span>';
+        }).join('');
+    } else {
+        inner = '<span class="fillow-ms-badge">' + this.selected.length + ' selected</span>';
+    }
+    inner += '<span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span>';
+    this.toggle.innerHTML = inner;
+    this.toggle.querySelectorAll('.fillow-ms-badge-remove').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var val = btn.dataset.val;
+            var idx = self.selected.indexOf(val);
+            if (idx > -1) self.selected.splice(idx, 1);
+            self.allOptions.forEach(function(opt) { if (opt.dataset.value === val) opt.classList.remove('selected'); });
+            self.renderToggle();
+        });
+    });
+};
+
+FillowMultiSelect.prototype.val = function(newVal) {
+    if (typeof newVal === 'undefined') return this.selected.slice();
+    var self = this;
+    this.selected = Array.isArray(newVal) ? newVal.slice() : [];
+    this.allOptions.forEach(function(opt) {
+        if (self.selected.indexOf(opt.dataset.value) > -1) opt.classList.add('selected');
+        else opt.classList.remove('selected');
+    });
+    this.renderToggle();
+};
+
+FillowMultiSelect.prototype.clear = function() { this.val([]); };
+
+var msInstances = {};
+function getMs(id) { return msInstances[id]; }
+
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.fillow-multiselect').forEach(function(el) {
+        msInstances[el.id] = new FillowMultiSelect(el);
+    });
+
     const checkAll = document.getElementById('checkAll');
     const bulkActionBar = document.getElementById('bulkActionBar');
     const selectedCount = document.getElementById('selectedCount');
@@ -897,15 +1162,15 @@ function renderContactsTable(contacts) {
                 </span>
             </td>
             <td class="py-2">
-                ${contact.tags.map(tag => `<span class="badge bg-light text-dark border me-1">${tag}</span>`).join('')}
+                ${contact.tags.map(tag => `<span class="badge badge-pastel-secondary me-1">${tag}</span>`).join('')}
             </td>
             <td class="py-2">
-                ${contact.lists.map(list => `<span class="badge bg-info text-white me-1">${list}</span>`).join('')}
+                ${contact.lists.map(list => `<span class="badge badge-pastel-pink me-1">${list}</span>`).join('')}
             </td>
             <td class="py-2">
                 ${contact.status === 'active' 
-                    ? '<span class="badge bg-success">Active</span>' 
-                    : '<span class="badge bg-danger">Opted Out</span>'}
+                    ? '<span class="badge badge-pastel-success">Active</span>' 
+                    : '<span class="badge badge-pastel-danger">Opted Out</span>'}
             </td>
             <td class="py-2 text-end">
                 <div class="dropdown">
@@ -923,20 +1188,20 @@ function renderContactsTable(contacts) {
                     </button>
                     <div class="dropdown-menu dropdown-menu-end border py-0">
                         <div class="py-2">
-                            <a class="dropdown-item" href="#!" onclick="viewContact(${contact.id}); return false;">
+                            <a class="dropdown-item" href="#!" onclick="viewContact('${contact.id}'); return false;">
                                 <i class="fas fa-eye me-2 text-dark"></i> View Details
                             </a>
-                            <a class="dropdown-item" href="#!" onclick="editContact(${contact.id}); return false;">
+                            <a class="dropdown-item" href="#!" onclick="editContact('${contact.id}'); return false;">
                                 <i class="fas fa-edit me-2 text-dark"></i> Edit
                             </a>
-                            <a class="dropdown-item" href="#!" onclick="sendMessage(${contact.id}); return false;">
+                            <a class="dropdown-item" href="#!" onclick="sendMessage('${contact.id}'); return false;">
                                 <i class="fas fa-paper-plane me-2 text-dark"></i> Send Message
                             </a>
-                            <a class="dropdown-item" href="#!" onclick="viewTimeline(${contact.id}); return false;">
+                            <a class="dropdown-item" href="#!" onclick="viewTimeline('${contact.id}'); return false;">
                                 <i class="fas fa-history me-2 text-dark"></i> Activity Timeline
                             </a>
                             <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-danger" href="#!" onclick="deleteContact(${contact.id}); return false;">
+                            <a class="dropdown-item text-danger" href="#!" onclick="deleteContact('${contact.id}'); return false;">
                                 <i class="fas fa-trash me-2"></i> Delete
                             </a>
                         </div>
@@ -969,7 +1234,6 @@ function renderContactsTable(contacts) {
 }
 
 function viewContact(id) {
-    console.log('TODO: viewContact - Fetch from API: GET /api/contacts/' + id);
     var contact = contactsData.find(c => c.id === id);
     if (!contact) return;
     
@@ -978,27 +1242,81 @@ function viewContact(id) {
     document.getElementById('viewContactMobile').textContent = contact.mobile;
     document.getElementById('viewContactEmail').textContent = contact.email || 'Not provided';
     document.getElementById('viewContactStatus').innerHTML = contact.status === 'active' 
-        ? '<span class="badge" style="background-color: #d4edda; color: #155724;">Active</span>' 
-        : '<span class="badge" style="background-color: #f8d7da; color: #721c24;">Opted Out</span>';
+        ? '<span class="badge badge-pastel-success">Active</span>' 
+        : '<span class="badge badge-pastel-danger">Opted Out</span>';
     document.getElementById('viewContactSource').textContent = contact.source;
     document.getElementById('viewContactCreated').textContent = contact.created_at;
     
     var tagsHtml = contact.tags.length > 0 
-        ? contact.tags.map(t => '<span class="badge me-1" style="background-color: #e8f4fd; color: #0c5460; border: 1px solid #bee5eb;">' + t + '</span>').join('') 
+        ? contact.tags.map(t => '<span class="badge badge-pastel-secondary me-1">' + t + '</span>').join('') 
         : '<span class="text-muted">No tags</span>';
     document.getElementById('viewContactTags').innerHTML = tagsHtml;
     
     var listsHtml = contact.lists.length > 0 
-        ? contact.lists.map(l => '<span class="badge me-1" style="background-color: #f0ebf8; color: #6c5ce7;">' + l + '</span>').join('') 
+        ? contact.lists.map(l => '<span class="badge badge-pastel-pink me-1">' + l + '</span>').join('') 
         : '<span class="text-muted">No lists</span>';
     document.getElementById('viewContactLists').innerHTML = listsHtml;
+    
+    var timelineContainer = document.getElementById('viewContactTimelineContainer');
+    timelineContainer.innerHTML = '<p class="text-muted text-center mb-0 py-2"><i class="fas fa-spinner fa-spin me-1"></i>Loading timeline...</p>';
+    
+    var expandBtn = document.getElementById('viewContactTimelineExpandBtn');
+    expandBtn.onclick = function() {
+        bootstrap.Modal.getInstance(document.getElementById('viewContactModal'))?.hide();
+        setTimeout(function() { showActivityTimeline(id); }, 300);
+    };
+    
+    loadViewContactTimeline(id, timelineContainer);
     
     var modal = new bootstrap.Modal(document.getElementById('viewContactModal'));
     modal.show();
 }
 
+function loadViewContactTimeline(contactId, container) {
+    fetch('/api/contacts/' + contactId + '/timeline?limit=10', {
+        headers: _apiHeaders()
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (!data.events || data.events.length === 0) {
+            container.innerHTML = '<div class="text-center py-3"><i class="fas fa-inbox text-muted" style="font-size: 1.5rem;"></i><p class="text-muted small mt-2 mb-0">No activity recorded yet</p></div>';
+            return;
+        }
+        var html = '<div class="timeline-mini">';
+        data.events.forEach(function(evt) {
+            var icon = 'fas fa-circle';
+            var iconColor = '#886CC0';
+            if (evt.event_type === 'outbound') { icon = 'fas fa-paper-plane'; iconColor = '#28a745'; }
+            else if (evt.event_type === 'inbound') { icon = 'fas fa-reply'; iconColor = '#17a2b8'; }
+            else if (evt.event_type === 'lists') { icon = 'fas fa-list'; iconColor = '#e83e8c'; }
+            else if (evt.event_type === 'tags') { icon = 'fas fa-tag'; iconColor = '#6c757d'; }
+            else if (evt.event_type === 'optout') { icon = 'fas fa-ban'; iconColor = '#dc3545'; }
+
+            var dateStr = '';
+            if (evt.created_at) {
+                var d = new Date(evt.created_at);
+                dateStr = d.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+            }
+
+            html += '<div class="d-flex align-items-start mb-2 pb-2 border-bottom">';
+            html += '<div class="me-2 mt-1"><i class="' + icon + '" style="color:' + iconColor + '; font-size: 0.75rem;"></i></div>';
+            html += '<div class="flex-grow-1">';
+            html += '<p class="mb-0 small">' + (evt.description || evt.event_type) + '</p>';
+            html += '<small class="text-muted">' + dateStr + '</small>';
+            html += '</div></div>';
+        });
+        html += '</div>';
+        if (data.hasMore) {
+            html += '<div class="text-center mt-1"><small class="text-muted">Showing latest ' + data.returned + ' of ' + data.total + ' events</small></div>';
+        }
+        container.innerHTML = html;
+    })
+    .catch(function() {
+        container.innerHTML = '<p class="text-muted text-center mb-0 py-2">Unable to load timeline</p>';
+    });
+}
+
 function editContact(id) {
-    console.log('TODO: editContact - Submit updates via API: PUT /api/contacts/' + id);
     var contact = contactsData.find(c => c.id === id);
     if (!contact) return;
     
@@ -1008,6 +1326,11 @@ function editContact(id) {
     document.getElementById('editContactMobile').value = contact.mobile;
     document.getElementById('editContactEmail').value = contact.email || '';
     document.getElementById('editContactStatus').value = contact.status;
+    
+    var contactTags = contact.tags || [];
+    getMs('editContactTagsMs').val(contactTags);
+    var contactLists = contact.lists || [];
+    getMs('editContactListsMs').val(contactLists);
     
     var modal = new bootstrap.Modal(document.getElementById('editContactModal'));
     modal.show();
@@ -1134,21 +1457,34 @@ function renderStatusPill(status, listScope) {
 }
 
 function deleteContact(id) {
-    if (confirm('Are you sure you want to delete this contact?\n\nThis action cannot be undone.')) {
-        console.log('TODO: deleteContact - Permission check required');
-        console.log('TODO: Call API: DELETE /api/contacts/' + id);
-        console.log('TODO: Remove row from table on success');
-        console.log('TODO: Show success/error notification');
-        alert('Delete Contact\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- Permission check\n- API endpoint: DELETE /api/contacts/{id}\n- Cascade delete or soft delete logic');
-    }
+    showConfirmModal(
+        'Delete Contact',
+        '<p>Are you sure you want to delete this contact?</p><p class="text-muted mb-0"><small>This action cannot be undone.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            fetch('/api/contacts/' + id, {
+                method: 'DELETE',
+                headers: _apiHeaders()
+            })
+            .then(_handleApiResponse)
+            .then(function(result) {
+                reloadContactsFromServer();
+                showSuccessToast('Contact deleted successfully');
+            })
+            .catch(function(err) {
+                showSuccessToast('Failed to delete contact: ' + (err.message || 'Unknown error'));
+            });
+        }
+    );
 }
 
 function getSelectedContactIds() {
     var ids = [];
     document.querySelectorAll('.contact-checkbox:checked').forEach(cb => {
         var row = cb.closest('tr');
-        if (row) {
-            ids.push(parseInt(row.dataset.contactId));
+        if (row && row.dataset.contactId) {
+            ids.push(row.dataset.contactId);
         }
     });
     return ids;
@@ -1208,6 +1544,7 @@ function confirmBulkAddToList() {
                 // Now show result modal
                 if (result.success) {
                     clearBulkSelection();
+                    reloadContactsFromServer();
                     console.log('[BulkAction] Showing success modal');
                     showSuccessModal('Contacts Added', count + ' contact(s) have been added to "' + selectedList + '" successfully.');
                 } else {
@@ -1274,6 +1611,7 @@ function confirmBulkRemoveFromList() {
             console.log('[BulkAction] Remove from list result:', result);
             if (result.success) {
                 clearBulkSelection();
+                reloadContactsFromServer();
                 hideProcessingModal(function() {
                     showSuccessModal('Contacts Removed', count + ' contact(s) have been removed from "' + selectedList + '" successfully.');
                 });
@@ -1304,8 +1642,9 @@ function confirmBulkRemoveFromList() {
 
 function bulkAddTags() {
     var ids = getSelectedContactIds();
-    var modal = new bootstrap.Modal(document.getElementById('bulkAddTagsModal'));
     document.getElementById('bulkAddTagsCount').textContent = ids.length;
+    getMs('bulkTagSelectMs').clear();
+    var modal = new bootstrap.Modal(document.getElementById('bulkAddTagsModal'));
     modal.show();
 }
 
@@ -1313,8 +1652,7 @@ function confirmBulkAddTags() {
     console.log('[BulkAction] confirmBulkAddTags called');
     var ids = getSelectedContactIds();
     var count = ids.length;
-    var tagSelect = document.getElementById('bulkTagSelect');
-    var selectedTags = tagSelect ? Array.from(tagSelect.selectedOptions).map(o => o.value) : [];
+    var selectedTags = getMs('bulkTagSelectMs').val();
     var tagCount = selectedTags.length;
     console.log('[BulkAction] Selected tags:', selectedTags);
     
@@ -1335,6 +1673,7 @@ function confirmBulkAddTags() {
             console.log('[BulkAction] Add tags result:', result);
             if (result.success) {
                 clearBulkSelection();
+                reloadContactsFromServer();
                 hideProcessingModal(function() {
                     showSuccessModal('Tags Added', tagCount + ' tag(s) have been added to ' + count + ' contact(s) successfully.');
                 });
@@ -1365,8 +1704,9 @@ function confirmBulkAddTags() {
 
 function bulkRemoveTags() {
     var ids = getSelectedContactIds();
-    var modal = new bootstrap.Modal(document.getElementById('bulkRemoveTagsModal'));
     document.getElementById('bulkRemoveTagsCount').textContent = ids.length;
+    getMs('bulkRemoveTagSelectMs').clear();
+    var modal = new bootstrap.Modal(document.getElementById('bulkRemoveTagsModal'));
     modal.show();
 }
 
@@ -1374,8 +1714,7 @@ function confirmBulkRemoveTags() {
     console.log('[BulkAction] confirmBulkRemoveTags called');
     var ids = getSelectedContactIds();
     var count = ids.length;
-    var tagSelect = document.getElementById('bulkRemoveTagSelect');
-    var selectedTags = tagSelect ? Array.from(tagSelect.selectedOptions).map(o => o.value) : [];
+    var selectedTags = getMs('bulkRemoveTagSelectMs').val();
     var tagCount = selectedTags.length;
     console.log('[BulkAction] Selected tags to remove:', selectedTags);
     
@@ -1396,6 +1735,7 @@ function confirmBulkRemoveTags() {
             console.log('[BulkAction] Remove tags result:', result);
             if (result.success) {
                 clearBulkSelection();
+                reloadContactsFromServer();
                 hideProcessingModal(function() {
                     showSuccessModal('Tags Removed', tagCount + ' tag(s) have been removed from ' + count + ' contact(s) successfully.');
                 });
@@ -1456,6 +1796,7 @@ function confirmBulkDelete() {
         ContactsService.bulkDelete(ids).then(function(result) {
             if (result.success) {
                 clearBulkSelection();
+                reloadContactsFromServer();
                 hideProcessingModal(function() {
                     showSuccessModal('Contacts Deleted', count + ' contact(s) have been deleted successfully.');
                 });
@@ -1624,10 +1965,9 @@ function showToast(message, type) {
 
 function showValidationError(message) {
     document.getElementById('validationErrorMessage').textContent = message;
-    if (!window.validationModal) {
-        window.validationModal = new bootstrap.Modal(document.getElementById('validationModal'));
-    }
-    window.validationModal.show();
+    var modalEl = document.getElementById('validationModal');
+    var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modal.show();
 }
 
 function bulkSendMessage() {
@@ -1797,15 +2137,27 @@ function performExport() {
 function bulkDelete() {
     var ids = getSelectedContactIds();
     var names = getSelectedContactNames();
-    
-    if (confirm('Are you sure you want to delete ' + ids.length + ' contact(s)?\n\n' + names.join('\n') + '\n\nThis action cannot be undone.')) {
-        console.log('TODO: Delete contacts: ' + ids.join(', '));
-        alert('Deleted ' + ids.length + ' contact(s)!\n\nThis requires backend implementation:\n- API endpoint: DELETE /api/contacts/bulk\n- Permission checks');
-        
-        document.querySelectorAll('.contact-checkbox:checked').forEach(cb => cb.checked = false);
-        document.getElementById('checkAll').checked = false;
-        document.getElementById('bulkActionBar').classList.add('d-none');
-    }
+    var nameList = names.length <= 5 ? names.join(', ') : names.slice(0, 5).join(', ') + ' and ' + (names.length - 5) + ' more';
+
+    showConfirmModal(
+        'Delete Contacts',
+        '<p>Are you sure you want to delete <strong>' + ids.length + ' contact(s)</strong>?</p><p class="mb-1"><small>' + nameList + '</small></p><p class="text-muted mb-0"><small>This action cannot be undone.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            ContactsService.bulkDelete(ids)
+                .then(function(result) {
+                    document.querySelectorAll('.contact-checkbox:checked').forEach(function(cb) { cb.checked = false; });
+                    document.getElementById('checkAll').checked = false;
+                    document.getElementById('bulkActionBar').classList.add('d-none');
+                    reloadContactsFromServer();
+                    showSuccessToast(result.message || 'Contacts deleted successfully');
+                })
+                .catch(function(err) {
+                    showSuccessToast('Failed to delete contacts: ' + (err.message || 'Unknown error'));
+                });
+        }
+    );
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1967,21 +2319,31 @@ function saveCustomField() {
                         </div>
                         <div class="col-12">
                             <label class="form-label">Tags</label>
-                            <select class="form-select" id="contactTags" multiple>
-                                @foreach($available_tags as $tag)
-                                <option value="{{ $tag }}">{{ $tag }}</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                            <div class="fillow-multiselect" id="contactTagsMs" data-placeholder="Select tags...">
+                                <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select tags...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                                <div class="fillow-ms-dropdown">
+                                    <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                                    <div class="fillow-ms-options">
+                                        @foreach($available_tags as $tag)
+                                        <div class="fillow-ms-option" data-value="{{ $tag }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $tag }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Lists</label>
-                            <select class="form-select" id="contactLists" multiple>
-                                @foreach($available_lists as $list)
-                                <option value="{{ $list }}">{{ $list }}</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                            <div class="fillow-multiselect" id="contactListsMs" data-placeholder="Select lists...">
+                                <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select lists...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                                <div class="fillow-ms-dropdown">
+                                    <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                                    <div class="fillow-ms-options">
+                                        @foreach($available_lists as $list)
+                                        <div class="fillow-ms-option" data-value="{{ $list }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $list }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="col-12">
@@ -2076,9 +2438,16 @@ function saveCustomField() {
                     </div>
                 </div>
                 
-                <div class="mt-4 mb-0 p-3 rounded" style="background-color: #f0ebf8;">
-                    <i class="fas fa-info-circle me-2 text-dark"></i>
-                    <strong class="text-dark">Activity Timeline:</strong> <span class="text-dark">Campaign history, replies, and opt-out events will appear here when backend is implemented.</span>
+                <div class="mt-4 mb-0">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="mb-0"><i class="fas fa-history me-2 text-primary"></i>Activity Timeline</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="viewContactTimelineExpandBtn" style="font-size: 0.75rem;">
+                            <i class="fas fa-external-link-alt me-1"></i>Full Timeline
+                        </button>
+                    </div>
+                    <div id="viewContactTimelineContainer" class="border rounded p-3" style="max-height: 250px; overflow-y: auto; background-color: #fafafa;">
+                        <p class="text-muted text-center mb-0 py-2">Loading timeline...</p>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -2136,21 +2505,31 @@ function saveCustomField() {
                         </div>
                         <div class="col-12">
                             <label class="form-label">Tags</label>
-                            <select class="form-select" id="editContactTags" multiple>
-                                @foreach($available_tags as $tag)
-                                <option value="{{ $tag }}">{{ $tag }}</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                            <div class="fillow-multiselect" id="editContactTagsMs" data-placeholder="Select tags...">
+                                <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select tags...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                                <div class="fillow-ms-dropdown">
+                                    <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                                    <div class="fillow-ms-options">
+                                        @foreach($available_tags as $tag)
+                                        <div class="fillow-ms-option" data-value="{{ $tag }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $tag }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Lists</label>
-                            <select class="form-select" id="editContactLists" multiple>
-                                @foreach($available_lists as $list)
-                                <option value="{{ $list }}">{{ $list }}</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                            <div class="fillow-multiselect" id="editContactListsMs" data-placeholder="Select lists...">
+                                <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select lists...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                                <div class="fillow-ms-dropdown">
+                                    <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                                    <div class="fillow-ms-options">
+                                        @foreach($available_lists as $list)
+                                        <div class="fillow-ms-option" data-value="{{ $list }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $list }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="editFormValidationMessage" class="alert alert-danger mt-3 d-none"></div>
@@ -2171,57 +2550,146 @@ function updateContact() {
     var id = document.getElementById('editContactId').value;
     var mobile = document.getElementById('editContactMobile').value.trim();
     var validationMsg = document.getElementById('editFormValidationMessage');
-    
+
     validationMsg.classList.add('d-none');
-    
+
     if (!mobile) {
         validationMsg.textContent = 'Mobile number is required.';
         validationMsg.classList.remove('d-none');
         return;
     }
-    
-    console.log('TODO: updateContact - Submit to API: PUT /api/contacts/' + id);
-    
-    alert('Contact Updated!\n\nContact ID: ' + id + '\n\nThis feature requires backend implementation:\n- API endpoint: PUT /api/contacts/{id}\n- Database persistence');
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('editContactModal'));
-    modal.hide();
+
+    var cleanMobile = mobile.replace(/[\s\-]/g, '');
+    var firstNameEl = document.getElementById('editContactFirstName');
+    var lastNameEl = document.getElementById('editContactLastName');
+    var emailEl = document.getElementById('editContactEmail');
+    var statusEl = document.getElementById('editContactStatus');
+
+    var payload = {
+        mobile_number: cleanMobile,
+        first_name: firstNameEl ? firstNameEl.value.trim() || null : null,
+        last_name: lastNameEl ? lastNameEl.value.trim() || null : null,
+        email: emailEl ? emailEl.value.trim() || null : null
+    };
+
+    var saveBtn = document.querySelector('#editContactModal .btn-primary');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    }
+
+    fetch('/api/contacts/' + id, {
+        method: 'PUT',
+        headers: _apiHeaders(),
+        body: JSON.stringify(payload)
+    })
+    .then(_handleApiResponse)
+    .then(function(result) {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('editContactModal'));
+        modal.hide();
+        reloadContactsFromServer();
+        showSuccessToast('Contact updated successfully');
+    })
+    .catch(function(err) {
+        validationMsg.textContent = err.message || 'Failed to update contact. Please try again.';
+        validationMsg.classList.remove('d-none');
+    })
+    .finally(function() {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Changes';
+        }
+    });
 }
 </script>
 
 <script>
 function saveContact() {
-    const form = document.getElementById('addContactForm');
-    const mobile = document.getElementById('contactMobile').value.trim();
-    const firstName = document.getElementById('contactFirstName').value.trim();
-    const lastName = document.getElementById('contactLastName').value.trim();
-    const validationMsg = document.getElementById('formValidationMessage');
-    
+    var form = document.getElementById('addContactForm');
+    var mobile = document.getElementById('contactMobile').value.trim();
+    var firstName = document.getElementById('contactFirstName').value.trim();
+    var lastName = document.getElementById('contactLastName').value.trim();
+    var validationMsg = document.getElementById('formValidationMessage');
+    var emailField = document.getElementById('contactEmail');
+    var dobField = document.getElementById('contactDob');
+    var postcodeField = document.getElementById('contactPostcode');
+    var cityField = document.getElementById('contactCity');
+    var countryField = document.getElementById('contactCountry');
+
     validationMsg.classList.add('d-none');
-    
+
     if (!mobile) {
         validationMsg.textContent = 'Mobile number is required.';
         validationMsg.classList.remove('d-none');
         return;
     }
-    
+
     if (!mobile.match(/^\+?[0-9\s\-]{10,}$/)) {
         validationMsg.textContent = 'Please enter a valid mobile number (E.164 format preferred, e.g., +44 7700 900000).';
         validationMsg.classList.remove('d-none');
         return;
     }
-    
-    console.log('TODO: saveContact - Submit to API');
-    console.log('TODO: POST /api/contacts with form data');
-    console.log('TODO: Validate mobile number format on server');
-    console.log('TODO: Check for duplicate mobile numbers');
-    console.log('TODO: Persist to database and refresh table');
-    
-    alert('Contact Validated Successfully!\n\nFirst Name: ' + firstName + '\nLast Name: ' + lastName + '\nMobile: ' + mobile + '\n\nThis feature requires backend implementation:\n- API endpoint: POST /api/contacts\n- Database persistence\n- Duplicate check');
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('addContactModal'));
-    modal.hide();
-    form.reset();
+
+    var cleanMobile = mobile.replace(/[\s\-]/g, '');
+
+    var selectedTags = getMs('contactTagsMs').val();
+    var selectedLists = getMs('contactListsMs').val();
+
+    var payload = {
+        mobile_number: cleanMobile,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        email: (emailField && emailField.value.trim()) || null,
+        date_of_birth: (dobField && dobField.value) || null,
+        postcode: (postcodeField && postcodeField.value.trim()) || null,
+        city: (cityField && cityField.value.trim()) || null,
+        country: (countryField && countryField.value) || null,
+        tags: selectedTags,
+        lists: selectedLists
+    };
+
+    var customData = {};
+    customFieldDefinitions.forEach(function(field) {
+        var el = document.getElementById('custom_' + field.slug);
+        if (el && el.value) {
+            customData[field.slug] = el.value;
+        }
+    });
+    if (Object.keys(customData).length > 0) {
+        payload.custom_data = customData;
+    }
+
+    var saveBtn = document.querySelector('#addContactModal .btn-primary');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+    }
+
+    fetch('/api/contacts', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify(payload)
+    })
+    .then(_handleApiResponse)
+    .then(function(result) {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('addContactModal'));
+        modal.hide();
+        form.reset();
+        getMs('contactTagsMs').clear();
+        getMs('contactListsMs').clear();
+        reloadContactsFromServer();
+        showSuccessToast('Contact created successfully');
+    })
+    .catch(function(err) {
+        validationMsg.textContent = err.message || 'Failed to save contact. Please try again.';
+        validationMsg.classList.remove('d-none');
+    })
+    .finally(function() {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Contact';
+        }
+    });
 }
 
 function renderCustomFields() {
@@ -2319,12 +2787,18 @@ function addCustomField() {
 }
 
 function deleteCustomField(id) {
-    if (confirm('Are you sure you want to delete this custom field? This will remove it from all contacts.')) {
-        customFieldDefinitions = customFieldDefinitions.filter(f => f.id !== id);
-        renderCustomFieldsList();
-        renderCustomFields();
-        console.log('TODO: Delete custom field from database');
-    }
+    showConfirmModal(
+        'Delete Custom Field',
+        '<p>Are you sure you want to delete this custom field?</p><p class="text-muted mb-0"><small>This will remove it from all contacts.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            customFieldDefinitions = customFieldDefinitions.filter(f => f.id !== id);
+            renderCustomFieldsList();
+            renderCustomFields();
+            console.log('TODO: Delete custom field from database');
+        }
+    );
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -2421,12 +2895,17 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-body">
                 <p>Add tags to <strong id="bulkAddTagsCount">0</strong> contact(s):</p>
-                <select class="form-select" id="bulkTagSelect" multiple>
-                    @foreach($available_tags as $tag)
-                    <option value="{{ $tag }}">{{ $tag }}</option>
-                    @endforeach
-                </select>
-                <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                <div class="fillow-multiselect" id="bulkTagSelectMs" data-placeholder="Select tags...">
+                    <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select tags...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                    <div class="fillow-ms-dropdown">
+                        <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                        <div class="fillow-ms-options">
+                            @foreach($available_tags as $tag)
+                            <div class="fillow-ms-option" data-value="{{ $tag }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $tag }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
@@ -2445,12 +2924,17 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-body">
                 <p>Remove tags from <strong id="bulkRemoveTagsCount">0</strong> contact(s):</p>
-                <select class="form-select" id="bulkRemoveTagSelect" multiple>
-                    @foreach($available_tags as $tag)
-                    <option value="{{ $tag }}">{{ $tag }}</option>
-                    @endforeach
-                </select>
-                <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                <div class="fillow-multiselect" id="bulkRemoveTagSelectMs" data-placeholder="Select tags...">
+                    <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select tags...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                    <div class="fillow-ms-dropdown">
+                        <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                        <div class="fillow-ms-options">
+                            @foreach($available_tags as $tag)
+                            <div class="fillow-ms-option" data-value="{{ $tag }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $tag }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
@@ -2796,12 +3280,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div id="excelZeroWarning" class="d-none p-3 rounded" style="background-color: #f0ebf8;">
                         <div id="excelZeroWarningContent">
                             <i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>
-                            <strong style="color: #886CC0;">Excel Number Detection</strong>
-                            <p class="mb-2 mt-2 text-dark">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
-                            <p class="mb-2 text-dark">Should these be treated as UK numbers and converted to international format (+447...)?</p>
+                            <strong style="color: #886CC0;">UK Number Normalisation</strong>
+                            <p class="mb-2 mt-2 text-dark" id="ukNormalisationDetail">We've detected mixed mobile number formats in your file (e.g. numbers starting with '7', '+44', '07', or containing spaces).</p>
+                            <p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)? This will strip spaces, remove leading '+' or '0', and prepend '44' to numbers starting with '7'.</p>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="setExcelCorrection(true)">
-                                    <i class="fas fa-check me-1"></i> Yes, convert to UK format
+                                    <i class="fas fa-check me-1"></i> Yes, normalise to UK format
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
                                     <i class="fas fa-times me-1"></i> No, leave as-is
@@ -3034,59 +3518,183 @@ function showStep(step) {
     document.getElementById('importCancelBtn').classList.toggle('d-none', step === 4);
 }
 
-function simulateColumnDetection() {
-    var hasHeaders = document.querySelector('input[name="hasHeaders"]:checked').value === 'yes';
-    
-    var mockColumns = hasHeaders 
-        ? ['Mobile', 'First Name', 'Last Name', 'Email', 'Company']
-        : ['Column A', 'Column B', 'Column C', 'Column D', 'Column E'];
-    
-    var mockSamples = ['7712345678', 'John', 'Smith', 'john@example.com', 'Acme Ltd'];
-    
+function parseCSVLine(line) {
+    line = line.trim();
+    if (line.length >= 2 && line[0] === '"' && line[line.length - 1] === '"') {
+        var inner = line.substring(1, line.length - 1);
+        if (inner.indexOf('"') === -1) {
+            line = inner;
+        }
+    }
+    var result = [];
+    var current = '';
+    var inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+        var ch = line[i];
+        if (inQuotes) {
+            if (ch === '"' && i + 1 < line.length && line[i + 1] === '"') {
+                current += '"';
+                i++;
+            } else if (ch === '"') {
+                inQuotes = false;
+            } else {
+                current += ch;
+            }
+        } else {
+            if (ch === '"') {
+                inQuotes = true;
+            } else if (ch === ',') {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += ch;
+            }
+        }
+    }
+    result.push(current.trim());
+    return result;
+}
+
+function buildColumnMappingUI(headerRow, sampleRow, allDataRows, hasHeaders) {
+    importFileData.parsedHeaders = headerRow;
+    importFileData.parsedRows = allDataRows;
+
+    var columns = hasHeaders
+        ? headerRow
+        : headerRow.map(function(_, i) { return 'Column ' + String.fromCharCode(65 + i); });
+    var samples = hasHeaders ? sampleRow : headerRow;
+
     var tbody = document.getElementById('columnMappingBody');
     tbody.innerHTML = '';
-    
-    var mappingOptions = `
-        <option value="">-- Do not import --</option>
-        <option value="mobile">Mobile Number *</option>
-        <option value="first_name">First Name</option>
-        <option value="last_name">Last Name</option>
-        <option value="email">Email</option>
-        <option value="custom">Custom Field</option>
-    `;
-    
-    mockColumns.forEach(function(col, idx) {
+
+    var mappingOptions = '<option value="">-- Do not import --</option>' +
+        '<option value="mobile">Mobile Number *</option>' +
+        '<option value="first_name">First Name</option>' +
+        '<option value="last_name">Last Name</option>' +
+        '<option value="email">Email</option>' +
+        '<option value="custom">Custom Field</option>';
+
+    columns.forEach(function(col, idx) {
         var autoMap = '';
-        var colLower = col.toLowerCase();
-        if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn')) autoMap = 'mobile';
+        var colLower = String(col).toLowerCase();
+        if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn') || colLower.includes('number')) autoMap = 'mobile';
         else if (colLower.includes('first')) autoMap = 'first_name';
         else if (colLower.includes('last') || colLower.includes('surname')) autoMap = 'last_name';
         else if (colLower.includes('email')) autoMap = 'email';
-        
+
+        var sampleVal = (samples[idx] !== undefined && samples[idx] !== null) ? String(samples[idx]) : '';
         var row = document.createElement('tr');
-        row.innerHTML = `
-            <td><strong>${col}</strong></td>
-            <td class="text-muted small">${mockSamples[idx] || ''}</td>
-            <td>
-                <div class="d-flex gap-2 align-items-center">
-                    <select class="form-select form-select-sm column-mapping" data-column="${idx}" onchange="handleMappingChange(this)">
-                        ${mappingOptions}
-                    </select>
-                    <input type="text" class="form-control form-control-sm custom-field-name d-none" data-column="${idx}" placeholder="Field name" style="width: 120px;">
-                </div>
-            </td>
-        `;
+        row.innerHTML = '<td><strong>' + col + '</strong></td>' +
+            '<td class="text-muted small">' + sampleVal + '</td>' +
+            '<td><div class="d-flex gap-2 align-items-center">' +
+            '<select class="form-select form-select-sm column-mapping" data-column="' + idx + '" onchange="handleMappingChange(this)">' +
+            mappingOptions + '</select>' +
+            '<input type="text" class="form-control form-control-sm custom-field-name d-none" data-column="' + idx + '" placeholder="Field name" style="width: 120px;">' +
+            '</div></td>';
         tbody.appendChild(row);
-        
+
         if (autoMap) {
             row.querySelector('select').value = autoMap;
         }
     });
-    
-    if (mockSamples[0] && mockSamples[0].startsWith('7') && mockSamples[0].length >= 10) {
+
+    var mobileColIdx = -1;
+    columns.forEach(function(col, idx) {
+        var sel = tbody.querySelectorAll('.column-mapping')[idx];
+        if (sel && sel.value === 'mobile') mobileColIdx = idx;
+    });
+
+    var needsNormalisation = false;
+    var issues = [];
+    if (mobileColIdx >= 0) {
+        var checkRows = allDataRows.slice(0, Math.min(20, allDataRows.length));
+        var hasLeading7 = false, hasPlus = false, hasSpaces = false, hasLeading07 = false, hasLeading44 = false;
+        checkRows.forEach(function(row) {
+            var val = String(row[mobileColIdx] || '');
+            if (val.indexOf(' ') !== -1) hasSpaces = true;
+            var cleaned = val.replace(/[\s\-]/g, '');
+            if (cleaned.match(/^\+/)) hasPlus = true;
+            cleaned = cleaned.replace(/^\+/, '');
+            if (cleaned.match(/^07\d{9}$/)) hasLeading07 = true;
+            else if (cleaned.match(/^7\d{9,}$/)) hasLeading7 = true;
+            else if (cleaned.match(/^44\d{10,}$/)) hasLeading44 = true;
+        });
+        if (hasLeading7) issues.push("numbers starting with '7' (missing country code)");
+        if (hasLeading07) issues.push("numbers starting with '07' (local UK format)");
+        if (hasPlus) issues.push("numbers with '+' prefix");
+        if (hasSpaces) issues.push("numbers containing spaces");
+        if (hasLeading44 && (hasLeading7 || hasLeading07)) issues.push("mixed '44...' and shorter formats");
+        needsNormalisation = issues.length > 0;
+    }
+
+    if (needsNormalisation) {
+        document.getElementById('ukNormalisationDetail').textContent =
+            'We\'ve detected mixed mobile number formats: ' + issues.join(', ') + '.';
         document.getElementById('excelZeroWarning').classList.remove('d-none');
     } else {
         document.getElementById('excelZeroWarning').classList.add('d-none');
+    }
+}
+
+function simulateColumnDetection() {
+    if (!importFileData || !importFileData.file) return;
+
+    var hasHeaders = document.querySelector('input[name="hasHeaders"]:checked').value === 'yes';
+
+    if (importFileData.type === 'excel') {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheetName = workbook.SheetNames[0];
+                var sheet = workbook.Sheets[sheetName];
+                var jsonRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                jsonRows = jsonRows.filter(function(r) {
+                    return r.some(function(cell) { return cell !== '' && cell !== null && cell !== undefined; });
+                });
+                if (jsonRows.length === 0) { alert('The spreadsheet appears to be empty.'); return; }
+
+                var headerRow = jsonRows[0].map(function(c) { return String(c); });
+                var sampleRow = jsonRows.length > 1 ? jsonRows[1].map(function(c) { return String(c); }) : headerRow;
+                var dataRows = jsonRows.slice(hasHeaders ? 1 : 0).map(function(r) {
+                    return r.map(function(c) { return String(c); });
+                });
+
+                if (workbook.SheetNames.length > 1) {
+                    var sel = document.getElementById('worksheetSelect');
+                    if (sel) {
+                        sel.innerHTML = '';
+                        workbook.SheetNames.forEach(function(name) {
+                            var opt = document.createElement('option');
+                            opt.value = name;
+                            opt.textContent = name;
+                            if (name === sheetName) opt.selected = true;
+                            sel.appendChild(opt);
+                        });
+                    }
+                }
+
+                buildColumnMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
+            } catch (err) {
+                alert('Could not read the Excel file. Please check the format and try again.');
+            }
+        };
+        reader.readAsArrayBuffer(importFileData.file);
+    } else {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var text = e.target.result;
+            var lines = text.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
+            if (lines.length === 0) return;
+
+            var headerRow = parseCSVLine(lines[0]);
+            var sampleRow = lines.length > 1 ? parseCSVLine(lines[1]) : headerRow;
+            var dataRows = lines.slice(hasHeaders ? 1 : 0).map(parseCSVLine);
+
+            buildColumnMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
+        };
+        reader.readAsText(importFileData.file);
     }
 }
 
@@ -3103,6 +3711,21 @@ function handleMappingChange(select) {
     }
 }
 
+function normaliseMobile(raw, applyUkNormalisation) {
+    var mobile = String(raw).replace(/[\s\-\(\)]/g, '');
+    if (applyUkNormalisation) {
+        mobile = mobile.replace(/^\+/, '');
+        if (mobile.match(/^07\d{9}$/)) {
+            mobile = '44' + mobile.substring(1);
+        } else if (mobile.match(/^7\d{9,}$/)) {
+            mobile = '44' + mobile;
+        }
+    } else {
+        mobile = mobile.replace(/^\+/, '');
+    }
+    return mobile;
+}
+
 function setExcelCorrection(apply) {
     document.getElementById('excelCorrectionApplied').value = apply ? 'yes' : 'no';
     var content = document.getElementById('excelZeroWarningContent');
@@ -3115,20 +3738,16 @@ function setExcelCorrection(apply) {
 
 function resetExcelCorrection() {
     document.getElementById('excelCorrectionApplied').value = '';
-    document.getElementById('excelZeroWarningContent').innerHTML = `
-        <i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>
-        <strong style="color: #886CC0;">Excel Number Detection</strong>
-        <p class="mb-2 mt-2 text-dark">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
-        <p class="mb-2 text-dark">Should these be treated as UK numbers and converted to international format (+447...)?</p>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="setExcelCorrection(true)">
-                <i class="fas fa-check me-1"></i> Yes, convert to UK format
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
-                <i class="fas fa-times me-1"></i> No, leave as-is
-            </button>
-        </div>
-    `;
+    document.getElementById('excelZeroWarningContent').innerHTML = '<i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>' +
+        '<strong style="color: #886CC0;">UK Number Normalisation</strong>' +
+        '<p class="mb-2 mt-2 text-dark" id="ukNormalisationDetail">We\'ve detected mixed mobile number formats in your file.</p>' +
+        '<p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)?</p>' +
+        '<div class="d-flex gap-2">' +
+            '<button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="setExcelCorrection(true)">' +
+                '<i class="fas fa-check me-1"></i> Yes, normalise to UK format</button>' +
+            '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">' +
+                '<i class="fas fa-times me-1"></i> No, leave as-is</button>' +
+        '</div>';
 }
 
 function validateMappings() {
@@ -3162,7 +3781,7 @@ function validateMappings() {
     
     var excelWarning = document.getElementById('excelZeroWarning');
     if (!excelWarning.classList.contains('d-none') && document.getElementById('excelCorrectionApplied').value === '') {
-        alert('Please confirm the Excel number correction option.');
+        alert('Please confirm the UK number normalisation option above.');
         return false;
     }
     
@@ -3170,44 +3789,74 @@ function validateMappings() {
 }
 
 function simulateValidation() {
-    var totalRows = Math.floor(Math.random() * 500) + 100;
-    var uniqueNumbers = totalRows - Math.floor(Math.random() * 20);
-    var invalidCount = Math.floor(Math.random() * 10);
-    var validNumbers = uniqueNumbers - invalidCount;
-    
+    var rows = (importFileData && importFileData.parsedRows) ? importFileData.parsedRows : [];
+    var mappings = {};
+    document.querySelectorAll('.column-mapping').forEach(function(sel) {
+        if (sel.value) mappings[sel.value] = parseInt(sel.dataset.column, 10);
+    });
+
+    var mobileIdx = typeof mappings.mobile === 'number' ? mappings.mobile : -1;
+    var applyExcelCorrection = document.getElementById('excelCorrectionApplied').value === 'yes';
+    var seenNumbers = {};
+    var duplicateCount = 0;
+    var invalidCount = 0;
+    var invalidRows = [];
+    var validNumbers = 0;
+
+    rows.forEach(function(row, rowIdx) {
+        var rawMobile = (mobileIdx >= 0 && row[mobileIdx]) ? String(row[mobileIdx]) : '';
+        if (!rawMobile.trim()) return;
+
+        var mobile = normaliseMobile(rawMobile, applyExcelCorrection);
+
+        if (!mobile.match(/^\d{10,15}$/)) {
+            invalidCount++;
+            var reason = 'Invalid format';
+            if (mobile.match(/[a-zA-Z]/)) reason = 'Contains letters';
+            else if (mobile.length < 10) reason = 'Too short';
+            invalidRows.push({ row: rowIdx + 1, value: rawMobile, reason: reason });
+            return;
+        }
+
+        if (seenNumbers[mobile]) {
+            duplicateCount++;
+            return;
+        }
+        seenNumbers[mobile] = true;
+        validNumbers++;
+    });
+
+    var totalRows = rows.length;
+    var uniqueNumbers = validNumbers;
+
     document.getElementById('statTotalRows').textContent = totalRows;
     document.getElementById('statUniqueNumbers').textContent = uniqueNumbers;
     document.getElementById('statValidNumbers').textContent = validNumbers;
     document.getElementById('statInvalidNumbers').textContent = invalidCount;
-    
+
     var indicators = document.getElementById('importIndicators');
     indicators.innerHTML = '';
-    
-    if (document.getElementById('excelCorrectionApplied').value === 'yes') {
+    if (applyExcelCorrection) {
         indicators.innerHTML += '<span class="badge me-2" style="background-color: #f0ebf8; color: #886CC0; border: 1px solid #886CC0;"><i class="fas fa-sync-alt me-1"></i> Excel correction applied</span>';
     }
     indicators.innerHTML += '<span class="badge" style="background-color: #f0ebf8; color: #886CC0; border: 1px solid #886CC0;"><i class="fas fa-globe me-1"></i> UK format normalized</span>';
-    
-    if (invalidCount > 0) {
+
+    if (invalidRows.length > 0) {
         document.getElementById('invalidRowsSection').classList.remove('d-none');
         var tbody = document.getElementById('invalidRowsBody');
         tbody.innerHTML = '';
-        
-        var reasons = ['Invalid format', 'Too short', 'Contains letters', 'Not a mobile number'];
-        for (var i = 0; i < invalidCount; i++) {
+        invalidRows.forEach(function(item) {
             var row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${Math.floor(Math.random() * totalRows) + 1}</td>
-                <td class="text-muted">123ABC${i}</td>
-                <td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">${reasons[i % reasons.length]}</span></td>
-            `;
+            row.innerHTML = '<td>' + item.row + '</td>' +
+                '<td class="text-muted">' + item.value + '</td>' +
+                '<td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">' + item.reason + '</span></td>';
             tbody.appendChild(row);
-        }
+        });
     } else {
         document.getElementById('invalidRowsSection').classList.add('d-none');
     }
-    
-    importValidationResults = { totalRows, uniqueNumbers, validNumbers, invalidCount };
+
+    importValidationResults = { totalRows: totalRows, uniqueNumbers: uniqueNumbers, validNumbers: validNumbers, invalidCount: invalidCount };
 }
 
 function downloadInvalidRows() {
@@ -3231,19 +3880,110 @@ function confirmImport() {
         alert('Please confirm both settings before importing.');
         return;
     }
-    
-    console.log('TODO: Implement actual import with streaming/chunked processing');
-    console.log('TODO: API endpoint: POST /api/contacts/import');
-    console.log('TODO: Log user confirmations and upload metadata');
-    
-    var validCount = importValidationResults ? importValidationResults.validNumbers : 0;
-    document.getElementById('importCompleteMessage').textContent = 
-        'Successfully imported ' + validCount + ' contacts.';
-    
-    showStep(4);
+
+    var rows = (importFileData && importFileData.parsedRows) ? importFileData.parsedRows : [];
+    if (rows.length === 0) {
+        alert('No data rows found to import.');
+        return;
+    }
+
+    var mappings = {};
+    document.querySelectorAll('.column-mapping').forEach(function(sel) {
+        if (sel.value && sel.value !== 'custom') {
+            mappings[sel.value] = parseInt(sel.dataset.column, 10);
+        } else if (sel.value === 'custom') {
+            var customName = document.querySelector('.custom-field-name[data-column="' + sel.dataset.column + '"]');
+            if (customName && customName.value) {
+                mappings['custom_' + sel.dataset.column] = { idx: parseInt(sel.dataset.column, 10), name: customName.value };
+            }
+        }
+    });
+
+    if (typeof mappings.mobile !== 'number') {
+        alert('Mobile Number mapping is required.');
+        return;
+    }
+
+    var applyExcelCorrection = document.getElementById('excelCorrectionApplied').value === 'yes';
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    var importBtn = document.getElementById('importConfirmBtn');
+    importBtn.disabled = true;
+    importBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Importing...';
+
+    var contacts = [];
+    var seenMobiles = {};
+    rows.forEach(function(row) {
+        var rawMobile = String(row[mappings.mobile] || '');
+        if (!rawMobile.trim()) return;
+        var mobile = normaliseMobile(rawMobile, applyExcelCorrection);
+        if (!mobile || !mobile.match(/^\d{7,15}$/)) return;
+        if (seenMobiles[mobile]) return;
+        seenMobiles[mobile] = true;
+
+        var contact = { mobile_number: mobile };
+        if (typeof mappings.first_name === 'number' && row[mappings.first_name]) contact.first_name = row[mappings.first_name];
+        if (typeof mappings.last_name === 'number' && row[mappings.last_name]) contact.last_name = row[mappings.last_name];
+        if (typeof mappings.email === 'number' && row[mappings.email]) contact.email = row[mappings.email];
+
+        var customData = {};
+        Object.keys(mappings).forEach(function(key) {
+            if (key.startsWith('custom_')) {
+                var m = mappings[key];
+                if (row[m.idx]) customData[m.name] = row[m.idx];
+            }
+        });
+        if (Object.keys(customData).length > 0) contact.custom_data = customData;
+
+        contacts.push(contact);
+    });
+
+    if (contacts.length === 0) {
+        alert('No valid contacts found to import.');
+        importBtn.disabled = false;
+        importBtn.innerHTML = '<i class="fas fa-check me-1"></i> Start Import';
+        return;
+    }
+
+    var successCount = 0;
+    var failCount = 0;
+    var batchSize = 5;
+    var idx = 0;
+
+    function processBatch() {
+        if (idx >= contacts.length) {
+            importBtn.disabled = false;
+            importBtn.innerHTML = '<i class="fas fa-check me-1"></i> Start Import';
+            document.getElementById('importCompleteMessage').textContent =
+                'Successfully imported ' + successCount + ' contacts.' +
+                (failCount > 0 ? ' ' + failCount + ' failed (may already exist).' : '');
+            showStep(4);
+            return;
+        }
+
+        var batch = contacts.slice(idx, idx + batchSize);
+        idx += batchSize;
+
+        Promise.all(batch.map(function(c) {
+            return fetch('/api/contacts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                body: JSON.stringify(c)
+            }).then(function(resp) {
+                if (resp.ok) { successCount++; }
+                else { failCount++; }
+            }).catch(function() { failCount++; });
+        })).then(function() {
+            importBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Importing... (' + Math.min(idx, contacts.length) + '/' + contacts.length + ')';
+            processBatch();
+        });
+    }
+
+    processBatch();
 }
 
 document.getElementById('importContactsModal').addEventListener('hidden.bs.modal', function() {
+    var wasImportCompleted = (importCurrentStep === 4);
     importCurrentStep = 1;
     importFileData = null;
     importMappings = {};
@@ -3254,6 +3994,9 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
     document.getElementById('invalidRowsSection').classList.add('d-none');
     document.getElementById('confirmMappings').checked = true;
     document.getElementById('confirmRules').checked = true;
+    if (wasImportCompleted) {
+        window.location.reload();
+    }
 });
 </script>
 

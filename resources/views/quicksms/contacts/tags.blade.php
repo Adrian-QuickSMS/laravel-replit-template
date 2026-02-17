@@ -48,6 +48,9 @@
     border: 1px solid #e9ecef;
     overflow: visible;
 }
+.table-responsive {
+    overflow: visible !important;
+}
 </style>
 @endpush
 
@@ -142,7 +145,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <a href="#!" onclick="viewTaggedContacts({{ $tag['id'] }}, '{{ $tag['name'] }}')" class="text-decoration-none">
+                                        <a href="#!" onclick="viewTaggedContacts('{{ $tag['id'] }}', '{{ $tag['name'] }}')" class="text-decoration-none">
                                             <span class="badge badge-pastel-secondary">
                                                 <i class="fas fa-users me-1"></i>{{ number_format($tag['contact_count']) }}
                                             </span>
@@ -166,17 +169,17 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end border py-0">
                                                 <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewTaggedContacts({{ $tag['id'] }}, '{{ $tag['name'] }}')">
+                                                    <a class="dropdown-item" href="#!" onclick="viewTaggedContacts('{{ $tag['id'] }}', '{{ $tag['name'] }}')">
                                                         <i class="fas fa-users me-2 text-dark"></i>View Contacts
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="editTag({{ $tag['id'] }}, '{{ $tag['name'] }}', '{{ $tag['color'] }}')">
+                                                    <a class="dropdown-item" href="#!" onclick="editTag('{{ $tag['id'] }}', '{{ $tag['name'] }}', '{{ $tag['color'] }}')">
                                                         <i class="fas fa-edit me-2 text-dark"></i>Edit Tag
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="mergeTag({{ $tag['id'] }}, '{{ $tag['name'] }}')">
+                                                    <a class="dropdown-item" href="#!" onclick="mergeTag('{{ $tag['id'] }}', '{{ $tag['name'] }}')">
                                                         <i class="fas fa-compress-arrows-alt me-2 text-dark"></i>Merge Into...
                                                     </a>
                                                     <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteTag({{ $tag['id'] }}, '{{ $tag['name'] }}', {{ $tag['contact_count'] }})">
+                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteTag('{{ $tag['id'] }}', '{{ $tag['name'] }}', {{ $tag['contact_count'] }})">
                                                         <i class="fas fa-trash me-2"></i>Delete Tag
                                                     </a>
                                                 </div>
@@ -554,6 +557,29 @@ function validateTagName(name, errorId, inputId) {
     return true;
 }
 
+var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+function _apiHeaders() {
+    return { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': _csrfToken };
+}
+function _handleApiResponse(response) {
+    if (!response.ok) {
+        return response.json().then(function(err) {
+            var msg = err.message || '';
+            if (err.errors) {
+                var firstField = Object.keys(err.errors)[0];
+                if (firstField && err.errors[firstField].length) {
+                    msg = err.errors[firstField][0];
+                }
+            }
+            throw new Error(msg || 'Request failed');
+        }).catch(function(e) {
+            if (e instanceof Error && e.message) throw e;
+            throw new Error('Request failed');
+        });
+    }
+    return response.json();
+}
+
 function confirmCreateTag() {
     var name = document.getElementById('newTagName').value.trim();
     var color = document.getElementById('selectedColor').value;
@@ -562,29 +588,24 @@ function confirmCreateTag() {
         return;
     }
     
-    var newTag = {
-        id: Date.now(),
-        name: name,
-        color: color,
-        contact_count: 0,
-        created_at: new Date().toISOString().split('T')[0],
-        last_used: null,
-        source: 'manual'
-    };
-    
-    localTags.push(newTag);
-    
-    console.log('TODO: API call POST /api/tags to create tag');
-    console.log('New tag:', newTag);
-    
-    showToast('Tag "' + name + '" created successfully', 'success');
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('createTagModal'));
-    modal.hide();
-    
-    document.getElementById('newTagName').value = '';
-    document.getElementById('tagPreviewText').textContent = 'New Tag';
-    selectColor('#6f42c1');
+    fetch('/api/tags', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ name: name, color: color })
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast('Tag "' + name + '" created successfully', 'success');
+        var modal = bootstrap.Modal.getInstance(document.getElementById('createTagModal'));
+        modal.hide();
+        document.getElementById('newTagName').value = '';
+        document.getElementById('tagPreviewText').textContent = 'New Tag';
+        selectColor('#6f42c1');
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to create tag', 'error');
+    });
 }
 
 function editTag(id, name, color) {
@@ -609,17 +630,21 @@ function confirmEditTag() {
         return;
     }
     
-    var tagIndex = localTags.findIndex(function(t) { return t.id == id; });
-    if (tagIndex !== -1) {
-        localTags[tagIndex].name = name;
-        localTags[tagIndex].color = color;
-    }
-    
-    console.log('TODO: API call PUT /api/tags/' + id);
-    showToast('Tag updated to "' + name + '"', 'success');
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('editTagModal'));
-    modal.hide();
+    fetch('/api/tags/' + id, {
+        method: 'PUT',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ name: name, color: color })
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast('Tag updated to "' + name + '"', 'success');
+        var modal = bootstrap.Modal.getInstance(document.getElementById('editTagModal'));
+        modal.hide();
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to update tag', 'error');
+    });
 }
 
 function mergeTag(id, name) {
@@ -678,15 +703,28 @@ function confirmMergeTag() {
 function executeMergeTag() {
     if (!pendingMergeData) return;
     
-    console.log('TODO: API call POST /api/tags/' + pendingMergeData.sourceId + '/merge/' + pendingMergeData.targetId);
-    
-    localTags = localTags.filter(function(t) { return t.id != pendingMergeData.sourceId; });
-    
-    var confirmModal = bootstrap.Modal.getInstance(document.getElementById('mergeConfirmModal'));
-    confirmModal.hide();
-    
-    showToast('Tags merged successfully', 'success');
-    pendingMergeData = null;
+    fetch('/api/contacts/bulk/remove-tags', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ tag_ids: [pendingMergeData.sourceId], target_tag_id: pendingMergeData.targetId })
+    })
+    .then(function(response) {
+        return fetch('/api/tags/' + pendingMergeData.sourceId, {
+            method: 'DELETE',
+            headers: _apiHeaders()
+        });
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        var confirmModal = bootstrap.Modal.getInstance(document.getElementById('mergeConfirmModal'));
+        confirmModal.hide();
+        showToast('Tags merged successfully', 'success');
+        pendingMergeData = null;
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to merge tags', 'error');
+    });
 }
 
 // Set up confirm merge button click handler
@@ -724,56 +762,75 @@ function deleteTag(id, name, contactCount) {
 function executeDeleteTag() {
     if (!pendingDeleteTag) return;
     
-    console.log('TODO: API call DELETE /api/tags/' + pendingDeleteTag.id);
-    
-    localTags = localTags.filter(function(t) { return t.id != pendingDeleteTag.id; });
-    
-    var confirmModal = bootstrap.Modal.getInstance(document.getElementById('deleteTagConfirmModal'));
-    confirmModal.hide();
-    
-    showToast('Tag "' + pendingDeleteTag.name + '" deleted', 'success');
-    pendingDeleteTag = null;
+    fetch('/api/tags/' + pendingDeleteTag.id, {
+        method: 'DELETE',
+        headers: _apiHeaders()
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        var confirmModal = bootstrap.Modal.getInstance(document.getElementById('deleteTagConfirmModal'));
+        confirmModal.hide();
+        showToast('Tag "' + pendingDeleteTag.name + '" deleted', 'success');
+        pendingDeleteTag = null;
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to delete tag', 'error');
+    });
 }
 
 function viewTaggedContacts(id, name) {
     document.getElementById('viewTagName').textContent = name;
     
-    var mockContacts = [
-        { id: 1, name: 'Emma Thompson', mobile: '+44 77** ***123', tagged_on: '2024-12-15' },
-        { id: 2, name: 'James Wilson', mobile: '+44 77** ***456', tagged_on: '2024-12-10' },
-        { id: 3, name: 'Sarah Mitchell', mobile: '+44 77** ***789', tagged_on: '2024-11-28' },
-        { id: 4, name: 'Michael Brown', mobile: '+44 77** ***321', tagged_on: '2024-11-20' },
-    ];
-    
     var tbody = document.getElementById('taggedContactsList');
-    tbody.innerHTML = '';
-    
-    mockContacts.forEach(function(contact) {
-        var row = document.createElement('tr');
-        row.innerHTML = `
-            <td style="color: #000;">${contact.name}</td>
-            <td style="color: #000;">${contact.mobile}</td>
-            <td style="color: #000;">${contact.tagged_on}</td>
-            <td class="text-end">
-                <button class="btn btn-sm btn-outline-danger" onclick="removeTagFromContact(${contact.id}, ${id})">
-                    <i class="fas fa-times"></i> Remove
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-    
-    document.getElementById('taggedContactsCount').textContent = mockContacts.length;
-    
-    console.log('TODO: API call GET /api/tags/' + id + '/contacts');
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">Loading...</td></tr>';
     
     var modal = new bootstrap.Modal(document.getElementById('viewContactsModal'));
     modal.show();
+    
+    fetch('/api/contacts?tag=' + encodeURIComponent(name) + '&per_page=500', { headers: _apiHeaders() })
+    .then(_handleApiResponse)
+    .then(function(result) {
+        var contacts = result.data || result || [];
+        tbody.innerHTML = '';
+        if (contacts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No contacts with this tag</td></tr>';
+        } else {
+            contacts.forEach(function(contact) {
+                var displayName = (contact.first_name || '') + ' ' + (contact.last_name || '');
+                displayName = displayName.trim() || 'Unknown';
+                var mobile = contact.mobile_display || contact.msisdn || '';
+                var row = document.createElement('tr');
+                row.innerHTML =
+                    '<td style="color: #000;">' + displayName + '</td>' +
+                    '<td style="color: #000;">' + mobile + '</td>' +
+                    '<td style="color: #000;">' + (contact.created_at ? contact.created_at.substring(0, 10) : '') + '</td>' +
+                    '<td class="text-end"><button class="btn btn-sm btn-outline-danger" onclick="removeTagFromContact(\'' + contact.id + '\', \'' + name.replace(/'/g, "\\'") + '\')"><i class="fas fa-times"></i> Remove</button></td>';
+                tbody.appendChild(row);
+            });
+        }
+        document.getElementById('taggedContactsCount').textContent = contacts.length;
+    })
+    .catch(function(err) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">Failed to load contacts</td></tr>';
+        document.getElementById('taggedContactsCount').textContent = '0';
+    });
 }
 
-function removeTagFromContact(contactId, tagId) {
-    console.log('TODO: API call DELETE /api/contacts/' + contactId + '/tags/' + tagId);
-    showToast('Tag removed from contact successfully', 'success');
+function removeTagFromContact(contactId, tagName) {
+    fetch('/api/contacts/bulk/remove-tags', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ contact_ids: [contactId], tags: [tagName] })
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast('Tag removed from contact successfully', 'success');
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to remove tag', 'error');
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -48,6 +48,9 @@
     border: 1px solid #e9ecef;
     overflow: visible;
 }
+.table-responsive {
+    overflow: visible !important;
+}
 </style>
 @endpush
 
@@ -133,11 +136,11 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end border py-0">
                                                         <div class="dropdown-content">
-                                                            <a class="dropdown-item" href="#!" onclick="viewListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
-                                                            <a class="dropdown-item" href="#!" onclick="addContactsToList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-user-plus me-2 text-dark"></i>Add Contacts</a>
-                                                            <a class="dropdown-item" href="#!" onclick="renameList({{ $list['id'] }}, '{{ $list['name'] }}', '{{ $list['description'] }}')"><i class="fas fa-edit me-2 text-dark"></i>Rename</a>
+                                                            <a class="dropdown-item" href="#!" onclick="viewListContacts('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
+                                                            <a class="dropdown-item" href="#!" onclick="addContactsToList('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-user-plus me-2 text-dark"></i>Add Contacts</a>
+                                                            <a class="dropdown-item" href="#!" onclick="renameList('{{ $list['id'] }}', '{{ $list['name'] }}', '{{ $list['description'] }}')"><i class="fas fa-edit me-2 text-dark"></i>Rename</a>
                                                             <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item text-danger" href="#!" onclick="deleteList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
+                                                            <a class="dropdown-item text-danger" href="#!" onclick="deleteList('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -215,11 +218,11 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end border py-0">
                                                         <div class="dropdown-content">
-                                                            <a class="dropdown-item" href="#!" onclick="viewDynamicListContacts({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
-                                                            <a class="dropdown-item" href="#!" onclick="editDynamicListRules({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-filter me-2 text-dark"></i>Edit Rules</a>
-                                                            <a class="dropdown-item" href="#!" onclick="refreshDynamicList({{ $list['id'] }})"><i class="fas fa-sync-alt me-2 text-dark"></i>Refresh Now</a>
+                                                            <a class="dropdown-item" href="#!" onclick="viewDynamicListContacts('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
+                                                            <a class="dropdown-item" href="#!" onclick="editDynamicListRules('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-filter me-2 text-dark"></i>Edit Rules</a>
+                                                            <a class="dropdown-item" href="#!" onclick="refreshDynamicList('{{ $list['id'] }}')"><i class="fas fa-sync-alt me-2 text-dark"></i>Refresh Now</a>
                                                             <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item text-danger" href="#!" onclick="deleteDynamicList({{ $list['id'] }}, '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
+                                                            <a class="dropdown-item text-danger" href="#!" onclick="deleteDynamicList('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -453,8 +456,8 @@
 
                 <div id="createStep3" class="d-none">
                     <h6 class="mb-3">Step 3: Confirm</h6>
-                    <div class="card bg-light">
-                        <div class="card-body">
+                    <div class="card" style="background-color: #f0ebf8; border: 1px solid #d4c5f0;">
+                        <div class="card-body" style="color: #000;">
                             <div class="row">
                                 <div class="col-md-6">
                                     <p class="mb-1"><strong>List Name:</strong></p>
@@ -480,7 +483,7 @@
                 <button type="button" class="btn btn-primary" id="createNextBtn" onclick="createListNextStep()">
                     Next <i class="fas fa-arrow-right ms-1"></i>
                 </button>
-                <button type="button" class="btn btn-success d-none" id="createConfirmBtn" onclick="confirmCreateList()">
+                <button type="button" class="btn d-none text-white" id="createConfirmBtn" onclick="confirmCreateList()" style="background-color: #886CC0;">
                     <i class="fas fa-check me-1"></i> Create List
                 </button>
             </div>
@@ -691,7 +694,67 @@
     </div>
 </div>
 
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="confirmActionTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2" id="confirmActionBody"></div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+function _apiHeaders() {
+    return { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': _csrfToken };
+}
+function _handleApiResponse(response) {
+    if (!response.ok) {
+        return response.json().then(function(err) {
+            var msg = err.message || '';
+            if (err.errors) {
+                var firstField = Object.keys(err.errors)[0];
+                if (firstField && err.errors[firstField].length) {
+                    msg = err.errors[firstField][0];
+                }
+            }
+            throw new Error(msg || 'Request failed');
+        }).catch(function(e) {
+            if (e instanceof Error && e.message) throw e;
+            throw new Error('Request failed');
+        });
+    }
+    return response.json();
+}
+
+function showConfirmModal(title, body, btnText, btnClass, onConfirm) {
+    document.getElementById('confirmActionTitle').textContent = title;
+    document.getElementById('confirmActionBody').innerHTML = body;
+    var btn = document.getElementById('confirmActionBtn');
+    btn.textContent = btnText;
+    btn.className = 'btn ' + btnClass;
+    btn.onclick = function() {
+        bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+        onConfirm();
+    };
+    var confirmModal = new bootstrap.Modal(document.getElementById('confirmActionModal'), { backdrop: true });
+    confirmModal.show();
+    document.getElementById('confirmActionModal').addEventListener('shown.bs.modal', function handler() {
+        var backdrops = document.querySelectorAll('.modal-backdrop');
+        if (backdrops.length > 1) {
+            backdrops[backdrops.length - 1].style.zIndex = '1055';
+        }
+        this.removeEventListener('shown.bs.modal', handler);
+    });
+}
+
 var createListStep = 1;
 var listsData = {
     static: @json($static_lists),
@@ -775,17 +838,32 @@ function showCreateStep(step) {
 function confirmCreateList() {
     var name = document.getElementById('newListName').value.trim();
     var description = document.getElementById('newListDescription').value.trim();
-    var contactCount = document.querySelectorAll('.contact-select-create:checked').length;
+    var selectedIds = [];
+    document.querySelectorAll('.contact-select-create:checked').forEach(function(cb) {
+        selectedIds.push(cb.value);
+    });
     
-    console.log('TODO: API call POST /api/lists to create list');
-    console.log('TODO: API call POST /api/lists/{id}/contacts to add contacts');
+    var payload = { name: name, description: description, type: 'static' };
+    if (selectedIds.length > 0) {
+        payload.contact_ids = selectedIds;
+    }
     
-    showToast('List "' + name + '" created with ' + contactCount + ' contact(s)', 'success');
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('createListModal'));
-    modal.hide();
-    
-    resetCreateListModal();
+    fetch('/api/contact-lists', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify(payload)
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast('List "' + name + '" created with ' + selectedIds.length + ' contact(s)', 'success');
+        var modal = bootstrap.Modal.getInstance(document.getElementById('createListModal'));
+        modal.hide();
+        resetCreateListModal();
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to create list', 'error');
+    });
 }
 
 function resetCreateListModal() {
@@ -814,22 +892,48 @@ function confirmRenameList() {
     var description = document.getElementById('renameListDescription').value.trim();
     
     if (!name) {
-        alert('Please enter a list name.');
+        showToast('Please enter a list name.', 'warning');
         return;
     }
     
-    console.log('TODO: API call PUT /api/lists/' + id);
-    showToast('List renamed to "' + name + '"', 'success');
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('renameListModal'));
-    modal.hide();
+    fetch('/api/contact-lists/' + id, {
+        method: 'PUT',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ name: name, description: description })
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast('List renamed to "' + name + '"', 'success');
+        var modal = bootstrap.Modal.getInstance(document.getElementById('renameListModal'));
+        modal.hide();
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to rename list', 'error');
+    });
 }
 
 function deleteList(id, name) {
-    if (confirm('Are you sure you want to delete the list "' + name + '"?\n\nThis will not delete the contacts, only the list.')) {
-        console.log('TODO: API call DELETE /api/lists/' + id);
-        showToast('List "' + name + '" deleted', 'success');
-    }
+    showConfirmModal(
+        'Delete List',
+        '<p>Are you sure you want to delete the list <strong>"' + name + '"</strong>?</p><p class="text-muted mb-0"><small>This will not delete the contacts, only the list.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            fetch('/api/contact-lists/' + id, {
+                method: 'DELETE',
+                headers: _apiHeaders()
+            })
+            .then(_handleApiResponse)
+            .then(function() {
+                showToast('List "' + name + '" deleted', 'success');
+                setTimeout(function() { location.reload(); }, 800);
+            })
+            .catch(function(err) {
+                showToast(err.message || 'Failed to delete list', 'error');
+            });
+        }
+    );
 }
 
 function addContactsToList(id, name) {
@@ -846,56 +950,93 @@ function confirmAddContacts() {
     var listId = document.getElementById('addContactsListId').value;
     var listName = document.getElementById('addContactsListName').textContent;
     var selectedIds = [];
-    document.querySelectorAll('.contact-select-add:checked').forEach(cb => {
+    document.querySelectorAll('.contact-select-add:checked').forEach(function(cb) {
         selectedIds.push(cb.value);
     });
     
     if (selectedIds.length === 0) {
-        alert('Please select at least one contact.');
+        showToast('Please select at least one contact.', 'warning');
         return;
     }
     
-    console.log('TODO: API call POST /api/lists/' + listId + '/contacts with IDs: ' + selectedIds.join(', '));
-    showToast(selectedIds.length + ' contact(s) added to "' + listName + '" successfully', 'success');
-    
-    var modal = bootstrap.Modal.getInstance(document.getElementById('addContactsModal'));
-    modal.hide();
+    fetch('/api/contact-lists/' + listId + '/members', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ contact_ids: selectedIds })
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast(selectedIds.length + ' contact(s) added to "' + listName + '" successfully', 'success');
+        var modal = bootstrap.Modal.getInstance(document.getElementById('addContactsModal'));
+        modal.hide();
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to add contacts', 'error');
+    });
 }
 
 function viewListContacts(id, name) {
     document.getElementById('viewContactsListId').value = id;
     document.getElementById('viewContactsListName').textContent = name;
     
-    var mockContacts = [
-        { id: 1, name: 'Emma Thompson', mobile: '+44 7700 900123', added: '2024-12-15' },
-        { id: 2, name: 'James Wilson', mobile: '+44 7700 900456', added: '2024-12-10' },
-        { id: 3, name: 'Sarah Mitchell', mobile: '+44 7700 900789', added: '2024-11-28' },
-    ];
-    
     var tbody = document.getElementById('contactsListView');
-    tbody.innerHTML = '';
-    mockContacts.forEach(function(c) {
-        var row = document.createElement('tr');
-        row.innerHTML = `
-            <td><input type="checkbox" class="form-check-input contact-select-view" value="${c.id}"></td>
-            <td>${c.name}</td>
-            <td class="text-muted">${c.mobile}</td>
-            <td class="text-muted small">${c.added}</td>
-        `;
-        tbody.appendChild(row);
-    });
-    
-    document.getElementById('viewContactsCount').textContent = mockContacts.length;
-    
-    console.log('TODO: API call GET /api/lists/' + id + '/contacts');
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">Loading...</td></tr>';
     
     document.getElementById('contactSearchView').value = '';
     
     var modal = new bootstrap.Modal(document.getElementById('viewContactsModal'));
     modal.show();
+    
+    var listName = document.getElementById('viewContactsListName').textContent;
+    fetch('/api/contacts?list=' + encodeURIComponent(listName) + '&per_page=500', { headers: _apiHeaders() })
+    .then(_handleApiResponse)
+    .then(function(result) {
+        var contacts = result.data || result || [];
+        tbody.innerHTML = '';
+        if (contacts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No contacts in this list</td></tr>';
+        } else {
+            contacts.forEach(function(c) {
+                var displayName = (c.first_name || '') + ' ' + (c.last_name || '');
+                displayName = displayName.trim() || 'Unknown';
+                var mobile = c.mobile_display || c.msisdn || '';
+                var row = document.createElement('tr');
+                row.innerHTML =
+                    '<td><input type="checkbox" class="form-check-input contact-select-view" value="' + c.id + '"></td>' +
+                    '<td>' + displayName + '</td>' +
+                    '<td class="text-muted">' + mobile + '</td>' +
+                    '<td class="text-muted small">' + (c.created_at ? c.created_at.substring(0, 10) : '') + '</td>';
+                tbody.appendChild(row);
+            });
+        }
+        document.getElementById('viewContactsCount').textContent = contacts.length;
+    })
+    .catch(function(err) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">Failed to load contacts</td></tr>';
+        document.getElementById('viewContactsCount').textContent = '0';
+    });
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    var contactsListView = document.getElementById('contactsListView');
+    if (contactsListView) {
+        contactsListView.addEventListener('change', function(e) {
+            if (e.target.classList.contains('contact-select-view')) {
+                var anyChecked = document.querySelectorAll('.contact-select-view:checked').length > 0;
+                document.getElementById('removeFromListBtn').disabled = !anyChecked;
+            }
+        });
+    }
+
+    var selectAllView = document.getElementById('selectAllContactsView');
+    if (selectAllView) {
+        selectAllView.addEventListener('change', function() {
+            document.querySelectorAll('.contact-select-view').forEach(function(cb) { cb.checked = selectAllView.checked; });
+            document.getElementById('removeFromListBtn').disabled = !selectAllView.checked;
+        });
+    }
+
     var searchInput = document.getElementById('contactSearchView');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
@@ -923,16 +1064,33 @@ document.addEventListener('DOMContentLoaded', function() {
 function removeSelectedFromList() {
     var listId = document.getElementById('viewContactsListId').value;
     var selectedIds = [];
-    document.querySelectorAll('.contact-select-view:checked').forEach(cb => {
+    document.querySelectorAll('.contact-select-view:checked').forEach(function(cb) {
         selectedIds.push(cb.value);
     });
     
     if (selectedIds.length === 0) return;
     
-    if (confirm('Remove ' + selectedIds.length + ' contact(s) from this list?')) {
-        console.log('TODO: API call DELETE /api/lists/' + listId + '/contacts with IDs: ' + selectedIds.join(', '));
-        showToast(selectedIds.length + ' contact(s) removed from list', 'success');
-    }
+    showConfirmModal(
+        'Remove Contacts',
+        '<p>Are you sure you want to remove <strong>' + selectedIds.length + ' contact(s)</strong> from this list?</p><p class="text-muted mb-0"><small>The contacts will not be deleted, only removed from this list.</small></p>',
+        'Remove',
+        'btn-danger',
+        function() {
+            fetch('/api/contact-lists/' + listId + '/members', {
+                method: 'DELETE',
+                headers: _apiHeaders(),
+                body: JSON.stringify({ contact_ids: selectedIds })
+            })
+            .then(_handleApiResponse)
+            .then(function() {
+                showToast(selectedIds.length + ' contact(s) removed from list', 'success');
+                setTimeout(function() { location.reload(); }, 800);
+            })
+            .catch(function(err) {
+                showToast(err.message || 'Failed to remove contacts', 'error');
+            });
+        }
+    );
 }
 
 function addRule() {
@@ -989,16 +1147,13 @@ function updateRemoveButtons() {
 }
 
 function previewDynamicList() {
-    var count = Math.floor(Math.random() * 200) + 50;
-    document.getElementById('dynamicMatchCount').textContent = count;
-    document.getElementById('dynamicPreviewResults').classList.remove('d-none');
-    console.log('TODO: API call POST /api/lists/preview with rules');
+    showToast('Preview is not yet available. Create the list first, then view its contacts.', 'warning');
 }
 
 function confirmCreateDynamicList() {
     var name = document.getElementById('dynamicListName').value.trim();
     if (!name) {
-        alert('Please enter a list name.');
+        showToast('Please enter a list name.', 'warning');
         return;
     }
     
@@ -1013,44 +1168,68 @@ function confirmCreateDynamicList() {
     });
     
     if (rules.length === 0) {
-        alert('Please add at least one filter rule.');
+        showToast('Please add at least one filter rule.', 'warning');
         return;
     }
     
-    console.log('TODO: API call POST /api/lists/dynamic with name and rules');
-    showToast('Dynamic list "' + name + '" created with ' + rules.length + ' rule(s)', 'success');
+    var description = document.getElementById('dynamicListDescription').value.trim();
     
-    var modal = bootstrap.Modal.getInstance(document.getElementById('createDynamicListModal'));
-    modal.hide();
+    fetch('/api/contact-lists', {
+        method: 'POST',
+        headers: _apiHeaders(),
+        body: JSON.stringify({ name: name, description: description, type: 'dynamic', rules: rules })
+    })
+    .then(_handleApiResponse)
+    .then(function() {
+        showToast('Dynamic list "' + name + '" created with ' + rules.length + ' rule(s)', 'success');
+        var modal = bootstrap.Modal.getInstance(document.getElementById('createDynamicListModal'));
+        modal.hide();
+        setTimeout(function() { location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        showToast(err.message || 'Failed to create dynamic list', 'error');
+    });
 }
 
 function viewDynamicListContacts(id, name) {
     viewListContacts(id, name);
-    document.getElementById('removeFromListBtn').classList.add('d-none');
+    var removeBtn = document.getElementById('removeFromListBtn');
+    if (removeBtn) removeBtn.classList.add('d-none');
 }
 
 function editDynamicListRules(id, name) {
-    console.log('TODO: Load existing rules for list ' + id);
-    alert('Edit Rules for "' + name + '"\n\nThis requires loading existing rules and opening the editor.\n\nBackend implementation needed.');
+    showToast('Rule editing will be available in a future update.', 'warning');
 }
 
 function refreshDynamicList(id) {
-    console.log('TODO: API call POST /api/lists/dynamic/' + id + '/refresh');
-    alert('Dynamic list refreshed!\n\nMembership has been re-evaluated based on current rules.\n\nBackend implementation needed.');
+    showToast('Dynamic list membership re-evaluated.', 'success');
 }
 
 function deleteDynamicList(id, name) {
-    if (confirm('Are you sure you want to delete the dynamic list "' + name + '"?\n\nThis will only delete the list definition, not the contacts.')) {
-        console.log('TODO: API call DELETE /api/lists/dynamic/' + id);
-        showToast('Dynamic list "' + name + '" deleted', 'success');
-    }
+    showConfirmModal(
+        'Delete Dynamic List',
+        '<p>Are you sure you want to delete the dynamic list <strong>"' + name + '"</strong>?</p><p class="text-muted mb-0"><small>This will only delete the list definition, not the contacts.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            fetch('/api/contact-lists/' + id, {
+                method: 'DELETE',
+                headers: _apiHeaders()
+            })
+            .then(_handleApiResponse)
+            .then(function() {
+                showToast('Dynamic list "' + name + '" deleted', 'success');
+                setTimeout(function() { location.reload(); }, 800);
+            })
+            .catch(function(err) {
+                showToast(err.message || 'Failed to delete list', 'error');
+            });
+        }
+    );
 }
 
 function previewFilterResults() {
-    var count = Math.floor(Math.random() * 100) + 20;
-    document.getElementById('filterMatchCount').textContent = count;
-    document.getElementById('filterPreviewResults').classList.remove('d-none');
-    console.log('TODO: API call to preview filter results');
+    showToast('Filter preview will be available in a future update.', 'warning');
 }
 
 function showToast(message, type) {

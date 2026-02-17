@@ -22,6 +22,7 @@ class ContactList extends Model
     public $incrementing = false;
 
     protected $fillable = [
+        'id',
         'account_id',
         'name',
         'description',

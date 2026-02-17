@@ -166,6 +166,49 @@ Route::middleware('customer.auth')->prefix('api/notifications')->controller(\App
     Route::post('/{uuid}/dismiss', 'dismiss')->name('api.notifications.dismiss');
 });
 
+Route::middleware('customer.auth')->prefix('api/contacts')->controller(\App\Http\Controllers\Api\ContactBookApiController::class)->group(function () {
+    Route::get('/', 'contactsIndex')->name('api.contacts.index');
+    Route::post('/', 'contactsStore')->name('api.contacts.store');
+    Route::get('/{id}', 'contactsShow')->name('api.contacts.show');
+    Route::put('/{id}', 'contactsUpdate')->name('api.contacts.update');
+    Route::delete('/{id}', 'contactsDestroy')->name('api.contacts.destroy');
+    Route::post('/bulk/add-to-list', 'bulkAddToList')->name('api.contacts.bulk.add-to-list');
+    Route::post('/bulk/remove-from-list', 'bulkRemoveFromList')->name('api.contacts.bulk.remove-from-list');
+    Route::post('/bulk/add-tags', 'bulkAddTags')->name('api.contacts.bulk.add-tags');
+    Route::post('/bulk/remove-tags', 'bulkRemoveTags')->name('api.contacts.bulk.remove-tags');
+    Route::post('/bulk/delete', 'bulkDelete')->name('api.contacts.bulk.delete');
+    Route::post('/bulk/export', 'bulkExport')->name('api.contacts.bulk.export');
+    Route::get('/{id}/timeline', 'timeline')->name('api.contacts.timeline');
+    Route::post('/{id}/reveal-msisdn', 'revealMsisdn')->name('api.contacts.reveal-msisdn');
+});
+
+Route::middleware('customer.auth')->prefix('api/tags')->controller(\App\Http\Controllers\Api\ContactBookApiController::class)->group(function () {
+    Route::get('/', 'tagsIndex')->name('api.tags.index');
+    Route::post('/', 'tagsStore')->name('api.tags.store');
+    Route::put('/{id}', 'tagsUpdate')->name('api.tags.update');
+    Route::delete('/{id}', 'tagsDestroy')->name('api.tags.destroy');
+});
+
+Route::middleware('customer.auth')->prefix('api/contact-lists')->controller(\App\Http\Controllers\Api\ContactBookApiController::class)->group(function () {
+    Route::get('/', 'listsIndex')->name('api.contact-lists.index');
+    Route::post('/', 'listsStore')->name('api.contact-lists.store');
+    Route::put('/{id}', 'listsUpdate')->name('api.contact-lists.update');
+    Route::delete('/{id}', 'listsDestroy')->name('api.contact-lists.destroy');
+    Route::post('/{id}/members', 'listsAddMembers')->name('api.contact-lists.add-members');
+    Route::delete('/{id}/members', 'listsRemoveMembers')->name('api.contact-lists.remove-members');
+});
+
+Route::middleware('customer.auth')->prefix('api/opt-out-lists')->controller(\App\Http\Controllers\Api\ContactBookApiController::class)->group(function () {
+    Route::get('/', 'optOutListsIndex')->name('api.opt-out-lists.index');
+    Route::post('/', 'optOutListsStore')->name('api.opt-out-lists.store');
+    Route::put('/{id}', 'optOutListsUpdate')->name('api.opt-out-lists.update');
+    Route::delete('/{id}', 'optOutListsDestroy')->name('api.opt-out-lists.destroy');
+    Route::get('/{id}/records', 'optOutRecordsIndex')->name('api.opt-out-lists.records.index');
+    Route::post('/{id}/records', 'optOutRecordsStore')->name('api.opt-out-lists.records.store');
+});
+
+Route::middleware('customer.auth')->delete('api/opt-out-records/{id}', [\App\Http\Controllers\Api\ContactBookApiController::class, 'optOutRecordsDestroy'])->name('api.opt-out-records.destroy');
+
 Route::prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
     Route::post('/process-url', 'processUrl')->name('api.rcs.assets.process-url');
     Route::post('/process-upload', 'processUpload')->name('api.rcs.assets.process-upload');
