@@ -151,6 +151,15 @@
     padding: 0;
     overflow: visible !important;
 }
+.form-wizard .tab-content {
+    overflow: visible !important;
+    height: auto !important;
+}
+.form-wizard .sw-main,
+.form-wizard .sw-container {
+    overflow: visible !important;
+    height: auto !important;
+}
 .selectable-tile {
     border: 2px solid #e9ecef;
     border-radius: 0.5rem;
