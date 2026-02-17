@@ -155,6 +155,10 @@
     padding: 0;
     overflow: visible !important;
 }
+#apiConnectionWizard > .tab-content {
+    height: auto !important;
+    overflow: visible !important;
+}
 
 #integrationPartnerSection {
     margin-top: 1rem;

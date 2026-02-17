@@ -151,6 +151,10 @@
     padding: 0;
     overflow: visible !important;
 }
+#apiConnectionWizard > .tab-content {
+    height: auto !important;
+    overflow: visible !important;
+}
 .selectable-tile {
     border: 2px solid #e9ecef;
     border-radius: 0.5rem;
