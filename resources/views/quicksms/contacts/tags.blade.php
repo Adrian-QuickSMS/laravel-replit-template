@@ -142,7 +142,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <a href="#!" onclick="viewTaggedContacts({{ $tag['id'] }}, '{{ $tag['name'] }}')" class="text-decoration-none">
+                                        <a href="#!" onclick="viewTaggedContacts('{{ $tag['id'] }}', '{{ $tag['name'] }}')" class="text-decoration-none">
                                             <span class="badge badge-pastel-secondary">
                                                 <i class="fas fa-users me-1"></i>{{ number_format($tag['contact_count']) }}
                                             </span>
@@ -166,17 +166,17 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end border py-0">
                                                 <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewTaggedContacts({{ $tag['id'] }}, '{{ $tag['name'] }}')">
+                                                    <a class="dropdown-item" href="#!" onclick="viewTaggedContacts('{{ $tag['id'] }}', '{{ $tag['name'] }}')">
                                                         <i class="fas fa-users me-2 text-dark"></i>View Contacts
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="editTag({{ $tag['id'] }}, '{{ $tag['name'] }}', '{{ $tag['color'] }}')">
+                                                    <a class="dropdown-item" href="#!" onclick="editTag('{{ $tag['id'] }}', '{{ $tag['name'] }}', '{{ $tag['color'] }}')">
                                                         <i class="fas fa-edit me-2 text-dark"></i>Edit Tag
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="mergeTag({{ $tag['id'] }}, '{{ $tag['name'] }}')">
+                                                    <a class="dropdown-item" href="#!" onclick="mergeTag('{{ $tag['id'] }}', '{{ $tag['name'] }}')">
                                                         <i class="fas fa-compress-arrows-alt me-2 text-dark"></i>Merge Into...
                                                     </a>
                                                     <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteTag({{ $tag['id'] }}, '{{ $tag['name'] }}', {{ $tag['contact_count'] }})">
+                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteTag('{{ $tag['id'] }}', '{{ $tag['name'] }}', {{ $tag['contact_count'] }})">
                                                         <i class="fas fa-trash me-2"></i>Delete Tag
                                                     </a>
                                                 </div>
