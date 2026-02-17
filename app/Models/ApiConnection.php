@@ -31,6 +31,9 @@ class ApiConnection extends Model
             if (empty($model->id)) {
                 $model->id = (string) \Illuminate\Support\Str::uuid();
             }
+            if (empty($model->base_url_slug)) {
+                $model->base_url_slug = strtolower(str_replace('-', '', substr($model->id, 0, 12)));
+            }
         });
     }
 
@@ -50,6 +53,7 @@ class ApiConnection extends Model
         'partner_name',
         'partner_config',
         'rate_limit_per_minute',
+        'base_url_slug',
         'created_by',
     ];
 
@@ -350,6 +354,7 @@ class ApiConnection extends Model
     {
         $data = [
             'id' => $this->id,
+            'base_url' => $this->base_url_slug . '.api.quicksms.com',
             'name' => $this->name,
             'description' => $this->description,
             'sub_account_id' => $this->sub_account_id,

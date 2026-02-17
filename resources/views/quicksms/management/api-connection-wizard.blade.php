@@ -1407,7 +1407,7 @@ $(document).ready(function() {
                 var data = response.data;
                 var credentials = data.credentials || {};
                 
-                $('#createdBaseUrl').text('API Connection ID: ' + data.id);
+                $('#createdBaseUrl').text(data.base_url || (data.id + '.api.quicksms.com'));
                 
                 if (data.auth_type === 'api_key' && credentials.api_key) {
                     $('#createdApiKey').text(credentials.api_key);

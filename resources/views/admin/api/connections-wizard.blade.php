@@ -657,10 +657,37 @@
                 
                 <div class="credential-box text-start">
                     <div class="credential-row">
+                        <span class="credential-label">Base URL</span>
+                        <div class="d-flex align-items-center">
+                            <code class="credential-value me-2" id="generatedBaseUrl">-</code>
+                            <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('generatedBaseUrl')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="credential-row" id="generatedApiKeyRow">
                         <span class="credential-label">API Key</span>
                         <div class="d-flex align-items-center">
                             <code class="credential-value me-2" id="generatedApiKey">-</code>
                             <button class="btn btn-sm btn-outline-primary" onclick="copyGeneratedKey()">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="credential-row" id="generatedUsernameRow" style="display: none;">
+                        <span class="credential-label">Username</span>
+                        <div class="d-flex align-items-center">
+                            <code class="credential-value me-2" id="generatedUsername">-</code>
+                            <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('generatedUsername')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="credential-row" id="generatedPasswordRow" style="display: none;">
+                        <span class="credential-label">Password</span>
+                        <div class="d-flex align-items-center">
+                            <code class="credential-value me-2" id="generatedPassword">-</code>
+                            <button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard('generatedPassword')">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
@@ -915,12 +942,17 @@ $(document).ready(function() {
                 var data = response.data;
                 var credentials = data.credentials || {};
                 
+                $('#generatedBaseUrl').text(data.base_url || (data.id + '.api.quicksms.com'));
+                
                 if (data.auth_type === 'api_key' && credentials.api_key) {
                     $('#generatedApiKey').text(credentials.api_key);
+                    $('#generatedApiKeyRow').show();
+                    $('#generatedUsernameRow, #generatedPasswordRow').hide();
                 } else if (credentials.username && credentials.password) {
-                    $('#generatedApiKey').text('Username: ' + credentials.username + '\nPassword: ' + credentials.password);
-                } else {
-                    $('#generatedApiKey').text('Connection created: ' + data.id);
+                    $('#generatedUsername').text(credentials.username);
+                    $('#generatedPassword').text(credentials.password);
+                    $('#generatedUsernameRow, #generatedPasswordRow').show();
+                    $('#generatedApiKeyRow').hide();
                 }
                 
                 $('#successModal').modal('show');
@@ -945,16 +977,20 @@ $(document).ready(function() {
         });
     });
     
-    window.copyGeneratedKey = function() {
-        var key = $('#generatedApiKey').text();
-        navigator.clipboard.writeText(key).then(function() {
-            var btn = $('#successModal .btn-outline-primary');
+    window.copyToClipboard = function(elementId) {
+        var text = $('#' + elementId).text();
+        navigator.clipboard.writeText(text).then(function() {
+            var btn = $('#' + elementId).closest('.d-flex').find('.btn-outline-primary');
             var originalHtml = btn.html();
             btn.html('<i class="fas fa-check text-success"></i>');
             setTimeout(function() {
                 btn.html(originalHtml);
             }, 1500);
         });
+    };
+
+    window.copyGeneratedKey = function() {
+        copyToClipboard('generatedApiKey');
     };
     
     console.log('[Admin API Connection Wizard] Loaded - Create connections for any customer account');
