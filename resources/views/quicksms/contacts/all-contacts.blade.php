@@ -1265,6 +1265,7 @@ function confirmBulkAddToList() {
                 // Now show result modal
                 if (result.success) {
                     clearBulkSelection();
+                    reloadContactsFromServer();
                     console.log('[BulkAction] Showing success modal');
                     showSuccessModal('Contacts Added', count + ' contact(s) have been added to "' + selectedList + '" successfully.');
                 } else {
@@ -1331,6 +1332,7 @@ function confirmBulkRemoveFromList() {
             console.log('[BulkAction] Remove from list result:', result);
             if (result.success) {
                 clearBulkSelection();
+                reloadContactsFromServer();
                 hideProcessingModal(function() {
                     showSuccessModal('Contacts Removed', count + ' contact(s) have been removed from "' + selectedList + '" successfully.');
                 });
@@ -1394,6 +1396,7 @@ function confirmBulkAddTags() {
             console.log('[BulkAction] Add tags result:', result);
             if (result.success) {
                 clearBulkSelection();
+                reloadContactsFromServer();
                 hideProcessingModal(function() {
                     showSuccessModal('Tags Added', tagCount + ' tag(s) have been added to ' + count + ' contact(s) successfully.');
                 });
@@ -1457,6 +1460,7 @@ function confirmBulkRemoveTags() {
             console.log('[BulkAction] Remove tags result:', result);
             if (result.success) {
                 clearBulkSelection();
+                reloadContactsFromServer();
                 hideProcessingModal(function() {
                     showSuccessModal('Tags Removed', tagCount + ' tag(s) have been removed from ' + count + ' contact(s) successfully.');
                 });
@@ -1517,6 +1521,7 @@ function confirmBulkDelete() {
         ContactsService.bulkDelete(ids).then(function(result) {
             if (result.success) {
                 clearBulkSelection();
+                reloadContactsFromServer();
                 hideProcessingModal(function() {
                     showSuccessModal('Contacts Deleted', count + ' contact(s) have been deleted successfully.');
                 });
