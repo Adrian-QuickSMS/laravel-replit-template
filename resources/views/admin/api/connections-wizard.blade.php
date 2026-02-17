@@ -149,11 +149,6 @@
 }
 .form-wizard .tab-content .tab-pane {
     padding: 0;
-    overflow: visible !important;
-}
-#apiConnectionWizard > .tab-content {
-    height: auto !important;
-    overflow: visible !important;
 }
 .selectable-tile {
     border: 2px solid #e9ecef;
@@ -865,21 +860,6 @@ $(document).ready(function() {
             markPreviousStepsAsDone: true,
             enableDoneStateNavigation: true
         }
-    });
-
-    function resetWizardHeight() {
-        var tc = document.querySelector('#apiConnectionWizard > .tab-content');
-        if (tc) tc.style.setProperty('height', 'auto', 'important');
-    }
-    setTimeout(function() {
-        var sw = $('#apiConnectionWizard').data('smartWizard');
-        if (sw) sw._fixHeight = function() {};
-        resetWizardHeight();
-    }, 0);
-
-    $('#apiConnectionWizard').on('showStep', function() {
-        resetWizardHeight();
-        setTimeout(resetWizardHeight, 50);
     });
 
     $('#apiConnectionWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex) {
