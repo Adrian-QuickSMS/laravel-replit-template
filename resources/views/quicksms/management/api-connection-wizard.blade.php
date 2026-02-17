@@ -154,6 +154,14 @@
 .form-wizard .tab-content .tab-pane {
     padding: 0;
 }
+#apiConnectionWizard > .tab-content {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+#apiConnectionWizard > .tab-content > .tab-pane {
+    position: static !important;
+}
 
 #integrationPartnerSection {
     margin-top: 1rem;
@@ -940,6 +948,10 @@ $(document).ready(function() {
     });
     
     $('#apiConnectionWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
+        var tc = this.querySelector('.tab-content');
+        if (tc) {
+            tc.style.setProperty('height', 'auto', 'important');
+        }
         updateStepIndicators();
         
         var $nextBtn = $('.toolbar-bottom .sw-btn-next');
