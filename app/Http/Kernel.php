@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'enforce.admin.locks' => \App\Http\Middleware\EnforceAdminLocks::class,
         'customer.auth' => \App\Http\Middleware\CustomerAuthenticate::class,
+        'api.connection' => \App\Http\Middleware\ApiKeyAuthenticate::class,
     ];
 }
