@@ -3401,16 +3401,107 @@ function confirmImport() {
         alert('Please confirm both settings before importing.');
         return;
     }
-    
-    console.log('TODO: Implement actual import with streaming/chunked processing');
-    console.log('TODO: API endpoint: POST /api/contacts/import');
-    console.log('TODO: Log user confirmations and upload metadata');
-    
-    var validCount = importValidationResults ? importValidationResults.validNumbers : 0;
-    document.getElementById('importCompleteMessage').textContent = 
-        'Successfully imported ' + validCount + ' contacts.';
-    
-    showStep(4);
+
+    var rows = (importFileData && importFileData.parsedRows) ? importFileData.parsedRows : [];
+    if (rows.length === 0) {
+        alert('No data rows found to import.');
+        return;
+    }
+
+    var mappings = {};
+    document.querySelectorAll('.column-mapping').forEach(function(sel) {
+        if (sel.value && sel.value !== 'custom') {
+            mappings[sel.value] = parseInt(sel.dataset.column, 10);
+        } else if (sel.value === 'custom') {
+            var customName = document.querySelector('.custom-field-name[data-column="' + sel.dataset.column + '"]');
+            if (customName && customName.value) {
+                mappings['custom_' + sel.dataset.column] = { idx: parseInt(sel.dataset.column, 10), name: customName.value };
+            }
+        }
+    });
+
+    if (typeof mappings.mobile !== 'number') {
+        alert('Mobile Number mapping is required.');
+        return;
+    }
+
+    var applyExcelCorrection = document.getElementById('excelCorrectionApplied').value === 'yes';
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    var importBtn = document.getElementById('importConfirmBtn');
+    importBtn.disabled = true;
+    importBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Importing...';
+
+    var contacts = [];
+    var seenMobiles = {};
+    rows.forEach(function(row) {
+        var mobile = (row[mappings.mobile] || '').replace(/[\s\-\+]/g, '');
+        if (!mobile || !mobile.match(/^\d{7,15}$/)) return;
+        if (applyExcelCorrection && mobile.match(/^7\d{9,}$/)) {
+            mobile = '44' + mobile;
+        }
+        if (seenMobiles[mobile]) return;
+        seenMobiles[mobile] = true;
+
+        var contact = { mobile_number: mobile };
+        if (typeof mappings.first_name === 'number' && row[mappings.first_name]) contact.first_name = row[mappings.first_name];
+        if (typeof mappings.last_name === 'number' && row[mappings.last_name]) contact.last_name = row[mappings.last_name];
+        if (typeof mappings.email === 'number' && row[mappings.email]) contact.email = row[mappings.email];
+
+        var customData = {};
+        Object.keys(mappings).forEach(function(key) {
+            if (key.startsWith('custom_')) {
+                var m = mappings[key];
+                if (row[m.idx]) customData[m.name] = row[m.idx];
+            }
+        });
+        if (Object.keys(customData).length > 0) contact.custom_data = customData;
+
+        contacts.push(contact);
+    });
+
+    if (contacts.length === 0) {
+        alert('No valid contacts found to import.');
+        importBtn.disabled = false;
+        importBtn.innerHTML = '<i class="fas fa-check me-1"></i> Start Import';
+        return;
+    }
+
+    var successCount = 0;
+    var failCount = 0;
+    var batchSize = 5;
+    var idx = 0;
+
+    function processBatch() {
+        if (idx >= contacts.length) {
+            importBtn.disabled = false;
+            importBtn.innerHTML = '<i class="fas fa-check me-1"></i> Start Import';
+            document.getElementById('importCompleteMessage').textContent =
+                'Successfully imported ' + successCount + ' contacts.' +
+                (failCount > 0 ? ' ' + failCount + ' failed (may already exist).' : '');
+            showStep(4);
+            return;
+        }
+
+        var batch = contacts.slice(idx, idx + batchSize);
+        idx += batchSize;
+
+        Promise.all(batch.map(function(c) {
+            return fetch('/api/contacts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                body: JSON.stringify(c)
+            }).then(function(resp) {
+                if (resp.ok) { successCount++; }
+                else { failCount++; }
+            }).catch(function() { failCount++; });
+        })).then(function() {
+            importBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Importing... (' + Math.min(idx, contacts.length) + '/' + contacts.length + ')';
+            processBatch();
+        });
+    }
+
+    processBatch();
 }
 
 document.getElementById('importContactsModal').addEventListener('hidden.bs.modal', function() {
