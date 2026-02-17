@@ -151,12 +151,16 @@
     padding: 0;
     overflow: visible !important;
 }
-.form-wizard .tab-content {
+.form-wizard .tab-content,
+.form-wizard .tab-content .tab-pane.active {
     overflow: visible !important;
     height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
 }
 .form-wizard .sw-main,
-.form-wizard .sw-container {
+.form-wizard .sw-container,
+.form-wizard .sw-theme-default {
     overflow: visible !important;
     height: auto !important;
 }
@@ -871,6 +875,13 @@ $(document).ready(function() {
         }
     });
     
+    $('#apiConnectionWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
+        setTimeout(function() {
+            $('.tab-content').css('height', 'auto');
+            $('.tab-pane.active').css('height', 'auto');
+        }, 50);
+    });
+
     $('#apiConnectionWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex) {
         if (nextStepIndex > currentStepIndex) {
             if (currentStepIndex === 0) {
