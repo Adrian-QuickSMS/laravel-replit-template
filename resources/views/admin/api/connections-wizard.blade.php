@@ -151,21 +151,6 @@
     padding: 0;
     overflow: visible !important;
 }
-.sw > .tab-content,
-.form-wizard .tab-content,
-.form-wizard .tab-content .tab-pane.active {
-    overflow: visible !important;
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-}
-.sw,
-.form-wizard .sw-main,
-.form-wizard .sw-container,
-.form-wizard .sw-theme-default {
-    overflow: visible !important;
-    height: auto !important;
-}
 .selectable-tile {
     border: 2px solid #e9ecef;
     border-radius: 0.5rem;
@@ -862,6 +847,7 @@ $(document).ready(function() {
     $('#apiConnectionWizard').smartWizard({
         selected: 0,
         theme: 'default',
+        autoAdjustHeight: false,
         transition: {
             animation: 'none'
         },
@@ -875,32 +861,6 @@ $(document).ready(function() {
             markPreviousStepsAsDone: true,
             enableDoneStateNavigation: true
         }
-    });
-    
-    function fixWizardHeight() {
-        var tc = document.querySelector('#apiConnectionWizard > .tab-content');
-        if (tc) {
-            tc.style.setProperty('height', 'auto', 'important');
-            tc.style.setProperty('overflow', 'visible', 'important');
-        }
-    }
-
-    var tabContent = document.querySelector('#apiConnectionWizard > .tab-content');
-    if (tabContent) {
-        var fixing = false;
-        var observer = new MutationObserver(function() {
-            if (fixing) return;
-            fixing = true;
-            fixWizardHeight();
-            setTimeout(function() { fixing = false; }, 100);
-        });
-        observer.observe(tabContent, { attributes: true, attributeFilter: ['style'] });
-        fixWizardHeight();
-    }
-
-    $('#apiConnectionWizard').on('showStep', function() {
-        setTimeout(fixWizardHeight, 50);
-        setTimeout(fixWizardHeight, 200);
     });
 
     $('#apiConnectionWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex) {

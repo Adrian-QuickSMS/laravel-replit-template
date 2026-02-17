@@ -155,15 +155,6 @@
     padding: 0;
     overflow: visible !important;
 }
-.form-wizard .tab-content {
-    overflow: visible !important;
-    height: auto !important;
-}
-.form-wizard .sw-main,
-.form-wizard .sw-container {
-    overflow: visible !important;
-    height: auto !important;
-}
 
 #integrationPartnerSection {
     margin-top: 1rem;
@@ -876,7 +867,7 @@ $(document).ready(function() {
     $('#apiConnectionWizard').smartWizard({
         selected: 0,
         theme: 'default',
-        autoAdjustHeight: true,
+        autoAdjustHeight: false,
         contentCache: true,
         transition: {
             animation: 'fade',
