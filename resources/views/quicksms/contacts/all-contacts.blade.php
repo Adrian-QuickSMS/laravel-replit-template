@@ -527,6 +527,7 @@
     </div>
 </div>
 
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="{{ asset('js/contacts-service.js') }}"></script>
 <script src="{{ asset('js/contact-timeline-service.js') }}"></script>
 <script>
@@ -3163,69 +3164,117 @@ function parseCSVLine(line) {
     return result;
 }
 
+function buildColumnMappingUI(headerRow, sampleRow, allDataRows, hasHeaders) {
+    importFileData.parsedHeaders = headerRow;
+    importFileData.parsedRows = allDataRows;
+
+    var columns = hasHeaders
+        ? headerRow
+        : headerRow.map(function(_, i) { return 'Column ' + String.fromCharCode(65 + i); });
+    var samples = hasHeaders ? sampleRow : headerRow;
+
+    var tbody = document.getElementById('columnMappingBody');
+    tbody.innerHTML = '';
+
+    var mappingOptions = '<option value="">-- Do not import --</option>' +
+        '<option value="mobile">Mobile Number *</option>' +
+        '<option value="first_name">First Name</option>' +
+        '<option value="last_name">Last Name</option>' +
+        '<option value="email">Email</option>' +
+        '<option value="custom">Custom Field</option>';
+
+    columns.forEach(function(col, idx) {
+        var autoMap = '';
+        var colLower = String(col).toLowerCase();
+        if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn') || colLower.includes('number')) autoMap = 'mobile';
+        else if (colLower.includes('first')) autoMap = 'first_name';
+        else if (colLower.includes('last') || colLower.includes('surname')) autoMap = 'last_name';
+        else if (colLower.includes('email')) autoMap = 'email';
+
+        var sampleVal = (samples[idx] !== undefined && samples[idx] !== null) ? String(samples[idx]) : '';
+        var row = document.createElement('tr');
+        row.innerHTML = '<td><strong>' + col + '</strong></td>' +
+            '<td class="text-muted small">' + sampleVal + '</td>' +
+            '<td><div class="d-flex gap-2 align-items-center">' +
+            '<select class="form-select form-select-sm column-mapping" data-column="' + idx + '" onchange="handleMappingChange(this)">' +
+            mappingOptions + '</select>' +
+            '<input type="text" class="form-control form-control-sm custom-field-name d-none" data-column="' + idx + '" placeholder="Field name" style="width: 120px;">' +
+            '</div></td>';
+        tbody.appendChild(row);
+
+        if (autoMap) {
+            row.querySelector('select').value = autoMap;
+        }
+    });
+
+    var firstSample = samples[0] !== undefined ? String(samples[0]) : '';
+    if (firstSample.match(/^7\d{9,}$/)) {
+        document.getElementById('excelZeroWarning').classList.remove('d-none');
+    } else {
+        document.getElementById('excelZeroWarning').classList.add('d-none');
+    }
+}
+
 function simulateColumnDetection() {
     if (!importFileData || !importFileData.file) return;
 
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        var text = e.target.result;
-        var lines = text.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
-        if (lines.length === 0) return;
+    var hasHeaders = document.querySelector('input[name="hasHeaders"]:checked').value === 'yes';
 
-        var hasHeaders = document.querySelector('input[name="hasHeaders"]:checked').value === 'yes';
-        var headerRow = parseCSVLine(lines[0]);
-        var sampleRow = lines.length > 1 ? parseCSVLine(lines[1]) : headerRow;
+    if (importFileData.type === 'excel') {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheetName = workbook.SheetNames[0];
+                var sheet = workbook.Sheets[sheetName];
+                var jsonRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                jsonRows = jsonRows.filter(function(r) {
+                    return r.some(function(cell) { return cell !== '' && cell !== null && cell !== undefined; });
+                });
+                if (jsonRows.length === 0) { alert('The spreadsheet appears to be empty.'); return; }
 
-        importFileData.parsedHeaders = headerRow;
-        importFileData.parsedRows = lines.slice(hasHeaders ? 1 : 0).map(parseCSVLine);
+                var headerRow = jsonRows[0].map(function(c) { return String(c); });
+                var sampleRow = jsonRows.length > 1 ? jsonRows[1].map(function(c) { return String(c); }) : headerRow;
+                var dataRows = jsonRows.slice(hasHeaders ? 1 : 0).map(function(r) {
+                    return r.map(function(c) { return String(c); });
+                });
 
-        var columns = hasHeaders
-            ? headerRow
-            : headerRow.map(function(_, i) { return 'Column ' + String.fromCharCode(65 + i); });
-        var samples = hasHeaders ? sampleRow : headerRow;
+                if (workbook.SheetNames.length > 1) {
+                    var sel = document.getElementById('worksheetSelect');
+                    if (sel) {
+                        sel.innerHTML = '';
+                        workbook.SheetNames.forEach(function(name) {
+                            var opt = document.createElement('option');
+                            opt.value = name;
+                            opt.textContent = name;
+                            if (name === sheetName) opt.selected = true;
+                            sel.appendChild(opt);
+                        });
+                    }
+                }
 
-        var tbody = document.getElementById('columnMappingBody');
-        tbody.innerHTML = '';
-
-        var mappingOptions = '<option value="">-- Do not import --</option>' +
-            '<option value="mobile">Mobile Number *</option>' +
-            '<option value="first_name">First Name</option>' +
-            '<option value="last_name">Last Name</option>' +
-            '<option value="email">Email</option>' +
-            '<option value="custom">Custom Field</option>';
-
-        columns.forEach(function(col, idx) {
-            var autoMap = '';
-            var colLower = col.toLowerCase();
-            if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn') || colLower.includes('number')) autoMap = 'mobile';
-            else if (colLower.includes('first')) autoMap = 'first_name';
-            else if (colLower.includes('last') || colLower.includes('surname')) autoMap = 'last_name';
-            else if (colLower.includes('email')) autoMap = 'email';
-
-            var sampleVal = samples[idx] || '';
-            var row = document.createElement('tr');
-            row.innerHTML = '<td><strong>' + col + '</strong></td>' +
-                '<td class="text-muted small">' + sampleVal + '</td>' +
-                '<td><div class="d-flex gap-2 align-items-center">' +
-                '<select class="form-select form-select-sm column-mapping" data-column="' + idx + '" onchange="handleMappingChange(this)">' +
-                mappingOptions + '</select>' +
-                '<input type="text" class="form-control form-control-sm custom-field-name d-none" data-column="' + idx + '" placeholder="Field name" style="width: 120px;">' +
-                '</div></td>';
-            tbody.appendChild(row);
-
-            if (autoMap) {
-                row.querySelector('select').value = autoMap;
+                buildColumnMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
+            } catch (err) {
+                alert('Could not read the Excel file. Please check the format and try again.');
             }
-        });
+        };
+        reader.readAsArrayBuffer(importFileData.file);
+    } else {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var text = e.target.result;
+            var lines = text.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
+            if (lines.length === 0) return;
 
-        var firstSample = samples[0] || '';
-        if (firstSample.match && firstSample.match(/^7\d{9,}$/)) {
-            document.getElementById('excelZeroWarning').classList.remove('d-none');
-        } else {
-            document.getElementById('excelZeroWarning').classList.add('d-none');
-        }
-    };
-    reader.readAsText(importFileData.file);
+            var headerRow = parseCSVLine(lines[0]);
+            var sampleRow = lines.length > 1 ? parseCSVLine(lines[1]) : headerRow;
+            var dataRows = lines.slice(hasHeaders ? 1 : 0).map(parseCSVLine);
+
+            buildColumnMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
+        };
+        reader.readAsText(importFileData.file);
+    }
 }
 
 function handleMappingChange(select) {
