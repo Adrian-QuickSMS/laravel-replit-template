@@ -166,6 +166,20 @@ Route::middleware('customer.auth')->prefix('api/notifications')->controller(\App
     Route::post('/{uuid}/dismiss', 'dismiss')->name('api.notifications.dismiss');
 });
 
+// API Connections — customer portal (session-based auth)
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/api-connections')
+    ->controller(\App\Http\Controllers\Api\ApiConnectionController::class)->group(function () {
+    Route::get('/', 'index')->name('api.api-connections.index');
+    Route::post('/', 'store')->name('api.api-connections.store');
+    Route::get('/{id}', 'show')->name('api.api-connections.show');
+    Route::put('/{id}/suspend', 'suspend')->name('api.api-connections.suspend');
+    Route::put('/{id}/reactivate', 'reactivate')->name('api.api-connections.reactivate');
+    Route::put('/{id}/archive', 'archive')->name('api.api-connections.archive');
+    Route::put('/{id}/convert-to-live', 'convertToLive')->name('api.api-connections.convert-to-live');
+    Route::post('/{id}/regenerate-key', 'regenerateKey')->name('api.api-connections.regenerate-key');
+    Route::post('/{id}/change-password', 'changePassword')->name('api.api-connections.change-password');
+});
+
 Route::middleware('customer.auth')->prefix('api/rcs/assets')->controller(RcsAssetController::class)->group(function () {
     Route::post('/process-url', 'processUrl')->name('api.rcs.assets.process-url');
     Route::post('/process-upload', 'processUpload')->name('api.rcs.assets.process-upload');
@@ -383,6 +397,21 @@ Route::prefix('admin')->group(function () {
             Route::post('/system/routing/remove-gateway', 'routingRemoveGateway')->name('admin.routing.remove-gateway');
             Route::post('/system/routing/create-override', 'routingCreateOverride')->name('admin.routing.create-override');
             Route::post('/system/routing/cancel-override', 'routingCancelOverride')->name('admin.routing.cancel-override');
+
+            // API Connections — admin cross-tenant management
+            Route::prefix('api/api-connections')->controller(\App\Http\Controllers\Admin\AdminApiConnectionController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.api-connections.index');
+                Route::post('/', 'store')->name('admin.api.api-connections.store');
+                Route::get('/{id}', 'show')->name('admin.api.api-connections.show');
+                Route::put('/{id}/suspend', 'suspend')->name('admin.api.api-connections.suspend');
+                Route::put('/{id}/reactivate', 'reactivate')->name('admin.api.api-connections.reactivate');
+                Route::put('/{id}/archive', 'archive')->name('admin.api.api-connections.archive');
+                Route::put('/{id}/convert-to-live', 'convertToLive')->name('admin.api.api-connections.convert-to-live');
+                Route::post('/{id}/regenerate-key', 'regenerateKey')->name('admin.api.api-connections.regenerate-key');
+                Route::post('/{id}/change-password', 'changePassword')->name('admin.api.api-connections.change-password');
+                Route::put('/{id}/endpoints', 'updateEndpoints')->name('admin.api.api-connections.endpoints');
+                Route::put('/{id}/security', 'updateSecurity')->name('admin.api.api-connections.security');
+            });
         });
 });
 
