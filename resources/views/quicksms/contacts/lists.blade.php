@@ -691,7 +691,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -741,7 +741,15 @@ function showConfirmModal(title, body, btnText, btnClass, onConfirm) {
         bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
         onConfirm();
     };
-    new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
+    var confirmModal = new bootstrap.Modal(document.getElementById('confirmActionModal'), { backdrop: true });
+    confirmModal.show();
+    document.getElementById('confirmActionModal').addEventListener('shown.bs.modal', function handler() {
+        var backdrops = document.querySelectorAll('.modal-backdrop');
+        if (backdrops.length > 1) {
+            backdrops[backdrops.length - 1].style.zIndex = '1055';
+        }
+        this.removeEventListener('shown.bs.modal', handler);
+    });
 }
 
 var createListStep = 1;

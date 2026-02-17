@@ -68,8 +68,33 @@ class ContactBookApiController extends Controller
 
     public function contactsShow(string $id): JsonResponse
     {
-        $contact = Contact::with(['tags', 'lists'])->findOrFail($id);
-        return response()->json(['data' => $contact->toPortalArray()]);
+        $accountId = session('customer_tenant_id');
+        $contact = DB::table('contacts')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$contact) {
+            return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
+        }
+
+        $tags = DB::table('tags')
+            ->join('contact_tag', 'tags.id', '=', 'contact_tag.tag_id')
+            ->where('contact_tag.contact_id', $id)
+            ->select('tags.*')
+            ->get();
+
+        $lists = DB::table('contact_lists')
+            ->join('contact_list_member', 'contact_lists.id', '=', 'contact_list_member.list_id')
+            ->where('contact_list_member.contact_id', $id)
+            ->select('contact_lists.*')
+            ->get();
+
+        $data = (array) $contact;
+        $data['tags'] = $tags->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'color' => $t->color])->toArray();
+        $data['lists'] = $lists->map(fn($l) => ['id' => $l->id, 'name' => $l->name])->toArray();
+
+        return response()->json(['data' => $data]);
     }
 
     public function contactsStore(Request $request): JsonResponse
@@ -98,7 +123,15 @@ class ContactBookApiController extends Controller
 
     public function contactsUpdate(Request $request, string $id): JsonResponse
     {
-        $contact = Contact::findOrFail($id);
+        $accountId = session('customer_tenant_id');
+        $contactExists = DB::table('contacts')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$contactExists) {
+            return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
+        }
 
         $validated = $request->validate([
             'mobile_number' => 'sometimes|string|max:20',
@@ -113,17 +146,33 @@ class ContactBookApiController extends Controller
             'custom_data' => 'nullable|array',
         ]);
 
+        if (isset($validated['custom_data'])) {
+            $validated['custom_data'] = json_encode($validated['custom_data']);
+        }
         $validated['updated_by'] = session('customer_email', session('customer_user_id'));
-        $contact->update($validated);
-        $contact->load(['tags', 'lists']);
+        $validated['updated_at'] = now();
 
-        return response()->json(['data' => $contact->toPortalArray()]);
+        DB::table('contacts')->where('id', $id)->update($validated);
+
+        $contact = DB::table('contacts')->where('id', $id)->first();
+        return response()->json(['data' => (array) $contact]);
     }
 
     public function contactsDestroy(string $id): JsonResponse
     {
-        $contact = Contact::findOrFail($id);
-        $contact->delete();
+        $accountId = session('customer_tenant_id');
+        $contactExists = DB::table('contacts')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$contactExists) {
+            return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
+        }
+
+        DB::table('contact_tag')->where('contact_id', $id)->delete();
+        DB::table('contact_list_member')->where('contact_id', $id)->delete();
+        DB::table('contacts')->where('id', $id)->delete();
         return response()->json(['success' => true, 'message' => 'Contact deleted']);
     }
 
@@ -326,19 +375,45 @@ class ContactBookApiController extends Controller
 
     public function tagsUpdate(Request $request, string $id): JsonResponse
     {
-        $tag = Tag::findOrFail($id);
-        $tag->update($request->validate([
+        $accountId = session('customer_tenant_id');
+        $tagExists = DB::table('tags')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$tagExists) {
+            return response()->json(['status' => 'error', 'message' => 'Tag not found'], 404);
+        }
+
+        $validated = $request->validate([
             'name' => 'sometimes|string|max:100',
             'color' => 'nullable|string|max:7',
-        ]));
-        return response()->json(['data' => $tag->toPortalArray()]);
+        ]);
+
+        DB::table('tags')->where('id', $id)->update($validated);
+
+        $tag = DB::table('tags')->where('id', $id)->first();
+        return response()->json(['data' => [
+            'id' => $tag->id,
+            'name' => $tag->name,
+            'color' => $tag->color,
+        ]]);
     }
 
     public function tagsDestroy(string $id): JsonResponse
     {
-        $tag = Tag::findOrFail($id);
+        $accountId = session('customer_tenant_id');
+        $tagExists = DB::table('tags')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$tagExists) {
+            return response()->json(['status' => 'error', 'message' => 'Tag not found'], 404);
+        }
+
         DB::table('contact_tag')->where('tag_id', $id)->delete();
-        $tag->delete();
+        DB::table('tags')->where('id', $id)->delete();
         return response()->json(['success' => true, 'message' => 'Tag deleted']);
     }
 
@@ -401,20 +476,50 @@ class ContactBookApiController extends Controller
 
     public function listsUpdate(Request $request, string $id): JsonResponse
     {
-        $list = ContactList::findOrFail($id);
-        $list->update($request->validate([
+        $accountId = session('customer_tenant_id');
+        $listExists = DB::table('contact_lists')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$listExists) {
+            return response()->json(['status' => 'error', 'message' => 'List not found'], 404);
+        }
+
+        $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'rules' => 'nullable|array',
-        ]));
-        return response()->json(['data' => $list->toPortalArray()]);
+        ]);
+
+        if (isset($validated['rules'])) {
+            $validated['rules'] = json_encode($validated['rules']);
+        }
+
+        DB::table('contact_lists')->where('id', $id)->update($validated);
+
+        $list = DB::table('contact_lists')->where('id', $id)->first();
+        return response()->json(['data' => [
+            'id' => $list->id,
+            'name' => $list->name,
+            'description' => $list->description,
+        ]]);
     }
 
     public function listsDestroy(string $id): JsonResponse
     {
-        $list = ContactList::findOrFail($id);
+        $accountId = session('customer_tenant_id');
+        $listExists = DB::table('contact_lists')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$listExists) {
+            return response()->json(['status' => 'error', 'message' => 'List not found'], 404);
+        }
+
         DB::table('contact_list_member')->where('list_id', $id)->delete();
-        $list->delete();
+        DB::table('contact_lists')->where('id', $id)->delete();
         return response()->json(['success' => true, 'message' => 'List deleted']);
     }
 
@@ -514,70 +619,143 @@ class ContactBookApiController extends Controller
 
     public function optOutListsUpdate(Request $request, string $id): JsonResponse
     {
-        $list = OptOutList::findOrFail($id);
-        $list->update($request->validate([
+        $accountId = session('customer_tenant_id');
+        $listExists = DB::table('opt_out_lists')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$listExists) {
+            return response()->json(['status' => 'error', 'message' => 'Opt-out list not found'], 404);
+        }
+
+        $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
-        ]));
-        return response()->json(['data' => $list->toPortalArray()]);
+        ]);
+
+        DB::table('opt_out_lists')->where('id', $id)->update($validated);
+
+        $list = DB::table('opt_out_lists')->where('id', $id)->first();
+        return response()->json(['data' => [
+            'id' => $list->id,
+            'name' => $list->name,
+            'description' => $list->description,
+        ]]);
     }
 
     public function optOutListsDestroy(string $id): JsonResponse
     {
-        $list = OptOutList::findOrFail($id);
+        $accountId = session('customer_tenant_id');
+        $list = DB::table('opt_out_lists')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$list) {
+            return response()->json(['status' => 'error', 'message' => 'Opt-out list not found'], 404);
+        }
+
         if ($list->is_master) {
             return response()->json(['error' => 'Cannot delete the master opt-out list'], 422);
         }
-        $list->records()->delete();
-        $list->delete();
+
+        DB::table('opt_out_records')->where('opt_out_list_id', $id)->delete();
+        DB::table('opt_out_lists')->where('id', $id)->delete();
         return response()->json(['success' => true, 'message' => 'Opt-out list deleted']);
     }
 
     public function optOutRecordsIndex(Request $request, string $listId): JsonResponse
     {
-        $list = OptOutList::findOrFail($listId);
+        $accountId = session('customer_tenant_id');
+        $listExists = DB::table('opt_out_lists')
+            ->where('id', $listId)
+            ->where('account_id', $accountId)
+            ->exists();
 
-        $records = $list->records()
-            ->with('optOutList')
+        if (!$listExists) {
+            return response()->json(['status' => 'error', 'message' => 'Opt-out list not found'], 404);
+        }
+
+        $records = DB::table('opt_out_records')
+            ->where('opt_out_list_id', $listId)
             ->orderByDesc('created_at')
             ->paginate($request->input('per_page', 25));
 
         return response()->json([
-            'data' => $records->getCollection()->map(fn($r) => $r->toPortalArray()),
+            'data' => collect($records->items())->map(fn($r) => [
+                'id' => $r->id,
+                'mobile_number' => $r->mobile_number,
+                'source' => $r->source ?? 'manual',
+                'campaign_ref' => $r->campaign_ref,
+                'opt_out_list_id' => $r->opt_out_list_id,
+                'created_at' => $r->created_at,
+            ]),
             'total' => $records->total(),
         ]);
     }
 
     public function optOutRecordsStore(Request $request, string $listId): JsonResponse
     {
-        $list = OptOutList::findOrFail($listId);
+        $accountId = session('customer_tenant_id');
+        $listExists = DB::table('opt_out_lists')
+            ->where('id', $listId)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$listExists) {
+            return response()->json(['status' => 'error', 'message' => 'Opt-out list not found'], 404);
+        }
 
         $validated = $request->validate([
             'mobile_number' => 'required|string|max:20',
             'campaign_ref' => 'nullable|string|max:255',
         ]);
 
-        $validated['account_id'] = session('customer_tenant_id');
-        $validated['opt_out_list_id'] = $list->id;
+        $recordId = (string) \Illuminate\Support\Str::uuid();
+        DB::table('opt_out_records')->insert([
+            'id' => $recordId,
+            'mobile_number' => $validated['mobile_number'],
+            'campaign_ref' => $validated['campaign_ref'] ?? null,
+            'account_id' => $accountId,
+            'opt_out_list_id' => $listId,
+            'source' => $request->input('source', 'manual'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        $record = OptOutRecord::create($validated);
-        // Source is set via DB default ('manual'), update if provided
-        if ($request->filled('source')) {
-            DB::statement("UPDATE opt_out_records SET source = ? WHERE id = ?", [$request->input('source'), $record->id]);
-        }
+        $newCount = DB::table('opt_out_records')->where('opt_out_list_id', $listId)->count();
+        DB::table('opt_out_lists')->where('id', $listId)->update(['record_count' => $newCount]);
 
-        $list->refreshCount();
-        $record->load('optOutList');
-
-        return response()->json(['data' => $record->toPortalArray()], 201);
+        $record = DB::table('opt_out_records')->where('id', $recordId)->first();
+        return response()->json(['data' => [
+            'id' => $record->id,
+            'mobile_number' => $record->mobile_number,
+            'source' => $record->source ?? 'manual',
+            'campaign_ref' => $record->campaign_ref,
+            'opt_out_list_id' => $record->opt_out_list_id,
+            'created_at' => $record->created_at,
+        ]], 201);
     }
 
     public function optOutRecordsDestroy(string $id): JsonResponse
     {
-        $record = OptOutRecord::findOrFail($id);
-        $list = $record->optOutList;
-        $record->delete();
-        $list?->refreshCount();
+        $accountId = session('customer_tenant_id');
+        $record = DB::table('opt_out_records')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$record) {
+            return response()->json(['status' => 'error', 'message' => 'Opt-out record not found'], 404);
+        }
+
+        $listId = $record->opt_out_list_id;
+        DB::table('opt_out_records')->where('id', $id)->delete();
+
+        $newCount = DB::table('opt_out_records')->where('opt_out_list_id', $listId)->count();
+        DB::table('opt_out_lists')->where('id', $listId)->update(['record_count' => $newCount]);
+
         return response()->json(['success' => true, 'message' => 'Opt-out record removed']);
     }
 
@@ -587,7 +765,15 @@ class ContactBookApiController extends Controller
 
     public function timeline(Request $request, string $contactId): JsonResponse
     {
-        $contact = Contact::findOrFail($contactId);
+        $accountId = session('customer_tenant_id');
+        $contactExists = DB::table('contacts')
+            ->where('id', $contactId)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$contactExists) {
+            return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
+        }
 
         $query = ContactTimelineEvent::forContact($contactId)
             ->orderByDesc('created_at');
@@ -633,7 +819,15 @@ class ContactBookApiController extends Controller
 
     public function revealMsisdn(Request $request, string $contactId): JsonResponse
     {
-        $contact = Contact::findOrFail($contactId);
+        $accountId = session('customer_tenant_id');
+        $contact = DB::table('contacts')
+            ->where('id', $contactId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$contact) {
+            return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
+        }
 
         $request->validate(['reason' => 'nullable|string|max:500']);
 

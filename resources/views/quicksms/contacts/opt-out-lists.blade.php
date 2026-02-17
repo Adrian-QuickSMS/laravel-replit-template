@@ -810,6 +810,22 @@
     </div>
 </div>
 
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="confirmActionTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2" id="confirmActionBody"></div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 function _apiHeaders() {
@@ -832,6 +848,27 @@ function _handleApiResponse(response) {
         });
     }
     return response.json();
+}
+
+function showConfirmModal(title, body, btnText, btnClass, onConfirm) {
+    document.getElementById('confirmActionTitle').textContent = title;
+    document.getElementById('confirmActionBody').innerHTML = body;
+    var btn = document.getElementById('confirmActionBtn');
+    btn.textContent = btnText;
+    btn.className = 'btn ' + btnClass;
+    btn.onclick = function() {
+        bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+        onConfirm();
+    };
+    var confirmModal = new bootstrap.Modal(document.getElementById('confirmActionModal'), { backdrop: true });
+    confirmModal.show();
+    document.getElementById('confirmActionModal').addEventListener('shown.bs.modal', function handler() {
+        var backdrops = document.querySelectorAll('.modal-backdrop');
+        if (backdrops.length > 1) {
+            backdrops[backdrops.length - 1].style.zIndex = '1055';
+        }
+        this.removeEventListener('shown.bs.modal', handler);
+    });
 }
 
 var optOutLists = @json($opt_out_lists);
@@ -1120,20 +1157,26 @@ function saveRenameList() {
 }
 
 function deleteOptOutList(listId, name) {
-    if (confirm('Are you sure you want to delete "' + name + '"? This action cannot be undone.')) {
-        fetch('/api/opt-out-lists/' + listId, {
-            method: 'DELETE',
-            headers: _apiHeaders()
-        })
-        .then(_handleApiResponse)
-        .then(function() {
-            showToast('List "' + name + '" deleted', 'success');
-            setTimeout(function() { location.reload(); }, 800);
-        })
-        .catch(function(err) {
-            showToast(err.message || 'Failed to delete list', 'error');
-        });
-    }
+    showConfirmModal(
+        'Delete Opt-Out List',
+        '<p>Are you sure you want to delete <strong>"' + name + '"</strong>?</p><p class="text-muted mb-0"><small>This action cannot be undone. All opt-out records in this list will also be removed.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            fetch('/api/opt-out-lists/' + listId, {
+                method: 'DELETE',
+                headers: _apiHeaders()
+            })
+            .then(_handleApiResponse)
+            .then(function() {
+                showToast('List "' + name + '" deleted', 'success');
+                setTimeout(function() { location.reload(); }, 800);
+            })
+            .catch(function(err) {
+                showToast(err.message || 'Failed to delete list', 'error');
+            });
+        }
+    );
 }
 
 function viewOptOutHistory(optOutId) {

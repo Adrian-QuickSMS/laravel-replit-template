@@ -527,6 +527,22 @@
     </div>
 </div>
 
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="confirmActionTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2" id="confirmActionBody"></div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="{{ asset('js/contacts-service.js') }}"></script>
 <script src="{{ asset('js/contact-timeline-service.js') }}"></script>
@@ -558,6 +574,26 @@ function _handleApiResponse(response) {
         });
     }
     return response.json();
+}
+function showConfirmModal(title, body, btnText, btnClass, onConfirm) {
+    document.getElementById('confirmActionTitle').textContent = title;
+    document.getElementById('confirmActionBody').innerHTML = body;
+    var btn = document.getElementById('confirmActionBtn');
+    btn.textContent = btnText;
+    btn.className = 'btn ' + btnClass;
+    btn.onclick = function() {
+        bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+        onConfirm();
+    };
+    var confirmModal = new bootstrap.Modal(document.getElementById('confirmActionModal'), { backdrop: true });
+    confirmModal.show();
+    document.getElementById('confirmActionModal').addEventListener('shown.bs.modal', function handler() {
+        var backdrops = document.querySelectorAll('.modal-backdrop');
+        if (backdrops.length > 1) {
+            backdrops[backdrops.length - 1].style.zIndex = '1055';
+        }
+        this.removeEventListener('shown.bs.modal', handler);
+    });
 }
 function reloadContactsFromServer() {
     fetch('/api/contacts?per_page=500', { headers: _apiHeaders() })
@@ -1133,20 +1169,26 @@ function renderStatusPill(status, listScope) {
 }
 
 function deleteContact(id) {
-    if (confirm('Are you sure you want to delete this contact?\n\nThis action cannot be undone.')) {
-        fetch('/api/contacts/' + id, {
-            method: 'DELETE',
-            headers: _apiHeaders()
-        })
-        .then(_handleApiResponse)
-        .then(function(result) {
-            reloadContactsFromServer();
-            showSuccessToast('Contact deleted successfully');
-        })
-        .catch(function(err) {
-            alert('Failed to delete contact: ' + (err.message || 'Unknown error'));
-        });
-    }
+    showConfirmModal(
+        'Delete Contact',
+        '<p>Are you sure you want to delete this contact?</p><p class="text-muted mb-0"><small>This action cannot be undone.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            fetch('/api/contacts/' + id, {
+                method: 'DELETE',
+                headers: _apiHeaders()
+            })
+            .then(_handleApiResponse)
+            .then(function(result) {
+                reloadContactsFromServer();
+                showSuccessToast('Contact deleted successfully');
+            })
+            .catch(function(err) {
+                showSuccessToast('Failed to delete contact: ' + (err.message || 'Unknown error'));
+            });
+        }
+    );
 }
 
 function getSelectedContactIds() {
@@ -1803,20 +1845,27 @@ function performExport() {
 function bulkDelete() {
     var ids = getSelectedContactIds();
     var names = getSelectedContactNames();
+    var nameList = names.length <= 5 ? names.join(', ') : names.slice(0, 5).join(', ') + ' and ' + (names.length - 5) + ' more';
 
-    if (confirm('Are you sure you want to delete ' + ids.length + ' contact(s)?\n\n' + names.join('\n') + '\n\nThis action cannot be undone.')) {
-        ContactsService.bulkDelete(ids)
-            .then(function(result) {
-                document.querySelectorAll('.contact-checkbox:checked').forEach(function(cb) { cb.checked = false; });
-                document.getElementById('checkAll').checked = false;
-                document.getElementById('bulkActionBar').classList.add('d-none');
-                reloadContactsFromServer();
-                showSuccessToast(result.message || 'Contacts deleted successfully');
-            })
-            .catch(function(err) {
-                alert('Failed to delete contacts: ' + (err.message || 'Unknown error'));
-            });
-    }
+    showConfirmModal(
+        'Delete Contacts',
+        '<p>Are you sure you want to delete <strong>' + ids.length + ' contact(s)</strong>?</p><p class="mb-1"><small>' + nameList + '</small></p><p class="text-muted mb-0"><small>This action cannot be undone.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            ContactsService.bulkDelete(ids)
+                .then(function(result) {
+                    document.querySelectorAll('.contact-checkbox:checked').forEach(function(cb) { cb.checked = false; });
+                    document.getElementById('checkAll').checked = false;
+                    document.getElementById('bulkActionBar').classList.add('d-none');
+                    reloadContactsFromServer();
+                    showSuccessToast(result.message || 'Contacts deleted successfully');
+                })
+                .catch(function(err) {
+                    showSuccessToast('Failed to delete contacts: ' + (err.message || 'Unknown error'));
+                });
+        }
+    );
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -2412,12 +2461,18 @@ function addCustomField() {
 }
 
 function deleteCustomField(id) {
-    if (confirm('Are you sure you want to delete this custom field? This will remove it from all contacts.')) {
-        customFieldDefinitions = customFieldDefinitions.filter(f => f.id !== id);
-        renderCustomFieldsList();
-        renderCustomFields();
-        console.log('TODO: Delete custom field from database');
-    }
+    showConfirmModal(
+        'Delete Custom Field',
+        '<p>Are you sure you want to delete this custom field?</p><p class="text-muted mb-0"><small>This will remove it from all contacts.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            customFieldDefinitions = customFieldDefinitions.filter(f => f.id !== id);
+            renderCustomFieldsList();
+            renderCustomFields();
+            console.log('TODO: Delete custom field from database');
+        }
+    );
 }
 
 document.addEventListener('DOMContentLoaded', function() {
