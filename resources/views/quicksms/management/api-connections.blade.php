@@ -417,7 +417,7 @@
                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                 </div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="live" id="statusLive"><label class="form-check-label small" for="statusLive">Live</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="live" id="statusLive"><label class="form-check-label small" for="statusLive">Active</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="suspended" id="statusSuspended"><label class="form-check-label small" for="statusSuspended">Suspended</label></div>
                             </div>
                         </div>
@@ -796,175 +796,7 @@
 <script>
 $(document).ready(function() {
 
-    var apiConnections = [
-        {
-            id: 1,
-            name: 'Production Bulk Sender',
-            description: 'Main production API for bulk messaging',
-            subAccount: 'Main Account',
-            type: 'bulk',
-            integrationName: null,
-            environment: 'live',
-            authType: 'API Key',
-            status: 'live',
-            baseUrl: 'https://api.quicksms.io/v1/bulk/prod-001',
-            dlrUrl: 'https://yourserver.com/webhooks/dlr',
-            inboundUrl: 'https://yourserver.com/webhooks/inbound',
-            ipAllowList: true,
-            allowedIps: ['192.168.1.100', '10.0.0.50', '203.0.113.25'],
-            createdDate: '2024-08-15',
-            lastUsed: '2025-01-08 14:32:45',
-            archived: false,
-            dependencies: [
-                { type: 'Template', name: 'Welcome SMS', count: 3 },
-                { type: 'Automation', name: 'New Customer Flow', count: 1 }
-            ]
-        },
-        {
-            id: 2,
-            name: 'Test Bulk API',
-            description: 'Testing environment for bulk operations',
-            subAccount: 'Development',
-            type: 'bulk',
-            integrationName: null,
-            environment: 'test',
-            authType: 'API Key',
-            status: 'live',
-            baseUrl: 'https://sandbox.quicksms.io/v1/bulk/test-001',
-            dlrUrl: '',
-            inboundUrl: '',
-            ipAllowList: false,
-            allowedIps: [],
-            createdDate: '2024-09-20',
-            lastUsed: '2025-01-07 09:15:22',
-            archived: false,
-            dependencies: []
-        },
-        {
-            id: 3,
-            name: 'Campaign Manager API',
-            description: 'API for campaign scheduling and management',
-            subAccount: 'Marketing',
-            type: 'campaign',
-            integrationName: null,
-            environment: 'live',
-            authType: 'Basic Auth',
-            status: 'live',
-            baseUrl: 'https://api.quicksms.io/v1/campaigns/mkt-001',
-            dlrUrl: 'https://marketing.example.com/api/dlr',
-            inboundUrl: 'https://marketing.example.com/api/inbound',
-            ipAllowList: true,
-            allowedIps: ['10.10.10.1'],
-            createdDate: '2024-06-10',
-            lastUsed: '2025-01-08 11:45:18',
-            archived: false,
-            dependencies: [
-                { type: 'Campaign', name: 'Weekly Newsletter', count: 5 }
-            ]
-        },
-        {
-            id: 4,
-            name: 'Campaign Testing',
-            description: null,
-            subAccount: 'Development',
-            type: 'campaign',
-            integrationName: null,
-            environment: 'test',
-            authType: 'API Key',
-            status: 'suspended',
-            baseUrl: 'https://sandbox.quicksms.io/v1/campaigns/test-002',
-            dlrUrl: '',
-            inboundUrl: '',
-            ipAllowList: false,
-            allowedIps: [],
-            createdDate: '2024-10-05',
-            lastUsed: '2024-12-15 16:30:00',
-            archived: false,
-            dependencies: []
-        },
-        {
-            id: 5,
-            name: 'Salesforce Integration',
-            description: 'CRM sync for customer messaging',
-            subAccount: 'Main Account',
-            type: 'integration',
-            integrationName: 'Salesforce CRM',
-            environment: 'live',
-            authType: 'OAuth',
-            status: 'live',
-            baseUrl: 'https://api.quicksms.io/v1/integrations/sf-001',
-            dlrUrl: '',
-            inboundUrl: '',
-            ipAllowList: true,
-            allowedIps: ['52.88.0.0/16'],
-            createdDate: '2024-03-22',
-            lastUsed: '2025-01-08 15:01:33',
-            archived: false,
-            dependencies: [
-                { type: 'Contact Sync', name: 'SF Contacts', count: 1 }
-            ]
-        },
-        {
-            id: 6,
-            name: 'HubSpot Connector',
-            description: 'Marketing automation integration',
-            subAccount: 'Marketing',
-            type: 'integration',
-            integrationName: 'HubSpot',
-            environment: 'test',
-            authType: 'API Key',
-            status: 'live',
-            baseUrl: 'https://sandbox.quicksms.io/v1/integrations/hs-test',
-            dlrUrl: '',
-            inboundUrl: '',
-            ipAllowList: false,
-            allowedIps: [],
-            createdDate: '2024-11-18',
-            lastUsed: '2025-01-06 10:22:14',
-            archived: false,
-            dependencies: []
-        },
-        {
-            id: 7,
-            name: 'Legacy Bulk API',
-            description: 'Deprecated - migrated to new API',
-            subAccount: 'Main Account',
-            type: 'bulk',
-            integrationName: null,
-            environment: 'live',
-            authType: 'API Key',
-            status: 'suspended',
-            baseUrl: 'https://api.quicksms.io/v1/bulk/legacy-001',
-            dlrUrl: '',
-            inboundUrl: '',
-            ipAllowList: true,
-            allowedIps: ['192.168.1.1'],
-            createdDate: '2023-05-10',
-            lastUsed: '2024-06-30 08:00:00',
-            archived: true,
-            dependencies: []
-        },
-        {
-            id: 8,
-            name: 'Old Campaign API',
-            description: 'Archived campaign connection',
-            subAccount: 'Development',
-            type: 'campaign',
-            integrationName: null,
-            environment: 'test',
-            authType: 'Basic Auth',
-            status: 'suspended',
-            baseUrl: 'https://sandbox.quicksms.io/v1/campaigns/old-001',
-            dlrUrl: '',
-            inboundUrl: '',
-            ipAllowList: false,
-            allowedIps: [],
-            createdDate: '2023-08-15',
-            lastUsed: '2024-01-20 12:00:00',
-            archived: true,
-            dependencies: []
-        }
-    ];
+    var apiConnections = [];
     
     var currentSort = { column: 'name', direction: 'asc' };
     
@@ -1011,7 +843,17 @@ $(document).ready(function() {
     }
     
     function getStatusBadgeClass(status) {
-        return status === 'live' ? 'badge-live-status' : 'badge-suspended';
+        if (status === 'live' || status === 'active') return 'badge-live-status';
+        if (status === 'archived') return 'badge-suspended';
+        return 'badge-suspended';
+    }
+    
+    function getStatusLabel(status) {
+        if (status === 'live' || status === 'active') return 'Active';
+        if (status === 'suspended') return 'Suspended';
+        if (status === 'archived') return 'Archived';
+        if (status === 'draft') return 'Draft';
+        return status;
     }
     
     function formatDate(dateStr) {
@@ -1081,7 +923,7 @@ $(document).ready(function() {
         appliedFilters.showArchived = $('#showArchivedToggle').is(':checked');
         
         renderActiveFilters();
-        renderTable();
+        loadConnections();
     }
     
     function resetFilters() {
@@ -1106,7 +948,7 @@ $(document).ready(function() {
         };
         
         renderActiveFilters();
-        renderTable();
+        loadConnections();
     }
     
     function renderActiveFilters() {
@@ -1157,22 +999,7 @@ $(document).ready(function() {
     }
     
     function renderTable() {
-        var filtered = apiConnections.filter(function(conn) {
-            if (!appliedFilters.showArchived && conn.archived) return false;
-            
-            if (appliedFilters.search) {
-                var search = appliedFilters.search.toLowerCase();
-                if (!conn.name.toLowerCase().includes(search)) return false;
-            }
-            
-            if (appliedFilters.types.length > 0 && !appliedFilters.types.includes(conn.type)) return false;
-            if (appliedFilters.environments.length > 0 && !appliedFilters.environments.includes(conn.environment)) return false;
-            if (appliedFilters.statuses.length > 0 && !appliedFilters.statuses.includes(conn.status)) return false;
-            if (appliedFilters.subAccounts.length > 0 && !appliedFilters.subAccounts.includes(conn.subAccount)) return false;
-            if (appliedFilters.authTypes.length > 0 && !appliedFilters.authTypes.includes(conn.authType)) return false;
-            
-            return true;
-        });
+        var filtered = apiConnections.slice();
         
         filtered.sort(function(a, b) {
             var aVal = a[currentSort.column] || '';
@@ -1213,11 +1040,11 @@ $(document).ready(function() {
             html += '<td>' + conn.authType + '</td>';
             
             html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(conn.status) + '">' + 
-                    (conn.status === 'live' ? 'Live' : 'Suspended') + '</span></td>';
+                    getStatusLabel(conn.status) + '</span></td>';
             
-            html += '<td>' + formatDate(conn.createdDate) + '</td>';
+            html += '<td>' + (conn.createdDate ? formatDate(conn.createdDate) : '-') + '</td>';
             
-            html += '<td>' + formatDateTime(conn.lastUsed) + '</td>';
+            html += '<td>' + (conn.lastUsed ? formatDateTime(conn.lastUsed) : 'Never') + '</td>';
             
             html += '<td>';
             html += '<div class="dropdown table-action-dropdown">';
@@ -1226,33 +1053,33 @@ $(document).ready(function() {
             html += '</button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';
             
-            html += '<li><a class="dropdown-item" href="#" onclick="viewConnection(' + conn.id + '); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>';
+            html += '<li><a class="dropdown-item" href="#" onclick="viewConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>';
             
             if (conn.authType === 'API Key') {
-                html += '<li><a class="dropdown-item" href="#" onclick="regenerateKey(' + conn.id + '); return false;"><i class="fas fa-sync-alt me-2"></i>Regenerate API Key</a></li>';
+                html += '<li><a class="dropdown-item" href="#" onclick="regenerateKey(\'' + conn.id + '\'); return false;"><i class="fas fa-sync-alt me-2"></i>Regenerate API Key</a></li>';
             }
             
             if (conn.authType === 'Basic Auth') {
-                html += '<li><a class="dropdown-item" href="#" onclick="changePassword(' + conn.id + '); return false;"><i class="fas fa-key me-2"></i>Change Password</a></li>';
+                html += '<li><a class="dropdown-item" href="#" onclick="changePassword(\'' + conn.id + '\'); return false;"><i class="fas fa-key me-2"></i>Change Password</a></li>';
             }
             
             if (conn.status === 'live') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendConnection(' + conn.id + '); return false;"><i class="fas fa-pause me-2"></i>Suspend API</a></li>';
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-pause me-2"></i>Suspend API</a></li>';
             }
             
             if (conn.status === 'suspended') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateConnection(' + conn.id + '); return false;"><i class="fas fa-play me-2"></i>Reactivate API</a></li>';
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-play me-2"></i>Reactivate API</a></li>';
             }
             
             if (conn.environment === 'test' && !conn.archived) {
-                html += '<li><a class="dropdown-item" href="#" onclick="convertToLive(' + conn.id + '); return false;"><i class="fas fa-rocket me-2"></i>Convert to Live</a></li>';
+                html += '<li><a class="dropdown-item" href="#" onclick="convertToLive(\'' + conn.id + '\'); return false;"><i class="fas fa-rocket me-2"></i>Convert to Live</a></li>';
             }
             
             if (conn.status === 'suspended' && !conn.archived) {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveConnection(' + conn.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive API</a></li>';
+                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive API</a></li>';
             }
             
             html += '</ul>';
@@ -1417,7 +1244,7 @@ $(document).ready(function() {
     }
     
     function getConnectionById(id) {
-        return apiConnections.find(function(c) { return c.id === id; });
+        return apiConnections.find(function(c) { return c.id == id; });
     }
     
     window.viewConnection = function(id) {
@@ -1434,17 +1261,17 @@ $(document).ready(function() {
         var envLabel = conn.environment === 'live' ? 'Live' : 'Test';
         $('#drawerEnvBadge').removeClass().addClass('badge rounded-pill ' + getEnvironmentBadgeClass(conn.environment)).text(envLabel);
         
-        var statusLabel = conn.status === 'live' ? 'Live' : 'Suspended';
+        var statusLabel = getStatusLabel(conn.status);
         $('#drawerStatusBadge').removeClass().addClass('badge rounded-pill ' + getStatusBadgeClass(conn.status)).text(statusLabel);
         
         $('#drawerApiNameDetail').text(conn.name);
         $('#drawerSubAccount').text(conn.subAccount);
         $('#drawerType').text(typeLabel);
         $('#drawerEnvironment').text(envLabel);
-        $('#drawerStatus').html('<span class="badge rounded-pill ' + getStatusBadgeClass(conn.status) + '">' + (conn.status === 'live' ? 'Live' : 'Suspended') + '</span>');
+        $('#drawerStatus').html('<span class="badge rounded-pill ' + getStatusBadgeClass(conn.status) + '">' + getStatusLabel(conn.status) + '</span>');
         
         $('#drawerAuthType').text(conn.authType);
-        var maskedCred = conn.authType === 'API Key' ? 'sk_••••••••••••••••' : 'user:••••••••';
+        var maskedCred = conn.credentialDisplay || (conn.authType === 'API Key' ? 'sk_••••••••••••••••' : 'user:••••••••');
         $('#drawerCredentials').text(maskedCred);
         
         // URL fields now use <code> elements instead of inputs
@@ -1465,22 +1292,26 @@ $(document).ready(function() {
             $('#drawerIpListRow').hide();
         }
         
-        $('#drawerCreatedDate').text(formatDate(conn.createdDate));
+        $('#drawerCreatedDate').text(conn.createdDate ? formatDate(conn.createdDate) : '-');
         
-        var lastUsedDate = new Date(conn.lastUsed);
-        var now = new Date();
-        var diffSeconds = Math.floor((now - lastUsedDate) / 1000);
-        var lastUsedText = formatDateTime(conn.lastUsed);
-        if (diffSeconds < 60) {
-            lastUsedText += ' (' + diffSeconds + ' seconds ago)';
-        } else if (diffSeconds < 3600) {
-            lastUsedText += ' (' + Math.floor(diffSeconds / 60) + ' minutes ago)';
-        } else if (diffSeconds < 86400) {
-            lastUsedText += ' (' + Math.floor(diffSeconds / 3600) + ' hours ago)';
+        if (conn.lastUsed) {
+            var lastUsedDate = new Date(conn.lastUsed);
+            var now = new Date();
+            var diffSeconds = Math.floor((now - lastUsedDate) / 1000);
+            var lastUsedText = formatDateTime(conn.lastUsed);
+            if (diffSeconds < 60) {
+                lastUsedText += ' (' + diffSeconds + ' seconds ago)';
+            } else if (diffSeconds < 3600) {
+                lastUsedText += ' (' + Math.floor(diffSeconds / 60) + ' minutes ago)';
+            } else if (diffSeconds < 86400) {
+                lastUsedText += ' (' + Math.floor(diffSeconds / 3600) + ' hours ago)';
+            } else {
+                lastUsedText += ' (' + Math.floor(diffSeconds / 86400) + ' days ago)';
+            }
+            $('#drawerLastUsed').text(lastUsedText);
         } else {
-            lastUsedText += ' (' + Math.floor(diffSeconds / 86400) + ' days ago)';
+            $('#drawerLastUsed').text('Never used');
         }
-        $('#drawerLastUsed').text(lastUsedText);
         
         var capabilitiesHtml = getCapabilitiesHtml(conn.type, conn.integrationName);
         $('#drawerCapabilities').html(capabilitiesHtml);
@@ -1620,69 +1451,35 @@ $(document).ready(function() {
         );
     };
     
-    // MOCK ONLY: This function simulates key generation for UI testing.
-    // SECURITY: In production, keys MUST be generated server-side and returned via API response.
-    // This client-side mock will be removed when backend endpoint is integrated.
-    function generateNewApiKey() {
-        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-        var key = 'sk_live_';
-        for (var i = 0; i < 32; i++) {
-            key += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return key;
-    }
-    
     function generateAndShowNewKey(conn) {
-        // In production, the new key is returned from the backend response
-        apiCall(
-            '/connections/' + conn.id + '/regenerate-key',
-            { id: conn.id },
-            function(response) {
-                // Use key from backend if available, otherwise use mock generator
-                var newKey;
-                if (response.newKey) {
-                    // Production: key comes from backend
-                    newKey = response.newKey;
-                } else if (API_CONFIG.USE_MOCK_API) {
-                    // Mock mode: generate client-side for UI testing
-                    newKey = generateNewApiKey();
-                } else {
-                    // Real API returned no key - this is an error condition
+        apiRequest(API_BASE + '/' + conn.id + '/regenerate-key', 'POST')
+            .done(function(response) {
+                var newKey = response.credentials ? response.credentials.api_key : null;
+                if (!newKey) {
                     showErrorToast('Server did not return a new API key. Please contact support.');
                     return;
                 }
                 
-                // Update connection state to reflect key regeneration
-                conn.keyRegeneratedAt = new Date().toISOString();
-                conn.lastUsed = new Date().toISOString();
+                loadConnections();
                 
-                console.log('[AUDIT] API Key regenerated for connection:', conn.name, 'ID:', conn.id, 'at:', conn.keyRegeneratedAt);
-                
-                // Re-render table to show updated state
-                renderTable();
-                
-                // Populate modal with new key
                 $('#newApiKeyValue').val(newKey);
                 $('#copyNewKeyBtn').html('<i class="fas fa-copy me-1"></i> Copy');
                 
-                // Set up close button to clear key from memory
                 $('#closeNewKeyModalBtn').off('click').on('click', function() {
-                    // Clear key from DOM for security
                     $('#newApiKeyValue').val('');
                     $('#newKeyModal').modal('hide');
                     showSuccessToast('API Key for "' + conn.name + '" has been regenerated. The old key is now revoked.');
                 });
                 
-                // Wait for any previous modal transitions to complete
                 setTimeout(function() {
                     $('#newKeyModal').modal('show');
                 }, 150);
-            },
-            function(error) {
-                var message = (error && error.message) ? error.message : 'Failed to regenerate API key. Please try again.';
-                showErrorToast(message);
-            }
-        );
+            })
+            .fail(function(xhr) {
+                var msg = 'Failed to regenerate API key. Please try again.';
+                try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                showErrorToast(msg);
+            });
     }
     
     window.copyNewApiKey = function() {
@@ -1783,7 +1580,7 @@ $(document).ready(function() {
         var newPwd = $('#newPassword').val();
         var confirmPwd = $('#confirmPassword').val();
         var connId = $('#changePasswordConnId').val();
-        var conn = getConnectionById(parseInt(connId));
+        var conn = getConnectionById(connId);
         
         var isValid = true;
         
@@ -1819,11 +1616,23 @@ $(document).ready(function() {
         
         if (!isValid) return;
         
-        console.log('[AUDIT] Password changed for connection:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
-        
-        $('#changePasswordModal').modal('hide');
-        
-        showSuccessToast('Password changed successfully for "' + conn.name + '".');
+        apiRequest(API_BASE + '/' + connId + '/change-password', 'POST')
+            .done(function(response) {
+                $('#changePasswordModal').modal('hide');
+                
+                if (response.credentials) {
+                    var credMsg = 'New password: ' + response.credentials.password;
+                    alert('Password changed! Username: ' + response.credentials.username + '\n' + credMsg + '\n\nPlease copy these credentials now. They will not be shown again.');
+                }
+                
+                showSuccessToast('Password changed successfully for "' + conn.name + '".');
+                loadConnections();
+            })
+            .fail(function(xhr) {
+                var msg = 'Failed to change password.';
+                try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                showErrorToast(msg);
+            });
     };
     
     function showSuccessToast(message) {
@@ -1854,83 +1663,79 @@ $(document).ready(function() {
         }, 5000);
     }
     
-    // =========================================================================
-    // API SERVICE LAYER - Backend Integration
-    // =========================================================================
-    // To switch to real backend:
-    // 1. Set USE_MOCK_API to false
-    // 2. Ensure API_BASE_URL points to your backend
-    // 3. Add CSRF token handling if required
-    // =========================================================================
-    
-    var API_CONFIG = {
-        USE_MOCK_API: true,  // Set to false when backend is ready
-        API_BASE_URL: '/api/v1',
-        MOCK_DELAY_MS: 300,
-        ENDPOINTS: {
-            SUSPEND: '/connections/{id}/suspend',
-            REACTIVATE: '/connections/{id}/reactivate',
-            CONVERT_TO_LIVE: '/connections/{id}/convert-to-live',
-            REGENERATE_KEY: '/connections/{id}/regenerate-key',
-            ARCHIVE: '/connections/{id}/archive'
-        }
-    };
-    
-    function apiCall(endpoint, data, successCallback, errorCallback) {
-        if (API_CONFIG.USE_MOCK_API) {
-            mockApiCall(endpoint, data, successCallback, errorCallback);
-        } else {
-            realApiCall(endpoint, data, successCallback, errorCallback);
-        }
-    }
-    
-    // TODO: Implement when backend is ready
-    function realApiCall(endpoint, data, successCallback, errorCallback) {
-        var csrfToken = document.querySelector('meta[name="csrf-token"]');
-        
-        $.ajax({
-            url: API_CONFIG.API_BASE_URL + endpoint,
-            method: 'POST',
-            data: JSON.stringify(data),
+    var API_BASE = '/api/api-connections';
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var csrfValue = csrfToken ? csrfToken.getAttribute('content') : '';
+
+    function apiRequest(url, method, data) {
+        var options = {
+            url: url,
+            method: method,
             contentType: 'application/json',
-            headers: {
-                'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : ''
-            },
+            headers: { 'X-CSRF-TOKEN': csrfValue, 'Accept': 'application/json' }
+        };
+        if (data) options.data = JSON.stringify(data);
+        return $.ajax(options);
+    }
+
+    function loadConnections() {
+        var params = { show_archived: appliedFilters.showArchived ? 1 : 0 };
+        if (appliedFilters.search) params.search = appliedFilters.search;
+        if (appliedFilters.types.length) params['type[]'] = appliedFilters.types;
+        if (appliedFilters.environments.length) params['environment[]'] = appliedFilters.environments;
+        if (appliedFilters.statuses.length) {
+            params['status[]'] = appliedFilters.statuses.map(function(s) { return s === 'live' ? 'active' : s; });
+        }
+        if (appliedFilters.authTypes.length) {
+            params['auth_type[]'] = appliedFilters.authTypes.map(function(a) { return a === 'API Key' ? 'api_key' : (a === 'Basic Auth' ? 'basic_auth' : a); });
+        }
+
+        $.ajax({
+            url: API_BASE,
+            method: 'GET',
+            data: params,
+            headers: { 'Accept': 'application/json' },
             success: function(response) {
-                console.log('[API] Success:', endpoint, response);
-                successCallback(response);
+                apiConnections = (response.data || []).map(mapApiToLocal);
+                renderTable();
             },
-            error: function(xhr, status, error) {
-                console.error('[API] Error:', endpoint, status, error);
-                var errorMessage = 'An unexpected error occurred.';
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    errorMessage = response.message || errorMessage;
-                } catch (e) {}
-                errorCallback({ success: false, message: errorMessage });
+            error: function() {
+                apiConnections = [];
+                renderTable();
+                showErrorToast('Failed to load API connections.');
             }
         });
     }
-    
-    // Mock implementation for UI testing
-    function mockApiCall(endpoint, data, successCallback, errorCallback) {
-        console.log('[API Mock] Calling:', endpoint, 'with data:', data);
-        
-        setTimeout(function() {
-            // Simulate successful response
-            console.log('[API Mock] Success response for:', endpoint);
-            
-            // Mock response data based on endpoint
-            var mockResponse = { success: true, message: 'Operation completed successfully' };
-            
-            // Add specific mock data for certain endpoints
-            if (endpoint.includes('/regenerate-key')) {
-                // In production, the new key would come from the backend
-                mockResponse.newKey = null; // Placeholder - actual key generated client-side for mock
-            }
-            
-            successCallback(mockResponse);
-        }, API_CONFIG.MOCK_DELAY_MS);
+
+    function mapApiToLocal(c) {
+        return {
+            id: c.id,
+            name: c.name,
+            description: c.description,
+            subAccount: c.sub_account_name || 'Main Account',
+            sub_account_id: c.sub_account_id,
+            type: c.type,
+            integrationName: c.partner_name,
+            environment: c.environment,
+            authType: c.auth_type === 'api_key' ? 'API Key' : (c.auth_type === 'basic_auth' ? 'Basic Auth' : c.auth_type),
+            authTypeRaw: c.auth_type,
+            status: c.status === 'active' ? 'live' : c.status,
+            statusRaw: c.status,
+            baseUrl: '',
+            dlrUrl: c.webhook_dlr_url || '',
+            inboundUrl: c.webhook_inbound_url || '',
+            ipAllowList: c.ip_allowlist_enabled,
+            allowedIps: c.ip_allowlist || [],
+            credentialDisplay: c.credential_display,
+            createdDate: c.created_at,
+            lastUsed: c.last_used_at,
+            archived: c.status === 'archived',
+            dependencies: [],
+            rate_limit_per_minute: c.rate_limit_per_minute,
+            capabilities: c.capabilities,
+            created_by: c.created_by,
+            suspended_reason: c.suspended_reason
+        };
     }
     
     window.suspendConnection = function(id) {
@@ -1949,26 +1754,16 @@ $(document).ready(function() {
                     'Suspend Now',
                     'btn-danger',
                     function() {
-                        // Optimistic update
-                        var previousStatus = conn.status;
-                        conn.status = 'suspended';
-                        renderTable();
-                        
-                        apiCall(
-                            '/connections/' + id + '/suspend',
-                            { id: id },
-                            function(response) {
-                                console.log('[AUDIT] API Connection suspended:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                        apiRequest(API_BASE + '/' + id + '/suspend', 'PUT', { reason: 'Suspended by user' })
+                            .done(function(response) {
                                 showSuccessToast('API Connection "' + conn.name + '" has been suspended.');
-                            },
-                            function(error) {
-                                // Rollback on failure
-                                conn.status = previousStatus;
-                                renderTable();
-                                var message = (error && error.message) ? error.message : 'Failed to suspend "' + conn.name + '". Please try again.';
-                                showErrorToast(message);
-                            }
-                        );
+                                loadConnections();
+                            })
+                            .fail(function(xhr) {
+                                var msg = 'Failed to suspend connection.';
+                                try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                                showErrorToast(msg);
+                            });
                     },
                     null
                 );
@@ -1980,7 +1775,6 @@ $(document).ready(function() {
     window.reactivateConnection = function(id) {
         var conn = getConnectionById(id);
         
-        // Block if already Live
         if (conn.status === 'live') {
             showErrorToast('This connection is already active.');
             return;
@@ -1998,26 +1792,16 @@ $(document).ready(function() {
                     'Reactivate Now',
                     'btn-primary',
                     function() {
-                        // Optimistic update
-                        var previousStatus = conn.status;
-                        conn.status = 'live';
-                        renderTable();
-                        
-                        apiCall(
-                            '/connections/' + id + '/reactivate',
-                            { id: id },
-                            function(response) {
-                                console.log('[AUDIT] API Connection reactivated:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                        apiRequest(API_BASE + '/' + id + '/reactivate', 'PUT')
+                            .done(function(response) {
                                 showSuccessToast('API Connection "' + conn.name + '" has been reactivated.');
-                            },
-                            function(error) {
-                                // Rollback on failure
-                                conn.status = previousStatus;
-                                renderTable();
-                                var message = (error && error.message) ? error.message : 'Failed to reactivate "' + conn.name + '". Please try again.';
-                                showErrorToast(message);
-                            }
-                        );
+                                loadConnections();
+                            })
+                            .fail(function(xhr) {
+                                var msg = 'Failed to reactivate connection.';
+                                try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                                showErrorToast(msg);
+                            });
                     },
                     null
                 );
@@ -2029,7 +1813,6 @@ $(document).ready(function() {
     window.convertToLive = function(id) {
         var conn = getConnectionById(id);
         
-        // Block if already Live
         if (conn.environment === 'live') {
             showErrorToast('This connection is already in the Live environment.');
             return;
@@ -2053,34 +1836,25 @@ $(document).ready(function() {
                     'Convert to Live Now',
                     'btn-primary',
                     function() {
-                        // Optimistic update - store previous values
-                        var previousEnvironment = conn.environment;
-                        var previousBaseUrl = conn.baseUrl;
-                        
-                        conn.environment = 'live';
-                        
-                        if (conn.baseUrl.includes('-sandbox')) {
-                            conn.baseUrl = conn.baseUrl.replace('-sandbox', '');
-                        }
-                        
-                        renderTable();
-                        
-                        apiCall(
-                            '/connections/' + id + '/convert-to-live',
-                            { id: id },
-                            function(response) {
-                                console.log('[AUDIT] API Connection converted to Live:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
+                        apiRequest(API_BASE + '/' + id + '/convert-to-live', 'PUT')
+                            .done(function(response) {
                                 showSuccessToast('API Connection "' + conn.name + '" has been converted to Live environment.');
-                            },
-                            function(error) {
-                                // Rollback on failure
-                                conn.environment = previousEnvironment;
-                                conn.baseUrl = previousBaseUrl;
-                                renderTable();
-                                var message = (error && error.message) ? error.message : 'Failed to convert "' + conn.name + '" to Live. Please try again.';
-                                showErrorToast(message);
-                            }
-                        );
+                                if (response.data && response.data.credentials) {
+                                    $('#newApiKeyValue').val(response.data.credentials.api_key);
+                                    $('#copyNewKeyBtn').html('<i class="fas fa-copy me-1"></i> Copy');
+                                    $('#closeNewKeyModalBtn').off('click').on('click', function() {
+                                        $('#newApiKeyValue').val('');
+                                        $('#newKeyModal').modal('hide');
+                                    });
+                                    setTimeout(function() { $('#newKeyModal').modal('show'); }, 150);
+                                }
+                                loadConnections();
+                            })
+                            .fail(function(xhr) {
+                                var msg = 'Failed to convert connection to Live.';
+                                try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                                showErrorToast(msg);
+                            });
                     }
                 );
             },
@@ -2125,10 +1899,16 @@ $(document).ready(function() {
                     'Archive Now',
                     'btn-danger',
                     function() {
-                        conn.archived = true;
-                        console.log('[AUDIT] API Connection archived:', conn.name, 'ID:', conn.id, 'at:', new Date().toISOString());
-                        renderTable();
-                        showSuccessToast('API Connection "' + conn.name + '" has been archived. Use "Show Archived" to view it.');
+                        apiRequest(API_BASE + '/' + id + '/archive', 'PUT')
+                            .done(function(response) {
+                                showSuccessToast('API Connection "' + conn.name + '" has been archived. Use "Show Archived" to view it.');
+                                loadConnections();
+                            })
+                            .fail(function(xhr) {
+                                var msg = 'Failed to archive connection.';
+                                try { msg = JSON.parse(xhr.responseText).message || msg; } catch(e) {}
+                                showErrorToast(msg);
+                            });
                     }
                 );
             },
@@ -2136,7 +1916,7 @@ $(document).ready(function() {
         );
     };
     
-    renderTable();
+    loadConnections();
 });
 </script>
 @endpush

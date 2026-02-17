@@ -864,34 +864,99 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    var allAccounts = [
-        { id: 'ACC-001', name: 'Acme Corporation' },
-        { id: 'ACC-002', name: 'Finance Ltd' },
-        { id: 'ACC-003', name: 'Tech Solutions' },
-        { id: 'ACC-004', name: 'Global Retail' },
-        { id: 'ACC-005', name: 'Healthcare Plus' },
-        { id: 'ACC-006', name: 'Media Group' },
-        { id: 'ACC-007', name: 'Logistics Pro' },
-        { id: 'ACC-008', name: 'Education First' },
-        { id: 'ACC-009', name: 'Property Services' },
-        { id: 'ACC-010', name: 'Legal Partners' }
-    ];
+    var csrfToken = $('meta[name="csrf-token"]').attr('content');
+    var apiBase = '/admin/api/api-connections';
 
-    var apiConnections = [
-        { id: 1, account: 'Acme Corporation', accountId: 'ACC-001', name: 'Campaign Manager API', description: 'Main campaign management', subAccount: 'Marketing', type: 'campaign', environment: 'live', authType: 'API Key', status: 'live', createdDate: '2024-08-15', lastUsed: '2025-01-20T14:32:15', baseUrl: 'https://api.quicksms.co.uk/v2', dlrUrl: 'https://acme.com/webhooks/dlr', inboundUrl: 'https://acme.com/webhooks/inbound', ipAllowList: true, allowedIps: ['192.168.1.100', '10.0.0.50'], archived: false },
-        { id: 2, account: 'Acme Corporation', accountId: 'ACC-001', name: 'Bulk Sender', description: 'High volume transactional', subAccount: 'Main Account', type: 'bulk', environment: 'live', authType: 'Basic Auth', status: 'live', createdDate: '2024-06-22', lastUsed: '2025-01-19T09:15:00', baseUrl: 'https://api.quicksms.co.uk/v2', dlrUrl: null, inboundUrl: null, ipAllowList: false, allowedIps: [], archived: false },
-        { id: 3, account: 'Finance Ltd', accountId: 'ACC-002', name: 'SystmOne Integration', description: 'NHS patient notifications', subAccount: 'Main Account', type: 'integration', integrationName: 'SystmOne', environment: 'live', authType: 'API Key', status: 'live', createdDate: '2024-05-10', lastUsed: '2025-01-20T16:45:30', baseUrl: 'https://api.quicksms.co.uk/v2/integrations/systmone', dlrUrl: null, inboundUrl: null, ipAllowList: true, allowedIps: ['203.0.113.25'], archived: false },
-        { id: 4, account: 'Tech Solutions', accountId: 'ACC-003', name: 'Test API', description: 'Development testing', subAccount: 'Development', type: 'bulk', environment: 'test', authType: 'API Key', status: 'live', createdDate: '2024-11-01', lastUsed: '2025-01-18T11:22:00', baseUrl: 'https://sandbox.quicksms.co.uk/v2', dlrUrl: 'https://tech.test/dlr', inboundUrl: null, ipAllowList: false, allowedIps: [], archived: false },
-        { id: 5, account: 'Global Retail', accountId: 'ACC-004', name: 'Promo Campaign API', description: 'Marketing campaigns', subAccount: 'Marketing', type: 'campaign', environment: 'live', authType: 'API Key', status: 'suspended', createdDate: '2024-03-20', lastUsed: '2024-12-15T08:00:00', baseUrl: 'https://api.quicksms.co.uk/v2', dlrUrl: 'https://retail.com/webhooks/dlr', inboundUrl: 'https://retail.com/webhooks/mo', ipAllowList: true, allowedIps: ['45.67.89.100', '45.67.89.101'], archived: false },
-        { id: 6, account: 'Healthcare Plus', accountId: 'ACC-005', name: 'Patient Reminders', description: 'Appointment reminders', subAccount: 'Main Account', type: 'campaign', environment: 'live', authType: 'API Key', status: 'live', createdDate: '2024-04-05', lastUsed: '2025-01-20T10:30:00', baseUrl: 'https://api.quicksms.co.uk/v2', dlrUrl: null, inboundUrl: null, ipAllowList: false, allowedIps: [], archived: false },
-        { id: 7, account: 'Media Group', accountId: 'ACC-006', name: 'Notification Service', description: 'Breaking news alerts', subAccount: 'Editorial', type: 'bulk', environment: 'live', authType: 'Basic Auth', status: 'live', createdDate: '2024-07-12', lastUsed: '2025-01-20T18:05:00', baseUrl: 'https://api.quicksms.co.uk/v2', dlrUrl: 'https://media.group/dlr', inboundUrl: null, ipAllowList: false, allowedIps: [], archived: false },
-        { id: 8, account: 'Logistics Pro', accountId: 'ACC-007', name: 'Delivery Updates', description: 'Real-time tracking notifications', subAccount: 'Operations', type: 'bulk', environment: 'live', authType: 'API Key', status: 'live', createdDate: '2024-09-18', lastUsed: '2025-01-20T20:15:00', baseUrl: 'https://api.quicksms.co.uk/v2', dlrUrl: 'https://logistics.pro/webhooks/dlr', inboundUrl: 'https://logistics.pro/webhooks/reply', ipAllowList: true, allowedIps: ['78.90.12.34'], archived: false },
-        { id: 9, account: 'Education First', accountId: 'ACC-008', name: 'Rio Integration', description: 'Mental health service integration', subAccount: 'Main Account', type: 'integration', integrationName: 'Rio', environment: 'live', authType: 'API Key', status: 'live', createdDate: '2024-10-25', lastUsed: '2025-01-19T14:00:00', baseUrl: 'https://api.quicksms.co.uk/v2/integrations/rio', dlrUrl: null, inboundUrl: null, ipAllowList: false, allowedIps: [], archived: false },
-        { id: 10, account: 'Property Services', accountId: 'ACC-009', name: 'Archived Legacy API', description: 'Old system - deprecated', subAccount: 'Main Account', type: 'bulk', environment: 'live', authType: 'Basic Auth', status: 'suspended', createdDate: '2023-01-15', lastUsed: '2024-06-01T12:00:00', baseUrl: 'https://api.quicksms.co.uk/v1', dlrUrl: null, inboundUrl: null, ipAllowList: false, allowedIps: [], archived: true },
-        { id: 11, account: 'Legal Partners', accountId: 'ACC-010', name: 'Client Notifications', description: 'Case updates', subAccount: 'Main Account', type: 'campaign', environment: 'test', authType: 'API Key', status: 'live', createdDate: '2025-01-10', lastUsed: '2025-01-20T09:00:00', baseUrl: 'https://sandbox.quicksms.co.uk/v2', dlrUrl: null, inboundUrl: null, ipAllowList: false, allowedIps: [], archived: false },
-        { id: 12, account: 'Finance Ltd', accountId: 'ACC-002', name: 'Secure Alerts', description: 'Transaction alerts', subAccount: 'Security', type: 'bulk', environment: 'live', authType: 'API Key', status: 'live', createdDate: '2024-02-28', lastUsed: '2025-01-20T22:10:00', baseUrl: 'https://api.quicksms.co.uk/v2', dlrUrl: 'https://finance.ltd/secure/dlr', inboundUrl: null, ipAllowList: true, allowedIps: ['10.20.30.40', '10.20.30.41', '10.20.30.42'], archived: false }
-    ];
+    var allAccounts = [];
+    var apiConnections = [];
+    var currentConnection = null;
+
+    function getPartnerDisplayName(partnerName) {
+        if (!partnerName) return null;
+        var map = {
+            'systmone': 'SystmOne',
+            'rio': 'Rio',
+            'emis': 'EMIS',
+            'accurx': 'Accurx'
+        };
+        return map[partnerName] || partnerName.charAt(0).toUpperCase() + partnerName.slice(1);
+    }
+
+    function mapApiToLocal(item) {
+        var authTypeMap = { 'api_key': 'API Key', 'basic_auth': 'Basic Auth' };
+        var statusMap = { 'active': 'live', 'suspended': 'suspended', 'archived': 'suspended' };
+        return {
+            id: item.id,
+            account: item.account_name || 'Unknown Account',
+            accountId: item.account_id,
+            name: item.name,
+            description: item.description,
+            subAccount: item.sub_account_name || 'Main Account',
+            type: item.type,
+            environment: item.environment,
+            authType: authTypeMap[item.auth_type] || item.auth_type,
+            status: statusMap[item.status] || item.status,
+            createdDate: item.created_at || null,
+            lastUsed: item.last_used_at || null,
+            baseUrl: 'https://api.quicksms.co.uk/v2',
+            dlrUrl: item.webhook_dlr_url || null,
+            inboundUrl: item.webhook_inbound_url || null,
+            ipAllowList: item.ip_allowlist_enabled || false,
+            allowedIps: item.ip_allowlist || [],
+            archived: item.status === 'archived',
+            integrationName: getPartnerDisplayName(item.partner_name),
+            credentialDisplay: item.credential_display || null
+        };
+    }
+
+    function apiRequest(method, url, data) {
+        var options = {
+            method: method,
+            url: url,
+            headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            dataType: 'json'
+        };
+        if (data) options.data = JSON.stringify(data);
+        return $.ajax(options);
+    }
+
+    function loadConnections() {
+        apiRequest('GET', apiBase + '?show_archived=' + (appliedFilters.showArchived ? '1' : '0'))
+            .done(function(response) {
+                var items = response.data || [];
+                apiConnections = items.map(mapApiToLocal);
+
+                var accountMap = {};
+                apiConnections.forEach(function(c) {
+                    if (c.accountId && !accountMap[c.accountId]) {
+                        accountMap[c.accountId] = { id: c.accountId, name: c.account };
+                    }
+                });
+                allAccounts = Object.values(accountMap).sort(function(a, b) {
+                    return a.name.localeCompare(b.name);
+                });
+
+                initAccountFilter();
+                renderTable();
+            })
+            .fail(function(xhr) {
+                console.error('[Admin API Connections] Failed to load connections', xhr);
+                showToast('Failed to load API connections', 'error');
+            });
+    }
     
+    function showToast(message, type) {
+        type = type || 'info';
+        var bgClass = type === 'success' ? 'bg-success' : (type === 'error' ? 'bg-danger' : (type === 'warning' ? 'bg-warning text-dark' : 'bg-info'));
+        var toastHtml = '<div class="toast align-items-center text-white ' + bgClass + ' border-0 position-fixed" role="alert" style="z-index: 99999; top: 20px; right: 20px;">' +
+            '<div class="d-flex"><div class="toast-body">' + message + '</div>' +
+            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div></div>';
+        var $toast = $(toastHtml).appendTo('body');
+        var toast = new bootstrap.Toast($toast[0], { delay: 4000 });
+        toast.show();
+        $toast.on('hidden.bs.toast', function() { $toast.remove(); });
+    }
+
     var currentSort = { column: 'createdDate', direction: 'desc' };
     var appliedFilters = {
         search: '',
@@ -903,8 +968,7 @@ $(document).ready(function() {
         showArchived: false
     };
     
-    initAccountFilter();
-    renderTable();
+    loadConnections();
     
     function initAccountFilter() {
         var checkboxList = $('#accountCheckboxList');
@@ -961,16 +1025,28 @@ $(document).ready(function() {
     }
     
     function getStatusBadgeClass(status) {
-        return status === 'live' ? 'badge-live-status' : 'badge-suspended-status';
+        if (status === 'live' || status === 'active') return 'badge-live-status';
+        return 'badge-suspended-status';
+    }
+    
+    function getStatusLabel(status) {
+        if (status === 'live' || status === 'active') return 'Live';
+        if (status === 'suspended') return 'Suspended';
+        if (status === 'archived') return 'Archived';
+        return status;
     }
     
     function formatDate(dateStr) {
+        if (!dateStr) return '-';
         var date = new Date(dateStr);
+        if (isNaN(date.getTime())) return '-';
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     }
     
     function formatDateTime(dateTimeStr) {
+        if (!dateTimeStr) return '-';
         var date = new Date(dateTimeStr);
+        if (isNaN(date.getTime())) return '-';
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + 
                ' ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     }
@@ -1161,7 +1237,7 @@ $(document).ready(function() {
             html += '<td>' + conn.authType + '</td>';
             
             html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(conn.status) + '">' + 
-                    (conn.status === 'live' ? 'Live' : 'Suspended') + '</span></td>';
+                    getStatusLabel(conn.status) + '</span></td>';
             
             html += '<td>' + formatDate(conn.createdDate) + '</td>';
             
@@ -1174,24 +1250,24 @@ $(document).ready(function() {
             html += '</button>';
             html += '<ul class="dropdown-menu dropdown-menu-end">';
             
-            html += '<li><a class="dropdown-item" href="#" onclick="viewConnection(' + conn.id + '); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>';
+            html += '<li><a class="dropdown-item" href="#" onclick="viewConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>';
             
             if (conn.authType === 'API Key') {
-                html += '<li><a class="dropdown-item" href="#" onclick="regenerateKey(' + conn.id + '); return false;"><i class="fas fa-sync-alt me-2"></i>Regenerate API Key</a></li>';
+                html += '<li><a class="dropdown-item" href="#" onclick="regenerateKey(\'' + conn.id + '\'); return false;"><i class="fas fa-sync-alt me-2"></i>Regenerate API Key</a></li>';
             }
             
             if (conn.status === 'live') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendConnection(' + conn.id + '); return false;"><i class="fas fa-pause me-2"></i>Suspend API</a></li>';
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-pause me-2"></i>Suspend API</a></li>';
             }
             
-            if (conn.status === 'suspended') {
+            if (conn.status === 'suspended' && !conn.archived) {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateConnection(' + conn.id + '); return false;"><i class="fas fa-play me-2"></i>Reactivate API</a></li>';
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateConnection(\'' + conn.id + '\'); return false;"><i class="fas fa-play me-2"></i>Reactivate API</a></li>';
             }
             
             if (conn.environment === 'test' && !conn.archived) {
-                html += '<li><a class="dropdown-item" href="#" onclick="convertToLive(' + conn.id + '); return false;"><i class="fas fa-rocket me-2"></i>Convert to Live</a></li>';
+                html += '<li><a class="dropdown-item" href="#" onclick="convertToLive(\'' + conn.id + '\'); return false;"><i class="fas fa-rocket me-2"></i>Convert to Live</a></li>';
             }
             
             html += '</ul>';
@@ -1346,12 +1422,14 @@ $(document).ready(function() {
     });
     
     function getConnectionById(id) {
-        return apiConnections.find(function(c) { return c.id === id; });
+        return apiConnections.find(function(c) { return c.id == id; });
     }
     
     window.viewConnection = function(id) {
         var conn = getConnectionById(id);
         if (!conn) return;
+        
+        currentConnection = conn;
         
         $('#drawerApiName').text(conn.name);
         $('#drawerDescription').text(conn.description || 'No description provided');
@@ -1362,7 +1440,7 @@ $(document).ready(function() {
         var envLabel = conn.environment === 'live' ? 'Live' : 'Test';
         $('#drawerEnvBadge').removeClass().addClass('badge rounded-pill ' + getEnvironmentBadgeClass(conn.environment)).text(envLabel);
         
-        var statusLabel = conn.status === 'live' ? 'Live' : 'Suspended';
+        var statusLabel = getStatusLabel(conn.status);
         $('#drawerStatusBadge').removeClass().addClass('badge rounded-pill ' + getStatusBadgeClass(conn.status)).text(statusLabel);
         
         $('#drawerAccount').text(conn.account);
@@ -1373,7 +1451,7 @@ $(document).ready(function() {
         $('#drawerStatus').html('<span class="badge rounded-pill ' + getStatusBadgeClass(conn.status) + '">' + statusLabel + '</span>');
         
         $('#drawerAuthType').text(conn.authType);
-        var maskedCred = conn.authType === 'API Key' ? 'sk_••••••••••••••••' : 'user:••••••••';
+        var maskedCred = conn.credentialDisplay || (conn.authType === 'API Key' ? 'sk_••••••••••••••••' : 'user:••••••••');
         $('#drawerCredentials').text(maskedCred);
         
         $('#drawerBaseUrl').text(conn.baseUrl);
@@ -1394,20 +1472,24 @@ $(document).ready(function() {
         
         $('#drawerCreatedDate').text(formatDate(conn.createdDate));
         
-        var lastUsedDate = new Date(conn.lastUsed);
-        var now = new Date();
-        var diffSeconds = Math.floor((now - lastUsedDate) / 1000);
-        var lastUsedText = formatDateTime(conn.lastUsed);
-        if (diffSeconds < 60) {
-            lastUsedText += ' (' + diffSeconds + ' seconds ago)';
-        } else if (diffSeconds < 3600) {
-            lastUsedText += ' (' + Math.floor(diffSeconds / 60) + ' minutes ago)';
-        } else if (diffSeconds < 86400) {
-            lastUsedText += ' (' + Math.floor(diffSeconds / 3600) + ' hours ago)';
+        if (conn.lastUsed) {
+            var lastUsedDate = new Date(conn.lastUsed);
+            var now = new Date();
+            var diffSeconds = Math.floor((now - lastUsedDate) / 1000);
+            var lastUsedText = formatDateTime(conn.lastUsed);
+            if (diffSeconds < 60) {
+                lastUsedText += ' (' + diffSeconds + ' seconds ago)';
+            } else if (diffSeconds < 3600) {
+                lastUsedText += ' (' + Math.floor(diffSeconds / 60) + ' minutes ago)';
+            } else if (diffSeconds < 86400) {
+                lastUsedText += ' (' + Math.floor(diffSeconds / 3600) + ' hours ago)';
+            } else {
+                lastUsedText += ' (' + Math.floor(diffSeconds / 86400) + ' days ago)';
+            }
+            $('#drawerLastUsed').text(lastUsedText);
         } else {
-            lastUsedText += ' (' + Math.floor(diffSeconds / 86400) + ' days ago)';
+            $('#drawerLastUsed').text('Never');
         }
-        $('#drawerLastUsed').text(lastUsedText);
         
         var drawer = new bootstrap.Offcanvas(document.getElementById('viewDetailsDrawer'));
         drawer.show();
@@ -1438,9 +1520,17 @@ $(document).ready(function() {
             'Regenerate Key',
             'btn-warning',
             function() {
-                var newKey = 'sk_live_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-                $('#newApiKeyDisplay').text(newKey);
-                $('#regenerateKeyModal').modal('show');
+                apiRequest('POST', apiBase + '/' + id + '/regenerate-key')
+                    .done(function(response) {
+                        var newKey = response.credentials && response.credentials.api_key ? response.credentials.api_key : 'Key generated (check response)';
+                        $('#newApiKeyDisplay').text(newKey);
+                        $('#regenerateKeyModal').modal('show');
+                        loadConnections();
+                    })
+                    .fail(function(xhr) {
+                        var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to regenerate API key';
+                        showToast(msg, 'error');
+                    });
             },
             'This action cannot be undone. Make sure to update all systems using this API key.'
         );
@@ -1468,8 +1558,15 @@ $(document).ready(function() {
             'Suspend',
             'btn-warning',
             function() {
-                conn.status = 'suspended';
-                renderTable();
+                apiRequest('PUT', apiBase + '/' + id + '/suspend', { reason: 'Suspended by admin' })
+                    .done(function() {
+                        showToast('Connection suspended successfully', 'success');
+                        loadConnections();
+                    })
+                    .fail(function(xhr) {
+                        var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to suspend connection';
+                        showToast(msg, 'error');
+                    });
             },
             'This will immediately stop all API requests using this connection.'
         );
@@ -1485,8 +1582,15 @@ $(document).ready(function() {
             'Reactivate',
             'btn-success',
             function() {
-                conn.status = 'live';
-                renderTable();
+                apiRequest('PUT', apiBase + '/' + id + '/reactivate')
+                    .done(function() {
+                        showToast('Connection reactivated successfully', 'success');
+                        loadConnections();
+                    })
+                    .fail(function(xhr) {
+                        var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to reactivate connection';
+                        showToast(msg, 'error');
+                    });
             }
         );
     };
@@ -1501,9 +1605,19 @@ $(document).ready(function() {
             'Convert to Live',
             'btn-primary',
             function() {
-                conn.environment = 'live';
-                conn.baseUrl = conn.baseUrl.replace('sandbox.', 'api.');
-                renderTable();
+                apiRequest('PUT', apiBase + '/' + id + '/convert-to-live')
+                    .done(function(response) {
+                        showToast('Connection converted to Live successfully', 'success');
+                        if (response.data && response.data.credentials && response.data.credentials.api_key) {
+                            $('#newApiKeyDisplay').text(response.data.credentials.api_key);
+                            $('#regenerateKeyModal').modal('show');
+                        }
+                        loadConnections();
+                    })
+                    .fail(function(xhr) {
+                        var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to convert to live';
+                        showToast(msg, 'error');
+                    });
             },
             'This will change the API endpoint to the production server.'
         );
@@ -1528,15 +1642,9 @@ $(document).ready(function() {
     window.saveEndpointsChanges = function() {
         if (!currentConnection) return;
         
-        var baseUrl = document.getElementById('editBaseUrl').value.trim();
         var dlrUrl = document.getElementById('editDlrUrl').value.trim();
         var inboundUrl = document.getElementById('editInboundUrl').value.trim();
         
-        // Basic URL validation
-        if (baseUrl && !isValidUrl(baseUrl)) {
-            showToast('Invalid Base URL format', 'error');
-            return;
-        }
         if (dlrUrl && !isValidUrl(dlrUrl)) {
             showToast('Invalid DLR Webhook URL format', 'error');
             return;
@@ -1546,35 +1654,26 @@ $(document).ready(function() {
             return;
         }
         
-        // Store before values for audit
-        var before = {
-            baseUrl: currentConnection.baseUrl,
-            dlrUrl: currentConnection.dlrUrl,
-            inboundUrl: currentConnection.inboundUrl
-        };
-        
-        // Update the connection
-        currentConnection.baseUrl = baseUrl || null;
-        currentConnection.dlrUrl = dlrUrl || null;
-        currentConnection.inboundUrl = inboundUrl || null;
-        
-        // Log audit event
-        if (typeof ADMIN_AUDIT !== 'undefined') {
-            ADMIN_AUDIT.logEvent('API_CONNECTION_ENDPOINTS_UPDATED', {
-                connectionId: currentConnection.id,
-                connectionName: currentConnection.name,
-                accountId: currentConnection.accountId,
-                before: before,
-                after: { baseUrl: baseUrl || null, dlrUrl: dlrUrl || null, inboundUrl: inboundUrl || null }
-            });
-        }
-        
-        // Update drawer display
-        updateDrawerEndpoints();
-        renderTable();
-        
-        bootstrap.Modal.getInstance(document.getElementById('editEndpointsModal')).hide();
-        showToast('Endpoints updated successfully', 'success');
+        apiRequest('PUT', apiBase + '/' + currentConnection.id + '/endpoints', {
+            webhook_dlr_url: dlrUrl || null,
+            webhook_inbound_url: inboundUrl || null
+        })
+        .done(function(response) {
+            if (response.data) {
+                currentConnection.dlrUrl = response.data.webhook_dlr_url || null;
+                currentConnection.inboundUrl = response.data.webhook_inbound_url || null;
+            }
+            
+            updateDrawerEndpoints();
+            loadConnections();
+            
+            bootstrap.Modal.getInstance(document.getElementById('editEndpointsModal')).hide();
+            showToast('Endpoints updated successfully', 'success');
+        })
+        .fail(function(xhr) {
+            var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to update endpoints';
+            showToast(msg, 'error');
+        });
     };
     
     function updateDrawerEndpoints() {
@@ -1639,7 +1738,6 @@ $(document).ready(function() {
         var enabled = document.getElementById('editIpAllowlistEnabled').checked;
         var ipsText = document.getElementById('editAllowedIps').value.trim();
         
-        // Parse and validate IPs
         var ips = [];
         var invalidIps = [];
         
@@ -1668,33 +1766,26 @@ $(document).ready(function() {
         
         document.getElementById('ipValidationErrors').style.display = 'none';
         
-        // Store before values for audit
-        var before = {
-            ipAllowList: currentConnection.ipAllowList,
-            allowedIps: currentConnection.allowedIps ? [...currentConnection.allowedIps] : []
-        };
-        
-        // Update the connection
-        currentConnection.ipAllowList = enabled;
-        currentConnection.allowedIps = enabled ? ips : [];
-        
-        // Log audit event
-        if (typeof ADMIN_AUDIT !== 'undefined') {
-            ADMIN_AUDIT.logEvent('API_CONNECTION_SECURITY_UPDATED', {
-                connectionId: currentConnection.id,
-                connectionName: currentConnection.name,
-                accountId: currentConnection.accountId,
-                before: before,
-                after: { ipAllowList: enabled, allowedIps: ips }
-            });
-        }
-        
-        // Update drawer display
-        updateDrawerSecurity();
-        renderTable();
-        
-        bootstrap.Modal.getInstance(document.getElementById('editSecurityModal')).hide();
-        showToast('Security settings updated successfully', 'success');
+        apiRequest('PUT', apiBase + '/' + currentConnection.id + '/security', {
+            ip_allowlist_enabled: enabled,
+            ip_allowlist: enabled ? ips : []
+        })
+        .done(function(response) {
+            if (response.data) {
+                currentConnection.ipAllowList = response.data.ip_allowlist_enabled || false;
+                currentConnection.allowedIps = response.data.ip_allowlist || [];
+            }
+            
+            updateDrawerSecurity();
+            loadConnections();
+            
+            bootstrap.Modal.getInstance(document.getElementById('editSecurityModal')).hide();
+            showToast('Security settings updated successfully', 'success');
+        })
+        .fail(function(xhr) {
+            var msg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Failed to update security settings';
+            showToast(msg, 'error');
+        });
     };
     
     function updateDrawerSecurity() {

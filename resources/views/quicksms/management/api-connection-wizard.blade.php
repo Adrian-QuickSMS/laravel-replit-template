@@ -1318,17 +1318,12 @@ $(document).ready(function() {
     }
     
     function createConnection() {
-        console.log('[API Wizard] createConnection called');
         try {
             saveFormData();
         } catch (saveErr) {
             console.error('[API Wizard] saveFormData error:', saveErr);
         }
         
-        // Debug: Log current wizard data
-        console.log('[API Wizard] Current wizardData:', JSON.stringify(wizardData, null, 2));
-        
-        // Validate all steps before creating connection
         var stepNames = [
             'Core Configuration',
             'API Type',
@@ -1340,10 +1335,8 @@ $(document).ready(function() {
         var incompleteSteps = [];
         var allValid = true;
         
-        // Check each step (0-4, step 5 is Review)
         for (var i = 0; i <= 4; i++) {
             var isValid = checkStepValidity(i);
-            console.log('[API Wizard] Step', i, 'validity:', isValid);
             
             if (!isValid) {
                 allValid = false;
@@ -1357,88 +1350,83 @@ $(document).ready(function() {
             }
         }
         
-        console.log('[API Wizard] All steps valid:', allValid);
-        
         if (!allValid) {
-            console.log('[API Wizard] Showing validation summary for:', incompleteSteps);
             showSubmissionValidationSummary(incompleteSteps);
             return false;
         }
         
-        // All valid - proceed with connection creation
-        // Generate unique subdomain: format is {account}-{random}.api.quicksms.com
-        var accountSlug = wizardData.subAccount ? wizardData.subAccount.toLowerCase().replace(/[^a-z0-9]/g, '') : 'acct';
-        var randomSuffix = generateRandomString(6);
-        var envSuffix = wizardData.environment === 'live' ? '' : '-sandbox';
-        var uniqueSubdomain = accountSlug + '-' + randomSuffix + envSuffix;
+        var authTypeMap = { 'API Key': 'api_key', 'Basic Auth': 'basic_auth' };
+        var partnerMap = { 'SystmOne': 'systmone', 'Rio': 'rio', 'EMIS': 'emis', 'Accurx': 'accurx' };
         
-        var baseUrl = 'https://' + uniqueSubdomain + '.api.quicksms.com';
-        
-        // Generate connection ID for internal tracking
-        var connectionId = 'conn_' + generateRandomString(16);
-        
-        $('#createdBaseUrl').text(baseUrl);
-        
-        if (wizardData.authType === 'API Key') {
-            var apiKey = generateApiKey();
-            $('#createdApiKey').text(apiKey);
-            $('#createdApiKeyRow').show();
-            $('#createdUsernameRow, #createdPasswordRow').hide();
-            
-            // Log credential creation for backend integration
-            console.log('[API Connection] Created with API Key:', {
-                connectionId: connectionId,
-                baseUrl: baseUrl,
-                apiKey: apiKey.substring(0, 15) + '...',
-                environment: wizardData.environment,
-                subAccount: wizardData.subAccount
-            });
-        } else {
-            var username = 'api_' + accountSlug + '_' + generateRandomString(4);
-            var password = generateSecurePassword();
-            $('#createdUsername').text(username);
-            $('#createdPassword').text(password);
-            $('#createdUsernameRow, #createdPasswordRow').show();
-            $('#createdApiKeyRow').hide();
-            
-            // Log credential creation for backend integration
-            console.log('[API Connection] Created with Basic Auth:', {
-                connectionId: connectionId,
-                baseUrl: baseUrl,
-                username: username,
-                environment: wizardData.environment,
-                subAccount: wizardData.subAccount
-            });
-        }
-        
-        // Store connection data (TODO: Send to backend API)
-        var connectionData = {
-            id: connectionId,
+        var payload = {
             name: wizardData.name,
-            description: wizardData.description,
-            subAccount: wizardData.subAccount,
-            environment: wizardData.environment,
+            description: wizardData.description || null,
+            sub_account_id: null,
             type: wizardData.type,
-            integrationName: wizardData.integrationName,
-            authType: wizardData.authType,
-            baseUrl: baseUrl,
-            ipAllowList: wizardData.ipAllowList,
-            allowedIps: wizardData.allowedIps,
-            dlrUrl: wizardData.dlrUrl,
-            inboundUrl: wizardData.inboundUrl,
-            createdAt: new Date().toISOString()
+            auth_type: authTypeMap[wizardData.authType] || wizardData.authType,
+            environment: wizardData.environment,
+            ip_allowlist_enabled: wizardData.allowedIps.length > 0,
+            ip_allowlist: wizardData.allowedIps.length > 0 ? wizardData.allowedIps : [],
+            webhook_dlr_url: wizardData.dlrUrl || null,
+            webhook_inbound_url: wizardData.inboundUrl || null,
+            partner_name: wizardData.integrationName ? (partnerMap[wizardData.integrationName] || wizardData.integrationName.toLowerCase()) : null,
+            partner_config: null
         };
         
-        console.log('[AUDIT] API Connection created:', connectionData);
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+        var csrfValue = csrfToken ? csrfToken.getAttribute('content') : '';
         
-        localStorage.removeItem('apiConnectionWizardDraft');
+        var $submitBtn = $('.sw-btn-next:visible, #submitConnectionBtn');
+        $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Creating...');
         
-        connectionCreated = true;
-        console.log('[API Wizard] Showing completion section...');
-        $('#reviewSection').hide();
-        $('#completionSection').attr('style', 'display: block !important');
-        $('.toolbar-bottom').hide();
-        console.log('[API Wizard] Connection creation complete!');
+        $.ajax({
+            url: '/api/api-connections',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: { 'X-CSRF-TOKEN': csrfValue, 'Accept': 'application/json' },
+            data: JSON.stringify(payload),
+            success: function(response) {
+                var data = response.data;
+                var credentials = data.credentials || {};
+                
+                $('#createdBaseUrl').text('API Connection ID: ' + data.id);
+                
+                if (data.auth_type === 'api_key' && credentials.api_key) {
+                    $('#createdApiKey').text(credentials.api_key);
+                    $('#createdApiKeyRow').show();
+                    $('#createdUsernameRow, #createdPasswordRow').hide();
+                } else if (credentials.username) {
+                    $('#createdUsername').text(credentials.username);
+                    $('#createdPassword').text(credentials.password);
+                    $('#createdUsernameRow, #createdPasswordRow').show();
+                    $('#createdApiKeyRow').hide();
+                }
+                
+                localStorage.removeItem('apiConnectionWizardDraft');
+                
+                connectionCreated = true;
+                $('#reviewSection').hide();
+                $('#completionSection').attr('style', 'display: block !important');
+                $('.toolbar-bottom').hide();
+            },
+            error: function(xhr) {
+                $submitBtn.prop('disabled', false).html('<i class="fas fa-check me-1"></i> Create Connection');
+                var msg = 'Failed to create API connection.';
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.errors) {
+                        var errorMessages = [];
+                        Object.keys(resp.errors).forEach(function(key) {
+                            errorMessages.push(resp.errors[key].join(', '));
+                        });
+                        msg = errorMessages.join('; ');
+                    } else if (resp.message) {
+                        msg = resp.message;
+                    }
+                } catch(e) {}
+                alert(msg);
+            }
+        });
     }
     
     function generateRandomString(length) {

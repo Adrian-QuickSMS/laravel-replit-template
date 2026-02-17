@@ -677,31 +677,16 @@
 <script src="{{ asset('vendor/jquery-smartwizard/dist/js/jquery.smartWizard.min.js') }}"></script>
 <script>
 $(document).ready(function() {
-    var allAccounts = [
-        { id: 'ACC-001', name: 'Acme Corporation' },
-        { id: 'ACC-002', name: 'Finance Ltd' },
-        { id: 'ACC-003', name: 'Tech Solutions' },
-        { id: 'ACC-004', name: 'Global Retail' },
-        { id: 'ACC-005', name: 'Healthcare Plus' },
-        { id: 'ACC-006', name: 'Media Group' },
-        { id: 'ACC-007', name: 'Logistics Pro' },
-        { id: 'ACC-008', name: 'Education First' },
-        { id: 'ACC-009', name: 'Property Services' },
-        { id: 'ACC-010', name: 'Legal Partners' }
-    ];
+    var allAccounts = @json($accounts ?? []);
     
-    var subAccountsByAccount = {
-        'ACC-001': ['Main Account', 'Marketing', 'Development', 'Operations'],
-        'ACC-002': ['Main Account', 'Security', 'Trading'],
-        'ACC-003': ['Main Account', 'Development', 'QA'],
-        'ACC-004': ['Main Account', 'Marketing', 'E-commerce'],
-        'ACC-005': ['Main Account', 'Clinical', 'Admin'],
-        'ACC-006': ['Main Account', 'Editorial', 'Advertising'],
-        'ACC-007': ['Main Account', 'Operations', 'Fleet'],
-        'ACC-008': ['Main Account', 'Student Services'],
-        'ACC-009': ['Main Account', 'Sales', 'Lettings'],
-        'ACC-010': ['Main Account', 'Litigation', 'Corporate']
-    };
+    var subAccountsByAccountRaw = @json($subAccountsByAccount ?? (object)[]);
+    var subAccountsByAccount = {};
+    Object.keys(subAccountsByAccountRaw).forEach(function(accId) {
+        subAccountsByAccount[accId] = subAccountsByAccountRaw[accId];
+    });
+    
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var csrfValue = csrfToken ? csrfToken.getAttribute('content') : '';
     
     var formData = {
         account: null,
@@ -717,7 +702,8 @@ $(document).ready(function() {
     };
     
     allAccounts.forEach(function(acc) {
-        $('#accountSelect').append('<option value="' + acc.id + '">' + acc.name + ' (' + acc.id + ')</option>');
+        var label = acc.name + (acc.account_number ? ' (' + acc.account_number + ')' : '');
+        $('#accountSelect').append('<option value="' + acc.id + '">' + label + '</option>');
     });
     
     $('#accountSelect').on('change', function() {
@@ -728,13 +714,14 @@ $(document).ready(function() {
                 formData.accountId = selectedId;
                 formData.account = account.name;
                 $('#selectedAccountName').text(account.name);
-                $('#selectedAccountId').text(selectedId);
+                $('#selectedAccountId').text(account.account_number || selectedId);
                 $('#selectedAccountInfo').show();
                 
                 $('#subAccount').empty().append('<option value="">Select sub-account...</option>');
-                if (subAccountsByAccount[selectedId]) {
-                    subAccountsByAccount[selectedId].forEach(function(sub) {
-                        $('#subAccount').append('<option value="' + sub + '">' + sub + '</option>');
+                var subs = subAccountsByAccount[selectedId];
+                if (subs && subs.length > 0) {
+                    subs.forEach(function(sub) {
+                        $('#subAccount').append('<option value="' + sub.id + '">' + sub.name + '</option>');
                     });
                 }
             }
@@ -889,10 +876,64 @@ $(document).ready(function() {
     });
     
     $('#createConnectionBtn').on('click', function() {
-        var newKey = 'sk_' + ($('#environment').val() === 'live' ? 'live' : 'test') + '_' + 
-                     Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-        $('#generatedApiKey').text(newKey);
-        $('#successModal').modal('show');
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Creating...');
+        
+        var authTypeMap = { 'API Key': 'api_key', 'Basic Auth': 'basic_auth' };
+        var partnerMap = { 'SystmOne': 'systmone', 'Rio': 'rio', 'EMIS': 'emis', 'Accurx': 'accurx' };
+        
+        var payload = {
+            account_id: formData.accountId,
+            name: $('#apiName').val().trim(),
+            description: $('#apiDescription').val().trim() || null,
+            sub_account_id: $('#subAccount').val() || null,
+            type: formData.apiType,
+            auth_type: authTypeMap[formData.authType] || formData.authType,
+            environment: $('#environment').val() || 'test',
+            ip_allowlist_enabled: formData.ipAddresses.length > 0,
+            ip_allowlist: formData.ipAddresses.length > 0 ? formData.ipAddresses : [],
+            partner_name: formData.integrationPartner ? (partnerMap[formData.integrationPartner] || formData.integrationPartner.toLowerCase()) : null,
+            partner_config: null
+        };
+        
+        $.ajax({
+            url: '/admin/api/api-connections',
+            method: 'POST',
+            contentType: 'application/json',
+            headers: { 'X-CSRF-TOKEN': csrfValue, 'Accept': 'application/json' },
+            data: JSON.stringify(payload),
+            success: function(response) {
+                var data = response.data;
+                var credentials = data.credentials || {};
+                
+                if (data.auth_type === 'api_key' && credentials.api_key) {
+                    $('#generatedApiKey').text(credentials.api_key);
+                } else if (credentials.username && credentials.password) {
+                    $('#generatedApiKey').text('Username: ' + credentials.username + '\nPassword: ' + credentials.password);
+                } else {
+                    $('#generatedApiKey').text('Connection created: ' + data.id);
+                }
+                
+                $('#successModal').modal('show');
+            },
+            error: function(xhr) {
+                $btn.prop('disabled', false).html('<i class="fas fa-check me-1"></i> Create API Connection');
+                var msg = 'Failed to create API connection.';
+                try {
+                    var resp = JSON.parse(xhr.responseText);
+                    if (resp.errors) {
+                        var errorMessages = [];
+                        Object.keys(resp.errors).forEach(function(key) {
+                            errorMessages.push(resp.errors[key].join(', '));
+                        });
+                        msg = errorMessages.join('; ');
+                    } else if (resp.message) {
+                        msg = resp.message;
+                    }
+                } catch(e) {}
+                alert(msg);
+            }
+        });
     });
     
     window.copyGeneratedKey = function() {

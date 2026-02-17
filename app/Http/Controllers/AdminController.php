@@ -420,8 +420,26 @@ class AdminController extends Controller
 
     public function apiConnectionCreate()
     {
+        $accounts = \App\Models\Account::select('id', 'company_name', 'trading_name', 'account_number')
+            ->where('status', 'active')
+            ->orderBy('company_name')
+            ->get()
+            ->map(fn($a) => [
+                'id' => $a->id,
+                'name' => $a->trading_name ?: $a->company_name,
+                'account_number' => $a->account_number,
+            ]);
+
+        $subAccounts = \App\Models\SubAccount::select('id', 'name', 'account_id')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('account_id')
+            ->map(fn($subs) => $subs->map(fn($s) => ['id' => $s->id, 'name' => $s->name])->values());
+
         return view('admin.api.connections-wizard', [
-            'page_title' => 'Create API Connection'
+            'page_title' => 'Create API Connection',
+            'accounts' => $accounts,
+            'subAccountsByAccount' => $subAccounts,
         ]);
     }
 
