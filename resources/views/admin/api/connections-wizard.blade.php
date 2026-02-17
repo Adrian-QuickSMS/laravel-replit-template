@@ -867,6 +867,21 @@ $(document).ready(function() {
         }
     });
 
+    function resetWizardHeight() {
+        var tc = document.querySelector('#apiConnectionWizard > .tab-content');
+        if (tc) tc.style.setProperty('height', 'auto', 'important');
+    }
+    setTimeout(function() {
+        var sw = $('#apiConnectionWizard').data('smartWizard');
+        if (sw) sw._fixHeight = function() {};
+        resetWizardHeight();
+    }, 0);
+
+    $('#apiConnectionWizard').on('showStep', function() {
+        resetWizardHeight();
+        setTimeout(resetWizardHeight, 50);
+    });
+
     $('#apiConnectionWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex) {
         if (nextStepIndex > currentStepIndex) {
             if (currentStepIndex === 0) {
