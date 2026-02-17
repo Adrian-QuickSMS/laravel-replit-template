@@ -2889,12 +2889,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div id="excelZeroWarning" class="d-none p-3 rounded" style="background-color: #f0ebf8;">
                         <div id="excelZeroWarningContent">
                             <i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>
-                            <strong style="color: #886CC0;">Excel Number Detection</strong>
-                            <p class="mb-2 mt-2 text-dark">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
-                            <p class="mb-2 text-dark">Should these be treated as UK numbers and converted to international format (+447...)?</p>
+                            <strong style="color: #886CC0;">UK Number Normalisation</strong>
+                            <p class="mb-2 mt-2 text-dark" id="ukNormalisationDetail">We've detected mixed mobile number formats in your file (e.g. numbers starting with '7', '+44', '07', or containing spaces).</p>
+                            <p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)? This will strip spaces, remove leading '+' or '0', and prepend '44' to numbers starting with '7'.</p>
                             <div class="d-flex gap-2">
                                 <button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="setExcelCorrection(true)">
-                                    <i class="fas fa-check me-1"></i> Yes, convert to UK format
+                                    <i class="fas fa-check me-1"></i> Yes, normalise to UK format
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
                                     <i class="fas fa-times me-1"></i> No, leave as-is
@@ -3207,8 +3207,38 @@ function buildColumnMappingUI(headerRow, sampleRow, allDataRows, hasHeaders) {
         }
     });
 
-    var firstSample = samples[0] !== undefined ? String(samples[0]) : '';
-    if (firstSample.match(/^7\d{9,}$/)) {
+    var mobileColIdx = -1;
+    columns.forEach(function(col, idx) {
+        var sel = tbody.querySelectorAll('.column-mapping')[idx];
+        if (sel && sel.value === 'mobile') mobileColIdx = idx;
+    });
+
+    var needsNormalisation = false;
+    var issues = [];
+    if (mobileColIdx >= 0) {
+        var checkRows = allDataRows.slice(0, Math.min(20, allDataRows.length));
+        var hasLeading7 = false, hasPlus = false, hasSpaces = false, hasLeading07 = false, hasLeading44 = false;
+        checkRows.forEach(function(row) {
+            var val = String(row[mobileColIdx] || '');
+            if (val.indexOf(' ') !== -1) hasSpaces = true;
+            var cleaned = val.replace(/[\s\-]/g, '');
+            if (cleaned.match(/^\+/)) hasPlus = true;
+            cleaned = cleaned.replace(/^\+/, '');
+            if (cleaned.match(/^07\d{9}$/)) hasLeading07 = true;
+            else if (cleaned.match(/^7\d{9,}$/)) hasLeading7 = true;
+            else if (cleaned.match(/^44\d{10,}$/)) hasLeading44 = true;
+        });
+        if (hasLeading7) issues.push("numbers starting with '7' (missing country code)");
+        if (hasLeading07) issues.push("numbers starting with '07' (local UK format)");
+        if (hasPlus) issues.push("numbers with '+' prefix");
+        if (hasSpaces) issues.push("numbers containing spaces");
+        if (hasLeading44 && (hasLeading7 || hasLeading07)) issues.push("mixed '44...' and shorter formats");
+        needsNormalisation = issues.length > 0;
+    }
+
+    if (needsNormalisation) {
+        document.getElementById('ukNormalisationDetail').textContent =
+            'We\'ve detected mixed mobile number formats: ' + issues.join(', ') + '.';
         document.getElementById('excelZeroWarning').classList.remove('d-none');
     } else {
         document.getElementById('excelZeroWarning').classList.add('d-none');
@@ -3290,6 +3320,21 @@ function handleMappingChange(select) {
     }
 }
 
+function normaliseMobile(raw, applyUkNormalisation) {
+    var mobile = String(raw).replace(/[\s\-\(\)]/g, '');
+    if (applyUkNormalisation) {
+        mobile = mobile.replace(/^\+/, '');
+        if (mobile.match(/^07\d{9}$/)) {
+            mobile = '44' + mobile.substring(1);
+        } else if (mobile.match(/^7\d{9,}$/)) {
+            mobile = '44' + mobile;
+        }
+    } else {
+        mobile = mobile.replace(/^\+/, '');
+    }
+    return mobile;
+}
+
 function setExcelCorrection(apply) {
     document.getElementById('excelCorrectionApplied').value = apply ? 'yes' : 'no';
     var content = document.getElementById('excelZeroWarningContent');
@@ -3302,20 +3347,16 @@ function setExcelCorrection(apply) {
 
 function resetExcelCorrection() {
     document.getElementById('excelCorrectionApplied').value = '';
-    document.getElementById('excelZeroWarningContent').innerHTML = `
-        <i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>
-        <strong style="color: #886CC0;">Excel Number Detection</strong>
-        <p class="mb-2 mt-2 text-dark">We've detected mobile numbers starting with '7'. This often occurs when Excel removes the leading zero from UK mobile numbers.</p>
-        <p class="mb-2 text-dark">Should these be treated as UK numbers and converted to international format (+447...)?</p>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="setExcelCorrection(true)">
-                <i class="fas fa-check me-1"></i> Yes, convert to UK format
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">
-                <i class="fas fa-times me-1"></i> No, leave as-is
-            </button>
-        </div>
-    `;
+    document.getElementById('excelZeroWarningContent').innerHTML = '<i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>' +
+        '<strong style="color: #886CC0;">UK Number Normalisation</strong>' +
+        '<p class="mb-2 mt-2 text-dark" id="ukNormalisationDetail">We\'ve detected mixed mobile number formats in your file.</p>' +
+        '<p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)?</p>' +
+        '<div class="d-flex gap-2">' +
+            '<button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="setExcelCorrection(true)">' +
+                '<i class="fas fa-check me-1"></i> Yes, normalise to UK format</button>' +
+            '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="setExcelCorrection(false)">' +
+                '<i class="fas fa-times me-1"></i> No, leave as-is</button>' +
+        '</div>';
 }
 
 function validateMappings() {
@@ -3349,7 +3390,7 @@ function validateMappings() {
     
     var excelWarning = document.getElementById('excelZeroWarning');
     if (!excelWarning.classList.contains('d-none') && document.getElementById('excelCorrectionApplied').value === '') {
-        alert('Please confirm the Excel number correction option.');
+        alert('Please confirm the UK number normalisation option above.');
         return false;
     }
     
@@ -3372,19 +3413,17 @@ function simulateValidation() {
     var validNumbers = 0;
 
     rows.forEach(function(row, rowIdx) {
-        var mobile = (mobileIdx >= 0 && row[mobileIdx]) ? row[mobileIdx].replace(/[\s\-\+]/g, '') : '';
-        if (!mobile) return;
+        var rawMobile = (mobileIdx >= 0 && row[mobileIdx]) ? String(row[mobileIdx]) : '';
+        if (!rawMobile.trim()) return;
 
-        if (applyExcelCorrection && mobile.match(/^7\d{9,}$/)) {
-            mobile = '44' + mobile;
-        }
+        var mobile = normaliseMobile(rawMobile, applyExcelCorrection);
 
         if (!mobile.match(/^\d{10,15}$/)) {
             invalidCount++;
             var reason = 'Invalid format';
             if (mobile.match(/[a-zA-Z]/)) reason = 'Contains letters';
             else if (mobile.length < 10) reason = 'Too short';
-            invalidRows.push({ row: rowIdx + 1, value: row[mobileIdx], reason: reason });
+            invalidRows.push({ row: rowIdx + 1, value: rawMobile, reason: reason });
             return;
         }
 
@@ -3484,11 +3523,10 @@ function confirmImport() {
     var contacts = [];
     var seenMobiles = {};
     rows.forEach(function(row) {
-        var mobile = (row[mappings.mobile] || '').replace(/[\s\-\+]/g, '');
+        var rawMobile = String(row[mappings.mobile] || '');
+        if (!rawMobile.trim()) return;
+        var mobile = normaliseMobile(rawMobile, applyExcelCorrection);
         if (!mobile || !mobile.match(/^\d{7,15}$/)) return;
-        if (applyExcelCorrection && mobile.match(/^7\d{9,}$/)) {
-            mobile = '44' + mobile;
-        }
         if (seenMobiles[mobile]) return;
         seenMobiles[mobile] = true;
 
