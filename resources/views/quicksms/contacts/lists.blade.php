@@ -691,6 +691,22 @@
     </div>
 </div>
 
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" id="confirmActionTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2" id="confirmActionBody"></div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 function _apiHeaders() {
@@ -713,6 +729,19 @@ function _handleApiResponse(response) {
         });
     }
     return response.json();
+}
+
+function showConfirmModal(title, body, btnText, btnClass, onConfirm) {
+    document.getElementById('confirmActionTitle').textContent = title;
+    document.getElementById('confirmActionBody').innerHTML = body;
+    var btn = document.getElementById('confirmActionBtn');
+    btn.textContent = btnText;
+    btn.className = 'btn ' + btnClass;
+    btn.onclick = function() {
+        bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+        onConfirm();
+    };
+    new bootstrap.Modal(document.getElementById('confirmActionModal')).show();
 }
 
 var createListStep = 1;
@@ -874,20 +903,26 @@ function confirmRenameList() {
 }
 
 function deleteList(id, name) {
-    if (confirm('Are you sure you want to delete the list "' + name + '"?\n\nThis will not delete the contacts, only the list.')) {
-        fetch('/api/contact-lists/' + id, {
-            method: 'DELETE',
-            headers: _apiHeaders()
-        })
-        .then(_handleApiResponse)
-        .then(function() {
-            showToast('List "' + name + '" deleted', 'success');
-            setTimeout(function() { location.reload(); }, 800);
-        })
-        .catch(function(err) {
-            showToast(err.message || 'Failed to delete list', 'error');
-        });
-    }
+    showConfirmModal(
+        'Delete List',
+        '<p>Are you sure you want to delete the list <strong>"' + name + '"</strong>?</p><p class="text-muted mb-0"><small>This will not delete the contacts, only the list.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            fetch('/api/contact-lists/' + id, {
+                method: 'DELETE',
+                headers: _apiHeaders()
+            })
+            .then(_handleApiResponse)
+            .then(function() {
+                showToast('List "' + name + '" deleted', 'success');
+                setTimeout(function() { location.reload(); }, 800);
+            })
+            .catch(function(err) {
+                showToast(err.message || 'Failed to delete list', 'error');
+            });
+        }
+    );
 }
 
 function addContactsToList(id, name) {
@@ -1024,21 +1059,27 @@ function removeSelectedFromList() {
     
     if (selectedIds.length === 0) return;
     
-    if (confirm('Remove ' + selectedIds.length + ' contact(s) from this list?')) {
-        fetch('/api/contact-lists/' + listId + '/members', {
-            method: 'DELETE',
-            headers: _apiHeaders(),
-            body: JSON.stringify({ contact_ids: selectedIds })
-        })
-        .then(_handleApiResponse)
-        .then(function() {
-            showToast(selectedIds.length + ' contact(s) removed from list', 'success');
-            setTimeout(function() { location.reload(); }, 800);
-        })
-        .catch(function(err) {
-            showToast(err.message || 'Failed to remove contacts', 'error');
-        });
-    }
+    showConfirmModal(
+        'Remove Contacts',
+        '<p>Are you sure you want to remove <strong>' + selectedIds.length + ' contact(s)</strong> from this list?</p><p class="text-muted mb-0"><small>The contacts will not be deleted, only removed from this list.</small></p>',
+        'Remove',
+        'btn-danger',
+        function() {
+            fetch('/api/contact-lists/' + listId + '/members', {
+                method: 'DELETE',
+                headers: _apiHeaders(),
+                body: JSON.stringify({ contact_ids: selectedIds })
+            })
+            .then(_handleApiResponse)
+            .then(function() {
+                showToast(selectedIds.length + ' contact(s) removed from list', 'success');
+                setTimeout(function() { location.reload(); }, 800);
+            })
+            .catch(function(err) {
+                showToast(err.message || 'Failed to remove contacts', 'error');
+            });
+        }
+    );
 }
 
 function addRule() {
@@ -1154,20 +1195,26 @@ function refreshDynamicList(id) {
 }
 
 function deleteDynamicList(id, name) {
-    if (confirm('Are you sure you want to delete the dynamic list "' + name + '"?\n\nThis will only delete the list definition, not the contacts.')) {
-        fetch('/api/contact-lists/' + id, {
-            method: 'DELETE',
-            headers: _apiHeaders()
-        })
-        .then(_handleApiResponse)
-        .then(function() {
-            showToast('Dynamic list "' + name + '" deleted', 'success');
-            setTimeout(function() { location.reload(); }, 800);
-        })
-        .catch(function(err) {
-            showToast(err.message || 'Failed to delete list', 'error');
-        });
-    }
+    showConfirmModal(
+        'Delete Dynamic List',
+        '<p>Are you sure you want to delete the dynamic list <strong>"' + name + '"</strong>?</p><p class="text-muted mb-0"><small>This will only delete the list definition, not the contacts.</small></p>',
+        'Delete',
+        'btn-danger',
+        function() {
+            fetch('/api/contact-lists/' + id, {
+                method: 'DELETE',
+                headers: _apiHeaders()
+            })
+            .then(_handleApiResponse)
+            .then(function() {
+                showToast('Dynamic list "' + name + '" deleted', 'success');
+                setTimeout(function() { location.reload(); }, 800);
+            })
+            .catch(function(err) {
+                showToast(err.message || 'Failed to delete list', 'error');
+            });
+        }
+    );
 }
 
 function previewFilterResults() {
