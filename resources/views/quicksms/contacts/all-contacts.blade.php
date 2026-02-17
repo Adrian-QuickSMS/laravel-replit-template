@@ -3,6 +3,7 @@
 @section('title', 'All Contacts')
 
 @push('styles')
+<link rel="stylesheet" href="/vendor/bootstrap-select/css/bootstrap-select.min.css">
 <style>
 /* API Integration code blocks - black background with white text */
 #contacts-api code.bg-light,
@@ -546,6 +547,7 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="{{ asset('js/contacts-service.js') }}"></script>
 <script src="{{ asset('js/contact-timeline-service.js') }}"></script>
+<script src="/vendor/bootstrap-select/js/bootstrap-select.min.js"></script>
 <script>
 var contactsData = @json($contacts);
 var customFieldDefinitions = [
@@ -618,6 +620,8 @@ function showSuccessToast(message) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    $('.selectpicker').selectpicker();
+
     const checkAll = document.getElementById('checkAll');
     const bulkActionBar = document.getElementById('bulkActionBar');
     const selectedCount = document.getElementById('selectedCount');
@@ -1044,6 +1048,11 @@ function editContact(id) {
     document.getElementById('editContactEmail').value = contact.email || '';
     document.getElementById('editContactStatus').value = contact.status;
     
+    var contactTags = contact.tags || [];
+    $('#editContactTags').selectpicker('val', contactTags);
+    var contactLists = contact.lists || [];
+    $('#editContactLists').selectpicker('val', contactLists);
+    
     var modal = new bootstrap.Modal(document.getElementById('editContactModal'));
     modal.show();
 }
@@ -1352,8 +1361,11 @@ function confirmBulkRemoveFromList() {
 
 function bulkAddTags() {
     var ids = getSelectedContactIds();
-    var modal = new bootstrap.Modal(document.getElementById('bulkAddTagsModal'));
     document.getElementById('bulkAddTagsCount').textContent = ids.length;
+    var $select = $('#bulkTagSelect');
+    $select.selectpicker('deselectAll');
+    $select.selectpicker('refresh');
+    var modal = new bootstrap.Modal(document.getElementById('bulkAddTagsModal'));
     modal.show();
 }
 
@@ -1361,8 +1373,7 @@ function confirmBulkAddTags() {
     console.log('[BulkAction] confirmBulkAddTags called');
     var ids = getSelectedContactIds();
     var count = ids.length;
-    var tagSelect = document.getElementById('bulkTagSelect');
-    var selectedTags = tagSelect ? Array.from(tagSelect.selectedOptions).map(o => o.value) : [];
+    var selectedTags = $('#bulkTagSelect').val() || [];
     var tagCount = selectedTags.length;
     console.log('[BulkAction] Selected tags:', selectedTags);
     
@@ -1413,8 +1424,11 @@ function confirmBulkAddTags() {
 
 function bulkRemoveTags() {
     var ids = getSelectedContactIds();
-    var modal = new bootstrap.Modal(document.getElementById('bulkRemoveTagsModal'));
     document.getElementById('bulkRemoveTagsCount').textContent = ids.length;
+    var $select = $('#bulkRemoveTagSelect');
+    $select.selectpicker('deselectAll');
+    $select.selectpicker('refresh');
+    var modal = new bootstrap.Modal(document.getElementById('bulkRemoveTagsModal'));
     modal.show();
 }
 
@@ -1422,8 +1436,7 @@ function confirmBulkRemoveTags() {
     console.log('[BulkAction] confirmBulkRemoveTags called');
     var ids = getSelectedContactIds();
     var count = ids.length;
-    var tagSelect = document.getElementById('bulkRemoveTagSelect');
-    var selectedTags = tagSelect ? Array.from(tagSelect.selectedOptions).map(o => o.value) : [];
+    var selectedTags = $('#bulkRemoveTagSelect').val() || [];
     var tagCount = selectedTags.length;
     console.log('[BulkAction] Selected tags to remove:', selectedTags);
     
@@ -1672,10 +1685,9 @@ function showToast(message, type) {
 
 function showValidationError(message) {
     document.getElementById('validationErrorMessage').textContent = message;
-    if (!window.validationModal) {
-        window.validationModal = new bootstrap.Modal(document.getElementById('validationModal'));
-    }
-    window.validationModal.show();
+    var modalEl = document.getElementById('validationModal');
+    var modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modal.show();
 }
 
 function bulkSendMessage() {
@@ -2027,21 +2039,19 @@ function saveCustomField() {
                         </div>
                         <div class="col-12">
                             <label class="form-label">Tags</label>
-                            <select class="form-select" id="contactTags" multiple>
+                            <select class="selectpicker form-control" id="contactTags" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} tags selected" title="Select tags...">
                                 @foreach($available_tags as $tag)
                                 <option value="{{ $tag }}">{{ $tag }}</option>
                                 @endforeach
                             </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Lists</label>
-                            <select class="form-select" id="contactLists" multiple>
+                            <select class="selectpicker form-control" id="contactLists" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} lists selected" title="Select lists...">
                                 @foreach($available_lists as $list)
                                 <option value="{{ $list }}">{{ $list }}</option>
                                 @endforeach
                             </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                         </div>
                         
                         <div class="col-12">
@@ -2196,21 +2206,19 @@ function saveCustomField() {
                         </div>
                         <div class="col-12">
                             <label class="form-label">Tags</label>
-                            <select class="form-select" id="editContactTags" multiple>
+                            <select class="selectpicker form-control" id="editContactTags" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} tags selected" title="Select tags...">
                                 @foreach($available_tags as $tag)
                                 <option value="{{ $tag }}">{{ $tag }}</option>
                                 @endforeach
                             </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Lists</label>
-                            <select class="form-select" id="editContactLists" multiple>
+                            <select class="selectpicker form-control" id="editContactLists" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} lists selected" title="Select lists...">
                                 @foreach($available_lists as $list)
                                 <option value="{{ $list }}">{{ $list }}</option>
                                 @endforeach
                             </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
                         </div>
                     </div>
                     <div id="editFormValidationMessage" class="alert alert-danger mt-3 d-none"></div>
@@ -2313,6 +2321,9 @@ function saveContact() {
 
     var cleanMobile = mobile.replace(/[\s\-]/g, '');
 
+    var selectedTags = $('#contactTags').val() || [];
+    var selectedLists = $('#contactLists').val() || [];
+
     var payload = {
         mobile_number: cleanMobile,
         first_name: firstName || null,
@@ -2321,7 +2332,9 @@ function saveContact() {
         date_of_birth: (dobField && dobField.value) || null,
         postcode: (postcodeField && postcodeField.value.trim()) || null,
         city: (cityField && cityField.value.trim()) || null,
-        country: (countryField && countryField.value) || null
+        country: (countryField && countryField.value) || null,
+        tags: selectedTags,
+        lists: selectedLists
     };
 
     var customData = {};
@@ -2351,6 +2364,8 @@ function saveContact() {
         var modal = bootstrap.Modal.getInstance(document.getElementById('addContactModal'));
         modal.hide();
         form.reset();
+        $('#contactTags').selectpicker('deselectAll');
+        $('#contactLists').selectpicker('deselectAll');
         reloadContactsFromServer();
         showSuccessToast('Contact created successfully');
     })
@@ -2569,12 +2584,11 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-body">
                 <p>Add tags to <strong id="bulkAddTagsCount">0</strong> contact(s):</p>
-                <select class="form-select" id="bulkTagSelect" multiple>
+                <select class="selectpicker form-control" id="bulkTagSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} tags selected" title="Select tags...">
                     @foreach($available_tags as $tag)
                     <option value="{{ $tag }}">{{ $tag }}</option>
                     @endforeach
                 </select>
-                <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
@@ -2593,12 +2607,11 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-body">
                 <p>Remove tags from <strong id="bulkRemoveTagsCount">0</strong> contact(s):</p>
-                <select class="form-select" id="bulkRemoveTagSelect" multiple>
+                <select class="selectpicker form-control" id="bulkRemoveTagSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} tags selected" title="Select tags...">
                     @foreach($available_tags as $tag)
                     <option value="{{ $tag }}">{{ $tag }}</option>
                     @endforeach
                 </select>
-                <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
