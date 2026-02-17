@@ -1257,8 +1257,63 @@ function viewContact(id) {
         : '<span class="text-muted">No lists</span>';
     document.getElementById('viewContactLists').innerHTML = listsHtml;
     
+    var timelineContainer = document.getElementById('viewContactTimelineContainer');
+    timelineContainer.innerHTML = '<p class="text-muted text-center mb-0 py-2"><i class="fas fa-spinner fa-spin me-1"></i>Loading timeline...</p>';
+    
+    var expandBtn = document.getElementById('viewContactTimelineExpandBtn');
+    expandBtn.onclick = function() {
+        bootstrap.Modal.getInstance(document.getElementById('viewContactModal'))?.hide();
+        setTimeout(function() { showActivityTimeline(id); }, 300);
+    };
+    
+    loadViewContactTimeline(id, timelineContainer);
+    
     var modal = new bootstrap.Modal(document.getElementById('viewContactModal'));
     modal.show();
+}
+
+function loadViewContactTimeline(contactId, container) {
+    fetch('/api/contacts/' + contactId + '/timeline?limit=10', {
+        headers: _apiHeaders()
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
+        if (!data.events || data.events.length === 0) {
+            container.innerHTML = '<div class="text-center py-3"><i class="fas fa-inbox text-muted" style="font-size: 1.5rem;"></i><p class="text-muted small mt-2 mb-0">No activity recorded yet</p></div>';
+            return;
+        }
+        var html = '<div class="timeline-mini">';
+        data.events.forEach(function(evt) {
+            var icon = 'fas fa-circle';
+            var iconColor = '#886CC0';
+            if (evt.event_type === 'outbound') { icon = 'fas fa-paper-plane'; iconColor = '#28a745'; }
+            else if (evt.event_type === 'inbound') { icon = 'fas fa-reply'; iconColor = '#17a2b8'; }
+            else if (evt.event_type === 'lists') { icon = 'fas fa-list'; iconColor = '#e83e8c'; }
+            else if (evt.event_type === 'tags') { icon = 'fas fa-tag'; iconColor = '#6c757d'; }
+            else if (evt.event_type === 'optout') { icon = 'fas fa-ban'; iconColor = '#dc3545'; }
+
+            var dateStr = '';
+            if (evt.created_at) {
+                var d = new Date(evt.created_at);
+                dateStr = d.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) + ' ' + d.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+            }
+
+            html += '<div class="d-flex align-items-start mb-2 pb-2 border-bottom">';
+            html += '<div class="me-2 mt-1"><i class="' + icon + '" style="color:' + iconColor + '; font-size: 0.75rem;"></i></div>';
+            html += '<div class="flex-grow-1">';
+            html += '<p class="mb-0 small">' + (evt.description || evt.event_type) + '</p>';
+            html += '<small class="text-muted">' + dateStr + '</small>';
+            html += '</div></div>';
+        });
+        html += '</div>';
+        if (data.hasMore) {
+            html += '<div class="text-center mt-1"><small class="text-muted">Showing latest ' + data.returned + ' of ' + data.total + ' events</small></div>';
+        }
+        container.innerHTML = html;
+    })
+    .catch(function() {
+        container.innerHTML = '<p class="text-muted text-center mb-0 py-2">Unable to load timeline</p>';
+    });
 }
 
 function editContact(id) {
@@ -2383,9 +2438,16 @@ function saveCustomField() {
                     </div>
                 </div>
                 
-                <div class="mt-4 mb-0 p-3 rounded" style="background-color: #f0ebf8;">
-                    <i class="fas fa-info-circle me-2 text-dark"></i>
-                    <strong class="text-dark">Activity Timeline:</strong> <span class="text-dark">Campaign history, replies, and opt-out events will appear here when backend is implemented.</span>
+                <div class="mt-4 mb-0">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="mb-0"><i class="fas fa-history me-2 text-primary"></i>Activity Timeline</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="viewContactTimelineExpandBtn" style="font-size: 0.75rem;">
+                            <i class="fas fa-external-link-alt me-1"></i>Full Timeline
+                        </button>
+                    </div>
+                    <div id="viewContactTimelineContainer" class="border rounded p-3" style="max-height: 250px; overflow-y: auto; background-color: #fafafa;">
+                        <p class="text-muted text-center mb-0 py-2">Loading timeline...</p>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
