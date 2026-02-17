@@ -145,7 +145,7 @@ class ApiConnectionController extends Controller
                 $credentials = $connection->generateBasicAuth();
             }
 
-            // Activate (skip draft if all info provided)
+            $connection->refresh();
             $connection->activate();
 
             // Audit
