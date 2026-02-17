@@ -386,17 +386,24 @@
                                                 <small class="text-muted"><span id="descCharCount">0</span>/200 characters</small>
                                             </div>
                                             
+                                            @if(isset($subAccounts) && count($subAccounts) > 0)
                                             <div class="col-lg-6 mb-3">
                                                 <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
                                                 <select class="form-select" id="subAccount">
                                                     <option value="">Select sub-account...</option>
-                                                    <option value="Main Account">Main Account</option>
-                                                    <option value="Marketing">Marketing</option>
-                                                    <option value="Development">Development</option>
-                                                    <option value="Operations">Operations</option>
+                                                    @foreach($subAccounts as $sub)
+                                                        <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                                                    @endforeach
                                                 </select>
                                                 <div class="invalid-feedback">Please select a sub-account.</div>
                                             </div>
+                                            @else
+                                            <div class="col-lg-6 mb-3" style="display:none;">
+                                                <select class="form-select" id="subAccount">
+                                                    <option value="">No sub-accounts</option>
+                                                </select>
+                                            </div>
+                                            @endif
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="form-label">Environment <span class="text-danger">*</span></label>
@@ -772,11 +779,13 @@ $(document).ready(function() {
     var skippedSteps = [];
     var connectionCreated = false;
     
+    var hasSubAccounts = $('#subAccount option').length > 1;
+    
     function checkStepValidity(stepIndex) {
         if (skippedSteps.indexOf(stepIndex) > -1) return true;
         
         if (stepIndex === 0) {
-            return wizardData.name.trim() && wizardData.subAccount;
+            return wizardData.name.trim() && (!hasSubAccounts || wizardData.subAccount);
         } else if (stepIndex === 1) {
             return !!wizardData.type;
         } else if (stepIndex === 2) {
@@ -979,7 +988,7 @@ $(document).ready(function() {
                 $('#apiName').removeClass('is-invalid');
             }
             
-            if (!subAccount) {
+            if (hasSubAccounts && !subAccount) {
                 $('#subAccount').addClass('is-invalid');
                 isValid = false;
             } else {
@@ -1361,7 +1370,7 @@ $(document).ready(function() {
         var payload = {
             name: wizardData.name,
             description: wizardData.description || null,
-            sub_account_id: null,
+            sub_account_id: $('#subAccount').val() || null,
             type: wizardData.type,
             auth_type: authTypeMap[wizardData.authType] || wizardData.authType,
             environment: wizardData.environment,

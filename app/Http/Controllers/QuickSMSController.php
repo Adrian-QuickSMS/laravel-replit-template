@@ -1939,15 +1939,29 @@ class QuickSMSController extends Controller
 
     public function apiConnections()
     {
+        $user = auth()->user();
+        $subAccounts = \App\Models\SubAccount::where('account_id', $user->tenant_id)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
         return view('quicksms.management.api-connections', [
-            'page_title' => 'API Connections'
+            'page_title' => 'API Connections',
+            'subAccounts' => $subAccounts,
         ]);
     }
 
     public function apiConnectionCreate()
     {
+        $user = auth()->user();
+        $subAccounts = \App\Models\SubAccount::where('account_id', $user->tenant_id)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
+
         return view('quicksms.management.api-connection-wizard', [
-            'page_title' => 'Create API Connection'
+            'page_title' => 'Create API Connection',
+            'subAccounts' => $subAccounts,
         ]);
     }
 

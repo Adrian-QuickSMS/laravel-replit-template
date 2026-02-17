@@ -433,9 +433,13 @@
                                     <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                     <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                                 </div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Main Account" id="subAccMain"><label class="form-check-label small" for="subAccMain">Main Account</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Marketing" id="subAccMarketing"><label class="form-check-label small" for="subAccMarketing">Marketing</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" value="Development" id="subAccDev"><label class="form-check-label small" for="subAccDev">Development</label></div>
+                                @if(isset($subAccounts) && count($subAccounts) > 0)
+                                    @foreach($subAccounts as $sub)
+                                    <div class="form-check"><input class="form-check-input" type="checkbox" value="{{ $sub->name }}" id="subAcc_{{ $sub->id }}"><label class="form-check-label small" for="subAcc_{{ $sub->id }}">{{ $sub->name }}</label></div>
+                                    @endforeach
+                                @else
+                                    <div class="text-muted small py-1">No sub-accounts</div>
+                                @endif
                             </div>
                         </div>
                     </div>
