@@ -884,11 +884,27 @@ $(document).ready(function() {
         return false;
     }
     
+    // Fix wizard step height: forcefully reset tab-content height on every transition.
+    // Uses multiple timing strategies to ensure the fix runs after any library code.
+    function resetWizardHeight() {
+        var tc = document.querySelector('#apiConnectionWizard > .tab-content');
+        if (!tc) return;
+        tc.style.setProperty('height', 'auto', 'important');
+        tc.style.setProperty('min-height', '0', 'important');
+        tc.style.setProperty('overflow', 'visible', 'important');
+        // Also reset any inline height on the active tab-pane
+        var activePane = tc.querySelector('.tab-pane[style*="display: block"]');
+        if (activePane) {
+            activePane.style.removeProperty('height');
+            activePane.style.removeProperty('min-height');
+        }
+    }
+
     $('#apiConnectionWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
         if (connectionCreated) return false;
-        
+
         saveFormData();
-        
+
         // Mark step as validated (user has left it at least once)
         markStepValidated(currentStepIndex);
         
