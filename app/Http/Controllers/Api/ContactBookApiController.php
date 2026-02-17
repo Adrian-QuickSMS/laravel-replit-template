@@ -725,7 +725,7 @@ class ContactBookApiController extends Controller
         ]);
 
         $newCount = DB::table('opt_out_records')->where('opt_out_list_id', $listId)->count();
-        DB::table('opt_out_lists')->where('id', $listId)->update(['record_count' => $newCount]);
+        DB::table('opt_out_lists')->where('id', $listId)->update(['count' => $newCount]);
 
         $record = DB::table('opt_out_records')->where('id', $recordId)->first();
         return response()->json(['data' => [
@@ -754,7 +754,7 @@ class ContactBookApiController extends Controller
         DB::table('opt_out_records')->where('id', $id)->delete();
 
         $newCount = DB::table('opt_out_records')->where('opt_out_list_id', $listId)->count();
-        DB::table('opt_out_lists')->where('id', $listId)->update(['record_count' => $newCount]);
+        DB::table('opt_out_lists')->where('id', $listId)->update(['count' => $newCount]);
 
         return response()->json(['success' => true, 'message' => 'Opt-out record removed']);
     }
