@@ -3126,60 +3126,99 @@ function showStep(step) {
     document.getElementById('importCancelBtn').classList.toggle('d-none', step === 4);
 }
 
-function simulateColumnDetection() {
-    var hasHeaders = document.querySelector('input[name="hasHeaders"]:checked').value === 'yes';
-    
-    var mockColumns = hasHeaders 
-        ? ['Mobile', 'First Name', 'Last Name', 'Email', 'Company']
-        : ['Column A', 'Column B', 'Column C', 'Column D', 'Column E'];
-    
-    var mockSamples = ['7712345678', 'John', 'Smith', 'john@example.com', 'Acme Ltd'];
-    
-    var tbody = document.getElementById('columnMappingBody');
-    tbody.innerHTML = '';
-    
-    var mappingOptions = `
-        <option value="">-- Do not import --</option>
-        <option value="mobile">Mobile Number *</option>
-        <option value="first_name">First Name</option>
-        <option value="last_name">Last Name</option>
-        <option value="email">Email</option>
-        <option value="custom">Custom Field</option>
-    `;
-    
-    mockColumns.forEach(function(col, idx) {
-        var autoMap = '';
-        var colLower = col.toLowerCase();
-        if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn')) autoMap = 'mobile';
-        else if (colLower.includes('first')) autoMap = 'first_name';
-        else if (colLower.includes('last') || colLower.includes('surname')) autoMap = 'last_name';
-        else if (colLower.includes('email')) autoMap = 'email';
-        
-        var row = document.createElement('tr');
-        row.innerHTML = `
-            <td><strong>${col}</strong></td>
-            <td class="text-muted small">${mockSamples[idx] || ''}</td>
-            <td>
-                <div class="d-flex gap-2 align-items-center">
-                    <select class="form-select form-select-sm column-mapping" data-column="${idx}" onchange="handleMappingChange(this)">
-                        ${mappingOptions}
-                    </select>
-                    <input type="text" class="form-control form-control-sm custom-field-name d-none" data-column="${idx}" placeholder="Field name" style="width: 120px;">
-                </div>
-            </td>
-        `;
-        tbody.appendChild(row);
-        
-        if (autoMap) {
-            row.querySelector('select').value = autoMap;
+function parseCSVLine(line) {
+    var result = [];
+    var current = '';
+    var inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+        var ch = line[i];
+        if (inQuotes) {
+            if (ch === '"' && i + 1 < line.length && line[i + 1] === '"') {
+                current += '"';
+                i++;
+            } else if (ch === '"') {
+                inQuotes = false;
+            } else {
+                current += ch;
+            }
+        } else {
+            if (ch === '"') {
+                inQuotes = true;
+            } else if (ch === ',') {
+                result.push(current.trim());
+                current = '';
+            } else {
+                current += ch;
+            }
         }
-    });
-    
-    if (mockSamples[0] && mockSamples[0].startsWith('7') && mockSamples[0].length >= 10) {
-        document.getElementById('excelZeroWarning').classList.remove('d-none');
-    } else {
-        document.getElementById('excelZeroWarning').classList.add('d-none');
     }
+    result.push(current.trim());
+    return result;
+}
+
+function simulateColumnDetection() {
+    if (!importFileData || !importFileData.file) return;
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        var text = e.target.result;
+        var lines = text.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
+        if (lines.length === 0) return;
+
+        var hasHeaders = document.querySelector('input[name="hasHeaders"]:checked').value === 'yes';
+        var headerRow = parseCSVLine(lines[0]);
+        var sampleRow = lines.length > 1 ? parseCSVLine(lines[1]) : headerRow;
+
+        importFileData.parsedHeaders = headerRow;
+        importFileData.parsedRows = lines.slice(hasHeaders ? 1 : 0).map(parseCSVLine);
+
+        var columns = hasHeaders
+            ? headerRow
+            : headerRow.map(function(_, i) { return 'Column ' + String.fromCharCode(65 + i); });
+        var samples = hasHeaders ? sampleRow : headerRow;
+
+        var tbody = document.getElementById('columnMappingBody');
+        tbody.innerHTML = '';
+
+        var mappingOptions = '<option value="">-- Do not import --</option>' +
+            '<option value="mobile">Mobile Number *</option>' +
+            '<option value="first_name">First Name</option>' +
+            '<option value="last_name">Last Name</option>' +
+            '<option value="email">Email</option>' +
+            '<option value="custom">Custom Field</option>';
+
+        columns.forEach(function(col, idx) {
+            var autoMap = '';
+            var colLower = col.toLowerCase();
+            if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn') || colLower.includes('number')) autoMap = 'mobile';
+            else if (colLower.includes('first')) autoMap = 'first_name';
+            else if (colLower.includes('last') || colLower.includes('surname')) autoMap = 'last_name';
+            else if (colLower.includes('email')) autoMap = 'email';
+
+            var sampleVal = samples[idx] || '';
+            var row = document.createElement('tr');
+            row.innerHTML = '<td><strong>' + col + '</strong></td>' +
+                '<td class="text-muted small">' + sampleVal + '</td>' +
+                '<td><div class="d-flex gap-2 align-items-center">' +
+                '<select class="form-select form-select-sm column-mapping" data-column="' + idx + '" onchange="handleMappingChange(this)">' +
+                mappingOptions + '</select>' +
+                '<input type="text" class="form-control form-control-sm custom-field-name d-none" data-column="' + idx + '" placeholder="Field name" style="width: 120px;">' +
+                '</div></td>';
+            tbody.appendChild(row);
+
+            if (autoMap) {
+                row.querySelector('select').value = autoMap;
+            }
+        });
+
+        var firstSample = samples[0] || '';
+        if (firstSample.match && firstSample.match(/^7\d{9,}$/)) {
+            document.getElementById('excelZeroWarning').classList.remove('d-none');
+        } else {
+            document.getElementById('excelZeroWarning').classList.add('d-none');
+        }
+    };
+    reader.readAsText(importFileData.file);
 }
 
 function handleMappingChange(select) {
@@ -3262,44 +3301,76 @@ function validateMappings() {
 }
 
 function simulateValidation() {
-    var totalRows = Math.floor(Math.random() * 500) + 100;
-    var uniqueNumbers = totalRows - Math.floor(Math.random() * 20);
-    var invalidCount = Math.floor(Math.random() * 10);
-    var validNumbers = uniqueNumbers - invalidCount;
-    
+    var rows = (importFileData && importFileData.parsedRows) ? importFileData.parsedRows : [];
+    var mappings = {};
+    document.querySelectorAll('.column-mapping').forEach(function(sel) {
+        if (sel.value) mappings[sel.value] = parseInt(sel.dataset.column, 10);
+    });
+
+    var mobileIdx = typeof mappings.mobile === 'number' ? mappings.mobile : -1;
+    var applyExcelCorrection = document.getElementById('excelCorrectionApplied').value === 'yes';
+    var seenNumbers = {};
+    var duplicateCount = 0;
+    var invalidCount = 0;
+    var invalidRows = [];
+    var validNumbers = 0;
+
+    rows.forEach(function(row, rowIdx) {
+        var mobile = (mobileIdx >= 0 && row[mobileIdx]) ? row[mobileIdx].replace(/[\s\-\+]/g, '') : '';
+        if (!mobile) return;
+
+        if (applyExcelCorrection && mobile.match(/^7\d{9,}$/)) {
+            mobile = '44' + mobile;
+        }
+
+        if (!mobile.match(/^\d{10,15}$/)) {
+            invalidCount++;
+            var reason = 'Invalid format';
+            if (mobile.match(/[a-zA-Z]/)) reason = 'Contains letters';
+            else if (mobile.length < 10) reason = 'Too short';
+            invalidRows.push({ row: rowIdx + 1, value: row[mobileIdx], reason: reason });
+            return;
+        }
+
+        if (seenNumbers[mobile]) {
+            duplicateCount++;
+            return;
+        }
+        seenNumbers[mobile] = true;
+        validNumbers++;
+    });
+
+    var totalRows = rows.length;
+    var uniqueNumbers = validNumbers;
+
     document.getElementById('statTotalRows').textContent = totalRows;
     document.getElementById('statUniqueNumbers').textContent = uniqueNumbers;
     document.getElementById('statValidNumbers').textContent = validNumbers;
     document.getElementById('statInvalidNumbers').textContent = invalidCount;
-    
+
     var indicators = document.getElementById('importIndicators');
     indicators.innerHTML = '';
-    
-    if (document.getElementById('excelCorrectionApplied').value === 'yes') {
+    if (applyExcelCorrection) {
         indicators.innerHTML += '<span class="badge me-2" style="background-color: #f0ebf8; color: #886CC0; border: 1px solid #886CC0;"><i class="fas fa-sync-alt me-1"></i> Excel correction applied</span>';
     }
     indicators.innerHTML += '<span class="badge" style="background-color: #f0ebf8; color: #886CC0; border: 1px solid #886CC0;"><i class="fas fa-globe me-1"></i> UK format normalized</span>';
-    
-    if (invalidCount > 0) {
+
+    if (invalidRows.length > 0) {
         document.getElementById('invalidRowsSection').classList.remove('d-none');
         var tbody = document.getElementById('invalidRowsBody');
         tbody.innerHTML = '';
-        
-        var reasons = ['Invalid format', 'Too short', 'Contains letters', 'Not a mobile number'];
-        for (var i = 0; i < invalidCount; i++) {
+        invalidRows.forEach(function(item) {
             var row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${Math.floor(Math.random() * totalRows) + 1}</td>
-                <td class="text-muted">123ABC${i}</td>
-                <td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">${reasons[i % reasons.length]}</span></td>
-            `;
+            row.innerHTML = '<td>' + item.row + '</td>' +
+                '<td class="text-muted">' + item.value + '</td>' +
+                '<td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">' + item.reason + '</span></td>';
             tbody.appendChild(row);
-        }
+        });
     } else {
         document.getElementById('invalidRowsSection').classList.add('d-none');
     }
-    
-    importValidationResults = { totalRows, uniqueNumbers, validNumbers, invalidCount };
+
+    importValidationResults = { totalRows: totalRows, uniqueNumbers: uniqueNumbers, validNumbers: validNumbers, invalidCount: invalidCount };
 }
 
 function downloadInvalidRows() {
