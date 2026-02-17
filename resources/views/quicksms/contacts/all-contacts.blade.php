@@ -183,6 +183,9 @@
     border: 1px solid #e9ecef;
     overflow: visible;
 }
+.table-responsive {
+    overflow: visible !important;
+}
 .filter-chip {
     display: inline-flex;
     align-items: center;

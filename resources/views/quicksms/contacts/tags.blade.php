@@ -48,6 +48,9 @@
     border: 1px solid #e9ecef;
     overflow: visible;
 }
+.table-responsive {
+    overflow: visible !important;
+}
 </style>
 @endpush
 
