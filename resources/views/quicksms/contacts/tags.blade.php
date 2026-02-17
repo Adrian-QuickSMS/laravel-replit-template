@@ -805,7 +805,7 @@ function viewTaggedContacts(id, name) {
                     '<td style="color: #000;">' + displayName + '</td>' +
                     '<td style="color: #000;">' + mobile + '</td>' +
                     '<td style="color: #000;">' + (contact.created_at ? contact.created_at.substring(0, 10) : '') + '</td>' +
-                    '<td class="text-end"><button class="btn btn-sm btn-outline-danger" onclick="removeTagFromContact(\'' + contact.id + '\', \'' + id + '\')"><i class="fas fa-times"></i> Remove</button></td>';
+                    '<td class="text-end"><button class="btn btn-sm btn-outline-danger" onclick="removeTagFromContact(\'' + contact.id + '\', \'' + name.replace(/'/g, "\\'") + '\')"><i class="fas fa-times"></i> Remove</button></td>';
                 tbody.appendChild(row);
             });
         }
@@ -817,11 +817,11 @@ function viewTaggedContacts(id, name) {
     });
 }
 
-function removeTagFromContact(contactId, tagId) {
+function removeTagFromContact(contactId, tagName) {
     fetch('/api/contacts/bulk/remove-tags', {
         method: 'POST',
         headers: _apiHeaders(),
-        body: JSON.stringify({ contact_ids: [contactId], tag_ids: [tagId] })
+        body: JSON.stringify({ contact_ids: [contactId], tags: [tagName] })
     })
     .then(_handleApiResponse)
     .then(function() {
