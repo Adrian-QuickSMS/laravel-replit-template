@@ -828,6 +828,17 @@
 
 <script>
 var _csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+function showToast(message, type) {
+    type = type || 'success';
+    var bgColor = type === 'error' ? '#dc3545' : (type === 'warning' ? '#ffc107' : '#28a745');
+    var textColor = type === 'warning' ? '#000' : '#fff';
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;padding:12px 24px;border-radius:8px;color:' + textColor + ';background:' + bgColor + ';box-shadow:0 4px 12px rgba(0,0,0,0.15);font-size:14px;max-width:400px;animation:fadeIn 0.3s ease;';
+    toast.innerHTML = '<i class="fas fa-' + (type === 'error' ? 'exclamation-circle' : 'check-circle') + ' me-2"></i>' + message;
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 2500);
+    setTimeout(function() { toast.remove(); }, 3000);
+}
 function _apiHeaders() {
     return { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': _csrfToken };
 }
