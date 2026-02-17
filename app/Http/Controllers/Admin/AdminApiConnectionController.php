@@ -161,8 +161,7 @@ class AdminApiConnectionController extends Controller
                 $credentials = $connection->generateBasicAuth();
             }
 
-            $connection->refresh();
-            $connection->activate();
+            $connection->forceFill(['status' => 'active'])->save();
 
             ApiConnectionAuditEvent::record(
                 $connection, 'created', 'admin',
