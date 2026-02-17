@@ -369,9 +369,27 @@ class ContactBookApiController extends Controller
 
         $list = ContactList::create($validated);
 
-        // Set type via raw SQL since Blueprint can't set enum
         if ($request->filled('rules')) {
             DB::statement("UPDATE contact_lists SET type = 'dynamic' WHERE id = ?", [$list->id]);
+        }
+
+        if ($request->filled('contact_ids') && is_array($request->input('contact_ids'))) {
+            foreach ($request->input('contact_ids') as $contactId) {
+                $memberExists = DB::table('contact_list_member')
+                    ->where('contact_id', $contactId)
+                    ->where('list_id', $list->id)
+                    ->exists();
+                if (!$memberExists) {
+                    DB::table('contact_list_member')->insert([
+                        'contact_id' => $contactId,
+                        'list_id' => $list->id,
+                        'created_at' => now(),
+                    ]);
+                }
+            }
+            DB::table('contact_lists')
+                ->where('id', $list->id)
+                ->update(['contact_count' => DB::table('contact_list_member')->where('list_id', $list->id)->count()]);
         }
 
         $freshList = $list->fresh();

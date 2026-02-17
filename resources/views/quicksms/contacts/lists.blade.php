@@ -803,23 +803,17 @@ function confirmCreateList() {
         selectedIds.push(cb.value);
     });
     
+    var payload = { name: name, description: description, type: 'static' };
+    if (selectedIds.length > 0) {
+        payload.contact_ids = selectedIds;
+    }
+    
     fetch('/api/contact-lists', {
         method: 'POST',
         headers: _apiHeaders(),
-        body: JSON.stringify({ name: name, description: description, type: 'static' })
+        body: JSON.stringify(payload)
     })
     .then(_handleApiResponse)
-    .then(function(result) {
-        var listId = result.data ? result.data.id : (result.id || null);
-        if (listId && selectedIds.length > 0) {
-            return fetch('/api/contact-lists/' + listId + '/members', {
-                method: 'POST',
-                headers: _apiHeaders(),
-                body: JSON.stringify({ contact_ids: selectedIds })
-            }).then(_handleApiResponse).then(function() { return result; });
-        }
-        return result;
-    })
     .then(function() {
         showToast('List "' + name + '" created with ' + selectedIds.length + ' contact(s)', 'success');
         var modal = bootstrap.Modal.getInstance(document.getElementById('createListModal'));
