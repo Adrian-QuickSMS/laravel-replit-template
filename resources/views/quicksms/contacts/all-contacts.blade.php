@@ -3,8 +3,135 @@
 @section('title', 'All Contacts')
 
 @push('styles')
-<link rel="stylesheet" href="/vendor/bootstrap-select/css/bootstrap-select.min.css">
 <style>
+.fillow-multiselect {
+    position: relative;
+}
+.fillow-multiselect .fillow-ms-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    color: #495057;
+    background-color: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    min-height: 40px;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+.fillow-multiselect .fillow-ms-toggle:hover {
+    border-color: #886CC0;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-placeholder {
+    color: #a1a1a1;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.5rem;
+    background-color: #f0ebf8;
+    color: #886CC0;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-badge .fillow-ms-badge-remove {
+    margin-left: 0.35rem;
+    cursor: pointer;
+    font-size: 0.65rem;
+    opacity: 0.7;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-badge .fillow-ms-badge-remove:hover {
+    opacity: 1;
+}
+.fillow-multiselect .fillow-ms-toggle .fillow-ms-arrow {
+    margin-left: auto;
+    padding-left: 0.5rem;
+    flex-shrink: 0;
+}
+.fillow-multiselect .fillow-ms-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1060;
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 0.625rem;
+    margin-top: 0.25rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    max-height: 220px;
+    overflow: hidden;
+    flex-direction: column;
+}
+.fillow-multiselect.open .fillow-ms-dropdown {
+    display: flex !important;
+}
+.fillow-multiselect .fillow-ms-search {
+    padding: 0.5rem;
+    border-bottom: 1px solid #f1f3f5;
+}
+.fillow-multiselect .fillow-ms-search input {
+    width: 100%;
+    border: 1px solid #e6e6e6;
+    border-radius: 0.5rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    outline: none;
+}
+.fillow-multiselect .fillow-ms-search input:focus {
+    border-color: #886CC0;
+}
+.fillow-multiselect .fillow-ms-options {
+    overflow-y: auto;
+    max-height: 160px;
+    flex: 1;
+}
+.fillow-multiselect .fillow-ms-option {
+    display: flex;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #495057;
+    transition: background-color 0.15s;
+}
+.fillow-multiselect .fillow-ms-option:hover {
+    background-color: #f8f9fa;
+}
+.fillow-multiselect .fillow-ms-option.selected {
+    background-color: #f0ebf8;
+    color: #886CC0;
+    font-weight: 500;
+}
+.fillow-multiselect .fillow-ms-option .fillow-ms-check {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #d1d5db;
+    border-radius: 0.25rem;
+    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+.fillow-multiselect .fillow-ms-option.selected .fillow-ms-check {
+    background-color: #886CC0;
+    border-color: #886CC0;
+    color: #fff;
+}
+.fillow-multiselect .fillow-ms-no-results {
+    padding: 0.75rem;
+    text-align: center;
+    color: #a1a1a1;
+    font-size: 0.8rem;
+}
 /* API Integration code blocks - black background with white text */
 #contacts-api code.bg-light,
 #contacts-api pre.bg-light {
@@ -547,7 +674,6 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="{{ asset('js/contacts-service.js') }}"></script>
 <script src="{{ asset('js/contact-timeline-service.js') }}"></script>
-<script src="/vendor/bootstrap-select/js/bootstrap-select.min.js"></script>
 <script>
 var contactsData = @json($contacts);
 var customFieldDefinitions = [
@@ -619,8 +745,103 @@ function showSuccessToast(message) {
     }
 }
 
+function FillowMultiSelect(el) {
+    this.el = typeof el === 'string' ? document.getElementById(el) : el;
+    if (!this.el) return;
+    this.selected = [];
+    this.placeholder = this.el.dataset.placeholder || 'Select...';
+    this.toggle = this.el.querySelector('.fillow-ms-toggle');
+    this.dropdown = this.el.querySelector('.fillow-ms-dropdown');
+    this.searchInput = this.el.querySelector('.fillow-ms-search input');
+    this.optionsContainer = this.el.querySelector('.fillow-ms-options');
+    this.allOptions = this.el.querySelectorAll('.fillow-ms-option');
+    var self = this;
+
+    this.toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.querySelectorAll('.fillow-multiselect.open').forEach(function(ms) { if (ms !== self.el) ms.classList.remove('open'); });
+        self.el.classList.toggle('open');
+        if (self.el.classList.contains('open') && self.searchInput) {
+            self.searchInput.value = '';
+            self.filterOptions('');
+            setTimeout(function() { self.searchInput.focus(); }, 50);
+        }
+    });
+
+    if (this.searchInput) {
+        this.searchInput.addEventListener('input', function() { self.filterOptions(this.value); });
+        this.searchInput.addEventListener('click', function(e) { e.stopPropagation(); });
+    }
+
+    this.allOptions.forEach(function(opt) {
+        opt.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var val = opt.dataset.value;
+            var idx = self.selected.indexOf(val);
+            if (idx > -1) { self.selected.splice(idx, 1); opt.classList.remove('selected'); }
+            else { self.selected.push(val); opt.classList.add('selected'); }
+            self.renderToggle();
+        });
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!self.el.contains(e.target)) self.el.classList.remove('open');
+    });
+}
+
+FillowMultiSelect.prototype.filterOptions = function(query) {
+    var q = query.toLowerCase();
+    this.allOptions.forEach(function(opt) {
+        opt.style.display = opt.dataset.value.toLowerCase().indexOf(q) > -1 ? '' : 'none';
+    });
+};
+
+FillowMultiSelect.prototype.renderToggle = function() {
+    var self = this;
+    var inner = '';
+    if (this.selected.length === 0) {
+        inner = '<span class="fillow-ms-placeholder">' + this.placeholder + '</span>';
+    } else if (this.selected.length <= 3) {
+        inner = this.selected.map(function(v) {
+            return '<span class="fillow-ms-badge">' + v + '<span class="fillow-ms-badge-remove" data-val="' + v + '">&times;</span></span>';
+        }).join('');
+    } else {
+        inner = '<span class="fillow-ms-badge">' + this.selected.length + ' selected</span>';
+    }
+    inner += '<span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span>';
+    this.toggle.innerHTML = inner;
+    this.toggle.querySelectorAll('.fillow-ms-badge-remove').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var val = btn.dataset.val;
+            var idx = self.selected.indexOf(val);
+            if (idx > -1) self.selected.splice(idx, 1);
+            self.allOptions.forEach(function(opt) { if (opt.dataset.value === val) opt.classList.remove('selected'); });
+            self.renderToggle();
+        });
+    });
+};
+
+FillowMultiSelect.prototype.val = function(newVal) {
+    if (typeof newVal === 'undefined') return this.selected.slice();
+    var self = this;
+    this.selected = Array.isArray(newVal) ? newVal.slice() : [];
+    this.allOptions.forEach(function(opt) {
+        if (self.selected.indexOf(opt.dataset.value) > -1) opt.classList.add('selected');
+        else opt.classList.remove('selected');
+    });
+    this.renderToggle();
+};
+
+FillowMultiSelect.prototype.clear = function() { this.val([]); };
+
+var msInstances = {};
+function getMs(id) { return msInstances[id]; }
+
 document.addEventListener('DOMContentLoaded', function() {
-    $('.selectpicker').selectpicker();
+    document.querySelectorAll('.fillow-multiselect').forEach(function(el) {
+        msInstances[el.id] = new FillowMultiSelect(el);
+    });
 
     const checkAll = document.getElementById('checkAll');
     const bulkActionBar = document.getElementById('bulkActionBar');
@@ -1049,9 +1270,9 @@ function editContact(id) {
     document.getElementById('editContactStatus').value = contact.status;
     
     var contactTags = contact.tags || [];
-    $('#editContactTags').selectpicker('val', contactTags);
+    getMs('editContactTagsMs').val(contactTags);
     var contactLists = contact.lists || [];
-    $('#editContactLists').selectpicker('val', contactLists);
+    getMs('editContactListsMs').val(contactLists);
     
     var modal = new bootstrap.Modal(document.getElementById('editContactModal'));
     modal.show();
@@ -1364,9 +1585,7 @@ function confirmBulkRemoveFromList() {
 function bulkAddTags() {
     var ids = getSelectedContactIds();
     document.getElementById('bulkAddTagsCount').textContent = ids.length;
-    var $select = $('#bulkTagSelect');
-    $select.selectpicker('deselectAll');
-    $select.selectpicker('refresh');
+    getMs('bulkTagSelectMs').clear();
     var modal = new bootstrap.Modal(document.getElementById('bulkAddTagsModal'));
     modal.show();
 }
@@ -1375,7 +1594,7 @@ function confirmBulkAddTags() {
     console.log('[BulkAction] confirmBulkAddTags called');
     var ids = getSelectedContactIds();
     var count = ids.length;
-    var selectedTags = $('#bulkTagSelect').val() || [];
+    var selectedTags = getMs('bulkTagSelectMs').val();
     var tagCount = selectedTags.length;
     console.log('[BulkAction] Selected tags:', selectedTags);
     
@@ -1428,9 +1647,7 @@ function confirmBulkAddTags() {
 function bulkRemoveTags() {
     var ids = getSelectedContactIds();
     document.getElementById('bulkRemoveTagsCount').textContent = ids.length;
-    var $select = $('#bulkRemoveTagSelect');
-    $select.selectpicker('deselectAll');
-    $select.selectpicker('refresh');
+    getMs('bulkRemoveTagSelectMs').clear();
     var modal = new bootstrap.Modal(document.getElementById('bulkRemoveTagsModal'));
     modal.show();
 }
@@ -1439,7 +1656,7 @@ function confirmBulkRemoveTags() {
     console.log('[BulkAction] confirmBulkRemoveTags called');
     var ids = getSelectedContactIds();
     var count = ids.length;
-    var selectedTags = $('#bulkRemoveTagSelect').val() || [];
+    var selectedTags = getMs('bulkRemoveTagSelectMs').val();
     var tagCount = selectedTags.length;
     console.log('[BulkAction] Selected tags to remove:', selectedTags);
     
@@ -2044,19 +2261,31 @@ function saveCustomField() {
                         </div>
                         <div class="col-12">
                             <label class="form-label">Tags</label>
-                            <select class="selectpicker form-control" id="contactTags" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} tags selected" title="Select tags...">
-                                @foreach($available_tags as $tag)
-                                <option value="{{ $tag }}">{{ $tag }}</option>
-                                @endforeach
-                            </select>
+                            <div class="fillow-multiselect" id="contactTagsMs" data-placeholder="Select tags...">
+                                <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select tags...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                                <div class="fillow-ms-dropdown">
+                                    <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                                    <div class="fillow-ms-options">
+                                        @foreach($available_tags as $tag)
+                                        <div class="fillow-ms-option" data-value="{{ $tag }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $tag }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Lists</label>
-                            <select class="selectpicker form-control" id="contactLists" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} lists selected" title="Select lists...">
-                                @foreach($available_lists as $list)
-                                <option value="{{ $list }}">{{ $list }}</option>
-                                @endforeach
-                            </select>
+                            <div class="fillow-multiselect" id="contactListsMs" data-placeholder="Select lists...">
+                                <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select lists...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                                <div class="fillow-ms-dropdown">
+                                    <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                                    <div class="fillow-ms-options">
+                                        @foreach($available_lists as $list)
+                                        <div class="fillow-ms-option" data-value="{{ $list }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $list }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="col-12">
@@ -2211,19 +2440,31 @@ function saveCustomField() {
                         </div>
                         <div class="col-12">
                             <label class="form-label">Tags</label>
-                            <select class="selectpicker form-control" id="editContactTags" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} tags selected" title="Select tags...">
-                                @foreach($available_tags as $tag)
-                                <option value="{{ $tag }}">{{ $tag }}</option>
-                                @endforeach
-                            </select>
+                            <div class="fillow-multiselect" id="editContactTagsMs" data-placeholder="Select tags...">
+                                <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select tags...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                                <div class="fillow-ms-dropdown">
+                                    <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                                    <div class="fillow-ms-options">
+                                        @foreach($available_tags as $tag)
+                                        <div class="fillow-ms-option" data-value="{{ $tag }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $tag }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Lists</label>
-                            <select class="selectpicker form-control" id="editContactLists" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} lists selected" title="Select lists...">
-                                @foreach($available_lists as $list)
-                                <option value="{{ $list }}">{{ $list }}</option>
-                                @endforeach
-                            </select>
+                            <div class="fillow-multiselect" id="editContactListsMs" data-placeholder="Select lists...">
+                                <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select lists...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                                <div class="fillow-ms-dropdown">
+                                    <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                                    <div class="fillow-ms-options">
+                                        @foreach($available_lists as $list)
+                                        <div class="fillow-ms-option" data-value="{{ $list }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $list }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="editFormValidationMessage" class="alert alert-danger mt-3 d-none"></div>
@@ -2326,8 +2567,8 @@ function saveContact() {
 
     var cleanMobile = mobile.replace(/[\s\-]/g, '');
 
-    var selectedTags = $('#contactTags').val() || [];
-    var selectedLists = $('#contactLists').val() || [];
+    var selectedTags = getMs('contactTagsMs').val();
+    var selectedLists = getMs('contactListsMs').val();
 
     var payload = {
         mobile_number: cleanMobile,
@@ -2369,8 +2610,8 @@ function saveContact() {
         var modal = bootstrap.Modal.getInstance(document.getElementById('addContactModal'));
         modal.hide();
         form.reset();
-        $('#contactTags').selectpicker('deselectAll');
-        $('#contactLists').selectpicker('deselectAll');
+        getMs('contactTagsMs').clear();
+        getMs('contactListsMs').clear();
         reloadContactsFromServer();
         showSuccessToast('Contact created successfully');
     })
@@ -2589,11 +2830,17 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-body">
                 <p>Add tags to <strong id="bulkAddTagsCount">0</strong> contact(s):</p>
-                <select class="selectpicker form-control" id="bulkTagSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} tags selected" title="Select tags...">
-                    @foreach($available_tags as $tag)
-                    <option value="{{ $tag }}">{{ $tag }}</option>
-                    @endforeach
-                </select>
+                <div class="fillow-multiselect" id="bulkTagSelectMs" data-placeholder="Select tags...">
+                    <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select tags...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                    <div class="fillow-ms-dropdown">
+                        <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                        <div class="fillow-ms-options">
+                            @foreach($available_tags as $tag)
+                            <div class="fillow-ms-option" data-value="{{ $tag }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $tag }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
@@ -2612,11 +2859,17 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="modal-body">
                 <p>Remove tags from <strong id="bulkRemoveTagsCount">0</strong> contact(s):</p>
-                <select class="selectpicker form-control" id="bulkRemoveTagSelect" multiple data-live-search="true" data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text="{0} tags selected" title="Select tags...">
-                    @foreach($available_tags as $tag)
-                    <option value="{{ $tag }}">{{ $tag }}</option>
-                    @endforeach
-                </select>
+                <div class="fillow-multiselect" id="bulkRemoveTagSelectMs" data-placeholder="Select tags...">
+                    <div class="fillow-ms-toggle"><span class="fillow-ms-placeholder">Select tags...</span><span class="fillow-ms-arrow"><i class="fas fa-chevron-down fa-xs"></i></span></div>
+                    <div class="fillow-ms-dropdown">
+                        <div class="fillow-ms-search"><input type="text" placeholder="Search..."></div>
+                        <div class="fillow-ms-options">
+                            @foreach($available_tags as $tag)
+                            <div class="fillow-ms-option" data-value="{{ $tag }}"><span class="fillow-ms-check"><i class="fas fa-check fa-xs"></i></span>{{ $tag }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
