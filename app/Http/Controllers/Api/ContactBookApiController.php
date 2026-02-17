@@ -374,7 +374,8 @@ class ContactBookApiController extends Controller
             DB::statement("UPDATE contact_lists SET type = 'dynamic' WHERE id = ?", [$list->id]);
         }
 
-        return response()->json(['data' => $list->fresh()->toPortalArray()], 201);
+        $freshList = $list->fresh();
+        return response()->json(['data' => ($freshList ? $freshList->toPortalArray() : $list->toPortalArray())], 201);
     }
 
     public function listsUpdate(Request $request, string $id): JsonResponse
