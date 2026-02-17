@@ -151,6 +151,7 @@
     padding: 0;
     overflow: visible !important;
 }
+.sw > .tab-content,
 .form-wizard .tab-content,
 .form-wizard .tab-content .tab-pane.active {
     overflow: visible !important;
@@ -158,6 +159,7 @@
     min-height: 0 !important;
     max-height: none !important;
 }
+.sw,
 .form-wizard .sw-main,
 .form-wizard .sw-container,
 .form-wizard .sw-theme-default {
@@ -875,11 +877,30 @@ $(document).ready(function() {
         }
     });
     
-    $('#apiConnectionWizard').on('showStep', function(e, anchorObject, stepIndex, stepDirection) {
-        setTimeout(function() {
-            $('.tab-content').css('height', 'auto');
-            $('.tab-pane.active').css('height', 'auto');
-        }, 50);
+    function fixWizardHeight() {
+        var tc = document.querySelector('#apiConnectionWizard > .tab-content');
+        if (tc) {
+            tc.style.setProperty('height', 'auto', 'important');
+            tc.style.setProperty('overflow', 'visible', 'important');
+        }
+    }
+
+    var tabContent = document.querySelector('#apiConnectionWizard > .tab-content');
+    if (tabContent) {
+        var fixing = false;
+        var observer = new MutationObserver(function() {
+            if (fixing) return;
+            fixing = true;
+            fixWizardHeight();
+            setTimeout(function() { fixing = false; }, 100);
+        });
+        observer.observe(tabContent, { attributes: true, attributeFilter: ['style'] });
+        fixWizardHeight();
+    }
+
+    $('#apiConnectionWizard').on('showStep', function() {
+        setTimeout(fixWizardHeight, 50);
+        setTimeout(fixWizardHeight, 200);
     });
 
     $('#apiConnectionWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex) {
