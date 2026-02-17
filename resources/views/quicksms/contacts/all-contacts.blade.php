@@ -1162,15 +1162,15 @@ function renderContactsTable(contacts) {
                 </span>
             </td>
             <td class="py-2">
-                ${contact.tags.map(tag => `<span class="badge bg-light text-dark border me-1">${tag}</span>`).join('')}
+                ${contact.tags.map(tag => `<span class="badge badge-pastel-secondary me-1">${tag}</span>`).join('')}
             </td>
             <td class="py-2">
-                ${contact.lists.map(list => `<span class="badge bg-info text-white me-1">${list}</span>`).join('')}
+                ${contact.lists.map(list => `<span class="badge badge-pastel-pink me-1">${list}</span>`).join('')}
             </td>
             <td class="py-2">
                 ${contact.status === 'active' 
-                    ? '<span class="badge bg-success">Active</span>' 
-                    : '<span class="badge bg-danger">Opted Out</span>'}
+                    ? '<span class="badge badge-pastel-success">Active</span>' 
+                    : '<span class="badge badge-pastel-danger">Opted Out</span>'}
             </td>
             <td class="py-2 text-end">
                 <div class="dropdown">
@@ -1242,18 +1242,18 @@ function viewContact(id) {
     document.getElementById('viewContactMobile').textContent = contact.mobile;
     document.getElementById('viewContactEmail').textContent = contact.email || 'Not provided';
     document.getElementById('viewContactStatus').innerHTML = contact.status === 'active' 
-        ? '<span class="badge" style="background-color: #d4edda; color: #155724;">Active</span>' 
-        : '<span class="badge" style="background-color: #f8d7da; color: #721c24;">Opted Out</span>';
+        ? '<span class="badge badge-pastel-success">Active</span>' 
+        : '<span class="badge badge-pastel-danger">Opted Out</span>';
     document.getElementById('viewContactSource').textContent = contact.source;
     document.getElementById('viewContactCreated').textContent = contact.created_at;
     
     var tagsHtml = contact.tags.length > 0 
-        ? contact.tags.map(t => '<span class="badge me-1" style="background-color: #e8f4fd; color: #0c5460; border: 1px solid #bee5eb;">' + t + '</span>').join('') 
+        ? contact.tags.map(t => '<span class="badge badge-pastel-secondary me-1">' + t + '</span>').join('') 
         : '<span class="text-muted">No tags</span>';
     document.getElementById('viewContactTags').innerHTML = tagsHtml;
     
     var listsHtml = contact.lists.length > 0 
-        ? contact.lists.map(l => '<span class="badge me-1" style="background-color: #f0ebf8; color: #6c5ce7;">' + l + '</span>').join('') 
+        ? contact.lists.map(l => '<span class="badge badge-pastel-pink me-1">' + l + '</span>').join('') 
         : '<span class="text-muted">No lists</span>';
     document.getElementById('viewContactLists').innerHTML = listsHtml;
     
