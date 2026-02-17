@@ -574,66 +574,22 @@
                             </div>
                             
                             <div id="step-6" class="tab-pane" role="tabpanel">
-                                <div class="row">
-                                    <div class="col-lg-8 mx-auto">
-                                        <div class="alert alert-pastel-primary mb-4">
-                                            <strong>Step 6: Review & Create</strong> - Review your configuration before creating the API connection.
-                                        </div>
-                                        
-                                        <div class="card mb-3" style="border-left: 3px solid #1e3a5f;">
-                                            <div class="card-body">
-                                                <h6 class="card-title"><i class="fas fa-building me-2" style="color: #1e3a5f;"></i>Account</h6>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <small class="text-muted">Customer Account</small>
-                                                        <p class="mb-0 fw-medium" id="reviewAccount">-</p>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <small class="text-muted">Sub-Account</small>
-                                                        <p class="mb-0" id="reviewSubAccount">-</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="card mb-3">
-                                            <div class="card-body">
-                                                <h6 class="card-title"><i class="fas fa-info-circle me-2" style="color: #1e3a5f;"></i>Configuration</h6>
-                                                <div class="row">
-                                                    <div class="col-6 mb-2">
-                                                        <small class="text-muted">API Name</small>
-                                                        <p class="mb-0 fw-medium" id="reviewApiName">-</p>
-                                                    </div>
-                                                    <div class="col-6 mb-2">
-                                                        <small class="text-muted">Environment</small>
-                                                        <p class="mb-0" id="reviewEnvironment">-</p>
-                                                    </div>
-                                                    <div class="col-6 mb-2">
-                                                        <small class="text-muted">Type</small>
-                                                        <p class="mb-0" id="reviewType">-</p>
-                                                    </div>
-                                                    <div class="col-6 mb-2">
-                                                        <small class="text-muted">Authentication</small>
-                                                        <p class="mb-0" id="reviewAuth">-</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="card mb-3">
-                                            <div class="card-body">
-                                                <h6 class="card-title"><i class="fas fa-shield-alt me-2" style="color: #1e3a5f;"></i>Security</h6>
-                                                <small class="text-muted">IP Restrictions</small>
-                                                <p class="mb-0" id="reviewIpRestrictions">None (all IPs allowed)</p>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="text-center mt-4">
-                                            <button type="button" class="btn btn-primary btn-lg" id="createConnectionBtn" style="background-color: #1e3a5f; border-color: #1e3a5f;">
-                                                <i class="fas fa-check me-2"></i>Create API Connection
-                                            </button>
-                                        </div>
-                                    </div>
+                                <p class="text-muted mb-3"><i class="fas fa-clipboard-check me-1"></i> Review your configuration before creating the API connection.</p>
+                                <table class="table table-sm table-striped mb-3">
+                                    <tbody>
+                                        <tr><td class="text-muted" style="width:140px;">Account</td><td id="reviewAccount" class="fw-medium">-</td></tr>
+                                        <tr><td class="text-muted">Sub-Account</td><td id="reviewSubAccount">-</td></tr>
+                                        <tr><td class="text-muted">API Name</td><td id="reviewApiName" class="fw-medium">-</td></tr>
+                                        <tr><td class="text-muted">Environment</td><td id="reviewEnvironment">-</td></tr>
+                                        <tr><td class="text-muted">Type</td><td id="reviewType">-</td></tr>
+                                        <tr><td class="text-muted">Authentication</td><td id="reviewAuth">-</td></tr>
+                                        <tr><td class="text-muted">IP Restrictions</td><td id="reviewIpRestrictions">None (all IPs allowed)</td></tr>
+                                    </tbody>
+                                </table>
+                                <div class="text-center">
+                                    <button type="button" class="btn btn-primary" id="createConnectionBtn" style="background-color: #1e3a5f; border-color: #1e3a5f;">
+                                        <i class="fas fa-check me-2"></i>Create API Connection
+                                    </button>
                                 </div>
                             </div>
                         </div>

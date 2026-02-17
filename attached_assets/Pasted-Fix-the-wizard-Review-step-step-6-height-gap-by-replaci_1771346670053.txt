@@ -1,0 +1,53 @@
+Fix the wizard Review step (step 6) height gap by replacing it with a compact flat table layout. Do this in BOTH wizard files.
+
+File 1: resources/views/admin/api/connections-wizard.blade.php
+Replace the entire <div id="step-6"> block (the one with nested .row > .col-lg-8 > .card elements) with this:
+
+<div id="step-6" class="tab-pane" role="tabpanel">
+    <p class="text-muted mb-3"><i class="fas fa-clipboard-check me-1"></i> Review your configuration before creating the API connection.</p>
+    <table class="table table-sm table-striped mb-3">
+        <tbody>
+            <tr><td class="text-muted" style="width:140px;">Account</td><td id="reviewAccount" class="fw-medium">-</td></tr>
+            <tr><td class="text-muted">Sub-Account</td><td id="reviewSubAccount">-</td></tr>
+            <tr><td class="text-muted">API Name</td><td id="reviewApiName" class="fw-medium">-</td></tr>
+            <tr><td class="text-muted">Environment</td><td id="reviewEnvironment">-</td></tr>
+            <tr><td class="text-muted">Type</td><td id="reviewType">-</td></tr>
+            <tr><td class="text-muted">Authentication</td><td id="reviewAuth">-</td></tr>
+            <tr><td class="text-muted">IP Restrictions</td><td id="reviewIpRestrictions">None (all IPs allowed)</td></tr>
+        </tbody>
+    </table>
+    <div class="text-center">
+        <button type="button" class="btn btn-primary" id="createConnectionBtn" style="background-color: #1e3a5f; border-color: #1e3a5f;">
+            <i class="fas fa-check me-2"></i>Create API Connection
+        </button>
+    </div>
+</div>
+
+File 2: resources/views/quicksms/management/api-connection-wizard.blade.php
+Replace the <div id="step-6"> block's #reviewSection content (the one with .row > .col-lg-8 > .card wrapping the table) with this flat version. Keep the #completionSection as-is but remove the .row and .col-lg-8 wrappers around everything:
+
+<div id="step-6" class="tab-pane" role="tabpanel">
+    <div id="reviewSection">
+        <p class="text-muted mb-3"><i class="fas fa-clipboard-check me-1"></i> Review your configuration before creating the connection.</p>
+        <table class="table table-sm table-striped mb-3">
+            <tbody>
+                <tr><td class="text-muted" style="width:140px;">Name</td><td id="reviewName" class="fw-medium">-</td></tr>
+                <tr><td class="text-muted">Description</td><td id="reviewDescription">-</td></tr>
+                <tr><td class="text-muted">Sub-Account</td><td id="reviewSubAccount">-</td></tr>
+                <tr><td class="text-muted">Environment</td><td id="reviewEnvironment">-</td></tr>
+                <tr><td class="text-muted">Type</td><td id="reviewType">-</td></tr>
+                <tr><td class="text-muted">Authentication</td><td id="reviewAuth">-</td></tr>
+                <tr><td class="text-muted">IP Restriction</td><td id="reviewIpRestriction">-</td></tr>
+                <tr><td class="text-muted">Webhooks</td><td id="reviewWebhooks">-</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="completionSection" style="display: none;">
+        <!-- keep existing completionSection content unchanged -->
+    </div>
+</div>
+
+Why this fixes the height gap
+The old design used .row > .col-lg-8 > .card wrappers inside the tab-pane. Bootstrap's .row is display: flex which interacts with SmartWizard's .tab-content height management, causing the first card to stretch to fill the container. The new design is a flat <table> directly inside the tab-pane with no flex containers, so it renders at its natural content height.
+
+Do NOT change any JavaScript - the element IDs (reviewAccount, reviewApiName, etc.) are all the same so existing JS will work as-is.
