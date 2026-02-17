@@ -461,19 +461,30 @@ class ContactBookApiController extends Controller
 
     public function listsRemoveMembers(Request $request, string $id): JsonResponse
     {
-        $list = ContactList::findOrFail($id);
+        $accountId = session('customer_tenant_id');
+        $listExists = DB::table('contact_lists')
+            ->where('id', $id)
+            ->where('account_id', $accountId)
+            ->exists();
+
+        if (!$listExists) {
+            return response()->json(['status' => 'error', 'message' => 'List not found'], 404);
+        }
 
         $request->validate([
             'contact_ids' => 'required|array|min:1',
-            'contact_ids.*' => 'uuid',
+            'contact_ids.*' => 'string',
         ]);
 
         $deleted = DB::table('contact_list_member')
-            ->where('list_id', $list->id)
+            ->where('list_id', $id)
             ->whereIn('contact_id', $request->input('contact_ids'))
             ->delete();
 
-        $list->refreshContactCount();
+        DB::table('contact_lists')
+            ->where('id', $id)
+            ->update(['contact_count' => DB::table('contact_list_member')->where('list_id', $id)->count()]);
+
         return response()->json(['success' => true, 'removed' => $deleted]);
     }
 

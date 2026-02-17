@@ -973,6 +973,24 @@ function viewListContacts(id, name) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    var contactsListView = document.getElementById('contactsListView');
+    if (contactsListView) {
+        contactsListView.addEventListener('change', function(e) {
+            if (e.target.classList.contains('contact-select-view')) {
+                var anyChecked = document.querySelectorAll('.contact-select-view:checked').length > 0;
+                document.getElementById('removeFromListBtn').disabled = !anyChecked;
+            }
+        });
+    }
+
+    var selectAllView = document.getElementById('selectAllContactsView');
+    if (selectAllView) {
+        selectAllView.addEventListener('change', function() {
+            document.querySelectorAll('.contact-select-view').forEach(function(cb) { cb.checked = selectAllView.checked; });
+            document.getElementById('removeFromListBtn').disabled = !selectAllView.checked;
+        });
+    }
+
     var searchInput = document.getElementById('contactSearchView');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
