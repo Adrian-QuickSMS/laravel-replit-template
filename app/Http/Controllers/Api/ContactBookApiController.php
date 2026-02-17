@@ -87,8 +87,8 @@ class ContactBookApiController extends Controller
             'custom_data' => 'nullable|array',
         ]);
 
-        $validated['account_id'] = auth()->user()->tenant_id;
-        $validated['created_by'] = auth()->user()->email ?? auth()->id();
+        $validated['account_id'] = session('customer_tenant_id');
+        $validated['created_by'] = session('customer_email', session('customer_user_id'));
 
         $contact = Contact::create($validated);
         $contact->load(['tags', 'lists']);
@@ -113,7 +113,7 @@ class ContactBookApiController extends Controller
             'custom_data' => 'nullable|array',
         ]);
 
-        $validated['updated_by'] = auth()->user()->email ?? auth()->id();
+        $validated['updated_by'] = session('customer_email', session('customer_user_id'));
         $contact->update($validated);
         $contact->load(['tags', 'lists']);
 
@@ -139,7 +139,7 @@ class ContactBookApiController extends Controller
             'list_name' => 'required|string',
         ]);
 
-        $accountId = auth()->user()->tenant_id;
+        $accountId = session('customer_tenant_id');
         $list = ContactList::where('name', $request->input('list_name'))->firstOrFail();
 
         $contactIds = Contact::whereIn('id', $request->input('contact_ids'))->pluck('id');
@@ -203,7 +203,7 @@ class ContactBookApiController extends Controller
             'tags.*' => 'string',
         ]);
 
-        $accountId = auth()->user()->tenant_id;
+        $accountId = session('customer_tenant_id');
         $contactIds = Contact::whereIn('id', $request->input('contact_ids'))->pluck('id');
         $affectedCount = 0;
 
@@ -318,7 +318,7 @@ class ContactBookApiController extends Controller
             'color' => 'nullable|string|max:7',
         ]);
 
-        $validated['account_id'] = auth()->user()->tenant_id;
+        $validated['account_id'] = session('customer_tenant_id');
 
         $tag = Tag::create($validated);
         return response()->json(['data' => $tag->toPortalArray()], 201);
@@ -360,7 +360,7 @@ class ContactBookApiController extends Controller
             'rules' => 'nullable|array',
         ]);
 
-        $validated['account_id'] = auth()->user()->tenant_id;
+        $validated['account_id'] = session('customer_tenant_id');
 
         $list = ContactList::create($validated);
 
@@ -457,7 +457,7 @@ class ContactBookApiController extends Controller
             'is_master' => 'nullable|boolean',
         ]);
 
-        $validated['account_id'] = auth()->user()->tenant_id;
+        $validated['account_id'] = session('customer_tenant_id');
 
         $list = OptOutList::create($validated);
         return response()->json(['data' => $list->toPortalArray()], 201);
@@ -508,7 +508,7 @@ class ContactBookApiController extends Controller
             'campaign_ref' => 'nullable|string|max:255',
         ]);
 
-        $validated['account_id'] = auth()->user()->tenant_id;
+        $validated['account_id'] = session('customer_tenant_id');
         $validated['opt_out_list_id'] = $list->id;
 
         $record = OptOutRecord::create($validated);
@@ -590,7 +590,7 @@ class ContactBookApiController extends Controller
 
         Log::info('MSISDN revealed', [
             'contact_id' => $contactId,
-            'user_id' => auth()->id(),
+            'user_id' => session('customer_user_id'),
             'reason' => $request->input('reason', 'User requested reveal'),
         ]);
 
