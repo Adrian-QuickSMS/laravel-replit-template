@@ -1,0 +1,52 @@
+Pull branch claude/quicksms-security-performance-dr8sw and merge into main.
+
+The fix for the wizard Review step height gap has been pushed. Here's what was done and why:
+
+Root Cause
+The problem was NOT in SmartWizard's JavaScript. It was a CSS rule in the Fillow admin template's style.css at line 19498:
+
+@media only screen and (max-width: 47.9375rem) {
+    .form-wizard .tab-content {
+        height: 100% !important;
+    }
+}
+
+Replit's embedded preview viewport is below 768px, so this media query is always active. Inside Bootstrap's flex-based .card layout (display: flex; flex-direction: column with .card-body having flex: 1 1 auto), the height: 100% resolves against the flex-allocated height from the previous taller step. When navigating to the shorter Review step, the tab-content retains that taller height, creating the gap.
+
+All the previous fix attempts (gutting _fixHeight, removing container.height() calls, MutationObserver, setProperty, CSS overrides) were targeting SmartWizard's JavaScript — but SmartWizard was never the problem. The Fillow template's CSS !important rule was overriding everything.
+
+What Was Fixed
+Two files were modified:
+
+resources/views/admin/api/connections-wizard.blade.php
+resources/views/quicksms/management/api-connection-wizard.blade.php
+Each received:
+
+1. CSS override (in the <style> block) using an ID selector which has higher specificity than the class-based rule in style.css:
+
+#apiConnectionWizard > .tab-content {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+#apiConnectionWizard > .tab-content > .tab-pane {
+    position: static !important;
+}
+
+2. JS fallback (in the showStep event handler) to clear any residual inline height:
+
+var tc = this.querySelector('.tab-content');
+if (tc) {
+    tc.style.setProperty('height', 'auto', 'important');
+}
+
+What NOT to Do
+Do NOT modify SmartWizard vendor JS or CSS further — the _fixHeight gutting and overflow: visible changes already made are harmless but were unnecessary. The root cause was always the Fillow template CSS.
+Do NOT remove the CSS fix from the blade templates — the ID selector specificity is what makes it work against the !important rule in style.css.
+Do NOT add any height management JavaScript (MutationObserver, requestAnimationFrame loops, etc.) — the CSS fix alone resolves the issue.
+After Merging
+Test by navigating through all wizard steps to the Review step in both:
+
+Admin wizard: /admin/api/connections/create
+Customer wizard: /management/api-connections/create
+Verify the Review step cards display without any large empty gaps, regardless of which previous step you navigate from.

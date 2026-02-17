@@ -150,6 +150,14 @@
 .form-wizard .tab-content .tab-pane {
     padding: 0;
 }
+#apiConnectionWizard > .tab-content {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+#apiConnectionWizard > .tab-content > .tab-pane {
+    position: static !important;
+}
 .selectable-tile {
     border: 2px solid #e9ecef;
     border-radius: 0.5rem;
@@ -869,6 +877,13 @@ $(document).ready(function() {
             enableDoneState: true,
             markPreviousStepsAsDone: true,
             enableDoneStateNavigation: true
+        }
+    });
+
+    $('#apiConnectionWizard').on('showStep', function() {
+        var tc = this.querySelector('.tab-content');
+        if (tc) {
+            tc.style.setProperty('height', 'auto', 'important');
         }
     });
 

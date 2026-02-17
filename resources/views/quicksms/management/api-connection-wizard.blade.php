@@ -154,6 +154,14 @@
 .form-wizard .tab-content .tab-pane {
     padding: 0;
 }
+#apiConnectionWizard > .tab-content {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+#apiConnectionWizard > .tab-content > .tab-pane {
+    position: static !important;
+}
 
 #integrationPartnerSection {
     margin-top: 1rem;
