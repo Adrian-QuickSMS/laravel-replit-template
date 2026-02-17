@@ -425,13 +425,12 @@
                                                 <small class="text-muted"><span id="descCharCount">0</span>/200 characters</small>
                                             </div>
                                             
-                                            <div class="col-lg-6 mb-3">
-                                                <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
+                                            <div class="col-lg-6 mb-3" id="subAccountWrapper" style="display: none;">
+                                                <label class="form-label">Sub-Account</label>
                                                 <select class="form-select" id="subAccount">
-                                                    <option value="">Select sub-account...</option>
+                                                    <option value="">None (main account)</option>
                                                 </select>
                                                 <small class="text-muted">Sub-accounts are filtered by the selected customer account.</small>
-                                                <div class="invalid-feedback">Please select a sub-account.</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
@@ -753,19 +752,23 @@ $(document).ready(function() {
                 $('#selectedAccountId').text(account.account_number || selectedId);
                 $('#selectedAccountInfo').show();
                 
-                $('#subAccount').empty().append('<option value="">Select sub-account...</option>');
+                $('#subAccount').empty().append('<option value="">None (main account)</option>');
                 var subs = subAccountsByAccount[selectedId];
                 if (subs && subs.length > 0) {
                     subs.forEach(function(sub) {
                         $('#subAccount').append('<option value="' + sub.id + '">' + sub.name + '</option>');
                     });
+                    $('#subAccountWrapper').show();
+                } else {
+                    $('#subAccountWrapper').hide();
                 }
             }
         } else {
             formData.accountId = null;
             formData.account = null;
             $('#selectedAccountInfo').hide();
-            $('#subAccount').empty().append('<option value="">Select sub-account...</option>');
+            $('#subAccount').empty().append('<option value="">None (main account)</option>');
+            $('#subAccountWrapper').hide();
         }
     });
     
@@ -884,12 +887,6 @@ $(document).ready(function() {
                     valid = false;
                 } else {
                     $('#apiName').removeClass('is-invalid');
-                }
-                if (!$('#subAccount').val()) {
-                    $('#subAccount').addClass('is-invalid');
-                    valid = false;
-                } else {
-                    $('#subAccount').removeClass('is-invalid');
                 }
                 return valid;
             }
