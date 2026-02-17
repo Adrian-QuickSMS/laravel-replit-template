@@ -598,106 +598,70 @@
                             </div>
                             
                             <div id="step-6" class="tab-pane" role="tabpanel">
-                                <div class="row">
-                                    <div class="col-lg-8 mx-auto">
-                                        <div id="reviewSection">
-                                            <div class="alert alert-pastel-primary mb-4">
-                                                <strong>Step 6: Review & Create</strong> - Review your configuration before creating the connection.
+                                <div id="reviewSection">
+                                    <p class="text-muted mb-3"><i class="fas fa-clipboard-check me-1"></i> Review your configuration before creating the connection.</p>
+                                    <table class="table table-sm table-striped mb-3">
+                                        <tbody>
+                                            <tr><td class="text-muted" style="width:140px;">Name</td><td id="reviewName" class="fw-medium">-</td></tr>
+                                            <tr><td class="text-muted">Description</td><td id="reviewDescription">-</td></tr>
+                                            <tr><td class="text-muted">Sub-Account</td><td id="reviewSubAccount">-</td></tr>
+                                            <tr><td class="text-muted">Environment</td><td id="reviewEnvironment">-</td></tr>
+                                            <tr><td class="text-muted">Type</td><td id="reviewType">-</td></tr>
+                                            <tr><td class="text-muted">Authentication</td><td id="reviewAuth">-</td></tr>
+                                            <tr><td class="text-muted">IP Restriction</td><td id="reviewIpRestriction">-</td></tr>
+                                            <tr><td class="text-muted">Webhooks</td><td id="reviewWebhooks">-</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                        
+                                <div id="completionSection" style="display: none;">
+                                    <div class="completion-card">
+                                        <div class="completion-icon">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <h4 class="mb-2">API Connection Created!</h4>
+                                        <p class="text-muted mb-4">Your API connection has been created successfully. Save your credentials below - they will only be shown once.</p>
+
+                                        <div class="credential-box text-start">
+                                            <div class="credential-row">
+                                                <span class="credential-label">Base URL</span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="credential-value" id="createdBaseUrl">-</span>
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyCredential('createdBaseUrl')"><i class="fas fa-copy"></i></button>
+                                                </div>
                                             </div>
-                                            
-                                            <div class="card mb-3">
-                                                <div class="card-body">
-                                                    <h6 class="text-muted mb-3">Configuration Summary</h6>
-                                                    <table class="table table-borderless mb-0">
-                                                        <tbody>
-                                                            <tr>
-                                                                <td class="text-muted" style="width: 150px;">Name</td>
-                                                                <td id="reviewName">-</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="text-muted">Description</td>
-                                                                <td id="reviewDescription">-</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="text-muted">Sub-Account</td>
-                                                                <td id="reviewSubAccount">-</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="text-muted">Environment</td>
-                                                                <td id="reviewEnvironment">-</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="text-muted">Type</td>
-                                                                <td id="reviewType">-</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="text-muted">Authentication</td>
-                                                                <td id="reviewAuth">-</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="text-muted">IP Restriction</td>
-                                                                <td id="reviewIpRestriction">-</td>
-                                                            </tr>
-                                                            <tr>
-                                                                <td class="text-muted">Webhooks</td>
-                                                                <td id="reviewWebhooks">-</td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
+                                            <div class="credential-row" id="createdApiKeyRow">
+                                                <span class="credential-label">API Key</span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="credential-value" id="createdApiKey">-</span>
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyCredential('createdApiKey')"><i class="fas fa-copy"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="credential-row" id="createdUsernameRow" style="display: none;">
+                                                <span class="credential-label">Username</span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="credential-value" id="createdUsername">-</span>
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyCredential('createdUsername')"><i class="fas fa-copy"></i></button>
+                                                </div>
+                                            </div>
+                                            <div class="credential-row" id="createdPasswordRow" style="display: none;">
+                                                <span class="credential-label">Password</span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="credential-value" id="createdPassword">-</span>
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyCredential('createdPassword')"><i class="fas fa-copy"></i></button>
                                                 </div>
                                             </div>
                                         </div>
-                                        
-                                        <div id="completionSection" style="display: none;">
-                                            <div class="completion-card">
-                                                <div class="completion-icon">
-                                                    <i class="fas fa-check"></i>
-                                                </div>
-                                                <h4 class="mb-2">API Connection Created!</h4>
-                                                <p class="text-muted mb-4">Your API connection has been created successfully. Save your credentials below - they will only be shown once.</p>
-                                                
-                                                <div class="credential-box text-start">
-                                                    <div class="credential-row">
-                                                        <span class="credential-label">Base URL</span>
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <span class="credential-value" id="createdBaseUrl">-</span>
-                                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyCredential('createdBaseUrl')"><i class="fas fa-copy"></i></button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="credential-row" id="createdApiKeyRow">
-                                                        <span class="credential-label">API Key</span>
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <span class="credential-value" id="createdApiKey">-</span>
-                                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyCredential('createdApiKey')"><i class="fas fa-copy"></i></button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="credential-row" id="createdUsernameRow" style="display: none;">
-                                                        <span class="credential-label">Username</span>
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <span class="credential-value" id="createdUsername">-</span>
-                                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyCredential('createdUsername')"><i class="fas fa-copy"></i></button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="credential-row" id="createdPasswordRow" style="display: none;">
-                                                        <span class="credential-label">Password</span>
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <span class="credential-value" id="createdPassword">-</span>
-                                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyCredential('createdPassword')"><i class="fas fa-copy"></i></button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div class="alert alert-warning mt-3 text-start">
-                                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                                    <strong>Important:</strong> These credentials will only be shown once. Please save them securely.
-                                                </div>
-                                                
-                                                <div class="mt-4">
-                                                    <a href="{{ route('management.api-connections') }}" class="btn btn-primary">
-                                                        <i class="fas fa-arrow-left me-2"></i>Back to API Connections
-                                                    </a>
-                                                </div>
-                                            </div>
+
+                                        <div class="alert alert-warning mt-3 text-start">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Important:</strong> These credentials will only be shown once. Please save them securely.
+                                        </div>
+
+                                        <div class="mt-4">
+                                            <a href="{{ route('management.api-connections') }}" class="btn btn-primary">
+                                                <i class="fas fa-arrow-left me-2"></i>Back to API Connections
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
