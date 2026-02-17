@@ -367,32 +367,35 @@ class ContactBookApiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'A list with this name already exists. Please choose a different name.'], 422);
         }
 
+        $listId = (string) \Illuminate\Support\Str::uuid();
+        $validated['id'] = $listId;
+
         $list = ContactList::create($validated);
 
         if ($request->filled('rules')) {
-            DB::statement("UPDATE contact_lists SET type = 'dynamic' WHERE id = ?", [$list->id]);
+            DB::statement("UPDATE contact_lists SET type = 'dynamic' WHERE id = ?", [$listId]);
         }
 
         if ($request->filled('contact_ids') && is_array($request->input('contact_ids'))) {
             foreach ($request->input('contact_ids') as $contactId) {
                 $memberExists = DB::table('contact_list_member')
                     ->where('contact_id', $contactId)
-                    ->where('list_id', $list->id)
+                    ->where('list_id', $listId)
                     ->exists();
                 if (!$memberExists) {
                     DB::table('contact_list_member')->insert([
                         'contact_id' => $contactId,
-                        'list_id' => $list->id,
+                        'list_id' => $listId,
                         'created_at' => now(),
                     ]);
                 }
             }
             DB::table('contact_lists')
-                ->where('id', $list->id)
-                ->update(['contact_count' => DB::table('contact_list_member')->where('list_id', $list->id)->count()]);
+                ->where('id', $listId)
+                ->update(['contact_count' => DB::table('contact_list_member')->where('list_id', $listId)->count()]);
         }
 
-        $freshList = $list->fresh();
+        $freshList = ContactList::withoutGlobalScopes()->find($listId);
         return response()->json(['data' => ($freshList ? $freshList->toPortalArray() : $list->toPortalArray())], 201);
     }
 
