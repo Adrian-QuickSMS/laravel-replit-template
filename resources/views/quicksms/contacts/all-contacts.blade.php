@@ -3505,6 +3505,7 @@ function confirmImport() {
 }
 
 document.getElementById('importContactsModal').addEventListener('hidden.bs.modal', function() {
+    var wasImportCompleted = (importCurrentStep === 4);
     importCurrentStep = 1;
     importFileData = null;
     importMappings = {};
@@ -3515,6 +3516,9 @@ document.getElementById('importContactsModal').addEventListener('hidden.bs.modal
     document.getElementById('invalidRowsSection').classList.add('d-none');
     document.getElementById('confirmMappings').checked = true;
     document.getElementById('confirmRules').checked = true;
+    if (wasImportCompleted) {
+        window.location.reload();
+    }
 });
 </script>
 
