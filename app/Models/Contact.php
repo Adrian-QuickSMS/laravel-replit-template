@@ -59,8 +59,11 @@ class Contact extends Model
         parent::boot();
 
         static::addGlobalScope('tenant', function (Builder $builder) {
-            if (auth()->check() && auth()->user()->tenant_id) {
-                $builder->where('contacts.account_id', auth()->user()->tenant_id);
+            $tenantId = auth()->check() && auth()->user()->tenant_id
+                ? auth()->user()->tenant_id
+                : session('customer_tenant_id');
+            if ($tenantId) {
+                $builder->where('contacts.account_id', $tenantId);
             }
         });
     }

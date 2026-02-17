@@ -25,8 +25,8 @@ class OptOutList extends Model
         'account_id',
         'name',
         'description',
-        'is_master',
         'count',
+        // is_master is NOT fillable — only system can set this (partial unique index enforces one per account)
     ];
 
     protected $casts = [
@@ -43,8 +43,11 @@ class OptOutList extends Model
         parent::boot();
 
         static::addGlobalScope('tenant', function (Builder $builder) {
-            if (auth()->check() && auth()->user()->tenant_id) {
-                $builder->where('opt_out_lists.account_id', auth()->user()->tenant_id);
+            $tenantId = auth()->check() && auth()->user()->tenant_id
+                ? auth()->user()->tenant_id
+                : session('customer_tenant_id');
+            if ($tenantId) {
+                $builder->where('opt_out_lists.account_id', $tenantId);
             }
         });
     }

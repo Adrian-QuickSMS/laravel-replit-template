@@ -446,7 +446,7 @@
                             </thead>
                             <tbody id="contactsTableBody">
                                 @foreach($contacts as $index => $contact)
-                                <tr class="btn-reveal-trigger" data-contact-id="{{ $contact['id'] }}" data-first-name="{{ $contact['first_name'] }}" data-last-name="{{ $contact['last_name'] }}" data-mobile="{{ $contact['mobile'] }}" data-status="{{ $contact['status'] }}" data-list-scope="{{ $contact['list_scope'] ?? '' }}">
+                                <tr class="btn-reveal-trigger" data-contact-id="{{ $contact['id'] }}" data-first-name="{{ $contact['first_name'] }}" data-last-name="{{ $contact['last_name'] }}" data-status="{{ $contact['status'] }}" data-list-scope="{{ $contact['list_scope'] ?? '' }}">
                                     <td class="py-2">
                                         <div class="form-check custom-checkbox">
                                             <input type="checkbox" class="form-check-input contact-checkbox" id="checkbox{{ $contact['id'] }}">
@@ -464,7 +464,7 @@
                                         </div>
                                     </td>
                                     <td class="py-2">
-                                        <span class="mobile-number" data-full="{{ $contact['mobile'] }}" data-masked="{{ $contact['mobile_masked'] }}">
+                                        <span class="mobile-number" data-contact-id="{{ $contact['id'] }}" data-masked="{{ $contact['mobile_masked'] }}">
                                             {{ $contact['mobile_masked'] }}
                                         </span>
                                     </td>
@@ -501,20 +501,20 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end border py-0">
                                                 <div class="py-2">
-                                                    <a class="dropdown-item" href="#!" onclick="viewContact('{{ $contact['id'] }}'); return false;">
+                                                    <a class="dropdown-item" href="#!" onclick="viewContact({{ Js::from($contact['id']) }}); return false;">
                                                         <i class="fas fa-eye me-2 text-dark"></i> View Details
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="editContact('{{ $contact['id'] }}'); return false;">
+                                                    <a class="dropdown-item" href="#!" onclick="editContact({{ Js::from($contact['id']) }}); return false;">
                                                         <i class="fas fa-edit me-2 text-dark"></i> Edit
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="sendMessage('{{ $contact['id'] }}'); return false;">
+                                                    <a class="dropdown-item" href="#!" onclick="sendMessage({{ Js::from($contact['id']) }}); return false;">
                                                         <i class="fas fa-paper-plane me-2 text-dark"></i> Send Message
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="viewTimeline('{{ $contact['id'] }}'); return false;">
+                                                    <a class="dropdown-item" href="#!" onclick="viewTimeline({{ Js::from($contact['id']) }}); return false;">
                                                         <i class="fas fa-history me-2 text-dark"></i> Activity Timeline
                                                     </a>
                                                     <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteContact('{{ $contact['id'] }}'); return false;">
+                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteContact({{ Js::from($contact['id']) }}); return false;">
                                                         <i class="fas fa-trash me-2"></i> Delete
                                                     </a>
                                                 </div>
@@ -742,7 +742,7 @@ function showSuccessToast(message) {
         var toast = document.createElement('div');
         toast.className = 'alert alert-success position-fixed';
         toast.style.cssText = 'top:20px;right:20px;z-index:99999;min-width:300px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
-        toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + message;
+        toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + escapeHtml(message);
         document.body.appendChild(toast);
         setTimeout(function() { toast.remove(); }, 3000);
     }
@@ -803,10 +803,10 @@ FillowMultiSelect.prototype.renderToggle = function() {
     var self = this;
     var inner = '';
     if (this.selected.length === 0) {
-        inner = '<span class="fillow-ms-placeholder">' + this.placeholder + '</span>';
+        inner = '<span class="fillow-ms-placeholder">' + escapeHtml(this.placeholder) + '</span>';
     } else if (this.selected.length <= 3) {
         inner = this.selected.map(function(v) {
-            return '<span class="fillow-ms-badge">' + v + '<span class="fillow-ms-badge-remove" data-val="' + v + '">&times;</span></span>';
+            return '<span class="fillow-ms-badge">' + escapeHtml(v) + '<span class="fillow-ms-badge-remove" data-val="' + escapeHtml(v) + '">&times;</span></span>';
         }).join('');
     } else {
         inner = '<span class="fillow-ms-badge">' + this.selected.length + ' selected</span>';
@@ -1023,16 +1023,16 @@ document.addEventListener('DOMContentLoaded', function() {
         var selectedSources = getSelectedValues('sources');
         
         selectedStatuses.forEach(function(val) {
-            chips.push('<span class="filter-chip">Status: ' + val + ' <span class="remove-chip" data-filter="statuses" data-value="' + val + '">&times;</span></span>');
+            chips.push('<span class="filter-chip">Status: ' + escapeHtml(val) + ' <span class="remove-chip" data-filter="statuses" data-value="' + escapeHtml(val) + '">&times;</span></span>');
         });
         selectedTags.forEach(function(val) {
-            chips.push('<span class="filter-chip">Tag: ' + val + ' <span class="remove-chip" data-filter="tags" data-value="' + val + '">&times;</span></span>');
+            chips.push('<span class="filter-chip">Tag: ' + escapeHtml(val) + ' <span class="remove-chip" data-filter="tags" data-value="' + escapeHtml(val) + '">&times;</span></span>');
         });
         selectedLists.forEach(function(val) {
-            chips.push('<span class="filter-chip">List: ' + val + ' <span class="remove-chip" data-filter="lists" data-value="' + val + '">&times;</span></span>');
+            chips.push('<span class="filter-chip">List: ' + escapeHtml(val) + ' <span class="remove-chip" data-filter="lists" data-value="' + escapeHtml(val) + '">&times;</span></span>');
         });
         selectedSources.forEach(function(val) {
-            chips.push('<span class="filter-chip">Source: ' + val + ' <span class="remove-chip" data-filter="sources" data-value="' + val + '">&times;</span></span>');
+            chips.push('<span class="filter-chip">Source: ' + escapeHtml(val) + ' <span class="remove-chip" data-filter="sources" data-value="' + escapeHtml(val) + '">&times;</span></span>');
         });
         
         if (chips.length > 0) {
@@ -1064,9 +1064,14 @@ document.addEventListener('DOMContentLoaded', function() {
         el.style.cursor = 'pointer';
         el.title = 'Click to toggle masking';
         el.addEventListener('click', function() {
-            var full = this.dataset.full;
+            var contactId = this.dataset.contactId;
             var masked = this.dataset.masked;
-            this.textContent = this.textContent === masked ? full : masked;
+            if (this.textContent.trim() === masked) {
+                var contact = contactsData.find(function(c) { return c.id === contactId; });
+                if (contact) this.textContent = contact.mobile;
+            } else {
+                this.textContent = masked;
+            }
         });
     });
 });
@@ -1139,33 +1144,33 @@ function sortContacts(sortKey, direction) {
 function renderContactsTable(contacts) {
     const tbody = document.getElementById('contactsTableBody');
     tbody.innerHTML = contacts.map(contact => `
-        <tr class="btn-reveal-trigger" data-contact-id="${contact.id}" data-first-name="${contact.firstName || ''}" data-last-name="${contact.lastName || ''}" data-mobile="${contact.mobile || ''}" data-status="${contact.status || 'active'}" data-list-scope="${contact.listScope || ''}">
+        <tr class="btn-reveal-trigger" data-contact-id="${escapeHtml(contact.id)}" data-first-name="${escapeHtml(contact.firstName || '')}" data-last-name="${escapeHtml(contact.lastName || '')}" data-status="${escapeHtml(contact.status || 'active')}" data-list-scope="${escapeHtml(contact.listScope || '')}">
             <td class="py-2">
                 <div class="form-check custom-checkbox">
-                    <input type="checkbox" class="form-check-input contact-checkbox" id="checkbox${contact.id}">
-                    <label class="form-check-label" for="checkbox${contact.id}"></label>
+                    <input type="checkbox" class="form-check-input contact-checkbox" id="checkbox${escapeHtml(contact.id)}">
+                    <label class="form-check-label" for="checkbox${escapeHtml(contact.id)}"></label>
                 </div>
             </td>
             <td class="py-2">
                 <div class="d-flex align-items-center">
                     <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px; font-size: 14px; font-weight: 600;">
-                        ${contact.initials}
+                        ${escapeHtml(contact.initials)}
                     </div>
                     <div>
-                        <h6 class="mb-0 fs-6">${contact.first_name} ${contact.last_name}</h6>
+                        <h6 class="mb-0 fs-6">${escapeHtml(contact.first_name)} ${escapeHtml(contact.last_name)}</h6>
                     </div>
                 </div>
             </td>
             <td class="py-2">
-                <span class="mobile-number" data-full="${contact.mobile}" data-masked="${contact.mobile_masked}" style="cursor: pointer;" title="Click to toggle masking">
-                    ${contact.mobile_masked}
+                <span class="mobile-number" data-contact-id="${escapeHtml(contact.id)}" data-masked="${escapeHtml(contact.mobile_masked)}" style="cursor: pointer;" title="Click to toggle masking">
+                    ${escapeHtml(contact.mobile_masked)}
                 </span>
             </td>
             <td class="py-2">
-                ${contact.tags.map(tag => `<span class="badge badge-pastel-secondary me-1">${tag}</span>`).join('')}
+                ${contact.tags.map(tag => `<span class="badge badge-pastel-secondary me-1">${escapeHtml(tag)}</span>`).join('')}
             </td>
             <td class="py-2">
-                ${contact.lists.map(list => `<span class="badge badge-pastel-pink me-1">${list}</span>`).join('')}
+                ${contact.lists.map(list => `<span class="badge badge-pastel-pink me-1">${escapeHtml(list)}</span>`).join('')}
             </td>
             <td class="py-2">
                 ${contact.status === 'active' 
@@ -1226,9 +1231,14 @@ function renderContactsTable(contacts) {
     
     document.querySelectorAll('.mobile-number').forEach(el => {
         el.addEventListener('click', function() {
-            const full = this.dataset.full;
+            const contactId = this.dataset.contactId;
             const masked = this.dataset.masked;
-            this.textContent = this.textContent === masked ? full : masked;
+            if (this.textContent.trim() === masked) {
+                const contact = contactsData.find(c => c.id === contactId);
+                if (contact) this.textContent = contact.mobile;
+            } else {
+                this.textContent = masked;
+            }
         });
     });
 }
@@ -1247,13 +1257,13 @@ function viewContact(id) {
     document.getElementById('viewContactSource').textContent = contact.source;
     document.getElementById('viewContactCreated').textContent = contact.created_at;
     
-    var tagsHtml = contact.tags.length > 0 
-        ? contact.tags.map(t => '<span class="badge badge-pastel-secondary me-1">' + t + '</span>').join('') 
+    var tagsHtml = contact.tags.length > 0
+        ? contact.tags.map(t => '<span class="badge badge-pastel-secondary me-1">' + escapeHtml(t) + '</span>').join('')
         : '<span class="text-muted">No tags</span>';
     document.getElementById('viewContactTags').innerHTML = tagsHtml;
-    
-    var listsHtml = contact.lists.length > 0 
-        ? contact.lists.map(l => '<span class="badge badge-pastel-pink me-1">' + l + '</span>').join('') 
+
+    var listsHtml = contact.lists.length > 0
+        ? contact.lists.map(l => '<span class="badge badge-pastel-pink me-1">' + escapeHtml(l) + '</span>').join('')
         : '<span class="text-muted">No lists</span>';
     document.getElementById('viewContactLists').innerHTML = listsHtml;
     
@@ -1301,8 +1311,8 @@ function loadViewContactTimeline(contactId, container) {
             html += '<div class="d-flex align-items-start mb-2 pb-2 border-bottom">';
             html += '<div class="me-2 mt-1"><i class="' + icon + '" style="color:' + iconColor + '; font-size: 0.75rem;"></i></div>';
             html += '<div class="flex-grow-1">';
-            html += '<p class="mb-0 small">' + (evt.description || evt.event_type) + '</p>';
-            html += '<small class="text-muted">' + dateStr + '</small>';
+            html += '<p class="mb-0 small">' + escapeHtml(evt.description || evt.event_type) + '</p>';
+            html += '<small class="text-muted">' + escapeHtml(dateStr) + '</small>';
             html += '</div></div>';
         });
         html += '</div>';
@@ -1770,7 +1780,7 @@ function bulkDelete() {
     
     document.getElementById('bulkDeleteCount').textContent = ids.length;
     var contactListHtml = names.slice(0, 10).map(function(name) {
-        return '<li class="py-1">' + name + '</li>';
+        return '<li class="py-1">' + escapeHtml(name) + '</li>';
     }).join('');
     if (names.length > 10) {
         contactListHtml += '<li class="py-1 text-muted">...and ' + (names.length - 10) + ' more</li>';
@@ -1889,7 +1899,7 @@ function showSuccessModal(title, message) {
     console.log('[Modal] showSuccessModal called:', title, message);
     
     var successModalEl = document.getElementById('successModal');
-    document.getElementById('successModalTitle').innerHTML = '<i class="fas fa-check-circle me-2"></i>' + title;
+    document.getElementById('successModalTitle').innerHTML = '<i class="fas fa-check-circle me-2"></i>' + escapeHtml(title);
     document.getElementById('successModalMessage').textContent = message;
     
     // Dispose old instance if exists to ensure clean state
@@ -1908,7 +1918,7 @@ function showErrorModal(title, message) {
     console.log('[Modal] showErrorModal called:', title, message);
     
     var errorModalEl = document.getElementById('errorModal');
-    document.getElementById('errorModalTitle').innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + title;
+    document.getElementById('errorModalTitle').innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + escapeHtml(title);
     document.getElementById('errorModalMessage').textContent = message;
     
     // Dispose old instance if exists to ensure clean state
@@ -1942,7 +1952,7 @@ function showToast(message, type) {
     var toastId = 'toast_' + Date.now();
     var toastHtml = '<div id="' + toastId + '" style="background-color: ' + bgColor + '; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); display: flex; align-items: center; gap: 10px; min-width: 280px; animation: slideIn 0.3s ease;">' +
         '<i class="fas ' + icon + '"></i>' +
-        '<span style="flex: 1;">' + message + '</span>' +
+        '<span style="flex: 1;">' + escapeHtml(message) + '</span>' +
         '<span style="cursor: pointer; opacity: 0.8;" onclick="this.parentElement.remove()">&times;</span>' +
         '</div>';
     
@@ -1976,7 +1986,7 @@ function bulkSendMessage() {
     
     document.getElementById('sendMessageContactCount').textContent = ids.length;
     var contactListHtml = names.map(function(name) {
-        return '<li class="py-1">' + name + '</li>';
+        return '<li class="py-1">' + escapeHtml(name) + '</li>';
     }).join('');
     document.getElementById('sendMessageContactList').innerHTML = contactListHtml;
     
@@ -2137,7 +2147,7 @@ function performExport() {
 function bulkDelete() {
     var ids = getSelectedContactIds();
     var names = getSelectedContactNames();
-    var nameList = names.length <= 5 ? names.join(', ') : names.slice(0, 5).join(', ') + ' and ' + (names.length - 5) + ' more';
+    var nameList = names.length <= 5 ? names.map(n => escapeHtml(n)).join(', ') : names.slice(0, 5).map(n => escapeHtml(n)).join(', ') + ' and ' + (names.length - 5) + ' more';
 
     showConfirmModal(
         'Delete Contacts',
@@ -2701,11 +2711,11 @@ function renderCustomFields() {
     
     container.innerHTML = customFieldDefinitions.map(field => `
         <div class="col-md-6">
-            <label class="form-label">${field.name}</label>
-            ${field.type === 'text' ? `<input type="text" class="form-control" id="custom_${field.slug}" placeholder="${field.defaultValue || ''}">` : ''}
-            ${field.type === 'number' ? `<input type="number" class="form-control" id="custom_${field.slug}">` : ''}
-            ${field.type === 'date' ? `<input type="date" class="form-control" id="custom_${field.slug}">` : ''}
-            ${field.type === 'dropdown' ? `<select class="form-select" id="custom_${field.slug}"><option value="">Select...</option>${(field.options || []).map(o => `<option value="${o}">${o}</option>`).join('')}</select>` : ''}
+            <label class="form-label">${escapeHtml(field.name)}</label>
+            ${field.type === 'text' ? `<input type="text" class="form-control" id="custom_${escapeHtml(field.slug)}" placeholder="${escapeHtml(field.defaultValue || '')}">` : ''}
+            ${field.type === 'number' ? `<input type="number" class="form-control" id="custom_${escapeHtml(field.slug)}">` : ''}
+            ${field.type === 'date' ? `<input type="date" class="form-control" id="custom_${escapeHtml(field.slug)}">` : ''}
+            ${field.type === 'dropdown' ? `<select class="form-select" id="custom_${escapeHtml(field.slug)}"><option value="">Select...</option>${(field.options || []).map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}</select>` : ''}
         </div>
     `).join('');
 }
@@ -2735,8 +2745,8 @@ function renderCustomFieldsList() {
             <tbody>
                 ${customFieldDefinitions.map(field => `
                     <tr>
-                        <td>${field.name}</td>
-                        <td><span class="badge bg-light text-dark">${field.type}</span></td>
+                        <td>${escapeHtml(field.name)}</td>
+                        <td><span class="badge bg-light text-dark">${escapeHtml(field.type)}</span></td>
                         <td class="text-end">
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteCustomField(${field.id})">
                                 <i class="fas fa-trash"></i>
@@ -3584,8 +3594,8 @@ function buildColumnMappingUI(headerRow, sampleRow, allDataRows, hasHeaders) {
 
         var sampleVal = (samples[idx] !== undefined && samples[idx] !== null) ? String(samples[idx]) : '';
         var row = document.createElement('tr');
-        row.innerHTML = '<td><strong>' + col + '</strong></td>' +
-            '<td class="text-muted small">' + sampleVal + '</td>' +
+        row.innerHTML = '<td><strong>' + escapeHtml(col) + '</strong></td>' +
+            '<td class="text-muted small">' + escapeHtml(sampleVal) + '</td>' +
             '<td><div class="d-flex gap-2 align-items-center">' +
             '<select class="form-select form-select-sm column-mapping" data-column="' + idx + '" onchange="handleMappingChange(this)">' +
             mappingOptions + '</select>' +
@@ -3847,9 +3857,9 @@ function simulateValidation() {
         tbody.innerHTML = '';
         invalidRows.forEach(function(item) {
             var row = document.createElement('tr');
-            row.innerHTML = '<td>' + item.row + '</td>' +
-                '<td class="text-muted">' + item.value + '</td>' +
-                '<td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">' + item.reason + '</span></td>';
+            row.innerHTML = '<td>' + escapeHtml(String(item.row)) + '</td>' +
+                '<td class="text-muted">' + escapeHtml(item.value) + '</td>' +
+                '<td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">' + escapeHtml(item.reason) + '</span></td>';
             tbody.appendChild(row);
         });
     } else {
@@ -4339,19 +4349,19 @@ function renderTimelineEvents(events) {
                     '<div class="d-flex justify-content-between align-items-center mb-1">' +
                         '<div class="d-flex align-items-center flex-wrap gap-1">' +
                             getSourcePillHtml(event.source_module) +
-                            (metadata.channel_label ? '<span class="badge badge-pastel-secondary me-1">' + metadata.channel_label + '</span>' : '') +
-                            '<span class="fw-medium small">' + (ui.title || event.event_type) + '</span>' +
+                            (metadata.channel_label ? '<span class="badge badge-pastel-secondary me-1">' + escapeHtml(metadata.channel_label) + '</span>' : '') +
+                            '<span class="fw-medium small">' + escapeHtml(ui.title || event.event_type) + '</span>' +
                         '</div>' +
-                        '<small class="text-muted flex-shrink-0 ms-2">' + (ui.formattedDate || '') + '</small>' +
+                        '<small class="text-muted flex-shrink-0 ms-2">' + escapeHtml(ui.formattedDate || '') + '</small>' +
                     '</div>' +
-                    '<p class="mb-0 text-muted small text-truncate' + (isBlocked ? ' text-danger' : '') + '">' + (ui.summary || '') + '</p>' +
+                    '<p class="mb-0 text-muted small text-truncate' + (isBlocked ? ' text-danger' : '') + '">' + escapeHtml(ui.summary || '') + '</p>' +
                     '<div class="mt-1">' +
                         '<a class="small text-primary text-decoration-none" data-bs-toggle="collapse" href="#' + eventId + '" role="button" aria-expanded="false">' +
                             '<i class="fas fa-chevron-down me-1" style="font-size: 0.6rem;"></i>Details' +
                         '</a>' +
                         '<div class="collapse mt-2" id="' + eventId + '">' +
                             '<div class="small rounded p-2" style="background-color: #f0ebf8;">' +
-                                '<div class="mb-1" style="color: #000;"><strong>Actor:</strong> ' + (event.actor_name || 'System') + ' (' + event.actor_type + ')</div>' +
+                                '<div class="mb-1" style="color: #000;"><strong>Actor:</strong> ' + escapeHtml(event.actor_name || 'System') + ' (' + escapeHtml(event.actor_type) + ')</div>' +
                                 (ui.details || '') +
                                 renderTimelineActions(actions) +
                             '</div>' +

@@ -145,7 +145,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <a href="#!" onclick="viewTaggedContacts('{{ $tag['id'] }}', '{{ $tag['name'] }}')" class="text-decoration-none">
+                                        <a href="#!" onclick="viewTaggedContacts({{ Js::from($tag['id']) }}, {{ Js::from($tag['name']) }})" class="text-decoration-none">
                                             <span class="badge badge-pastel-secondary">
                                                 <i class="fas fa-users me-1"></i>{{ number_format($tag['contact_count']) }}
                                             </span>
@@ -169,17 +169,17 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end border py-0">
                                                 <div class="dropdown-content">
-                                                    <a class="dropdown-item" href="#!" onclick="viewTaggedContacts('{{ $tag['id'] }}', '{{ $tag['name'] }}')">
+                                                    <a class="dropdown-item" href="#!" onclick="viewTaggedContacts({{ Js::from($tag['id']) }}, {{ Js::from($tag['name']) }})">
                                                         <i class="fas fa-users me-2 text-dark"></i>View Contacts
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="editTag('{{ $tag['id'] }}', '{{ $tag['name'] }}', '{{ $tag['color'] }}')">
+                                                    <a class="dropdown-item" href="#!" onclick="editTag({{ Js::from($tag['id']) }}, {{ Js::from($tag['name']) }}, {{ Js::from($tag['color']) }})">
                                                         <i class="fas fa-edit me-2 text-dark"></i>Edit Tag
                                                     </a>
-                                                    <a class="dropdown-item" href="#!" onclick="mergeTag('{{ $tag['id'] }}', '{{ $tag['name'] }}')">
+                                                    <a class="dropdown-item" href="#!" onclick="mergeTag({{ Js::from($tag['id']) }}, {{ Js::from($tag['name']) }})">
                                                         <i class="fas fa-compress-arrows-alt me-2 text-dark"></i>Merge Into...
                                                     </a>
                                                     <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteTag('{{ $tag['id'] }}', '{{ $tag['name'] }}', {{ $tag['contact_count'] }})">
+                                                    <a class="dropdown-item text-danger" href="#!" onclick="deleteTag({{ Js::from($tag['id']) }}, {{ Js::from($tag['name']) }}, {{ Js::from($tag['contact_count']) }})">
                                                         <i class="fas fa-trash me-2"></i>Delete Tag
                                                     </a>
                                                 </div>
@@ -690,8 +690,8 @@ function confirmMergeTag() {
         document.getElementById('mergeTagModal').removeEventListener('hidden.bs.modal', onHidden);
         
         // Show confirmation modal
-        document.getElementById('mergeConfirmMessage').innerHTML = 
-            'Merge "<strong>' + pendingMergeData.sourceName + '</strong>" into "<strong>' + pendingMergeData.targetName + '</strong>"?';
+        document.getElementById('mergeConfirmMessage').innerHTML =
+            'Merge "<strong>' + escapeHtml(pendingMergeData.sourceName) + '</strong>" into "<strong>' + escapeHtml(pendingMergeData.targetName) + '</strong>"?';
         
         var confirmModal = new bootstrap.Modal(document.getElementById('mergeConfirmModal'));
         confirmModal.show();
@@ -745,12 +745,12 @@ var pendingDeleteTag = null;
 function deleteTag(id, name, contactCount) {
     pendingDeleteTag = { id: id, name: name, contactCount: contactCount };
     
-    document.getElementById('deleteTagConfirmMessage').innerHTML = 
-        'Are you sure you want to delete the tag "<strong>' + name + '</strong>"?';
-    
+    document.getElementById('deleteTagConfirmMessage').innerHTML =
+        'Are you sure you want to delete the tag "<strong>' + escapeHtml(name) + '</strong>"?';
+
     if (contactCount > 0) {
-        document.getElementById('deleteTagContactWarning').innerHTML = 
-            'This tag is applied to <strong>' + contactCount.toLocaleString() + '</strong> contact(s). The tag will be removed from all contacts.';
+        document.getElementById('deleteTagContactWarning').innerHTML =
+            'This tag is applied to <strong>' + escapeHtml(String(contactCount.toLocaleString())) + '</strong> contact(s). The tag will be removed from all contacts.';
     } else {
         document.getElementById('deleteTagContactWarning').textContent = '';
     }
@@ -802,10 +802,13 @@ function viewTaggedContacts(id, name) {
                 var mobile = contact.mobile_display || contact.msisdn || '';
                 var row = document.createElement('tr');
                 row.innerHTML =
-                    '<td style="color: #000;">' + displayName + '</td>' +
-                    '<td style="color: #000;">' + mobile + '</td>' +
-                    '<td style="color: #000;">' + (contact.created_at ? contact.created_at.substring(0, 10) : '') + '</td>' +
-                    '<td class="text-end"><button class="btn btn-sm btn-outline-danger" onclick="removeTagFromContact(\'' + contact.id + '\', \'' + name.replace(/'/g, "\\'") + '\')"><i class="fas fa-times"></i> Remove</button></td>';
+                    '<td style="color: #000;">' + escapeHtml(displayName) + '</td>' +
+                    '<td style="color: #000;">' + escapeHtml(mobile) + '</td>' +
+                    '<td style="color: #000;">' + escapeHtml(contact.created_at ? contact.created_at.substring(0, 10) : '') + '</td>' +
+                    '<td class="text-end"><button class="btn btn-sm btn-outline-danger" data-contact-id="' + escapeHtml(String(contact.id)) + '" data-tag-name="' + escapeHtml(name) + '"><i class="fas fa-times"></i> Remove</button></td>';
+                row.querySelector('button').addEventListener('click', function() {
+                    removeTagFromContact(this.getAttribute('data-contact-id'), this.getAttribute('data-tag-name'));
+                });
                 tbody.appendChild(row);
             });
         }
@@ -875,7 +878,7 @@ function showToast(message, type) {
     var toastId = 'toast_' + Date.now();
     var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + ';">' +
         '<div class="d-flex">' +
-        '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + message + '</div>' +
+        '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + escapeHtml(message) + '</div>' +
         '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
         '</div></div>';
     

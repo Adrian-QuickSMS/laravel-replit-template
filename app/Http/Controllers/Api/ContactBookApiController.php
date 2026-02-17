@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Contact Book API Controller
@@ -24,9 +25,21 @@ use Illuminate\Support\Facades\Log;
  * - List CRUD + member management
  * - Opt-out list CRUD + record management
  * - Timeline retrieval
+ *
+ * SECURITY: All methods rely on two layers of tenant isolation:
+ * 1. Eloquent global scopes (session-based tenant filtering)
+ * 2. PostgreSQL RLS (fail-closed — zero rows if tenant not set)
  */
 class ContactBookApiController extends Controller
 {
+    /**
+     * Resolve the current tenant ID from session.
+     */
+    private function tenantId(): string
+    {
+        return session('customer_tenant_id');
+    }
+
     // =====================================================
     // CONTACTS
     // =====================================================
@@ -54,8 +67,8 @@ class ContactBookApiController extends Controller
             $query->whereHas('lists', fn($q) => $q->where('name', $request->input('list')));
         }
 
-        $contacts = $query->orderBy('created_at', 'desc')
-            ->paginate($request->input('per_page', 25));
+        $perPage = min((int) $request->input('per_page', 25), 100);
+        $contacts = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         return response()->json([
             'data' => $contacts->getCollection()->map(fn($c) => $c->toPortalArray()),
@@ -68,31 +81,21 @@ class ContactBookApiController extends Controller
 
     public function contactsShow(string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $contact = DB::table('contacts')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->first();
+        $contact = Contact::with(['tags', 'lists'])->find($id);
 
         if (!$contact) {
             return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
         }
 
-        $tags = DB::table('tags')
-            ->join('contact_tag', 'tags.id', '=', 'contact_tag.tag_id')
-            ->where('contact_tag.contact_id', $id)
-            ->select('tags.*')
-            ->get();
-
-        $lists = DB::table('contact_lists')
-            ->join('contact_list_member', 'contact_lists.id', '=', 'contact_list_member.list_id')
-            ->where('contact_list_member.contact_id', $id)
-            ->select('contact_lists.*')
-            ->get();
-
-        $data = (array) $contact;
-        $data['tags'] = $tags->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'color' => $t->color])->toArray();
-        $data['lists'] = $lists->map(fn($l) => ['id' => $l->id, 'name' => $l->name])->toArray();
+        $data = $contact->toPortalArray();
+        $data['tags'] = $contact->tags->map(fn($t) => ['id' => $t->id, 'name' => $t->name, 'color' => $t->color])->toArray();
+        $data['lists'] = $contact->lists->map(fn($l) => ['id' => $l->id, 'name' => $l->name])->toArray();
+        $data['custom_data'] = $contact->custom_data;
+        $data['date_of_birth'] = $contact->date_of_birth?->format('Y-m-d');
+        $data['postcode'] = $contact->postcode;
+        $data['city'] = $contact->city;
+        $data['country'] = $contact->country;
+        $data['mobile_number'] = $contact->mobile_number;
 
         return response()->json(['data' => $data]);
     }
@@ -112,7 +115,7 @@ class ContactBookApiController extends Controller
             'custom_data' => 'nullable|array',
         ]);
 
-        $validated['account_id'] = session('customer_tenant_id');
+        $validated['account_id'] = $this->tenantId();
         $validated['created_by'] = session('customer_email', session('customer_user_id'));
 
         $contact = Contact::create($validated);
@@ -123,13 +126,9 @@ class ContactBookApiController extends Controller
 
     public function contactsUpdate(Request $request, string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $contactExists = DB::table('contacts')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->exists();
+        $contact = Contact::find($id);
 
-        if (!$contactExists) {
+        if (!$contact) {
             return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
         }
 
@@ -146,33 +145,25 @@ class ContactBookApiController extends Controller
             'custom_data' => 'nullable|array',
         ]);
 
-        if (isset($validated['custom_data'])) {
-            $validated['custom_data'] = json_encode($validated['custom_data']);
-        }
         $validated['updated_by'] = session('customer_email', session('customer_user_id'));
-        $validated['updated_at'] = now();
 
-        DB::table('contacts')->where('id', $id)->update($validated);
+        $contact->update($validated);
+        $contact->load(['tags', 'lists']);
 
-        $contact = DB::table('contacts')->where('id', $id)->first();
-        return response()->json(['data' => (array) $contact]);
+        return response()->json(['data' => $contact->toPortalArray()]);
     }
 
     public function contactsDestroy(string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $contactExists = DB::table('contacts')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->exists();
+        $contact = Contact::find($id);
 
-        if (!$contactExists) {
+        if (!$contact) {
             return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
         }
 
-        DB::table('contact_tag')->where('contact_id', $id)->delete();
-        DB::table('contact_list_member')->where('contact_id', $id)->delete();
-        DB::table('contacts')->where('id', $id)->delete();
+        // Soft-delete via Eloquent (preserves record with deleted_at timestamp)
+        $contact->delete();
+
         return response()->json(['success' => true, 'message' => 'Contact deleted']);
     }
 
@@ -185,36 +176,35 @@ class ContactBookApiController extends Controller
         $request->validate([
             'contact_ids' => 'required|array|min:1',
             'contact_ids.*' => 'uuid',
-            'list_name' => 'required|string',
+            'list_name' => 'required|string|max:255',
         ]);
 
-        $accountId = session('customer_tenant_id');
         $list = ContactList::where('name', $request->input('list_name'))->firstOrFail();
 
+        // Verify contact_ids belong to current tenant via global scope
         $contactIds = Contact::whereIn('id', $request->input('contact_ids'))->pluck('id');
 
         $inserted = 0;
-        foreach ($contactIds as $contactId) {
-            $exists = DB::table('contact_list_member')
-                ->where('contact_id', $contactId)
-                ->where('list_id', $list->id)
-                ->exists();
-
-            if (!$exists) {
-                DB::table('contact_list_member')->insert([
-                    'contact_id' => $contactId,
-                    'list_id' => $list->id,
-                    'created_at' => now(),
-                ]);
-                $inserted++;
+        DB::transaction(function () use ($contactIds, $list, &$inserted) {
+            foreach ($contactIds as $contactId) {
+                $wasInserted = DB::statement(
+                    "INSERT INTO contact_list_member (contact_id, list_id, created_at) VALUES (?, ?, NOW()) ON CONFLICT DO NOTHING",
+                    [$contactId, $list->id]
+                );
+                // ON CONFLICT DO NOTHING returns true but doesn't tell us if row was inserted
+                // Count via affected rows is not reliable with ON CONFLICT, so count after
             }
-        }
+            $inserted = DB::table('contact_list_member')
+                ->where('list_id', $list->id)
+                ->whereIn('contact_id', $contactIds)
+                ->count();
+        });
 
         $list->refreshContactCount();
 
         return response()->json([
             'success' => true,
-            'message' => "Added {$inserted} contact(s) to \"{$list->name}\"",
+            'message' => "Added contact(s) to \"{$list->name}\"",
             'affectedCount' => $inserted,
         ]);
     }
@@ -224,7 +214,7 @@ class ContactBookApiController extends Controller
         $request->validate([
             'contact_ids' => 'required|array|min:1',
             'contact_ids.*' => 'uuid',
-            'list_name' => 'required|string',
+            'list_name' => 'required|string|max:255',
         ]);
 
         $list = ContactList::where('name', $request->input('list_name'))->firstOrFail();
@@ -249,45 +239,39 @@ class ContactBookApiController extends Controller
             'contact_ids' => 'required|array|min:1',
             'contact_ids.*' => 'uuid',
             'tags' => 'required|array|min:1',
-            'tags.*' => 'string',
+            'tags.*' => 'string|max:100',
         ]);
 
-        $accountId = session('customer_tenant_id');
+        $accountId = $this->tenantId();
+        // Verify contact_ids belong to current tenant via global scope
         $contactIds = Contact::whereIn('id', $request->input('contact_ids'))->pluck('id');
         $affectedCount = 0;
 
-        foreach ($request->input('tags') as $tagName) {
-            $tag = Tag::firstOrCreate(
-                ['account_id' => $accountId, 'name' => $tagName],
-                ['color' => '#6366f1']
-            );
+        DB::transaction(function () use ($request, $accountId, $contactIds, &$affectedCount) {
+            foreach ($request->input('tags') as $tagName) {
+                $tag = Tag::firstOrCreate(
+                    ['account_id' => $accountId, 'name' => $tagName],
+                    ['color' => '#6366f1']
+                );
 
-            foreach ($contactIds as $contactId) {
-                $exists = DB::table('contact_tag')
-                    ->where('contact_id', $contactId)
-                    ->where('tag_id', $tag->id)
-                    ->exists();
-
-                if (!$exists) {
-                    DB::table('contact_tag')->insert([
-                        'contact_id' => $contactId,
-                        'tag_id' => $tag->id,
-                        'created_at' => now(),
-                    ]);
-                    $affectedCount++;
+                foreach ($contactIds as $contactId) {
+                    DB::statement(
+                        "INSERT INTO contact_tag (contact_id, tag_id, created_at) VALUES (?, ?, NOW()) ON CONFLICT DO NOTHING",
+                        [$contactId, $tag->id]
+                    );
                 }
-            }
 
-            $tag->update(['last_used' => now()]);
-            $tag->refreshContactCount();
-        }
+                $tag->update(['last_used' => now()]);
+                $tag->refreshContactCount();
+            }
+        });
 
         $tagNames = implode(', ', $request->input('tags'));
 
         return response()->json([
             'success' => true,
             'message' => "Added tag(s) \"{$tagNames}\" to {$contactIds->count()} contact(s)",
-            'affectedCount' => $affectedCount,
+            'affectedCount' => $contactIds->count(),
         ]);
     }
 
@@ -297,16 +281,24 @@ class ContactBookApiController extends Controller
             'contact_ids' => 'required|array|min:1',
             'contact_ids.*' => 'uuid',
             'tags' => 'required|array|min:1',
-            'tags.*' => 'string',
+            'tags.*' => 'string|max:100',
         ]);
 
-        $tagIds = Tag::whereIn('name', $request->input('tags'))->pluck('id');
+        // Verify contact_ids belong to current tenant via global scope
+        $verifiedContactIds = Contact::whereIn('id', $request->input('contact_ids'))->pluck('id');
+
+        $tags = Tag::whereIn('name', $request->input('tags'))->get();
+        $tagIds = $tags->pluck('id');
+
         $deleted = DB::table('contact_tag')
-            ->whereIn('contact_id', $request->input('contact_ids'))
+            ->whereIn('contact_id', $verifiedContactIds)
             ->whereIn('tag_id', $tagIds)
             ->delete();
 
-        Tag::whereIn('id', $tagIds)->each(fn($tag) => $tag->refreshContactCount());
+        // Batch refresh counts
+        foreach ($tags as $tag) {
+            $tag->refreshContactCount();
+        }
 
         $tagNames = implode(', ', $request->input('tags'));
 
@@ -324,6 +316,7 @@ class ContactBookApiController extends Controller
             'contact_ids.*' => 'uuid',
         ]);
 
+        // Eloquent soft-delete — global scope ensures tenant isolation
         $deleted = Contact::whereIn('id', $request->input('contact_ids'))->delete();
 
         return response()->json([
@@ -342,11 +335,13 @@ class ContactBookApiController extends Controller
             'format' => 'nullable|string|in:csv,xlsx',
         ]);
 
-        // For now, return a placeholder — actual export generation would be a queued job
+        // Verify contact_ids belong to current tenant
+        $count = Contact::whereIn('id', $request->input('contact_ids'))->count();
+
         return response()->json([
             'success' => true,
-            'message' => 'Export of ' . count($request->input('contact_ids')) . ' contact(s) initiated',
-            'affectedCount' => count($request->input('contact_ids')),
+            'message' => "Export of {$count} contact(s) initiated",
+            'affectedCount' => $count,
         ]);
     }
 
@@ -367,7 +362,7 @@ class ContactBookApiController extends Controller
             'color' => 'nullable|string|max:7',
         ]);
 
-        $validated['account_id'] = session('customer_tenant_id');
+        $validated['account_id'] = $this->tenantId();
 
         $tag = Tag::create($validated);
         return response()->json(['data' => $tag->toPortalArray()], 201);
@@ -375,13 +370,9 @@ class ContactBookApiController extends Controller
 
     public function tagsUpdate(Request $request, string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $tagExists = DB::table('tags')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->exists();
+        $tag = Tag::find($id);
 
-        if (!$tagExists) {
+        if (!$tag) {
             return response()->json(['status' => 'error', 'message' => 'Tag not found'], 404);
         }
 
@@ -390,30 +381,24 @@ class ContactBookApiController extends Controller
             'color' => 'nullable|string|max:7',
         ]);
 
-        DB::table('tags')->where('id', $id)->update($validated);
+        $tag->update($validated);
 
-        $tag = DB::table('tags')->where('id', $id)->first();
-        return response()->json(['data' => [
-            'id' => $tag->id,
-            'name' => $tag->name,
-            'color' => $tag->color,
-        ]]);
+        return response()->json(['data' => $tag->toPortalArray()]);
     }
 
     public function tagsDestroy(string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $tagExists = DB::table('tags')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->exists();
+        $tag = Tag::find($id);
 
-        if (!$tagExists) {
+        if (!$tag) {
             return response()->json(['status' => 'error', 'message' => 'Tag not found'], 404);
         }
 
-        DB::table('contact_tag')->where('tag_id', $id)->delete();
-        DB::table('tags')->where('id', $id)->delete();
+        DB::transaction(function () use ($tag) {
+            DB::table('contact_tag')->where('tag_id', $tag->id)->delete();
+            $tag->delete();
+        });
+
         return response()->json(['success' => true, 'message' => 'Tag deleted']);
     }
 
@@ -431,164 +416,143 @@ class ContactBookApiController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:1000',
             'rules' => 'nullable|array',
+            'contact_ids' => 'nullable|array',
+            'contact_ids.*' => 'uuid',
         ]);
 
-        $validated['account_id'] = session('customer_tenant_id');
+        $accountId = $this->tenantId();
+        $validated['account_id'] = $accountId;
 
         $existing = ContactList::where('name', $validated['name'])->first();
         if ($existing) {
             return response()->json(['status' => 'error', 'message' => 'A list with this name already exists. Please choose a different name.'], 422);
         }
 
-        $listId = (string) \Illuminate\Support\Str::uuid();
-        $validated['id'] = $listId;
+        $list = DB::transaction(function () use ($validated, $request) {
+            $listId = (string) Str::uuid();
+            $validated['id'] = $listId;
 
-        $list = ContactList::create($validated);
+            $list = ContactList::create($validated);
 
-        if ($request->filled('rules')) {
-            DB::statement("UPDATE contact_lists SET type = 'dynamic' WHERE id = ?", [$listId]);
-        }
-
-        if ($request->filled('contact_ids') && is_array($request->input('contact_ids'))) {
-            foreach ($request->input('contact_ids') as $contactId) {
-                $memberExists = DB::table('contact_list_member')
-                    ->where('contact_id', $contactId)
-                    ->where('list_id', $listId)
-                    ->exists();
-                if (!$memberExists) {
-                    DB::table('contact_list_member')->insert([
-                        'contact_id' => $contactId,
-                        'list_id' => $listId,
-                        'created_at' => now(),
-                    ]);
-                }
+            if ($request->filled('rules')) {
+                DB::statement("UPDATE contact_lists SET type = 'dynamic' WHERE id = ?", [$listId]);
             }
-            DB::table('contact_lists')
-                ->where('id', $listId)
-                ->update(['contact_count' => DB::table('contact_list_member')->where('list_id', $listId)->count()]);
-        }
 
-        $freshList = ContactList::withoutGlobalScopes()->find($listId);
-        return response()->json(['data' => ($freshList ? $freshList->toPortalArray() : $list->toPortalArray())], 201);
+            if (!empty($validated['contact_ids'])) {
+                // Verify contact_ids belong to current tenant
+                $verifiedIds = Contact::whereIn('id', $validated['contact_ids'])->pluck('id');
+
+                foreach ($verifiedIds as $contactId) {
+                    DB::statement(
+                        "INSERT INTO contact_list_member (contact_id, list_id, created_at) VALUES (?, ?, NOW()) ON CONFLICT DO NOTHING",
+                        [$contactId, $listId]
+                    );
+                }
+
+                $list->update([
+                    'contact_count' => DB::table('contact_list_member')->where('list_id', $listId)->count(),
+                ]);
+            }
+
+            return $list->fresh();
+        });
+
+        return response()->json(['data' => $list->toPortalArray()], 201);
     }
 
     public function listsUpdate(Request $request, string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $listExists = DB::table('contact_lists')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->exists();
+        $list = ContactList::find($id);
 
-        if (!$listExists) {
+        if (!$list) {
             return response()->json(['status' => 'error', 'message' => 'List not found'], 404);
         }
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:1000',
             'rules' => 'nullable|array',
         ]);
 
-        if (isset($validated['rules'])) {
-            $validated['rules'] = json_encode($validated['rules']);
-        }
+        $list->update($validated);
 
-        DB::table('contact_lists')->where('id', $id)->update($validated);
-
-        $list = DB::table('contact_lists')->where('id', $id)->first();
-        return response()->json(['data' => [
-            'id' => $list->id,
-            'name' => $list->name,
-            'description' => $list->description,
-        ]]);
+        return response()->json(['data' => $list->toPortalArray()]);
     }
 
     public function listsDestroy(string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $listExists = DB::table('contact_lists')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->exists();
+        $list = ContactList::find($id);
 
-        if (!$listExists) {
+        if (!$list) {
             return response()->json(['status' => 'error', 'message' => 'List not found'], 404);
         }
 
-        DB::table('contact_list_member')->where('list_id', $id)->delete();
-        DB::table('contact_lists')->where('id', $id)->delete();
+        DB::transaction(function () use ($list) {
+            DB::table('contact_list_member')->where('list_id', $list->id)->delete();
+            $list->delete();
+        });
+
         return response()->json(['success' => true, 'message' => 'List deleted']);
     }
 
     public function listsAddMembers(Request $request, string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $listExists = DB::table('contact_lists')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->exists();
+        $list = ContactList::find($id);
 
-        if (!$listExists) {
+        if (!$list) {
             return response()->json(['status' => 'error', 'message' => 'List not found'], 404);
         }
 
         $request->validate([
             'contact_ids' => 'required|array|min:1',
-            'contact_ids.*' => 'string',
+            'contact_ids.*' => 'uuid',
         ]);
 
-        $inserted = 0;
-        foreach ($request->input('contact_ids') as $contactId) {
-            $exists = DB::table('contact_list_member')
-                ->where('contact_id', $contactId)
-                ->where('list_id', $id)
-                ->exists();
+        // Verify contact_ids belong to current tenant
+        $verifiedIds = Contact::whereIn('id', $request->input('contact_ids'))->pluck('id');
 
-            if (!$exists) {
-                DB::table('contact_list_member')->insert([
-                    'contact_id' => $contactId,
-                    'list_id' => $id,
-                    'created_at' => now(),
-                ]);
-                $inserted++;
+        DB::transaction(function () use ($verifiedIds, $list) {
+            foreach ($verifiedIds as $contactId) {
+                DB::statement(
+                    "INSERT INTO contact_list_member (contact_id, list_id, created_at) VALUES (?, ?, NOW()) ON CONFLICT DO NOTHING",
+                    [$contactId, $list->id]
+                );
             }
-        }
 
-        DB::table('contact_lists')
-            ->where('id', $id)
-            ->update(['contact_count' => DB::table('contact_list_member')->where('list_id', $id)->count()]);
+            $list->update([
+                'contact_count' => DB::table('contact_list_member')->where('list_id', $list->id)->count(),
+            ]);
+        });
 
-        return response()->json(['success' => true, 'added' => $inserted]);
+        return response()->json(['success' => true, 'added' => $verifiedIds->count()]);
     }
 
     public function listsRemoveMembers(Request $request, string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $listExists = DB::table('contact_lists')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->exists();
+        $list = ContactList::find($id);
 
-        if (!$listExists) {
+        if (!$list) {
             return response()->json(['status' => 'error', 'message' => 'List not found'], 404);
         }
 
         $request->validate([
             'contact_ids' => 'required|array|min:1',
-            'contact_ids.*' => 'string',
+            'contact_ids.*' => 'uuid',
         ]);
 
+        // Verify contact_ids belong to current tenant
+        $verifiedIds = Contact::whereIn('id', $request->input('contact_ids'))->pluck('id');
+
         $deleted = DB::table('contact_list_member')
-            ->where('list_id', $id)
-            ->whereIn('contact_id', $request->input('contact_ids'))
+            ->where('list_id', $list->id)
+            ->whereIn('contact_id', $verifiedIds)
             ->delete();
 
-        DB::table('contact_lists')
-            ->where('id', $id)
-            ->update(['contact_count' => DB::table('contact_list_member')->where('list_id', $id)->count()]);
+        $list->update([
+            'contact_count' => DB::table('contact_list_member')->where('list_id', $list->id)->count(),
+        ]);
 
         return response()->json(['success' => true, 'removed' => $deleted]);
     }
@@ -607,11 +571,11 @@ class ContactBookApiController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_master' => 'nullable|boolean',
+            'description' => 'nullable|string|max:1000',
         ]);
 
-        $validated['account_id'] = session('customer_tenant_id');
+        // is_master is NOT user-settable — only system can create master lists
+        $validated['account_id'] = $this->tenantId();
 
         $list = OptOutList::create($validated);
         return response()->json(['data' => $list->toPortalArray()], 201);
@@ -619,38 +583,25 @@ class ContactBookApiController extends Controller
 
     public function optOutListsUpdate(Request $request, string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $listExists = DB::table('opt_out_lists')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->exists();
+        $list = OptOutList::find($id);
 
-        if (!$listExists) {
+        if (!$list) {
             return response()->json(['status' => 'error', 'message' => 'Opt-out list not found'], 404);
         }
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:1000',
         ]);
 
-        DB::table('opt_out_lists')->where('id', $id)->update($validated);
+        $list->update($validated);
 
-        $list = DB::table('opt_out_lists')->where('id', $id)->first();
-        return response()->json(['data' => [
-            'id' => $list->id,
-            'name' => $list->name,
-            'description' => $list->description,
-        ]]);
+        return response()->json(['data' => $list->toPortalArray()]);
     }
 
     public function optOutListsDestroy(string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $list = DB::table('opt_out_lists')
-            ->where('id', $id)
-            ->where('account_id', $accountId)
-            ->first();
+        $list = OptOutList::find($id);
 
         if (!$list) {
             return response()->json(['status' => 'error', 'message' => 'Opt-out list not found'], 404);
@@ -660,33 +611,32 @@ class ContactBookApiController extends Controller
             return response()->json(['error' => 'Cannot delete the master opt-out list'], 422);
         }
 
-        DB::table('opt_out_records')->where('opt_out_list_id', $id)->delete();
-        DB::table('opt_out_lists')->where('id', $id)->delete();
+        DB::transaction(function () use ($list) {
+            DB::table('opt_out_records')->where('opt_out_list_id', $list->id)->delete();
+            $list->delete();
+        });
+
         return response()->json(['success' => true, 'message' => 'Opt-out list deleted']);
     }
 
     public function optOutRecordsIndex(Request $request, string $listId): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $listExists = DB::table('opt_out_lists')
-            ->where('id', $listId)
-            ->where('account_id', $accountId)
-            ->exists();
+        $list = OptOutList::find($listId);
 
-        if (!$listExists) {
+        if (!$list) {
             return response()->json(['status' => 'error', 'message' => 'Opt-out list not found'], 404);
         }
 
-        $records = DB::table('opt_out_records')
-            ->where('opt_out_list_id', $listId)
+        $perPage = min((int) $request->input('per_page', 25), 100);
+        $records = OptOutRecord::where('opt_out_list_id', $listId)
             ->orderByDesc('created_at')
-            ->paginate($request->input('per_page', 25));
+            ->paginate($perPage);
 
         return response()->json([
-            'data' => collect($records->items())->map(fn($r) => [
+            'data' => $records->getCollection()->map(fn($r) => [
                 'id' => $r->id,
                 'mobile_number' => $r->mobile_number,
-                'source' => $r->source ?? 'manual',
+                'source' => $r->getRawOriginal('source') ?? 'manual',
                 'campaign_ref' => $r->campaign_ref,
                 'opt_out_list_id' => $r->opt_out_list_id,
                 'created_at' => $r->created_at,
@@ -697,34 +647,30 @@ class ContactBookApiController extends Controller
 
     public function optOutRecordsStore(Request $request, string $listId): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $listExists = DB::table('opt_out_lists')
-            ->where('id', $listId)
-            ->where('account_id', $accountId)
-            ->exists();
+        $list = OptOutList::find($listId);
 
-        if (!$listExists) {
+        if (!$list) {
             return response()->json(['status' => 'error', 'message' => 'Opt-out list not found'], 404);
         }
 
         $validated = $request->validate([
             'mobile_number' => 'required|string|max:20',
             'campaign_ref' => 'nullable|string|max:255',
+            'source' => 'nullable|string|in:manual,api,import,inbound_reply',
         ]);
 
-        $recordId = (string) \Illuminate\Support\Str::uuid();
+        $recordId = (string) Str::uuid();
         DB::table('opt_out_records')->insert([
             'id' => $recordId,
             'mobile_number' => $validated['mobile_number'],
             'campaign_ref' => $validated['campaign_ref'] ?? null,
-            'account_id' => $accountId,
+            'account_id' => $this->tenantId(),
             'opt_out_list_id' => $listId,
-            'source' => $request->input('source', 'manual'),
+            'source' => $validated['source'] ?? 'manual',
             'created_at' => now(),
         ]);
 
-        $newCount = DB::table('opt_out_records')->where('opt_out_list_id', $listId)->count();
-        DB::table('opt_out_lists')->where('id', $listId)->update(['count' => $newCount]);
+        $list->refreshCount();
 
         $record = DB::table('opt_out_records')->where('id', $recordId)->first();
         return response()->json(['data' => [
@@ -739,7 +685,7 @@ class ContactBookApiController extends Controller
 
     public function optOutRecordsDestroy(string $id): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
+        $accountId = $this->tenantId();
         $record = DB::table('opt_out_records')
             ->where('id', $id)
             ->where('account_id', $accountId)
@@ -764,13 +710,10 @@ class ContactBookApiController extends Controller
 
     public function timeline(Request $request, string $contactId): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $contactExists = DB::table('contacts')
-            ->where('id', $contactId)
-            ->where('account_id', $accountId)
-            ->exists();
+        // Verify contact exists and belongs to current tenant
+        $contact = Contact::find($contactId);
 
-        if (!$contactExists) {
+        if (!$contact) {
             return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
         }
 
@@ -793,7 +736,6 @@ class ContactBookApiController extends Controller
         $cursor = $request->input('cursor');
 
         if ($cursor) {
-            // Cursor-based pagination: fetch events older than cursor event
             $cursorEvent = ContactTimelineEvent::where('event_id', $cursor)->first();
             if ($cursorEvent) {
                 $query->where('created_at', '<', $cursorEvent->created_at);
@@ -809,7 +751,6 @@ class ContactBookApiController extends Controller
 
         return response()->json([
             'events' => $pageEvents->map(fn($e) => $e->toPortalArray()),
-            'total' => ContactTimelineEvent::forContact($contactId)->count(),
             'returned' => $pageEvents->count(),
             'cursor' => $nextCursor,
             'hasMore' => $hasMore,
@@ -818,11 +759,7 @@ class ContactBookApiController extends Controller
 
     public function revealMsisdn(Request $request, string $contactId): JsonResponse
     {
-        $accountId = session('customer_tenant_id');
-        $contact = DB::table('contacts')
-            ->where('id', $contactId)
-            ->where('account_id', $accountId)
-            ->first();
+        $contact = Contact::find($contactId);
 
         if (!$contact) {
             return response()->json(['status' => 'error', 'message' => 'Contact not found'], 404);
@@ -832,6 +769,7 @@ class ContactBookApiController extends Controller
 
         Log::info('MSISDN revealed', [
             'contact_id' => $contactId,
+            'account_id' => $this->tenantId(),
             'user_id' => session('customer_user_id'),
             'reason' => $request->input('reason', 'User requested reveal'),
         ]);

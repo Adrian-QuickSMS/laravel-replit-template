@@ -112,7 +112,7 @@
                                     </thead>
                                     <tbody id="staticListsBody">
                                         @foreach($static_lists as $list)
-                                        <tr data-list-id="{{ $list['id'] }}">
+                                        <tr data-list-id="{{ $list['id'] }}" data-list-name="{{ $list['name'] }}" data-list-description="{{ $list['description'] }}">
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="list-icon-static me-2">
@@ -136,11 +136,11 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end border py-0">
                                                         <div class="dropdown-content">
-                                                            <a class="dropdown-item" href="#!" onclick="viewListContacts('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
-                                                            <a class="dropdown-item" href="#!" onclick="addContactsToList('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-user-plus me-2 text-dark"></i>Add Contacts</a>
-                                                            <a class="dropdown-item" href="#!" onclick="renameList('{{ $list['id'] }}', '{{ $list['name'] }}', '{{ $list['description'] }}')"><i class="fas fa-edit me-2 text-dark"></i>Rename</a>
+                                                            <a class="dropdown-item static-action" href="#!" data-action="view"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
+                                                            <a class="dropdown-item static-action" href="#!" data-action="add"><i class="fas fa-user-plus me-2 text-dark"></i>Add Contacts</a>
+                                                            <a class="dropdown-item static-action" href="#!" data-action="rename"><i class="fas fa-edit me-2 text-dark"></i>Rename</a>
                                                             <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item text-danger" href="#!" onclick="deleteList('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
+                                                            <a class="dropdown-item text-danger static-action" href="#!" data-action="delete"><i class="fas fa-trash me-2"></i>Delete</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -185,7 +185,7 @@
                                     </thead>
                                     <tbody id="dynamicListsBody">
                                         @foreach($dynamic_lists as $list)
-                                        <tr data-list-id="{{ $list['id'] }}">
+                                        <tr data-list-id="{{ $list['id'] }}" data-list-name="{{ $list['name'] }}">
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="list-icon-dynamic me-2">
@@ -218,11 +218,11 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end border py-0">
                                                         <div class="dropdown-content">
-                                                            <a class="dropdown-item" href="#!" onclick="viewDynamicListContacts('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
-                                                            <a class="dropdown-item" href="#!" onclick="editDynamicListRules('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-filter me-2 text-dark"></i>Edit Rules</a>
-                                                            <a class="dropdown-item" href="#!" onclick="refreshDynamicList('{{ $list['id'] }}')"><i class="fas fa-sync-alt me-2 text-dark"></i>Refresh Now</a>
+                                                            <a class="dropdown-item dynamic-action" href="#!" data-action="view"><i class="fas fa-eye me-2 text-dark"></i>View Contacts</a>
+                                                            <a class="dropdown-item dynamic-action" href="#!" data-action="edit-rules"><i class="fas fa-filter me-2 text-dark"></i>Edit Rules</a>
+                                                            <a class="dropdown-item dynamic-action" href="#!" data-action="refresh"><i class="fas fa-sync-alt me-2 text-dark"></i>Refresh Now</a>
                                                             <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item text-danger" href="#!" onclick="deleteDynamicList('{{ $list['id'] }}', '{{ $list['name'] }}')"><i class="fas fa-trash me-2"></i>Delete</a>
+                                                            <a class="dropdown-item text-danger dynamic-action" href="#!" data-action="delete"><i class="fas fa-trash me-2"></i>Delete</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -780,6 +780,37 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.contact-select-add').forEach(cb => {
         cb.addEventListener('change', updateSelectedCountAdd);
     });
+
+    // Event delegation for static list actions (avoids inline onclick with unescaped data)
+    document.getElementById('staticListsBody').addEventListener('click', function(e) {
+        var actionEl = e.target.closest('.static-action');
+        if (!actionEl) return;
+        e.preventDefault();
+        var row = actionEl.closest('tr');
+        var id = row.dataset.listId;
+        var name = row.dataset.listName;
+        var description = row.dataset.listDescription;
+        var action = actionEl.dataset.action;
+        if (action === 'view') viewListContacts(id, name);
+        else if (action === 'add') addContactsToList(id, name);
+        else if (action === 'rename') renameList(id, name, description);
+        else if (action === 'delete') deleteList(id, name);
+    });
+
+    // Event delegation for dynamic list actions
+    document.getElementById('dynamicListsBody').addEventListener('click', function(e) {
+        var actionEl = e.target.closest('.dynamic-action');
+        if (!actionEl) return;
+        e.preventDefault();
+        var row = actionEl.closest('tr');
+        var id = row.dataset.listId;
+        var name = row.dataset.listName;
+        var action = actionEl.dataset.action;
+        if (action === 'view') viewDynamicListContacts(id, name);
+        else if (action === 'edit-rules') editDynamicListRules(id, name);
+        else if (action === 'refresh') refreshDynamicList(id);
+        else if (action === 'delete') deleteDynamicList(id, name);
+    });
 });
 
 function updateSelectedCountCreate() {
@@ -916,7 +947,7 @@ function confirmRenameList() {
 function deleteList(id, name) {
     showConfirmModal(
         'Delete List',
-        '<p>Are you sure you want to delete the list <strong>"' + name + '"</strong>?</p><p class="text-muted mb-0"><small>This will not delete the contacts, only the list.</small></p>',
+        '<p>Are you sure you want to delete the list <strong>"' + escapeHtml(name) + '"</strong>?</p><p class="text-muted mb-0"><small>This will not delete the contacts, only the list.</small></p>',
         'Delete',
         'btn-danger',
         function() {
@@ -1003,10 +1034,10 @@ function viewListContacts(id, name) {
                 var mobile = c.mobile_display || c.msisdn || '';
                 var row = document.createElement('tr');
                 row.innerHTML =
-                    '<td><input type="checkbox" class="form-check-input contact-select-view" value="' + c.id + '"></td>' +
-                    '<td>' + displayName + '</td>' +
-                    '<td class="text-muted">' + mobile + '</td>' +
-                    '<td class="text-muted small">' + (c.created_at ? c.created_at.substring(0, 10) : '') + '</td>';
+                    '<td><input type="checkbox" class="form-check-input contact-select-view" value="' + escapeHtml(String(c.id)) + '"></td>' +
+                    '<td>' + escapeHtml(displayName) + '</td>' +
+                    '<td class="text-muted">' + escapeHtml(mobile) + '</td>' +
+                    '<td class="text-muted small">' + escapeHtml(c.created_at ? c.created_at.substring(0, 10) : '') + '</td>';
                 tbody.appendChild(row);
             });
         }
@@ -1208,7 +1239,7 @@ function refreshDynamicList(id) {
 function deleteDynamicList(id, name) {
     showConfirmModal(
         'Delete Dynamic List',
-        '<p>Are you sure you want to delete the dynamic list <strong>"' + name + '"</strong>?</p><p class="text-muted mb-0"><small>This will only delete the list definition, not the contacts.</small></p>',
+        '<p>Are you sure you want to delete the dynamic list <strong>"' + escapeHtml(name) + '"</strong>?</p><p class="text-muted mb-0"><small>This will only delete the list definition, not the contacts.</small></p>',
         'Delete',
         'btn-danger',
         function() {
@@ -1249,7 +1280,7 @@ function showToast(message, type) {
     var toastId = 'toast_' + Date.now();
     var toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-white border-0 show" role="alert" style="background-color: ' + bgColor + ';">' +
         '<div class="d-flex">' +
-        '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + message + '</div>' +
+        '<div class="toast-body"><i class="fas ' + icon + ' me-2"></i>' + escapeHtml(message) + '</div>' +
         '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
         '</div></div>';
     

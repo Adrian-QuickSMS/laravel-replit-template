@@ -155,21 +155,21 @@
                                                     </button>
                                                     <div class="dropdown-menu dropdown-menu-end border py-0">
                                                         <div class="py-2">
-                                                            <a class="dropdown-item" href="#!" onclick="viewOptOuts('{{ $list['id'] }}', '{{ $list['name'] }}')">
+                                                            <a class="dropdown-item" href="#!" data-action="viewOptOuts" data-list-id="{{ $list['id'] }}" data-list-name="{{ e($list['name']) }}">
                                                                 <i class="fas fa-eye me-2 text-dark"></i> View Opt-Outs
                                                             </a>
-                                                            <a class="dropdown-item" href="#!" onclick="exportOptOuts('{{ $list['id'] }}', '{{ $list['name'] }}')">
+                                                            <a class="dropdown-item" href="#!" data-action="exportOptOuts" data-list-id="{{ $list['id'] }}" data-list-name="{{ e($list['name']) }}">
                                                                 <i class="fas fa-file-export me-2 text-dark"></i> Export
                                                             </a>
-                                                            <a class="dropdown-item" href="#!" onclick="importOptOuts('{{ $list['id'] }}', '{{ $list['name'] }}')">
+                                                            <a class="dropdown-item" href="#!" data-action="importOptOuts" data-list-id="{{ $list['id'] }}" data-list-name="{{ e($list['name']) }}">
                                                                 <i class="fas fa-file-import me-2 text-dark"></i> Import
                                                             </a>
                                                             @if(!$list['is_master'])
-                                                            <a class="dropdown-item" href="#!" onclick="renameOptOutList('{{ $list['id'] }}', '{{ $list['name'] }}', '{{ $list['description'] }}')">
+                                                            <a class="dropdown-item" href="#!" data-action="renameOptOutList" data-list-id="{{ $list['id'] }}" data-list-name="{{ e($list['name']) }}" data-list-desc="{{ e($list['description']) }}">
                                                                 <i class="fas fa-edit me-2 text-dark"></i> Rename
                                                             </a>
                                                             <div class="dropdown-divider"></div>
-                                                            <a class="dropdown-item text-danger" href="#!" onclick="deleteOptOutList('{{ $list['id'] }}', '{{ $list['name'] }}')">
+                                                            <a class="dropdown-item text-danger" href="#!" data-action="deleteOptOutList" data-list-id="{{ $list['id'] }}" data-list-name="{{ e($list['name']) }}">
                                                                 <i class="fas fa-trash me-2"></i> Delete
                                                             </a>
                                                             @endif
@@ -251,7 +251,7 @@
                                         <tr data-optout-id="{{ $optout['id'] }}" data-source="{{ $optout['source'] }}" data-list="{{ $optout['list_id'] }}">
                                             <td><input type="checkbox" class="form-check-input optout-checkbox" value="{{ $optout['id'] }}"></td>
                                             <td>
-                                                <span class="mobile-masked" data-full="{{ $optout['mobile'] }}" style="color: #000; cursor: pointer;" onclick="toggleMobileVisibility(this)">
+                                                <span class="mobile-masked" data-mobile-id="{{ $optout['id'] }}" style="color: #000; cursor: pointer;" onclick="toggleMobileVisibility(this)">
                                                     {{ substr($optout['mobile'], 0, 7) }}***{{ substr($optout['mobile'], -3) }}
                                                 </span>
                                             </td>
@@ -924,7 +924,7 @@ function showToast(message, type) {
     var textColor = type === 'warning' ? '#000' : '#fff';
     var toast = document.createElement('div');
     toast.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;padding:12px 24px;border-radius:8px;color:' + textColor + ';background:' + bgColor + ';box-shadow:0 4px 12px rgba(0,0,0,0.15);font-size:14px;max-width:400px;animation:fadeIn 0.3s ease;';
-    toast.innerHTML = '<i class="fas fa-' + (type === 'error' ? 'exclamation-circle' : 'check-circle') + ' me-2"></i>' + message;
+    toast.innerHTML = '<i class="fas fa-' + (type === 'error' ? 'exclamation-circle' : 'check-circle') + ' me-2"></i>' + escapeHtml(message);
     document.body.appendChild(toast);
     setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 2500);
     setTimeout(function() { toast.remove(); }, 3000);
@@ -1010,6 +1010,22 @@ document.addEventListener('DOMContentLoaded', function() {
             updateBulkActionBar();
         }
     });
+
+    // Delegated click handler for list action links (avoids inline onclick with user data)
+    document.getElementById('optOutListsBody').addEventListener('click', function(e) {
+        var link = e.target.closest('[data-action]');
+        if (!link) return;
+        e.preventDefault();
+        var action = link.dataset.action;
+        var listId = link.dataset.listId;
+        var listName = link.dataset.listName;
+        var listDesc = link.dataset.listDesc;
+        if (action === 'viewOptOuts') viewOptOuts(listId, listName);
+        else if (action === 'exportOptOuts') exportOptOuts(listId, listName);
+        else if (action === 'importOptOuts') importOptOuts(listId, listName);
+        else if (action === 'renameOptOutList') renameOptOutList(listId, listName, listDesc);
+        else if (action === 'deleteOptOutList') deleteOptOutList(listId, listName);
+    });
 });
 
 function filterOptOuts() {
@@ -1045,14 +1061,31 @@ function updateBulkActionBar() {
 }
 
 function toggleMobileVisibility(el) {
-    const full = el.dataset.full;
-    const masked = el.dataset.full.substring(0, 7) + '***' + el.dataset.full.slice(-3);
-    
-    if (el.textContent === masked) {
-        el.textContent = full;
-    } else {
-        el.textContent = masked;
+    // If we already fetched and cached the full number, toggle between masked and full
+    if (el.dataset.revealed === 'true') {
+        el.dataset.revealed = 'false';
+        el.textContent = el.dataset.maskedDisplay;
+        return;
     }
+    // Store the current masked text for toggling back
+    if (!el.dataset.maskedDisplay) {
+        el.dataset.maskedDisplay = el.textContent.trim();
+    }
+    var mobileId = el.dataset.mobileId;
+    if (!mobileId) return;
+    el.textContent = 'Loading...';
+    fetch('/api/opt-out-records/' + encodeURIComponent(mobileId) + '/mobile', {
+        method: 'GET',
+        headers: _apiHeaders()
+    })
+    .then(_handleApiResponse)
+    .then(function(data) {
+        el.textContent = data.mobile || el.dataset.maskedDisplay;
+        el.dataset.revealed = 'true';
+    })
+    .catch(function() {
+        el.textContent = el.dataset.maskedDisplay;
+    });
 }
 
 function createOptOutList() {
@@ -1320,8 +1353,8 @@ function buildOOColumnMappingUI(headerRow, sampleRow, allDataRows, hasHeaders) {
 
         var sampleVal = (samples[idx] !== undefined && samples[idx] !== null) ? String(samples[idx]) : '';
         var row = document.createElement('tr');
-        row.innerHTML = '<td><strong>' + col + '</strong></td>' +
-            '<td class="text-muted small">' + sampleVal + '</td>' +
+        row.innerHTML = '<td><strong>' + escapeHtml(String(col)) + '</strong></td>' +
+            '<td class="text-muted small">' + escapeHtml(sampleVal) + '</td>' +
             '<td><select class="form-select form-select-sm oo-column-mapping" data-column="' + idx + '">' +
             mappingOptions + '</select></td>';
         tbody.appendChild(row);
@@ -1530,9 +1563,9 @@ function simulateOOValidation() {
         tbody.innerHTML = '';
         invalidRows.forEach(function(item) {
             var row = document.createElement('tr');
-            row.innerHTML = '<td>' + item.row + '</td>' +
-                '<td class="text-muted">' + item.value + '</td>' +
-                '<td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">' + item.reason + '</span></td>';
+            row.innerHTML = '<td>' + escapeHtml(String(item.row)) + '</td>' +
+                '<td class="text-muted">' + escapeHtml(String(item.value)) + '</td>' +
+                '<td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">' + escapeHtml(String(item.reason)) + '</span></td>';
             tbody.appendChild(row);
         });
     } else {
@@ -1706,7 +1739,7 @@ function saveRenameList() {
 function deleteOptOutList(listId, name) {
     showConfirmModal(
         'Delete Opt-Out List',
-        '<p>Are you sure you want to delete <strong>"' + name + '"</strong>?</p><p class="text-muted mb-0"><small>This action cannot be undone. All opt-out records in this list will also be removed.</small></p>',
+        '<p>Are you sure you want to delete <strong>"' + escapeHtml(name) + '"</strong>?</p><p class="text-muted mb-0"><small>This action cannot be undone. All opt-out records in this list will also be removed.</small></p>',
         'Delete',
         'btn-danger',
         function() {
