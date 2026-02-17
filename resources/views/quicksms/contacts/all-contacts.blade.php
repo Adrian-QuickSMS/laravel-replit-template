@@ -3127,6 +3127,13 @@ function showStep(step) {
 }
 
 function parseCSVLine(line) {
+    line = line.trim();
+    if (line.length >= 2 && line[0] === '"' && line[line.length - 1] === '"') {
+        var inner = line.substring(1, line.length - 1);
+        if (inner.indexOf('"') === -1) {
+            line = inner;
+        }
+    }
     var result = [];
     var current = '';
     var inQuotes = false;
