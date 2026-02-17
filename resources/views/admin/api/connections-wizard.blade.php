@@ -150,14 +150,6 @@
 .form-wizard .tab-content .tab-pane {
     padding: 0;
 }
-#apiConnectionWizard > .tab-content {
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: visible !important;
-}
-#apiConnectionWizard > .tab-content > .tab-pane {
-    position: static !important;
-}
 .selectable-tile {
     border: 2px solid #e9ecef;
     border-radius: 0.5rem;
@@ -329,6 +321,16 @@
 }
 .account-selector-section .section-label i {
     margin-right: 0.5rem;
+}
+/* Fix: Override Fillow template media query that sets height:100%!important on .form-wizard .tab-content
+   at max-width:47.9375rem. ID selector has higher specificity than the class-based rule in style.css. */
+#apiConnectionWizard > .tab-content {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+}
+#apiConnectionWizard > .tab-content > .tab-pane {
+    position: static !important;
 }
 </style>
 @endpush
@@ -870,13 +872,6 @@ $(document).ready(function() {
         }
     });
 
-    $('#apiConnectionWizard').on('showStep', function() {
-        var tc = this.querySelector('.tab-content');
-        if (tc) {
-            tc.style.setProperty('height', 'auto', 'important');
-        }
-    });
-
     $('#apiConnectionWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex) {
         if (nextStepIndex > currentStepIndex) {
             if (currentStepIndex === 0) {
@@ -909,6 +904,11 @@ $(document).ready(function() {
     });
     
     $('#apiConnectionWizard').on('showStep', function(e, anchorObject, stepIndex) {
+        // Force-clear any residual inline height from SmartWizard transitions
+        var tc = this.querySelector('.tab-content');
+        if (tc) {
+            tc.style.setProperty('height', 'auto', 'important');
+        }
         if (stepIndex === 5) {
             updateReviewStep();
         }
