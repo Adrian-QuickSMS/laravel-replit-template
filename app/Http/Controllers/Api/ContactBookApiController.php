@@ -721,7 +721,6 @@ class ContactBookApiController extends Controller
             'opt_out_list_id' => $listId,
             'source' => $request->input('source', 'manual'),
             'created_at' => now(),
-            'updated_at' => now(),
         ]);
 
         $newCount = DB::table('opt_out_records')->where('opt_out_list_id', $listId)->count();
