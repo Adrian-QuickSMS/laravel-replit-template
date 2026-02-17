@@ -25,6 +25,15 @@ class ApiConnection extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    protected static function booted(): void
+    {
+        static::creating(function (ApiConnection $model) {
+            if (empty($model->id)) {
+                $model->id = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
+
     protected $fillable = [
         'account_id',
         'sub_account_id',

@@ -27,6 +27,15 @@ class ApiConnectionAuditEvent extends Model
     public $incrementing = false;
     public $timestamps = false;
 
+    protected static function booted(): void
+    {
+        static::creating(function (ApiConnectionAuditEvent $model) {
+            if (empty($model->id)) {
+                $model->id = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
+
     protected $fillable = [
         'account_id',
         'api_connection_id',
