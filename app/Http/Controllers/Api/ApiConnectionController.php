@@ -131,6 +131,7 @@ class ApiConnectionController extends Controller
 
         $validated['account_id'] = $this->tenantId();
         $validated['environment'] = $validated['environment'] ?? 'test';
+        $validated['partner_config'] = $validated['partner_config'] ?? [];
         $validated['created_by'] = $this->actorName();
 
         $connection = DB::transaction(function () use ($validated) {

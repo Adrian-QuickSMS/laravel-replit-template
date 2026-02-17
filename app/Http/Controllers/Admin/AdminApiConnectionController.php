@@ -145,6 +145,7 @@ class AdminApiConnectionController extends Controller
         ]);
 
         $validated['environment'] = $validated['environment'] ?? 'test';
+        $validated['partner_config'] = $validated['partner_config'] ?? [];
         $validated['created_by'] = $this->actorName();
 
         // Set tenant context for RLS during creation
