@@ -457,34 +457,34 @@
                         <div class="metric-label">Billing Mode</div>
                         <div id="billingMode">
                             <span class="billing-mode-badge prepaid">
-                                <i class="fas fa-wallet me-1"></i> Prepaid
+                                <i class="fas fa-wallet me-1"></i> Loading...
                             </span>
                         </div>
                     </div>
                     <div class="col-6 col-md-4 col-lg-2 financial-metric">
                         <div class="metric-label">Current Balance</div>
-                        <div class="metric-value text-success" id="currentBalance">&pound;2,450.00</div>
+                        <div class="metric-value text-muted" id="currentBalance">--</div>
                     </div>
                     <div class="col-6 col-md-4 col-lg-2 financial-metric">
                         <div class="metric-label">Credit Limit</div>
-                        <div class="metric-value" id="creditLimit">&pound;5,000.00</div>
+                        <div class="metric-value" id="creditLimit">--</div>
                     </div>
                     <div class="col-6 col-md-4 col-lg-2 financial-metric">
                         <div class="metric-label">Available Credit</div>
-                        <div class="metric-value text-success" id="availableCredit">&pound;7,450.00</div>
+                        <div class="metric-value text-muted" id="availableCredit">--</div>
                     </div>
                     <div class="col-6 col-md-4 col-lg-2 financial-metric">
                         <div class="metric-label">Account Status</div>
                         <div id="accountStatus">
-                            <span class="account-status-badge active">
-                                <i class="fas fa-check-circle"></i> Active
+                            <span class="account-status-badge">
+                                <i class="fas fa-spinner fa-spin"></i> Loading...
                             </span>
                         </div>
                     </div>
                     <div class="col-6 col-md-4 col-lg-2 financial-metric">
                         <div class="metric-label">Last Updated</div>
                         <div class="financial-refresh-indicator" id="lastRefreshed">
-                            <i class="fas fa-sync-alt me-1"></i> Just now
+                            <i class="fas fa-sync-alt me-1"></i> --
                         </div>
                     </div>
                 </div>
@@ -1307,17 +1307,55 @@
 document.addEventListener('DOMContentLoaded', function() {
     let invoicesData = [];
     let isLoading = false;
-    let isMockData = false;
 
     const currentUserRole = @json($currentUserRole);
     const canMakePayments = ['admin', 'finance'].includes(currentUserRole);
 
     const billingDetails = {
-        company: 'Acme Corporation Ltd',
-        address: '123 Business Park, London, EC1A 1BB',
-        vatNumber: 'GB123456789',
+        company: '',
+        address: '',
+        vatNumber: '',
         poRef: '-'
     };
+
+    async function loadAccountSummary() {
+        try {
+            const response = await fetch('/api/invoices/account-summary');
+            const data = await response.json();
+            if (data.success) {
+                const sym = {'GBP':'£','EUR':'€','USD':'$'}[data.currency] || '£';
+                const fmt = (v) => sym + parseFloat(v || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+                const mode = data.billingMode || 'prepaid';
+                const modeLabel = mode === 'postpaid' ? 'Postpaid' : 'Prepaid';
+                const modeIcon = mode === 'postpaid' ? 'fa-file-invoice-dollar' : 'fa-wallet';
+                document.getElementById('billingMode').innerHTML = `<span class="billing-mode-badge ${mode}"><i class="fas ${modeIcon} me-1"></i> ${modeLabel}</span>`;
+
+                const balEl = document.getElementById('currentBalance');
+                balEl.textContent = fmt(data.currentBalance);
+                balEl.className = 'metric-value ' + (parseFloat(data.currentBalance) >= 0 ? 'text-success' : 'text-danger');
+
+                document.getElementById('creditLimit').textContent = fmt(data.creditLimit);
+
+                const availEl = document.getElementById('availableCredit');
+                availEl.textContent = fmt(data.availableCredit);
+                availEl.className = 'metric-value ' + (parseFloat(data.availableCredit) >= 0 ? 'text-success' : 'text-danger');
+
+                const status = data.accountStatus || 'active';
+                const statusClass = status === 'active' ? 'active' : 'credit-hold';
+                const statusIcon = status === 'active' ? 'fa-check-circle' : 'fa-exclamation-triangle';
+                const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                document.getElementById('accountStatus').innerHTML = `<span class="account-status-badge ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusLabel}</span>`;
+
+                const lastUp = data.lastUpdated ? new Date(data.lastUpdated).toLocaleString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Just now';
+                document.getElementById('lastRefreshed').innerHTML = `<i class="fas fa-sync-alt me-1"></i> ${lastUp}`;
+            }
+        } catch (e) {
+            console.error('Error loading account summary:', e);
+        }
+    }
+
+    loadAccountSummary();
 
     function formatDate(dateStr) {
         if (!dateStr) return '-';
@@ -1393,30 +1431,11 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    function showMockDataNotice() {
-        if (!document.getElementById('mockDataNotice')) {
-            const container = document.querySelector('.invoices-fixed-header');
-            const notice = document.createElement('div');
-            notice.id = 'mockDataNotice';
-            notice.className = 'alert alert-pastel-primary small mb-3';
-            notice.innerHTML = `
-                <i class="fas fa-info-circle text-primary me-2"></i>
-                <strong>Demo Mode:</strong> Displaying sample invoice data. Connect your HubSpot account to view real invoices.
-            `;
-            container.insertBefore(notice, container.firstChild);
-        }
-    }
-
     async function loadInvoices() {
         showLoading();
 
         try {
             const params = new URLSearchParams();
-            const statusEl = document.getElementById('statusFilter');
-            const invoiceNumberEl = document.getElementById('invoiceNumberFilter');
-            
-            const status = statusEl ? statusEl.value : '';
-            const search = invoiceNumberEl ? invoiceNumberEl.value : '';
 
             if (appliedFilters.status) params.append('status', appliedFilters.status);
             if (appliedFilters.invoiceNumber) params.append('search', appliedFilters.invoiceNumber);
@@ -1432,11 +1451,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             invoicesData = data.invoices || [];
-            isMockData = data.isMockData || false;
-
-            if (isMockData) {
-                showMockDataNotice();
-            }
 
             renderInvoices(invoicesData);
 
@@ -2595,7 +2609,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     loadInvoices();
     startAccountSummaryRefresh();
-    updateTopUpSummary(500);
 });
 </script>
 @endpush

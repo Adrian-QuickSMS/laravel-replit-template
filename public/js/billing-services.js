@@ -21,7 +21,7 @@
      * Set useMockData to false to use real API endpoints
      */
     var ServiceConfig = {
-        useMockData: true,
+        useMockData: false,
         apiBaseUrl: '/api/v1',
         hubspotApiUrl: '/api/hubspot',
         xeroApiUrl: '/api/xero',
@@ -247,15 +247,22 @@
                 });
             }
             
-            // Real API implementation placeholder
-            return fetch(ServiceConfig.hubspotApiUrl + '/billing-profile/' + accountId, {
+            return fetch('/api/invoices/account-summary', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             }).then(function(response) {
                 if (!response.ok) {
-                    throw new Error('HubSpot API error: ' + response.status);
+                    throw new Error('Billing API error: ' + response.status);
                 }
                 return response.json();
+            }).then(function(data) {
+                return {
+                    accountId: accountId,
+                    billingMode: data.billingMode || 'prepaid',
+                    creditLimit: data.creditLimit || 0,
+                    currency: data.currency || 'GBP',
+                    lastUpdated: data.lastUpdated || new Date().toISOString()
+                };
             });
         }
 
@@ -436,15 +443,21 @@
                 });
             }
             
-            // Real API implementation placeholder
-            return fetch(ServiceConfig.apiBaseUrl + '/ledger/balance/' + accountId, {
+            return fetch('/api/invoices/account-summary', {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             }).then(function(response) {
                 if (!response.ok) {
-                    throw new Error('Ledger API error: ' + response.status);
+                    throw new Error('Balance API error: ' + response.status);
                 }
                 return response.json();
+            }).then(function(data) {
+                return {
+                    accountId: accountId,
+                    currentBalance: data.currentBalance || 0,
+                    lastUpdatedTimestamp: data.lastUpdated || new Date().toISOString(),
+                    currency: data.currency || 'GBP'
+                };
             });
         }
 
@@ -537,9 +550,8 @@
                 });
             }
             
-            // Real API implementation placeholder
             var queryParams = new URLSearchParams(filters).toString();
-            return fetch(ServiceConfig.apiBaseUrl + '/invoices?' + queryParams, {
+            return fetch('/api/invoices?' + queryParams, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             }).then(function(response) {
@@ -547,6 +559,27 @@
                     throw new Error('Invoices API error: ' + response.status);
                 }
                 return response.json();
+            }).then(function(data) {
+                var invoices = (data.invoices || []).map(function(inv) {
+                    return {
+                        number: inv.invoiceNumber,
+                        period: inv.billingPeriodStart || '',
+                        date: inv.issueDate,
+                        dueDate: inv.dueDate,
+                        status: inv.status,
+                        amountExVat: inv.subtotal || 0,
+                        vat: inv.vat || 0,
+                        total: inv.total || 0,
+                        outstanding: inv.balanceDue || 0,
+                        xeroInvoiceId: inv.xeroInvoiceId || null
+                    };
+                });
+                return {
+                    invoices: invoices,
+                    total: invoices.length,
+                    page: filters.page || 1,
+                    pageSize: filters.pageSize || 25
+                };
             });
         }
 

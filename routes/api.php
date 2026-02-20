@@ -73,7 +73,7 @@ Route::prefix('account')->group(function () {
     Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
 });
 
-// Invoice API (HubSpot Invoices integration)
+// Invoice API (Billing database)
 Route::prefix('invoices')->group(function () {
     Route::get('/', [InvoiceApiController::class, 'index']);
     Route::get('/account-summary', [InvoiceApiController::class, 'accountSummary']);
