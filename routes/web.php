@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuickSMSController;
 use App\Http\Controllers\SenderIdController;
+use App\Http\Controllers\RcsAgentController;
 use App\Http\Controllers\Api\RcsAssetController;
 
 // Public auth routes (no authentication required)
@@ -113,6 +114,18 @@ Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderI
 });
 
 Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
+
+// RCS Agent Registration — Customer Portal API
+Route::middleware('customer.auth')->prefix('api/rcs-agents')->controller(RcsAgentController::class)->group(function () {
+    Route::get('/approved', 'approved')->name('api.rcs-agents.approved');
+    Route::post('/', 'store')->name('api.rcs-agents.store');
+    Route::get('/{uuid}', 'show')->name('api.rcs-agents.show');
+    Route::put('/{uuid}', 'update')->name('api.rcs-agents.update');
+    Route::delete('/{uuid}', 'destroy')->name('api.rcs-agents.destroy');
+    Route::post('/{uuid}/submit', 'submit')->name('api.rcs-agents.submit');
+    Route::post('/{uuid}/provide-info', 'provideInfo')->name('api.rcs-agents.provide-info');
+    Route::post('/{uuid}/resubmit', 'resubmit')->name('api.rcs-agents.resubmit');
+});
 
 // Contact Book API — must be in web.php (not api.php) so session auth works
 Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contacts')->group(function () {
@@ -373,6 +386,18 @@ Route::prefix('admin')->group(function () {
                 Route::post('/{uuid}/suspend', 'suspend')->name('admin.api.sender-ids.suspend');
                 Route::post('/{uuid}/reactivate', 'reactivate')->name('admin.api.sender-ids.reactivate');
                 Route::post('/{uuid}/revoke', 'revoke')->name('admin.api.sender-ids.revoke');
+            });
+
+            Route::prefix('api/rcs-agents')->controller(\App\Http\Controllers\Admin\RcsAgentApprovalController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.rcs-agents.index');
+                Route::get('/{uuid}', 'show')->name('admin.api.rcs-agents.show');
+                Route::post('/{uuid}/review', 'startReview')->name('admin.api.rcs-agents.review');
+                Route::post('/{uuid}/approve', 'approve')->name('admin.api.rcs-agents.approve');
+                Route::post('/{uuid}/reject', 'reject')->name('admin.api.rcs-agents.reject');
+                Route::post('/{uuid}/request-info', 'requestInfo')->name('admin.api.rcs-agents.request-info');
+                Route::post('/{uuid}/suspend', 'suspend')->name('admin.api.rcs-agents.suspend');
+                Route::post('/{uuid}/reactivate', 'reactivate')->name('admin.api.rcs-agents.reactivate');
+                Route::post('/{uuid}/revoke', 'revoke')->name('admin.api.rcs-agents.revoke');
             });
 
             Route::prefix('api/governance')->controller(\App\Http\Controllers\Admin\ApprovalQueueController::class)->group(function () {
