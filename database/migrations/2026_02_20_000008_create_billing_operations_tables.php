@@ -136,7 +136,7 @@ return new class extends Migration
             $table->uuid('entity_id')->nullable();
             $table->jsonb('old_values')->nullable();
             $table->jsonb('new_values')->nullable();
-            $table->inet('ip_address')->nullable();
+            $table->string('ip_address', 45)->nullable();
             $table->string('user_agent', 512)->nullable();
             $table->timestamp('created_at')->useCurrent();
 

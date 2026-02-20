@@ -20,8 +20,8 @@ class XeroService
 
     public function __construct()
     {
-        $this->baseUrl = config('services.xero.base_url', 'https://api.xero.com/api.xro/2.0');
-        $this->tenantId = config('services.xero.tenant_id', '');
+        $this->baseUrl = config('services.xero.base_url') ?? 'https://api.xero.com/api.xro/2.0';
+        $this->tenantId = config('services.xero.tenant_id') ?? '';
     }
 
     /**

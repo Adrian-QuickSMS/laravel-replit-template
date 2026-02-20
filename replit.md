@@ -56,3 +56,20 @@ The QuickSMS platform is built on PHP 8.3 and Laravel 10, utilizing PostgreSQL 1
 *   **HubSpot Products API:** For product pricing information.
 *   **HubSpot Invoices API:** For handling invoice data.
 *   **Intervention Image v3:** For PHP image manipulation.
+*   **Xero API v2:** For accounting integration (invoices, payments, credit notes).
+
+## Billing Backend (Added 2026-02-20)
+
+The billing backend has been integrated from branch `claude/quicksms-security-performance-dr8sw`. It includes:
+
+*   **19 database tables** across 8 migrations covering: ledger (double-entry accounting), test credits, pricing (product tiers + customer bespoke), invoices, payments, and billing operations (reservations, recurring charges, alerts, audit log).
+*   **20 Eloquent models** in `app/Models/Billing/` with UUID PKs, tenant scoping, and `toPortalArray()`.
+*   **9 services** in `app/Services/Billing/` covering: LedgerService, BalanceService, PricingEngine, InvoiceService, StripeCheckoutService, XeroService, HubSpotPricingSyncService, BalanceAlertService, ReconciliationService.
+*   **12 controllers** in `app/Http/Controllers/Api/` for customer portal, admin, and webhook endpoints.
+*   **Billing routes** in `routes/api_billing.php` (16 API routes).
+*   **Config** in `config/billing.php` and service config in `config/services.php`.
+
+**Migration fixes applied:**
+1. `billing_payment_status` enum used instead of `payment_status` (conflict with existing AccountFlags enum).
+2. Self-referencing FK on `customer_prices.previous_version_id` moved to post-table-creation `DB::statement()`.
+3. `inet()` column replaced with `string('ip_address', 45)` for Laravel compatibility.
