@@ -268,6 +268,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/api/health', 'apiHealth')->name('admin.api.health');
             
             Route::get('/billing/invoices', 'billingInvoices')->name('admin.billing.invoices');
+            Route::get('/api/billing/invoices', 'billingInvoicesApi')->name('admin.api.billing.invoices');
             Route::get('/billing/payments', 'billingPayments')->name('admin.billing.payments');
             Route::get('/billing/credits', 'billingCredits')->name('admin.billing.credits');
             

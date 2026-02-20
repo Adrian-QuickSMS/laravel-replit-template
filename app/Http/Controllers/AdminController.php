@@ -464,6 +464,83 @@ class AdminController extends Controller
         ]);
     }
 
+    public function billingInvoicesApi(Request $request)
+    {
+        $query = DB::table('invoices')
+            ->join('accounts', 'invoices.account_id', '=', 'accounts.id')
+            ->select(
+                'invoices.*',
+                'accounts.company_name as account_name'
+            )
+            ->orderBy('invoices.issued_date', 'desc');
+
+        if ($status = $request->input('status')) {
+            if ($status === 'issued') {
+                $query->where('invoices.status', 'sent');
+            } else {
+                $query->where('invoices.status', $status);
+            }
+        }
+
+        if ($search = $request->input('search')) {
+            $query->where('invoices.invoice_number', 'ilike', "%{$search}%");
+        }
+
+        if ($accountId = $request->input('accountId')) {
+            $query->where('invoices.account_id', $accountId);
+        }
+
+        if ($year = $request->input('billingYear')) {
+            $query->whereRaw('EXTRACT(YEAR FROM invoices.billing_period_start) = ?', [$year]);
+        }
+
+        if ($month = $request->input('billingMonth')) {
+            $query->whereRaw('EXTRACT(MONTH FROM invoices.billing_period_start) = ?', [$month]);
+        }
+
+        $invoices = $query->get()->map(function ($inv) {
+            $status = $inv->status;
+            if ($status === 'sent') {
+                $status = 'issued';
+            }
+            if (in_array($inv->status, ['sent', 'overdue']) && $inv->due_date && now()->isAfter($inv->due_date)) {
+                $status = 'overdue';
+            }
+
+            return [
+                'id' => $inv->id,
+                'invoiceNumber' => $inv->invoice_number,
+                'accountId' => $inv->account_id,
+                'accountName' => $inv->account_name ?? 'Unknown',
+                'billingPeriodStart' => $inv->billing_period_start,
+                'billingPeriodEnd' => $inv->billing_period_end,
+                'issueDate' => $inv->issued_date,
+                'dueDate' => $inv->due_date,
+                'status' => $status,
+                'subtotal' => (float) $inv->subtotal,
+                'vat' => (float) $inv->tax_amount,
+                'total' => (float) $inv->total,
+                'balanceDue' => (float) $inv->amount_due,
+                'currency' => $inv->currency ?? 'GBP',
+                'xeroInvoiceId' => $inv->xero_invoice_id,
+            ];
+        });
+
+        $accounts = DB::table('accounts')
+            ->select('id', 'company_name')
+            ->orderBy('company_name')
+            ->get()
+            ->map(function ($a) {
+                return ['id' => $a->id, 'name' => $a->company_name];
+            });
+
+        return response()->json([
+            'success' => true,
+            'invoices' => $invoices,
+            'accounts' => $accounts,
+        ]);
+    }
+
     public function billingPayments()
     {
         return view('admin.billing.payments', [
