@@ -6,7 +6,6 @@ use App\Http\Controllers\Api\ReportingDashboardApiController;
 use App\Http\Controllers\Api\BillingApiController;
 use App\Http\Controllers\Api\PurchaseApiController;
 use App\Http\Controllers\Api\WebhookController;
-use App\Http\Controllers\Api\InvoiceApiController;
 use App\Http\Controllers\Api\TopUpApiController;
 
 
@@ -73,14 +72,8 @@ Route::prefix('account')->group(function () {
     Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
 });
 
-// Invoice API (Billing database)
-Route::prefix('invoices')->group(function () {
-    Route::get('/', [InvoiceApiController::class, 'index']);
-    Route::get('/account-summary', [InvoiceApiController::class, 'accountSummary']);
-    Route::get('/{invoiceId}', [InvoiceApiController::class, 'show']);
-    Route::get('/{invoiceId}/pdf', [InvoiceApiController::class, 'downloadPdf']);
-    Route::post('/{invoiceId}/create-checkout-session', [InvoiceApiController::class, 'createCheckoutSession']);
-});
+// Invoice API routes moved to routes/web.php under customer.auth middleware
+// (api middleware group lacks session cookies, breaking tenant-scoped queries)
 
 // Contact Book API routes moved to routes/web.php under customer.auth middleware
 // (api middleware group lacks session cookies, breaking tenant-scoped queries)

@@ -22,7 +22,7 @@ class InvoiceApiController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $accountId = auth()->user()?->tenant_id;
+        $accountId = session('customer_tenant_id');
 
         if (!$accountId) {
             return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
@@ -63,7 +63,7 @@ class InvoiceApiController extends Controller
 
     public function show(string $invoiceId): JsonResponse
     {
-        $accountId = auth()->user()?->tenant_id;
+        $accountId = session('customer_tenant_id');
 
         if (!$accountId) {
             return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
@@ -103,7 +103,7 @@ class InvoiceApiController extends Controller
 
     public function downloadPdf(string $invoiceId): JsonResponse
     {
-        $accountId = auth()->user()?->tenant_id;
+        $accountId = session('customer_tenant_id');
 
         if (!$accountId) {
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -140,7 +140,7 @@ class InvoiceApiController extends Controller
 
     public function accountSummary(): JsonResponse
     {
-        $accountId = auth()->user()?->tenant_id;
+        $accountId = session('customer_tenant_id');
 
         if (!$accountId) {
             return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
@@ -171,7 +171,7 @@ class InvoiceApiController extends Controller
 
     public function createCheckoutSession(Request $request, string $invoiceId): JsonResponse
     {
-        $accountId = auth()->user()?->tenant_id;
+        $accountId = session('customer_tenant_id');
 
         if (!$accountId) {
             return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
@@ -297,6 +297,6 @@ class InvoiceApiController extends Controller
 
     private function getCurrentUserId(): string
     {
-        return (string) (auth()->user()?->id ?? 'anonymous');
+        return (string) (session('customer_user_id') ?? 'anonymous');
     }
 }

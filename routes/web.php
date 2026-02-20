@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuickSMSController;
 use App\Http\Controllers\SenderIdController;
 use App\Http\Controllers\Api\RcsAssetController;
+use App\Http\Controllers\Api\InvoiceApiController;
 
 // Public auth routes (no authentication required)
 Route::controller(QuickSMSController::class)->group(function () {
@@ -186,6 +187,14 @@ Route::middleware('customer.auth')->prefix('api/rcs/assets')->controller(RcsAsse
     Route::post('/proxy-image', 'proxyImage')->name('api.rcs.assets.proxy-image');
     Route::put('/{uuid}', 'updateAsset')->name('api.rcs.assets.update');
     Route::post('/{uuid}/finalize', 'finalizeAsset')->name('api.rcs.assets.finalize');
+});
+
+Route::middleware('customer.auth')->prefix('api/invoices')->controller(InvoiceApiController::class)->group(function () {
+    Route::get('/', 'index')->name('api.invoices.index');
+    Route::get('/account-summary', 'accountSummary')->name('api.invoices.account-summary');
+    Route::get('/{invoiceId}', 'show')->name('api.invoices.show');
+    Route::get('/{invoiceId}/pdf', 'downloadPdf')->name('api.invoices.pdf');
+    Route::post('/{invoiceId}/create-checkout-session', 'createCheckoutSession')->name('api.invoices.checkout');
 });
 
 Route::prefix('api/purchase')->controller(QuickSMSController::class)->group(function () {
