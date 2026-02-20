@@ -33,6 +33,10 @@ class RouteServiceProvider extends ServiceProvider
                 ->prefix('api')
                 ->group(base_path('routes/api.php'));
 
+            // Billing API routes (customer portal + admin + webhooks)
+            Route::middleware('api')
+                ->group(base_path('routes/api_billing.php'));
+
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
 
