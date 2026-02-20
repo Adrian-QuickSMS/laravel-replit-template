@@ -33,6 +33,25 @@ return [
 
     'hubspot' => [
         'access_token' => env('HUBSPOT_ACCESS_TOKEN'),
+        'api_key' => env('HUBSPOT_API_KEY'),
+        'webhook_secret' => env('HUBSPOT_WEBHOOK_SECRET'),
+    ],
+
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
+    'xero' => [
+        'client_id' => env('XERO_CLIENT_ID'),
+        'client_secret' => env('XERO_CLIENT_SECRET'),
+        'redirect_uri' => env('XERO_REDIRECT_URI'),
+        'refresh_token' => env('XERO_REFRESH_TOKEN'),
+        'tenant_id' => env('XERO_TENANT_ID'),
+        'webhook_key' => env('XERO_WEBHOOK_KEY'),
+        'base_url' => env('XERO_BASE_URL', 'https://api.xero.com/api.xro/2.0'),
+        'bank_account_code' => env('XERO_BANK_ACCOUNT_CODE', '090'),
     ],
 
 ];
