@@ -127,6 +127,7 @@ class WebhookController extends Controller
             ]);
 
             $this->updateAccountBalance($accountId, $creditAmount);
+            $this->updateAccountTier($accountId, $tier);
             $this->notifyPaymentSuccess($accountId, null, $creditAmount);
         }
     }
@@ -257,6 +258,32 @@ class WebhookController extends Controller
             'new_balance' => $newBalance,
             'timestamp' => now()->toIso8601String(),
         ]);
+    }
+
+    private function updateAccountTier(string $accountId, string $tier): void
+    {
+        try {
+            $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
+            if ($account && in_array($tier, ['starter', 'enterprise', 'bespoke'])) {
+                $previousTier = $account->product_tier;
+                $account->product_tier = $tier;
+                $account->save();
+
+                Log::info('Account product tier updated', [
+                    'action' => 'tier_update',
+                    'account_id' => $accountId,
+                    'previous_tier' => $previousTier,
+                    'new_tier' => $tier,
+                    'timestamp' => now()->toIso8601String(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to update account tier', [
+                'account_id' => $accountId,
+                'tier' => $tier,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     private function notifyPaymentSuccess(string $accountId, ?string $invoiceId, float $amount): void

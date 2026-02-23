@@ -109,3 +109,14 @@ Admin RCS agent approval views wired to real backend API:
 *   **Detail view** (`resources/views/admin/assets/rcs-agent-detail.blade.php`): Full agent detail with 6 sections (identity, contact, classification, campaign, company, approver). Status history timeline. Comments section. Admin action buttons (review/approve/reject/request-info/suspend/reactivate/revoke) with modals. SLA timer sidebar.
 *   **Controller**: `app/Http/Controllers/Admin/RcsAgentApprovalController.php`
 *   **API endpoints**: 9 admin routes under `/admin/api/rcs-agents/`.
+
+## Purchase Page — DB-Driven Pricing (Added 2026-02-23)
+
+The purchase messages page (`/purchase/messages`) now pulls tier prices from the database instead of HubSpot mock data:
+
+*   **`PurchaseApiController::getProducts()`** queries `product_tier_prices` for both starter and enterprise tiers, maps DB `product_type` slugs to frontend keys (e.g., `virtual_number_monthly` → `vmn`, `ai_query` → `ai`).
+*   **Response structure** preserved: each product has `price` (starter), `price_enterprise`, `name`, `sku`, `description`, `billing_period`, `currency`, `pricing` (VAT calculation).
+*   **Tier selection on payment**: When Stripe `checkout.session.completed` webhook fires for `balance_topup` type, the `WebhookController::updateAccountTier()` method sets `product_tier` on the `accounts` table to the selected tier.
+*   **Account context**: `isVatApplicable()` and `getAccountCurrency()` now read from the account record via `session('customer_tenant_id')`.
+*   **Dashboard calculator**: SMS/RCS Basic/RCS Single prices in the RCS vs SMS Savings Calculator are now read-only and populated from the customer's tier prices via the controller.
+*   **Frontend account_id**: Purchase page uses `{{ $account_id }}` from Blade instead of hardcoded `ACC-001`.

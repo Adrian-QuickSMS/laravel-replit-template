@@ -1541,7 +1541,8 @@ class QuickSMSController extends Controller
     public function purchaseMessages()
     {
         return view('quicksms.purchase.messages', [
-            'page_title' => 'Purchase Messages'
+            'page_title' => 'Purchase Messages',
+            'account_id' => session('customer_tenant_id'),
         ]);
     }
 

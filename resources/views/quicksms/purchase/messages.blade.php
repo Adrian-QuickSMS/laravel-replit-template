@@ -1200,7 +1200,7 @@ document.addEventListener('DOMContentLoaded', function() {
         invoiceModal.show();
 
         const payload = {
-            account_id: 'ACC-001',
+            account_id: '{{ $account_id ?? "" }}',
             tier: state.selectedTier,
             volume: calc.volume,
             sms_unit_price: calc.smsUnitPrice,
@@ -1275,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function checkPaymentStatus() {
-        fetch('/api/account/payment-status?account_id=ACC-001')
+        fetch('/api/account/payment-status?account_id={{ $account_id ?? "" }}')
             .then(response => response.json())
             .then(data => {
                 if (data.payment_completed) {
@@ -1310,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function refreshBalanceWidgets() {
-        fetch('/api/account/balance?account_id=ACC-001')
+        fetch('/api/account/balance?account_id={{ $account_id ?? "" }}')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
