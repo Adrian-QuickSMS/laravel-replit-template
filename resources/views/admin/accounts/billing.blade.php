@@ -1873,7 +1873,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var customerData = {
             id: accountId,
             name: currentAccountName,
-            status: data.status === 'live' ? 'Live' : (data.status === 'test' ? 'Test' : 'Suspended'),
+            status: data.status === 'suspended' ? 'Suspended' : (data.status === 'test' ? 'Test' : 'Live'),
             vatRegistered: data.vatRegistered !== undefined ? data.vatRegistered : true,
             vatRate: data.vatRate !== undefined ? data.vatRate : 20,
             reverseCharge: data.reverseCharge || false,
