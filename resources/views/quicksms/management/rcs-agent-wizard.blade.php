@@ -1880,7 +1880,7 @@ $(document).ready(function() {
         if ($('#validationSummaryModal').length) {
             $('#validationSummaryModal .modal-header').css({'background-color': '#fff', 'border-bottom': '1px solid #e9ecef'});
             $('#validationSummaryModal .modal-title').html('<i class="fas fa-times-circle me-2 text-danger"></i>Submission Failed').css('color', '#212529');
-            $('#validationSummaryModal .modal-body').html('<div class="text-center py-3"><p class="text-danger">' + msg + '</p></div>');
+            $('#validationSummaryModal .modal-body').html('<div class="text-center py-3"><p style="color: #212529;">' + msg + '</p></div>');
             $('#validationSummaryModal .modal-footer').html('<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>');
             $('#validationSummaryModal').modal('show');
         } else {
@@ -1888,7 +1888,7 @@ $(document).ready(function() {
             modalHtml += '<div class="modal-dialog modal-dialog-centered"><div class="modal-content">';
             modalHtml += '<div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;"><h5 class="modal-title" style="color: #212529;"><i class="fas fa-times-circle me-2 text-danger"></i>Submission Failed</h5>';
             modalHtml += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>';
-            modalHtml += '<div class="modal-body"><div class="text-center py-3"><p class="text-danger">' + msg + '</p></div></div>';
+            modalHtml += '<div class="modal-body"><div class="text-center py-3"><p style="color: #212529;">' + msg + '</p></div></div>';
             modalHtml += '<div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>';
             modalHtml += '</div></div></div>';
             $('body').append(modalHtml);

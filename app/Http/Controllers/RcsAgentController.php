@@ -494,14 +494,21 @@ class RcsAgentController extends Controller
 
         // Validate required fields before submission
         $missingFields = [];
-        foreach (['name', 'description', 'support_phone', 'website', 'support_email', 'privacy_url', 'terms_url',
+        foreach (['name', 'description', 'privacy_url', 'terms_url',
                    'billing_category', 'use_case', 'campaign_frequency', 'monthly_volume',
                    'opt_in_description', 'opt_out_description', 'use_case_overview',
-                   'company_number', 'company_website', 'registered_address',
+                   'company_number', 'registered_address',
                    'approver_name', 'approver_job_title', 'approver_email'] as $field) {
             if (empty($agent->$field)) {
                 $missingFields[] = $field;
             }
+        }
+
+        $hasPhone = !empty($agent->support_phone) && $agent->show_phone;
+        $hasEmail = !empty($agent->support_email) && $agent->show_email;
+        $hasWebsite = !empty($agent->website);
+        if (!$hasPhone && !$hasEmail && !$hasWebsite) {
+            $missingFields[] = 'contact_method';
         }
 
         if (!empty($missingFields)) {
