@@ -782,6 +782,43 @@
     </div>
 </div>
 
+<!-- Tier Change Confirmation Modal -->
+<div class="modal fade" id="tierChangeConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-exchange-alt me-2"></i>Confirm Tier Change
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center py-3">
+                    <div class="mb-3">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                    </div>
+                    <h6 class="mb-2">Change this account to <strong id="tierChangeConfirmName"></strong> tier?</h6>
+                    <p class="text-muted mb-0">All bespoke pricing will be deactivated and the account will use standard <strong id="tierChangeConfirmName2"></strong> prices.</p>
+                </div>
+                <div class="alert alert-warning d-flex align-items-start mt-3" style="background: rgba(255, 193, 7, 0.08); border-color: rgba(255, 193, 7, 0.3);">
+                    <i class="fas fa-info-circle me-2 mt-1 text-warning"></i>
+                    <div style="font-size: 0.85rem;">
+                        This action cannot be undone. Any custom bespoke prices for this account will be permanently deactivated.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-admin-primary" id="confirmTierChangeBtn" onclick="executeTierChange()">
+                    <i class="fas fa-check me-1"></i>Confirm Change
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Save Changes Confirmation Modal -->
 <div class="modal fade" id="saveConfirmModal" tabindex="-1" aria-labelledby="saveConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -1186,6 +1223,8 @@ function checkPricingChanges() {
     document.getElementById('savePricingBtn').disabled = !hasChanges;
 }
 
+var tierChangeConfirmModalInstance = null;
+
 function saveAccountPricing() {
     var accountId = @json($account_id);
     var selectedTier = document.getElementById('editPricingTierSelect').value;
@@ -1194,9 +1233,13 @@ function saveAccountPricing() {
 
     if (selectedTier !== 'bespoke' && selectedTier !== originalTier) {
         var tierLabel = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
-        if (!confirm('Change this account to ' + tierLabel + ' tier?\n\nAll bespoke pricing will be deactivated and the account will use standard ' + tierLabel + ' prices.')) {
-            return;
+        document.getElementById('tierChangeConfirmName').textContent = tierLabel;
+        document.getElementById('tierChangeConfirmName2').textContent = tierLabel;
+        if (!tierChangeConfirmModalInstance) {
+            tierChangeConfirmModalInstance = new bootstrap.Modal(document.getElementById('tierChangeConfirmModal'));
         }
+        tierChangeConfirmModalInstance.show();
+        return;
     }
 
     if (selectedTier === 'bespoke') {
@@ -1281,6 +1324,54 @@ function saveAccountPricing() {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-save me-1"></i>Save Pricing';
         alert('Error: ' + (err.message || 'Failed to save pricing'));
+    });
+}
+
+function executeTierChange() {
+    if (tierChangeConfirmModalInstance) tierChangeConfirmModalInstance.hide();
+
+    var accountId = @json($account_id);
+    var selectedTier = document.getElementById('editPricingTierSelect').value;
+    var tierLabel = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
+
+    var btn = document.getElementById('savePricingBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+    fetch('/admin/api/accounts/' + accountId + '/pricing', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            product_tier: selectedTier,
+            change_reason: document.getElementById('editPricingReason').value || 'Tier changed to ' + tierLabel
+        })
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        return res.json();
+    })
+    .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'Failed to change tier');
+
+        if (editPricingModalInstance) editPricingModalInstance.hide();
+
+        var toastEl = document.getElementById('saveSuccessToast');
+        toastEl.querySelector('.toast-body').innerHTML =
+            '<i class="fas fa-check-circle me-2"></i>Account changed to ' + tierLabel + ' tier. All bespoke prices deactivated.';
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        setTimeout(function() { location.reload(); }, 1200);
+    })
+    .catch(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-1"></i>Save Pricing';
+        alert('Error: ' + (err.message || 'Failed to change tier'));
     });
 }
 
