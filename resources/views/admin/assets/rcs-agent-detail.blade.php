@@ -123,6 +123,8 @@ html, body {
 .status-pill.in_review { background: #e0e7ff; color: #3730a3; }
 .status-pill.pending_info { background: #fef3c7; color: #92400e; }
 .status-pill.info_provided { background: #fce7f3; color: #9d174d; }
+.status-pill.sent_to_supplier { background: #e0e7ff; color: #4338ca; }
+.status-pill.supplier_approved { background: #ccfbf1; color: #0f766e; }
 .status-pill.approved { background: #d1fae5; color: #065f46; }
 .status-pill.rejected { background: #fee2e2; color: #991b1b; }
 .status-pill.suspended { background: #ffedd5; color: #9a3412; }
@@ -518,6 +520,8 @@ html, body {
                         <button class="action-btn success" id="btnApproveSubmit" style="display:none;" onclick="showApproveSubmitModal()"><i class="fas fa-paper-plane"></i> Approve & Send to RCS Supplier</button>
                         <button class="action-btn danger" id="btnReject" style="display:none;" onclick="showRejectModal()"><i class="fas fa-times-circle"></i> Reject</button>
                         <button class="action-btn warning" id="btnRequestInfo" style="display:none;" onclick="requestInfo()"><i class="fas fa-question-circle"></i> Return with Comments</button>
+                        <button class="action-btn success" id="btnSupplierApproved" style="display:none;" onclick="supplierApprovedAction()"><i class="fas fa-check-double"></i> Mark Supplier Approved</button>
+                        <button class="action-btn success" id="btnMarkLive" style="display:none;" onclick="markLiveAction()"><i class="fas fa-broadcast-tower"></i> Mark Live</button>
                         <button class="action-btn warning" id="btnSuspend" style="display:none;" onclick="suspendAgent()"><i class="fas fa-pause-circle"></i> Suspend</button>
                         <button class="action-btn success" id="btnReactivate" style="display:none;" onclick="reactivateAgent()"><i class="fas fa-play-circle"></i> Reactivate</button>
                         <button class="action-btn danger" id="btnRevoke" style="display:none;" onclick="revokeAgent()"><i class="fas fa-ban"></i> Revoke</button>
@@ -1085,7 +1089,9 @@ function updateStatusPill(status) {
         'in_review': { icon: 'fa-search', label: 'In Review' },
         'pending_info': { icon: 'fa-undo', label: 'Pending Info' },
         'info_provided': { icon: 'fa-reply', label: 'Info Provided' },
-        'approved': { icon: 'fa-check-circle', label: 'Approved' },
+        'sent_to_supplier': { icon: 'fa-satellite-dish', label: 'Sent to Mobile Networks' },
+        'supplier_approved': { icon: 'fa-check-double', label: 'Supplier Approved' },
+        'approved': { icon: 'fa-check-circle', label: 'Live' },
         'rejected': { icon: 'fa-times-circle', label: 'Rejected' },
         'suspended': { icon: 'fa-pause-circle', label: 'Suspended' },
         'revoked': { icon: 'fa-ban', label: 'Revoked' }
@@ -1097,7 +1103,7 @@ function updateStatusPill(status) {
 }
 
 function updateActionButtonVisibility(status) {
-    var btnIds = ['btnStartReview', 'btnApproveSubmit', 'btnReject', 'btnRequestInfo', 'btnSuspend', 'btnReactivate', 'btnRevoke'];
+    var btnIds = ['btnStartReview', 'btnApproveSubmit', 'btnReject', 'btnRequestInfo', 'btnSupplierApproved', 'btnMarkLive', 'btnSuspend', 'btnReactivate', 'btnRevoke'];
     var noActionsMsg = document.getElementById('noActionsMsg');
 
     btnIds.forEach(function(id) {
@@ -1129,6 +1135,16 @@ function updateActionButtonVisibility(status) {
             showBtn('btnApproveSubmit');
             showBtn('btnReject');
             showBtn('btnRequestInfo');
+            break;
+        case 'sent_to_supplier':
+            showBtn('btnSupplierApproved');
+            showBtn('btnSuspend');
+            showBtn('btnRevoke');
+            break;
+        case 'supplier_approved':
+            showBtn('btnMarkLive');
+            showBtn('btnSuspend');
+            showBtn('btnRevoke');
             break;
         case 'approved':
             showBtn('btnSuspend');
@@ -1247,6 +1263,18 @@ function confirmRequestInfo() {
     if (modal) modal.hide();
 
     performAction('request-info', { notes: notes }, 'Returned to customer for more information.');
+}
+
+function supplierApprovedAction() {
+    if (confirm('Mark this agent as Supplier Approved? This confirms the mobile network has approved the RCS agent.')) {
+        performAction('supplier-approved', { notes: 'Supplier has approved the RCS agent' }, 'Agent marked as Supplier Approved.');
+    }
+}
+
+function markLiveAction() {
+    if (confirm('Mark this agent as Live? The agent will be fully active for messaging.')) {
+        performAction('mark-live', { notes: 'Agent is now live' }, 'Agent is now Live.');
+    }
 }
 
 function suspendAgent() {

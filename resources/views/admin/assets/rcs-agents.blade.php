@@ -187,6 +187,8 @@
 .rcs-status-badge.in_review { background: #e0e7ff; color: #3730a3; }
 .rcs-status-badge.pending_info { background: #fef3c7; color: #92400e; }
 .rcs-status-badge.info_provided { background: #fce7f3; color: #9d174d; }
+.rcs-status-badge.sent_to_supplier { background: #e0e7ff; color: #4338ca; }
+.rcs-status-badge.supplier_approved { background: #ccfbf1; color: #0f766e; }
 .rcs-status-badge.approved { background: #d1fae5; color: #065f46; }
 .rcs-status-badge.rejected { background: #fee2e2; color: #991b1b; }
 .rcs-status-badge.suspended { background: #ffedd5; color: #9a3412; }
@@ -248,7 +250,9 @@
                             <div class="form-check"><input class="form-check-input" type="checkbox" value="in_review" id="statusInReview"><label class="form-check-label small" for="statusInReview">In Review</label></div>
                             <div class="form-check"><input class="form-check-input" type="checkbox" value="pending_info" id="statusPendingInfo"><label class="form-check-label small" for="statusPendingInfo">Pending Info</label></div>
                             <div class="form-check"><input class="form-check-input" type="checkbox" value="info_provided" id="statusInfoProvided"><label class="form-check-label small" for="statusInfoProvided">Info Provided</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="approved" id="statusApproved"><label class="form-check-label small" for="statusApproved">Approved</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="sent_to_supplier" id="statusSentToSupplier"><label class="form-check-label small" for="statusSentToSupplier">Sent to Mobile Networks</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="supplier_approved" id="statusSupplierApproved"><label class="form-check-label small" for="statusSupplierApproved">Supplier Approved</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="approved" id="statusApproved"><label class="form-check-label small" for="statusApproved">Live</label></div>
                             <div class="form-check"><input class="form-check-input" type="checkbox" value="rejected" id="statusRejected"><label class="form-check-label small" for="statusRejected">Rejected</label></div>
                             <div class="form-check"><input class="form-check-input" type="checkbox" value="suspended" id="statusSuspended"><label class="form-check-label small" for="statusSuspended">Suspended</label></div>
                             <div class="form-check"><input class="form-check-input" type="checkbox" value="revoked" id="statusRevoked"><label class="form-check-label small" for="statusRevoked">Revoked</label></div>
@@ -606,7 +610,9 @@ function getStatusBadge(status) {
         'in_review': { icon: 'fa-search', label: 'In Review' },
         'pending_info': { icon: 'fa-undo', label: 'Pending Info' },
         'info_provided': { icon: 'fa-reply', label: 'Info Provided' },
-        'approved': { icon: 'fa-check-circle', label: 'Approved' },
+        'sent_to_supplier': { icon: 'fa-satellite-dish', label: 'Sent to Mobile Networks' },
+        'supplier_approved': { icon: 'fa-check-double', label: 'Supplier Approved' },
+        'approved': { icon: 'fa-check-circle', label: 'Live' },
         'rejected': { icon: 'fa-times-circle', label: 'Rejected' },
         'suspended': { icon: 'fa-pause-circle', label: 'Suspended' },
         'revoked': { icon: 'fa-ban', label: 'Revoked' }

@@ -16,6 +16,8 @@ class RcsAgent extends Model
     const STATUS_IN_REVIEW = 'in_review';
     const STATUS_PENDING_INFO = 'pending_info';
     const STATUS_INFO_PROVIDED = 'info_provided';
+    const STATUS_SENT_TO_SUPPLIER = 'sent_to_supplier';
+    const STATUS_SUPPLIER_APPROVED = 'supplier_approved';
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
     const STATUS_SUSPENDED = 'suspended';
@@ -236,7 +238,7 @@ class RcsAgent extends Model
 
     public function isLocked(): bool
     {
-        return in_array($this->workflow_status, [self::STATUS_SUBMITTED, self::STATUS_IN_REVIEW, self::STATUS_APPROVED]);
+        return in_array($this->workflow_status, [self::STATUS_SUBMITTED, self::STATUS_IN_REVIEW, self::STATUS_SENT_TO_SUPPLIER, self::STATUS_SUPPLIER_APPROVED, self::STATUS_APPROVED]);
     }
 
     public function transitionTo(string $newStatus, $userId, ?string $reason = null, ?string $notes = null, $actingUser = null): void
@@ -256,6 +258,12 @@ class RcsAgent extends Model
                 'rejection_reason' => $reason,
                 'reviewed_at' => now()->toIso8601String(),
             ]);
+        } elseif ($newStatus === self::STATUS_SENT_TO_SUPPLIER) {
+            $this->reviewed_at = now();
+            $this->reviewed_by = $userId;
+            $this->is_locked = true;
+        } elseif ($newStatus === self::STATUS_SUPPLIER_APPROVED) {
+            $this->is_locked = true;
         } elseif ($newStatus === self::STATUS_APPROVED) {
             $this->reviewed_at = now();
             $this->reviewed_by = $userId;
@@ -324,15 +332,19 @@ class RcsAgent extends Model
             'in_review_approved' => 'approved',
             'in_review_rejected' => 'rejected',
             'in_review_pending_info' => 'returned_to_customer',
-            'submitted_approved' => 'approved',
+            'submitted_sent_to_supplier' => 'sent_to_supplier',
             'submitted_rejected' => 'rejected',
             'submitted_pending_info' => 'returned_to_customer',
             'pending_info_submitted' => 'resubmitted',
-            'info_provided_approved' => 'approved',
+            'info_provided_sent_to_supplier' => 'sent_to_supplier',
             'info_provided_rejected' => 'rejected',
             'info_provided_pending_info' => 'returned_to_customer',
             'rejected_submitted' => 'resubmitted',
+            'in_review_sent_to_supplier' => 'sent_to_supplier',
+            'sent_to_supplier_supplier_approved' => 'supplier_approved',
+            'supplier_approved_approved' => 'approved',
             'approved_suspended' => 'suspended',
+            'supplier_approved_suspended' => 'suspended',
             'suspended_approved' => 'reactivated',
             'suspended_revoked' => 'revoked',
         ];

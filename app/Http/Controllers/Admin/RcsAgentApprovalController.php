@@ -236,7 +236,7 @@ class RcsAgentApprovalController extends Controller
             return response()->json(['success' => false, 'error' => 'RCS Agent not found.'], 404);
         }
 
-        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_SUBMITTED, RcsAgent::STATUS_IN_REVIEW, RcsAgent::STATUS_PENDING_INFO, RcsAgent::STATUS_INFO_PROVIDED])) {
+        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_SUBMITTED, RcsAgent::STATUS_IN_REVIEW, RcsAgent::STATUS_PENDING_INFO, RcsAgent::STATUS_INFO_PROVIDED, RcsAgent::STATUS_SENT_TO_SUPPLIER])) {
             return response()->json(['success' => false, 'error' => 'Agent must be submitted or in review to approve and submit to supplier.'], 422);
         }
 
@@ -247,7 +247,7 @@ class RcsAgentApprovalController extends Controller
             $adminId = session('admin_auth.admin_id') ?? ($adminUser->id ?? null);
 
             $agent->transitionTo(
-                RcsAgent::STATUS_APPROVED,
+                RcsAgent::STATUS_SENT_TO_SUPPLIER,
                 $adminId,
                 null,
                 $request->input('notes', 'Approved and submitted to RCS supplier'),
@@ -369,6 +369,32 @@ class RcsAgentApprovalController extends Controller
         ]);
 
         return $this->performTransition($request, $uuid, RcsAgent::STATUS_REVOKED, $validated['reason']);
+    }
+
+    /**
+     * Mark supplier approved (sent_to_supplier -> supplier_approved)
+     * POST /admin/api/rcs-agents/{uuid}/supplier-approved
+     */
+    public function supplierApproved(Request $request, string $uuid): JsonResponse
+    {
+        $request->validate([
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        return $this->performTransition($request, $uuid, RcsAgent::STATUS_SUPPLIER_APPROVED, null, $request->input('notes', 'Supplier has approved the RCS agent'));
+    }
+
+    /**
+     * Mark fully approved / live (supplier_approved -> approved)
+     * POST /admin/api/rcs-agents/{uuid}/mark-live
+     */
+    public function markLive(Request $request, string $uuid): JsonResponse
+    {
+        $request->validate([
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        return $this->performTransition($request, $uuid, RcsAgent::STATUS_APPROVED, null, $request->input('notes', 'Agent is now live'));
     }
 
     // =====================================================

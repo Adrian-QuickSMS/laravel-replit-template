@@ -39,7 +39,7 @@ The QuickSMS platform is built on PHP 8.3 and Laravel 10, using PostgreSQL 16. T
 *   **Admin UI for Billing & RCS:**
     *   **Account Billing:** Admin endpoints for viewing/updating account billing mode, balance, credit limit.
     *   **Pricing Management:** A 4-tab interface for managing pricing grids, events, service catalogue, and history, with dedicated API endpoints.
-    *   **RCS Agent Approval:** List and detail views for administrative approval of RCS agents, with AJAX data loading, status filtering, and action buttons.
+    *   **RCS Agent Approval:** List and detail views for administrative approval of RCS agents, with AJAX data loading, status filtering, and action buttons. Full 11-status workflow: draft → submitted → in_review → sent_to_supplier → supplier_approved → approved (Live), with pending_info/info_provided loop, rejected, suspended, revoked branches. Admin endpoints for each transition at `/admin/api/rcs-agents/{uuid}/{action}`.
     *   **Edit Pricing Modal:** Allows administrators to override bespoke pricing for specific accounts, converting the account to a 'bespoke' product tier upon changes. Supports per-submitted/per-delivered billing type selection for SMS and RCS services, and expandable per-country pricing for International SMS. Uses `billing_type` column (enum: `per_submitted`, `per_delivered`) on `customer_prices` and `product_tier_prices` tables.
 *   **Customer UI for Billing & RCS:**
     *   **RCS Agent Library:** Customer-facing page loads agents from the database via API, supporting dynamic tables and API-driven actions (resubmit, delete).

@@ -422,6 +422,8 @@ Route::prefix('admin')->group(function () {
                 Route::post('/{uuid}/approve-and-submit', 'approveAndSubmitToSupplier')->name('admin.api.rcs-agents.approve-and-submit');
                 Route::post('/{uuid}/reject', 'reject')->name('admin.api.rcs-agents.reject');
                 Route::post('/{uuid}/request-info', 'requestInfo')->name('admin.api.rcs-agents.request-info');
+                Route::post('/{uuid}/supplier-approved', 'supplierApproved')->name('admin.api.rcs-agents.supplier-approved');
+                Route::post('/{uuid}/mark-live', 'markLive')->name('admin.api.rcs-agents.mark-live');
                 Route::post('/{uuid}/suspend', 'suspend')->name('admin.api.rcs-agents.suspend');
                 Route::post('/{uuid}/reactivate', 'reactivate')->name('admin.api.rcs-agents.reactivate');
                 Route::post('/{uuid}/revoke', 'revoke')->name('admin.api.rcs-agents.revoke');

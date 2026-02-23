@@ -155,6 +155,14 @@
     background: rgba(48, 101, 208, 0.15);
     color: #3065D0;
 }
+.badge-sent-to-supplier {
+    background: rgba(67, 56, 202, 0.15);
+    color: #4338ca;
+}
+.badge-supplier-approved {
+    background: rgba(15, 118, 110, 0.15);
+    color: #0f766e;
+}
 .badge-suspended {
     background: rgba(108, 117, 125, 0.15);
     color: #6c757d;
@@ -2215,10 +2223,12 @@ function getStatusBadge(status) {
         'draft': 'Draft',
         'submitted': 'Submitted',
         'in-review': 'In Review',
-        'approved': 'Approved',
+        'approved': 'Live',
         'rejected': 'Rejected',
         'pending-info': 'Returned',
         'info-provided': 'Info Provided',
+        'sent-to-supplier': 'Sent to Mobile Networks',
+        'supplier-approved': 'Supplier Approved',
         'suspended': 'Suspended',
         'revoked': 'Revoked'
     };
@@ -2230,6 +2240,8 @@ function getStatusBadge(status) {
         'rejected': 'badge-rejected',
         'pending-info': 'badge-pending-info',
         'info-provided': 'badge-info-provided',
+        'sent-to-supplier': 'badge-sent-to-supplier',
+        'supplier-approved': 'badge-supplier-approved',
         'suspended': 'badge-suspended',
         'revoked': 'badge-revoked'
     };
