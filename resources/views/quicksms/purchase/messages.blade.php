@@ -404,12 +404,10 @@
 </div>
 <div class="container-fluid purchase-messages-container">
     @php
-        // TODO: Replace with actual user role from auth system
-        // Allowed roles: 'admin' (full access), 'finance' (purchase & invoices), 'standard' (no access)
         $currentUserRole = 'admin';
         $vatApplicable = true;
         $accountCurrency = 'GBP';
-        $bespokePricing = false;
+        $bespokePricing = ($productTier ?? 'starter') === 'bespoke';
     @endphp
     
     @if(!in_array($currentUserRole, ['admin', 'finance']))

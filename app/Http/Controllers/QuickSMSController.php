@@ -1559,9 +1559,14 @@ class QuickSMSController extends Controller
 
     public function purchaseMessages()
     {
+        $accountId = session('customer_tenant_id');
+        $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
+        $productTier = $account ? $account->product_tier : 'starter';
+
         return view('quicksms.purchase.messages', [
             'page_title' => 'Purchase Messages',
-            'account_id' => session('customer_tenant_id'),
+            'account_id' => $accountId,
+            'productTier' => $productTier,
         ]);
     }
 
