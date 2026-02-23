@@ -1582,11 +1582,11 @@ $(document).ready(function() {
                 }
             }
         }
-        $('#agentWebsite').val(wizardData.website);
-        $('#agentPrivacyUrl').val(wizardData.privacyUrl);
-        $('#agentTermsUrl').val(wizardData.termsUrl);
-        $('#agentSupportEmail').val(wizardData.supportEmail);
-        $('#agentSupportPhone').val(wizardData.supportPhone);
+        $('#businessWebsite').val(wizardData.website);
+        $('#privacyUrl').val(wizardData.privacyUrl);
+        $('#termsUrl').val(wizardData.termsUrl);
+        $('#supportEmail').val(wizardData.supportEmail);
+        $('#supportPhone').val(wizardData.supportPhone);
         $('#showPhoneToggle').prop('checked', wizardData.showPhone);
         $('#showEmailToggle').prop('checked', wizardData.showEmail);
         if (wizardData.billing) {
