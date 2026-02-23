@@ -192,14 +192,14 @@ class RcsAgentApprovalController extends Controller
                 ]);
 
                 // Create customer-visible comment with admin's notes
-                $adminUser = $request->user();
+                $adminSession = session('admin_auth', []);
                 RcsAgentComment::create([
                     'rcs_agent_id' => $agent->id,
                     'comment_type' => RcsAgentComment::TYPE_CUSTOMER,
                     'comment_text' => $validated['notes'],
                     'created_by_actor_type' => RcsAgentComment::ACTOR_ADMIN,
-                    'created_by_actor_id' => $adminUser->id ?? null,
-                    'created_by_actor_name' => $adminUser ? (($adminUser->first_name ?? '') . ' ' . ($adminUser->last_name ?? '')) : 'Admin',
+                    'created_by_actor_id' => $adminSession['admin_id'] ?? ($request->user()->id ?? null),
+                    'created_by_actor_name' => $adminSession['name'] ?? 'QuickSMS Review Team',
                 ]);
 
                 $this->logGovernanceEvent(
@@ -244,7 +244,7 @@ class RcsAgentApprovalController extends Controller
 
         try {
             $adminUser = $request->user();
-            $adminId = $adminUser->id ?? null;
+            $adminId = session('admin_auth.admin_id') ?? ($adminUser->id ?? null);
 
             $agent->transitionTo(
                 RcsAgent::STATUS_APPROVED,
@@ -397,7 +397,7 @@ class RcsAgentApprovalController extends Controller
 
         try {
             $adminUser = $request->user();
-            $adminId = $adminUser->id ?? null;
+            $adminId = session('admin_auth.admin_id') ?? ($adminUser->id ?? null);
 
             $agent->transitionTo(
                 $targetStatus,
@@ -471,9 +471,9 @@ class RcsAgentApprovalController extends Controller
                 'entity_id' => $agent->id,
                 'account_id' => null,
                 'sub_account_id' => null,
-                'actor_id' => $request->user()->id ?? null,
+                'actor_id' => session('admin_auth.admin_id') ?? ($request->user()->id ?? null),
                 'actor_type' => 'ADMIN',
-                'actor_email' => $request->user()->email ?? 'admin@quicksms.co.uk',
+                'actor_email' => session('admin_auth.email') ?? ($request->user()->email ?? 'admin@quicksms.co.uk'),
                 'before_state' => json_encode([
                     'workflow_status' => $beforeState['workflow_status'] ?? null,
                     'agent_name' => $beforeState['name'] ?? $agent->name,
