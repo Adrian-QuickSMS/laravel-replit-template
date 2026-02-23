@@ -42,6 +42,7 @@
                     <li><a href="{{ route('admin.management.templates') }}" class="{{ request()->routeIs('admin.management.templates') ? 'mm-active' : '' }}">Templates</a></li>
                     <li><a href="{{ route('admin.assets.numbers') }}" class="{{ request()->routeIs('admin.assets.numbers') ? 'mm-active' : '' }}">Numbers</a></li>
                     <li><a href="{{ route('admin.assets.email-to-sms') }}" class="{{ request()->routeIs('admin.assets.email-to-sms') ? 'mm-active' : '' }}">Email-to-SMS</a></li>
+                    <li><a href="{{ route('admin.management.pricing') }}" class="{{ request()->routeIs('admin.management.pricing') ? 'mm-active' : '' }}"><i class="fas fa-tags me-1"></i>Pricing</a></li>
                 </ul>
             </li>
             

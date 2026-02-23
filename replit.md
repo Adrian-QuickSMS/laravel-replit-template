@@ -88,3 +88,24 @@ The admin account billing page (`/admin/accounts/{id}/billing`) has been wired t
 *   **DB value mapping**: `prepay`/`postpay` (DB enum) ↔ `prepaid`/`postpaid` (UI/API).
 *   **Available credit calculation**: For both prepaid and postpaid accounts, credit limit is included in available credit. Prepaid: `max(0, balance - reserved) + creditLimit`. Postpaid: `creditLimit - totalOutstanding + balance - reserved`.
 *   **Auto-created balance records**: The `Account` model's `booted()` method hooks into the `created` event to automatically insert an `account_balances` row with zero balance and the account's currency/credit limit whenever a new account is created.
+
+## Admin Pricing Management Frontend (Added 2026-02-23)
+
+Full admin pricing management page at `/admin/management/pricing` with 4-tab interface:
+
+*   **Tab 1 - Pricing Grid**: Services × tiers (Starter/Enterprise) table. Prices formatted via `display_format` (pence: ×100 + "p", pounds: "£X.XX"). Inline edit modal. Point-in-time preview with date picker. Bespoke-only badge. Scheduled future price calendar icon.
+*   **Tab 2 - Pricing Events**: Grouped pricing changes with status badges (draft/scheduled/applied/cancelled). Create/edit/schedule/cancel workflows. Event detail with items table (old→new price) and affected accounts.
+*   **Tab 3 - Service Catalogue**: CRUD for services (display name, slug, unit label, format, tier availability, bespoke-only flag, sort order).
+*   **Tab 4 - History & Export**: Change log with filters (service, tier, source, date range). CSV export. Upcoming scheduled changes.
+*   **API endpoints**: 15 routes under `/admin/api/pricing/` (services CRUD, tier-prices, events CRUD+schedule+cancel, history, export, upcoming, preview).
+*   **View file**: `resources/views/admin/management/pricing.blade.php`
+*   **Controller**: `app/Http/Controllers/Admin/PricingManagementController.php`
+
+## RCS Agent Admin Frontend (Added 2026-02-23)
+
+Admin RCS agent approval views wired to real backend API:
+
+*   **List view** (`resources/views/admin/assets/rcs-agents.blade.php`): AJAX data loading from `GET /admin/api/rcs-agents` with pagination, status/billing_category/use_case/account filters. Stat cards for submitted/in_review/approved/rejected/total counts. 9-state status badges. Bulk approve/reject. Quick search.
+*   **Detail view** (`resources/views/admin/assets/rcs-agent-detail.blade.php`): Full agent detail with 6 sections (identity, contact, classification, campaign, company, approver). Status history timeline. Comments section. Admin action buttons (review/approve/reject/request-info/suspend/reactivate/revoke) with modals. SLA timer sidebar.
+*   **Controller**: `app/Http/Controllers/Admin/RcsAgentApprovalController.php`
+*   **API endpoints**: 9 admin routes under `/admin/api/rcs-agents/`.

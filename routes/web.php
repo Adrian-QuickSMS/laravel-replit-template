@@ -5,6 +5,7 @@ use App\Http\Controllers\QuickSMSController;
 use App\Http\Controllers\SenderIdController;
 use App\Http\Controllers\Api\RcsAssetController;
 use App\Http\Controllers\Api\InvoiceApiController;
+use App\Http\Controllers\RcsAgentController;
 
 // Public auth routes (no authentication required)
 Route::controller(QuickSMSController::class)->group(function () {
@@ -114,6 +115,18 @@ Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderI
 });
 
 Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
+
+// RCS Agent Registration — Customer Portal API
+Route::middleware('customer.auth')->prefix('api/rcs-agents')->controller(RcsAgentController::class)->group(function () {
+    Route::get('/approved', 'approved')->name('api.rcs-agents.approved');
+    Route::post('/', 'store')->name('api.rcs-agents.store');
+    Route::get('/{uuid}', 'show')->name('api.rcs-agents.show');
+    Route::put('/{uuid}', 'update')->name('api.rcs-agents.update');
+    Route::delete('/{uuid}', 'destroy')->name('api.rcs-agents.destroy');
+    Route::post('/{uuid}/submit', 'submit')->name('api.rcs-agents.submit');
+    Route::post('/{uuid}/provide-info', 'provideInfo')->name('api.rcs-agents.provide-info');
+    Route::post('/{uuid}/resubmit', 'resubmit')->name('api.rcs-agents.resubmit');
+});
 
 // Contact Book API — must be in web.php (not api.php) so session auth works
 Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contacts')->group(function () {
@@ -386,6 +399,39 @@ Route::prefix('admin')->group(function () {
                 Route::post('/{uuid}/suspend', 'suspend')->name('admin.api.sender-ids.suspend');
                 Route::post('/{uuid}/reactivate', 'reactivate')->name('admin.api.sender-ids.reactivate');
                 Route::post('/{uuid}/revoke', 'revoke')->name('admin.api.sender-ids.revoke');
+            });
+
+            Route::prefix('api/rcs-agents')->controller(\App\Http\Controllers\Admin\RcsAgentApprovalController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.rcs-agents.index');
+                Route::get('/{uuid}', 'show')->name('admin.api.rcs-agents.show');
+                Route::post('/{uuid}/review', 'startReview')->name('admin.api.rcs-agents.review');
+                Route::post('/{uuid}/approve', 'approve')->name('admin.api.rcs-agents.approve');
+                Route::post('/{uuid}/reject', 'reject')->name('admin.api.rcs-agents.reject');
+                Route::post('/{uuid}/request-info', 'requestInfo')->name('admin.api.rcs-agents.request-info');
+                Route::post('/{uuid}/suspend', 'suspend')->name('admin.api.rcs-agents.suspend');
+                Route::post('/{uuid}/reactivate', 'reactivate')->name('admin.api.rcs-agents.reactivate');
+                Route::post('/{uuid}/revoke', 'revoke')->name('admin.api.rcs-agents.revoke');
+            });
+
+            // Pricing Management — view + API
+            Route::get('/management/pricing', [\App\Http\Controllers\Admin\PricingManagementController::class, 'index'])->name('admin.management.pricing');
+
+            Route::prefix('api/pricing')->controller(\App\Http\Controllers\Admin\PricingManagementController::class)->group(function () {
+                Route::get('/services', 'services')->name('admin.api.pricing.services');
+                Route::post('/services', 'storeService')->name('admin.api.pricing.services.store');
+                Route::put('/services/{id}', 'updateService')->name('admin.api.pricing.services.update');
+                Route::get('/current', 'currentPricing')->name('admin.api.pricing.current');
+                Route::get('/preview', 'previewPricing')->name('admin.api.pricing.preview');
+                Route::put('/tier-prices', 'updateTierPrice')->name('admin.api.pricing.tier-prices.update');
+                Route::get('/events', 'events')->name('admin.api.pricing.events');
+                Route::post('/events', 'storeEvent')->name('admin.api.pricing.events.store');
+                Route::get('/events/{id}', 'showEvent')->name('admin.api.pricing.events.show');
+                Route::put('/events/{id}', 'updateEvent')->name('admin.api.pricing.events.update');
+                Route::post('/events/{id}/schedule', 'scheduleEvent')->name('admin.api.pricing.events.schedule');
+                Route::post('/events/{id}/cancel', 'cancelEvent')->name('admin.api.pricing.events.cancel');
+                Route::get('/upcoming', 'upcoming')->name('admin.api.pricing.upcoming');
+                Route::get('/history', 'history')->name('admin.api.pricing.history');
+                Route::get('/export', 'export')->name('admin.api.pricing.export');
             });
 
             Route::prefix('api/governance')->controller(\App\Http\Controllers\Admin\ApprovalQueueController::class)->group(function () {
