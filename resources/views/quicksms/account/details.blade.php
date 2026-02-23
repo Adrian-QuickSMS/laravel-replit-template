@@ -1284,10 +1284,14 @@ $(document).ready(function() {
                     for (var i = 0; i < group.items.length; i++) {
                         var svc = group.items[i];
                         var price = svc.bespoke_formatted || 'Custom';
+                        var basisLabel = svc.unit_label;
+                        if (svc.bespoke_billing_type) {
+                            basisLabel = svc.bespoke_billing_type.replace('_', ' ');
+                        }
                         html += '<div class="rate-row">';
                         html += '<div class="rate-info">';
                         html += '<span class="rate-label">' + svc.display_name + '</span>';
-                        html += '<span class="rate-basis">' + svc.unit_label + '</span>';
+                        html += '<span class="rate-basis">' + basisLabel + '</span>';
                         html += '</div>';
                         html += '<span class="rate-value">' + price + '</span>';
                         html += '</div>';

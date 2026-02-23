@@ -2416,6 +2416,7 @@ class QuickSMSController extends Controller
                 $cp = $customerPrices[$slug] ?? null;
                 $item['bespoke_price'] = $cp ? (float) $cp['unit_price'] : null;
                 $item['bespoke_formatted'] = $cp ? $service->formatPrice($cp['unit_price']) : null;
+                $item['bespoke_billing_type'] = $cp ? ($cp['billing_type'] ?? 'per_submitted') : null;
             }
 
             $result[] = $item;
