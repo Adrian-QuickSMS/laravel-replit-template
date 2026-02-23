@@ -262,6 +262,23 @@ class AdminController extends Controller
         $flags = DB::table('account_flags')->where('account_id', $account->id)->first();
         $settings = DB::table('account_settings')->where('account_id', $account->id)->first();
 
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $customerPrices = DB::table('customer_prices')
+            ->where('account_id', $accountId)
+            ->where('active', true)
+            ->orderBy('product_type')
+            ->orderBy('country_iso')
+            ->get();
+
+        $productTier = $account->product_tier ?? 'starter';
+        $tierPrices = DB::table('product_tier_prices')
+            ->where('product_tier', $productTier)
+            ->where('active', true)
+            ->orderBy('product_type')
+            ->orderBy('country_iso')
+            ->get();
+
         return view('admin.accounts.details', [
             'page_title' => 'Account Details',
             'account_id' => $accountId,
@@ -269,6 +286,9 @@ class AdminController extends Controller
             'owner' => $owner,
             'flags' => $flags,
             'settings' => $settings,
+            'customerPrices' => $customerPrices,
+            'tierPrices' => $tierPrices,
+            'productTier' => $productTier,
         ]);
     }
 

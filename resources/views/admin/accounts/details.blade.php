@@ -596,23 +596,99 @@
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 mb-4">
                             <div class="pricing-display-card pricing-active">
-                                <span class="active-badge">ACTIVE</span>
+                                <span class="active-badge">{{ strtoupper($productTier) }}</span>
                                 <div class="card-body">
-                                    <h5 class="mb-3">Enterprise Plan</h5>
-                                    <div class="mb-3">
-                                        <strong>Pricing Basis:</strong> <span class="badge bg-primary">Submitted</span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <strong>SMS UK:</strong> £0.0285 per message
-                                    </div>
-                                    <div class="mb-2">
-                                        <strong>RCS UK:</strong> £0.0350 per message
-                                    </div>
-                                    <div class="text-muted small mt-3">
-                                        <i class="fas fa-sync-alt me-1"></i>Synced from HubSpot
-                                    </div>
+                                    <h5 class="mb-3">{{ ucfirst($productTier) }} Plan</h5>
+                                    @if($customerPrices->isNotEmpty())
+                                        <div class="mb-3">
+                                            <strong>Pricing Basis:</strong> <span class="badge bg-primary">Bespoke</span>
+                                        </div>
+                                        @foreach($customerPrices as $price)
+                                            <div class="mb-2">
+                                                <strong>{{ strtoupper(str_replace('_', ' ', $price->product_type)) }} {{ strtoupper($price->country_iso) }}:</strong>
+                                                £{{ number_format($price->unit_price, 4) }} per unit
+                                                @if($price->source === 'hubspot')
+                                                    <span class="text-muted small"><i class="fas fa-sync-alt ms-1"></i></span>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                        <div class="text-muted small mt-3">
+                                            <i class="fas fa-user-tag me-1"></i>Customer-specific pricing applied
+                                        </div>
+                                    @elseif($tierPrices->isNotEmpty())
+                                        <div class="mb-3">
+                                            <strong>Pricing Basis:</strong> <span class="badge bg-info">Tier Standard</span>
+                                        </div>
+                                        @foreach($tierPrices as $price)
+                                            <div class="mb-2">
+                                                <strong>{{ strtoupper(str_replace('_', ' ', $price->product_type)) }} {{ strtoupper($price->country_iso) }}:</strong>
+                                                £{{ number_format($price->unit_price, 4) }} per unit
+                                            </div>
+                                        @endforeach
+                                        <div class="text-muted small mt-3">
+                                            <i class="fas fa-layer-group me-1"></i>Standard tier pricing
+                                        </div>
+                                    @else
+                                        <div class="mb-3">
+                                            <strong>Pricing Basis:</strong> <span class="badge bg-warning text-dark">Not Set</span>
+                                        </div>
+                                        <div class="text-muted">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>No pricing has been configured for this account. 
+                                            Add tier prices or customer-specific prices to enable billing.
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="card border" style="border-color: #e6e6e6 !important;">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="fas fa-list me-2"></i>All Billable Product Types</h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-sm table-striped mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th class="ps-3">Product Type</th>
+                                                <th>Category</th>
+                                                <th>Pricing Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $allProducts = [
+                                                    'sms' => 'Messaging',
+                                                    'rcs_basic' => 'Messaging',
+                                                    'rcs_single' => 'Messaging',
+                                                    'inbound_sms' => 'Messaging',
+                                                    'ai_query' => 'Value-Added',
+                                                    'virtual_number_monthly' => 'Recurring',
+                                                    'shortcode_monthly' => 'Recurring',
+                                                    'support' => 'Service',
+                                                ];
+                                                $customerPriceTypes = $customerPrices->pluck('product_type')->toArray();
+                                                $tierPriceTypes = $tierPrices->pluck('product_type')->toArray();
+                                            @endphp
+                                            @foreach($allProducts as $type => $category)
+                                                <tr>
+                                                    <td class="ps-3">{{ strtoupper(str_replace('_', ' ', $type)) }}</td>
+                                                    <td><span class="badge bg-light text-dark">{{ $category }}</span></td>
+                                                    <td>
+                                                        @if(in_array($type, $customerPriceTypes))
+                                                            <span class="badge bg-success">Bespoke</span>
+                                                        @elseif(in_array($type, $tierPriceTypes))
+                                                            <span class="badge bg-info">Tier</span>
+                                                        @else
+                                                            <span class="badge bg-secondary">Not Set</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
