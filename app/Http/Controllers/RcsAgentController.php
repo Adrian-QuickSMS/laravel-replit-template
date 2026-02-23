@@ -202,6 +202,7 @@ class RcsAgentController extends Controller
                 'approver_name' => $validated['approver_name'] ?? null,
                 'approver_job_title' => $validated['approver_job_title'] ?? null,
                 'approver_email' => $validated['approver_email'] ?? null,
+                'sector' => $validated['sector'] ?? null,
                 'workflow_status' => RcsAgent::STATUS_DRAFT,
                 'created_by' => $userId,
             ];
