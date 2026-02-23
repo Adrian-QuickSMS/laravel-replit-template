@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use App\Models\User;
+use App\Models\SubAccount;
 
 class RcsAgent extends Model
 {
@@ -22,6 +24,39 @@ class RcsAgent extends Model
     const STATUS_REJECTED = 'rejected';
     const STATUS_SUSPENDED = 'suspended';
     const STATUS_REVOKED = 'revoked';
+
+    // =====================================================
+    // STATE MACHINE: Allowed transitions
+    // =====================================================
+
+    const TRANSITIONS = [
+        self::STATUS_DRAFT         => [self::STATUS_SUBMITTED],
+        self::STATUS_SUBMITTED     => [self::STATUS_IN_REVIEW, self::STATUS_SENT_TO_SUPPLIER, self::STATUS_REJECTED, self::STATUS_PENDING_INFO],
+        self::STATUS_IN_REVIEW     => [self::STATUS_APPROVED, self::STATUS_REJECTED, self::STATUS_PENDING_INFO, self::STATUS_SENT_TO_SUPPLIER],
+        self::STATUS_PENDING_INFO  => [self::STATUS_SUBMITTED, self::STATUS_INFO_PROVIDED, self::STATUS_DRAFT],
+        self::STATUS_INFO_PROVIDED => [self::STATUS_SENT_TO_SUPPLIER, self::STATUS_REJECTED, self::STATUS_PENDING_INFO, self::STATUS_IN_REVIEW],
+        self::STATUS_SENT_TO_SUPPLIER => [self::STATUS_SUPPLIER_APPROVED],
+        self::STATUS_SUPPLIER_APPROVED => [self::STATUS_APPROVED, self::STATUS_SUSPENDED],
+        self::STATUS_APPROVED      => [self::STATUS_SUSPENDED],
+        self::STATUS_REJECTED      => [self::STATUS_SUBMITTED, self::STATUS_DRAFT],
+        self::STATUS_SUSPENDED     => [self::STATUS_APPROVED, self::STATUS_REVOKED],
+        self::STATUS_REVOKED       => [], // terminal state
+    ];
+
+    // Who can trigger each transition target
+    const TRANSITION_ACTORS = [
+        self::STATUS_SUBMITTED     => 'customer',
+        self::STATUS_IN_REVIEW     => 'admin',
+        self::STATUS_APPROVED      => 'admin',
+        self::STATUS_REJECTED      => 'admin',
+        self::STATUS_PENDING_INFO  => 'admin',
+        self::STATUS_INFO_PROVIDED => 'customer',
+        self::STATUS_SENT_TO_SUPPLIER => 'admin',
+        self::STATUS_SUPPLIER_APPROVED => 'admin',
+        self::STATUS_SUSPENDED     => 'admin',
+        self::STATUS_REVOKED       => 'admin',
+        self::STATUS_DRAFT         => 'customer',
+    ];
 
     protected $fillable = [
         'uuid',
@@ -57,19 +92,18 @@ class RcsAgent extends Model
         'approver_email',
         'sector',
         'workflow_status',
-        'rejection_reason',
-        'admin_notes',
-        'suspension_reason',
-        'revocation_reason',
         'additional_info',
-        'submitted_at',
-        'reviewed_at',
-        'reviewed_by',
-        'full_payload',
-        'is_locked',
         'created_by',
-        'version',
-        'version_history',
+    ];
+
+    /**
+     * Admin-only fields excluded from $fillable (set only via transitionTo/forceFill):
+     * rejection_reason, admin_notes, suspension_reason, revocation_reason,
+     * submitted_at, reviewed_at, reviewed_by, full_payload, is_locked, version, version_history
+     */
+
+    protected $hidden = [
+        'admin_notes', // RED side - never expose to customer portal
     ];
 
     protected $casts = [
@@ -231,6 +265,11 @@ class RcsAgent extends Model
         ];
     }
 
+    public function canCustomerProvideInfo(): bool
+    {
+        return $this->workflow_status === self::STATUS_PENDING_INFO;
+    }
+
     public function isEditable(): bool
     {
         return in_array($this->workflow_status, [self::STATUS_DRAFT, self::STATUS_REJECTED, self::STATUS_PENDING_INFO]);
@@ -244,6 +283,14 @@ class RcsAgent extends Model
     public function transitionTo(string $newStatus, $userId, ?string $reason = null, ?string $notes = null, $actingUser = null): void
     {
         $oldStatus = $this->workflow_status;
+
+        // Validate transition is allowed
+        $allowedTransitions = self::TRANSITIONS[$oldStatus] ?? [];
+        if (!in_array($newStatus, $allowedTransitions)) {
+            throw new \InvalidArgumentException(
+                "Invalid transition from '{$oldStatus}' to '{$newStatus}'. Allowed: " . implode(', ', $allowedTransitions)
+            );
+        }
 
         if ($newStatus === self::STATUS_SUBMITTED) {
             $this->full_payload = $this->toArray();
@@ -284,6 +331,31 @@ class RcsAgent extends Model
         $this->save();
 
         $this->recordStatusHistory($oldStatus, $newStatus, $this->getActionForTransition($oldStatus, $newStatus), $userId, $reason, $notes, $actingUser);
+    }
+
+    /**
+     * Scope: approved RCS Agents usable by a specific user
+     * Checks account-level (no assignments = available to all) OR assigned to user/sub-account
+     */
+    public function scopeUsableByUser($query, User $user)
+    {
+        return $query->where('workflow_status', self::STATUS_APPROVED)
+            ->where('account_id', $user->tenant_id)
+            ->where(function ($q) use ($user) {
+                $q->whereDoesntHave('assignments')
+                    ->orWhereHas('assignments', function ($assignQ) use ($user) {
+                        $assignQ->where(function ($innerQ) use ($user) {
+                            $innerQ->where('assignable_type', User::class)
+                                ->where('assignable_id', $user->id);
+                        });
+                        if ($user->sub_account_id) {
+                            $assignQ->orWhere(function ($innerQ) use ($user) {
+                                $innerQ->where('assignable_type', SubAccount::class)
+                                    ->where('assignable_id', $user->sub_account_id);
+                            });
+                        }
+                    });
+            });
     }
 
     public function transitionStatus(string $newStatus, $userId, ?string $reason = null, ?string $notes = null, $actingUser = null): void

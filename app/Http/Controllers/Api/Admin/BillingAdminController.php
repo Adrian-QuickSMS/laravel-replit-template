@@ -101,22 +101,26 @@ class BillingAdminController extends Controller
         $amount = number_format((float)$request->input('amount'), 4, '.', '');
         $idempotencyKey = 'adj-' . Str::uuid();
 
-        $entry = $this->ledgerService->recordManualAdjustment(
-            $id, $amount, $account->currency,
-            $request->input('direction'),
-            $request->input('reason'),
-            $idempotencyKey, $adminId
-        );
+        $entry = DB::transaction(function () use ($id, $amount, $account, $request, $idempotencyKey, $adminId) {
+            $entry = $this->ledgerService->recordManualAdjustment(
+                $id, $amount, $account->currency,
+                $request->input('direction'),
+                $request->input('reason'),
+                $idempotencyKey, $adminId
+            );
 
-        // Update cached balance
-        $balance = AccountBalance::lockForAccount($id);
-        if ($request->input('direction') === 'credit') {
-            $balance->balance = bcadd($balance->balance, $amount, 4);
-        } else {
-            $balance->balance = bcsub($balance->balance, $amount, 4);
-        }
-        $balance->recalculateEffectiveAvailable();
-        $balance->save();
+            // Update cached balance atomically within same transaction
+            $balance = AccountBalance::lockForAccount($id);
+            if ($request->input('direction') === 'credit') {
+                $balance->balance = bcadd($balance->balance, $amount, 4);
+            } else {
+                $balance->balance = bcsub($balance->balance, $amount, 4);
+            }
+            $balance->recalculateEffectiveAvailable();
+            $balance->save();
+
+            return $entry;
+        });
 
         return response()->json([
             'success' => true,
@@ -175,20 +179,23 @@ class BillingAdminController extends Controller
         $account = Account::findOrFail($id);
         $old = $account->credit_limit;
         $new = number_format((float)$request->input('credit_limit'), 4, '.', '');
+        $adminId = $this->getAdminId($request);
 
-        $account->update(['credit_limit' => $new]);
+        DB::transaction(function () use ($account, $id, $new, $old, $adminId) {
+            $account->update(['credit_limit' => $new]);
 
-        // Sync to account_balances
-        $balance = AccountBalance::lockForAccount($id);
-        $balance->credit_limit = $new;
-        $balance->recalculateEffectiveAvailable();
-        $balance->save();
+            // Sync to account_balances atomically within same transaction
+            $balance = AccountBalance::lockForAccount($id);
+            $balance->credit_limit = $new;
+            $balance->recalculateEffectiveAvailable();
+            $balance->save();
 
-        FinancialAuditLog::record(
-            'credit_limit_changed', 'account', $id,
-            ['credit_limit' => $old], ['credit_limit' => $new],
-            $this->getAdminId($request), 'admin'
-        );
+            FinancialAuditLog::record(
+                'credit_limit_changed', 'account', $id,
+                ['credit_limit' => $old], ['credit_limit' => $new],
+                $adminId, 'admin'
+            );
+        });
 
         return response()->json(['success' => true]);
     }
@@ -234,7 +241,7 @@ class BillingAdminController extends Controller
             'prices' => 'required|array|min:1',
             'prices.*.product_type' => 'required|string',
             'prices.*.country_iso' => 'nullable|string|size:2',
-            'prices.*.unit_price' => 'required|numeric|min:0',
+            'prices.*.unit_price' => 'required|numeric|min:0.0001',
             'change_reason' => 'sometimes|string|max:255',
         ]);
 
@@ -253,40 +260,42 @@ class BillingAdminController extends Controller
 
         $adminId = $this->getAdminId($request);
 
-        foreach ($request->input('prices') as $priceData) {
-            // Deactivate existing
-            CustomerPrice::where('account_id', $id)
-                ->where('product_type', $priceData['product_type'])
-                ->where('country_iso', $priceData['country_iso'] ?? null)
-                ->where('active', true)
-                ->update(['active' => false]);
+        DB::transaction(function () use ($request, $id, $account, $adminId) {
+            foreach ($request->input('prices') as $priceData) {
+                // Deactivate existing
+                CustomerPrice::where('account_id', $id)
+                    ->where('product_type', $priceData['product_type'])
+                    ->where('country_iso', $priceData['country_iso'] ?? null)
+                    ->where('active', true)
+                    ->update(['active' => false]);
 
-            CustomerPrice::create([
-                'account_id' => $id,
-                'product_type' => $priceData['product_type'],
-                'country_iso' => $priceData['country_iso'] ?? null,
-                'unit_price' => $priceData['unit_price'],
-                'currency' => $account->currency,
-                'source' => 'admin_override',
-                'set_by' => $adminId,
-                'set_at' => now(),
-                'valid_from' => now()->toDateString(),
-                'active' => true,
-                'version' => 1,
-                'change_reason' => $request->input('change_reason'),
-            ]);
-        }
+                CustomerPrice::create([
+                    'account_id' => $id,
+                    'product_type' => $priceData['product_type'],
+                    'country_iso' => $priceData['country_iso'] ?? null,
+                    'unit_price' => $priceData['unit_price'],
+                    'currency' => $account->currency,
+                    'source' => 'admin_override',
+                    'set_by' => $adminId,
+                    'set_at' => now(),
+                    'valid_from' => now()->toDateString(),
+                    'active' => true,
+                    'version' => 1,
+                    'change_reason' => $request->input('change_reason'),
+                ]);
+            }
 
-        // Queue HubSpot sync
+            FinancialAuditLog::record(
+                'pricing_override', 'account', $id,
+                null, ['prices' => $request->input('prices')],
+                $adminId, 'admin'
+            );
+        });
+
+        // Queue HubSpot sync (outside transaction — non-critical)
         dispatch(function () use ($account) {
             app(HubSpotPricingSyncService::class)->syncToHubSpot($account);
         })->afterResponse();
-
-        FinancialAuditLog::record(
-            'pricing_override', 'account', $id,
-            null, ['prices' => $request->input('prices')],
-            $adminId, 'admin'
-        );
 
         return response()->json(['success' => true]);
     }
@@ -603,6 +612,10 @@ class BillingAdminController extends Controller
 
     private function getAdminId(Request $request): string
     {
-        return session('admin_user_id', 'system');
+        $adminId = session('admin_user_id') ?? session('admin_auth.id');
+        if (!$adminId) {
+            throw new \RuntimeException('Admin identity could not be determined. Financial operations require authenticated admin.');
+        }
+        return $adminId;
     }
 }

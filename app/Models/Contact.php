@@ -64,6 +64,9 @@ class Contact extends Model
                 : session('customer_tenant_id');
             if ($tenantId) {
                 $builder->where('contacts.account_id', $tenantId);
+            } else {
+                // Fail-closed: return zero rows when no tenant context
+                $builder->whereRaw('1 = 0');
             }
         });
     }
@@ -160,7 +163,6 @@ class Contact extends Model
             'last_name' => $this->last_name,
             'initials' => $this->initials,
             'email' => $this->email,
-            'mobile' => $this->mobile_number,
             'mobile_masked' => $this->mobile_masked,
             'tags' => $this->tags->pluck('name')->toArray(),
             'lists' => $this->lists->pluck('name')->toArray(),

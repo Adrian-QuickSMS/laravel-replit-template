@@ -313,7 +313,15 @@ class SenderIdController extends Controller
         try {
             DB::beginTransaction();
 
-            $senderId->update($validated);
+            // Only pass customer-editable fields to model update
+            $updateData = collect($validated)->except([
+                'sub_account_ids', 'user_ids',
+                'workflow_status', 'admin_notes', 'rejection_reason',
+                'suspension_reason', 'revocation_reason', 'reviewed_by',
+                'reviewed_at', 'submitted_at', 'is_locked', 'full_payload',
+                'version', 'version_history',
+            ])->toArray();
+            $senderId->update($updateData);
 
             // Update assignments if provided
             $accountId = session('customer_tenant_id');
