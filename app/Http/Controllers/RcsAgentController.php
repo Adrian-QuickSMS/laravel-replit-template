@@ -7,6 +7,7 @@ use App\Models\Notification;
 use App\Models\RcsAgent;
 use App\Models\RcsAgentAssignment;
 use App\Models\RcsAgentComment;
+use App\Models\Account;
 use App\Models\SubAccount;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -50,13 +51,44 @@ class RcsAgentController extends Controller
      */
     public function create(Request $request)
     {
-        $subAccounts = SubAccount::where('account_id', session('customer_tenant_id'))
+        $tenantId = session('customer_tenant_id');
+
+        $subAccounts = SubAccount::where('account_id', $tenantId)
             ->active()
             ->get();
+
+        $account = Account::find($tenantId);
+        $owner = $account ? $account->primaryOwner() : null;
+
+        $companyDefaults = [];
+        if ($account) {
+            $companyDefaults = [
+                'company_name' => $account->company_name ?? '',
+                'company_number' => $account->company_number ?? '',
+                'company_website' => $account->website ?? '',
+                'sector' => $account->business_sector ?? '',
+                'address_line1' => $account->address_line1 ?? '',
+                'address_line2' => $account->address_line2 ?? '',
+                'city' => $account->city ?? '',
+                'post_code' => $account->postcode ?? '',
+                'country' => $account->country ?? '',
+            ];
+        }
+
+        $approverDefaults = [];
+        if ($owner) {
+            $approverDefaults = [
+                'name' => trim(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')),
+                'job_title' => $owner->job_title ?? '',
+                'email' => $owner->email ?? '',
+            ];
+        }
 
         return view('quicksms.management.rcs-agent-wizard', [
             'page_title' => 'Register RCS Agent',
             'sub_accounts' => $subAccounts,
+            'company_defaults' => $companyDefaults,
+            'approver_defaults' => $approverDefaults,
         ]);
     }
 

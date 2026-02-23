@@ -723,14 +723,14 @@
                                         <div class="row">
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Company Name <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="companyName" placeholder="e.g., Acme Ltd">
+                                                <input type="text" class="form-control" id="companyName" placeholder="e.g., Acme Ltd" value="{{ $company_defaults['company_name'] ?? '' }}">
                                                 <small class="text-muted">Your registered company name</small>
                                                 <div class="invalid-feedback">Please enter your company name</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Company Number <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="companyNumber" placeholder="e.g., 12345678">
+                                                <input type="text" class="form-control" id="companyNumber" placeholder="e.g., 12345678" value="{{ $company_defaults['company_number'] ?? '' }}">
                                                 <small class="text-muted">Your registered company number</small>
                                                 <div class="invalid-feedback">Please enter your company number</div>
                                             </div>
@@ -739,7 +739,7 @@
                                                 <label class="text-label form-label">Company Website <span class="text-danger">*</span></label>
                                                 <div class="input-group">
                                                     <span class="input-group-text">https://</span>
-                                                    <input type="text" class="form-control" id="companyWebsite" placeholder="www.yourcompany.com">
+                                                    <input type="text" class="form-control" id="companyWebsite" placeholder="www.yourcompany.com" value="{{ $company_defaults['company_website'] ?? '' }}">
                                                 </div>
                                                 <small class="text-muted">Your main company website</small>
                                                 <div class="invalid-feedback">Please enter a valid company website URL</div>
@@ -747,19 +747,20 @@
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Sector <span class="text-danger">*</span></label>
+                                                @php $defaultSector = $company_defaults['sector'] ?? ''; @endphp
                                                 <select class="form-select" id="companySector">
                                                     <option value="">Select sector...</option>
-                                                    <option value="it-telecoms">IT and Telecoms</option>
-                                                    <option value="government">Government</option>
-                                                    <option value="health">Health</option>
-                                                    <option value="logistics">Logistics</option>
-                                                    <option value="travel-transport">Travel and Transport</option>
-                                                    <option value="finance">Finance</option>
-                                                    <option value="retail-hospitality">Retail and Hospitality</option>
-                                                    <option value="media-leisure">Media and Leisure</option>
-                                                    <option value="utilities">Utilities</option>
-                                                    <option value="marketing-advertising">Marketing/Advertising Agency</option>
-                                                    <option value="other">Other</option>
+                                                    <option value="it-telecoms" @if($defaultSector === 'it-telecoms') selected @endif>IT and Telecoms</option>
+                                                    <option value="government" @if($defaultSector === 'government') selected @endif>Government</option>
+                                                    <option value="health" @if($defaultSector === 'health') selected @endif>Health</option>
+                                                    <option value="logistics" @if($defaultSector === 'logistics') selected @endif>Logistics</option>
+                                                    <option value="travel-transport" @if($defaultSector === 'travel-transport') selected @endif>Travel and Transport</option>
+                                                    <option value="finance" @if($defaultSector === 'finance') selected @endif>Finance</option>
+                                                    <option value="retail-hospitality" @if($defaultSector === 'retail-hospitality') selected @endif>Retail and Hospitality</option>
+                                                    <option value="media-leisure" @if($defaultSector === 'media-leisure') selected @endif>Media and Leisure</option>
+                                                    <option value="utilities" @if($defaultSector === 'utilities') selected @endif>Utilities</option>
+                                                    <option value="marketing-advertising" @if($defaultSector === 'marketing-advertising') selected @endif>Marketing/Advertising Agency</option>
+                                                    <option value="other" @if($defaultSector === 'other') selected @endif>Other</option>
                                                 </select>
                                                 <small class="text-muted">Your business sector</small>
                                                 <div class="invalid-feedback">Please select a sector</div>
@@ -774,44 +775,45 @@
                                             
                                             <div class="col-lg-12 mb-3">
                                                 <label class="text-label form-label">Address Line 1 <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="addressLine1" placeholder="e.g., 123 Business Street">
+                                                <input type="text" class="form-control" id="addressLine1" placeholder="e.g., 123 Business Street" value="{{ $company_defaults['address_line1'] ?? '' }}">
                                                 <div class="invalid-feedback">Please enter address line 1</div>
                                             </div>
                                             
                                             <div class="col-lg-12 mb-3">
                                                 <label class="text-label form-label">Address Line 2</label>
-                                                <input type="text" class="form-control" id="addressLine2" placeholder="e.g., Suite 100 (optional)">
+                                                <input type="text" class="form-control" id="addressLine2" placeholder="e.g., Suite 100 (optional)" value="{{ $company_defaults['address_line2'] ?? '' }}">
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">City/Town <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="addressCity" placeholder="e.g., London">
+                                                <input type="text" class="form-control" id="addressCity" placeholder="e.g., London" value="{{ $company_defaults['city'] ?? '' }}">
                                                 <div class="invalid-feedback">Please enter city/town</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Post Code <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="addressPostCode" placeholder="e.g., SW1A 1AA">
+                                                <input type="text" class="form-control" id="addressPostCode" placeholder="e.g., SW1A 1AA" value="{{ $company_defaults['post_code'] ?? '' }}">
                                                 <div class="invalid-feedback">Please enter post code</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Country <span class="text-danger">*</span></label>
+                                                @php $defaultCountry = ($company_defaults['country'] ?? '') ?: 'United Kingdom'; @endphp
                                                 <select class="form-select" id="addressCountry">
                                                     <option value="">Select country...</option>
-                                                    <option value="United Kingdom" selected>United Kingdom</option>
-                                                    <option value="Ireland">Ireland</option>
-                                                    <option value="France">France</option>
-                                                    <option value="Germany">Germany</option>
-                                                    <option value="Spain">Spain</option>
-                                                    <option value="Italy">Italy</option>
-                                                    <option value="Netherlands">Netherlands</option>
-                                                    <option value="Belgium">Belgium</option>
-                                                    <option value="Switzerland">Switzerland</option>
-                                                    <option value="United States">United States</option>
-                                                    <option value="Canada">Canada</option>
-                                                    <option value="Australia">Australia</option>
-                                                    <option value="Other">Other</option>
+                                                    <option value="United Kingdom" @if($defaultCountry === 'United Kingdom') selected @endif>United Kingdom</option>
+                                                    <option value="Ireland" @if($defaultCountry === 'Ireland') selected @endif>Ireland</option>
+                                                    <option value="France" @if($defaultCountry === 'France') selected @endif>France</option>
+                                                    <option value="Germany" @if($defaultCountry === 'Germany') selected @endif>Germany</option>
+                                                    <option value="Spain" @if($defaultCountry === 'Spain') selected @endif>Spain</option>
+                                                    <option value="Italy" @if($defaultCountry === 'Italy') selected @endif>Italy</option>
+                                                    <option value="Netherlands" @if($defaultCountry === 'Netherlands') selected @endif>Netherlands</option>
+                                                    <option value="Belgium" @if($defaultCountry === 'Belgium') selected @endif>Belgium</option>
+                                                    <option value="Switzerland" @if($defaultCountry === 'Switzerland') selected @endif>Switzerland</option>
+                                                    <option value="United States" @if($defaultCountry === 'United States') selected @endif>United States</option>
+                                                    <option value="Canada" @if($defaultCountry === 'Canada') selected @endif>Canada</option>
+                                                    <option value="Australia" @if($defaultCountry === 'Australia') selected @endif>Australia</option>
+                                                    <option value="Other" @if($defaultCountry === 'Other') selected @endif>Other</option>
                                                 </select>
                                                 <div class="invalid-feedback">Please select a country</div>
                                             </div>
@@ -825,21 +827,21 @@
                                         <div class="row">
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Approver Name <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="approverName" placeholder="e.g., John Smith">
+                                                <input type="text" class="form-control" id="approverName" placeholder="e.g., John Smith" value="{{ $approver_defaults['name'] ?? '' }}">
                                                 <small class="text-muted">Full name of the authorizing person</small>
                                                 <div class="invalid-feedback">Please enter the approver's name</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Approver Job Title <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="approverJobTitle" placeholder="e.g., Marketing Director">
+                                                <input type="text" class="form-control" id="approverJobTitle" placeholder="e.g., Marketing Director" value="{{ $approver_defaults['job_title'] ?? '' }}">
                                                 <small class="text-muted">Their role within your organization</small>
                                                 <div class="invalid-feedback">Please enter the approver's job title</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Approver Email <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control" id="approverEmail" placeholder="e.g., john.smith@yourcompany.com">
+                                                <input type="email" class="form-control" id="approverEmail" placeholder="e.g., john.smith@yourcompany.com" value="{{ $approver_defaults['email'] ?? '' }}">
                                                 <small class="text-muted">Email address for verification communications</small>
                                                 <div class="invalid-feedback">Please enter a valid email address</div>
                                             </div>
@@ -1126,19 +1128,19 @@ $(document).ready(function() {
         optOutAvailable: '',
         useCaseOverview: '',
         testNumbers: [],
-        companyName: '',
-        companyNumber: '',
-        companyWebsite: '',
-        companySector: '',
+        companyName: @json($company_defaults['company_name'] ?? ''),
+        companyNumber: @json($company_defaults['company_number'] ?? ''),
+        companyWebsite: @json($company_defaults['company_website'] ?? ''),
+        companySector: @json($company_defaults['sector'] ?? ''),
         otherSector: '',
-        addressLine1: '',
-        addressLine2: '',
-        addressCity: '',
-        addressPostCode: '',
-        addressCountry: 'United Kingdom',
-        approverName: '',
-        approverJobTitle: '',
-        approverEmail: '',
+        addressLine1: @json($company_defaults['address_line1'] ?? ''),
+        addressLine2: @json($company_defaults['address_line2'] ?? ''),
+        addressCity: @json($company_defaults['city'] ?? ''),
+        addressPostCode: @json($company_defaults['post_code'] ?? ''),
+        addressCountry: @json(($company_defaults['country'] ?? '') ?: 'United Kingdom'),
+        approverName: @json($approver_defaults['name'] ?? ''),
+        approverJobTitle: @json($approver_defaults['job_title'] ?? ''),
+        approverEmail: @json($approver_defaults['email'] ?? ''),
         logoValid: false,
         heroValid: false,
         visitedSteps: [0], // Step 0 is visited by default (initial step)

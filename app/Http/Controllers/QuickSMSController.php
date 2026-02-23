@@ -8,7 +8,9 @@ use App\Models\ContactList;
 use App\Models\OptOutList;
 use App\Models\OptOutRecord;
 use App\Models\Tag;
+use App\Models\Account;
 use App\Models\SenderId;
+use App\Models\User;
 
 class QuickSMSController extends Controller
 {
@@ -1606,8 +1608,38 @@ class QuickSMSController extends Controller
 
     public function rcsAgentCreate()
     {
+        $tenantId = session('customer_tenant_id');
+        $account = Account::find($tenantId);
+        $owner = $account ? $account->primaryOwner() : null;
+
+        $companyDefaults = [];
+        if ($account) {
+            $companyDefaults = [
+                'company_name' => $account->company_name ?? '',
+                'company_number' => $account->company_number ?? '',
+                'company_website' => $account->website ?? '',
+                'sector' => $account->business_sector ?? '',
+                'address_line1' => $account->address_line1 ?? '',
+                'address_line2' => $account->address_line2 ?? '',
+                'city' => $account->city ?? '',
+                'post_code' => $account->postcode ?? '',
+                'country' => $account->country ?? '',
+            ];
+        }
+
+        $approverDefaults = [];
+        if ($owner) {
+            $approverDefaults = [
+                'name' => trim(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')),
+                'job_title' => $owner->job_title ?? '',
+                'email' => $owner->email ?? '',
+            ];
+        }
+
         return view('quicksms.management.rcs-agent-wizard', [
-            'page_title' => 'Register RCS Agent'
+            'page_title' => 'Register RCS Agent',
+            'company_defaults' => $companyDefaults,
+            'approver_defaults' => $approverDefaults,
         ]);
     }
 
