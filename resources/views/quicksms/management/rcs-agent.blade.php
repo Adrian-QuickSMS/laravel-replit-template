@@ -3410,23 +3410,28 @@ function validateCurrentStep() {
         }
     } else if (wizardData.currentStep === 3) {
         // Step 3: Handset + Compliance (contact details + privacy/terms URLs)
-        if (!wizardData.supportPhone.trim() || !isValidUKPhone(wizardData.supportPhone)) {
+        var phoneDisplayed = wizardData.showPhone && wizardData.supportPhone && wizardData.supportPhone.trim();
+        var emailDisplayed = wizardData.showEmail && wizardData.supportEmail && wizardData.supportEmail.trim();
+        var websiteProvided = wizardData.website && wizardData.website.trim();
+
+        if (wizardData.showPhone && wizardData.supportPhone && wizardData.supportPhone.trim() && !isValidUKPhone(wizardData.supportPhone)) {
             document.getElementById('supportPhone').classList.add('is-invalid');
             isValid = false;
         }
-        if (!wizardData.website.trim() || !isValidHttpsUrl(wizardData.website)) {
-            document.getElementById('businessWebsite').classList.add('is-invalid');
-            isValid = false;
-        }
-        if (!wizardData.supportEmail.trim() || !isValidEmail(wizardData.supportEmail)) {
+        if (wizardData.showEmail && wizardData.supportEmail && wizardData.supportEmail.trim() && !isValidEmail(wizardData.supportEmail)) {
             document.getElementById('supportEmail').classList.add('is-invalid');
             isValid = false;
         }
-        if (!wizardData.privacyUrl.trim() || !isValidHttpsUrl(wizardData.privacyUrl)) {
+        if (!phoneDisplayed && !emailDisplayed && !websiteProvided) {
+            var webEl = document.getElementById('businessWebsite');
+            if (webEl) webEl.classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.privacyUrl || !wizardData.privacyUrl.trim()) {
             document.getElementById('privacyUrl').classList.add('is-invalid');
             isValid = false;
         }
-        if (!wizardData.termsUrl.trim() || !isValidHttpsUrl(wizardData.termsUrl)) {
+        if (!wizardData.termsUrl || !wizardData.termsUrl.trim()) {
             document.getElementById('termsUrl').classList.add('is-invalid');
             isValid = false;
         }
@@ -3926,20 +3931,26 @@ function validateAllSteps() {
     if (!wizardData.logoDataUrl) {
         errors.push('Logo image is required');
     }
-    if (!wizardData.supportPhone.trim() || !isValidUKPhone(wizardData.supportPhone)) {
-        errors.push('Valid UK phone number is required');
+
+    var phoneDisplayed = wizardData.showPhone && wizardData.supportPhone && wizardData.supportPhone.trim();
+    var emailDisplayed = wizardData.showEmail && wizardData.supportEmail && wizardData.supportEmail.trim();
+    var websiteProvided = wizardData.website && wizardData.website.trim();
+
+    if (wizardData.showPhone && wizardData.supportPhone && wizardData.supportPhone.trim() && !isValidUKPhone(wizardData.supportPhone)) {
+        errors.push('Phone number must be a valid UK number');
     }
-    if (!wizardData.website.trim() || !isValidHttpsUrl(wizardData.website)) {
-        errors.push('Website URL must be valid HTTPS');
+    if (wizardData.showEmail && wizardData.supportEmail && wizardData.supportEmail.trim() && !isValidEmail(wizardData.supportEmail)) {
+        errors.push('Email address must be valid');
     }
-    if (!wizardData.supportEmail.trim() || !isValidEmail(wizardData.supportEmail)) {
-        errors.push('Valid email address is required');
+    if (!phoneDisplayed && !emailDisplayed && !websiteProvided) {
+        errors.push('At least one contact method is required (phone, email, or website)');
     }
-    if (!wizardData.privacyUrl.trim() || !isValidHttpsUrl(wizardData.privacyUrl)) {
-        errors.push('Privacy Policy URL must be valid HTTPS');
+
+    if (!wizardData.privacyUrl || !wizardData.privacyUrl.trim()) {
+        errors.push('Privacy Policy URL is required');
     }
-    if (!wizardData.termsUrl.trim() || !isValidHttpsUrl(wizardData.termsUrl)) {
-        errors.push('Terms of Service URL must be valid HTTPS');
+    if (!wizardData.termsUrl || !wizardData.termsUrl.trim()) {
+        errors.push('Terms of Service URL is required');
     }
     
     if (!wizardData.billing) {
@@ -3954,32 +3965,29 @@ function validateAllSteps() {
     if (!wizardData.monthlyVolume) {
         errors.push('Monthly volume is required');
     }
-    if (!wizardData.optInDescription.trim()) {
+    if (!wizardData.optInDescription || !wizardData.optInDescription.trim()) {
         errors.push('Opt-in description is required');
     }
-    if (!wizardData.optOutDescription.trim()) {
+    if (!wizardData.optOutDescription || !wizardData.optOutDescription.trim()) {
         errors.push('Opt-out description is required');
     }
-    if (!wizardData.useCaseOverview.trim()) {
+    if (!wizardData.useCaseOverview || !wizardData.useCaseOverview.trim()) {
         errors.push('Use case overview is required');
     }
     
-    if (!wizardData.companyNumber.trim()) {
+    if (!wizardData.companyNumber || !wizardData.companyNumber.trim()) {
         errors.push('Company number is required');
     }
-    if (!wizardData.companyWebsite.trim() || !isValidUrl(wizardData.companyWebsite)) {
-        errors.push('Company website must be a valid URL');
-    }
-    if (!wizardData.registeredAddress.trim()) {
+    if (!wizardData.registeredAddress || !wizardData.registeredAddress.trim()) {
         errors.push('Registered address is required');
     }
-    if (!wizardData.approverName.trim()) {
+    if (!wizardData.approverName || !wizardData.approverName.trim()) {
         errors.push('Approver name is required');
     }
-    if (!wizardData.approverJobTitle.trim()) {
+    if (!wizardData.approverJobTitle || !wizardData.approverJobTitle.trim()) {
         errors.push('Approver job title is required');
     }
-    if (!wizardData.approverEmail.trim() || !isValidEmail(wizardData.approverEmail)) {
+    if (!wizardData.approverEmail || !wizardData.approverEmail.trim() || !isValidEmail(wizardData.approverEmail)) {
         errors.push('Approver email must be valid');
     }
     
