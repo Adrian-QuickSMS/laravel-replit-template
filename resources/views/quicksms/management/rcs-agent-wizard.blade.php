@@ -1853,21 +1853,22 @@ $(document).ready(function() {
         successHtml += '</div>';
 
         if ($('#validationSummaryModal').length) {
+            $('#validationSummaryModal .modal-header').css({'background-color': '#fff', 'border-bottom': '1px solid #e9ecef'});
             $('#validationSummaryModal .modal-title').html('<i class="fas fa-check-circle me-2 text-success"></i>Submission Complete');
             $('#validationSummaryModal .modal-body').html(successHtml);
-            $('#validationSummaryModal .modal-footer').html('<button type="button" class="btn btn-success" onclick="window.location.href=\'/management/rcs-agents\'">View My Agents</button>');
+            $('#validationSummaryModal .modal-footer').html('<button type="button" class="btn" style="background-color: var(--primary, #886CC0); color: #fff;" onclick="window.location.href=\'/management/rcs-agents\'">View My Agents</button>');
             $('#validationSummaryModal').modal('show');
         } else {
             var modalHtml = '<div class="modal fade" id="validationSummaryModal" tabindex="-1">';
             modalHtml += '<div class="modal-dialog modal-dialog-centered">';
             modalHtml += '<div class="modal-content">';
-            modalHtml += '<div class="modal-header bg-light">';
+            modalHtml += '<div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">';
             modalHtml += '<h5 class="modal-title"><i class="fas fa-check-circle me-2 text-success"></i>Submission Complete</h5>';
             modalHtml += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>';
             modalHtml += '</div>';
             modalHtml += '<div class="modal-body">' + successHtml + '</div>';
             modalHtml += '<div class="modal-footer">';
-            modalHtml += '<button type="button" class="btn btn-success" onclick="window.location.href=\'/management/rcs-agents\'">View My Agents</button>';
+            modalHtml += '<button type="button" class="btn" style="background-color: var(--primary, #886CC0); color: #fff;" onclick="window.location.href=\'/management/rcs-agents\'">View My Agents</button>';
             modalHtml += '</div></div></div></div>';
 
             $('body').append(modalHtml);
