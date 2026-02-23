@@ -144,6 +144,51 @@ class RcsAgent extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function reviewedBy()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function statusHistory()
+    {
+        return $this->hasMany(RcsAgentStatusHistory::class)->orderBy('created_at', 'desc');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(RcsAgentComment::class)->orderBy('created_at', 'desc');
+    }
+
+    public function assignments()
+    {
+        return $this->hasMany(RcsAgentAssignment::class)->orderBy('created_at', 'desc');
+    }
+
+    public function toAdminArray(): array
+    {
+        $data = $this->toPortalArray();
+        $data['account_id'] = $this->account_id;
+        $data['workflow_status'] = $this->workflow_status;
+        $data['submitted_at'] = $this->submitted_at;
+        $data['reviewed_at'] = $this->reviewed_at;
+        $data['reviewed_by'] = $this->reviewed_by;
+        $data['admin_notes'] = $this->admin_notes;
+        $data['suspension_reason'] = $this->suspension_reason;
+        $data['revocation_reason'] = $this->revocation_reason;
+        $data['additional_info'] = $this->additional_info;
+        $data['version'] = $this->version;
+        $data['full_payload'] = $this->full_payload;
+        $data['is_locked'] = (bool) $this->is_locked;
+        $data['sector'] = $this->sector;
+        $data['opt_in_description'] = $this->opt_in_description;
+        $data['opt_out_description'] = $this->opt_out_description;
+        $data['campaign_frequency'] = $this->campaign_frequency;
+        $data['company_website'] = $this->company_website;
+        $data['registered_address'] = $this->registered_address;
+        $data['show_website'] = (bool) $this->show_website;
+        return $data;
+    }
+
     public function isEditable(): bool
     {
         return $this->workflow_status === self::STATUS_DRAFT || $this->workflow_status === self::STATUS_REJECTED;
