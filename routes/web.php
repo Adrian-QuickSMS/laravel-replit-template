@@ -6,6 +6,7 @@ use App\Http\Controllers\SenderIdController;
 use App\Http\Controllers\Api\RcsAssetController;
 use App\Http\Controllers\Api\InvoiceApiController;
 use App\Http\Controllers\RcsAgentController;
+use App\Http\Controllers\Api\PurchaseApiController;
 
 // Public auth routes (no authentication required)
 Route::controller(QuickSMSController::class)->group(function () {
@@ -213,11 +214,17 @@ Route::middleware('customer.auth')->prefix('api/invoices')->controller(InvoiceAp
     Route::post('/{invoiceId}/create-checkout-session', 'createCheckoutSession')->name('api.invoices.checkout');
 });
 
-Route::prefix('api/purchase')->controller(QuickSMSController::class)->group(function () {
-    Route::get('/numbers/pricing', 'getNumbersPricing')->name('api.purchase.numbers.pricing');
-    Route::post('/numbers/lock', 'lockNumbersForPurchase')->name('api.purchase.numbers.lock');
-    Route::post('/numbers/purchase', 'processNumbersPurchase')->name('api.purchase.numbers.purchase');
-    Route::post('/numbers/release', 'releaseNumberLocks')->name('api.purchase.numbers.release');
+Route::middleware('customer.auth')->prefix('api/purchase')->group(function () {
+    Route::get('/products', [PurchaseApiController::class, 'getProducts'])->name('api.purchase.products');
+    Route::post('/calculate-order', [PurchaseApiController::class, 'calculateOrder'])->name('api.purchase.calculate');
+    Route::post('/create-invoice', [PurchaseApiController::class, 'createInvoice'])->name('api.purchase.invoice');
+
+    Route::controller(QuickSMSController::class)->group(function () {
+        Route::get('/numbers/pricing', 'getNumbersPricing')->name('api.purchase.numbers.pricing');
+        Route::post('/numbers/lock', 'lockNumbersForPurchase')->name('api.purchase.numbers.lock');
+        Route::post('/numbers/purchase', 'processNumbersPurchase')->name('api.purchase.numbers.purchase');
+        Route::post('/numbers/release', 'releaseNumberLocks')->name('api.purchase.numbers.release');
+    });
 });
 
 Route::prefix('admin')->group(function () {
