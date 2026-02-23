@@ -812,6 +812,7 @@ class AdminController extends Controller
         DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
 
         $adminEmail = session('admin_auth.email', 'admin');
+        $adminId = session('admin_auth.admin_id');
         $changeReason = $request->input('change_reason', 'Admin pricing override');
         $prices = $request->input('prices');
         $updatedCount = 0;
@@ -857,7 +858,7 @@ class AdminController extends Controller
                     'billing_type' => $billingType,
                     'currency' => $account->currency ?? 'GBP',
                     'source' => 'admin_override',
-                    'set_by' => $adminEmail,
+                    'set_by' => $adminId,
                     'set_at' => now(),
                     'valid_from' => now()->toDateString(),
                     'valid_to' => null,
