@@ -543,7 +543,7 @@ class AdminController extends Controller
 
     public function accountBillingApi($accountId)
     {
-        DB::statement("SET LOCAL app.current_tenant_id = ?", [$accountId]);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
 
         $account = Account::withoutGlobalScopes()->find($accountId);
         if (!$account) {
@@ -601,7 +601,7 @@ class AdminController extends Controller
         $previousMode = $account->billing_type;
         $newDbMode = $request->input('billingMode') === 'postpaid' ? 'postpay' : 'prepay';
 
-        DB::statement("SET LOCAL app.current_tenant_id = ?", [$accountId]);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
         $account->billing_type = $newDbMode;
 
         if ($newDbMode === 'prepay') {
@@ -660,7 +660,7 @@ class AdminController extends Controller
         $previousLimit = (float) ($account->credit_limit ?? 0);
         $newLimit = (float) $request->input('creditLimit');
 
-        DB::statement("SET LOCAL app.current_tenant_id = ?", [$accountId]);
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
         $account->credit_limit = $newLimit;
         $account->save();
 
