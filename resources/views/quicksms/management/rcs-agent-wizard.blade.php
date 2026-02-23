@@ -1591,22 +1591,22 @@ $(document).ready(function() {
         $('#showEmailToggle').prop('checked', wizardData.showEmail);
         if (wizardData.billing) {
             $('.billing-tile').removeClass('selected');
-            $('.billing-tile[data-value="' + wizardData.billing + '"]').addClass('selected');
+            $('.billing-tile[data-billing="' + wizardData.billing + '"]').addClass('selected');
         }
         if (wizardData.useCase) {
-            $('.use-case-tile').removeClass('selected');
-            $('.use-case-tile[data-value="' + wizardData.useCase + '"]').addClass('selected');
+            $('.usecase-tile').removeClass('selected');
+            $('.usecase-tile[data-usecase="' + wizardData.useCase + '"]').addClass('selected');
         }
         $('#campaignFrequency').val(wizardData.campaignFrequency);
         $('#monthlyVolume').val(wizardData.monthlyVolume);
-        $('#optInDescription').val(wizardData.userConsent);
-        $('#optOutDescription').val(wizardData.optOutAvailable);
+        $('#userConsent').val(wizardData.userConsent);
+        $('#optOutAvailable').val(wizardData.optOutAvailable);
         $('#useCaseOverview').val(wizardData.useCaseOverview);
         $('#companyName').val(wizardData.companyName);
         $('#companyNumber').val(wizardData.companyNumber);
         $('#companyWebsite').val(wizardData.companyWebsite);
         if (wizardData.companySector) {
-            $('#businessSector').val(wizardData.companySector);
+            $('#companySector').val(wizardData.companySector);
         }
         $('#addressLine1').val(wizardData.addressLine1);
         $('#addressLine2').val(wizardData.addressLine2);
