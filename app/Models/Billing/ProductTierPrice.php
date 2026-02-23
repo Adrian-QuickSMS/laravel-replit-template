@@ -12,8 +12,9 @@ class ProductTierPrice extends Model
     protected $table = 'product_tier_prices';
 
     protected $fillable = [
-        'product_tier', 'product_type', 'country_iso', 'unit_price',
-        'currency', 'valid_from', 'valid_to', 'active', 'created_by',
+        'product_tier', 'product_type', 'service_catalogue_id', 'country_iso',
+        'unit_price', 'currency', 'valid_from', 'valid_to', 'active',
+        'created_by', 'pricing_event_id',
     ];
 
     protected $casts = [

@@ -919,25 +919,31 @@ class PricingManagementController extends Controller
         ?string $reason = null
     ): void {
         try {
-            DB::table('governance_audit_events')->insert([
-                'event_uuid' => Str::uuid()->toString(),
-                'event_type' => $eventType,
-                'entity_type' => $entityType,
-                'entity_id' => $entityId,
-                'account_id' => null,
-                'sub_account_id' => null,
-                'actor_id' => $request->user()->id ?? null,
-                'actor_type' => 'ADMIN',
-                'actor_email' => $request->user()->email ?? 'admin@quicksms.co.uk',
-                'before_state' => json_encode($beforeState),
-                'after_state' => json_encode($afterState),
-                'reason' => $reason,
-                'source_ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'created_at' => now(),
-            ]);
+            DB::statement('SAVEPOINT governance_log');
+            DB::statement(
+                'INSERT INTO governance_audit_events (event_uuid, event_type, entity_type, entity_id, account_id, sub_account_id, actor_id, actor_type, actor_email, before_state, after_state, reason, source_ip, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [
+                    Str::uuid()->toString(),
+                    $eventType,
+                    $entityType,
+                    0,
+                    null,
+                    null,
+                    $request->user()->id ?? null,
+                    'ADMIN',
+                    $request->user()->email ?? 'admin@quicksms.co.uk',
+                    json_encode(array_merge((array) $beforeState, ['entity_uuid' => (string) $entityId])),
+                    json_encode($afterState),
+                    $reason,
+                    $request->ip(),
+                    $request->userAgent(),
+                    now(),
+                ]
+            );
+            DB::statement('RELEASE SAVEPOINT governance_log');
         } catch (\Exception $e) {
-            Log::error('[PricingManagement] Failed to log governance event: ' . $e->getMessage());
+            try { DB::statement('ROLLBACK TO SAVEPOINT governance_log'); } catch (\Exception $ignored) {}
+            Log::warning('[PricingManagement] Governance audit skipped: ' . $e->getMessage());
         }
     }
 }
