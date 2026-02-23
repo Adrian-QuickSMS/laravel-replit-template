@@ -345,15 +345,15 @@
                         <div class="row g-2 mb-3">
                             <div class="col-6 col-md-4">
                                 <label class="form-label small mb-1">SMS Price (£)</label>
-                                <input type="number" class="form-control form-control-sm" id="calcSmsPrice" placeholder="0.035" step="0.001" value="0.035">
+                                <input type="number" class="form-control form-control-sm bg-light" id="calcSmsPrice" value="{{ $pricingData['sms'] ?? '0' }}" readonly>
                             </div>
                             <div class="col-6 col-md-4">
                                 <label class="form-label small mb-1">RCS Basic (£)</label>
-                                <input type="number" class="form-control form-control-sm" id="calcRcsBasicPrice" placeholder="0.040" step="0.001" value="0.040">
+                                <input type="number" class="form-control form-control-sm bg-light" id="calcRcsBasicPrice" value="{{ $pricingData['rcs_basic'] ?? '0' }}" readonly>
                             </div>
                             <div class="col-6 col-md-4">
                                 <label class="form-label small mb-1">RCS Single (£)</label>
-                                <input type="number" class="form-control form-control-sm" id="calcRcsSinglePrice" placeholder="0.055" step="0.001" value="0.055">
+                                <input type="number" class="form-control form-control-sm bg-light" id="calcRcsSinglePrice" value="{{ $pricingData['rcs_single'] ?? '0' }}" readonly>
                             </div>
                             <div class="col-6 col-md-4">
                                 <label class="form-label small mb-1">Avg Fragments</label>

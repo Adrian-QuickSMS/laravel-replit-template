@@ -292,9 +292,28 @@ class QuickSMSController extends Controller
             }
         }
 
+        $pricingData = ['sms' => null, 'rcs_basic' => null, 'rcs_single' => null];
+        if ($accountId) {
+            $tier = $account->product_tier ?? 'starter';
+            $tierPrices = \App\Models\Billing\ProductTierPrice::where('product_tier', $tier)
+                ->whereIn('product_type', ['sms', 'rcs_basic', 'rcs_single'])
+                ->whereNull('country_iso')
+                ->active()
+                ->validAt()
+                ->get()
+                ->keyBy('product_type');
+
+            foreach (['sms', 'rcs_basic', 'rcs_single'] as $type) {
+                if ($tierPrices->has($type)) {
+                    $pricingData[$type] = (float) $tierPrices[$type]->unit_price;
+                }
+            }
+        }
+
         return view('quicksms.dashboard', [
             'page_title' => 'Dashboard',
             'balanceData' => $balanceData,
+            'pricingData' => $pricingData,
         ]);
     }
 
