@@ -263,9 +263,27 @@ class QuickSMSController extends Controller
     
     public function dashboard()
     {
-        // TODO: Replace with actual data from API
+        $user = auth()->user();
+        $accountId = $user->tenant_id;
+
+        $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
+        $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
+
+        $currentBalance = $balance ? (float) $balance->balance : 0;
+        $creditLimit = (float) ($account->credit_limit ?? 0);
+        $reserved = $balance ? (float) $balance->reserved : 0;
+        $effectiveAvailable = $balance ? (float) $balance->effective_available : $creditLimit;
+        $currency = $account->currency ?? 'GBP';
+
         return view('quicksms.dashboard', [
-            'page_title' => 'Dashboard'
+            'page_title' => 'Dashboard',
+            'balanceData' => [
+                'balance' => $currentBalance,
+                'effectiveAvailable' => $effectiveAvailable,
+                'creditLimit' => $creditLimit,
+                'reserved' => $reserved,
+                'currency' => $currency,
+            ],
         ]);
     }
 

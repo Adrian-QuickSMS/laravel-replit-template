@@ -1080,18 +1080,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function loadBalance() {
         setTileLoading('tile-balance', true);
-        MockAPI.getBalance()
-            .then(function(data) {
-                var valueEl = document.getElementById('balance-value');
-                if (valueEl && data.balance !== undefined) {
-                    valueEl.textContent = '£' + data.balance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                }
-                setTileLoading('tile-balance', false);
-            })
-            .catch(function(err) {
-                console.error('Balance error:', err);
-                setTileError('tile-balance', true);
-            });
+        var balanceData = @json($balanceData ?? ['effectiveAvailable' => 0, 'currency' => 'GBP']);
+        var valueEl = document.getElementById('balance-value');
+        if (valueEl) {
+            valueEl.textContent = '£' + balanceData.effectiveAvailable.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        setTileLoading('tile-balance', false);
     }
     
     function loadInboundUnresponded() {
