@@ -2341,6 +2341,88 @@ class QuickSMSController extends Controller
         ]);
     }
     
+    public function accountPricingApi(Request $request)
+    {
+        $tenantId = session('customer_tenant_id');
+        if (!$tenantId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+        if (!$account) {
+            return response()->json(['error' => 'Account not found'], 404);
+        }
+
+        $currentTier = $account->product_tier ?? 'starter';
+        $isBespoke = ($currentTier === 'bespoke');
+
+        $services = \App\Models\Billing\ServiceCatalogue::where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('display_name')
+            ->get();
+
+        $tierPrices = \App\Models\Billing\ProductTierPrice::where('active', true)
+            ->whereRaw("valid_from <= CURRENT_DATE")
+            ->where(function ($q) {
+                $q->whereNull('valid_to')->orWhereRaw("valid_to >= CURRENT_DATE");
+            })
+            ->get();
+
+        $customerPrices = [];
+        if ($isBespoke) {
+            $customerPrices = \App\Models\Billing\CustomerPrice::where('account_id', $tenantId)
+                ->where('active', true)
+                ->whereRaw("valid_from <= CURRENT_DATE")
+                ->where(function ($q) {
+                    $q->whereNull('valid_to')->orWhereRaw("valid_to >= CURRENT_DATE");
+                })
+                ->get()
+                ->keyBy('product_type')
+                ->toArray();
+        }
+
+        $starterPrices = $tierPrices->where('product_tier', 'starter')->keyBy('product_type');
+        $enterprisePrices = $tierPrices->where('product_tier', 'enterprise')->keyBy('product_type');
+
+        $result = [];
+        foreach ($services as $service) {
+            $slug = $service->slug;
+            $starterPrice = $starterPrices->get($slug);
+            $enterprisePrice = $enterprisePrices->get($slug);
+
+            $item = [
+                'slug' => $slug,
+                'display_name' => $service->display_name,
+                'unit_label' => $service->unit_label,
+                'display_format' => $service->display_format,
+                'decimal_places' => $service->decimal_places ?? 2,
+                'is_per_message' => $service->is_per_message,
+                'is_recurring' => $service->is_recurring,
+                'bespoke_only' => $service->bespoke_only,
+                'available_on_starter' => $service->available_on_starter,
+                'available_on_enterprise' => $service->available_on_enterprise,
+                'starter_price' => $starterPrice ? (float) $starterPrice->unit_price : null,
+                'starter_formatted' => $starterPrice ? $service->formatPrice($starterPrice->unit_price) : null,
+                'enterprise_price' => $enterprisePrice ? (float) $enterprisePrice->unit_price : null,
+                'enterprise_formatted' => $enterprisePrice ? $service->formatPrice($enterprisePrice->unit_price) : null,
+            ];
+
+            if ($isBespoke) {
+                $cp = $customerPrices[$slug] ?? null;
+                $item['bespoke_price'] = $cp ? (float) $cp['unit_price'] : null;
+                $item['bespoke_formatted'] = $cp ? $service->formatPrice($cp['unit_price']) : null;
+            }
+
+            $result[] = $item;
+        }
+
+        return response()->json([
+            'current_tier' => $currentTier,
+            'is_bespoke' => $isBespoke,
+            'services' => $result,
+        ]);
+    }
+
     public function accountActivate()
     {
         $user = null;

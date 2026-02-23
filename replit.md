@@ -110,6 +110,16 @@ Admin RCS agent approval views wired to real backend API:
 *   **Controller**: `app/Http/Controllers/Admin/RcsAgentApprovalController.php`
 *   **API endpoints**: 9 admin routes under `/admin/api/rcs-agents/`.
 
+## Account Pricing Tab — DB-Driven (Added 2026-02-23)
+
+The account details pricing tab (`/account/details` → Pricing tab) now pulls all pricing from the database:
+
+*   **API endpoint**: `GET /api/account/pricing` in `QuickSMSController::accountPricingApi()`. Returns all active services from `service_catalogue` with tier prices from `product_tier_prices`. For bespoke accounts, also returns customer-specific prices from `customer_prices`.
+*   **Dynamic rendering**: Frontend uses AJAX to fetch pricing data and renders tier cards dynamically via JavaScript. No hardcoded prices.
+*   **Tier display logic**: Shows only Starter + Enterprise columns (2-column layout). If the account's `product_tier` is `bespoke`, a third Bespoke column is added (3-column layout) showing customer-specific prices or "Custom" where not yet set.
+*   **Service grouping**: Services are auto-grouped by type — SMS Rates (slugs containing `sms`), RCS Rates (slugs containing `rcs`), Other Services (non-per-message). Prices formatted via `ServiceCatalogue::formatPrice()` using `display_format` (pence/pounds).
+*   **"Your Plan" badge**: Highlights the column matching the account's `product_tier`.
+
 ## Purchase Page — DB-Driven Pricing (Added 2026-02-23)
 
 The purchase messages page (`/purchase/messages`) now pulls tier prices from the database instead of HubSpot mock data:

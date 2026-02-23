@@ -202,6 +202,8 @@ Route::middleware('customer.auth')->prefix('api/rcs/assets')->controller(RcsAsse
     Route::post('/{uuid}/finalize', 'finalizeAsset')->name('api.rcs.assets.finalize');
 });
 
+Route::middleware('customer.auth')->get('/api/account/pricing', [QuickSMSController::class, 'accountPricingApi'])->name('api.account.pricing');
+
 Route::middleware('customer.auth')->prefix('api/invoices')->controller(InvoiceApiController::class)->group(function () {
     Route::get('/', 'index')->name('api.invoices.index');
     Route::get('/account-summary', 'accountSummary')->name('api.invoices.account-summary');
