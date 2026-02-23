@@ -46,4 +46,9 @@ class ProductTierPrice extends Model
             ->active()
             ->validAt();
     }
+
+    public function service()
+    {
+        return $this->belongsTo(ServiceCatalogue::class, 'service_catalogue_id');
+    }
 }
