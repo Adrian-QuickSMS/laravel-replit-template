@@ -688,11 +688,19 @@ function ajaxHeaders() {
 }
 
 function showToast(message, type) {
-    if (typeof AdminControlPlane !== 'undefined' && AdminControlPlane.showNotification) {
-        AdminControlPlane.showNotification(message, type);
-    } else {
-        alert(message);
-    }
+    var colors = {
+        success: { bg: '#22c55e', icon: 'fa-check-circle' },
+        error: { bg: '#ef4444', icon: 'fa-times-circle' },
+        warning: { bg: '#f59e0b', icon: 'fa-exclamation-triangle' },
+        info: { bg: '#3b82f6', icon: 'fa-info-circle' }
+    };
+    var c = colors[type] || colors.info;
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:99999;background:' + c.bg + ';color:#fff;padding:0.75rem 1.25rem;border-radius:8px;font-size:0.85rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:flex;align-items:center;gap:0.5rem;animation:slideInRight 0.3s ease;max-width:400px;';
+    toast.innerHTML = '<i class="fas ' + c.icon + '"></i> ' + message;
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 4000);
+    setTimeout(function() { toast.remove(); }, 4500);
 }
 
 function escapeHtml(str) {
