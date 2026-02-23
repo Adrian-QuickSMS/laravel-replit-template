@@ -189,7 +189,7 @@ class RcsAgent extends Model
         ?string $fromStatus,
         string $toStatus,
         string $action,
-        int $userId,
+        $userId,
         ?string $reason = null,
         ?string $notes = null,
         $actingUser = null
