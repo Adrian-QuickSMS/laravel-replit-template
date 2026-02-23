@@ -1619,9 +1619,7 @@ $(document).ready(function() {
         $('#approverJobTitle').val(wizardData.approverJobTitle);
         $('#approverEmail').val(wizardData.approverEmail);
         if (wizardData.testNumbers && wizardData.testNumbers.length) {
-            wizardData.testNumbers.forEach(function(num) {
-                if (num && typeof addTestNumber === 'function') addTestNumber(num);
-            });
+            renderTestNumbers();
         }
         $('#autosaveIndicator').addClass('saved');
         $('#autosaveText').text('Draft saved');
