@@ -1,6 +1,6 @@
 @extends('layouts.quicksms')
 
-@section('title', 'Register RCS Agent')
+@section('title', $page_title ?? 'Register RCS Agent')
 
 @push('styles')
 <link href="{{ asset('vendor/jquery-smartwizard/dist/css/smart_wizard.min.css') }}" rel="stylesheet">
@@ -282,7 +282,7 @@
         <div class="col-xl-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0"><i class="fas fa-robot me-2 text-primary"></i>Register RCS Agent</h4>
+                    <h4 class="card-title mb-0"><i class="fas fa-robot me-2 text-primary"></i>{{ $page_title ?? 'Register RCS Agent' }}</h4>
                     <span class="autosave-indicator" id="autosaveIndicator">
                         <i class="fas fa-cloud me-1"></i><span id="autosaveText"></span>
                     </span>
@@ -1151,6 +1151,53 @@ $(document).ready(function() {
     var autosaveTimeout = null;
     var currentDraftUuid = null;
 
+    @if(!empty($editing_agent))
+    (function() {
+        var agent = @json($editing_agent);
+        var addr = {};
+        if (agent.registered_address) {
+            try { addr = typeof agent.registered_address === 'string' ? JSON.parse(agent.registered_address) : agent.registered_address; } catch(e) { addr = {}; }
+        }
+        currentDraftUuid = agent.uuid;
+        wizardData.id = agent.uuid;
+        wizardData.name = agent.name || '';
+        wizardData.description = agent.description || '';
+        wizardData.brandColor = agent.brand_color || '#886CC0';
+        wizardData.logoDataUrl = agent.logo_url || null;
+        wizardData.logoCropMetadata = agent.logo_crop_metadata || null;
+        wizardData.heroDataUrl = agent.hero_url || null;
+        wizardData.heroCropMetadata = agent.hero_crop_metadata || null;
+        wizardData.logoValid = !!agent.logo_url;
+        wizardData.heroValid = !!agent.hero_url;
+        wizardData.website = agent.website || '';
+        wizardData.privacyUrl = agent.privacy_url || '';
+        wizardData.termsUrl = agent.terms_url || '';
+        wizardData.supportEmail = agent.support_email || '';
+        wizardData.supportPhone = agent.support_phone || '';
+        wizardData.showPhone = agent.show_phone !== false;
+        wizardData.showEmail = agent.show_email !== false;
+        wizardData.billing = (agent.billing_category || 'non-conversational').replace(/_/g, '-');
+        wizardData.useCase = (agent.use_case || '').replace(/_/g, '-');
+        wizardData.campaignFrequency = agent.campaign_frequency || '';
+        wizardData.monthlyVolume = agent.monthly_volume || '';
+        wizardData.userConsent = agent.opt_in_description || '';
+        wizardData.optOutAvailable = agent.opt_out_description || '';
+        wizardData.useCaseOverview = agent.use_case_overview || '';
+        wizardData.testNumbers = agent.test_numbers || [];
+        wizardData.companyName = agent.company_number ? (wizardData.companyName || '') : wizardData.companyName;
+        wizardData.companyNumber = agent.company_number || wizardData.companyNumber;
+        wizardData.companyWebsite = agent.company_website || wizardData.companyWebsite;
+        wizardData.approverName = agent.approver_name || wizardData.approverName;
+        wizardData.approverJobTitle = agent.approver_job_title || wizardData.approverJobTitle;
+        wizardData.approverEmail = agent.approver_email || wizardData.approverEmail;
+        if (addr.line1) wizardData.addressLine1 = addr.line1;
+        if (addr.line2) wizardData.addressLine2 = addr.line2;
+        if (addr.city) wizardData.addressCity = addr.city;
+        if (addr.post_code) wizardData.addressPostCode = addr.post_code;
+        if (addr.country) wizardData.addressCountry = addr.country;
+    })();
+    @endif
+
     function buildPayload() {
         var addressObj = {
             line1: wizardData.addressLine1 || '',
@@ -1503,6 +1550,66 @@ $(document).ready(function() {
         }
     });
     
+    @if(!empty($editing_agent))
+    (function populateFormFromAgent() {
+        $('#agentName').val(wizardData.name);
+        $('#agentDescription').val(wizardData.description);
+        var charCount = (wizardData.description || '').length;
+        $('#descriptionCharCount').text(charCount);
+        $('#brandColorPicker').val(wizardData.brandColor);
+        $('#brandColorHex').val(wizardData.brandColor);
+        if (wizardData.logoDataUrl) {
+            $('#agentLogoPreview').attr('src', wizardData.logoDataUrl).show();
+        }
+        if (wizardData.heroDataUrl) {
+            $('#agentHeroPreview').attr('src', wizardData.heroDataUrl).show();
+        }
+        $('#agentWebsite').val(wizardData.website);
+        $('#agentPrivacyUrl').val(wizardData.privacyUrl);
+        $('#agentTermsUrl').val(wizardData.termsUrl);
+        $('#agentSupportEmail').val(wizardData.supportEmail);
+        $('#agentSupportPhone').val(wizardData.supportPhone);
+        $('#showPhoneToggle').prop('checked', wizardData.showPhone);
+        $('#showEmailToggle').prop('checked', wizardData.showEmail);
+        if (wizardData.billing) {
+            $('.billing-tile').removeClass('selected');
+            $('.billing-tile[data-value="' + wizardData.billing + '"]').addClass('selected');
+        }
+        if (wizardData.useCase) {
+            $('.use-case-tile').removeClass('selected');
+            $('.use-case-tile[data-value="' + wizardData.useCase + '"]').addClass('selected');
+        }
+        $('#campaignFrequency').val(wizardData.campaignFrequency);
+        $('#monthlyVolume').val(wizardData.monthlyVolume);
+        $('#optInDescription').val(wizardData.userConsent);
+        $('#optOutDescription').val(wizardData.optOutAvailable);
+        $('#useCaseOverview').val(wizardData.useCaseOverview);
+        $('#companyName').val(wizardData.companyName);
+        $('#companyNumber').val(wizardData.companyNumber);
+        $('#companyWebsite').val(wizardData.companyWebsite);
+        if (wizardData.companySector) {
+            $('#businessSector').val(wizardData.companySector);
+        }
+        $('#addressLine1').val(wizardData.addressLine1);
+        $('#addressLine2').val(wizardData.addressLine2);
+        $('#addressCity').val(wizardData.addressCity);
+        $('#addressPostCode').val(wizardData.addressPostCode);
+        if (wizardData.addressCountry) {
+            $('#addressCountry').val(wizardData.addressCountry);
+        }
+        $('#approverName').val(wizardData.approverName);
+        $('#approverJobTitle').val(wizardData.approverJobTitle);
+        $('#approverEmail').val(wizardData.approverEmail);
+        if (wizardData.testNumbers && wizardData.testNumbers.length) {
+            wizardData.testNumbers.forEach(function(num) {
+                if (num && typeof addTestNumber === 'function') addTestNumber(num);
+            });
+        }
+        $('#autosaveIndicator').addClass('saved');
+        $('#autosaveText').text('Draft saved');
+    })();
+    @endif
+
     $('#rcsAgentWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
         // Mark step as validated (user has left it at least once)
         markStepValidated(currentStepIndex);

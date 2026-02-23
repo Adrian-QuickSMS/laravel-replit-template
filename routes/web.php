@@ -51,6 +51,7 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/management', 'management')->name('management');
     Route::get('/management/rcs-agent', 'rcsAgentRegistrations')->name('management.rcs-agent');
     Route::get('/management/rcs-agent/create', 'rcsAgentCreate')->name('management.rcs-agent.create');
+    Route::get('/management/rcs-agent/{uuid}/edit', 'rcsAgentEdit')->name('management.rcs-agent.edit');
     Route::get('/management/sms-sender-id', [SenderIdController::class, 'index'])->name('management.sms-sender-id');
     Route::get('/management/sms-sender-id/register', [SenderIdController::class, 'create'])->name('management.sms-sender-id.register');
     Route::get('/management/templates', 'templates')->name('management.templates');

@@ -1643,6 +1643,48 @@ class QuickSMSController extends Controller
         ]);
     }
 
+    public function rcsAgentEdit(string $uuid)
+    {
+        $tenantId = session('customer_tenant_id');
+        $account = Account::find($tenantId);
+        $owner = $account ? $account->getOwner() : null;
+
+        $agent = \App\Models\RcsAgent::where('uuid', $uuid)
+            ->where('account_id', $tenantId)
+            ->firstOrFail();
+
+        $companyDefaults = [];
+        if ($account) {
+            $companyDefaults = [
+                'company_name' => $account->company_name ?? '',
+                'company_number' => $account->company_number ?? '',
+                'company_website' => $account->website ?? '',
+                'sector' => $account->business_sector ?? '',
+                'address_line1' => $account->address_line1 ?? '',
+                'address_line2' => $account->address_line2 ?? '',
+                'city' => $account->city ?? '',
+                'post_code' => $account->postcode ?? '',
+                'country' => $account->country ?? '',
+            ];
+        }
+
+        $approverDefaults = [];
+        if ($owner) {
+            $approverDefaults = [
+                'name' => trim(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')),
+                'job_title' => $owner->job_title ?? '',
+                'email' => $owner->email ?? '',
+            ];
+        }
+
+        return view('quicksms.management.rcs-agent-wizard', [
+            'page_title' => 'Edit RCS Agent',
+            'company_defaults' => $companyDefaults,
+            'approver_defaults' => $approverDefaults,
+            'editing_agent' => $agent,
+        ]);
+    }
+
     public function templates()
     {
         $sender_ids = $this->getApprovedSenderIds();

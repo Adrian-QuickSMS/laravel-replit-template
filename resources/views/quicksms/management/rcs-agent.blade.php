@@ -2351,9 +2351,7 @@ function viewAgent(agentId) {
 }
 
 function editAgent(agentId) {
-    var agent = allAgents.find(function(a) { return a.id === agentId; });
-    if (!agent) return;
-    openAgentWizard(agent);
+    window.location.href = '/management/rcs-agent/' + agentId + '/edit';
 }
 
 var pendingResubmitAgentId = null;
