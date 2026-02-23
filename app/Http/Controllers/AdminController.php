@@ -559,7 +559,7 @@ class AdminController extends Controller
         $totalOutstanding = $balance ? (float) $balance->total_outstanding : 0;
 
         if ($billingMode === 'prepaid') {
-            $availableCredit = max(0, $currentBalance - $reserved);
+            $availableCredit = max(0, $currentBalance - $reserved) + $creditLimit;
         } else {
             $availableCredit = $creditLimit - $totalOutstanding + $currentBalance - $reserved;
         }
@@ -603,18 +603,10 @@ class AdminController extends Controller
 
         DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
         $account->billing_type = $newDbMode;
-
-        if ($newDbMode === 'prepay') {
-            $account->credit_limit = 0;
-        }
-
         $account->save();
 
         $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
         if ($balance) {
-            if ($newDbMode === 'prepay') {
-                $balance->credit_limit = 0;
-            }
             $balance->recalculateEffectiveAvailable();
             $balance->save();
         }
@@ -647,14 +639,6 @@ class AdminController extends Controller
         $account = Account::withoutGlobalScopes()->find($accountId);
         if (!$account) {
             return response()->json(['success' => false, 'error' => 'Account not found'], 404);
-        }
-
-        if ($account->billing_type === 'prepay') {
-            return response()->json([
-                'success' => false,
-                'error' => 'Cannot set credit limit for prepaid accounts',
-                'errorCode' => 'CREDIT_LIMIT_NOT_ALLOWED',
-            ], 422);
         }
 
         $previousLimit = (float) ($account->credit_limit ?? 0);

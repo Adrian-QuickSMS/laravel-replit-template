@@ -840,7 +840,7 @@ var AdminAccountBillingService = (function() {
         
         calculateAvailableCredit: function(billingData) {
             if (billingData.billingMode === 'prepaid') {
-                return Math.max(0, billingData.currentBalance);
+                return Math.max(0, billingData.currentBalance) + billingData.creditLimit;
             }
             return billingData.currentBalance + billingData.creditLimit;
         },
