@@ -38,7 +38,9 @@ class MccMncController extends Controller
             ->orderBy('country_name')
             ->get();
 
-        return view('admin.supplier-management.mcc-mnc', compact('networks', 'countries'));
+        $mccMncList = $networks;
+
+        return view('admin.supplier-management.mcc-mnc', compact('mccMncList', 'countries'));
     }
 
     public function store(Request $request)
