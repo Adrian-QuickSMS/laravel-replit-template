@@ -1106,6 +1106,24 @@
     </div>
 </div>
 
+<div class="modal fade" id="returnCommentsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #ff9800 0%, #e65100 100%); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-comments me-2"></i>Review Comments — <span id="returnCommentsAgentName"></span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="returnCommentsBody">
+                <div class="text-center py-3"><i class="fas fa-spinner fa-spin me-2"></i>Loading comments...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="returnCommentsEditBtn"><i class="fas fa-edit me-1"></i> Edit & Resubmit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="resubmitAgentModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -2268,6 +2286,16 @@ function getActionsMenu(agent) {
             '<i class="fas fa-edit"></i>Edit</a></li>';
     }
     
+    // View Comments & Edit - for returned agents
+    if (agent.status === 'pending-info') {
+        menuItems += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewReturnComments(\'' + agent.id + '\')">' +
+            '<i class="fas fa-comments"></i>View Comments</a></li>';
+        if (showEdit) {
+            menuItems += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editAgent(\'' + agent.id + '\')">' +
+                '<i class="fas fa-edit"></i>Edit & Resubmit</a></li>';
+        }
+    }
+
     // Resubmit - requires canSubmit permission AND agent is rejected
     if (showResubmit) {
         menuItems += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="resubmitAgent(\'' + agent.id + '\')">' +
@@ -2287,6 +2315,65 @@ function getActionsMenu(agent) {
         '</button>' +
         '<ul class="dropdown-menu dropdown-menu-end">' + menuItems + '</ul>' +
     '</div>';
+}
+
+function viewReturnComments(agentId) {
+    var agent = allAgents.find(function(a) { return a.id === agentId; });
+    if (!agent) return;
+
+    var modalBody = document.getElementById('returnCommentsBody');
+    modalBody.innerHTML = '<div class="text-center py-3"><i class="fas fa-spinner fa-spin me-2"></i>Loading comments...</div>';
+    document.getElementById('returnCommentsAgentName').textContent = agent.name;
+    document.getElementById('returnCommentsEditBtn').onclick = function() {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('returnCommentsModal'));
+        if (modal) modal.hide();
+        editAgent(agentId);
+    };
+    new bootstrap.Modal(document.getElementById('returnCommentsModal')).show();
+
+    $.ajax({
+        url: '/api/rcs-agents/' + agentId,
+        method: 'GET',
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+        success: function(response) {
+            if (response.success) {
+                var comments = response.comments || [];
+                var returnInfo = response.return_info;
+                var html = '';
+
+                if (returnInfo && returnInfo.returned_at) {
+                    var returnDate = new Date(returnInfo.returned_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    html += '<div class="text-muted small mb-3"><i class="fas fa-clock me-1"></i>Returned on ' + returnDate + '</div>';
+                }
+
+                if (comments.length > 0) {
+                    comments.forEach(function(c) {
+                        var date = c.created_at ? new Date(c.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                        html += '<div class="p-3 mb-2 rounded border" style="background: #fff9ed;">';
+                        html += '<div class="d-flex justify-content-between align-items-center mb-1">';
+                        html += '<strong class="small"><i class="fas fa-user-shield me-1 text-muted"></i>' + escapeHtml(c.created_by_actor_type) + '</strong>';
+                        html += '<span class="text-muted small">' + date + '</span>';
+                        html += '</div>';
+                        html += '<p class="mb-0">' + escapeHtml(c.comment_text) + '</p>';
+                        html += '</div>';
+                    });
+                } else if (returnInfo && returnInfo.reason) {
+                    html += '<div class="p-3 mb-2 rounded border" style="background: #fff9ed;">';
+                    html += '<p class="mb-0">' + escapeHtml(returnInfo.reason) + '</p>';
+                    html += '</div>';
+                } else {
+                    html += '<div class="text-muted text-center py-3">No comments available.</div>';
+                }
+
+                modalBody.innerHTML = html;
+            } else {
+                modalBody.innerHTML = '<div class="text-danger text-center py-3">Failed to load comments.</div>';
+            }
+        },
+        error: function() {
+            modalBody.innerHTML = '<div class="text-danger text-center py-3">Failed to load comments. Please try again.</div>';
+        }
+    });
 }
 
 function viewAgent(agentId) {
