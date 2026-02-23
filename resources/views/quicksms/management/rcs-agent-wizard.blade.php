@@ -1553,16 +1553,34 @@ $(document).ready(function() {
     @if(!empty($editing_agent))
     (function populateFormFromAgent() {
         $('#agentName').val(wizardData.name);
+        $('#nameCharCount').text((wizardData.name || '').length);
         $('#agentDescription').val(wizardData.description);
-        var charCount = (wizardData.description || '').length;
-        $('#descriptionCharCount').text(charCount);
-        $('#brandColorPicker').val(wizardData.brandColor);
+        $('#descCharCount').text((wizardData.description || '').length);
+        $('#brandColor').val(wizardData.brandColor);
         $('#brandColorHex').val(wizardData.brandColor);
         if (wizardData.logoDataUrl) {
-            $('#agentLogoPreview').attr('src', wizardData.logoDataUrl).show();
+            var $logoZone = $('#agentLogoUploadZone');
+            if ($logoZone.length) {
+                $logoZone.find('.upload-placeholder').hide();
+                var $preview = $logoZone.find('.upload-preview');
+                if ($preview.length) {
+                    $preview.attr('src', wizardData.logoDataUrl).show();
+                } else {
+                    $logoZone.prepend('<img class="upload-preview" src="' + wizardData.logoDataUrl + '" style="max-width:100%;max-height:200px;object-fit:contain;">');
+                }
+            }
         }
         if (wizardData.heroDataUrl) {
-            $('#agentHeroPreview').attr('src', wizardData.heroDataUrl).show();
+            var $heroZone = $('#agentHeroUploadZone');
+            if ($heroZone.length) {
+                $heroZone.find('.upload-placeholder').hide();
+                var $preview = $heroZone.find('.upload-preview');
+                if ($preview.length) {
+                    $preview.attr('src', wizardData.heroDataUrl).show();
+                } else {
+                    $heroZone.prepend('<img class="upload-preview" src="' + wizardData.heroDataUrl + '" style="max-width:100%;max-height:200px;object-fit:contain;">');
+                }
+            }
         }
         $('#agentWebsite').val(wizardData.website);
         $('#agentPrivacyUrl').val(wizardData.privacyUrl);
