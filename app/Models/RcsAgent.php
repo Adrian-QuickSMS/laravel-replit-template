@@ -75,6 +75,8 @@ class RcsAgent extends Model
         'hero_crop_metadata' => 'array',
         'test_numbers' => 'array',
         'full_payload' => 'array',
+        'registered_address' => 'array',
+        'version_history' => 'array',
         'show_phone' => 'boolean',
         'show_website' => 'boolean',
         'show_email' => 'boolean',
@@ -166,27 +168,60 @@ class RcsAgent extends Model
 
     public function toAdminArray(): array
     {
-        $data = $this->toPortalArray();
-        $data['account_id'] = $this->account_id;
-        $data['workflow_status'] = $this->workflow_status;
-        $data['submitted_at'] = $this->submitted_at;
-        $data['reviewed_at'] = $this->reviewed_at;
-        $data['reviewed_by'] = $this->reviewed_by;
-        $data['admin_notes'] = $this->admin_notes;
-        $data['suspension_reason'] = $this->suspension_reason;
-        $data['revocation_reason'] = $this->revocation_reason;
-        $data['additional_info'] = $this->additional_info;
-        $data['version'] = $this->version;
-        $data['full_payload'] = $this->full_payload;
-        $data['is_locked'] = (bool) $this->is_locked;
-        $data['sector'] = $this->sector;
-        $data['opt_in_description'] = $this->opt_in_description;
-        $data['opt_out_description'] = $this->opt_out_description;
-        $data['campaign_frequency'] = $this->campaign_frequency;
-        $data['company_website'] = $this->company_website;
-        $data['registered_address'] = $this->registered_address;
-        $data['show_website'] = (bool) $this->show_website;
-        return $data;
+        $createdByUser = $this->relationLoaded('createdBy') ? $this->createdBy : null;
+
+        return [
+            'id' => $this->uuid,
+            'uuid' => $this->uuid,
+            'account_id' => $this->account_id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'brand_color' => $this->brand_color ?? '#886CC0',
+            'logo_url' => $this->logo_url,
+            'logo_crop_metadata' => $this->logo_crop_metadata,
+            'hero_url' => $this->hero_url,
+            'hero_crop_metadata' => $this->hero_crop_metadata,
+            'support_phone' => $this->support_phone,
+            'support_email' => $this->support_email,
+            'website' => $this->website,
+            'privacy_url' => $this->privacy_url,
+            'terms_url' => $this->terms_url,
+            'show_phone' => (bool) $this->show_phone,
+            'show_email' => (bool) $this->show_email,
+            'show_website' => (bool) $this->show_website,
+            'billing_category' => $this->billing_category,
+            'use_case' => $this->use_case,
+            'use_case_overview' => $this->use_case_overview,
+            'campaign_frequency' => $this->campaign_frequency,
+            'monthly_volume' => $this->monthly_volume,
+            'opt_in_description' => $this->opt_in_description,
+            'opt_out_description' => $this->opt_out_description,
+            'test_numbers' => $this->test_numbers ?? [],
+            'company_number' => $this->company_number,
+            'company_website' => $this->company_website,
+            'registered_address' => $this->registered_address,
+            'approver_name' => $this->approver_name,
+            'approver_job_title' => $this->approver_job_title,
+            'approver_email' => $this->approver_email,
+            'sector' => $this->sector,
+            'workflow_status' => $this->workflow_status,
+            'submitted_at' => $this->submitted_at,
+            'reviewed_at' => $this->reviewed_at,
+            'reviewed_by' => $this->reviewed_by,
+            'rejection_reason' => $this->rejection_reason,
+            'admin_notes' => $this->admin_notes,
+            'suspension_reason' => $this->suspension_reason,
+            'revocation_reason' => $this->revocation_reason,
+            'additional_info' => $this->additional_info,
+            'version' => $this->version,
+            'full_payload' => $this->full_payload,
+            'is_locked' => (bool) $this->is_locked,
+            'created_by' => $this->created_by,
+            'created_by_name' => $createdByUser ? trim(($createdByUser->first_name ?? '') . ' ' . ($createdByUser->last_name ?? '')) : null,
+            'created_by_email' => $createdByUser->email ?? null,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
     }
 
     public function isEditable(): bool
