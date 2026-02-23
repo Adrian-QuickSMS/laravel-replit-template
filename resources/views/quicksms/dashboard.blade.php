@@ -1083,7 +1083,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var balanceData = @json($balanceData ?? ['effectiveAvailable' => 0, 'currency' => 'GBP']);
         var valueEl = document.getElementById('balance-value');
         if (valueEl) {
-            valueEl.textContent = '£' + balanceData.effectiveAvailable.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            valueEl.textContent = '£' + balanceData.balance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
         setTileLoading('tile-balance', false);
     }
