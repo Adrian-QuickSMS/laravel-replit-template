@@ -716,6 +716,50 @@ html, body {
     </div>
 </div>
 
+<div class="modal fade" id="supplierApprovedModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i class="fas fa-check-double me-2 text-success"></i>Mark Supplier Approved</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small"><i class="fas fa-info-circle me-1"></i> This confirms the mobile network has approved the RCS agent. The agent will move to "Supplier Approved" status.</div>
+                <div class="mb-3">
+                    <label class="form-label">Admin Notes <span class="text-muted">(optional)</span></label>
+                    <textarea class="form-control" id="supplierApprovedNotes" rows="3" placeholder="Add any notes about the supplier approval..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="btnConfirmSupplierApproved" onclick="confirmSupplierApproved()"><i class="fas fa-check-double me-1"></i> Confirm Supplier Approved</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="markLiveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i class="fas fa-broadcast-tower me-2 text-success"></i>Mark Agent Live</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small"><i class="fas fa-info-circle me-1"></i> This will set the agent to "Live" status. The agent will be fully active for RCS messaging.</div>
+                <div class="mb-3">
+                    <label class="form-label">Admin Notes <span class="text-muted">(optional)</span></label>
+                    <textarea class="form-control" id="markLiveNotes" rows="3" placeholder="Add any notes about going live..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="btnConfirmMarkLive" onclick="confirmMarkLive()"><i class="fas fa-broadcast-tower me-1"></i> Mark Live</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="confirmActionModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -1269,15 +1313,27 @@ function confirmRequestInfo() {
 }
 
 function supplierApprovedAction() {
-    if (confirm('Mark this agent as Supplier Approved? This confirms the mobile network has approved the RCS agent.')) {
-        performAction('supplier-approved', { notes: 'Supplier has approved the RCS agent' }, 'Agent marked as Supplier Approved.');
-    }
+    document.getElementById('supplierApprovedNotes').value = '';
+    new bootstrap.Modal(document.getElementById('supplierApprovedModal')).show();
+}
+
+function confirmSupplierApproved() {
+    var notes = document.getElementById('supplierApprovedNotes').value.trim() || 'Supplier has approved the RCS agent';
+    var modal = bootstrap.Modal.getInstance(document.getElementById('supplierApprovedModal'));
+    if (modal) modal.hide();
+    performAction('supplier-approved', { notes: notes }, 'Agent marked as Supplier Approved.');
 }
 
 function markLiveAction() {
-    if (confirm('Mark this agent as Live? The agent will be fully active for messaging.')) {
-        performAction('mark-live', { notes: 'Agent is now live' }, 'Agent is now Live.');
-    }
+    document.getElementById('markLiveNotes').value = '';
+    new bootstrap.Modal(document.getElementById('markLiveModal')).show();
+}
+
+function confirmMarkLive() {
+    var notes = document.getElementById('markLiveNotes').value.trim() || 'Agent is now live';
+    var modal = bootstrap.Modal.getInstance(document.getElementById('markLiveModal'));
+    if (modal) modal.hide();
+    performAction('mark-live', { notes: notes }, 'Agent is now Live.');
 }
 
 function suspendAgent() {
