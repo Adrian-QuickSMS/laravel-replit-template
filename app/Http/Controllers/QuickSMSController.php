@@ -293,19 +293,38 @@ class QuickSMSController extends Controller
         }
 
         $pricingData = ['sms' => null, 'rcs_basic' => null, 'rcs_single' => null];
-        if ($accountId) {
-            $tier = $account->product_tier ?? 'starter';
-            $tierPrices = \App\Models\Billing\ProductTierPrice::where('product_tier', $tier)
-                ->whereIn('product_type', ['sms', 'rcs_basic', 'rcs_single'])
+        if ($accountId && $account) {
+            $productTypes = ['sms', 'rcs_basic', 'rcs_single'];
+
+            $customerPrices = \App\Models\Billing\CustomerPrice::where('account_id', $accountId)
+                ->whereIn('product_type', $productTypes)
                 ->whereNull('country_iso')
                 ->active()
                 ->validAt()
                 ->get()
                 ->keyBy('product_type');
 
-            foreach (['sms', 'rcs_basic', 'rcs_single'] as $type) {
-                if ($tierPrices->has($type)) {
-                    $pricingData[$type] = (float) $tierPrices[$type]->unit_price;
+            foreach ($productTypes as $type) {
+                if ($customerPrices->has($type)) {
+                    $pricingData[$type] = (float) $customerPrices[$type]->unit_price;
+                }
+            }
+
+            $missingTypes = array_filter($productTypes, fn($t) => $pricingData[$t] === null);
+            if (!empty($missingTypes)) {
+                $tier = $account->product_tier ?? 'starter';
+                $tierPrices = \App\Models\Billing\ProductTierPrice::where('product_tier', $tier)
+                    ->whereIn('product_type', $missingTypes)
+                    ->whereNull('country_iso')
+                    ->active()
+                    ->validAt()
+                    ->get()
+                    ->keyBy('product_type');
+
+                foreach ($missingTypes as $type) {
+                    if ($tierPrices->has($type)) {
+                        $pricingData[$type] = (float) $tierPrices[$type]->unit_price;
+                    }
                 }
             }
         }
