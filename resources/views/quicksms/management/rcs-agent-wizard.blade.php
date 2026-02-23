@@ -1149,16 +1149,101 @@ $(document).ready(function() {
     };
     
     var autosaveTimeout = null;
-    
+    var currentDraftUuid = null;
+
+    function buildPayload() {
+        var addressObj = {
+            line1: wizardData.addressLine1 || '',
+            line2: wizardData.addressLine2 || '',
+            city: wizardData.addressCity || '',
+            post_code: wizardData.addressPostCode || '',
+            country: wizardData.addressCountry || ''
+        };
+
+        return {
+            name: wizardData.name || '',
+            description: wizardData.description || '',
+            brand_color: wizardData.brandColor || '#886CC0',
+            logo_url: wizardData.logoDataUrl || null,
+            logo_crop_metadata: wizardData.logoCropMetadata || null,
+            hero_url: wizardData.heroDataUrl || null,
+            hero_crop_metadata: wizardData.heroCropMetadata || null,
+            support_phone: wizardData.supportPhone || '',
+            website: wizardData.website || '',
+            support_email: wizardData.supportEmail || '',
+            privacy_url: wizardData.privacyUrl || '',
+            terms_url: wizardData.termsUrl || '',
+            show_phone: wizardData.showPhone !== false,
+            show_email: wizardData.showEmail !== false,
+            billing_category: wizardData.billing || 'non-conversational',
+            use_case: wizardData.useCase || '',
+            campaign_frequency: wizardData.campaignFrequency || '',
+            monthly_volume: wizardData.monthlyVolume || '',
+            opt_in_description: wizardData.userConsent || '',
+            opt_out_description: wizardData.optOutAvailable || '',
+            use_case_overview: wizardData.useCaseOverview || '',
+            test_numbers: wizardData.testNumbers || [],
+            company_number: wizardData.companyNumber || '',
+            company_website: wizardData.companyWebsite || '',
+            registered_address: JSON.stringify(addressObj),
+            approver_name: wizardData.approverName || '',
+            approver_job_title: wizardData.approverJobTitle || '',
+            approver_email: wizardData.approverEmail || ''
+        };
+    }
+
     function triggerAutosave() {
         if (autosaveTimeout) clearTimeout(autosaveTimeout);
         $('#autosaveIndicator').removeClass('saved error').addClass('saving');
         $('#autosaveText').text('Saving...');
-        
+
         autosaveTimeout = setTimeout(function() {
-            $('#autosaveIndicator').removeClass('saving error').addClass('saved');
-            $('#autosaveText').text('Draft saved');
-        }, 1000);
+            if (!wizardData.name || !wizardData.description) {
+                $('#autosaveIndicator').removeClass('saving error').addClass('saved');
+                $('#autosaveText').text('Draft saved');
+                return;
+            }
+
+            var payload = buildPayload();
+            var url, method;
+
+            if (currentDraftUuid) {
+                url = '/api/rcs-agents/' + currentDraftUuid;
+                method = 'PUT';
+            } else {
+                url = '/api/rcs-agents';
+                method = 'POST';
+            }
+
+            $.ajax({
+                url: url,
+                method: method,
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(payload),
+                success: function(response) {
+                    if (response.success && response.data) {
+                        if (!currentDraftUuid && response.data.uuid) {
+                            currentDraftUuid = response.data.uuid;
+                            wizardData.id = response.data.uuid;
+                        }
+                        $('#autosaveIndicator').removeClass('saving error').addClass('saved');
+                        $('#autosaveText').text('Draft saved');
+                    } else {
+                        $('#autosaveIndicator').removeClass('saving saved').addClass('error');
+                        $('#autosaveText').text('Save failed');
+                    }
+                },
+                error: function(xhr) {
+                    console.log('[Autosave] Error:', xhr.status, xhr.responseText);
+                    $('#autosaveIndicator').removeClass('saving saved').addClass('error');
+                    $('#autosaveText').text('Save failed');
+                }
+            });
+        }, 2000);
     }
     
     function validateStep(stepNumber) {
