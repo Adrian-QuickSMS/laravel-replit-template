@@ -419,6 +419,7 @@ Route::prefix('admin')->group(function () {
                 Route::get('/{uuid}', 'show')->name('admin.api.rcs-agents.show');
                 Route::post('/{uuid}/review', 'startReview')->name('admin.api.rcs-agents.review');
                 Route::post('/{uuid}/approve', 'approve')->name('admin.api.rcs-agents.approve');
+                Route::post('/{uuid}/approve-and-submit', 'approveAndSubmitToSupplier')->name('admin.api.rcs-agents.approve-and-submit');
                 Route::post('/{uuid}/reject', 'reject')->name('admin.api.rcs-agents.reject');
                 Route::post('/{uuid}/request-info', 'requestInfo')->name('admin.api.rcs-agents.request-info');
                 Route::post('/{uuid}/suspend', 'suspend')->name('admin.api.rcs-agents.suspend');

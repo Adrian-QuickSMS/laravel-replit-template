@@ -218,6 +218,121 @@ class RcsAgentApprovalController extends Controller
     }
 
     /**
+     * Approve and send to RCS Supplier (in_review -> approved, then submit to supplier)
+     * POST /admin/api/rcs-agents/{uuid}/approve-and-submit
+     */
+    public function approveAndSubmitToSupplier(Request $request, string $uuid): JsonResponse
+    {
+        $request->validate([
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        $agent = RcsAgent::withoutGlobalScope('tenant')
+            ->where('uuid', $uuid)
+            ->with(['account:id,company_name,account_number'])
+            ->first();
+
+        if (!$agent) {
+            return response()->json(['success' => false, 'error' => 'RCS Agent not found.'], 404);
+        }
+
+        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_IN_REVIEW, RcsAgent::STATUS_PENDING_INFO, RcsAgent::STATUS_INFO_PROVIDED])) {
+            return response()->json(['success' => false, 'error' => 'Agent must be in review to approve and submit to supplier.'], 422);
+        }
+
+        $beforeState = $agent->toAdminArray();
+
+        try {
+            $adminUser = $request->user();
+            $adminId = $adminUser->id ?? null;
+
+            $agent->transitionTo(
+                RcsAgent::STATUS_APPROVED,
+                $adminId,
+                null,
+                $request->input('notes', 'Approved and submitted to RCS supplier'),
+                $adminUser
+            );
+
+            $supplierPayload = $this->buildSupplierPayload($agent);
+
+            $agent->admin_notes = trim(($agent->admin_notes ?? '') . "\n[" . now()->toDateTimeString() . "] Submitted to RCS supplier.");
+            $agent->save();
+
+            try {
+                Notification::create([
+                    'tenant_id' => $agent->account_id,
+                    'type' => 'RCS_AGENT_APPROVED',
+                    'severity' => 'success',
+                    'title' => "RCS Agent approved",
+                    'body' => "Your RCS Agent '{$agent->name}' has been approved and submitted to the RCS supplier for provisioning.",
+                    'deep_link' => "/management/rcs-agent?view={$agent->uuid}",
+                    'meta' => [
+                        'agent_name' => $agent->name,
+                        'request_uuid' => $agent->uuid,
+                        'request_id' => $agent->id,
+                    ],
+                ]);
+            } catch (\Exception $e) {
+                Log::error('[RcsAgentApproval] Failed to create approval notification: ' . $e->getMessage());
+            }
+
+            $this->logGovernanceEvent(
+                $agent,
+                $beforeState,
+                'RCS_AGENT_APPROVED_AND_SUBMITTED_TO_SUPPLIER',
+                $request,
+                'Approved and submitted to RCS supplier'
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'RCS Agent approved and submitted to supplier.',
+                'supplier_payload' => $supplierPayload,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('[RcsAgentApproval] Approve and submit failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'error' => 'Failed to approve and submit: ' . $e->getMessage()], 500);
+        }
+    }
+
+    private function buildSupplierPayload(RcsAgent $agent): array
+    {
+        return [
+            'agent_id' => $agent->uuid,
+            'agent_name' => $agent->name,
+            'description' => $agent->description,
+            'brand_color' => $agent->brand_color,
+            'logo_url' => $agent->logo_url,
+            'hero_url' => $agent->hero_url,
+            'support_phone' => $agent->support_phone,
+            'support_email' => $agent->support_email,
+            'website' => $agent->website,
+            'privacy_url' => $agent->privacy_url,
+            'terms_url' => $agent->terms_url,
+            'show_phone' => (bool) $agent->show_phone,
+            'show_email' => (bool) $agent->show_email,
+            'show_website' => (bool) $agent->show_website,
+            'billing_category' => $agent->billing_category,
+            'use_case' => $agent->use_case,
+            'use_case_overview' => $agent->use_case_overview,
+            'campaign_frequency' => $agent->campaign_frequency,
+            'monthly_volume' => $agent->monthly_volume,
+            'opt_in_description' => $agent->opt_in_description,
+            'opt_out_description' => $agent->opt_out_description,
+            'test_numbers' => $agent->test_numbers ?? [],
+            'company_name' => $agent->account?->company_name,
+            'company_number' => $agent->company_number,
+            'company_website' => $agent->company_website,
+            'registered_address' => $agent->registered_address,
+            'approver_name' => $agent->approver_name,
+            'approver_job_title' => $agent->approver_job_title,
+            'approver_email' => $agent->approver_email,
+            'sector' => $agent->sector,
+        ];
+    }
+
+    /**
      * Suspend an approved RCS Agent (approved -> suspended)
      * POST /admin/api/rcs-agents/{uuid}/suspend
      */

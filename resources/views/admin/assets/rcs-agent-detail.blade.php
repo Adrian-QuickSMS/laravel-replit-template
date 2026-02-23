@@ -515,9 +515,9 @@ html, body {
                     <div class="action-panel-title"><i class="fas fa-gavel me-2"></i>Admin Actions</div>
                     <div class="action-buttons" id="actionButtons">
                         <button class="action-btn primary" id="btnStartReview" style="display:none;" onclick="startReview()"><i class="fas fa-search"></i> Start Review</button>
-                        <button class="action-btn success" id="btnApprove" style="display:none;" onclick="approveAgent()"><i class="fas fa-check-circle"></i> Approve</button>
+                        <button class="action-btn success" id="btnApproveSubmit" style="display:none;" onclick="showApproveSubmitModal()"><i class="fas fa-paper-plane"></i> Approve & Send to RCS Supplier</button>
                         <button class="action-btn danger" id="btnReject" style="display:none;" onclick="showRejectModal()"><i class="fas fa-times-circle"></i> Reject</button>
-                        <button class="action-btn warning" id="btnRequestInfo" style="display:none;" onclick="requestInfo()"><i class="fas fa-question-circle"></i> Request Info</button>
+                        <button class="action-btn warning" id="btnRequestInfo" style="display:none;" onclick="requestInfo()"><i class="fas fa-question-circle"></i> Return with Comments</button>
                         <button class="action-btn warning" id="btnSuspend" style="display:none;" onclick="suspendAgent()"><i class="fas fa-pause-circle"></i> Suspend</button>
                         <button class="action-btn success" id="btnReactivate" style="display:none;" onclick="reactivateAgent()"><i class="fas fa-play-circle"></i> Reactivate</button>
                         <button class="action-btn danger" id="btnRevoke" style="display:none;" onclick="revokeAgent()"><i class="fas fa-ban"></i> Revoke</button>
@@ -587,6 +587,31 @@ html, body {
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="approveSubmitModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff;">
+                <h5 class="modal-title"><i class="fas fa-paper-plane me-2"></i>Approve & Send to RCS Supplier</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" style="font-size: 0.85rem;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    This will approve the RCS Agent and submit the registration data to the RCS supplier for provisioning. The customer will be notified of the approval.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Admin Notes <span class="text-muted">(optional)</span></label>
+                    <textarea class="form-control" id="approveSubmitNotes" rows="3" placeholder="Add any notes about this approval..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="btnConfirmApproveSubmit" onclick="confirmApproveSubmit()"><i class="fas fa-paper-plane me-1"></i> Approve & Send to Supplier</button>
             </div>
         </div>
     </div>
@@ -1092,13 +1117,13 @@ function updateActionButtonVisibility(status) {
             showBtn('btnStartReview');
             break;
         case 'in_review':
-            showBtn('btnApprove');
+            showBtn('btnApproveSubmit');
             showBtn('btnReject');
             showBtn('btnRequestInfo');
             break;
         case 'pending_info':
         case 'info_provided':
-            showBtn('btnApprove');
+            showBtn('btnApproveSubmit');
             showBtn('btnReject');
             showBtn('btnRequestInfo');
             break;
@@ -1145,10 +1170,44 @@ function startReview() {
     }
 }
 
-function approveAgent() {
-    if (confirm('Approve this RCS Agent request?')) {
-        performAction('approve', { notes: 'Manual approval by admin' }, 'RCS Agent approved successfully.');
-    }
+function showApproveSubmitModal() {
+    document.getElementById('approveSubmitNotes').value = '';
+    new bootstrap.Modal(document.getElementById('approveSubmitModal')).show();
+}
+
+function confirmApproveSubmit() {
+    var notes = document.getElementById('approveSubmitNotes').value.trim();
+    var btn = document.getElementById('btnConfirmApproveSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
+
+    var modal = bootstrap.Modal.getInstance(document.getElementById('approveSubmitModal'));
+
+    $.ajax({
+        url: '/admin/api/rcs-agents/' + agentUuid + '/approve-and-submit',
+        method: 'POST',
+        headers: ajaxHeaders(),
+        data: JSON.stringify({ notes: notes || 'Approved and submitted to RCS supplier' }),
+        success: function(response) {
+            if (modal) modal.hide();
+            if (response.success) {
+                showToast('RCS Agent approved and submitted to supplier.', 'success');
+                loadAgentDetail();
+            } else {
+                showToast(response.error || 'Action failed.', 'error');
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Approve & Send to Supplier';
+        },
+        error: function(xhr) {
+            if (modal) modal.hide();
+            var msg = 'Action failed.';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            showToast(msg, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Approve & Send to Supplier';
+        }
+    });
 }
 
 function showRejectModal() {
