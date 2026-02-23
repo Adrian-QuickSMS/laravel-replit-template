@@ -607,8 +607,8 @@
                                         </div>
                                         @foreach($customerPrices as $price)
                                             <div class="mb-2">
-                                                <strong>{{ strtoupper(str_replace('_', ' ', $price->product_type)) }} {{ strtoupper($price->country_iso) }}:</strong>
-                                                £{{ number_format($price->unit_price, 4) }} per unit
+                                                <strong>{{ strtoupper(str_replace('_', ' ', $price->product_type)) }}@if($price->country_iso) {{ strtoupper($price->country_iso) }}@endif:</strong>
+                                                £{{ number_format($price->unit_price, 4) }} {{ str_replace('_', ' ', $price->billing_type ?? 'per submitted') }}
                                                 @if($price->source === 'hubspot')
                                                     <span class="text-muted small"><i class="fas fa-sync-alt ms-1"></i></span>
                                                 @endif
@@ -623,8 +623,8 @@
                                         </div>
                                         @foreach($tierPrices as $price)
                                             <div class="mb-2">
-                                                <strong>{{ strtoupper(str_replace('_', ' ', $price->product_type)) }} {{ strtoupper($price->country_iso) }}:</strong>
-                                                £{{ number_format($price->unit_price, 4) }} per unit
+                                                <strong>{{ strtoupper(str_replace('_', ' ', $price->product_type)) }}@if($price->country_iso) {{ strtoupper($price->country_iso) }}@endif:</strong>
+                                                £{{ number_format($price->unit_price, 4) }} {{ str_replace('_', ' ', $price->billing_type ?? 'per submitted') }}
                                             </div>
                                         @endforeach
                                         <div class="text-muted small mt-3">
