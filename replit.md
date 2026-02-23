@@ -101,6 +101,17 @@ Full admin pricing management page at `/admin/management/pricing` with 4-tab int
 *   **View file**: `resources/views/admin/management/pricing.blade.php`
 *   **Controller**: `app/Http/Controllers/Admin/PricingManagementController.php`
 
+## RCS Agent Customer Portal — DB-Driven (Added 2026-02-23)
+
+The customer-facing RCS Agent Library page (`/management/rcs-agent`) now loads from the database via API:
+
+*   **API endpoint**: `GET /api/rcs-agents` in `RcsAgentController::list()`. Returns all agents for the current account from the `rcs_agents` table.
+*   **`toPortalArray()`**: Added to `RcsAgent` model — serializes DB columns to camelCase JS format (id→uuid, status with underscore-to-hyphen, billing_category→billing, etc.).
+*   **Dynamic table**: JavaScript calls the API on page load and renders the agent table. Search, sort, pagination, and filters all operate on API-sourced data.
+*   **API-driven actions**: Resubmit (`POST /api/rcs-agents/{uuid}/resubmit`), Delete (`DELETE /api/rcs-agents/{uuid}`) now call real API endpoints and reload the table from the server on success.
+*   **Wizard save**: After wizard submission, the table reloads from the API instead of locally inserting into the array.
+*   **Empty state**: When no agents exist in the database, the empty state with "Create RCS Agent" button is shown.
+
 ## RCS Agent Admin Frontend (Added 2026-02-23)
 
 Admin RCS agent approval views wired to real backend API:

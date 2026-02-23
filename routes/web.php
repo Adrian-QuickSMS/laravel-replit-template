@@ -118,6 +118,7 @@ Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdCon
 
 // RCS Agent Registration — Customer Portal API
 Route::middleware('customer.auth')->prefix('api/rcs-agents')->controller(RcsAgentController::class)->group(function () {
+    Route::get('/', 'list')->name('api.rcs-agents.list');
     Route::get('/approved', 'approved')->name('api.rcs-agents.approved');
     Route::post('/', 'store')->name('api.rcs-agents.store');
     Route::get('/{uuid}', 'show')->name('api.rcs-agents.show');

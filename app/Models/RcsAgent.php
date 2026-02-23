@@ -82,6 +82,46 @@ class RcsAgent extends Model
         return $this->hasMany(RcsAgentStatusHistory::class)->orderBy('created_at', 'desc');
     }
 
+    public function toPortalArray(): array
+    {
+        return [
+            'id' => $this->uuid,
+            'name' => $this->name,
+            'description' => $this->description,
+            'status' => str_replace('_', '-', $this->status ?? 'draft'),
+            'billing' => $this->billing_category,
+            'useCase' => str_replace('_', '-', $this->use_case ?? ''),
+            'created' => $this->created_at ? $this->created_at->toDateString() : null,
+            'updated' => $this->updated_at ? $this->updated_at->toDateString() : null,
+            'rejectionReason' => $this->rejection_reason,
+            'brandColor' => $this->brand_color ?? '#886CC0',
+            'logoUrl' => $this->logo_url,
+            'heroUrl' => $this->hero_url,
+            'supportPhone' => $this->support_phone,
+            'showPhone' => (bool) $this->show_phone,
+            'website' => $this->website,
+            'supportEmail' => $this->support_email,
+            'showEmail' => (bool) $this->show_email,
+            'privacyUrl' => $this->privacy_url,
+            'termsUrl' => $this->terms_url,
+            'useCaseOverview' => $this->use_case_overview,
+            'userConsent' => !empty($this->opt_in_description),
+            'optOutAvailable' => !empty($this->opt_out_description),
+            'monthlyVolume' => $this->monthly_volume,
+            'testNumbers' => $this->test_numbers ?? [],
+            'companyName' => $this->account ? $this->account->company_name : null,
+            'companyNumber' => $this->company_number,
+            'approverName' => $this->approver_name,
+            'approverJobTitle' => $this->approver_job_title,
+            'approverEmail' => $this->approver_email,
+        ];
+    }
+
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
+    }
+
     public function isEditable(): bool
     {
         return $this->status === 'draft' || $this->status === 'rejected';

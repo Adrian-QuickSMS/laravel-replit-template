@@ -65,6 +65,28 @@ class RcsAgentController extends Controller
     // =====================================================
 
     /**
+     * List all RCS Agents for the current account
+     * GET /api/rcs-agents
+     */
+    public function list(Request $request): JsonResponse
+    {
+        $accountId = session('customer_tenant_id');
+        if (!$accountId) {
+            return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
+        }
+
+        $agents = RcsAgent::where('account_id', $accountId)
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(fn($a) => $a->toPortalArray());
+
+        return response()->json([
+            'success' => true,
+            'data' => $agents,
+        ]);
+    }
+
+    /**
      * Store a new RCS Agent (draft or submitted)
      * POST /api/rcs-agents
      */

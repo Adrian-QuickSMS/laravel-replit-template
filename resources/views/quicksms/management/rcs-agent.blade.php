@@ -1940,264 +1940,41 @@ function getCurrentUserId() {
 }
 
 
-var mockAgents = [
-    {
-        id: 'agent-001',
-        name: 'QuickSMS Notifications',
-        description: 'Official transactional messaging agent for order confirmations and delivery updates.',
-        status: 'approved',
-        billing: 'conversational',
-        useCase: 'transactional',
-        created: '2025-09-15',
-        updated: '2025-10-02',
-        rejectionReason: null,
-        brandColor: '#886CC0',
-        logoUrl: '/images/placeholder-logo.png',
-        heroUrl: '/images/placeholder-hero.png',
-        supportPhone: '+44 20 7946 0958',
-        showPhone: true,
-        website: 'https://quicksms.example.com',
-        supportEmail: 'support@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Sends order confirmations, shipping updates, and delivery notifications to customers who have made purchases.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '50,000 - 100,000',
-        testNumbers: ['+447911123456', '+447911123457', '+447911123458'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'Sarah Johnson',
-        approverJobTitle: 'Head of Marketing',
-        approverEmail: 'sarah.johnson@quicksms.example.com'
-    },
-    {
-        id: 'agent-002',
-        name: 'Marketing Campaigns',
-        description: 'Promotional messaging agent for marketing campaigns and special offers.',
-        status: 'approved',
-        billing: 'non-conversational',
-        useCase: 'promotional',
-        created: '2025-08-20',
-        updated: '2025-09-10',
-        rejectionReason: null,
-        brandColor: '#3065D0',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0959',
-        showPhone: false,
-        website: 'https://marketing.quicksms.example.com',
-        supportEmail: 'marketing@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Sends promotional offers, discounts, and marketing messages to opted-in customers.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '100,000 - 500,000',
-        testNumbers: ['+447911234567'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'John Smith',
-        approverJobTitle: 'Marketing Director',
-        approverEmail: 'john.smith@quicksms.example.com'
-    },
-    {
-        id: 'agent-003',
-        name: 'OTP Verification',
-        description: 'Secure one-time password delivery for two-factor authentication.',
-        status: 'in-review',
-        billing: 'non-conversational',
-        useCase: 'otp',
-        created: '2025-12-01',
-        updated: '2025-12-01',
-        rejectionReason: null,
-        brandColor: '#1cbb8c',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0960',
-        showPhone: true,
-        website: 'https://auth.quicksms.example.com',
-        supportEmail: 'security@quicksms.example.com',
-        showEmail: false,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Delivers OTP codes for account verification, password resets, and two-factor authentication.',
-        userConsent: true,
-        optOutAvailable: false,
-        monthlyVolume: '10,000 - 50,000',
-        testNumbers: ['+447911345678', '+447911345679'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'Sarah Johnson',
-        approverJobTitle: 'Head of Security',
-        approverEmail: 'sarah.johnson@quicksms.example.com'
-    },
-    {
-        id: 'agent-004',
-        name: 'Customer Support Bot',
-        description: 'AI-powered customer support agent for handling inquiries and providing assistance.',
-        status: 'submitted',
-        billing: 'conversational',
-        useCase: 'multi-use',
-        created: '2025-12-28',
-        updated: '2025-12-28',
-        rejectionReason: null,
-        brandColor: '#FF6B35',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0961',
-        showPhone: true,
-        website: 'https://support.quicksms.example.com',
-        supportEmail: 'help@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Provides 24/7 customer support via conversational AI, handling FAQs, order status, and support tickets.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '5,000 - 10,000',
-        testNumbers: [],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'Emma Wilson',
-        approverJobTitle: 'Customer Success Manager',
-        approverEmail: 'emma.wilson@quicksms.example.com'
-    },
-    {
-        id: 'agent-005',
-        name: 'Holiday Promotions',
-        description: 'Seasonal promotional messaging for holiday sales and events.',
-        status: 'rejected',
-        billing: 'non-conversational',
-        useCase: 'promotional',
-        created: '2025-11-15',
-        updated: '2025-11-20',
-        rejectionReason: 'Brand logo does not meet minimum resolution requirements. Please upload a logo with at least 224x224 pixels.',
-        brandColor: '#dc3545',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0962',
-        showPhone: true,
-        website: 'https://holidays.quicksms.example.com',
-        supportEmail: 'holidays@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Holiday-specific promotional campaigns for Black Friday, Christmas, and seasonal sales.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '200,000 - 500,000',
-        testNumbers: ['+447911456789'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'Michael Brown',
-        approverJobTitle: 'Marketing Manager',
-        approverEmail: 'michael.brown@quicksms.example.com'
-    },
-    {
-        id: 'agent-006',
-        name: 'Appointment Reminders',
-        description: 'Automated appointment reminders and scheduling notifications.',
-        status: 'draft',
-        billing: 'non-conversational',
-        useCase: 'transactional',
-        created: '2026-01-05',
-        updated: '2026-01-05',
-        rejectionReason: null,
-        brandColor: '#17a2b8',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '',
-        showPhone: false,
-        website: '',
-        supportEmail: '',
-        showEmail: false,
-        privacyUrl: '',
-        termsUrl: '',
-        useCaseOverview: '',
-        userConsent: false,
-        optOutAvailable: false,
-        monthlyVolume: '',
-        testNumbers: [],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: '',
-        approverJobTitle: '',
-        approverEmail: ''
-    },
-    {
-        id: 'agent-007',
-        name: 'Order Updates',
-        description: 'Real-time order status updates and delivery tracking notifications.',
-        status: 'approved',
-        billing: 'non-conversational',
-        useCase: 'transactional',
-        created: '2025-07-10',
-        updated: '2025-08-15',
-        rejectionReason: null,
-        brandColor: '#28a745',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0963',
-        showPhone: true,
-        website: 'https://orders.quicksms.example.com',
-        supportEmail: 'orders@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Sends real-time order updates including confirmation, processing, shipped, and delivered notifications.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '75,000 - 150,000',
-        testNumbers: ['+447911567890', '+447911567891'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'David Lee',
-        approverJobTitle: 'Operations Manager',
-        approverEmail: 'david.lee@quicksms.example.com'
-    },
-    {
-        id: 'agent-008',
-        name: 'Loyalty Program',
-        description: 'Customer loyalty program communications and rewards notifications.',
-        status: 'draft',
-        billing: 'conversational',
-        useCase: 'promotional',
-        created: '2026-01-02',
-        updated: '2026-01-06',
-        rejectionReason: null,
-        brandColor: '#ffc107',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '',
-        showPhone: false,
-        website: '',
-        supportEmail: '',
-        showEmail: false,
-        privacyUrl: '',
-        termsUrl: '',
-        useCaseOverview: '',
-        userConsent: false,
-        optOutAvailable: false,
-        monthlyVolume: '',
-        testNumbers: [],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: '',
-        approverJobTitle: '',
-        approverEmail: ''
-    }
-];
-
-var filteredAgents = [...mockAgents];
+var allAgents = [];
+var filteredAgents = [];
 var currentSort = { field: 'updated', direction: 'desc' };
 var currentPage = 1;
 var pageSize = 10;
 
+function loadAgentsFromApi() {
+    fetch('/api/rcs-agents', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
+        if (result.success && result.data) {
+            allAgents = result.data;
+        } else {
+            allAgents = [];
+        }
+        filteredAgents = allAgents.slice();
+        sortAgents();
+        renderTable();
+    })
+    .catch(function(err) {
+        console.error('[RcsAgent] Failed to load agents:', err);
+        allAgents = [];
+        filteredAgents = [];
+        renderTable();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    renderTable();
+    loadAgentsFromApi();
     
     document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
     document.getElementById('statusFilter').addEventListener('change', applyFilters);
@@ -2225,15 +2002,29 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('confirmResubmitBtn').addEventListener('click', function() {
         if (!pendingResubmitAgentId) return;
         
-        var agent = mockAgents.find(function(a) { return a.id === pendingResubmitAgentId; });
+        var agent = allAgents.find(function(a) { return a.id === pendingResubmitAgentId; });
+        if (!agent) return;
         
-        if (agent) {
-            agent.status = 'submitted';
-            agent.updated = new Date().toISOString().split('T')[0];
-            
-            applyFilters();
-            showNotification('success', 'Agent Resubmitted', agent.name + ' has been resubmitted for review. You will be notified when a decision is made.');
-        }
+        fetch('/api/rcs-agents/' + pendingResubmitAgentId + '/resubmit', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(result) {
+            if (result.success) {
+                showNotification('success', 'Agent Resubmitted', agent.name + ' has been resubmitted for review.');
+                loadAgentsFromApi();
+            } else {
+                showNotification('error', 'Error', result.error || 'Failed to resubmit agent.');
+            }
+        })
+        .catch(function() {
+            showNotification('error', 'Error', 'Failed to resubmit agent. Please try again.');
+        });
         
         pendingResubmitAgentId = null;
         bootstrap.Modal.getInstance(document.getElementById('resubmitAgentModal')).hide();
@@ -2275,7 +2066,7 @@ function applyFilters() {
     var billing = document.getElementById('billingFilter').value;
     var useCase = document.getElementById('useCaseFilter').value;
     
-    filteredAgents = mockAgents.filter(function(agent) {
+    filteredAgents = allAgents.filter(function(agent) {
         var matchesSearch = !search || agent.name.toLowerCase().includes(search);
         var matchesStatus = !status || agent.status === status;
         var matchesBilling = !billing || agent.billing === billing;
@@ -2455,7 +2246,7 @@ function getActionsMenu(agent) {
 }
 
 function viewAgent(agentId) {
-    var agent = mockAgents.find(function(a) { return a.id === agentId; });
+    var agent = allAgents.find(function(a) { return a.id === agentId; });
     if (!agent) return;
     
     // Section A: Agent Identity & Branding
@@ -2560,7 +2351,7 @@ function viewAgent(agentId) {
 }
 
 function editAgent(agentId) {
-    var agent = mockAgents.find(function(a) { return a.id === agentId; });
+    var agent = allAgents.find(function(a) { return a.id === agentId; });
     if (!agent) return;
     openAgentWizard(agent);
 }
@@ -2568,7 +2359,7 @@ function editAgent(agentId) {
 var pendingResubmitAgentId = null;
 
 function resubmitAgent(agentId) {
-    var agent = mockAgents.find(function(a) { return a.id === agentId; });
+    var agent = allAgents.find(function(a) { return a.id === agentId; });
     if (!agent) return;
     
     pendingResubmitAgentId = agentId;
@@ -2594,7 +2385,7 @@ function confirmDeleteAgent(agentId) {
         return;
     }
     
-    var agent = mockAgents.find(function(a) { return a.id === agentId; });
+    var agent = allAgents.find(function(a) { return a.id === agentId; });
     if (!agent) return;
     
     // Only draft agents can be deleted
@@ -2611,27 +2402,40 @@ function confirmDeleteAgent(agentId) {
 function deleteAgent() {
     if (!pendingDeleteAgentId) return;
     
-    // RBAC check: Only admin can delete
     if (!userPermissions.canDelete) {
         showNotification('error', 'Access Denied', 'You do not have permission to delete RCS agents.');
         return;
     }
     
-    var agent = mockAgents.find(function(a) { return a.id === pendingDeleteAgentId; });
+    var agent = allAgents.find(function(a) { return a.id === pendingDeleteAgentId; });
     if (!agent) return;
     
-    // TODO: Replace with API call - DELETE /api/rcs-agents/{id}
-    // API should validate: user role is admin, agent status is 'draft'
-    
     var agentName = agent.name;
-    mockAgents = mockAgents.filter(function(a) { return a.id !== pendingDeleteAgentId; });
+    
+    fetch('/api/rcs-agents/' + pendingDeleteAgentId, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
+        if (result.success) {
+            showNotification('success', 'Agent Deleted', 'The RCS agent "' + agentName + '" has been permanently deleted.');
+            loadAgentsFromApi();
+        } else {
+            showNotification('error', 'Error', result.error || 'Failed to delete agent.');
+        }
+    })
+    .catch(function() {
+        showNotification('error', 'Error', 'Failed to delete agent. Please try again.');
+    });
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('deleteAgentModal'));
     if (modal) modal.hide();
     
     pendingDeleteAgentId = null;
-    renderTable();
-    showNotification('success', 'Agent Deleted', 'The RCS agent "' + agentName + '" has been permanently deleted.');
 }
 
 function showNotification(type, title, message) {
@@ -4076,22 +3880,14 @@ function submitAgent() {
             approverName: wizardData.approverName,
             approverJobTitle: wizardData.approverJobTitle,
             approverEmail: wizardData.approverEmail,
-            created: wizardData.isEditing ? (mockAgents.find(function(a) { return a.id === wizardData.id; }) || {}).created || new Date().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            created: wizardData.isEditing ? (allAgents.find(function(a) { return a.id === wizardData.id; }) || {}).created || new Date().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             updated: new Date().toISOString().split('T')[0],
             rejectionReason: null
         };
         
-        var existingIdx = mockAgents.findIndex(function(a) { return a.id === wizardData.id; });
-        if (existingIdx >= 0) {
-            mockAgents[existingIdx] = newAgent;
-        } else {
-            mockAgents.unshift(newAgent);
-        }
-        
-        // Clear the draft from localStorage after successful submission
         clearDraftFromStorage(wizardData.id);
         
-        applyFilters();
+        loadAgentsFromApi();
         wizardModal.hide();
         
         showNotification('success', 'Agent Submitted', 'RCS Agent submitted for review successfully! You will be notified once a decision has been made.');
