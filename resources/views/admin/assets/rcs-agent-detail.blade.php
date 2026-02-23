@@ -599,9 +599,9 @@ html, body {
 <div class="modal fade" id="approveSubmitModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff;">
-                <h5 class="modal-title"><i class="fas fa-paper-plane me-2"></i>Approve & Send to RCS Supplier</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i class="fas fa-paper-plane me-2 text-success"></i>Approve & Send to RCS Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-info" style="font-size: 0.85rem;">
@@ -697,9 +697,9 @@ html, body {
 <div class="modal fade" id="revokeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: #fff;">
-                <h5 class="modal-title"><i class="fas fa-ban me-2"></i>Revoke RCS Agent</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i class="fas fa-ban me-2 text-danger"></i>Revoke RCS Agent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-danger small"><i class="fas fa-exclamation-triangle me-1"></i> This action is permanent and cannot be reversed.</div>
@@ -719,9 +719,9 @@ html, body {
 <div class="modal fade" id="confirmActionModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header" id="confirmModalHeader" style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); color: #fff;">
-                <h5 class="modal-title"><i id="confirmModalIcon" class="fas fa-question-circle me-2"></i><span id="confirmModalTitle">Confirm</span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header" id="confirmModalHeader" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i id="confirmModalIcon" class="fas fa-question-circle me-2"></i><span id="confirmModalTitle">Confirm</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p id="confirmModalMessage"></p>
