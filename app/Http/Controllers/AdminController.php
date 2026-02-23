@@ -696,6 +696,162 @@ class AdminController extends Controller
         ]);
     }
 
+    public function accountPricingApi($accountId)
+    {
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        $services = \App\Models\Billing\ServiceCatalogue::active()->ordered()->get();
+        $productTier = $account->product_tier ?? 'starter';
+
+        $tierPrices = DB::table('product_tier_prices')
+            ->where('product_tier', $productTier)
+            ->where('active', true)
+            ->get()
+            ->keyBy('product_type');
+
+        $customerPrices = DB::table('customer_prices')
+            ->where('account_id', $accountId)
+            ->where('active', true)
+            ->whereNull('valid_to')
+            ->get()
+            ->keyBy('product_type');
+
+        $items = [];
+        foreach ($services as $service) {
+            $slug = $service->slug;
+            $tierPrice = $tierPrices->get($slug);
+            $bespokePrice = $customerPrices->get($slug);
+
+            $items[] = [
+                'slug' => $slug,
+                'display_name' => $service->display_name,
+                'display_format' => $service->display_format,
+                'decimal_places' => $service->decimal_places,
+                'unit_label' => $service->unit_label,
+                'tier_price' => $tierPrice ? (float) $tierPrice->unit_price : null,
+                'tier_price_formatted' => $tierPrice ? $service->formatPrice($tierPrice->unit_price) : 'N/A',
+                'bespoke_price' => $bespokePrice ? (float) $bespokePrice->unit_price : null,
+                'bespoke_price_formatted' => $bespokePrice ? $service->formatPrice($bespokePrice->unit_price) : null,
+                'has_bespoke' => $bespokePrice !== null,
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'product_tier' => $productTier,
+            'account_name' => $account->company_name ?? 'Unknown',
+            'items' => $items,
+        ]);
+    }
+
+    public function updateAccountPricing(Request $request, $accountId)
+    {
+        $request->validate([
+            'prices' => 'required|array|min:1',
+            'prices.*.slug' => 'required|string',
+            'prices.*.unit_price' => 'required|numeric|min:0',
+            'change_reason' => 'nullable|string|max:500',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $adminEmail = session('admin_auth.email', 'admin');
+        $changeReason = $request->input('change_reason', 'Admin pricing override');
+        $prices = $request->input('prices');
+        $updatedCount = 0;
+
+        DB::beginTransaction();
+        try {
+            foreach ($prices as $priceData) {
+                $slug = $priceData['slug'];
+                $newUnitPrice = $priceData['unit_price'];
+
+                $existing = DB::table('customer_prices')
+                    ->where('account_id', $accountId)
+                    ->where('product_type', $slug)
+                    ->where('active', true)
+                    ->whereNull('country_iso')
+                    ->first();
+
+                if ($existing) {
+                    DB::table('customer_prices')
+                        ->where('id', $existing->id)
+                        ->update(['active' => false, 'valid_to' => now()->toDateString()]);
+                    $previousVersionId = $existing->id;
+                    $version = ($existing->version ?? 1) + 1;
+                } else {
+                    $previousVersionId = null;
+                    $version = 1;
+                }
+
+                DB::table('customer_prices')->insert([
+                    'id' => \Illuminate\Support\Str::uuid()->toString(),
+                    'account_id' => $accountId,
+                    'product_type' => $slug,
+                    'country_iso' => null,
+                    'unit_price' => $newUnitPrice,
+                    'currency' => $account->currency ?? 'GBP',
+                    'source' => 'admin_override',
+                    'set_by' => $adminEmail,
+                    'set_at' => now(),
+                    'valid_from' => now()->toDateString(),
+                    'valid_to' => null,
+                    'active' => true,
+                    'version' => $version,
+                    'previous_version_id' => $previousVersionId,
+                    'change_reason' => $changeReason,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $updatedCount++;
+            }
+
+            $previousTier = $account->product_tier;
+            if ($previousTier !== 'bespoke') {
+                $account->product_tier = 'bespoke';
+                $account->save();
+            }
+
+            DB::commit();
+
+            Log::info('Admin updated account pricing', [
+                'account_id' => $accountId,
+                'previous_tier' => $previousTier,
+                'new_tier' => 'bespoke',
+                'prices_updated' => $updatedCount,
+                'admin_user' => $adminEmail,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'accountId' => $accountId,
+                    'pricesUpdated' => $updatedCount,
+                    'productTier' => 'bespoke',
+                    'previousTier' => $previousTier,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to update account pricing', [
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'error' => 'Failed to update pricing'], 500);
+        }
+    }
+
     public function billingPayments()
     {
         return view('admin.billing.payments', [

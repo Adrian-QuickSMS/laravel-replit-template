@@ -701,6 +701,70 @@
 
 @include('admin.accounts.partials.account-structure-modal')
 
+<!-- Edit Pricing Modal -->
+<div class="modal fade" id="editPricingModal" tabindex="-1" aria-labelledby="editPricingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; color: white;">
+                <h5 class="modal-title" id="editPricingModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Account Pricing
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="editPricingLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading pricing data...</p>
+                </div>
+                <div id="editPricingContent" class="d-none">
+                    <div class="alert alert-warning d-flex align-items-start mb-3" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3);">
+                        <i class="fas fa-exclamation-triangle me-2 mt-1 text-warning"></i>
+                        <div style="font-size: 0.85rem;">
+                            <strong>Important:</strong> Editing any price will change this account to <strong>Bespoke</strong> pricing. Custom prices override standard tier prices.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-muted small">Current Tier:</span>
+                        <span class="badge bg-info ms-1" id="editPricingCurrentTier"></span>
+                    </div>
+                    <table class="table table-sm table-hover mb-3" id="editPricingTable">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th class="ps-3">Service</th>
+                                <th>Tier Price</th>
+                                <th>Bespoke Price</th>
+                                <th style="width: 200px;">New Price (£)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="editPricingTableBody">
+                        </tbody>
+                    </table>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Change Reason</label>
+                        <textarea class="form-control form-control-sm" id="editPricingReason" rows="2" placeholder="Reason for pricing change (optional)"></textarea>
+                    </div>
+                </div>
+                <div id="editPricingError" class="d-none">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="editPricingErrorMsg">Failed to load pricing data.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="editPricingFooter">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-admin-primary" id="savePricingBtn" onclick="saveAccountPricing()" disabled>
+                    <i class="fas fa-save me-1"></i>Save Pricing
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Save Changes Confirmation Modal -->
 <div class="modal fade" id="saveConfirmModal" tabindex="-1" aria-labelledby="saveConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -857,8 +921,128 @@ function selectNode(type, index) {
 function addSubAccount() { alert('Add Sub-account'); }
 function inviteUser() { alert('Invite User'); }
 
+var editPricingModalInstance = null;
+var editPricingData = [];
+
 function editPricingModal() {
-    alert('Edit Pricing modal would open here');
+    if (!editPricingModalInstance) {
+        editPricingModalInstance = new bootstrap.Modal(document.getElementById('editPricingModal'));
+    }
+
+    document.getElementById('editPricingLoading').classList.remove('d-none');
+    document.getElementById('editPricingContent').classList.add('d-none');
+    document.getElementById('editPricingError').classList.add('d-none');
+    document.getElementById('savePricingBtn').disabled = true;
+    document.getElementById('editPricingReason').value = '';
+
+    editPricingModalInstance.show();
+
+    fetch('/admin/api/accounts/' + accountId + '/pricing', {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'Failed to load pricing');
+
+        editPricingData = data.items;
+        document.getElementById('editPricingCurrentTier').textContent = (data.product_tier || 'starter').charAt(0).toUpperCase() + (data.product_tier || 'starter').slice(1);
+
+        var tbody = document.getElementById('editPricingTableBody');
+        var html = '';
+        data.items.forEach(function(item, idx) {
+            var currentPrice = item.has_bespoke ? item.bespoke_price : (item.tier_price !== null ? item.tier_price : '');
+            html += '<tr>' +
+                '<td class="ps-3"><strong>' + item.display_name + '</strong><br><span class="text-muted small">' + item.unit_label + '</span></td>' +
+                '<td>' + item.tier_price_formatted + '</td>' +
+                '<td>' + (item.has_bespoke ? '<span class="badge bg-success">Bespoke</span> ' + item.bespoke_price_formatted : '<span class="text-muted small">—</span>') + '</td>' +
+                '<td><div class="input-group input-group-sm">' +
+                    '<span class="input-group-text">£</span>' +
+                    '<input type="number" class="form-control form-control-sm pricing-input" ' +
+                        'data-slug="' + item.slug + '" ' +
+                        'data-original="' + currentPrice + '" ' +
+                        'value="' + currentPrice + '" ' +
+                        'step="0.000001" min="0" placeholder="0.00">' +
+                '</div></td>' +
+                '</tr>';
+        });
+        tbody.innerHTML = html;
+
+        document.querySelectorAll('.pricing-input').forEach(function(input) {
+            input.addEventListener('input', function() { checkPricingChanges(); });
+        });
+
+        document.getElementById('editPricingLoading').classList.add('d-none');
+        document.getElementById('editPricingContent').classList.remove('d-none');
+    })
+    .catch(function(err) {
+        document.getElementById('editPricingLoading').classList.add('d-none');
+        document.getElementById('editPricingErrorMsg').textContent = err.message || 'Failed to load pricing data.';
+        document.getElementById('editPricingError').classList.remove('d-none');
+    });
+}
+
+function checkPricingChanges() {
+    var hasChanges = false;
+    document.querySelectorAll('.pricing-input').forEach(function(input) {
+        var original = parseFloat(input.getAttribute('data-original')) || 0;
+        var current = parseFloat(input.value) || 0;
+        if (Math.abs(original - current) > 0.0000001) {
+            hasChanges = true;
+            input.closest('tr').style.background = 'rgba(25, 135, 84, 0.06)';
+        } else {
+            input.closest('tr').style.background = '';
+        }
+    });
+    document.getElementById('savePricingBtn').disabled = !hasChanges;
+}
+
+function saveAccountPricing() {
+    var changedPrices = [];
+    document.querySelectorAll('.pricing-input').forEach(function(input) {
+        var original = parseFloat(input.getAttribute('data-original')) || 0;
+        var current = parseFloat(input.value) || 0;
+        if (Math.abs(original - current) > 0.0000001) {
+            changedPrices.push({ slug: input.getAttribute('data-slug'), unit_price: current });
+        }
+    });
+
+    if (changedPrices.length === 0) return;
+
+    var btn = document.getElementById('savePricingBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+    fetch('/admin/api/accounts/' + accountId + '/pricing', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            prices: changedPrices,
+            change_reason: document.getElementById('editPricingReason').value || null
+        })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'Failed to save pricing');
+
+        if (editPricingModalInstance) editPricingModalInstance.hide();
+
+        var toastEl = document.getElementById('saveSuccessToast');
+        toastEl.querySelector('.toast-body').innerHTML =
+            '<i class="fas fa-check-circle me-2"></i>' + changedPrices.length + ' price(s) updated. Account set to Bespoke pricing.';
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        setTimeout(function() { location.reload(); }, 1200);
+    })
+    .catch(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-1"></i>Save Pricing';
+        alert('Error: ' + (err.message || 'Failed to save pricing'));
+    });
 }
 
 document.querySelectorAll('.selectable-tile').forEach(function(tile) {
