@@ -2228,7 +2228,7 @@ function getStatusBadge(status) {
         'pending-info': 'Returned',
         'info-provided': 'Info Provided',
         'sent-to-supplier': 'Sent to Mobile Networks',
-        'supplier-approved': 'Supplier Approved',
+        'supplier-approved': 'Network Approved',
         'suspended': 'Suspended',
         'revoked': 'Revoked'
     };
