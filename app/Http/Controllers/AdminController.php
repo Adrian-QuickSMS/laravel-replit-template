@@ -541,6 +541,155 @@ class AdminController extends Controller
         ]);
     }
 
+    public function accountBillingApi($accountId)
+    {
+        DB::statement("SET LOCAL app.current_tenant_id = ?", [$accountId]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
+
+        $billingMode = $account->billing_type === 'postpay' ? 'postpaid' : 'prepaid';
+        $creditLimit = (float) ($account->credit_limit ?? 0);
+        $currentBalance = $balance ? (float) $balance->balance : 0;
+        $reserved = $balance ? (float) $balance->reserved : 0;
+        $totalOutstanding = $balance ? (float) $balance->total_outstanding : 0;
+
+        if ($billingMode === 'prepaid') {
+            $availableCredit = max(0, $currentBalance - $reserved);
+        } else {
+            $availableCredit = $creditLimit - $totalOutstanding + $currentBalance - $reserved;
+        }
+
+        $paymentTermsDays = $account->payment_terms_days ?? 30;
+        $paymentTermsLabel = $paymentTermsDays === 0 ? 'Immediate' : "Net {$paymentTermsDays}";
+
+        return response()->json([
+            'success' => true,
+            'accountId' => $account->id,
+            'name' => $account->company_name ?? 'Unknown',
+            'status' => $account->status ?? 'active',
+            'hubspotId' => $account->hubspot_company_id,
+            'billingMode' => $billingMode,
+            'currentBalance' => $currentBalance,
+            'creditLimit' => $creditLimit,
+            'availableCredit' => $availableCredit,
+            'paymentTerms' => $paymentTermsLabel,
+            'currency' => $account->currency ?? 'GBP',
+            'vatRegistered' => (bool) $account->vat_registered,
+            'vatRate' => 20,
+            'reverseCharge' => (bool) $account->vat_reverse_charges,
+            'vatCountry' => $account->tax_country ?? 'GB',
+            'lastUpdated' => ($balance ? $balance->updated_at : $account->updated_at)?->toISOString(),
+        ]);
+    }
+
+    public function updateAccountBillingMode(Request $request, $accountId)
+    {
+        $request->validate([
+            'billingMode' => 'required|in:prepaid,postpaid',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        $previousMode = $account->billing_type;
+        $newDbMode = $request->input('billingMode') === 'postpaid' ? 'postpay' : 'prepay';
+
+        DB::statement("SET LOCAL app.current_tenant_id = ?", [$accountId]);
+        $account->billing_type = $newDbMode;
+
+        if ($newDbMode === 'prepay') {
+            $account->credit_limit = 0;
+        }
+
+        $account->save();
+
+        $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
+        if ($balance) {
+            if ($newDbMode === 'prepay') {
+                $balance->credit_limit = 0;
+            }
+            $balance->recalculateEffectiveAvailable();
+            $balance->save();
+        }
+
+        Log::info('Admin updated billing mode', [
+            'account_id' => $accountId,
+            'previous_mode' => $previousMode,
+            'new_mode' => $newDbMode,
+            'admin_user' => session('admin_user_email'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'accountId' => $accountId,
+                'billingMode' => $request->input('billingMode'),
+                'previousMode' => $previousMode === 'postpay' ? 'postpaid' : 'prepaid',
+                'hubspotSynced' => false,
+                'syncTimestamp' => now()->toISOString(),
+            ],
+        ]);
+    }
+
+    public function updateAccountCreditLimit(Request $request, $accountId)
+    {
+        $request->validate([
+            'creditLimit' => 'required|numeric|min:0|max:1000000',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        if ($account->billing_type === 'prepay') {
+            return response()->json([
+                'success' => false,
+                'error' => 'Cannot set credit limit for prepaid accounts',
+                'errorCode' => 'CREDIT_LIMIT_NOT_ALLOWED',
+            ], 422);
+        }
+
+        $previousLimit = (float) ($account->credit_limit ?? 0);
+        $newLimit = (float) $request->input('creditLimit');
+
+        DB::statement("SET LOCAL app.current_tenant_id = ?", [$accountId]);
+        $account->credit_limit = $newLimit;
+        $account->save();
+
+        $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
+        if ($balance) {
+            $balance->credit_limit = $newLimit;
+            $balance->recalculateEffectiveAvailable();
+            $balance->save();
+        }
+
+        Log::info('Admin updated credit limit', [
+            'account_id' => $accountId,
+            'previous_limit' => $previousLimit,
+            'new_limit' => $newLimit,
+            'admin_user' => session('admin_user_email'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'accountId' => $accountId,
+                'creditLimit' => $newLimit,
+                'previousLimit' => $previousLimit,
+                'hubspotSynced' => false,
+                'syncTimestamp' => now()->toISOString(),
+            ],
+        ]);
+    }
+
     public function billingPayments()
     {
         return view('admin.billing.payments', [

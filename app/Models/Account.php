@@ -120,6 +120,16 @@ class Account extends Model
         'purchase_order_required',
         'purchase_order_number',
         'payment_terms',
+        // Billing backend fields
+        'billing_type',
+        'billing_method',
+        'product_tier',
+        'credit_limit',
+        'payment_terms_days',
+        'currency',
+        'platform_fee_monthly',
+        'stripe_customer_id',
+        'xero_contact_id',
         // Activation tracking
         'signup_details_complete',
         'company_info_complete',
@@ -157,6 +167,9 @@ class Account extends Model
         'activated_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'credit_limit' => 'decimal:4',
+        'platform_fee_monthly' => 'decimal:4',
+        'payment_terms_days' => 'integer',
     ];
 
     protected $hidden = [];

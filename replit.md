@@ -73,3 +73,16 @@ The billing backend has been integrated from branch `claude/quicksms-security-pe
 1. `billing_payment_status` enum used instead of `payment_status` (conflict with existing AccountFlags enum).
 2. Self-referencing FK on `customer_prices.previous_version_id` moved to post-table-creation `DB::statement()`.
 3. `inet()` column replaced with `string('ip_address', 45)` for Laravel compatibility.
+
+## Admin Account Billing UI (Added 2026-02-23)
+
+The admin account billing page (`/admin/accounts/{id}/billing`) has been wired to real database data:
+
+*   **3 admin API endpoints** in `AdminController`:
+    *   `GET /admin/api/accounts/{id}/billing` — returns billing mode, balance, credit limit, available credit, payment terms, VAT status from `accounts` + `account_balances` tables.
+    *   `PUT /admin/api/accounts/{id}/billing-mode` — updates `billing_type` (prepay/postpay) on `accounts` table. Resets credit limit to 0 when switching to prepay. Also updates `account_balances` if present.
+    *   `PUT /admin/api/accounts/{id}/credit-limit` — updates `credit_limit` on `accounts` table and mirrors to `account_balances.credit_limit`. Only allowed for postpay accounts.
+*   **Billing fields** added to Account model's `$fillable`: `billing_type`, `billing_method`, `product_tier`, `credit_limit`, `payment_terms_days`, `currency`, `platform_fee_monthly`, `stripe_customer_id`, `xero_contact_id`.
+*   **Frontend adapter** (`AdminAccountBillingService` in billing blade) rewired to call admin API endpoints directly instead of going through `BillingServices` layer (which was designed for customer-scoped API calls).
+*   **RLS handling**: Admin endpoints use `SET LOCAL app.current_tenant_id` before querying/updating tenant-scoped tables.
+*   **DB value mapping**: `prepay`/`postpay` (DB enum) ↔ `prepaid`/`postpaid` (UI/API).
