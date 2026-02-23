@@ -11,10 +11,19 @@ class RcsAgent extends Model
 {
     use HasFactory, SoftDeletes;
 
+    const STATUS_DRAFT = 'draft';
+    const STATUS_SUBMITTED = 'submitted';
+    const STATUS_IN_REVIEW = 'in_review';
+    const STATUS_PENDING_INFO = 'pending_info';
+    const STATUS_INFO_PROVIDED = 'info_provided';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
+    const STATUS_SUSPENDED = 'suspended';
+    const STATUS_REVOKED = 'revoked';
+
     protected $fillable = [
         'uuid',
-        'user_id',
-        'sub_account_id',
+        'account_id',
         'name',
         'description',
         'brand_color',
@@ -44,13 +53,20 @@ class RcsAgent extends Model
         'approver_name',
         'approver_job_title',
         'approver_email',
-        'status',
+        'workflow_status',
         'rejection_reason',
+        'admin_notes',
+        'suspension_reason',
+        'revocation_reason',
+        'additional_info',
         'submitted_at',
         'reviewed_at',
         'reviewed_by',
         'full_payload',
         'is_locked',
+        'created_by',
+        'version',
+        'version_history',
     ];
 
     protected $casts = [
@@ -88,7 +104,7 @@ class RcsAgent extends Model
             'id' => $this->uuid,
             'name' => $this->name,
             'description' => $this->description,
-            'status' => str_replace('_', '-', $this->status ?? 'draft'),
+            'status' => str_replace('_', '-', $this->workflow_status ?? 'draft'),
             'billing' => $this->billing_category,
             'useCase' => str_replace('_', '-', $this->use_case ?? ''),
             'created' => $this->created_at ? $this->created_at->toDateString() : null,
@@ -124,23 +140,23 @@ class RcsAgent extends Model
 
     public function isEditable(): bool
     {
-        return $this->status === 'draft' || $this->status === 'rejected';
+        return $this->workflow_status === self::STATUS_DRAFT || $this->workflow_status === self::STATUS_REJECTED;
     }
 
     public function isLocked(): bool
     {
-        return in_array($this->status, ['submitted', 'in_review', 'approved']);
+        return in_array($this->workflow_status, [self::STATUS_SUBMITTED, self::STATUS_IN_REVIEW, self::STATUS_APPROVED]);
     }
 
-    public function transitionStatus(string $newStatus, int $userId, ?string $reason = null, ?string $notes = null, $actingUser = null): void
+    public function transitionTo(string $newStatus, $userId, ?string $reason = null, ?string $notes = null, $actingUser = null): void
     {
-        $oldStatus = $this->status;
+        $oldStatus = $this->workflow_status;
 
-        if ($newStatus === 'submitted') {
+        if ($newStatus === self::STATUS_SUBMITTED) {
             $this->full_payload = $this->toArray();
             $this->submitted_at = now();
             $this->is_locked = true;
-        } elseif ($newStatus === 'rejected') {
+        } elseif ($newStatus === self::STATUS_REJECTED) {
             $this->rejection_reason = $reason;
             $this->reviewed_at = now();
             $this->reviewed_by = $userId;
@@ -149,18 +165,23 @@ class RcsAgent extends Model
                 'rejection_reason' => $reason,
                 'reviewed_at' => now()->toIso8601String(),
             ]);
-        } elseif ($newStatus === 'approved') {
+        } elseif ($newStatus === self::STATUS_APPROVED) {
             $this->reviewed_at = now();
             $this->reviewed_by = $userId;
             $this->is_locked = true;
-        } elseif ($newStatus === 'draft') {
+        } elseif ($newStatus === self::STATUS_DRAFT) {
             $this->is_locked = false;
         }
 
-        $this->status = $newStatus;
+        $this->workflow_status = $newStatus;
         $this->save();
 
         $this->recordStatusHistory($oldStatus, $newStatus, $this->getActionForTransition($oldStatus, $newStatus), $userId, $reason, $notes, $actingUser);
+    }
+
+    public function transitionStatus(string $newStatus, $userId, ?string $reason = null, ?string $notes = null, $actingUser = null): void
+    {
+        $this->transitionTo($newStatus, $userId, $reason, $notes, $actingUser);
     }
 
     public function recordStatusHistory(
