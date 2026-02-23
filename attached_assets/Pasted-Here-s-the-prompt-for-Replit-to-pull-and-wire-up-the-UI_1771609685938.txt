@@ -1,0 +1,175 @@
+Here's the prompt for Replit to pull and wire up the UI:
+
+---
+
+## Billing Backend Integration — Pull & Wire UI
+
+### Step 1: Pull the latest code
+
+```bash
+git fetch origin claude/quicksms-security-performance-dr8sw
+git checkout claude/quicksms-security-performance-dr8sw
+git pull origin claude/quicksms-security-performance-dr8sw
+```
+
+### Step 2: Run migrations
+
+```bash
+php artisan migrate
+```
+
+### Step 3: What was deployed
+
+A complete billing backend has been committed with **54 files, 5,766 lines** of production code. Here's everything available to wire UI against:
+
+---
+
+### API Endpoints — Customer Portal
+
+All endpoints require `auth:customer` middleware and return JSON.
+
+| Method | Endpoint | Purpose | Response Shape |
+|--------|----------|---------|----------------|
+| `GET` | `/api/v1/balance` | Current balance summary | `{ balance, reserved, credit_limit, effective_available, total_outstanding, currency }` |
+| `GET` | `/api/v1/balance/transactions?per_page=25` | Paginated transaction history | `{ data: [...entries], meta: { current_page, last_page, total } }` |
+| `GET` | `/api/v1/balance/transactions/{id}` | Single transaction detail | `{ entry_type, amount, description, lines: [...], created_at }` |
+| `POST` | `/api/v1/topup/checkout-session` | Create Stripe checkout | Body: `{ amount: 100 }` → Returns `{ session_id, url }` |
+| `GET` | `/api/v1/topup/auto-topup` | Get auto top-up config | `{ enabled, threshold_amount, topup_amount, max_topups_per_day }` |
+| `PUT` | `/api/v1/topup/auto-topup` | Update auto top-up | Body: `{ enabled, threshold_amount, topup_amount, stripe_payment_method_id }` |
+| `GET` | `/api/v1/pricing` | All pricing for customer | `{ product_tier, currency, prices: [{ product_type, country_iso, unit_price, source }] }` |
+| `GET` | `/api/v1/pricing/{country_iso}` | Price for specific country | `{ country_iso, prices: { sms: { unit_price }, rcs_basic: {...}, rcs_single: {...} } }` |
+| `POST` | `/api/v1/pricing/estimate` | Campaign cost estimate | Body: `{ product_type, country_iso, segments, recipient_count }` → `{ unit_price, cost_per_message, estimated_total }` |
+| `GET` | `/api/v1/invoices?per_page=25` | Invoice list | `{ data: [...invoices], meta: {...} }` |
+| `GET` | `/api/v1/invoices/{id}` | Invoice with line items | `{ invoice_number, status, total, lineItems: [...], payments: [...] }` |
+| `GET` | `/api/v1/invoices/{id}/pdf` | Get PDF URL | `{ pdf_url }` |
+| `GET` | `/api/v1/alerts/balance` | Balance alert configs | `[{ threshold_percentage, notify_customer, notify_admin, cooldown_hours }]` |
+| `POST` | `/api/v1/alerts/balance` | Create alert | Body: `{ threshold_percentage, notify_customer, notify_admin }` |
+| `PUT` | `/api/v1/alerts/balance/{id}` | Update alert | Same body as create |
+| `DELETE` | `/api/v1/alerts/balance/{id}` | Delete alert | `{ success: true }` |
+
+---
+
+### API Endpoints — Admin Console
+
+All endpoints require `auth:admin` middleware.
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| `GET` | `/api/admin/v1/accounts/{id}/balance` | Account balance detail (inc. company name, billing type, tier) |
+| `GET` | `/api/admin/v1/accounts/{id}/transactions?per_page=50` | Full ledger history for account |
+| `POST` | `/api/admin/v1/accounts/{id}/adjustment` | Manual balance adjustment. Body: `{ amount, direction: "credit"|"debit", reason }` |
+| `PUT` | `/api/admin/v1/accounts/{id}/billing-type` | Switch prepay↔postpay. Body: `{ billing_type }` |
+| `PUT` | `/api/admin/v1/accounts/{id}/billing-method` | Switch submitted↔delivered. Body: `{ billing_method }` |
+| `PUT` | `/api/admin/v1/accounts/{id}/credit-limit` | Set credit limit. Body: `{ credit_limit }` |
+| `PUT` | `/api/admin/v1/accounts/{id}/payment-terms` | Set terms. Body: `{ payment_terms_days: 15|30|60 }` |
+| `GET` | `/api/admin/v1/accounts/{id}/pricing` | Customer pricing (resolved via waterfall) |
+| `PUT` | `/api/admin/v1/accounts/{id}/pricing` | Override pricing (bespoke only). Body: `{ prices: [{ product_type, country_iso, unit_price }], change_reason }` |
+| `GET` | `/api/admin/v1/pricing/conflicts` | Unresolved HubSpot↔Platform pricing conflicts |
+| `POST` | `/api/admin/v1/pricing/conflicts/{id}/resolve` | Resolve conflict. Body: `{ resolution: "accept_hubspot"|"accept_admin"|"custom", custom_value? }` |
+| `GET` | `/api/admin/v1/invoices?account_id=&status=` | All invoices (filterable) |
+| `POST` | `/api/admin/v1/accounts/{id}/invoices/generate` | Manual invoice. Body: `{ period_start, period_end }` |
+| `POST` | `/api/admin/v1/invoices/{id}/void` | Void an invoice |
+| `POST` | `/api/admin/v1/accounts/{id}/credit-notes` | Issue credit note. Body: `{ amount, reason, original_invoice_id? }` |
+| `GET` | `/api/admin/v1/accounts/{id}/recurring-charges` | List recurring charges |
+| `POST` | `/api/admin/v1/accounts/{id}/recurring-charges` | Add charge. Body: `{ charge_type, description, amount }` |
+| `GET` | `/api/admin/v1/accounts/{id}/test-credits` | View test credit wallet |
+| `POST` | `/api/admin/v1/accounts/{id}/test-credits` | Award credits. Body: `{ credits, reason }` |
+| `POST` | `/api/admin/v1/reconciliation/balance/run` | Trigger manual balance reconciliation |
+| `GET` | `/api/admin/v1/reporting/margin?from=&to=` | Margin dashboard (total revenue, cost, margin, messages) |
+| `GET` | `/api/admin/v1/reporting/margin/by-account?from=&to=` | Margin by customer |
+| `GET` | `/api/admin/v1/reporting/margin/by-country?from=&to=` | Margin by country/product |
+| `GET` | `/api/admin/v1/audit/financial?per_page=50` | Financial audit log |
+
+---
+
+### Webhook Endpoints (no auth — signature verified internally)
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| `POST` | `/api/webhooks/stripe` | Stripe events (checkout.session.completed, payment_intent.succeeded/failed) |
+| `POST` | `/api/webhooks/xero` | Xero invoice payment events |
+| `POST` | `/api/webhooks/hubspot/deal` | HubSpot deal stage changes + pricing updates |
+
+---
+
+### Service Classes Available for Direct Use
+
+If the UI needs to call services directly (e.g., from Blade controllers rather than API):
+
+```php
+// Balance check
+$balance = app(BalanceService::class)->getBalance($accountId);
+
+// Price lookup
+$cost = app(PricingEngine::class)->calculateMessageCost($account, 'sms', 'GB', 2);
+// Returns: { unitPrice, segments, totalCost, currency, priceSource }
+
+// Top-up processing (after Stripe confirms)
+app(BalanceService::class)->processTopUp($accountId, '100.0000', 'GBP', $idempotencyKey);
+
+// Message billing (per-transaction for API sends)
+app(BalanceService::class)->deductForMessage($accountId, '0.0350', 'GBP', 'sms', $messageLogId);
+
+// Campaign reservation (portal UI sends)
+$reservation = app(BalanceService::class)->reserveForCampaign($accountId, $campaignId, '175.0000');
+
+// Invoice generation
+app(InvoiceService::class)->generateMonthlyInvoice($account, $periodStart, $periodEnd);
+
+// Credit note
+app(InvoiceService::class)->issueCreditNote($account, '50.0000', 'Reason', $adminId);
+```
+
+---
+
+### Database Tables Created (20+)
+
+**Ledger:** `ledger_accounts`, `ledger_entries` (immutable), `ledger_lines` (immutable), `account_balances`
+**Pricing:** `product_tier_prices`, `customer_prices`, `pricing_sync_log`
+**Invoicing:** `invoices`, `invoice_line_items`, `credit_notes`
+**Payments:** `payments`, `auto_topup_configs`, `processed_stripe_events`
+**Operations:** `campaign_reservations`, `dlr_reconciliation_queue`, `recurring_charges`, `supplier_cost_log`, `balance_alert_configs`, `dunning_log`, `financial_audit_log`
+**Test Credits:** `test_credit_wallets`, `test_credit_transactions`, `test_number_allowlist`
+
+---
+
+### Environment Variables Needed
+
+```env
+# Stripe
+STRIPE_KEY=pk_test_...
+STRIPE_SECRET=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Xero
+XERO_CLIENT_ID=
+XERO_CLIENT_SECRET=
+XERO_REDIRECT_URI=
+XERO_REFRESH_TOKEN=
+XERO_TENANT_ID=
+XERO_WEBHOOK_KEY=
+
+# HubSpot
+HUBSPOT_ACCESS_TOKEN=
+HUBSPOT_API_KEY=
+HUBSPOT_WEBHOOK_SECRET=
+```
+
+---
+
+### Config File
+
+`config/billing.php` contains defaults for test credits (100, 30-day expiry), VAT rates (20% UK), alert thresholds, auto top-up limits, dunning schedule, and retention period (7 years).
+
+---
+
+### Key Architecture Notes for UI Team
+
+1. **All responses** follow `{ success: true/false, data: {...}, meta?: {...} }` format
+2. **Balance is real-time** — `effective_available` is the number to show the customer (accounts for reservations and credit limit)
+3. **Pricing waterfall** — Starter/Enterprise get fixed prices; Bespoke gets admin override → HubSpot → Enterprise fallback
+4. **Invoice numbers** — Format `QS-YYYYMM-XXXXXX` (e.g., `QS-202602-A3K9M2`)
+5. **Credit note numbers** — Format `CN-YYYYMM-XXXXXX`
+6. **Immutable ledger** — No UPDATE/DELETE on `ledger_entries` or `ledger_lines`. Corrections are new entries (credit notes, adjustments)
+7. **All amounts** — Use 4 decimal places for balance, 6 for unit prices
+8. **Tenant isolation** — Customer portal endpoints automatically scope to `$request->user()->account_id`

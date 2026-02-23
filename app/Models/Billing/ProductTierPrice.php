@@ -12,9 +12,9 @@ class ProductTierPrice extends Model
     protected $table = 'product_tier_prices';
 
     protected $fillable = [
-        'product_tier', 'product_type', 'country_iso', 'unit_price',
-        'currency', 'valid_from', 'valid_to', 'active', 'created_by',
-        'service_catalogue_id', 'pricing_event_id',
+        'product_tier', 'product_type', 'service_catalogue_id', 'country_iso',
+        'unit_price', 'currency', 'valid_from', 'valid_to', 'active',
+        'created_by', 'pricing_event_id',
     ];
 
     protected $casts = [
@@ -22,26 +22,7 @@ class ProductTierPrice extends Model
         'active' => 'boolean',
         'valid_from' => 'date',
         'valid_to' => 'date',
-        'service_catalogue_id' => 'integer',
     ];
-
-    // =====================================================
-    // RELATIONSHIPS
-    // =====================================================
-
-    public function service()
-    {
-        return $this->belongsTo(ServiceCatalogue::class, 'service_catalogue_id');
-    }
-
-    public function pricingEvent()
-    {
-        return $this->belongsTo(PricingEvent::class, 'pricing_event_id');
-    }
-
-    // =====================================================
-    // SCOPES
-    // =====================================================
 
     public function scopeActive($query)
     {
@@ -66,14 +47,8 @@ class ProductTierPrice extends Model
             ->validAt();
     }
 
-    public function scopeForTier($query, string $tier)
+    public function service()
     {
-        return $query->where('product_tier', $tier);
-    }
-
-    public function scopeFuture($query, $date = null)
-    {
-        $date = $date ?? now()->toDateString();
-        return $query->where('valid_from', '>', $date);
+        return $this->belongsTo(ServiceCatalogue::class, 'service_catalogue_id');
     }
 }

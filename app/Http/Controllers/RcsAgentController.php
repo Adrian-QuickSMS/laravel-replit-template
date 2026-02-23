@@ -7,6 +7,7 @@ use App\Models\Notification;
 use App\Models\RcsAgent;
 use App\Models\RcsAgentAssignment;
 use App\Models\RcsAgentComment;
+use App\Models\Account;
 use App\Models\SubAccount;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -50,13 +51,44 @@ class RcsAgentController extends Controller
      */
     public function create(Request $request)
     {
-        $subAccounts = SubAccount::where('account_id', session('customer_tenant_id'))
+        $tenantId = session('customer_tenant_id');
+
+        $subAccounts = SubAccount::where('account_id', $tenantId)
             ->active()
             ->get();
+
+        $account = Account::find($tenantId);
+        $owner = $account ? $account->getOwner() : null;
+
+        $companyDefaults = [];
+        if ($account) {
+            $companyDefaults = [
+                'company_name' => $account->company_name ?? '',
+                'company_number' => $account->company_number ?? '',
+                'company_website' => $account->website ?? '',
+                'sector' => $account->business_sector ?? '',
+                'address_line1' => $account->address_line1 ?? '',
+                'address_line2' => $account->address_line2 ?? '',
+                'city' => $account->city ?? '',
+                'post_code' => $account->postcode ?? '',
+                'country' => $account->country ?? '',
+            ];
+        }
+
+        $approverDefaults = [];
+        if ($owner) {
+            $approverDefaults = [
+                'name' => trim(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')),
+                'job_title' => $owner->job_title ?? '',
+                'email' => $owner->email ?? '',
+            ];
+        }
 
         return view('quicksms.management.rcs-agent-wizard', [
             'page_title' => 'Register RCS Agent',
             'sub_accounts' => $subAccounts,
+            'company_defaults' => $companyDefaults,
+            'approver_defaults' => $approverDefaults,
         ]);
     }
 
@@ -65,48 +97,75 @@ class RcsAgentController extends Controller
     // =====================================================
 
     /**
+     * List all RCS Agents for the current account
+     * GET /api/rcs-agents
+     */
+    public function list(Request $request): JsonResponse
+    {
+        $accountId = session('customer_tenant_id');
+        if (!$accountId) {
+            return response()->json(['success' => false, 'error' => 'Unauthorized'], 401);
+        }
+
+        $agents = RcsAgent::where('account_id', $accountId)
+            ->orderBy('updated_at', 'desc')
+            ->get()
+            ->map(fn($a) => $a->toPortalArray());
+
+        return response()->json([
+            'success' => true,
+            'data' => $agents,
+        ]);
+    }
+
+    /**
      * Store a new RCS Agent (draft or submitted)
      * POST /api/rcs-agents
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
+        $isSubmit = !empty($request->input('submit'));
+
+        $rules = [
             'name' => 'required|string|max:25',
-            'description' => 'required|string|max:100',
+            'description' => ($isSubmit ? 'required' : 'nullable') . '|string|max:100',
             'brand_color' => 'sometimes|string|max:7',
-            'logo_url' => 'nullable|string|max:500',
+            'logo_url' => 'nullable|string',
             'logo_crop_metadata' => 'nullable|array',
-            'hero_url' => 'nullable|string|max:500',
+            'hero_url' => 'nullable|string',
             'hero_crop_metadata' => 'nullable|array',
-            'support_phone' => 'required|string|max:20',
-            'website' => 'required|string|max:255',
-            'support_email' => 'required|email|max:255',
-            'privacy_url' => 'required|url|max:500',
-            'terms_url' => 'required|url|max:500',
+            'support_phone' => ($isSubmit ? 'required' : 'nullable') . '|string|max:20',
+            'website' => ($isSubmit ? 'required' : 'nullable') . '|string|max:255',
+            'support_email' => ($isSubmit ? 'required|email' : 'nullable|email') . '|max:255',
+            'privacy_url' => ($isSubmit ? 'required|url' : 'nullable') . '|max:500',
+            'terms_url' => ($isSubmit ? 'required|url' : 'nullable') . '|max:500',
             'show_phone' => 'sometimes|boolean',
             'show_website' => 'sometimes|boolean',
             'show_email' => 'sometimes|boolean',
-            'billing_category' => 'required|in:conversational,non-conversational',
-            'use_case' => 'required|in:otp,transactional,promotional,multi-use',
-            'campaign_frequency' => 'required|string|max:50',
-            'monthly_volume' => 'required|string|max:50',
-            'opt_in_description' => 'required|string|max:5000',
-            'opt_out_description' => 'required|string|max:5000',
-            'use_case_overview' => 'required|string|max:5000',
+            'billing_category' => ($isSubmit ? 'required' : 'nullable') . '|in:conversational,non-conversational',
+            'use_case' => ($isSubmit ? 'required' : 'nullable') . '|in:otp,transactional,promotional,multi-use',
+            'campaign_frequency' => ($isSubmit ? 'required' : 'nullable') . '|string|max:50',
+            'monthly_volume' => ($isSubmit ? 'required' : 'nullable') . '|string|max:50',
+            'opt_in_description' => ($isSubmit ? 'required' : 'nullable') . '|string|max:5000',
+            'opt_out_description' => ($isSubmit ? 'required' : 'nullable') . '|string|max:5000',
+            'use_case_overview' => ($isSubmit ? 'required' : 'nullable') . '|string|max:5000',
             'test_numbers' => 'nullable|array',
             'test_numbers.*' => 'string|max:20',
-            'company_number' => 'required|string|max:20',
-            'company_website' => 'required|string|max:255',
-            'registered_address' => 'required|string|max:2000',
-            'approver_name' => 'required|string|max:100',
-            'approver_job_title' => 'required|string|max:100',
-            'approver_email' => 'required|email|max:255',
+            'company_number' => ($isSubmit ? 'required' : 'nullable') . '|string|max:20',
+            'company_website' => ($isSubmit ? 'required' : 'nullable') . '|string|max:255',
+            'registered_address' => ($isSubmit ? 'required' : 'nullable') . '|string|max:2000',
+            'approver_name' => ($isSubmit ? 'required' : 'nullable') . '|string|max:100',
+            'approver_job_title' => ($isSubmit ? 'required' : 'nullable') . '|string|max:100',
+            'approver_email' => ($isSubmit ? 'required|email' : 'nullable|email') . '|max:255',
+            'sector' => 'nullable|string|max:100',
             'submit' => 'sometimes|boolean',
             'sub_account_ids' => 'nullable|array',
             'sub_account_ids.*' => 'uuid',
             'user_ids' => 'nullable|array',
             'user_ids.*' => 'uuid',
-        ]);
+        ];
+
+        $validated = $request->validate($rules);
 
         $accountId = session('customer_tenant_id');
         $userId = session('customer_user_id');
@@ -114,40 +173,48 @@ class RcsAgentController extends Controller
         try {
             DB::beginTransaction();
 
-            $agent = RcsAgent::create([
+            $createData = [
                 'account_id' => $accountId,
                 'name' => $validated['name'],
-                'description' => $validated['description'],
+                'description' => $validated['description'] ?? null,
                 'brand_color' => $validated['brand_color'] ?? '#886CC0',
                 'logo_url' => $validated['logo_url'] ?? null,
                 'logo_crop_metadata' => $validated['logo_crop_metadata'] ?? null,
                 'hero_url' => $validated['hero_url'] ?? null,
                 'hero_crop_metadata' => $validated['hero_crop_metadata'] ?? null,
-                'support_phone' => $validated['support_phone'],
-                'website' => $validated['website'],
-                'support_email' => $validated['support_email'],
-                'privacy_url' => $validated['privacy_url'],
-                'terms_url' => $validated['terms_url'],
+                'support_phone' => $validated['support_phone'] ?? null,
+                'website' => $validated['website'] ?? null,
+                'support_email' => $validated['support_email'] ?? null,
+                'privacy_url' => $validated['privacy_url'] ?? null,
+                'terms_url' => $validated['terms_url'] ?? null,
                 'show_phone' => $validated['show_phone'] ?? true,
                 'show_website' => $validated['show_website'] ?? true,
                 'show_email' => $validated['show_email'] ?? true,
-                'billing_category' => $validated['billing_category'],
-                'use_case' => $validated['use_case'],
-                'campaign_frequency' => $validated['campaign_frequency'],
-                'monthly_volume' => $validated['monthly_volume'],
-                'opt_in_description' => $validated['opt_in_description'],
-                'opt_out_description' => $validated['opt_out_description'],
-                'use_case_overview' => $validated['use_case_overview'],
+                'campaign_frequency' => $validated['campaign_frequency'] ?? null,
+                'monthly_volume' => $validated['monthly_volume'] ?? null,
+                'opt_in_description' => $validated['opt_in_description'] ?? null,
+                'opt_out_description' => $validated['opt_out_description'] ?? null,
+                'use_case_overview' => $validated['use_case_overview'] ?? null,
                 'test_numbers' => $validated['test_numbers'] ?? null,
-                'company_number' => $validated['company_number'],
-                'company_website' => $validated['company_website'],
-                'registered_address' => $validated['registered_address'],
-                'approver_name' => $validated['approver_name'],
-                'approver_job_title' => $validated['approver_job_title'],
-                'approver_email' => $validated['approver_email'],
+                'company_number' => $validated['company_number'] ?? null,
+                'company_website' => $validated['company_website'] ?? null,
+                'registered_address' => $validated['registered_address'] ?? null,
+                'approver_name' => $validated['approver_name'] ?? null,
+                'approver_job_title' => $validated['approver_job_title'] ?? null,
+                'approver_email' => $validated['approver_email'] ?? null,
+                'sector' => $validated['sector'] ?? null,
                 'workflow_status' => RcsAgent::STATUS_DRAFT,
                 'created_by' => $userId,
-            ]);
+            ];
+
+            if (!empty($validated['billing_category'])) {
+                $createData['billing_category'] = $validated['billing_category'];
+            }
+            if (!empty($validated['use_case'])) {
+                $createData['use_case'] = $validated['use_case'];
+            }
+
+            $agent = RcsAgent::create($createData);
 
             // Handle sub-account assignments
             if (!empty($validated['sub_account_ids'])) {
@@ -287,35 +354,36 @@ class RcsAgentController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:25',
-            'description' => 'sometimes|string|max:100',
+            'description' => 'nullable|string|max:100',
             'brand_color' => 'sometimes|string|max:7',
-            'logo_url' => 'nullable|string|max:500',
+            'logo_url' => 'nullable|string',
             'logo_crop_metadata' => 'nullable|array',
-            'hero_url' => 'nullable|string|max:500',
+            'hero_url' => 'nullable|string',
             'hero_crop_metadata' => 'nullable|array',
-            'support_phone' => 'sometimes|string|max:20',
-            'website' => 'sometimes|string|max:255',
-            'support_email' => 'sometimes|email|max:255',
-            'privacy_url' => 'sometimes|url|max:500',
-            'terms_url' => 'sometimes|url|max:500',
+            'support_phone' => 'nullable|string|max:20',
+            'website' => 'nullable|string|max:255',
+            'support_email' => 'nullable|email|max:255',
+            'privacy_url' => 'nullable|max:500',
+            'terms_url' => 'nullable|max:500',
             'show_phone' => 'sometimes|boolean',
             'show_website' => 'sometimes|boolean',
             'show_email' => 'sometimes|boolean',
-            'billing_category' => 'sometimes|in:conversational,non-conversational',
-            'use_case' => 'sometimes|in:otp,transactional,promotional,multi-use',
-            'campaign_frequency' => 'sometimes|string|max:50',
-            'monthly_volume' => 'sometimes|string|max:50',
-            'opt_in_description' => 'sometimes|string|max:5000',
-            'opt_out_description' => 'sometimes|string|max:5000',
-            'use_case_overview' => 'sometimes|string|max:5000',
+            'billing_category' => 'nullable|in:conversational,non-conversational',
+            'use_case' => 'nullable|in:otp,transactional,promotional,multi-use',
+            'campaign_frequency' => 'nullable|string|max:50',
+            'monthly_volume' => 'nullable|string|max:50',
+            'opt_in_description' => 'nullable|string|max:5000',
+            'opt_out_description' => 'nullable|string|max:5000',
+            'use_case_overview' => 'nullable|string|max:5000',
             'test_numbers' => 'nullable|array',
             'test_numbers.*' => 'string|max:20',
-            'company_number' => 'sometimes|string|max:20',
-            'company_website' => 'sometimes|string|max:255',
-            'registered_address' => 'sometimes|string|max:2000',
-            'approver_name' => 'sometimes|string|max:100',
-            'approver_job_title' => 'sometimes|string|max:100',
-            'approver_email' => 'sometimes|email|max:255',
+            'company_number' => 'nullable|string|max:20',
+            'company_website' => 'nullable|string|max:255',
+            'registered_address' => 'nullable|string|max:2000',
+            'approver_name' => 'nullable|string|max:100',
+            'approver_job_title' => 'nullable|string|max:100',
+            'approver_email' => 'nullable|email|max:255',
+            'sector' => 'nullable|string|max:100',
             'sub_account_ids' => 'nullable|array',
             'sub_account_ids.*' => 'uuid',
             'user_ids' => 'nullable|array',
@@ -325,7 +393,15 @@ class RcsAgentController extends Controller
         try {
             DB::beginTransaction();
 
-            $agent->update($validated);
+            $updateData = $validated;
+            if (array_key_exists('billing_category', $updateData) && empty($updateData['billing_category'])) {
+                unset($updateData['billing_category']);
+            }
+            if (array_key_exists('use_case', $updateData) && empty($updateData['use_case'])) {
+                unset($updateData['use_case']);
+            }
+
+            $agent->update($updateData);
 
             // Update assignments if provided
             $accountId = session('customer_tenant_id');
@@ -409,23 +485,30 @@ class RcsAgentController extends Controller
             return response()->json(['success' => false, 'error' => 'RCS Agent not found.'], 404);
         }
 
-        if ($agent->workflow_status !== RcsAgent::STATUS_DRAFT) {
+        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_DRAFT, RcsAgent::STATUS_PENDING_INFO])) {
             return response()->json([
                 'success' => false,
-                'error' => 'Only draft RCS Agents can be submitted for review.',
+                'error' => 'Only draft or returned RCS Agents can be submitted for review.',
             ], 422);
         }
 
         // Validate required fields before submission
         $missingFields = [];
-        foreach (['name', 'description', 'support_phone', 'website', 'support_email', 'privacy_url', 'terms_url',
+        foreach (['name', 'description', 'privacy_url', 'terms_url',
                    'billing_category', 'use_case', 'campaign_frequency', 'monthly_volume',
                    'opt_in_description', 'opt_out_description', 'use_case_overview',
-                   'company_number', 'company_website', 'registered_address',
+                   'company_number', 'registered_address',
                    'approver_name', 'approver_job_title', 'approver_email'] as $field) {
             if (empty($agent->$field)) {
                 $missingFields[] = $field;
             }
+        }
+
+        $hasPhone = !empty($agent->support_phone) && $agent->show_phone;
+        $hasEmail = !empty($agent->support_email) && $agent->show_email;
+        $hasWebsite = !empty($agent->website);
+        if (!$hasPhone && !$hasEmail && !$hasWebsite) {
+            $missingFields[] = 'contact_method';
         }
 
         if (!empty($missingFields)) {
@@ -642,10 +725,10 @@ class RcsAgentController extends Controller
             return response()->json(['success' => false, 'error' => 'RCS Agent not found.'], 404);
         }
 
-        if ($agent->workflow_status !== RcsAgent::STATUS_REJECTED) {
+        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_REJECTED, RcsAgent::STATUS_PENDING_INFO])) {
             return response()->json([
                 'success' => false,
-                'error' => 'Only rejected RCS Agents can be re-edited.',
+                'error' => 'Only rejected or returned RCS Agents can be re-edited.',
             ], 422);
         }
 

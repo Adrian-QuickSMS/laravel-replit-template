@@ -1,0 +1,293 @@
+Replit Integration Prompt
+## CONTEXT — QuickSMS Platform: New Backend Modules Ready for UI Wiring
+
+Branch: `claude/quicksms-security-performance-dr8sw`
+Pull the latest from this branch. Three new backend modules have been built and committed:
+
+1. **RCS Agent Registration** (commit `88d1129`) — 11 files, 2,031 lines
+2. **Admin Pricing Management** (commit `498d58c`) — 12 files, 1,937 lines
+3. **Billing Backend** (commit `47b224c`) — 54 files, 5,766 lines (already integrated)
+
+The backend (migrations, models, controllers, routes) is complete. Your job is to **wire up the frontend Blade views and JavaScript** for modules 1 and 2 using the existing admin UI patterns.
+
+---
+
+## FRONTEND STACK & UI PATTERNS
+
+- **Layout**: Extend `layouts.admin` for all admin views
+- **CSS**: Bootstrap 5 + custom admin CSS (`admin-control-plane.css`)
+- **JS**: Vanilla JavaScript + jQuery (no Vue/React/Alpine)
+- **Icons**: FontAwesome (`fas` prefix)
+- **AJAX**: jQuery `$.ajax()` with CSRF token from `<meta name="csrf-token">`
+- **Tables**: `.api-table` class, fixed layout, sortable headers, hoverable rows, dropdown action menus
+- **Modals**: Bootstrap 5 modals (`bootstrap.Modal`)
+- **Badges**: `.badge` with semantic colors (status pills with `border-radius: 50px`)
+- **Filters**: Collapsible filter panels with multiselect dropdowns
+- **Notifications**: Toast notification system via `admin-notifications.js`
+- **Pagination**: Bootstrap `.pagination` rendered from JSON paginator response
+- **Empty states**: Centered icon in circle + descriptive text
+
+### Color Palette (CSS variables in admin-control-plane.css)
+- `--admin-primary: #1e3a5f` (dark navy)
+- `--admin-secondary: #2d5a87` (medium navy)
+- `--admin-accent: #4a90d9` (light blue)
+- `--admin-success: #059669` (green)
+- `--admin-danger: #dc2626` (red)
+- `--admin-warning: #f59e0b` (amber)
+
+### Existing Reference Views (study these for patterns)
+- `resources/views/admin/assets/sender-ids.blade.php` — List view with filters + table
+- `resources/views/admin/assets/sender-id-detail.blade.php` — Detail/approval workflow
+- `resources/views/admin/assets/rcs-agents.blade.php` — RCS list (already exists, may need updates)
+- `resources/views/admin/assets/rcs-agent-detail.blade.php` — RCS detail (already exists, may need updates)
+- `resources/views/admin/management/templates.blade.php` — Management page pattern
+
+---
+
+## MODULE 1: ADMIN PRICING MANAGEMENT
+
+### View to Create
+`resources/views/admin/management/pricing.blade.php` — extends `layouts.admin`
+
+### Route (already registered)
+
+GET /admin/management/pricing → PricingManagementController@index
+
+
+### Navigation
+Add to admin sidebar under **Management** section: "Pricing" with icon `fas fa-tags`
+
+### Page Layout — Tabbed Interface
+
+The pricing page should have **4 tabs**:
+
+#### Tab 1: Pricing Grid (default)
+A grid/table view: **rows = services**, **columns = Starter | Enterprise**
+
+- **API**: `GET /admin/api/pricing/current` returns:
+  ```json
+  {
+    "data": {
+      "sms": {
+        "display_name": "SMS",
+        "unit_label": "per message",
+        "display_format": "pence",
+        "decimal_places": 3,
+        "bespoke_only": false,
+        "starter": { "id": "uuid", "unit_price": "0.034500", "valid_from": "2026-01-01", "valid_to": null },
+        "enterprise": { "id": "uuid", "unit_price": "0.029000", "valid_from": "2026-01-01", "valid_to": null }
+      },
+      ...12 services total
+    },
+    "date": "2026-02-23",
+    "account_counts": { "starter": 150, "enterprise": 45, "bespoke_unaffected": 23 }
+  }
+
+Display prices: Use display_format to determine formatting:
+pence: multiply raw value by 100, show to decimal_places decimal places, suffix "p" (e.g., 0.034500 → 3.450p)
+pounds: show as £X with no decimals (e.g., 50.000000 → £50)
+Edit button on each cell → opens modal with:
+Current price (read-only)
+New price input
+Effective date picker (today = immediate, future = scheduled)
+Optional reason textarea
+API: PUT /admin/api/pricing/tier-prices with { service_catalogue_id, tier, unit_price, effective_from, reason }
+Account impact banner at top: "Changes affect X Starter and Y Enterprise accounts. Z bespoke accounts are unaffected."
+Point-in-time preview: Date picker that calls GET /admin/api/pricing/preview?date=YYYY-MM-DD to show what pricing looks like on any date
+Services with bespoke_only: true (Support) should show "Bespoke Only" instead of price cells
+Scheduled future prices should show with a calendar icon and the effective date
+Tab 2: Pricing Events
+Grouped pricing changes that take effect on a specific date.
+
+List: GET /admin/api/pricing/events?status=&per_page=20 returns paginated events
+Create button → opens modal/form:
+Name, Description, Effective Date, Reason
+Item rows: Service dropdown + Tier dropdown + New Price
+Add/remove item rows dynamically
+API: POST /admin/api/pricing/events
+Event detail: GET /admin/api/pricing/events/{id} shows:
+Event metadata + status badge (draft/scheduled/applied/cancelled)
+Table of items (service, tier, old price → new price)
+Affected account counts: affected_accounts: { starter: X, enterprise: Y, bespoke_unaffected: Z }
+Action buttons based on status:
+Draft: Edit, Schedule, Cancel
+Scheduled: Edit, Cancel
+Applied/Cancelled: Read-only
+Schedule: POST /admin/api/pricing/events/{id}/schedule — transitions draft → scheduled
+Cancel: POST /admin/api/pricing/events/{id}/cancel — reverts scheduled prices
+Edit: PUT /admin/api/pricing/events/{id} — update name/description/items
+Event status badge colors:
+
+draft: #dbeafe bg, #1e40af text
+scheduled: #fef3c7 bg, #92400e text
+applied: #d1fae5 bg, #065f46 text
+cancelled: #f3f4f6 bg, #6b7280 text
+Tab 3: Service Catalogue
+Manage the list of billable services.
+
+List: GET /admin/api/pricing/services returns all services ordered by sort_order
+Table columns: Display Name, Slug, Unit Label, Format, Starter, Enterprise, Bespoke Only, Active, Sort Order
+Add Service button → modal:
+Slug (lowercase_underscores only), Display Name, Description, Unit Label
+Display Format: pence/pounds, Decimal Places
+Checkboxes: Per-Message, Recurring, One-Off, Available on Starter, Available on Enterprise, Bespoke Only
+Sort Order (integer)
+API: POST /admin/api/pricing/services
+Edit inline or via modal: PUT /admin/api/pricing/services/{id}
+Show availability icons: ✓ green for available, ✗ red for unavailable
+Tab 4: History & Export
+Change history and CSV export.
+
+History table: GET /admin/api/pricing/history?service_catalogue_id=&tier=&source=&from_date=&to_date= returns paginated log
+Filters: Service dropdown, Tier (starter/enterprise), Source (admin/hubspot/scheduled_event), Date range
+Table columns: Date, Service, Tier, Old Price, New Price, Source, Changed By, Reason, Conflict flag
+Conflict rows: Highlight with warning background when is_conflict: true (HubSpot conflicted with admin)
+Export button: GET /admin/api/pricing/export → downloads CSV
+Upcoming section: GET /admin/api/pricing/upcoming shows scheduled events + individually scheduled prices
+Seeded Services (12 total)
+#	Slug	Display Name	Format	Unit	Starter	Enterprise	Bespoke Only
+1	sms	SMS	pence/3dp	per message	✓	✓	✗
+2	rcs_basic	RCS Basic	pence/3dp	per message	✓	✓	✗
+3	rcs_single	RCS Single	pence/3dp	per message	✓	✓	✗
+4	sms_international	International SMS	pence/3dp	per message	✓	✓	✗
+5	ai_query	AI Token	pence/3dp	per token	✓	✓	✗
+6	virtual_number_setup	UK VMN Set Up	pounds/0dp	one-off	✓	✓	✗
+7	virtual_number_monthly	UK VMN Monthly	pounds/0dp	per month	✓	✓	✗
+8	shortcode_setup	UK Short Code Set Up	pounds/0dp	one-off	✓	✓	✗
+9	shortcode_monthly	UK Short Code Monthly	pounds/0dp	per month	✓	✓	✗
+10	shortcode_inbound_sms	Short Code Inbound SMS	pence/3dp	per message	✓	✓	✗
+11	shortcode_keyword	UK Short Code Keyword	pounds/0dp	per keyword	✓	✓	✗
+12	support	Support	pounds/0dp	per month	✗	✗	✓
+MODULE 2: RCS AGENT REGISTRATION
+Existing Views (may need updating)
+resources/views/admin/assets/rcs-agents.blade.php — Admin list of all RCS agent registrations
+resources/views/admin/assets/rcs-agent-detail.blade.php — Admin detail/approval view
+Customer Portal Views (may need creating/updating)
+RCS agent list page at route: GET /management/rcs-agent
+RCS agent create page at route: GET /management/rcs-agent/create
+9-State Workflow (matches Sender ID pattern exactly)
+draft → submitted → in_review → approved → suspended → revoked
+                         ↓                      ↑
+                    pending_info → info_provided ↑
+                         ↑                       |
+                    rejected → draft (re-edit)   |
+                                suspended → approved (reactivate)
+
+Status Badge Colors
+Status	Background	Text
+draft	#f3f4f6	#374151
+submitted	#dbeafe	#1e40af
+in_review	#e0e7ff	#3730a3
+pending_info	#fef3c7	#92400e
+info_provided	#fce7f3	#9d174d
+approved	#d1fae5	#065f46
+rejected	#fee2e2	#991b1b
+suspended	#ffedd5	#9a3412
+revoked	#f3f4f6	#6b7280
+Customer Portal API Endpoints
+All under middleware('customer.auth'):
+
+Method	Endpoint	Action	Notes
+GET	/api/rcs-agents/approved	List approved agents usable by current user	Filter by user/sub-account assignments
+POST	/api/rcs-agents	Create agent	Accepts submit: true for auto-submit
+GET	/api/rcs-agents/{uuid}	Get agent detail	Returns toPortalArray() (GREEN side)
+PUT	/api/rcs-agents/{uuid}	Update agent	Only draft/rejected agents
+DELETE	/api/rcs-agents/{uuid}	Delete agent	Only draft agents
+POST	/api/rcs-agents/{uuid}/submit	Submit for review	draft → submitted
+POST	/api/rcs-agents/{uuid}/provide-info	Provide requested info	pending_info → info_provided, body: { additional_info }
+POST	/api/rcs-agents/{uuid}/resubmit	Re-edit after rejection	rejected → draft
+Admin Approval API Endpoints
+Method	Endpoint	Action	Notes
+GET	/admin/api/rcs-agents	List all registrations	Filters: status, account_id, billing_category, use_case. Info_provided sorted first
+GET	/admin/api/rcs-agents/{uuid}	Get agent detail	Returns toAdminArray() (RED side) + status_history + comments + account stats
+POST	/admin/api/rcs-agents/{uuid}/review	Start review	submitted → in_review
+POST	/admin/api/rcs-agents/{uuid}/approve	Approve	in_review → approved, body: { notes? }
+POST	/admin/api/rcs-agents/{uuid}/reject	Reject	in_review → rejected, body: { reason, notes? }
+POST	/admin/api/rcs-agents/{uuid}/request-info	Request info	in_review → pending_info, body: { notes }
+POST	/admin/api/rcs-agents/{uuid}/suspend	Suspend	approved → suspended, body: { reason }
+POST	/admin/api/rcs-agents/{uuid}/reactivate	Reactivate	suspended → approved, body: { notes? }
+POST	/admin/api/rcs-agents/{uuid}/revoke	Revoke	suspended → revoked, body: { reason }
+RCS Agent Form Fields (Customer Portal Create/Edit)
+Agent Identity:
+
+name (max 25), description (max 100), brand_color (hex)
+logo_url + logo_crop_metadata, hero_url + hero_crop_metadata
+Contact & Support:
+
+support_phone, website, support_email, privacy_url, terms_url
+show_phone, show_website, show_email (boolean toggles)
+Business Classification:
+
+billing_category: conversational | non-conversational
+use_case: otp | transactional | promotional | multi-use
+Campaign Details:
+
+campaign_frequency, monthly_volume
+opt_in_description, opt_out_description, use_case_overview
+test_numbers (array of phone numbers)
+Company Details:
+
+company_number, company_website, registered_address
+Approver/Signatory:
+
+approver_name, approver_job_title, approver_email
+Assignments:
+
+sub_account_ids (array of UUIDs), user_ids (array of UUIDs)
+Admin Detail View Should Show
+Agent identity section (name, description, brand color, logos)
+Contact details section
+Business classification section
+Campaign/compliance section
+Company details section
+Approver section
+Status history timeline (immutable audit trail)
+Comments section (internal admin + customer-visible)
+Action buttons based on current status and allowed transitions
+Account context: company name, account number, approved/rejected counts
+GREEN Side vs RED Side (Critical Security Pattern)
+Customer Portal (toPortalArray()): NEVER shows admin_notes, suspension_reason (only shows it if agent is suspended/revoked), or internal comments
+Admin Panel (toAdminArray()): Shows everything including admin_notes, suspension_reason, revocation_reason, internal comments
+ADMIN VIEW ROUTES (already registered)
+Route	View
+GET /admin/management/pricing	admin.management.pricing
+GET /admin/assets/rcs-agents	admin.assets.rcs-agents
+GET /admin/assets/rcs-agents/{id}	admin.assets.rcs-agent-detail
+CUSTOMER PORTAL VIEW ROUTES (already registered)
+Route	View
+GET /management/rcs-agent	Customer RCS agent list
+GET /management/rcs-agent/create	Customer RCS agent create wizard
+DATABASE MIGRATIONS TO RUN
+Run in order:
+
+2026_02_23_000001_create_service_catalogue_table.php — service_catalogue table + seed 12 services
+2026_02_23_000002_create_pricing_events_tables.php — pricing_events + pricing_event_items tables
+2026_02_23_000003_create_pricing_change_log_table.php — pricing_change_log audit table
+2026_02_23_000004_extend_pricing_tables.php — adds service_catalogue_id FK to product_tier_prices + customer_prices, new ENUM values
+2026_02_20_100001_create_rcs_agents_table.php — rcs_agents table with RLS + ENUM types
+2026_02_20_100002_create_rcs_agent_assignments_table.php — polymorphic assignments
+2026_02_20_100003_create_rcs_agent_status_histories_table.php — immutable audit trail
+2026_02_20_100004_create_rcs_agent_comments_table.php — internal/customer comments
+Run: php artisan migrate
+
+KEY BACKEND FILES REFERENCE
+Models
+app/Models/Billing/ServiceCatalogue.php — Service definitions with formatPrice()
+app/Models/Billing/PricingEvent.php — Grouped pricing changes with lifecycle
+app/Models/Billing/PricingEventItem.php — Individual items within an event
+app/Models/Billing/PricingChangeLog.php — Immutable price change audit log
+app/Models/Billing/ProductTierPrice.php — Starter/Enterprise tier prices
+app/Models/Billing/CustomerPrice.php — Bespoke customer-specific prices
+app/Models/RcsAgent.php — RCS agent with 9-state workflow
+app/Models/RcsAgentAssignment.php — Polymorphic user/sub-account assignments
+app/Models/RcsAgentStatusHistory.php — Immutable status audit trail
+app/Models/RcsAgentComment.php — Internal + customer-visible comments
+Controllers
+app/Http/Controllers/Admin/PricingManagementController.php — 15 API endpoints + 1 view
+app/Http/Controllers/Admin/RcsAgentApprovalController.php — 9 admin API endpoints
+app/Http/Controllers/RcsAgentController.php — 8 customer API endpoints + 2 views
+Existing Patterns to Follow
+app/Http/Controllers/Admin/SenderIdApprovalController.php — Admin approval pattern
+app/Http/Controllers/SenderIdController.php — Customer portal pattern
+resources/views/admin/assets/sender-ids.blade.php — Admin list view pattern
+resources/views/admin/assets/sender-id-detail.blade.php — Admin detail/approval pattern

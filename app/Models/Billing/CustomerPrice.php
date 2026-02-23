@@ -16,8 +16,7 @@ class CustomerPrice extends Model
         'account_id', 'product_type', 'country_iso', 'unit_price',
         'currency', 'source', 'hubspot_deal_line_item_id',
         'set_by', 'set_at', 'valid_from', 'valid_to', 'active',
-        'version', 'previous_version_id', 'change_reason',
-        'service_catalogue_id',
+        'version', 'previous_version_id', 'change_reason', 'billing_type',
     ];
 
     protected $casts = [
@@ -37,11 +36,6 @@ class CustomerPrice extends Model
     public function previousVersion()
     {
         return $this->belongsTo(self::class, 'previous_version_id');
-    }
-
-    public function service()
-    {
-        return $this->belongsTo(ServiceCatalogue::class, 'service_catalogue_id');
     }
 
     public function scopeActive($query)

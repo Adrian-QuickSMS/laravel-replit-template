@@ -351,11 +351,17 @@
                                                 <label class="form-label">Sector<span class="required-indicator">*</span></label>
                                                 <select class="form-select" id="companySector">
                                                     <option value="">Select sector...</option>
-                                                    <option value="telecommunications">Telecommunications & Media</option>
-                                                    <option value="financial">Financial Services</option>
-                                                    <option value="healthcare">Healthcare</option>
-                                                    <option value="retail">Retail & E-commerce</option>
-                                                    <option value="technology">Technology</option>
+                                                    <option value="it-telecoms">IT and Telecoms</option>
+                                                    <option value="government">Government</option>
+                                                    <option value="health">Health</option>
+                                                    <option value="logistics">Logistics</option>
+                                                    <option value="travel-transport">Travel and Transport</option>
+                                                    <option value="finance">Finance</option>
+                                                    <option value="retail-hospitality">Retail and Hospitality</option>
+                                                    <option value="media-leisure">Media and Leisure</option>
+                                                    <option value="utilities">Utilities</option>
+                                                    <option value="marketing-advertising">Marketing/Advertising Agency</option>
+                                                    <option value="other">Other</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -596,23 +602,99 @@
                     </div>
                     
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-6 mb-4">
                             <div class="pricing-display-card pricing-active">
-                                <span class="active-badge">ACTIVE</span>
+                                <span class="active-badge">{{ strtoupper($productTier) }}</span>
                                 <div class="card-body">
-                                    <h5 class="mb-3">Enterprise Plan</h5>
-                                    <div class="mb-3">
-                                        <strong>Pricing Basis:</strong> <span class="badge bg-primary">Submitted</span>
-                                    </div>
-                                    <div class="mb-2">
-                                        <strong>SMS UK:</strong> £0.0285 per message
-                                    </div>
-                                    <div class="mb-2">
-                                        <strong>RCS UK:</strong> £0.0350 per message
-                                    </div>
-                                    <div class="text-muted small mt-3">
-                                        <i class="fas fa-sync-alt me-1"></i>Synced from HubSpot
-                                    </div>
+                                    <h5 class="mb-3">{{ ucfirst($productTier) }} Plan</h5>
+                                    @if($customerPrices->isNotEmpty())
+                                        <div class="mb-3">
+                                            <strong>Pricing Basis:</strong> <span class="badge bg-primary">Bespoke</span>
+                                        </div>
+                                        @foreach($customerPrices as $price)
+                                            <div class="mb-2">
+                                                <strong>{{ strtoupper(str_replace('_', ' ', $price->product_type)) }}@if($price->country_iso) {{ strtoupper($price->country_iso) }}@endif:</strong>
+                                                £{{ number_format($price->unit_price, 4) }} {{ str_replace('_', ' ', $price->billing_type ?? 'per submitted') }}
+                                                @if($price->source === 'hubspot')
+                                                    <span class="text-muted small"><i class="fas fa-sync-alt ms-1"></i></span>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                        <div class="text-muted small mt-3">
+                                            <i class="fas fa-user-tag me-1"></i>Customer-specific pricing applied
+                                        </div>
+                                    @elseif($tierPrices->isNotEmpty())
+                                        <div class="mb-3">
+                                            <strong>Pricing Basis:</strong> <span class="badge bg-info">Tier Standard</span>
+                                        </div>
+                                        @foreach($tierPrices as $price)
+                                            <div class="mb-2">
+                                                <strong>{{ strtoupper(str_replace('_', ' ', $price->product_type)) }}@if($price->country_iso) {{ strtoupper($price->country_iso) }}@endif:</strong>
+                                                £{{ number_format($price->unit_price, 4) }} {{ str_replace('_', ' ', $price->billing_type ?? 'per submitted') }}
+                                            </div>
+                                        @endforeach
+                                        <div class="text-muted small mt-3">
+                                            <i class="fas fa-layer-group me-1"></i>Standard tier pricing
+                                        </div>
+                                    @else
+                                        <div class="mb-3">
+                                            <strong>Pricing Basis:</strong> <span class="badge bg-warning text-dark">Not Set</span>
+                                        </div>
+                                        <div class="text-muted">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>No pricing has been configured for this account. 
+                                            Add tier prices or customer-specific prices to enable billing.
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <div class="card border" style="border-color: #e6e6e6 !important;">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="fas fa-list me-2"></i>All Billable Product Types</h6>
+                                </div>
+                                <div class="card-body p-0">
+                                    <table class="table table-sm table-striped mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th class="ps-3">Product Type</th>
+                                                <th>Category</th>
+                                                <th>Pricing Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $allProducts = [
+                                                    'sms' => 'Messaging',
+                                                    'rcs_basic' => 'Messaging',
+                                                    'rcs_single' => 'Messaging',
+                                                    'inbound_sms' => 'Messaging',
+                                                    'ai_query' => 'Value-Added',
+                                                    'virtual_number_monthly' => 'Recurring',
+                                                    'shortcode_monthly' => 'Recurring',
+                                                    'support' => 'Service',
+                                                ];
+                                                $customerPriceTypes = $customerPrices->pluck('product_type')->toArray();
+                                                $tierPriceTypes = $tierPrices->pluck('product_type')->toArray();
+                                            @endphp
+                                            @foreach($allProducts as $type => $category)
+                                                <tr>
+                                                    <td class="ps-3">{{ strtoupper(str_replace('_', ' ', $type)) }}</td>
+                                                    <td><span class="badge bg-light text-dark">{{ $category }}</span></td>
+                                                    <td>
+                                                        @if(in_array($type, $customerPriceTypes))
+                                                            <span class="badge bg-success">Bespoke</span>
+                                                        @elseif(in_array($type, $tierPriceTypes))
+                                                            <span class="badge bg-info">Tier</span>
+                                                        @else
+                                                            <span class="badge bg-secondary">Not Set</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -624,6 +706,124 @@
 </div>
 
 @include('admin.accounts.partials.account-structure-modal')
+
+<!-- Edit Pricing Modal -->
+<div class="modal fade" id="editPricingModal" tabindex="-1" aria-labelledby="editPricingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; color: white;">
+                <h5 class="modal-title" id="editPricingModalLabel">
+                    <i class="fas fa-edit me-2"></i>Edit Account Pricing
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="editPricingLoading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading pricing data...</p>
+                </div>
+                <div id="editPricingContent" class="d-none">
+                    <div class="alert alert-warning d-flex align-items-start mb-3" id="editPricingBespokeWarning" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3);">
+                        <i class="fas fa-exclamation-triangle me-2 mt-1 text-warning"></i>
+                        <div style="font-size: 0.85rem;">
+                            <strong>Important:</strong> Editing any price will change this account to <strong>Bespoke</strong> pricing. Custom prices override standard tier prices.
+                        </div>
+                    </div>
+                    <div class="alert alert-info d-flex align-items-start mb-3 d-none" id="editPricingTierChangeInfo" style="background: rgba(30, 58, 95, 0.06); border-color: rgba(30, 58, 95, 0.2);">
+                        <i class="fas fa-info-circle me-2 mt-1" style="color: #1e3a5f;"></i>
+                        <div style="font-size: 0.85rem;">
+                            <strong>Tier Change:</strong> Switching to <strong id="tierChangeTarget">Starter</strong> will deactivate all bespoke prices. The account will use standard tier pricing.
+                        </div>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center gap-3">
+                        <div>
+                            <span class="text-muted small">Current Tier:</span>
+                            <span class="badge bg-info ms-1" id="editPricingCurrentTier"></span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">Change to:</span>
+                            <select class="form-select form-select-sm" id="editPricingTierSelect" onchange="onTierSelectChange()" style="width: 160px;">
+                                <option value="starter">Starter</option>
+                                <option value="enterprise">Enterprise</option>
+                                <option value="bespoke">Bespoke</option>
+                            </select>
+                        </div>
+                    </div>
+                    <table class="table table-sm table-hover mb-3" id="editPricingTable">
+                        <thead style="background: #f8f9fa;">
+                            <tr>
+                                <th class="ps-3">Service</th>
+                                <th>Tier Price</th>
+                                <th>Bespoke Price</th>
+                                <th style="width: 180px;">New Price (£)</th>
+                                <th style="width: 150px;">Billing</th>
+                            </tr>
+                        </thead>
+                        <tbody id="editPricingTableBody">
+                        </tbody>
+                    </table>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Change Reason</label>
+                        <textarea class="form-control form-control-sm" id="editPricingReason" rows="2" placeholder="Reason for pricing change (optional)"></textarea>
+                    </div>
+                </div>
+                <div id="editPricingError" class="d-none">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="editPricingErrorMsg">Failed to load pricing data.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="editPricingFooter">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-admin-primary" id="savePricingBtn" onclick="saveAccountPricing()" disabled>
+                    <i class="fas fa-save me-1"></i>Save Pricing
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tier Change Confirmation Modal -->
+<div class="modal fade" id="tierChangeConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1e3a5f; color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-exchange-alt me-2"></i>Confirm Tier Change
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center py-3">
+                    <div class="mb-3">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                    </div>
+                    <h6 class="mb-2">Change this account to <strong id="tierChangeConfirmName"></strong> tier?</h6>
+                    <p class="text-muted mb-0">All bespoke pricing will be deactivated and the account will use standard <strong id="tierChangeConfirmName2"></strong> prices.</p>
+                </div>
+                <div class="alert alert-warning d-flex align-items-start mt-3" style="background: rgba(255, 193, 7, 0.08); border-color: rgba(255, 193, 7, 0.3);">
+                    <i class="fas fa-info-circle me-2 mt-1 text-warning"></i>
+                    <div style="font-size: 0.85rem;">
+                        This action cannot be undone. Any custom bespoke prices for this account will be permanently deactivated.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-admin-primary" id="confirmTierChangeBtn" onclick="executeTierChange()">
+                    <i class="fas fa-check me-1"></i>Confirm Change
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Save Changes Confirmation Modal -->
 <div class="modal fade" id="saveConfirmModal" tabindex="-1" aria-labelledby="saveConfirmModalLabel" aria-hidden="true">
@@ -781,8 +981,404 @@ function selectNode(type, index) {
 function addSubAccount() { alert('Add Sub-account'); }
 function inviteUser() { alert('Invite User'); }
 
+var editPricingModalInstance = null;
+var editPricingData = [];
+
 function editPricingModal() {
-    alert('Edit Pricing modal would open here');
+    var accountId = @json($account_id);
+    if (!editPricingModalInstance) {
+        editPricingModalInstance = new bootstrap.Modal(document.getElementById('editPricingModal'));
+    }
+
+    document.getElementById('editPricingLoading').classList.remove('d-none');
+    document.getElementById('editPricingContent').classList.add('d-none');
+    document.getElementById('editPricingError').classList.add('d-none');
+    document.getElementById('savePricingBtn').disabled = true;
+    document.getElementById('editPricingReason').value = '';
+
+    editPricingModalInstance.show();
+
+    fetch('/admin/api/accounts/' + accountId + '/pricing', {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        return res.json();
+    })
+    .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'Failed to load pricing');
+
+        editPricingData = data.items;
+        var currentTier = data.product_tier || 'starter';
+        document.getElementById('editPricingCurrentTier').textContent = currentTier.charAt(0).toUpperCase() + currentTier.slice(1);
+        document.getElementById('editPricingTierSelect').value = currentTier;
+        document.getElementById('editPricingTierSelect').setAttribute('data-original-tier', currentTier);
+
+        var tbody = document.getElementById('editPricingTableBody');
+        var html = '';
+        intlCountriesList = data.countries || [];
+
+        data.items.forEach(function(item, idx) {
+            var currentPrice = item.has_bespoke ? item.bespoke_price : (item.tier_price !== null ? item.tier_price : '');
+            var billingType = item.billing_type || 'per_submitted';
+            var billingCol = '';
+
+            if (item.supports_billing_type) {
+                billingCol = '<select class="form-select form-select-sm billing-type-select" data-slug="' + item.slug + '" data-original-bt="' + billingType + '">' +
+                    '<option value="per_submitted"' + (billingType === 'per_submitted' ? ' selected' : '') + '>Per Submitted</option>' +
+                    '<option value="per_delivered"' + (billingType === 'per_delivered' ? ' selected' : '') + '>Per Delivered</option>' +
+                '</select>';
+            } else {
+                billingCol = '<span class="text-muted small">—</span>';
+            }
+
+            var expandBtn = '';
+            if (item.supports_country_pricing) {
+                expandBtn = ' <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 ms-1" onclick="toggleCountryPricing(\'' + item.slug + '\')" title="Per-country pricing">' +
+                    '<i class="fas fa-globe fa-xs"></i> <i class="fas fa-chevron-down fa-xs" id="countryChevron_' + item.slug + '"></i></button>';
+            }
+
+            var tierPriceDisplay = item.tier_price_formatted;
+            if (item.enterprise_price_formatted !== undefined) {
+                tierPriceDisplay = '<span class="text-muted small" title="Enterprise">E:</span> ' + item.enterprise_price_formatted;
+                if (item.starter_price_formatted !== undefined && item.starter_price_formatted !== 'N/A') {
+                    tierPriceDisplay += '<br><span class="text-muted small" title="Starter">S:</span> ' + item.starter_price_formatted;
+                }
+            }
+
+            html += '<tr data-row-slug="' + item.slug + '">' +
+                '<td class="ps-3"><strong>' + item.display_name + '</strong>' + expandBtn + '<br><span class="text-muted small">' + item.unit_label + '</span></td>' +
+                '<td>' + tierPriceDisplay + '</td>' +
+                '<td>' + (item.has_bespoke ? '<span class="badge bg-success">Bespoke</span> ' + item.bespoke_price_formatted : '<span class="text-muted small">—</span>') + '</td>' +
+                '<td><div class="input-group input-group-sm">' +
+                    '<span class="input-group-text">£</span>' +
+                    '<input type="number" class="form-control form-control-sm pricing-input" ' +
+                        'data-slug="' + item.slug + '" ' +
+                        'data-original="' + currentPrice + '" ' +
+                        'value="' + currentPrice + '" ' +
+                        'step="0.000001" min="0" placeholder="0.00">' +
+                '</div></td>' +
+                '<td>' + billingCol + '</td>' +
+                '</tr>';
+
+            if (item.supports_country_pricing) {
+                var existingCountryMap = {};
+                (item.country_prices || []).forEach(function(cp) {
+                    existingCountryMap[cp.country_iso] = cp;
+                });
+
+                html += '<tr class="country-pricing-rows d-none" id="countryRows_' + item.slug + '">' +
+                    '<td colspan="5" class="ps-4 pe-3 py-2" style="background: #f8f9fa;">' +
+                    '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                        '<strong class="small"><i class="fas fa-globe me-1"></i>Per-Country Pricing</strong>' +
+                        '<button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" onclick="addCountryRow(\'' + item.slug + '\')">' +
+                            '<i class="fas fa-plus fa-xs me-1"></i>Add Country</button>' +
+                    '</div>' +
+                    '<div id="countryList_' + item.slug + '">';
+
+                (item.country_prices || []).forEach(function(cp) {
+                    html += buildCountryRowHtml(item.slug, cp.country_iso, cp.unit_price, cp.billing_type, intlCountriesList, true);
+                });
+
+                html += '</div></td></tr>';
+            }
+        });
+        tbody.innerHTML = html;
+
+        document.querySelectorAll('.pricing-input, .billing-type-select').forEach(function(el) {
+            el.addEventListener('input', function() { checkPricingChanges(); });
+            el.addEventListener('change', function() { checkPricingChanges(); });
+        });
+
+        document.getElementById('editPricingLoading').classList.add('d-none');
+        document.getElementById('editPricingContent').classList.remove('d-none');
+    })
+    .catch(function(err) {
+        document.getElementById('editPricingLoading').classList.add('d-none');
+        document.getElementById('editPricingErrorMsg').textContent = err.message || 'Failed to load pricing data.';
+        document.getElementById('editPricingError').classList.remove('d-none');
+    });
+}
+
+var intlCountriesList = [];
+
+function buildCountryRowHtml(slug, countryIso, unitPrice, billingType, countries, isExisting) {
+    var opts = '<option value="">Select country...</option>';
+    countries.forEach(function(c) {
+        opts += '<option value="' + c.iso + '"' + (c.iso === countryIso ? ' selected' : '') + '>' + c.name + ' (' + c.iso + ')</option>';
+    });
+    var origPrice = isExisting ? unitPrice : '';
+    var origBt = isExisting ? (billingType || 'per_submitted') : '';
+    return '<div class="d-flex align-items-center gap-2 mb-2 country-price-row" data-slug="' + slug + '" data-country-original="' + (countryIso || '') + '" data-price-original="' + origPrice + '" data-bt-original="' + origBt + '">' +
+        '<select class="form-select form-select-sm country-iso-select" style="width:180px;" ' + (isExisting ? 'disabled' : '') + '>' + opts + '</select>' +
+        '<div class="input-group input-group-sm" style="width:140px;">' +
+            '<span class="input-group-text">£</span>' +
+            '<input type="number" class="form-control form-control-sm country-price-input" value="' + (unitPrice || '') + '" step="0.000001" min="0" placeholder="0.00">' +
+        '</div>' +
+        '<select class="form-select form-select-sm country-bt-select" style="width:130px;">' +
+            '<option value="per_submitted"' + ((billingType || 'per_submitted') === 'per_submitted' ? ' selected' : '') + '>Per Submitted</option>' +
+            '<option value="per_delivered"' + (billingType === 'per_delivered' ? ' selected' : '') + '>Per Delivered</option>' +
+        '</select>' +
+        '<button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" onclick="removeCountryRow(this)" title="Remove"><i class="fas fa-times fa-xs"></i></button>' +
+    '</div>';
+}
+
+function toggleCountryPricing(slug) {
+    var rows = document.getElementById('countryRows_' + slug);
+    var chevron = document.getElementById('countryChevron_' + slug);
+    if (rows) {
+        rows.classList.toggle('d-none');
+        if (chevron) {
+            chevron.classList.toggle('fa-chevron-down');
+            chevron.classList.toggle('fa-chevron-up');
+        }
+    }
+}
+
+function addCountryRow(slug) {
+    var container = document.getElementById('countryList_' + slug);
+    if (container) {
+        container.insertAdjacentHTML('beforeend', buildCountryRowHtml(slug, '', '', 'per_submitted', intlCountriesList, false));
+        container.querySelectorAll('input, select').forEach(function(el) {
+            el.addEventListener('input', function() { checkPricingChanges(); });
+            el.addEventListener('change', function() { checkPricingChanges(); });
+        });
+        checkPricingChanges();
+    }
+}
+
+function removeCountryRow(btn) {
+    btn.closest('.country-price-row').remove();
+    checkPricingChanges();
+}
+
+function onTierSelectChange() {
+    var tierSelect = document.getElementById('editPricingTierSelect');
+    var selectedTier = tierSelect.value;
+    var originalTier = tierSelect.getAttribute('data-original-tier');
+    var isBespoke = selectedTier === 'bespoke';
+    var pricingTable = document.getElementById('editPricingTable');
+    var bespokeWarning = document.getElementById('editPricingBespokeWarning');
+    var tierChangeInfo = document.getElementById('editPricingTierChangeInfo');
+
+    if (!isBespoke) {
+        pricingTable.style.opacity = '0.5';
+        pricingTable.style.pointerEvents = 'none';
+        bespokeWarning.classList.add('d-none');
+        tierChangeInfo.classList.remove('d-none');
+        document.getElementById('tierChangeTarget').textContent = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
+    } else {
+        pricingTable.style.opacity = '1';
+        pricingTable.style.pointerEvents = '';
+        bespokeWarning.classList.remove('d-none');
+        tierChangeInfo.classList.add('d-none');
+    }
+
+    checkPricingChanges();
+}
+
+function checkPricingChanges() {
+    var hasChanges = false;
+
+    var tierSelect = document.getElementById('editPricingTierSelect');
+    var selectedTier = tierSelect.value;
+    var originalTier = tierSelect.getAttribute('data-original-tier');
+    if (selectedTier !== originalTier) {
+        hasChanges = true;
+    }
+
+    if (selectedTier === 'bespoke') {
+        document.querySelectorAll('.pricing-input').forEach(function(input) {
+            var original = parseFloat(input.getAttribute('data-original')) || 0;
+            var current = parseFloat(input.value) || 0;
+            if (Math.abs(original - current) > 0.0000001) {
+                hasChanges = true;
+                input.closest('tr').style.background = 'rgba(25, 135, 84, 0.06)';
+            } else {
+                input.closest('tr').style.background = '';
+            }
+        });
+        document.querySelectorAll('.billing-type-select').forEach(function(sel) {
+            var original = sel.getAttribute('data-original-bt');
+            if (sel.value !== original) {
+                hasChanges = true;
+                sel.closest('tr').style.background = 'rgba(25, 135, 84, 0.06)';
+            }
+        });
+        document.querySelectorAll('.country-price-row').forEach(function(row) {
+            var origCountry = row.getAttribute('data-country-original');
+            var origPrice = row.getAttribute('data-price-original');
+            var origBt = row.getAttribute('data-bt-original');
+            var currentIso = row.querySelector('.country-iso-select').value;
+            var currentPrice = row.querySelector('.country-price-input').value;
+            var currentBt = row.querySelector('.country-bt-select').value;
+            if (!origCountry && currentIso && currentPrice) {
+                hasChanges = true;
+            } else if (origCountry) {
+                if (Math.abs((parseFloat(origPrice) || 0) - (parseFloat(currentPrice) || 0)) > 0.0000001 || origBt !== currentBt) {
+                    hasChanges = true;
+                }
+            }
+        });
+    }
+
+    document.getElementById('savePricingBtn').disabled = !hasChanges;
+}
+
+var tierChangeConfirmModalInstance = null;
+
+function saveAccountPricing() {
+    var accountId = @json($account_id);
+    var selectedTier = document.getElementById('editPricingTierSelect').value;
+    var originalTier = document.getElementById('editPricingTierSelect').getAttribute('data-original-tier');
+    var changedPrices = [];
+
+    if (selectedTier !== 'bespoke' && selectedTier !== originalTier) {
+        var tierLabel = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
+        document.getElementById('tierChangeConfirmName').textContent = tierLabel;
+        document.getElementById('tierChangeConfirmName2').textContent = tierLabel;
+        if (!tierChangeConfirmModalInstance) {
+            tierChangeConfirmModalInstance = new bootstrap.Modal(document.getElementById('tierChangeConfirmModal'));
+        }
+        tierChangeConfirmModalInstance.show();
+        return;
+    }
+
+    if (selectedTier === 'bespoke') {
+        document.querySelectorAll('.pricing-input').forEach(function(input) {
+            var slug = input.getAttribute('data-slug');
+            var original = parseFloat(input.getAttribute('data-original')) || 0;
+            var current = parseFloat(input.value) || 0;
+            var btSelect = document.querySelector('.billing-type-select[data-slug="' + slug + '"]');
+            var billingType = btSelect ? btSelect.value : 'per_submitted';
+            var originalBt = btSelect ? btSelect.getAttribute('data-original-bt') : 'per_submitted';
+
+            if (Math.abs(original - current) > 0.0000001 || (btSelect && billingType !== originalBt)) {
+                changedPrices.push({ slug: slug, unit_price: current, billing_type: billingType });
+            }
+        });
+
+        document.querySelectorAll('.country-price-row').forEach(function(row) {
+            var slug = row.getAttribute('data-slug');
+            var countryIso = row.querySelector('.country-iso-select').value;
+            var unitPrice = parseFloat(row.querySelector('.country-price-input').value) || 0;
+            var billingType = row.querySelector('.country-bt-select').value;
+            var origCountry = row.getAttribute('data-country-original');
+            var origPrice = row.getAttribute('data-price-original');
+            var origBt = row.getAttribute('data-bt-original');
+
+            if (!countryIso) return;
+
+            if (!origCountry || Math.abs((parseFloat(origPrice) || 0) - unitPrice) > 0.0000001 || origBt !== billingType) {
+                changedPrices.push({ slug: slug, unit_price: unitPrice, billing_type: billingType, country_iso: countryIso });
+            }
+        });
+
+        if (changedPrices.length === 0 && selectedTier === originalTier) return;
+    }
+
+    var btn = document.getElementById('savePricingBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+    var payload = {
+        product_tier: selectedTier,
+        change_reason: document.getElementById('editPricingReason').value || null
+    };
+    if (changedPrices.length > 0) {
+        payload.prices = changedPrices;
+    }
+
+    fetch('/admin/api/accounts/' + accountId + '/pricing', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        return res.json();
+    })
+    .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'Failed to save pricing');
+
+        if (editPricingModalInstance) editPricingModalInstance.hide();
+
+        var toastEl = document.getElementById('saveSuccessToast');
+        var tierLabel = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
+        var msg;
+        if (selectedTier !== 'bespoke') {
+            msg = '<i class="fas fa-check-circle me-2"></i>Account changed to ' + tierLabel + ' tier. All bespoke prices deactivated.';
+        } else {
+            msg = '<i class="fas fa-check-circle me-2"></i>' + changedPrices.length + ' price(s) updated. Account set to Bespoke pricing.';
+        }
+        toastEl.querySelector('.toast-body').innerHTML = msg;
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        setTimeout(function() { location.reload(); }, 1200);
+    })
+    .catch(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-1"></i>Save Pricing';
+        alert('Error: ' + (err.message || 'Failed to save pricing'));
+    });
+}
+
+function executeTierChange() {
+    if (tierChangeConfirmModalInstance) tierChangeConfirmModalInstance.hide();
+
+    var accountId = @json($account_id);
+    var selectedTier = document.getElementById('editPricingTierSelect').value;
+    var tierLabel = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
+
+    var btn = document.getElementById('savePricingBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+    fetch('/admin/api/accounts/' + accountId + '/pricing', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            product_tier: selectedTier,
+            change_reason: document.getElementById('editPricingReason').value || 'Tier changed to ' + tierLabel
+        })
+    })
+    .then(function(res) {
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        return res.json();
+    })
+    .then(function(data) {
+        if (!data.success) throw new Error(data.error || 'Failed to change tier');
+
+        if (editPricingModalInstance) editPricingModalInstance.hide();
+
+        var toastEl = document.getElementById('saveSuccessToast');
+        toastEl.querySelector('.toast-body').innerHTML =
+            '<i class="fas fa-check-circle me-2"></i>Account changed to ' + tierLabel + ' tier. All bespoke prices deactivated.';
+        var toast = new bootstrap.Toast(toastEl);
+        toast.show();
+
+        setTimeout(function() { location.reload(); }, 1200);
+    })
+    .catch(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save me-1"></i>Save Pricing';
+        alert('Error: ' + (err.message || 'Failed to change tier'));
+    });
 }
 
 document.querySelectorAll('.selectable-tile').forEach(function(tile) {

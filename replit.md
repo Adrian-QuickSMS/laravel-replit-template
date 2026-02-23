@@ -2,7 +2,7 @@
 
 ## Overview
 
-QuickSMS is a multi-tenant Laravel SMS platform built on PostgreSQL. Its primary purpose is to provide a robust and scalable solution for SMS communication, offering features like contact management, list segmentation, and comprehensive reporting. The platform emphasizes strict tenant isolation and uses a standardized architecture to ensure consistency and maintainability.
+QuickSMS is a multi-tenant Laravel SMS platform designed for robust and scalable SMS communication. It provides features such as contact management, list segmentation, and comprehensive reporting, with a strong emphasis on tenant isolation and a standardized architecture for consistency and maintainability. The platform integrates a comprehensive billing backend, including ledger, pricing, invoicing, and payment processing, and supports RCS agent management for both customer and administrative interfaces.
 
 ## User Preferences
 
@@ -21,38 +21,39 @@ QuickSMS is a multi-tenant Laravel SMS platform built on PostgreSQL. Its primary
 
 ## System Architecture
 
-The QuickSMS platform is built on PHP 8.3 and Laravel 10, utilizing PostgreSQL 16 as its database. The UI is constructed with Blade templates, jQuery, and Bootstrap 5 (specifically the Fillow SaaS Admin Template), with MetisMenu for navigation.
+The QuickSMS platform is built on PHP 8.3 and Laravel 10, using PostgreSQL 16. The UI uses Blade templates, jQuery, and Bootstrap 5 (Fillow SaaS Admin Template) with MetisMenu for navigation.
 
 **Key Architectural Decisions:**
 
-*   **Multi-tenancy:** Implemented with three mandatory layers:
-    1.  **Laravel Global Scopes:** Every tenant-scoped model includes a global scope to filter data by `account_id` (or `tenant_id` for the `User` model) based on the authenticated user.
-    2.  **PostgreSQL Session Variable:** Middleware sets `app.current_tenant_id` in the PostgreSQL session for database-level context.
-    3.  **PostgreSQL Row Level Security (RLS):** Every tenant table has RLS enabled and forced, with policies ensuring that only data matching `app.current_tenant_id` is accessible. This is a fail-closed design, returning zero rows if `app.current_tenant_id` is not set.
-*   **Primary Keys:** All primary keys are UUIDs (`gen_random_uuid()`), requiring models to have `$keyType = 'string'` and `$incrementing = false`.
-*   **Migrations:** All migrations use raw PostgreSQL via `DB::statement()` and `DB::unprepared()` for enums, triggers, RLS, and functions. They follow a strict order: create ENUMs, create tables, add ENUM columns, add indexes, create UUID trigger functions, create validation trigger, and finally, enable RLS.
-*   **Model Pattern:** New models must adhere to a strict pattern including UUID PKs, global tenant scopes, and `toPortalArray()` for data serialization to views/JSON. JSONB columns are cast to `'array'`.
+*   **Multi-tenancy:** Implemented via Laravel Global Scopes, PostgreSQL Session Variables (`app.current_tenant_id`), and PostgreSQL Row Level Security (RLS) for fail-closed data isolation.
+*   **Primary Keys:** All primary keys are UUIDs (`gen_random_uuid()`), requiring specific `$keyType` and `$incrementing` model configurations.
+*   **Migrations:** Utilize raw PostgreSQL `DB::statement()` and `DB::unprepared()` for enums, triggers, RLS, and functions, following a strict creation order.
+*   **Model Pattern:** Models adhere to a strict pattern including UUID PKs, global tenant scopes, and `toPortalArray()` for view/JSON serialization. JSONB columns are cast to `array`.
 *   **Controller Patterns:**
-    *   **Blade Page Controllers:** Query the database using Eloquent models, pass data to views via `toPortalArray()`, and are protected by `customer.auth` middleware.
-    *   **API Controllers:** Return JSON responses, use `$request->validate()` for input, set `account_id` from `auth()->user()->tenant_id`, and follow standard HTTP status codes (201 for create, 200 for update, 422 for validation errors).
-*   **Route Structure:** Web routes handle customer portal, sender ID API, and admin panel, while API routes manage contact book and other API endpoints, relying on session-based authentication.
-*   **JavaScript Service Pattern:** Services use `fetch()` to call real API endpoints (`useMockData: false`) and handle CSRF tokens. They include UI rendering helpers for client-side HTML generation.
-*   **UI/UX Conventions:**
-    *   **CSS Framework:** Bootstrap 5 via Fillow SaaS Admin Template, using a pastel color scheme.
-    *   **Date Format:** DD-MM-YYYY in UI, ISO 8601 in API responses.
-    *   **Tables:** Client-side DataTables with search, sort, and pagination.
-    *   **Modals:** Bootstrap modals for forms.
-    *   **Mobile Numbers:** Masked in UI, requiring audit-logged API call to reveal.
-    *   **Status Badges:** Use `badge-pastel-*` classes.
-    *   **Icons:** Font Awesome 5.
+    *   **Blade Page Controllers:** Query data with Eloquent, pass `toPortalArray()` data to views, protected by `customer.auth` middleware.
+    *   **API Controllers:** Return JSON, use `$request->validate()`, set `account_id` from `auth()->user()->tenant_id`, and follow standard HTTP status codes.
+*   **Route Structure:** Web routes for customer portal, sender ID API, and admin panel; API routes for contact book and other endpoints with session-based authentication.
+*   **JavaScript Service Pattern:** Services use `fetch()` for API calls (`useMockData: false`), handle CSRF, and include UI rendering helpers.
+*   **UI/UX Conventions:** Uses Bootstrap 5 (Fillow template) with a pastel color scheme. Dates are DD-MM-YYYY in UI, ISO 8601 in API. DataTables are used for client-side table functionality. Bootstrap modals for forms. Mobile numbers are masked in UI. Status badges use `badge-pastel-*` classes, and icons are Font Awesome 5.
+*   **Billing Backend:** Includes 19 database tables and 20 Eloquent models for ledger, test credits, pricing, invoices, payments, and billing operations. It features 9 services (e.g., LedgerService, PricingEngine, InvoiceService, XeroService) and 12 controllers for customer, admin, and webhook endpoints.
+*   **Admin UI for Billing & RCS:**
+    *   **Account Billing:** Admin endpoints for viewing/updating account billing mode, balance, credit limit.
+    *   **Pricing Management:** A 4-tab interface for managing pricing grids, events, service catalogue, and history, with dedicated API endpoints.
+    *   **RCS Agent Approval:** List and detail views for administrative approval of RCS agents, with AJAX data loading, status filtering, and action buttons. Full 11-status workflow: draft → submitted → in_review → sent_to_supplier → supplier_approved → approved (Live), with pending_info/info_provided loop, rejected, suspended, revoked branches. Admin endpoints for each transition at `/admin/api/rcs-agents/{uuid}/{action}`.
+    *   **Edit Pricing Modal:** Allows administrators to override bespoke pricing for specific accounts, converting the account to a 'bespoke' product tier upon changes. Supports per-submitted/per-delivered billing type selection for SMS and RCS services, and expandable per-country pricing for International SMS. Uses `billing_type` column (enum: `per_submitted`, `per_delivered`) on `customer_prices` and `product_tier_prices` tables.
+*   **Customer UI for Billing & RCS:**
+    *   **RCS Agent Library:** Customer-facing page loads agents from the database via API, supporting dynamic tables and API-driven actions (resubmit, delete).
+    *   **Account Pricing Tab:** Dynamically fetches and displays pricing based on the account's product tier (Starter, Enterprise, Bespoke).
+    *   **Purchase Page:** Uses database-driven pricing from `product_tier_prices` for product selection and payment.
 
 ## External Dependencies
 
-*   **PHP 8.3 / Laravel 10:** Core application framework.
-*   **PostgreSQL 16:** Primary database.
-*   **Fillow SaaS Admin Template:** UI framework (Bootstrap 5).
-*   **MetisMenu:** Sidebar navigation component.
-*   **Stripe PHP SDK:** For payment processing.
-*   **HubSpot Products API:** For product pricing information.
-*   **HubSpot Invoices API:** For handling invoice data.
-*   **Intervention Image v3:** For PHP image manipulation.
+*   PHP 8.3 / Laravel 10
+*   PostgreSQL 16
+*   Fillow SaaS Admin Template (Bootstrap 5)
+*   MetisMenu
+*   Stripe PHP SDK
+*   HubSpot Products API
+*   HubSpot Invoices API
+*   Intervention Image v3
+*   Xero API v2

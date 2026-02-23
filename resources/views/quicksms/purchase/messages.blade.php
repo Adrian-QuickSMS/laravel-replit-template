@@ -404,12 +404,10 @@
 </div>
 <div class="container-fluid purchase-messages-container">
     @php
-        // TODO: Replace with actual user role from auth system
-        // Allowed roles: 'admin' (full access), 'finance' (purchase & invoices), 'standard' (no access)
         $currentUserRole = 'admin';
         $vatApplicable = true;
         $accountCurrency = 'GBP';
-        $bespokePricing = false;
+        $bespokePricing = ($productTier ?? 'starter') === 'bespoke';
     @endphp
     
     @if(!in_array($currentUserRole, ['admin', 'finance']))
@@ -814,7 +812,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const smsProduct = state.products.sms;
         if (!smsProduct) return 0;
         
-        // Enterprise and Bespoke tiers get discounted pricing
+        if (tier === 'bespoke' && smsProduct.price_bespoke != null) {
+            return smsProduct.price_bespoke;
+        }
         if ((tier === 'enterprise' || tier === 'bespoke') && smsProduct.price_enterprise) {
             return smsProduct.price_enterprise;
         }
@@ -1035,10 +1035,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const product = state.products[key];
             if (!product) continue;
             
-            // Use tier-specific pricing: Enterprise gets lower prices
-            const price = (tierId === 'enterprise' || tierId === 'bespoke') && product.price_enterprise 
-                ? product.price_enterprise 
-                : product.price;
+            let price;
+            if (tierId === 'bespoke' && product.price_bespoke != null) {
+                price = product.price_bespoke;
+            } else if ((tierId === 'enterprise' || tierId === 'bespoke') && product.price_enterprise) {
+                price = product.price_enterprise;
+            } else {
+                price = product.price;
+            }
             
             const label = badgeLabels[key] || key.toUpperCase();
             html += `
@@ -1200,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', function() {
         invoiceModal.show();
 
         const payload = {
-            account_id: 'ACC-001',
+            account_id: '{{ $account_id ?? "" }}',
             tier: state.selectedTier,
             volume: calc.volume,
             sms_unit_price: calc.smsUnitPrice,
@@ -1275,7 +1279,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function checkPaymentStatus() {
-        fetch('/api/account/payment-status?account_id=ACC-001')
+        fetch('/api/account/payment-status?account_id={{ $account_id ?? "" }}')
             .then(response => response.json())
             .then(data => {
                 if (data.payment_completed) {
@@ -1310,7 +1314,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function refreshBalanceWidgets() {
-        fetch('/api/account/balance?account_id=ACC-001')
+        fetch('/api/account/balance?account_id={{ $account_id ?? "" }}')
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

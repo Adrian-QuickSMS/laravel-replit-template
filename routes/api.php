@@ -4,9 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ReportingDashboardApiController;
 use App\Http\Controllers\Api\BillingApiController;
-use App\Http\Controllers\Api\PurchaseApiController;
 use App\Http\Controllers\Api\WebhookController;
-use App\Http\Controllers\Api\InvoiceApiController;
 use App\Http\Controllers\Api\TopUpApiController;
 
 
@@ -49,12 +47,8 @@ Route::prefix('billing')->group(function () {
     Route::post('/schedule', [BillingApiController::class, 'schedule']);
 });
 
-// Purchase API (HubSpot Products integration)
-Route::prefix('purchase')->group(function () {
-    Route::get('/products', [PurchaseApiController::class, 'getProducts']);
-    Route::post('/calculate-order', [PurchaseApiController::class, 'calculateOrder']);
-    Route::post('/create-invoice', [PurchaseApiController::class, 'createInvoice']);
-});
+// Purchase API routes moved to routes/web.php under customer.auth middleware
+// (api middleware group lacks session cookies, breaking tenant-scoped queries for bespoke pricing)
 
 // Webhooks
 Route::prefix('webhooks')->group(function () {
@@ -73,14 +67,8 @@ Route::prefix('account')->group(function () {
     Route::get('/payment-status', [WebhookController::class, 'checkPaymentStatus']);
 });
 
-// Invoice API (HubSpot Invoices integration)
-Route::prefix('invoices')->group(function () {
-    Route::get('/', [InvoiceApiController::class, 'index']);
-    Route::get('/account-summary', [InvoiceApiController::class, 'accountSummary']);
-    Route::get('/{invoiceId}', [InvoiceApiController::class, 'show']);
-    Route::get('/{invoiceId}/pdf', [InvoiceApiController::class, 'downloadPdf']);
-    Route::post('/{invoiceId}/create-checkout-session', [InvoiceApiController::class, 'createCheckoutSession']);
-});
+// Invoice API routes moved to routes/web.php under customer.auth middleware
+// (api middleware group lacks session cookies, breaking tenant-scoped queries)
 
 // Contact Book API routes moved to routes/web.php under customer.auth middleware
 // (api middleware group lacks session cookies, breaking tenant-scoped queries)

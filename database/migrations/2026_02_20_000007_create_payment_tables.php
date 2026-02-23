@@ -9,11 +9,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("CREATE TYPE payment_method_type AS ENUM (
-            'stripe_checkout', 'stripe_auto_topup', 'stripe_dd',
-            'bank_transfer', 'credit_note_application'
-        )");
-        DB::statement("CREATE TYPE payment_status AS ENUM ('pending', 'succeeded', 'failed', 'refunded')");
+        DB::unprepared("DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_method_type') THEN CREATE TYPE payment_method_type AS ENUM ('stripe_checkout', 'stripe_auto_topup', 'stripe_dd', 'bank_transfer', 'credit_note_application'); END IF; END \$\$;");
+        DB::unprepared("DO \$\$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'billing_payment_status') THEN CREATE TYPE billing_payment_status AS ENUM ('pending', 'succeeded', 'failed', 'refunded'); END IF; END \$\$;");
 
         Schema::create('payments', function (Blueprint $table) {
             $table->uuid('id')->primary();
@@ -34,7 +31,7 @@ return new class extends Migration
             $table->index(['account_id', 'created_at']);
         });
         DB::statement("ALTER TABLE payments ADD COLUMN payment_method payment_method_type NOT NULL");
-        DB::statement("ALTER TABLE payments ADD COLUMN status payment_status NOT NULL DEFAULT 'pending'");
+        DB::statement("ALTER TABLE payments ADD COLUMN status billing_payment_status NOT NULL DEFAULT 'pending'");
 
         Schema::create('processed_stripe_events', function (Blueprint $table) {
             $table->string('event_id', 255)->primary();
@@ -83,7 +80,7 @@ return new class extends Migration
         Schema::dropIfExists('auto_topup_configs');
         Schema::dropIfExists('processed_stripe_events');
         Schema::dropIfExists('payments');
-        DB::statement("DROP TYPE IF EXISTS payment_status CASCADE");
+        DB::statement("DROP TYPE IF EXISTS billing_payment_status CASCADE");
         DB::statement("DROP TYPE IF EXISTS payment_method_type CASCADE");
     }
 };

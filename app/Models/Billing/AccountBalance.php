@@ -46,7 +46,7 @@ class AccountBalance extends Model
 
     public function recalculateEffectiveAvailable(): void
     {
-        // For prepay: effective = balance - reserved
+        // For prepay: effective = balance - reserved + credit_limit
         // For postpay: effective = credit_limit - total_outstanding + balance - reserved
         $account = $this->account;
 
@@ -61,7 +61,11 @@ class AccountBalance extends Model
                 4
             );
         } else {
-            $this->effective_available = bcsub($this->balance, $this->reserved, 4);
+            $this->effective_available = bcadd(
+                bcsub($this->balance, $this->reserved, 4),
+                $this->credit_limit,
+                4
+            );
         }
     }
 }

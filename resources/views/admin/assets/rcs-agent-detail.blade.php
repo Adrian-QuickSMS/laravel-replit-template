@@ -7,6 +7,11 @@
 <link rel="stylesheet" href="{{ asset('css/admin-external-validation.css') }}">
 <link rel="stylesheet" href="{{ asset('css/admin-notifications.css') }}">
 <style>
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
 .detail-page { 
     padding: 1.5rem; 
     padding-bottom: 5rem;
@@ -113,15 +118,17 @@ html, body {
     font-weight: 600;
 }
 
+.status-pill.draft { background: #f3f4f6; color: #374151; }
 .status-pill.submitted { background: #dbeafe; color: #1e40af; }
-.status-pill.in-review { background: #e0e7ff; color: #3730a3; }
-.status-pill.returned-to-customer { background: #fef3c7; color: #92400e; }
-.status-pill.validation-in-progress { background: #fce7f3; color: #9d174d; }
-.status-pill.validation-failed { background: #fee2e2; color: #991b1b; }
-.status-pill.approved { background: #d9f99d; color: #3f6212; }
-.status-pill.rejected { background: #fecaca; color: #7f1d1d; }
-.status-pill.provisioning-in-progress { background: #c7d2fe; color: #4338ca; }
-.status-pill.live { background: #bbf7d0; color: #15803d; }
+.status-pill.in_review { background: #e0e7ff; color: #3730a3; }
+.status-pill.pending_info { background: #fef3c7; color: #92400e; }
+.status-pill.info_provided { background: #fce7f3; color: #9d174d; }
+.status-pill.sent_to_supplier { background: #e0e7ff; color: #4338ca; }
+.status-pill.supplier_approved { background: #ccfbf1; color: #0f766e; }
+.status-pill.approved { background: #d1fae5; color: #065f46; }
+.status-pill.rejected { background: #fee2e2; color: #991b1b; }
+.status-pill.suspended { background: #ffedd5; color: #9a3412; }
+.status-pill.revoked { background: #f3f4f6; color: #6b7280; }
 
 .context-info {
     display: flex;
@@ -239,6 +246,8 @@ html, body {
     height: 24px;
     border-radius: 4px;
     border: 2px solid #e2e8f0;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .asset-preview-grid {
@@ -284,6 +293,13 @@ html, body {
     font-size: 1.5rem;
     border: 3px solid #fff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    overflow: hidden;
+}
+
+.logo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .hero-preview {
@@ -291,138 +307,13 @@ html, body {
     height: 100px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 8px;
-    position: relative;
+    overflow: hidden;
 }
 
-.hero-preview .logo-overlay {
-    position: absolute;
-    bottom: -20px;
-    left: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: 3px solid #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
-
-.asset-specs {
-    margin-top: 0.5rem;
-    font-size: 0.7rem;
-    color: #64748b;
-    text-align: center;
-}
-
-.validation-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-}
-
-.validation-item.pass { background: #f0fdf4; border: 1px solid #bbf7d0; }
-.validation-item.fail { background: #fef2f2; border: 1px solid #fecaca; }
-.validation-item.warn { background: #fffbeb; border: 1px solid #fde68a; }
-
-.validation-icon {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.65rem;
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.validation-item.pass .validation-icon { background: #22c55e; color: #fff; }
-.validation-item.fail .validation-icon { background: #ef4444; color: #fff; }
-.validation-item.warn .validation-icon { background: #f59e0b; color: #fff; }
-
-.validation-content { flex: 1; }
-
-.validation-title {
-    font-weight: 600;
-    font-size: 0.8rem;
-    color: #1e293b;
-    margin-bottom: 0.125rem;
-}
-
-.validation-detail {
-    font-size: 0.75rem;
-    color: #64748b;
-}
-
-.compliance-flag {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem;
-    border-radius: 6px;
-    margin-bottom: 0.5rem;
-}
-
-.compliance-flag.critical { background: #fef2f2; border: 1px solid #fecaca; }
-.compliance-flag.warning { background: #fffbeb; border: 1px solid #fde68a; }
-.compliance-flag.info { background: #eff6ff; border: 1px solid #bfdbfe; }
-.compliance-flag.clear { background: #f0fdf4; border: 1px solid #bbf7d0; }
-
-.compliance-flag-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    flex-shrink: 0;
-}
-
-.compliance-flag.critical .compliance-flag-icon { background: #ef4444; color: #fff; }
-.compliance-flag.warning .compliance-flag-icon { background: #f59e0b; color: #fff; }
-.compliance-flag.info .compliance-flag-icon { background: #3b82f6; color: #fff; }
-.compliance-flag.clear .compliance-flag-icon { background: #22c55e; color: #fff; }
-
-.compliance-flag-content { flex: 1; }
-
-.compliance-flag-title {
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: #1e293b;
-}
-
-.compliance-flag-detail {
-    font-size: 0.75rem;
-    color: #64748b;
-    margin-top: 0.125rem;
-}
-
-.explanation-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 1rem;
-    font-size: 0.875rem;
-    color: #475569;
-    font-style: italic;
-    margin-top: 0.5rem;
-}
-
-.test-numbers-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.test-number-pill {
-    background: #f1f5f9;
-    padding: 0.25rem 0.75rem;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-family: 'SF Mono', monospace;
+.hero-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .action-panel {
@@ -470,10 +361,8 @@ html, body {
 .action-btn.danger:hover { background: #dc2626; }
 .action-btn.outline { background: #fff; border-color: #e2e8f0; color: #475569; }
 .action-btn.outline:hover { border-color: var(--admin-primary); color: var(--admin-primary); }
-.action-btn.provision { background: linear-gradient(135deg, #059669, #10b981); color: #fff; }
-.action-btn.provision:hover { opacity: 0.9; }
 
-.audit-trail { max-height: 300px; overflow-y: auto; }
+.audit-trail { max-height: 400px; overflow-y: auto; }
 
 .audit-entry {
     display: flex;
@@ -521,334 +410,212 @@ html, body {
 
 .sidebar-card { margin-bottom: 1rem; }
 
-.notes-section { margin-top: 1.5rem; }
-
-.notes-tabs {
+.test-numbers-list {
     display: flex;
-    gap: 0;
-    border-bottom: 2px solid #e2e8f0;
-    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
-.notes-tab {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #64748b;
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    margin-bottom: -2px;
-    background: none;
-    border: none;
+.test-number-pill {
+    background: #f1f5f9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-family: 'SF Mono', monospace;
 }
 
-.notes-tab.active {
-    color: var(--admin-primary);
-    border-bottom-color: var(--admin-primary);
-}
-
-.notes-content { display: none; }
-.notes-content.active { display: block; }
-
-.notes-textarea {
-    width: 100%;
-    min-height: 100px;
-    border: 1px solid #e2e8f0;
+.comment-entry {
     border-radius: 6px;
-    padding: 0.875rem;
-    font-size: 0.875rem;
-    resize: vertical;
-}
-
-.notes-textarea:focus {
-    outline: none;
-    border-color: var(--admin-primary);
-    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
-}
-
-.note-entry {
-    padding: 0.875rem;
-    background: #f8fafc;
-    border-radius: 6px;
+    padding: 0.75rem;
     margin-bottom: 0.75rem;
 }
 
-.note-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.note-author {
-    font-weight: 600;
-    font-size: 0.8rem;
-    color: var(--admin-primary);
-}
-
-.note-time {
-    font-size: 0.7rem;
-    color: #94a3b8;
-}
-
-.note-text {
-    font-size: 0.85rem;
-    color: #475569;
+.loading-spinner {
+    text-align: center;
+    padding: 3rem;
 }
 </style>
 @endpush
 
 @section('content')
 <div class="detail-page">
-    <a href="{{ route('admin.approval-queue') }}" class="back-link">
-        <i class="fas fa-arrow-left"></i> Back to Approval Queue
+    <a href="{{ route('admin.assets.rcs-agents') }}" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to RCS Agent Approvals
     </a>
 
     <div class="row page-titles">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('admin.approval-queue') }}">Approval Queue</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('admin.assets.rcs-agents') }}">RCS Agent Approvals</a></li>
             <li class="breadcrumb-item active">RCS Agent Detail</li>
         </ol>
     </div>
 
-    <div class="status-header">
-        <span class="agent-name-display" id="agentNameDisplay">Acme Bank Notifications</span>
-        <span class="status-pill submitted" id="currentStatus"><i class="fas fa-paper-plane"></i> Submitted</span>
-        <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
-            <div style="font-size: 0.8rem; color: #64748b; display: flex; gap: 1rem;">
-                <span><i class="fas fa-hashtag me-1"></i>Request ID: <strong>RCS-001</strong></span>
-                <span><i class="fas fa-clock me-1"></i>Submitted: <strong>Jan 18, 2026, 2:30 PM</strong></span>
-            </div>
-            @php
-                $rcsVersions = [
-                    ['id' => 'v3', 'label' => 'Version 3 (Current)', 'date' => '18 Jan 2026, 14:30', 'status' => 'submitted'],
-                    ['id' => 'v2', 'label' => 'Version 2', 'date' => '16 Jan 2026, 09:15', 'status' => 'returned'],
-                    ['id' => 'v1', 'label' => 'Version 1', 'date' => '12 Jan 2026, 11:42', 'status' => 'returned'],
-                ];
-            @endphp
-            @include('partials.admin.version-history-dropdown', [
-                'currentVersion' => 'v3',
-                'submissionId' => 'RCS-001',
-                'submissionType' => 'rcs-agent',
-                'versions' => $rcsVersions
-            ])
-            @include('partials.admin.compare-versions', [
-                'submissionId' => 'RCS-001',
-                'submissionType' => 'rcs-agent',
-                'versions' => $rcsVersions
-            ])
-            <button class="header-action-btn primary" onclick="showAdminActionsModal()">
-                <i class="fas fa-gavel"></i>
-                Admin Actions
-            </button>
+    <div id="detailLoading" class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
+        <p class="text-muted mt-2">Loading RCS Agent details...</p>
     </div>
 
-    <div class="context-info">
-        <div class="context-item">
-            <i class="fas fa-building"></i>
-            <span class="context-label">Account:</span>
-            <span class="context-value">Acme Corporation</span>
+    <div id="detailContent" style="display: none;">
+        <div class="status-header">
+            <span class="agent-name-display" id="agentNameDisplay"></span>
+            <span class="status-pill" id="currentStatus"></span>
+            <div style="margin-left: auto; display: flex; gap: 1rem; align-items: center;">
+                <div style="font-size: 0.8rem; color: #64748b; display: flex; gap: 1rem;" id="headerMeta"></div>
+            </div>
         </div>
-        <div class="context-item">
-            <i class="fas fa-sitemap"></i>
-            <span class="context-label">Sub-Account:</span>
-            <span class="context-value">Marketing Dept</span>
-        </div>
-        <div class="context-item">
-            <i class="fas fa-user"></i>
-            <span class="context-label">Submitted By:</span>
-            <span class="context-value">John Smith (j.smith@acme.com)</span>
-        </div>
-        <div class="context-item">
-            <i class="fas fa-tag"></i>
-            <span class="context-label">Type:</span>
-            <span class="context-value">RCS Agent</span>
+
+        <div class="context-info" id="contextInfo"></div>
+
+        <div class="detail-grid">
+            <div class="main-content">
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <i class="fas fa-robot"></i> Agent Identity
+                    </div>
+                    <div class="detail-card-body" id="sectionIdentity"></div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <i class="fas fa-headset"></i> Contact & Support
+                    </div>
+                    <div class="detail-card-body" id="sectionContact"></div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <i class="fas fa-tags"></i> Business Classification
+                    </div>
+                    <div class="detail-card-body" id="sectionClassification"></div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <i class="fas fa-bullhorn"></i> Campaign & Compliance
+                    </div>
+                    <div class="detail-card-body" id="sectionCampaign"></div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <i class="fas fa-building"></i> Company Details
+                    </div>
+                    <div class="detail-card-body" id="sectionCompany"></div>
+                </div>
+
+                <div class="detail-card">
+                    <div class="detail-card-header">
+                        <i class="fas fa-user-check"></i> Approver / Signatory
+                    </div>
+                    <div class="detail-card-body" id="sectionApprover"></div>
+                </div>
+
+                <div class="action-panel">
+                    <div class="action-panel-title"><i class="fas fa-gavel me-2"></i>Admin Actions</div>
+                    <div class="action-buttons" id="actionButtons">
+                        <button class="action-btn primary" id="btnStartReview" style="display:none;" onclick="startReview()"><i class="fas fa-search"></i> Start Review</button>
+                        <button class="action-btn success" id="btnApproveSubmit" style="display:none;" onclick="showApproveSubmitModal()"><i class="fas fa-paper-plane"></i> Approve & Send to RCS Supplier</button>
+                        <button class="action-btn danger" id="btnReject" style="display:none;" onclick="showRejectModal()"><i class="fas fa-times-circle"></i> Reject</button>
+                        <button class="action-btn warning" id="btnRequestInfo" style="display:none;" onclick="requestInfo()"><i class="fas fa-question-circle"></i> Return with Comments</button>
+                        <button class="action-btn success" id="btnSupplierApproved" style="display:none;" onclick="supplierApprovedAction()"><i class="fas fa-check-double"></i> Mark Supplier Approved</button>
+                        <button class="action-btn success" id="btnMarkLive" style="display:none;" onclick="markLiveAction()"><i class="fas fa-broadcast-tower"></i> Mark Live</button>
+                        <button class="action-btn warning" id="btnSuspend" style="display:none;" onclick="suspendAgent()"><i class="fas fa-pause-circle"></i> Suspend</button>
+                        <button class="action-btn success" id="btnReactivate" style="display:none;" onclick="reactivateAgent()"><i class="fas fa-play-circle"></i> Reactivate</button>
+                        <button class="action-btn danger" id="btnRevoke" style="display:none;" onclick="revokeAgent()"><i class="fas fa-ban"></i> Revoke</button>
+                        <span class="text-muted small" id="noActionsMsg" style="display:none;">No actions available for this status.</span>
+                    </div>
+                </div>
+
+                <div class="detail-card" id="commentThreadSection" style="display: none; margin-top: 1rem;">
+                    <div class="detail-card-header">
+                        <i class="fas fa-comments"></i> Comments <span class="badge bg-secondary ms-2" id="commentCount">0</span>
+                    </div>
+                    <div class="detail-card-body" id="commentThreadBody"></div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="detail-card sidebar-card">
+                    <div class="detail-card-header">
+                        <i class="fas fa-history"></i> Status History
+                    </div>
+                    <div class="detail-card-body">
+                        <div class="audit-trail" id="auditTrail">
+                            <div class="text-center text-muted small py-3">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-card sidebar-card">
+                    <div class="detail-card-header">
+                        <i class="fas fa-info-circle"></i> Request Details
+                    </div>
+                    <div class="detail-card-body">
+                        <div class="detail-row">
+                            <span class="detail-label">Request ID</span>
+                            <span class="detail-value mono" id="sidebarRequestId">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">SLA Timer</span>
+                            <span class="detail-value" id="sidebarSlaTimer">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-card sidebar-card">
+                    <div class="detail-card-header">
+                        <i class="fas fa-user-circle"></i> Customer Account
+                    </div>
+                    <div class="detail-card-body">
+                        <div class="detail-row">
+                            <span class="detail-label">Account Status</span>
+                            <span class="detail-value" id="sidebarAccountStatus">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Account Age</span>
+                            <span class="detail-value" id="sidebarAccountAge">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Approved Agents</span>
+                            <span class="detail-value" id="sidebarApprovedAgents">-</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Rejected Agents</span>
+                            <span class="detail-value" id="sidebarRejectedAgents">-</span>
+                        </div>
+                        <a href="#" class="action-btn outline" id="sidebarViewAccountLink" style="width: 100%; justify-content: center; margin-top: 0.75rem;">
+                            <i class="fas fa-external-link-alt"></i> View Full Account
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="detail-grid">
-        <div class="main-content">
-            {{-- CANONICAL REVIEW UI - EXACT SAME as customer registration wizard Step 7 --}}
-            {{-- Sections A-G: Matches customer final review exactly --}}
-            <div class="detail-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-robot"></i> RCS Agent Overview
-                    <span class="badge bg-info ms-2" style="font-size: 0.65rem;">Matches Customer Step 7 Review</span>
+<div class="modal fade" id="approveSubmitModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i class="fas fa-paper-plane me-2 text-success"></i>Approve & Send to RCS Supplier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info" style="font-size: 0.85rem;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    This will approve the RCS Agent and submit the registration data to the RCS supplier for provisioning. The customer will be notified of the approval.
                 </div>
-                <div class="detail-card-body">
-                    @php
-                    $rcsAgentData = [
-                        'agentName' => 'Acme Bank Notifications',
-                        'description' => 'Official notification service for Acme Bank customers. Receive balance alerts, transaction confirmations, and security notifications.',
-                        'brandColor' => '#1e40af',
-                        'logoUrl' => '',
-                        'heroUrl' => '',
-                        'supportPhone' => '+44 800 123 4567',
-                        'showPhone' => true,
-                        'supportEmail' => 'support@acmebank.com',
-                        'showEmail' => true,
-                        'website' => 'https://www.acmebank.com',
-                        'privacyUrl' => 'https://acmebank.com/privacy',
-                        'termsUrl' => 'https://acmebank.com/terms',
-                        'billingCategory' => 'Conversational',
-                        'useCase' => 'Transactional',
-                        'useCaseOverview' => 'Balance alerts, transaction confirmations, security notifications',
-                        'userConsent' => true,
-                        'userConsentType' => 'Opted in during registration',
-                        'optOutAvailable' => true,
-                        'monthlyVolume' => '50,000 - 100,000',
-                        'companyName' => 'Acme Corporation Ltd',
-                        'tradingName' => 'Acme Bank',
-                        'companyNumber' => '12345678',
-                        'companyWebsite' => 'https://www.acmebank.com',
-                        'sector' => 'Financial Services',
-                        'addressLine1' => '123 Business Park',
-                        'addressLine2' => '',
-                        'addressCity' => 'London',
-                        'addressPostCode' => 'EC1A 1BB',
-                        'addressCountry' => 'United Kingdom',
-                        'approverName' => 'James Wilson',
-                        'approverJobTitle' => 'Head of Digital Communications',
-                        'approverEmail' => 'j.wilson@acmebank.com',
-                        'testNumbers' => ['+44 7700 900111', '+44 7700 900222', '+44 7700 900333']
-                    ];
-                    
-                    $rcsMetadata = [
-                        'versionId' => 'RCS-2026-00142-v3',
-                        'submittedBy' => 'j.wilson@acmebank.com',
-                        'account' => 'Acme Corporation Ltd',
-                        'subAccount' => 'Marketing Dept',
-                        'createdAt' => '15 Jan 2026, 09:32',
-                        'submittedAt' => '18 Jan 2026, 14:22',
-                        'lastUpdatedAt' => '20 Jan 2026, 11:45',
-                        'validationStatus' => 'pending',
-                        'externalReferenceIds' => [
-                            'RCS Provider' => 'RCS-UK-2026-00142',
-                            'Internal Ticket' => 'QSMS-4521'
-                        ]
-                    ];
-                    @endphp
-                    @include('partials.review.rcs-agent-review-summary', [
-                        'isAdmin' => true,
-                        'data' => $rcsAgentData
-                    ])
-                    
-                    {{-- Section H: Admin-only Submission Metadata --}}
-                    @include('partials.admin.rcs-agent-admin-extras', ['metadata' => $rcsMetadata])
+                <div class="mb-3">
+                    <label class="form-label">Admin Notes <span class="text-muted">(optional)</span></label>
+                    <textarea class="form-control" id="approveSubmitNotes" rows="3" placeholder="Add any notes about this approval..."></textarea>
                 </div>
             </div>
-
-            <div class="external-validation-card" style="margin-top: 1.5rem;">
-                <div class="external-validation-header">
-                    <i class="fas fa-cloud-upload-alt"></i> RCS Provider Tracking
-                </div>
-                <div class="external-validation-body" id="rcsProviderTracking">
-                    <div class="validation-empty">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <p>No RCS Provider submissions yet</p>
-                        <small>Click "Submit to RCS Provider" to initiate agent registration</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="sidebar">
-            <div class="detail-card sidebar-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-history"></i> Audit Trail
-                </div>
-                <div class="detail-card-body">
-                    <div class="audit-trail">
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-paper-plane"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Request Submitted</div>
-                                <div class="audit-meta">John Smith | Jan 18, 2026, 2:30 PM</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-robot"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Asset Validation Complete</div>
-                                <div class="audit-meta">System | Jan 18, 2026, 2:31 PM</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-flag"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">High-Risk Vertical Flag</div>
-                                <div class="audit-meta">System | Jan 18, 2026, 2:31 PM</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-eye"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Viewed by Admin</div>
-                                <div class="audit-meta">Michael Chen | Jan 19, 2026, 9:10 AM</div>
-                            </div>
-                        </div>
-                        <div class="audit-entry">
-                            <div class="audit-icon"><i class="fas fa-comment"></i></div>
-                            <div class="audit-content">
-                                <div class="audit-action">Internal Note Added</div>
-                                <div class="audit-meta">Michael Chen | Jan 19, 2026, 9:15 AM</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card sidebar-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-info-circle"></i> Request Details
-                </div>
-                <div class="detail-card-body">
-                    <div class="detail-row">
-                        <span class="detail-label">Request ID</span>
-                        <span class="detail-value mono">RCS-001</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">SLA Timer</span>
-                        <span class="detail-value" style="color: #f59e0b;"><i class="fas fa-hourglass-half me-1"></i>8h remaining</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Risk Level</span>
-                        <span class="detail-value"><span class="yes-badge" style="background: #fef3c7; color: #92400e;">Medium</span></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Assigned Admin</span>
-                        <span class="detail-value">Michael Chen</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-card sidebar-card">
-                <div class="detail-card-header">
-                    <i class="fas fa-user-circle"></i> Customer Account
-                </div>
-                <div class="detail-card-body">
-                    <div class="detail-row">
-                        <span class="detail-label">Account Status</span>
-                        <span class="detail-value"><span class="yes-badge">Active</span></span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Account Age</span>
-                        <span class="detail-value">2 years, 4 months</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Existing RCS Agents</span>
-                        <span class="detail-value">1 active</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Previous Rejections</span>
-                        <span class="detail-value">0</span>
-                    </div>
-                    <a href="{{ route('admin.accounts.details', ['accountId' => 'ACC-1234']) }}" class="action-btn outline" style="width: 100%; justify-content: center; margin-top: 0.75rem;">
-                        <i class="fas fa-external-link-alt"></i> View Full Account
-                    </a>
-                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="btnConfirmApproveSubmit" onclick="confirmApproveSubmit()"><i class="fas fa-paper-plane me-1"></i> Approve & Send to Supplier</button>
             </div>
         </div>
     </div>
@@ -858,31 +625,155 @@ html, body {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Reject RCS Agent Request</h5>
+                <h5 class="modal-title"><i class="fas fa-times-circle text-danger me-2"></i>Reject RCS Agent</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label">Rejection Reason</label>
-                    <select class="form-select" id="rejectReason">
-                        <option value="">Select a reason...</option>
-                        <option value="brand-guidelines">Brand guidelines violation</option>
-                        <option value="asset-quality">Asset quality issues</option>
-                        <option value="use-case-mismatch">Use case mismatch</option>
-                        <option value="compliance-failure">Compliance requirements not met</option>
-                        <option value="verification-failed">Business verification failed</option>
-                        <option value="provider-rejected">Rejected by RCS provider</option>
-                        <option value="other">Other (specify below)</option>
-                    </select>
+                    <label class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="rejectReasonText" rows="4" placeholder="Provide a reason for rejection (minimum 10 characters)..."></textarea>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Customer-Facing Message</label>
-                    <textarea class="form-control" id="rejectMessage" rows="4" placeholder="Explain the reason for rejection (will be sent to customer)..."></textarea>
+                    <label class="form-label text-muted" style="font-size: 0.8rem;">Quick Templates</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge bg-light text-dark border" style="cursor:pointer;" onclick="document.getElementById('rejectReasonText').value=this.textContent+': '">Brand guidelines violation</span>
+                        <span class="badge bg-light text-dark border" style="cursor:pointer;" onclick="document.getElementById('rejectReasonText').value=this.textContent+': '">Asset quality issues</span>
+                        <span class="badge bg-light text-dark border" style="cursor:pointer;" onclick="document.getElementById('rejectReasonText').value=this.textContent+': '">Use case mismatch</span>
+                        <span class="badge bg-light text-dark border" style="cursor:pointer;" onclick="document.getElementById('rejectReasonText').value=this.textContent+': '">Compliance requirements not met</span>
+                        <span class="badge bg-light text-dark border" style="cursor:pointer;" onclick="document.getElementById('rejectReasonText').value=this.textContent+': '">Business verification failed</span>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="confirmReject()">Reject Request</button>
+                <button type="button" class="btn btn-danger" onclick="confirmReject()"><i class="fas fa-times me-1"></i> Reject</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="requestInfoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-question-circle text-warning me-2"></i>Request More Information</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Message to Customer <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="requestInfoText" rows="4" placeholder="Explain what information is needed (minimum 5 characters)..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="confirmRequestInfo()"><i class="fas fa-paper-plane me-1"></i> Send & Return</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="suspendModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-pause-circle text-warning me-2"></i>Suspend RCS Agent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Suspension Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="suspendReasonText" rows="4" placeholder="Explain why this agent is being suspended (minimum 5 characters)..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="confirmSuspend()"><i class="fas fa-pause-circle me-1"></i> Suspend</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="revokeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i class="fas fa-ban me-2 text-danger"></i>Revoke RCS Agent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger small"><i class="fas fa-exclamation-triangle me-1"></i> This action is permanent and cannot be reversed.</div>
+                <div class="mb-3">
+                    <label class="form-label">Revocation Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="revokeReasonText" rows="4" placeholder="Explain why this agent is being permanently revoked (minimum 5 characters)..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmRevoke()"><i class="fas fa-ban me-1"></i> Revoke Permanently</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="supplierApprovedModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i class="fas fa-check-double me-2 text-success"></i>Mark Supplier Approved</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small"><i class="fas fa-info-circle me-1"></i> This confirms the mobile network has approved the RCS agent. The agent will move to "Supplier Approved" status.</div>
+                <div class="mb-3">
+                    <label class="form-label">Admin Notes <span class="text-muted">(optional)</span></label>
+                    <textarea class="form-control" id="supplierApprovedNotes" rows="3" placeholder="Add any notes about the supplier approval..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="btnConfirmSupplierApproved" onclick="confirmSupplierApproved()"><i class="fas fa-check-double me-1"></i> Confirm Supplier Approved</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="markLiveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i class="fas fa-broadcast-tower me-2 text-success"></i>Mark Agent Live</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info small"><i class="fas fa-info-circle me-1"></i> This will set the agent to "Live" status. The agent will be fully active for RCS messaging.</div>
+                <div class="mb-3">
+                    <label class="form-label">Admin Notes <span class="text-muted">(optional)</span></label>
+                    <textarea class="form-control" id="markLiveNotes" rows="3" placeholder="Add any notes about going live..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="btnConfirmMarkLive" onclick="confirmMarkLive()"><i class="fas fa-broadcast-tower me-1"></i> Mark Live</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmActionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="confirmModalHeader" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title" style="color: #212529;"><i id="confirmModalIcon" class="fas fa-question-circle me-2"></i><span id="confirmModalTitle">Confirm</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage"></p>
+                <div id="confirmModalWarning" class="alert alert-danger small" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" id="confirmModalBtn">Confirm</button>
             </div>
         </div>
     </div>
@@ -891,368 +782,617 @@ html, body {
 
 @push('scripts')
 <script src="{{ asset('js/admin-control-plane.js') }}"></script>
-<script src="{{ asset('js/unified-approval-framework.js') }}"></script>
 <script src="{{ asset('js/admin-notifications.js') }}"></script>
-<script src="{{ asset('js/admin-audit-log.js') }}"></script>
 <script>
-var RCS_ASSET_VALIDATION = {
-    logoRequirements: {
-        minWidth: 224,
-        minHeight: 224,
-        maxFileSize: 50 * 1024,
-        aspectRatio: '1:1',
-        formats: ['PNG', 'JPG', 'JPEG']
-    },
-    heroRequirements: {
-        width: 1440,
-        height: 448,
-        maxFileSize: 200 * 1024,
-        aspectRatio: '45:14',
-        formats: ['PNG', 'JPG', 'JPEG']
-    },
-    
-    validateLogo: function(width, height, fileSize) {
-        var results = [];
-        results.push({
-            rule: 'dimensions',
-            pass: width >= this.logoRequirements.minWidth && height >= this.logoRequirements.minHeight,
-            message: width + 'x' + height + 'px - ' + (width >= this.logoRequirements.minWidth ? 'meets' : 'below') + ' minimum ' + this.logoRequirements.minWidth + 'x' + this.logoRequirements.minHeight + 'px requirement'
-        });
-        results.push({
-            rule: 'fileSize',
-            pass: fileSize <= this.logoRequirements.maxFileSize,
-            message: Math.round(fileSize / 1024) + ' KB - ' + (fileSize <= this.logoRequirements.maxFileSize ? 'under' : 'over') + ' ' + Math.round(this.logoRequirements.maxFileSize / 1024) + ' KB limit'
-        });
-        results.push({
-            rule: 'aspectRatio',
-            pass: width === height,
-            message: (width === height ? '1:1 (square)' : width + ':' + height) + ' - ' + (width === height ? 'correct' : 'incorrect') + ' for circular crop'
-        });
-        return results;
-    },
-    
-    validateHero: function(width, height, fileSize) {
-        var results = [];
-        results.push({
-            rule: 'dimensions',
-            pass: width === this.heroRequirements.width && height === this.heroRequirements.height,
-            message: width + 'x' + height + 'px - ' + (width === this.heroRequirements.width && height === this.heroRequirements.height ? 'meets' : 'does not meet') + ' ' + this.heroRequirements.width + 'x' + this.heroRequirements.height + 'px requirement'
-        });
-        results.push({
-            rule: 'fileSize',
-            pass: fileSize <= this.heroRequirements.maxFileSize,
-            message: Math.round(fileSize / 1024) + ' KB - ' + (fileSize <= this.heroRequirements.maxFileSize ? 'under' : 'over') + ' ' + Math.round(this.heroRequirements.maxFileSize / 1024) + ' KB limit'
-        });
-        var expectedRatio = 45 / 14;
-        var actualRatio = width / height;
-        var ratioMatch = Math.abs(actualRatio - expectedRatio) < 0.01;
-        results.push({
-            rule: 'aspectRatio',
-            pass: ratioMatch,
-            message: this.heroRequirements.aspectRatio + ' - ' + (ratioMatch ? 'correct' : 'incorrect') + ' RCS banner ratio'
-        });
-        return results;
-    }
-};
+var agentUuid = @json($agent_id ?? '');
+var csrfToken = $('meta[name="csrf-token"]').attr('content');
+var currentAgentData = null;
 
-var RCS_COMPLIANCE_FLAGS = {
-    highRiskVerticals: ['Financial Services', 'Healthcare', 'Government', 'Pharmaceuticals', 'Insurance', 'Gambling'],
-    
-    checkUseCaseMismatch: function(useCase, billingCategory) {
-        var categoryUseCases = {
-            'Financial Services': ['Transactional Notifications', 'Account Alerts', 'Security Notifications'],
-            'Retail': ['Promotional', 'Order Updates', 'Delivery Notifications'],
-            'Healthcare': ['Appointment Reminders', 'Health Alerts', 'Prescription Notifications']
-        };
-        var valid = categoryUseCases[billingCategory] && categoryUseCases[billingCategory].includes(useCase);
-        return {
-            flag: !valid,
-            severity: valid ? 'clear' : 'warning',
-            message: valid ? 'Use case aligns with billing category' : 'Use case may not align with billing category'
-        };
-    },
-    
-    checkOptInExplanation: function(optInText, optOutText) {
-        var hasOptIn = optInText && optInText.length > 20;
-        var hasOptOut = optOutText && optOutText.length > 20;
-        return {
-            flag: !(hasOptIn && hasOptOut),
-            severity: (hasOptIn && hasOptOut) ? 'clear' : 'critical',
-            message: (hasOptIn && hasOptOut) ? 'Opt-in and opt-out mechanisms documented' : 'Missing or incomplete opt-in/opt-out explanation'
-        };
-    },
-    
-    checkHighRiskVertical: function(billingCategory) {
-        var isHighRisk = this.highRiskVerticals.includes(billingCategory);
-        return {
-            flag: isHighRisk,
-            severity: isHighRisk ? 'warning' : 'clear',
-            message: isHighRisk ? 'High-risk vertical requires additional verification' : 'Standard risk vertical'
-        };
-    },
-    
-    checkVolumeAnomaly: function(estimatedVolume, accountHistory) {
-        var anomaly = estimatedVolume > (accountHistory.avgMonthlyVolume * 5);
-        return {
-            flag: anomaly,
-            severity: anomaly ? 'warning' : 'clear',
-            message: anomaly ? 'Estimated volume significantly exceeds historical average' : 'Volume estimate is consistent with account history'
-        };
-    },
-    
-    checkLegalInformation: function(privacyUrl, tosUrl) {
-        var hasPrivacy = privacyUrl && privacyUrl.startsWith('http');
-        var hasTos = tosUrl && tosUrl.startsWith('http');
-        return {
-            flag: !(hasPrivacy && hasTos),
-            severity: (hasPrivacy && hasTos) ? 'clear' : 'critical',
-            message: (hasPrivacy && hasTos) ? 'Legal URLs provided and accessible' : 'Missing or invalid legal information URLs'
-        };
-    }
-};
+function ajaxHeaders() {
+    return { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' };
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('[RCS Agent Detail] Initialized');
+    console.log('[RCS Agent Detail] Initialized with UUID:', agentUuid);
     
     if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('PAGE_VIEW', 'rcs-agent-detail', { requestId: 'RCS-001' }, 'LOW');
+        AdminControlPlane.logAdminAction('PAGE_VIEW', 'rcs-agent-detail', { requestId: agentUuid }, 'LOW');
     }
 
-    UNIFIED_APPROVAL.init({
-        entityType: 'RCS_AGENT',
-        entityId: 'RCS-001',
-        currentVersion: 1,
-        currentStatus: 'submitted',
-        accountId: 'ACC-002',
-        accountName: 'Finance Ltd',
-        submittedBy: 'e.davis@financeltd.com',
-        submittedAt: '2026-01-18T14:30:00Z',
-        entityData: {
-            name: 'Acme Bank Notifications',
-            description: 'Official notification service for Acme Bank customers.',
-            brandColor: '#1e40af',
-            billingCategory: 'Financial Services',
-            useCase: 'Transactional Notifications',
-            privacyPolicyUrl: 'https://acmebank.com/privacy',
-            termsOfServiceUrl: 'https://acmebank.com/terms'
-        }
-    });
-
-    ADMIN_NOTIFICATIONS.init();
-    checkSlaStatus();
+    if (agentUuid) {
+        loadAgentDetail();
+    }
 });
 
-function checkHighRiskFlags() {
-    var highRiskVertical = document.querySelector('.compliance-item.warn');
-    if (highRiskVertical) {
-        var warningText = highRiskVertical.textContent;
-        if (warningText.includes('Financial Services') || warningText.includes('Healthcare')) {
-            ADMIN_NOTIFICATIONS.triggerInternalAlert('HIGH_RISK', 'RCS-001', 'High-risk vertical detected - requires enhanced compliance review');
+function loadAgentDetail() {
+    $.ajax({
+        url: '/admin/api/rcs-agents/' + agentUuid,
+        method: 'GET',
+        headers: ajaxHeaders(),
+        success: function(response) {
+            if (response.success) {
+                currentAgentData = response.data;
+                populateDetailPage(response.data, response.status_history, response.comments, response.account);
+                document.getElementById('detailLoading').style.display = 'none';
+                document.getElementById('detailContent').style.display = '';
+            } else {
+                document.getElementById('detailLoading').innerHTML = '<div class="text-danger"><i class="fas fa-exclamation-circle me-2"></i>Agent not found.</div>';
+            }
+        },
+        error: function(xhr) {
+            console.error('[RCS Agent Detail] Load error:', xhr.responseText);
+            document.getElementById('detailLoading').innerHTML = '<div class="text-danger"><i class="fas fa-exclamation-circle me-2"></i>Failed to load agent details.</div>';
+        }
+    });
+}
+
+function populateDetailPage(data, statusHistory, comments, account) {
+    document.getElementById('agentNameDisplay').textContent = data.name || '';
+
+    var workflowStatus = data.workflow_status || data.status || '';
+    updateStatusPill(workflowStatus);
+
+    var headerMeta = document.getElementById('headerMeta');
+    if (headerMeta) {
+        var submittedDate = data.submitted_at ? new Date(data.submitted_at).toLocaleString('en-GB', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        headerMeta.innerHTML = '<span><i class="fas fa-hashtag me-1"></i>UUID: <strong>' + escapeHtml(data.uuid || '') + '</strong></span>' +
+            '<span><i class="fas fa-clock me-1"></i>Submitted: <strong>' + escapeHtml(submittedDate) + '</strong></span>';
+    }
+
+    var contextInfo = document.getElementById('contextInfo');
+    if (contextInfo) {
+        var accountName = (account && account.company_name) ? account.company_name : '';
+        var accountNum = (account && account.account_number) ? account.account_number : '';
+        var createdByEmail = '';
+        if (data.created_by && typeof data.created_by === 'object') {
+            createdByEmail = data.created_by.email || '';
+        } else if (data.created_by_email) {
+            createdByEmail = data.created_by_email;
+        }
+
+        contextInfo.innerHTML = '<div class="context-item"><i class="fas fa-building"></i><span class="context-label">Account:</span><span class="context-value">' + escapeHtml(accountName) + ' (' + escapeHtml(accountNum) + ')</span></div>' +
+            '<div class="context-item"><i class="fas fa-user"></i><span class="context-label">Created By:</span><span class="context-value">' + escapeHtml(createdByEmail || 'N/A') + '</span></div>' +
+            '<div class="context-item"><i class="fas fa-tag"></i><span class="context-label">Category:</span><span class="context-value">' + escapeHtml(data.billing_category || '-') + '</span></div>' +
+            '<div class="context-item"><i class="fas fa-crosshairs"></i><span class="context-label">Use Case:</span><span class="context-value">' + escapeHtml(data.use_case || '-') + '</span></div>';
+    }
+
+    renderIdentitySection(data);
+    renderContactSection(data);
+    renderClassificationSection(data);
+    renderCampaignSection(data);
+    renderCompanySection(data);
+    renderApproverSection(data);
+    updateActionButtonVisibility(workflowStatus);
+
+    if (statusHistory && statusHistory.length > 0) {
+        renderAuditTrail(statusHistory);
+    } else {
+        document.getElementById('auditTrail').innerHTML = '<div class="text-muted small text-center py-3">No status history available.</div>';
+    }
+
+    if (comments && comments.length > 0) {
+        renderComments(comments);
+    }
+
+    renderSidebar(data, account);
+}
+
+function renderIdentitySection(data) {
+    var html = '';
+    html += '<div class="detail-row"><span class="detail-label">Agent Name</span><span class="detail-value">' + escapeHtml(data.name || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">' + escapeHtml(data.description || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Brand Color</span><span class="detail-value"><span class="brand-color-preview"><span class="color-swatch" style="background: ' + escapeHtml(data.brand_color || '#ccc') + ';"></span>' + escapeHtml(data.brand_color || '-') + '</span></span></div>';
+
+    html += '<div class="asset-preview-grid mt-3">';
+    html += '<div class="asset-preview-box"><div class="asset-preview-header">Logo</div><div class="asset-preview-content">';
+    if (data.logo_url) {
+        html += '<div class="logo-preview"><img src="' + escapeHtml(data.logo_url) + '" alt="Logo"></div>';
+    } else {
+        html += '<div class="logo-preview"><i class="fas fa-image" style="font-size: 1.5rem; opacity: 0.5;"></i></div>';
+    }
+    html += '</div></div>';
+    html += '<div class="asset-preview-box"><div class="asset-preview-header">Hero Image</div><div class="asset-preview-content">';
+    if (data.hero_url) {
+        html += '<div class="hero-preview"><img src="' + escapeHtml(data.hero_url) + '" alt="Hero"></div>';
+    } else {
+        html += '<div class="hero-preview" style="display: flex; align-items: center; justify-content: center;"><i class="fas fa-image" style="font-size: 1.5rem; color: #fff; opacity: 0.5;"></i></div>';
+    }
+    html += '</div></div>';
+    html += '</div>';
+
+    document.getElementById('sectionIdentity').innerHTML = html;
+}
+
+function renderContactSection(data) {
+    var html = '';
+    html += '<div class="detail-row"><span class="detail-label">Support Phone</span><span class="detail-value">' + escapeHtml(data.support_phone || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Show Phone</span><span class="detail-value">' + (data.show_phone ? '<span class="yes-badge"><i class="fas fa-check"></i> Yes</span>' : '<span class="no-badge"><i class="fas fa-times"></i> No</span>') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Support Email</span><span class="detail-value">' + escapeHtml(data.support_email || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Show Email</span><span class="detail-value">' + (data.show_email ? '<span class="yes-badge"><i class="fas fa-check"></i> Yes</span>' : '<span class="no-badge"><i class="fas fa-times"></i> No</span>') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Website</span><span class="detail-value">' + (data.website ? '<a href="' + escapeHtml(data.website) + '" target="_blank" class="url-link">' + escapeHtml(data.website) + '</a>' : '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Privacy URL</span><span class="detail-value">' + (data.privacy_url ? '<a href="' + escapeHtml(data.privacy_url) + '" target="_blank" class="url-link">' + escapeHtml(data.privacy_url) + '</a>' : '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Terms URL</span><span class="detail-value">' + (data.terms_url ? '<a href="' + escapeHtml(data.terms_url) + '" target="_blank" class="url-link">' + escapeHtml(data.terms_url) + '</a>' : '-') + '</span></div>';
+    document.getElementById('sectionContact').innerHTML = html;
+}
+
+function renderClassificationSection(data) {
+    var html = '';
+    html += '<div class="detail-row"><span class="detail-label">Billing Category</span><span class="detail-value">' + escapeHtml(data.billing_category || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Use Case</span><span class="detail-value">' + escapeHtml(data.use_case || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Use Case Overview</span><span class="detail-value">' + escapeHtml(data.use_case_overview || '-') + '</span></div>';
+    document.getElementById('sectionClassification').innerHTML = html;
+}
+
+function renderCampaignSection(data) {
+    var html = '';
+    html += '<div class="detail-row"><span class="detail-label">Campaign Frequency</span><span class="detail-value">' + escapeHtml(data.campaign_frequency || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Monthly Volume</span><span class="detail-value">' + escapeHtml(data.monthly_volume || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Opt-In Description</span><span class="detail-value">' + escapeHtml(data.opt_in_description || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Opt-Out Description</span><span class="detail-value">' + escapeHtml(data.opt_out_description || '-') + '</span></div>';
+    
+    if (data.test_numbers && data.test_numbers.length > 0) {
+        html += '<div class="detail-row"><span class="detail-label">Test Numbers</span><span class="detail-value"><div class="test-numbers-list">';
+        data.test_numbers.forEach(function(num) {
+            html += '<span class="test-number-pill">' + escapeHtml(num) + '</span>';
+        });
+        html += '</div></span></div>';
+    }
+    document.getElementById('sectionCampaign').innerHTML = html;
+}
+
+function renderCompanySection(data) {
+    var html = '';
+    html += '<div class="detail-row"><span class="detail-label">Company Number</span><span class="detail-value">' + escapeHtml(data.company_number || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Company Website</span><span class="detail-value">' + (data.company_website ? '<a href="' + escapeHtml(data.company_website) + '" target="_blank" class="url-link">' + escapeHtml(data.company_website) + '</a>' : '-') + '</span></div>';
+    
+    var addr = data.registered_address;
+    if (addr) {
+        if (typeof addr === 'string') {
+            try { addr = JSON.parse(addr); } catch (e) {}
+        }
+        if (typeof addr === 'object' && addr !== null) {
+            var parts = [addr.line1, addr.line2, addr.city, addr.post_code, addr.country].filter(Boolean);
+            html += '<div class="detail-row"><span class="detail-label">Registered Address</span><span class="detail-value">' + escapeHtml(parts.join(', ')) + '</span></div>';
+        } else {
+            html += '<div class="detail-row"><span class="detail-label">Registered Address</span><span class="detail-value">' + escapeHtml(String(addr)) + '</span></div>';
+        }
+    }
+    document.getElementById('sectionCompany').innerHTML = html;
+}
+
+function renderApproverSection(data) {
+    var html = '';
+    html += '<div class="detail-row"><span class="detail-label">Approver Name</span><span class="detail-value">' + escapeHtml(data.approver_name || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Job Title</span><span class="detail-value">' + escapeHtml(data.approver_job_title || '-') + '</span></div>';
+    html += '<div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">' + escapeHtml(data.approver_email || '-') + '</span></div>';
+    document.getElementById('sectionApprover').innerHTML = html;
+}
+
+function renderAuditTrail(statusHistory) {
+    var container = document.getElementById('auditTrail');
+    if (!container) return;
+
+    var iconMap = {
+        'created': 'fa-plus-circle',
+        'submitted': 'fa-paper-plane',
+        'review_started': 'fa-eye',
+        'approved': 'fa-check-circle',
+        'rejected': 'fa-times-circle',
+        'info_requested': 'fa-question-circle',
+        'info_provided': 'fa-reply',
+        'review_resumed': 'fa-eye',
+        'suspended': 'fa-pause-circle',
+        'reactivated': 'fa-play-circle',
+        'revoked': 'fa-ban',
+        'status_changed': 'fa-exchange-alt',
+        'resubmission_started': 'fa-redo',
+        'resubmitted': 'fa-redo',
+        'edited': 'fa-pencil-alt'
+    };
+
+    var html = '';
+    statusHistory.forEach(function(entry) {
+        var icon = iconMap[entry.action] || 'fa-circle';
+        var actionLabel = (entry.action || '').replace(/_/g, ' ');
+        actionLabel = actionLabel.charAt(0).toUpperCase() + actionLabel.slice(1);
+        var meta = (entry.user_name || entry.user_email || 'System');
+        if (entry.created_at) {
+            meta += ' | ' + new Date(entry.created_at).toLocaleString('en-GB', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        html += '<div class="audit-entry">';
+        html += '<div class="audit-icon"><i class="fas ' + icon + '"></i></div>';
+        html += '<div class="audit-content">';
+        html += '<div class="audit-action">' + escapeHtml(actionLabel) + '</div>';
+        html += '<div class="audit-meta">' + escapeHtml(meta) + '</div>';
+        if (entry.reason) {
+            html += '<div class="audit-meta" style="color: #64748b; margin-top: 0.25rem;">' + escapeHtml(entry.reason) + '</div>';
+        }
+        if (entry.notes) {
+            html += '<div class="audit-meta" style="color: #475569; margin-top: 0.25rem; font-style: italic;">' + escapeHtml(entry.notes) + '</div>';
+        }
+        html += '</div></div>';
+    });
+
+    container.innerHTML = html;
+}
+
+function renderComments(comments) {
+    var section = document.getElementById('commentThreadSection');
+    var body = document.getElementById('commentThreadBody');
+    var countEl = document.getElementById('commentCount');
+
+    if (!comments || comments.length === 0) {
+        if (section) section.style.display = 'none';
+        return;
+    }
+
+    if (section) section.style.display = '';
+    if (countEl) countEl.textContent = comments.length;
+
+    var html = '';
+    comments.forEach(function(comment) {
+        var isAdmin = comment.created_by_actor_type === 'admin';
+        var isCustomer = comment.created_by_actor_type === 'customer';
+        var bgColor = isAdmin ? '#f0f4ff' : (isCustomer ? '#f0fdf4' : '#f8fafc');
+        var borderColor = isAdmin ? '#dbeafe' : (isCustomer ? '#bbf7d0' : '#e2e8f0');
+        var icon = isAdmin ? 'fa-shield-alt' : (isCustomer ? 'fa-user' : 'fa-robot');
+        var iconColor = isAdmin ? '#3b82f6' : (isCustomer ? '#22c55e' : '#94a3b8');
+        var label = isAdmin ? 'Admin' : (isCustomer ? 'Customer' : 'System');
+        var date = comment.created_at ? new Date(comment.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+
+        html += '<div class="comment-entry" style="background: ' + bgColor + '; border: 1px solid ' + borderColor + ';">';
+        html += '<div style="display: flex; align-items: center; margin-bottom: 0.5rem;">';
+        html += '<i class="fas ' + icon + ' me-2" style="color: ' + iconColor + ';"></i>';
+        html += '<strong style="font-size: 0.8rem;">' + label + '</strong>';
+        if (comment.created_by_actor_name) html += '<span class="text-muted small ms-2">(' + escapeHtml(comment.created_by_actor_name) + ')</span>';
+        html += '<span class="text-muted small ms-auto">' + date + '</span>';
+        html += '</div>';
+        html += '<div style="font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap;">' + escapeHtml(comment.comment_text) + '</div>';
+        if (comment.comment_type) {
+            var badgeBg = comment.comment_type === 'internal' ? '#e0e7ff' : '#dcfce7';
+            var badgeColor = comment.comment_type === 'internal' ? '#3730a3' : '#166534';
+            html += '<div style="margin-top: 0.5rem;"><span class="badge" style="background: ' + badgeBg + '; color: ' + badgeColor + '; font-size: 0.7rem;">' + escapeHtml(comment.comment_type) + '</span></div>';
+        }
+        html += '</div>';
+    });
+
+    if (body) body.innerHTML = html;
+}
+
+function renderSidebar(data, account) {
+    var sidebarRequestId = document.getElementById('sidebarRequestId');
+    if (sidebarRequestId) {
+        sidebarRequestId.textContent = data.uuid ? data.uuid.substring(0, 8) : '-';
+    }
+
+    var sidebarSlaTimer = document.getElementById('sidebarSlaTimer');
+    if (sidebarSlaTimer && data.submitted_at) {
+        var submitted = new Date(data.submitted_at);
+        var now = new Date();
+        var hoursElapsed = (now - submitted) / (1000 * 60 * 60);
+        var slaHours = 24;
+        var remaining = Math.max(0, slaHours - hoursElapsed);
+        if (remaining <= 0) {
+            sidebarSlaTimer.innerHTML = '<span style="color: #dc2626;"><i class="fas fa-exclamation-triangle me-1"></i>SLA Breached</span>';
+        } else if (remaining <= 4) {
+            sidebarSlaTimer.innerHTML = '<span style="color: #f59e0b;"><i class="fas fa-hourglass-half me-1"></i>' + Math.round(remaining) + 'h remaining</span>';
+        } else {
+            sidebarSlaTimer.innerHTML = '<span style="color: #22c55e;"><i class="fas fa-hourglass-half me-1"></i>' + Math.round(remaining) + 'h remaining</span>';
+        }
+    }
+
+    if (account) {
+        var sidebarAccountStatus = document.getElementById('sidebarAccountStatus');
+        if (sidebarAccountStatus) {
+            var isActive = (account.status === 'active' || account.status === 'Active');
+            sidebarAccountStatus.innerHTML = isActive
+                ? '<span class="yes-badge">Active</span>'
+                : '<span class="no-badge">' + escapeHtml(account.status || 'Unknown') + '</span>';
+        }
+
+        var sidebarAccountAge = document.getElementById('sidebarAccountAge');
+        if (sidebarAccountAge && account.created_at) {
+            var created = new Date(account.created_at);
+            var nowDate = new Date();
+            var diffMs = nowDate - created;
+            var totalMonths = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44));
+            var years = Math.floor(totalMonths / 12);
+            var months = totalMonths % 12;
+            var ageStr = '';
+            if (years > 0) ageStr += years + (years === 1 ? ' year' : ' years');
+            if (months > 0) ageStr += (ageStr ? ', ' : '') + months + (months === 1 ? ' month' : ' months');
+            sidebarAccountAge.textContent = ageStr || 'Less than a month';
+        }
+
+        var sidebarApproved = document.getElementById('sidebarApprovedAgents');
+        if (sidebarApproved) {
+            sidebarApproved.textContent = (account.approved_rcs_agents !== undefined ? account.approved_rcs_agents : 0) + ' approved';
+        }
+
+        var sidebarRejected = document.getElementById('sidebarRejectedAgents');
+        if (sidebarRejected) {
+            sidebarRejected.textContent = account.rejected_rcs_agents !== undefined ? account.rejected_rcs_agents : 0;
+        }
+
+        var viewAccountLink = document.getElementById('sidebarViewAccountLink');
+        if (viewAccountLink && account.id) {
+            viewAccountLink.href = '/admin/accounts/' + account.id;
         }
     }
 }
 
-function checkSlaStatus() {
-    var submittedAt = '2026-01-18T14:30:00Z';
-    ADMIN_NOTIFICATIONS.checkSlaBreach('RCS-001', submittedAt, 'RCS Agent');
+function updateStatusPill(status) {
+    var statusMap = {
+        'draft': { icon: 'fa-pencil-alt', label: 'Draft' },
+        'submitted': { icon: 'fa-paper-plane', label: 'Submitted' },
+        'in_review': { icon: 'fa-search', label: 'In Review' },
+        'pending_info': { icon: 'fa-undo', label: 'Pending Info' },
+        'info_provided': { icon: 'fa-reply', label: 'Info Provided' },
+        'sent_to_supplier': { icon: 'fa-satellite-dish', label: 'Sent to Mobile Networks' },
+        'supplier_approved': { icon: 'fa-check-double', label: 'Supplier Approved' },
+        'approved': { icon: 'fa-check-circle', label: 'Live' },
+        'rejected': { icon: 'fa-times-circle', label: 'Rejected' },
+        'suspended': { icon: 'fa-pause-circle', label: 'Suspended' },
+        'revoked': { icon: 'fa-ban', label: 'Revoked' }
+    };
+    var info = statusMap[status] || { icon: 'fa-question', label: status };
+    var pill = document.getElementById('currentStatus');
+    pill.className = 'status-pill ' + status;
+    pill.innerHTML = '<i class="fas ' + info.icon + '"></i> ' + info.label;
 }
 
-function switchNotesTab(tab) {
-    document.querySelectorAll('.notes-tab').forEach(function(t) {
-        t.classList.remove('active');
+function updateActionButtonVisibility(status) {
+    var btnIds = ['btnStartReview', 'btnApproveSubmit', 'btnReject', 'btnRequestInfo', 'btnSupplierApproved', 'btnMarkLive', 'btnSuspend', 'btnReactivate', 'btnRevoke'];
+    var noActionsMsg = document.getElementById('noActionsMsg');
+
+    btnIds.forEach(function(id) {
+        var btn = document.getElementById(id);
+        if (btn) btn.style.display = 'none';
     });
-    document.querySelectorAll('.notes-content').forEach(function(c) {
-        c.classList.remove('active');
-    });
-    
-    event.target.classList.add('active');
-    document.getElementById('tab-' + tab).classList.add('active');
+    if (noActionsMsg) noActionsMsg.style.display = 'none';
+
+    var shownCount = 0;
+    function showBtn(id) {
+        var btn = document.getElementById(id);
+        if (btn) { btn.style.display = ''; shownCount++; }
+    }
+
+    switch (status) {
+        case 'submitted':
+            showBtn('btnStartReview');
+            showBtn('btnApproveSubmit');
+            showBtn('btnReject');
+            showBtn('btnRequestInfo');
+            break;
+        case 'in_review':
+            showBtn('btnApproveSubmit');
+            showBtn('btnReject');
+            showBtn('btnRequestInfo');
+            break;
+        case 'pending_info':
+        case 'info_provided':
+            showBtn('btnApproveSubmit');
+            showBtn('btnReject');
+            showBtn('btnRequestInfo');
+            break;
+        case 'sent_to_supplier':
+            showBtn('btnSupplierApproved');
+            showBtn('btnSuspend');
+            showBtn('btnRevoke');
+            break;
+        case 'supplier_approved':
+            showBtn('btnMarkLive');
+            showBtn('btnSuspend');
+            showBtn('btnRevoke');
+            break;
+        case 'approved':
+            showBtn('btnSuspend');
+            showBtn('btnRevoke');
+            break;
+        case 'suspended':
+            showBtn('btnReactivate');
+            showBtn('btnRevoke');
+            break;
+    }
+
+    if (shownCount === 0 && noActionsMsg) {
+        noActionsMsg.style.display = '';
+    }
 }
 
-function returnToCustomer() {
-    UNIFIED_APPROVAL.showReturnModal();
+function performAction(action, body, successMsg) {
+    $.ajax({
+        url: '/admin/api/rcs-agents/' + agentUuid + '/' + action,
+        method: 'POST',
+        headers: ajaxHeaders(),
+        data: JSON.stringify(body || {}),
+        success: function(response) {
+            if (response.success) {
+                showToast(successMsg || response.message || 'Action completed.', 'success');
+                loadAgentDetail();
+            } else {
+                showToast(response.error || 'Action failed.', 'error');
+            }
+        },
+        error: function(xhr) {
+            var msg = 'Action failed.';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            showToast(msg, 'error');
+        }
+    });
+}
+
+function startReview() {
+    if (confirm('Start reviewing this RCS Agent registration?')) {
+        performAction('review', {}, 'RCS Agent is now in review.');
+    }
+}
+
+function showApproveSubmitModal() {
+    document.getElementById('approveSubmitNotes').value = '';
+    new bootstrap.Modal(document.getElementById('approveSubmitModal')).show();
+}
+
+function confirmApproveSubmit() {
+    var notes = document.getElementById('approveSubmitNotes').value.trim();
+    var btn = document.getElementById('btnConfirmApproveSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
+
+    var modal = bootstrap.Modal.getInstance(document.getElementById('approveSubmitModal'));
+
+    $.ajax({
+        url: '/admin/api/rcs-agents/' + agentUuid + '/approve-and-submit',
+        method: 'POST',
+        headers: ajaxHeaders(),
+        data: JSON.stringify({ notes: notes || 'Approved and submitted to RCS supplier' }),
+        success: function(response) {
+            if (modal) modal.hide();
+            if (response.success) {
+                showToast('RCS Agent approved and submitted to supplier.', 'success');
+                loadAgentDetail();
+            } else {
+                showToast(response.error || 'Action failed.', 'error');
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Approve & Send to Supplier';
+        },
+        error: function(xhr) {
+            if (modal) modal.hide();
+            var msg = 'Action failed.';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            showToast(msg, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Approve & Send to Supplier';
+        }
+    });
 }
 
 function showRejectModal() {
-    UNIFIED_APPROVAL.showRejectModal();
+    document.getElementById('rejectReasonText').value = '';
+    new bootstrap.Modal(document.getElementById('rejectModal')).show();
 }
 
-function approveAgent() {
-    if (confirm('Approve this RCS Agent request?')) {
-        UNIFIED_APPROVAL.approve('Manual approval by admin');
-    }
-}
-
-function submitToExternalProvider() {
-    if (confirm('Submit this RCS Agent to RCS Provider for validation?')) {
-        var entity = UNIFIED_APPROVAL.getCurrentEntity();
-        UNIFIED_APPROVAL.submitToExternalProvider(entity.data);
-    }
-}
-
-function provisionAgent() {
-    if (confirm('Provision this RCS Agent? This will make it live on the network.')) {
-        UNIFIED_APPROVAL.provision();
-    }
-}
-
-function forceApprove() {
-    var reason = prompt('ENTERPRISE OVERRIDE: Enter reason for force approve (required for audit):');
-    if (!reason) {
-        alert('Reason is required for force approve.');
+function confirmReject() {
+    var reason = document.getElementById('rejectReasonText').value.trim();
+    if (!reason || reason.length < 10) {
+        showToast('Please provide a rejection reason (minimum 10 characters).', 'warning');
         return;
     }
-    
-    if (confirm('Force approve this RCS Agent bypassing validation? This action is logged with CRITICAL severity.')) {
-        var result = UNIFIED_APPROVAL.forceApprove(reason);
-        if (result.success) {
-            setTimeout(function() {
-                UNIFIED_APPROVAL.provision();
-            }, 1000);
-            alert('RCS Agent force approved (enterprise override). Audit logged with CRITICAL severity.');
-        } else {
-            alert('Error: ' + result.error);
-        }
-    }
+
+    var modal = bootstrap.Modal.getInstance(document.getElementById('rejectModal'));
+    if (modal) modal.hide();
+
+    performAction('reject', { reason: reason }, 'RCS Agent rejected.');
 }
 
-function getRcsProviderRefId() {
-    var history = UNIFIED_APPROVAL.getExternalValidationHistory();
-    if (history && history.length > 0) {
-        return history[history.length - 1].externalRequestId;
-    }
-    return null;
+function requestInfo() {
+    document.getElementById('requestInfoText').value = '';
+    new bootstrap.Modal(document.getElementById('requestInfoModal')).show();
 }
 
-function submitToProvider() {
-    if (confirm('Submit this RCS Agent to the RCS Provider for validation?')) {
-        EXTERNAL_VALIDATION.submitToRcsProvider('RCS-001', {
-            name: 'Acme Bank Notifications',
-            description: 'Official notification service for Acme Bank customers.',
-            brandColor: '#1e40af',
-            logoUrl: 'https://assets.acmebank.com/logo.png',
-            heroUrl: 'https://assets.acmebank.com/hero.png',
-            billingCategory: 'Financial Services'
-        });
-        updateStatus('validation-in-progress', 'Validation In Progress', 'fa-spinner fa-spin');
-    }
-}
-
-function markValidationFailed() {
-    if (confirm('Mark provider validation as failed?')) {
-        if (typeof AdminControlPlane !== 'undefined') {
-            AdminControlPlane.logAdminAction('VALIDATION_FAILED', 'RCS-001', {}, 'HIGH');
-        }
-        updateStatus('validation-failed', 'Validation Failed', 'fa-exclamation-circle');
-    }
-}
-
-function provisionAgent() {
-    if (confirm('Provision this RCS Agent? This will make it live on the network.')) {
-        var previousStatus = getCurrentStatus();
-        
-        ADMIN_AUDIT.logStatusTransition(
-            ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
-            'RCS-001',
-            previousStatus,
-            'provisioning',
-            'Manual provisioning initiated',
-            { rcsProviderRefId: getRcsProviderRefId() }
-        );
-        
-        updateStatus('provisioning-in-progress', 'Provisioning In Progress', 'fa-cog fa-spin');
-        
-        setTimeout(function() {
-            ADMIN_AUDIT.logStatusTransition(
-                ADMIN_AUDIT.ENTITY_TYPES.RCS_AGENT.code,
-                'RCS-001',
-                'provisioning',
-                'live',
-                'Provisioning completed successfully',
-                { rcsProviderRefId: getRcsProviderRefId() }
-            );
-            updateStatus('live', 'Live', 'fa-broadcast-tower');
-            ADMIN_NOTIFICATIONS.sendCustomerNotification('LIVE', 'RCS-001', 'RCS Agent', 'j.smith@acme.com');
-            alert('RCS Agent is now live on the network.');
-        }, 2000);
-    }
-}
-
-function updateStatus(status, label, icon) {
-    var pill = document.getElementById('currentStatus');
-    pill.className = 'status-pill ' + status;
-    pill.innerHTML = '<i class="fas ' + icon + '"></i> ' + label;
-}
-
-function addInternalNote() {
-    var textarea = document.querySelector('#tab-internal .notes-textarea');
-    var note = textarea.value.trim();
-    if (!note) {
-        alert('Please enter a note');
+function confirmRequestInfo() {
+    var notes = document.getElementById('requestInfoText').value.trim();
+    if (!notes || notes.length < 5) {
+        showToast('Please provide a message (minimum 5 characters).', 'warning');
         return;
     }
-    
-    if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('ADD_INTERNAL_NOTE', 'RCS-001', { note: note.substring(0, 100) }, 'LOW');
-    }
-    
-    textarea.value = '';
-    alert('Internal note added.');
+
+    var modal = bootstrap.Modal.getInstance(document.getElementById('requestInfoModal'));
+    if (modal) modal.hide();
+
+    performAction('request-info', { notes: notes }, 'Returned to customer for more information.');
 }
 
-function previewCustomerMessage() {
-    var message = document.querySelector('#tab-customer .notes-textarea').value;
-    alert('Preview:\n\n' + (message || '(No message entered)'));
+function supplierApprovedAction() {
+    document.getElementById('supplierApprovedNotes').value = '';
+    new bootstrap.Modal(document.getElementById('supplierApprovedModal')).show();
 }
 
-function sendCustomerMessage() {
-    var message = document.querySelector('#tab-customer .notes-textarea').value.trim();
-    if (!message) {
-        alert('Please enter a message');
+function confirmSupplierApproved() {
+    var notes = document.getElementById('supplierApprovedNotes').value.trim() || 'Supplier has approved the RCS agent';
+    var modal = bootstrap.Modal.getInstance(document.getElementById('supplierApprovedModal'));
+    if (modal) modal.hide();
+    performAction('supplier-approved', { notes: notes }, 'Agent marked as Supplier Approved.');
+}
+
+function markLiveAction() {
+    document.getElementById('markLiveNotes').value = '';
+    new bootstrap.Modal(document.getElementById('markLiveModal')).show();
+}
+
+function confirmMarkLive() {
+    var notes = document.getElementById('markLiveNotes').value.trim() || 'Agent is now live';
+    var modal = bootstrap.Modal.getInstance(document.getElementById('markLiveModal'));
+    if (modal) modal.hide();
+    performAction('mark-live', { notes: notes }, 'Agent is now Live.');
+}
+
+function suspendAgent() {
+    document.getElementById('suspendReasonText').value = '';
+    new bootstrap.Modal(document.getElementById('suspendModal')).show();
+}
+
+function confirmSuspend() {
+    var reason = document.getElementById('suspendReasonText').value.trim();
+    if (!reason || reason.length < 5) {
+        showToast('Please provide a suspension reason (minimum 5 characters).', 'warning');
         return;
     }
-    
-    if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.logAdminAction('SEND_CUSTOMER_MESSAGE', 'RCS-001', {}, 'MEDIUM');
-    }
-    
-    document.querySelector('#tab-customer .notes-textarea').value = '';
-    alert('Message sent to customer.');
+
+    var modal = bootstrap.Modal.getInstance(document.getElementById('suspendModal'));
+    if (modal) modal.hide();
+
+    performAction('suspend', { reason: reason }, 'RCS Agent suspended.');
 }
 
-function showAdminActionsModal() {
-    var modal = document.getElementById('adminActionsModal');
-    if (modal) {
-        new bootstrap.Modal(modal).show();
+function reactivateAgent() {
+    if (confirm('Reactivate this suspended RCS Agent?')) {
+        performAction('reactivate', { notes: 'Reactivated by admin' }, 'RCS Agent reactivated.');
     }
+}
+
+function revokeAgent() {
+    document.getElementById('revokeReasonText').value = '';
+    new bootstrap.Modal(document.getElementById('revokeModal')).show();
+}
+
+function confirmRevoke() {
+    var reason = document.getElementById('revokeReasonText').value.trim();
+    if (!reason || reason.length < 5) {
+        showToast('Please provide a revocation reason (minimum 5 characters).', 'warning');
+        return;
+    }
+
+    var modal = bootstrap.Modal.getInstance(document.getElementById('revokeModal'));
+    if (modal) modal.hide();
+
+    performAction('revoke', { reason: reason }, 'RCS Agent revoked permanently.');
+}
+
+function showToast(message, type) {
+    type = type || 'success';
+    var colors = {
+        success: { bg: '#059669', icon: 'fa-check-circle' },
+        error: { bg: '#dc2626', icon: 'fa-times-circle' },
+        warning: { bg: '#d97706', icon: 'fa-exclamation-triangle' },
+        info: { bg: '#1e3a5f', icon: 'fa-info-circle' }
+    };
+    var c = colors[type] || colors.info;
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:99999;background:' + c.bg + ';color:#fff;padding:0.75rem 1.25rem;border-radius:8px;font-size:0.85rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:flex;align-items:center;gap:0.5rem;animation:slideInRight 0.3s ease;max-width:400px;';
+    toast.innerHTML = '<i class="fas ' + c.icon + '"></i> ' + message;
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 4000);
+    setTimeout(function() { toast.remove(); }, 4500);
 }
 </script>
 @endpush
-
-{{-- Admin Actions Modal --}}
-<style>
-#adminActionsModal:not(.show) {
-    display: none !important;
-}
-</style>
-<div class="modal fade" id="adminActionsModal" tabindex="-1" aria-labelledby="adminActionsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--admin-primary, #1e3a5f) 0%, #2d5a87 100%); color: #fff;">
-                <h5 class="modal-title" id="adminActionsModalLabel">
-                    <i class="fas fa-gavel me-2"></i>Admin Actions
-                    <span class="badge bg-warning text-dark ms-2" style="font-size: 0.65rem;"><i class="fas fa-lock me-1"></i>INTERNAL ONLY</span>
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" style="padding: 0;">
-                @include('partials.admin.approval-action-panel', [
-                    'entityType' => 'rcs_agent',
-                    'entityId' => 'RCS-001',
-                    'validationProvider' => 'RCS Provider',
-                    'isModal' => true
-                ])
-            </div>
-        </div>
-    </div>
-</div>

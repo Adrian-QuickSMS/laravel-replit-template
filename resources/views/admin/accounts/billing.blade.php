@@ -805,68 +805,66 @@
 <script src="{{ asset('js/billing-services.js') }}"></script>
 <script src="{{ asset('js/invoice-credit-modal.js') }}"></script>
 <script>
-/**
- * AdminAccountBillingService - Adapter Layer
- * 
- * This adapter bridges the billing page with the unified BillingServices layer.
- * It provides backward compatibility while using the new service architecture.
- * 
- * Backend Integration:
- * - Set BillingServices.config.useMockData = false to use real APIs
- * - All service calls flow through the unified BillingServices module
- */
 var AdminAccountBillingService = (function() {
-    var Services = window.BillingServices;
-    
-    if (!Services) {
-        console.error('[AdminAccountBillingService] BillingServices not loaded');
-        return {
-            getAccountBilling: function() { return Promise.reject(new Error('BillingServices not available')); },
-            getAccountInvoices: function() { return Promise.reject(new Error('BillingServices not available')); },
-            calculateAvailableCredit: function() { return 0; },
-            updateBillingMode: function() { return Promise.reject(new Error('BillingServices not available')); },
-            updateCreditLimit: function() { return Promise.reject(new Error('BillingServices not available')); }
-        };
+    var csrfToken = document.querySelector('meta[name="csrf-token"]');
+    var headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    };
+    if (csrfToken) {
+        headers['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
     }
     
     return {
         getAccountBilling: function(accountId) {
-            return Services.BillingFacade.loadCompleteBillingData(accountId);
+            return fetch('/admin/api/accounts/' + accountId + '/billing', {
+                method: 'GET',
+                headers: headers
+            }).then(function(response) {
+                if (!response.ok) throw new Error('Billing API error: ' + response.status);
+                return response.json();
+            });
         },
         
         getAccountInvoices: function(accountId) {
-            return Services.InvoicesService.listInvoices({ customerAccountId: accountId })
-                .then(function(result) {
-                    return result.invoices;
-                });
+            return fetch('/admin/api/billing/invoices?accountId=' + accountId, {
+                method: 'GET',
+                headers: headers
+            }).then(function(response) {
+                if (!response.ok) throw new Error('Invoices API error: ' + response.status);
+                return response.json();
+            }).then(function(data) {
+                return data.invoices || [];
+            });
         },
         
         calculateAvailableCredit: function(billingData) {
-            return Services.InternalBillingLedgerService.calculateAvailableCredit(
-                billingData.billingMode,
-                billingData.currentBalance,
-                billingData.creditLimit
-            );
+            if (billingData.billingMode === 'prepaid') {
+                return Math.max(0, billingData.currentBalance) + billingData.creditLimit;
+            }
+            return billingData.currentBalance + billingData.creditLimit;
         },
         
         updateBillingMode: function(accountId, newMode) {
-            return Services.HubSpotBillingService.updateBillingMode(accountId, newMode)
-                .then(function(response) {
-                    if (response.success) {
-                        return { success: true, accountId: accountId, billingMode: newMode };
-                    }
-                    throw new Error(response.error || 'Failed to update billing mode');
-                });
+            return fetch('/admin/api/accounts/' + accountId + '/billing-mode', {
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify({ billingMode: newMode })
+            }).then(function(response) {
+                if (!response.ok) throw new Error('Update billing mode error: ' + response.status);
+                return response.json();
+            });
         },
         
         updateCreditLimit: function(accountId, newLimit) {
-            return Services.HubSpotBillingService.updateCreditLimit(accountId, newLimit)
-                .then(function(response) {
-                    if (response.success) {
-                        return { success: true, accountId: accountId, creditLimit: newLimit };
-                    }
-                    throw new Error(response.error || 'Failed to update credit limit');
-                });
+            return fetch('/admin/api/accounts/' + accountId + '/credit-limit', {
+                method: 'PUT',
+                headers: headers,
+                body: JSON.stringify({ creditLimit: newLimit })
+            }).then(function(response) {
+                if (!response.ok) throw new Error('Update credit limit error: ' + response.status);
+                return response.json();
+            });
         }
     };
 })();
@@ -875,34 +873,20 @@ var AdminAccountBillingService = (function() {
  * Legacy compatibility services - now delegate to BillingServices
  */
 var HubSpotBillingService = (function() {
-    var Services = window.BillingServices;
-    var simulateFailure = false;
-    
     return {
         updateBillingMode: function(accountId, mode) {
-            if (simulateFailure) {
-                return Promise.reject(new Error('HubSpot API error: Unable to update billing mode'));
-            }
-            return Services.HubSpotBillingService.updateBillingMode(accountId, mode);
+            return Promise.resolve({ success: true, data: { accountId: accountId, billingMode: mode } });
         },
-        
         updateCreditLimit: function(accountId, newLimit) {
-            if (simulateFailure) {
-                return Promise.reject(new Error('HubSpot API error: Unable to update credit limit'));
-            }
-            return Services.HubSpotBillingService.updateCreditLimit(accountId, newLimit);
+            return Promise.resolve({ success: true, data: { accountId: accountId, creditLimit: newLimit } });
         },
-        
-        setSimulateFailure: function(value) {
-            simulateFailure = value;
-        }
+        setSimulateFailure: function() {}
     };
 })();
 
 var InternalBillingConfigService = (function() {
     return {
         updateBillingMode: function(accountId, mode) {
-            console.log('[InternalBillingConfigService] Updated billing mode for ' + accountId + ' to ' + mode);
             return Promise.resolve({
                 success: true,
                 accountId: accountId,
@@ -914,16 +898,20 @@ var InternalBillingConfigService = (function() {
 })();
 
 var BillingRiskService = (function() {
-    var Services = window.BillingServices;
-    
     return {
         checkBillingRisk: function(accountId) {
-            return Services.BillingFacade.checkOutstandingInvoices(accountId)
-                .then(function(result) {
+            return AdminAccountBillingService.getAccountInvoices(accountId)
+                .then(function(invoices) {
+                    var outstanding = invoices.filter(function(inv) {
+                        return inv.balanceDue > 0 && inv.status !== 'void' && inv.status !== 'draft';
+                    });
+                    var totalOutstanding = outstanding.reduce(function(sum, inv) {
+                        return sum + inv.balanceDue;
+                    }, 0);
                     return {
-                        hasOutstandingInvoices: result.hasOutstanding,
-                        overdueAmount: result.totalOutstanding,
-                        overdueCount: result.count
+                        hasOutstandingInvoices: outstanding.length > 0,
+                        overdueAmount: totalOutstanding,
+                        overdueCount: outstanding.length
                     };
                 });
         }
@@ -1885,7 +1873,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var customerData = {
             id: accountId,
             name: currentAccountName,
-            status: data.status === 'live' ? 'Live' : (data.status === 'test' ? 'Test' : 'Suspended'),
+            status: data.status === 'suspended' ? 'Suspended' : (data.status === 'test' ? 'Test' : 'Live'),
             vatRegistered: data.vatRegistered !== undefined ? data.vatRegistered : true,
             vatRate: data.vatRate !== undefined ? data.vatRate : 20,
             reverseCharge: data.reverseCharge || false,

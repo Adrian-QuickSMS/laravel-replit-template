@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\QuickSMSController;
 use App\Http\Controllers\SenderIdController;
-use App\Http\Controllers\RcsAgentController;
 use App\Http\Controllers\Api\RcsAssetController;
+use App\Http\Controllers\Api\InvoiceApiController;
+use App\Http\Controllers\RcsAgentController;
+use App\Http\Controllers\Api\PurchaseApiController;
 
 // Public auth routes (no authentication required)
 Route::controller(QuickSMSController::class)->group(function () {
@@ -49,6 +51,7 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/management', 'management')->name('management');
     Route::get('/management/rcs-agent', 'rcsAgentRegistrations')->name('management.rcs-agent');
     Route::get('/management/rcs-agent/create', 'rcsAgentCreate')->name('management.rcs-agent.create');
+    Route::get('/management/rcs-agent/{uuid}/edit', 'rcsAgentEdit')->name('management.rcs-agent.edit');
     Route::get('/management/sms-sender-id', [SenderIdController::class, 'index'])->name('management.sms-sender-id');
     Route::get('/management/sms-sender-id/register', [SenderIdController::class, 'create'])->name('management.sms-sender-id.register');
     Route::get('/management/templates', 'templates')->name('management.templates');
@@ -117,6 +120,7 @@ Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdCon
 
 // RCS Agent Registration — Customer Portal API
 Route::middleware('customer.auth')->prefix('api/rcs-agents')->controller(RcsAgentController::class)->group(function () {
+    Route::get('/', 'list')->name('api.rcs-agents.list');
     Route::get('/approved', 'approved')->name('api.rcs-agents.approved');
     Route::post('/', 'store')->name('api.rcs-agents.store');
     Route::get('/{uuid}', 'show')->name('api.rcs-agents.show');
@@ -201,11 +205,27 @@ Route::middleware('customer.auth')->prefix('api/rcs/assets')->controller(RcsAsse
     Route::post('/{uuid}/finalize', 'finalizeAsset')->name('api.rcs.assets.finalize');
 });
 
-Route::prefix('api/purchase')->controller(QuickSMSController::class)->group(function () {
-    Route::get('/numbers/pricing', 'getNumbersPricing')->name('api.purchase.numbers.pricing');
-    Route::post('/numbers/lock', 'lockNumbersForPurchase')->name('api.purchase.numbers.lock');
-    Route::post('/numbers/purchase', 'processNumbersPurchase')->name('api.purchase.numbers.purchase');
-    Route::post('/numbers/release', 'releaseNumberLocks')->name('api.purchase.numbers.release');
+Route::middleware('customer.auth')->get('/api/account/pricing', [QuickSMSController::class, 'accountPricingApi'])->name('api.account.pricing');
+
+Route::middleware('customer.auth')->prefix('api/invoices')->controller(InvoiceApiController::class)->group(function () {
+    Route::get('/', 'index')->name('api.invoices.index');
+    Route::get('/account-summary', 'accountSummary')->name('api.invoices.account-summary');
+    Route::get('/{invoiceId}', 'show')->name('api.invoices.show');
+    Route::get('/{invoiceId}/pdf', 'downloadPdf')->name('api.invoices.pdf');
+    Route::post('/{invoiceId}/create-checkout-session', 'createCheckoutSession')->name('api.invoices.checkout');
+});
+
+Route::middleware('customer.auth')->prefix('api/purchase')->group(function () {
+    Route::get('/products', [PurchaseApiController::class, 'getProducts'])->name('api.purchase.products');
+    Route::post('/calculate-order', [PurchaseApiController::class, 'calculateOrder'])->name('api.purchase.calculate');
+    Route::post('/create-invoice', [PurchaseApiController::class, 'createInvoice'])->name('api.purchase.invoice');
+
+    Route::controller(QuickSMSController::class)->group(function () {
+        Route::get('/numbers/pricing', 'getNumbersPricing')->name('api.purchase.numbers.pricing');
+        Route::post('/numbers/lock', 'lockNumbersForPurchase')->name('api.purchase.numbers.lock');
+        Route::post('/numbers/purchase', 'processNumbersPurchase')->name('api.purchase.numbers.purchase');
+        Route::post('/numbers/release', 'releaseNumberLocks')->name('api.purchase.numbers.release');
+    });
 });
 
 Route::prefix('admin')->group(function () {
@@ -272,6 +292,12 @@ Route::prefix('admin')->group(function () {
             Route::get('/api/health', 'apiHealth')->name('admin.api.health');
             
             Route::get('/billing/invoices', 'billingInvoices')->name('admin.billing.invoices');
+            Route::get('/api/billing/invoices', 'billingInvoicesApi')->name('admin.api.billing.invoices');
+            Route::get('/api/accounts/{accountId}/pricing', 'accountPricingApi')->name('admin.api.accounts.pricing');
+            Route::put('/api/accounts/{accountId}/pricing', 'updateAccountPricing')->name('admin.api.accounts.pricing.update');
+            Route::get('/api/accounts/{accountId}/billing', 'accountBillingApi')->name('admin.api.accounts.billing');
+            Route::put('/api/accounts/{accountId}/billing-mode', 'updateAccountBillingMode')->name('admin.api.accounts.billing-mode');
+            Route::put('/api/accounts/{accountId}/credit-limit', 'updateAccountCreditLimit')->name('admin.api.accounts.credit-limit');
             Route::get('/billing/payments', 'billingPayments')->name('admin.billing.payments');
             Route::get('/billing/credits', 'billingCredits')->name('admin.billing.credits');
             
@@ -393,11 +419,35 @@ Route::prefix('admin')->group(function () {
                 Route::get('/{uuid}', 'show')->name('admin.api.rcs-agents.show');
                 Route::post('/{uuid}/review', 'startReview')->name('admin.api.rcs-agents.review');
                 Route::post('/{uuid}/approve', 'approve')->name('admin.api.rcs-agents.approve');
+                Route::post('/{uuid}/approve-and-submit', 'approveAndSubmitToSupplier')->name('admin.api.rcs-agents.approve-and-submit');
                 Route::post('/{uuid}/reject', 'reject')->name('admin.api.rcs-agents.reject');
                 Route::post('/{uuid}/request-info', 'requestInfo')->name('admin.api.rcs-agents.request-info');
+                Route::post('/{uuid}/supplier-approved', 'supplierApproved')->name('admin.api.rcs-agents.supplier-approved');
+                Route::post('/{uuid}/mark-live', 'markLive')->name('admin.api.rcs-agents.mark-live');
                 Route::post('/{uuid}/suspend', 'suspend')->name('admin.api.rcs-agents.suspend');
                 Route::post('/{uuid}/reactivate', 'reactivate')->name('admin.api.rcs-agents.reactivate');
                 Route::post('/{uuid}/revoke', 'revoke')->name('admin.api.rcs-agents.revoke');
+            });
+
+            // Pricing Management — view + API
+            Route::get('/management/pricing', [\App\Http\Controllers\Admin\PricingManagementController::class, 'index'])->name('admin.management.pricing');
+
+            Route::prefix('api/pricing')->controller(\App\Http\Controllers\Admin\PricingManagementController::class)->group(function () {
+                Route::get('/services', 'services')->name('admin.api.pricing.services');
+                Route::post('/services', 'storeService')->name('admin.api.pricing.services.store');
+                Route::put('/services/{id}', 'updateService')->name('admin.api.pricing.services.update');
+                Route::get('/current', 'currentPricing')->name('admin.api.pricing.current');
+                Route::get('/preview', 'previewPricing')->name('admin.api.pricing.preview');
+                Route::put('/tier-prices', 'updateTierPrice')->name('admin.api.pricing.tier-prices.update');
+                Route::get('/events', 'events')->name('admin.api.pricing.events');
+                Route::post('/events', 'storeEvent')->name('admin.api.pricing.events.store');
+                Route::get('/events/{id}', 'showEvent')->name('admin.api.pricing.events.show');
+                Route::put('/events/{id}', 'updateEvent')->name('admin.api.pricing.events.update');
+                Route::post('/events/{id}/schedule', 'scheduleEvent')->name('admin.api.pricing.events.schedule');
+                Route::post('/events/{id}/cancel', 'cancelEvent')->name('admin.api.pricing.events.cancel');
+                Route::get('/upcoming', 'upcoming')->name('admin.api.pricing.upcoming');
+                Route::get('/history', 'history')->name('admin.api.pricing.history');
+                Route::get('/export', 'export')->name('admin.api.pricing.export');
             });
 
             Route::prefix('api/governance')->controller(\App\Http\Controllers\Admin\ApprovalQueueController::class)->group(function () {
@@ -411,36 +461,6 @@ Route::prefix('admin')->group(function () {
                 Route::get('/locked-entities', 'getLockedEntities')->name('admin.api.governance.locked-entities');
             });
             
-            // Pricing Management — view + API
-            Route::get('/management/pricing', [\App\Http\Controllers\Admin\PricingManagementController::class, 'index'])->name('admin.management.pricing');
-
-            Route::prefix('api/pricing')->controller(\App\Http\Controllers\Admin\PricingManagementController::class)->group(function () {
-                // Service catalogue
-                Route::get('/services', 'services')->name('admin.api.pricing.services');
-                Route::post('/services', 'storeService')->name('admin.api.pricing.services.store');
-                Route::put('/services/{id}', 'updateService')->name('admin.api.pricing.services.update');
-
-                // Tier pricing grid
-                Route::get('/current', 'currentPricing')->name('admin.api.pricing.current');
-                Route::get('/preview', 'previewPricing')->name('admin.api.pricing.preview');
-                Route::put('/tier-prices', 'updateTierPrice')->name('admin.api.pricing.tier-prices.update');
-
-                // Pricing events (grouped changes)
-                Route::get('/events', 'events')->name('admin.api.pricing.events');
-                Route::post('/events', 'storeEvent')->name('admin.api.pricing.events.store');
-                Route::get('/events/{id}', 'showEvent')->name('admin.api.pricing.events.show');
-                Route::put('/events/{id}', 'updateEvent')->name('admin.api.pricing.events.update');
-                Route::post('/events/{id}/schedule', 'scheduleEvent')->name('admin.api.pricing.events.schedule');
-                Route::post('/events/{id}/cancel', 'cancelEvent')->name('admin.api.pricing.events.cancel');
-
-                // Upcoming scheduled changes
-                Route::get('/upcoming', 'upcoming')->name('admin.api.pricing.upcoming');
-
-                // History and export
-                Route::get('/history', 'history')->name('admin.api.pricing.history');
-                Route::get('/export', 'export')->name('admin.api.pricing.export');
-            });
-
             Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
             Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');
             Route::get('/system/flags', 'systemFlags')->name('admin.system.flags');

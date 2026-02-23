@@ -16,6 +16,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('rcs_agent_status_histories')) {
+            return;
+        }
         Schema::create('rcs_agent_status_histories', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('rcs_agent_id')->comment('FK to rcs_agents.id');

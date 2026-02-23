@@ -1,6 +1,6 @@
 @extends('layouts.quicksms')
 
-@section('title', 'Register RCS Agent')
+@section('title', $page_title ?? 'Register RCS Agent')
 
 @push('styles')
 <link href="{{ asset('vendor/jquery-smartwizard/dist/css/smart_wizard.min.css') }}" rel="stylesheet">
@@ -282,9 +282,9 @@
         <div class="col-xl-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4 class="card-title mb-0"><i class="fas fa-robot me-2 text-primary"></i>Register RCS Agent</h4>
-                    <span class="autosave-indicator saved" id="autosaveIndicator">
-                        <i class="fas fa-cloud me-1"></i><span id="autosaveText">Draft saved</span>
+                    <h4 class="card-title mb-0"><i class="fas fa-robot me-2 text-primary"></i>{{ $page_title ?? 'Register RCS Agent' }}</h4>
+                    <span class="autosave-indicator" id="autosaveIndicator">
+                        <i class="fas fa-cloud me-1"></i><span id="autosaveText"></span>
                     </span>
                 </div>
                 <div class="card-body">
@@ -723,14 +723,14 @@
                                         <div class="row">
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Company Name <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="companyName" placeholder="e.g., Acme Ltd">
+                                                <input type="text" class="form-control" id="companyName" placeholder="e.g., Acme Ltd" value="{{ $company_defaults['company_name'] ?? '' }}">
                                                 <small class="text-muted">Your registered company name</small>
                                                 <div class="invalid-feedback">Please enter your company name</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Company Number <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="companyNumber" placeholder="e.g., 12345678">
+                                                <input type="text" class="form-control" id="companyNumber" placeholder="e.g., 12345678" value="{{ $company_defaults['company_number'] ?? '' }}">
                                                 <small class="text-muted">Your registered company number</small>
                                                 <div class="invalid-feedback">Please enter your company number</div>
                                             </div>
@@ -739,7 +739,7 @@
                                                 <label class="text-label form-label">Company Website <span class="text-danger">*</span></label>
                                                 <div class="input-group">
                                                     <span class="input-group-text">https://</span>
-                                                    <input type="text" class="form-control" id="companyWebsite" placeholder="www.yourcompany.com">
+                                                    <input type="text" class="form-control" id="companyWebsite" placeholder="www.yourcompany.com" value="{{ $company_defaults['company_website'] ?? '' }}">
                                                 </div>
                                                 <small class="text-muted">Your main company website</small>
                                                 <div class="invalid-feedback">Please enter a valid company website URL</div>
@@ -747,19 +747,20 @@
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Sector <span class="text-danger">*</span></label>
+                                                @php $defaultSector = $company_defaults['sector'] ?? ''; @endphp
                                                 <select class="form-select" id="companySector">
                                                     <option value="">Select sector...</option>
-                                                    <option value="it-telecoms">IT and Telecoms</option>
-                                                    <option value="government">Government</option>
-                                                    <option value="health">Health</option>
-                                                    <option value="logistics">Logistics</option>
-                                                    <option value="travel-transport">Travel and Transport</option>
-                                                    <option value="finance">Finance</option>
-                                                    <option value="retail-hospitality">Retail and Hospitality</option>
-                                                    <option value="media-leisure">Media and Leisure</option>
-                                                    <option value="utilities">Utilities</option>
-                                                    <option value="marketing-advertising">Marketing/Advertising Agency</option>
-                                                    <option value="other">Other</option>
+                                                    <option value="it-telecoms" @if($defaultSector === 'it-telecoms') selected @endif>IT and Telecoms</option>
+                                                    <option value="government" @if($defaultSector === 'government') selected @endif>Government</option>
+                                                    <option value="health" @if($defaultSector === 'health') selected @endif>Health</option>
+                                                    <option value="logistics" @if($defaultSector === 'logistics') selected @endif>Logistics</option>
+                                                    <option value="travel-transport" @if($defaultSector === 'travel-transport') selected @endif>Travel and Transport</option>
+                                                    <option value="finance" @if($defaultSector === 'finance') selected @endif>Finance</option>
+                                                    <option value="retail-hospitality" @if($defaultSector === 'retail-hospitality') selected @endif>Retail and Hospitality</option>
+                                                    <option value="media-leisure" @if($defaultSector === 'media-leisure') selected @endif>Media and Leisure</option>
+                                                    <option value="utilities" @if($defaultSector === 'utilities') selected @endif>Utilities</option>
+                                                    <option value="marketing-advertising" @if($defaultSector === 'marketing-advertising') selected @endif>Marketing/Advertising Agency</option>
+                                                    <option value="other" @if($defaultSector === 'other') selected @endif>Other</option>
                                                 </select>
                                                 <small class="text-muted">Your business sector</small>
                                                 <div class="invalid-feedback">Please select a sector</div>
@@ -774,44 +775,45 @@
                                             
                                             <div class="col-lg-12 mb-3">
                                                 <label class="text-label form-label">Address Line 1 <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="addressLine1" placeholder="e.g., 123 Business Street">
+                                                <input type="text" class="form-control" id="addressLine1" placeholder="e.g., 123 Business Street" value="{{ $company_defaults['address_line1'] ?? '' }}">
                                                 <div class="invalid-feedback">Please enter address line 1</div>
                                             </div>
                                             
                                             <div class="col-lg-12 mb-3">
                                                 <label class="text-label form-label">Address Line 2</label>
-                                                <input type="text" class="form-control" id="addressLine2" placeholder="e.g., Suite 100 (optional)">
+                                                <input type="text" class="form-control" id="addressLine2" placeholder="e.g., Suite 100 (optional)" value="{{ $company_defaults['address_line2'] ?? '' }}">
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">City/Town <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="addressCity" placeholder="e.g., London">
+                                                <input type="text" class="form-control" id="addressCity" placeholder="e.g., London" value="{{ $company_defaults['city'] ?? '' }}">
                                                 <div class="invalid-feedback">Please enter city/town</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Post Code <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="addressPostCode" placeholder="e.g., SW1A 1AA">
+                                                <input type="text" class="form-control" id="addressPostCode" placeholder="e.g., SW1A 1AA" value="{{ $company_defaults['post_code'] ?? '' }}">
                                                 <div class="invalid-feedback">Please enter post code</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Country <span class="text-danger">*</span></label>
+                                                @php $defaultCountry = ($company_defaults['country'] ?? '') ?: 'United Kingdom'; @endphp
                                                 <select class="form-select" id="addressCountry">
                                                     <option value="">Select country...</option>
-                                                    <option value="United Kingdom" selected>United Kingdom</option>
-                                                    <option value="Ireland">Ireland</option>
-                                                    <option value="France">France</option>
-                                                    <option value="Germany">Germany</option>
-                                                    <option value="Spain">Spain</option>
-                                                    <option value="Italy">Italy</option>
-                                                    <option value="Netherlands">Netherlands</option>
-                                                    <option value="Belgium">Belgium</option>
-                                                    <option value="Switzerland">Switzerland</option>
-                                                    <option value="United States">United States</option>
-                                                    <option value="Canada">Canada</option>
-                                                    <option value="Australia">Australia</option>
-                                                    <option value="Other">Other</option>
+                                                    <option value="United Kingdom" @if($defaultCountry === 'United Kingdom') selected @endif>United Kingdom</option>
+                                                    <option value="Ireland" @if($defaultCountry === 'Ireland') selected @endif>Ireland</option>
+                                                    <option value="France" @if($defaultCountry === 'France') selected @endif>France</option>
+                                                    <option value="Germany" @if($defaultCountry === 'Germany') selected @endif>Germany</option>
+                                                    <option value="Spain" @if($defaultCountry === 'Spain') selected @endif>Spain</option>
+                                                    <option value="Italy" @if($defaultCountry === 'Italy') selected @endif>Italy</option>
+                                                    <option value="Netherlands" @if($defaultCountry === 'Netherlands') selected @endif>Netherlands</option>
+                                                    <option value="Belgium" @if($defaultCountry === 'Belgium') selected @endif>Belgium</option>
+                                                    <option value="Switzerland" @if($defaultCountry === 'Switzerland') selected @endif>Switzerland</option>
+                                                    <option value="United States" @if($defaultCountry === 'United States') selected @endif>United States</option>
+                                                    <option value="Canada" @if($defaultCountry === 'Canada') selected @endif>Canada</option>
+                                                    <option value="Australia" @if($defaultCountry === 'Australia') selected @endif>Australia</option>
+                                                    <option value="Other" @if($defaultCountry === 'Other') selected @endif>Other</option>
                                                 </select>
                                                 <div class="invalid-feedback">Please select a country</div>
                                             </div>
@@ -825,21 +827,21 @@
                                         <div class="row">
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Approver Name <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="approverName" placeholder="e.g., John Smith">
+                                                <input type="text" class="form-control" id="approverName" placeholder="e.g., John Smith" value="{{ $approver_defaults['name'] ?? '' }}">
                                                 <small class="text-muted">Full name of the authorizing person</small>
                                                 <div class="invalid-feedback">Please enter the approver's name</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Approver Job Title <span class="text-danger">*</span></label>
-                                                <input type="text" class="form-control" id="approverJobTitle" placeholder="e.g., Marketing Director">
+                                                <input type="text" class="form-control" id="approverJobTitle" placeholder="e.g., Marketing Director" value="{{ $approver_defaults['job_title'] ?? '' }}">
                                                 <small class="text-muted">Their role within your organization</small>
                                                 <div class="invalid-feedback">Please enter the approver's job title</div>
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="text-label form-label">Approver Email <span class="text-danger">*</span></label>
-                                                <input type="email" class="form-control" id="approverEmail" placeholder="e.g., john.smith@yourcompany.com">
+                                                <input type="email" class="form-control" id="approverEmail" placeholder="e.g., john.smith@yourcompany.com" value="{{ $approver_defaults['email'] ?? '' }}">
                                                 <small class="text-muted">Email address for verification communications</small>
                                                 <div class="invalid-feedback">Please enter a valid email address</div>
                                             </div>
@@ -1126,19 +1128,19 @@ $(document).ready(function() {
         optOutAvailable: '',
         useCaseOverview: '',
         testNumbers: [],
-        companyName: '',
-        companyNumber: '',
-        companyWebsite: '',
-        companySector: '',
+        companyName: @json($company_defaults['company_name'] ?? ''),
+        companyNumber: @json($company_defaults['company_number'] ?? ''),
+        companyWebsite: @json($company_defaults['company_website'] ?? ''),
+        companySector: @json($company_defaults['sector'] ?? ''),
         otherSector: '',
-        addressLine1: '',
-        addressLine2: '',
-        addressCity: '',
-        addressPostCode: '',
-        addressCountry: 'United Kingdom',
-        approverName: '',
-        approverJobTitle: '',
-        approverEmail: '',
+        addressLine1: @json($company_defaults['address_line1'] ?? ''),
+        addressLine2: @json($company_defaults['address_line2'] ?? ''),
+        addressCity: @json($company_defaults['city'] ?? ''),
+        addressPostCode: @json($company_defaults['post_code'] ?? ''),
+        addressCountry: @json(($company_defaults['country'] ?? '') ?: 'United Kingdom'),
+        approverName: @json($approver_defaults['name'] ?? ''),
+        approverJobTitle: @json($approver_defaults['job_title'] ?? ''),
+        approverEmail: @json($approver_defaults['email'] ?? ''),
         logoValid: false,
         heroValid: false,
         visitedSteps: [0], // Step 0 is visited by default (initial step)
@@ -1147,16 +1149,159 @@ $(document).ready(function() {
     };
     
     var autosaveTimeout = null;
-    
+    var currentDraftUuid = null;
+
+    @if(!empty($editing_agent))
+    (function() {
+        var agent = @json($editing_agent);
+        var addr = {};
+        if (agent.registered_address) {
+            try { addr = typeof agent.registered_address === 'string' ? JSON.parse(agent.registered_address) : agent.registered_address; } catch(e) { addr = {}; }
+        }
+        currentDraftUuid = agent.uuid;
+        wizardData.id = agent.uuid;
+        wizardData.name = agent.name || '';
+        wizardData.description = agent.description || '';
+        wizardData.brandColor = agent.brand_color || '#886CC0';
+        wizardData.logoDataUrl = agent.logo_url || null;
+        wizardData.logoCropMetadata = agent.logo_crop_metadata || null;
+        wizardData.heroDataUrl = agent.hero_url || null;
+        wizardData.heroCropMetadata = agent.hero_crop_metadata || null;
+        wizardData.logoValid = !!agent.logo_url;
+        wizardData.heroValid = !!agent.hero_url;
+        wizardData.website = agent.website || '';
+        wizardData.privacyUrl = agent.privacy_url || '';
+        wizardData.termsUrl = agent.terms_url || '';
+        wizardData.supportEmail = agent.support_email || '';
+        wizardData.supportPhone = agent.support_phone || '';
+        wizardData.showPhone = agent.show_phone !== false;
+        wizardData.showEmail = agent.show_email !== false;
+        wizardData.billing = (agent.billing_category || 'non-conversational').replace(/_/g, '-');
+        wizardData.useCase = (agent.use_case || '').replace(/_/g, '-');
+        wizardData.campaignFrequency = agent.campaign_frequency || '';
+        wizardData.monthlyVolume = agent.monthly_volume || '';
+        wizardData.userConsent = agent.opt_in_description || '';
+        wizardData.optOutAvailable = agent.opt_out_description || '';
+        wizardData.useCaseOverview = agent.use_case_overview || '';
+        wizardData.testNumbers = agent.test_numbers || [];
+        if (agent.sector) wizardData.companySector = agent.sector;
+        wizardData.companyName = agent.company_number ? (wizardData.companyName || '') : wizardData.companyName;
+        wizardData.companyNumber = agent.company_number || wizardData.companyNumber;
+        wizardData.companyWebsite = agent.company_website || wizardData.companyWebsite;
+        wizardData.approverName = agent.approver_name || wizardData.approverName;
+        wizardData.approverJobTitle = agent.approver_job_title || wizardData.approverJobTitle;
+        wizardData.approverEmail = agent.approver_email || wizardData.approverEmail;
+        if (addr.line1) wizardData.addressLine1 = addr.line1;
+        if (addr.line2) wizardData.addressLine2 = addr.line2;
+        if (addr.city) wizardData.addressCity = addr.city;
+        if (addr.post_code) wizardData.addressPostCode = addr.post_code;
+        if (addr.country) wizardData.addressCountry = addr.country;
+    })();
+    @endif
+
+    function buildPayload() {
+        var addressObj = {
+            line1: wizardData.addressLine1 || '',
+            line2: wizardData.addressLine2 || '',
+            city: wizardData.addressCity || '',
+            post_code: wizardData.addressPostCode || '',
+            country: wizardData.addressCountry || ''
+        };
+
+        var payload = {
+            name: wizardData.name || '',
+            description: wizardData.description || null,
+            brand_color: wizardData.brandColor || '#886CC0',
+            logo_url: wizardData.logoDataUrl || null,
+            logo_crop_metadata: wizardData.logoCropMetadata || null,
+            hero_url: wizardData.heroDataUrl || null,
+            hero_crop_metadata: wizardData.heroCropMetadata || null,
+            support_phone: wizardData.supportPhone || null,
+            website: wizardData.website || null,
+            support_email: wizardData.supportEmail || null,
+            privacy_url: wizardData.privacyUrl || null,
+            terms_url: wizardData.termsUrl || null,
+            show_phone: wizardData.showPhone !== false,
+            show_email: wizardData.showEmail !== false,
+            billing_category: wizardData.billing || null,
+            use_case: wizardData.useCase || null,
+            campaign_frequency: wizardData.campaignFrequency || null,
+            monthly_volume: wizardData.monthlyVolume || null,
+            opt_in_description: wizardData.userConsent || null,
+            opt_out_description: wizardData.optOutAvailable || null,
+            use_case_overview: wizardData.useCaseOverview || null,
+            test_numbers: wizardData.testNumbers || [],
+            company_number: wizardData.companyNumber || null,
+            company_website: wizardData.companyWebsite || null,
+            registered_address: (addressObj.line1 || addressObj.city) ? JSON.stringify(addressObj) : null,
+            approver_name: wizardData.approverName || null,
+            approver_job_title: wizardData.approverJobTitle || null,
+            approver_email: wizardData.approverEmail || null,
+            sector: wizardData.companySector || null
+        };
+
+        return payload;
+    }
+
     function triggerAutosave() {
         if (autosaveTimeout) clearTimeout(autosaveTimeout);
+
+        autosaveTimeout = setTimeout(function() {
+            if (!wizardData.name || !wizardData.name.trim()) {
+                return;
+            }
+            performAutosave();
+        }, 2000);
+    }
+
+    function performAutosave() {
         $('#autosaveIndicator').removeClass('saved error').addClass('saving');
         $('#autosaveText').text('Saving...');
-        
-        autosaveTimeout = setTimeout(function() {
-            $('#autosaveIndicator').removeClass('saving error').addClass('saved');
-            $('#autosaveText').text('Draft saved');
-        }, 1000);
+
+        var payload = buildPayload();
+        var url, method;
+
+        if (currentDraftUuid) {
+            url = '/api/rcs-agents/' + currentDraftUuid;
+            method = 'PUT';
+        } else {
+            url = '/api/rcs-agents';
+            method = 'POST';
+        }
+
+        $.ajax({
+            url: url,
+            method: method,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(payload),
+            success: function(response) {
+                if (response.success && response.data) {
+                    if (!currentDraftUuid && (response.data.id || response.data.uuid)) {
+                        currentDraftUuid = response.data.id || response.data.uuid;
+                        wizardData.id = currentDraftUuid;
+                    }
+                    $('#autosaveIndicator').removeClass('saving error').addClass('saved');
+                    $('#autosaveText').text('Draft saved');
+                } else {
+                    $('#autosaveIndicator').removeClass('saving saved').addClass('error');
+                    $('#autosaveText').text('Save failed');
+                }
+            },
+            error: function(xhr) {
+                console.log('[Autosave] Error:', xhr.status, xhr.responseText);
+                if (xhr.status === 422) {
+                    $('#autosaveIndicator').removeClass('saving error saved');
+                    $('#autosaveText').text('');
+                } else {
+                    $('#autosaveIndicator').removeClass('saving saved').addClass('error');
+                    $('#autosaveText').text('Save failed');
+                }
+            }
+        });
     }
     
     function validateStep(stepNumber) {
@@ -1407,6 +1552,82 @@ $(document).ready(function() {
         }
     });
     
+    @if(!empty($editing_agent))
+    (function populateFormFromAgent() {
+        $('#agentName').val(wizardData.name);
+        $('#nameCharCount').text((wizardData.name || '').length);
+        $('#agentDescription').val(wizardData.description);
+        $('#descCharCount').text((wizardData.description || '').length);
+        $('#brandColor').val(wizardData.brandColor);
+        $('#brandColorHex').val(wizardData.brandColor);
+        if (wizardData.logoDataUrl) {
+            var $logoZone = $('#agentLogoUploadZone');
+            if ($logoZone.length) {
+                $logoZone.find('.upload-placeholder').hide();
+                var $preview = $logoZone.find('.upload-preview');
+                if ($preview.length) {
+                    $preview.attr('src', wizardData.logoDataUrl).show();
+                } else {
+                    $logoZone.prepend('<img class="upload-preview" src="' + wizardData.logoDataUrl + '" style="max-width:100%;max-height:200px;object-fit:contain;">');
+                }
+            }
+        }
+        if (wizardData.heroDataUrl) {
+            var $heroZone = $('#agentHeroUploadZone');
+            if ($heroZone.length) {
+                $heroZone.find('.upload-placeholder').hide();
+                var $preview = $heroZone.find('.upload-preview');
+                if ($preview.length) {
+                    $preview.attr('src', wizardData.heroDataUrl).show();
+                } else {
+                    $heroZone.prepend('<img class="upload-preview" src="' + wizardData.heroDataUrl + '" style="max-width:100%;max-height:200px;object-fit:contain;">');
+                }
+            }
+        }
+        $('#businessWebsite').val(wizardData.website);
+        $('#privacyUrl').val(wizardData.privacyUrl);
+        $('#termsUrl').val(wizardData.termsUrl);
+        $('#supportEmail').val(wizardData.supportEmail);
+        $('#supportPhone').val(wizardData.supportPhone);
+        $('#showPhoneToggle').prop('checked', wizardData.showPhone);
+        $('#showEmailToggle').prop('checked', wizardData.showEmail);
+        if (wizardData.billing) {
+            $('.billing-tile').removeClass('selected');
+            $('.billing-tile[data-billing="' + wizardData.billing + '"]').addClass('selected');
+        }
+        if (wizardData.useCase) {
+            $('.usecase-tile').removeClass('selected');
+            $('.usecase-tile[data-usecase="' + wizardData.useCase + '"]').addClass('selected');
+        }
+        $('#campaignFrequency').val(wizardData.campaignFrequency);
+        $('#monthlyVolume').val(wizardData.monthlyVolume);
+        $('#userConsent').val(wizardData.userConsent);
+        $('#optOutAvailable').val(wizardData.optOutAvailable);
+        $('#useCaseOverview').val(wizardData.useCaseOverview);
+        $('#companyName').val(wizardData.companyName);
+        $('#companyNumber').val(wizardData.companyNumber);
+        $('#companyWebsite').val(wizardData.companyWebsite);
+        if (wizardData.companySector) {
+            $('#companySector').val(wizardData.companySector);
+        }
+        $('#addressLine1').val(wizardData.addressLine1);
+        $('#addressLine2').val(wizardData.addressLine2);
+        $('#addressCity').val(wizardData.addressCity);
+        $('#addressPostCode').val(wizardData.addressPostCode);
+        if (wizardData.addressCountry) {
+            $('#addressCountry').val(wizardData.addressCountry);
+        }
+        $('#approverName').val(wizardData.approverName);
+        $('#approverJobTitle').val(wizardData.approverJobTitle);
+        $('#approverEmail').val(wizardData.approverEmail);
+        if (wizardData.testNumbers && wizardData.testNumbers.length) {
+            renderTestNumbers();
+        }
+        $('#autosaveIndicator').addClass('saved');
+        $('#autosaveText').text('Draft saved');
+    })();
+    @endif
+
     $('#rcsAgentWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
         // Mark step as validated (user has left it at least once)
         markStepValidated(currentStepIndex);
@@ -1423,15 +1644,10 @@ $(document).ready(function() {
         return true;
     });
     
-    // Handle Submit button click on Review step (step 7)
-    $(document).on('click', '.sw-btn-next', function(e) {
-        var currentStep = $('#rcsAgentWizard').smartWizard('getStepIndex');
-        if (currentStep === 6) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleFinalSubmission();
-            return false;
-        }
+    // Handle Submit: hide SmartWizard Next on step 7, show dedicated Submit button
+    $(document).on('click', '#wizardSubmitBtn', function(e) {
+        e.preventDefault();
+        handleFinalSubmission();
     });
     
     // Handle final submission with validation summary
@@ -1531,37 +1747,150 @@ $(document).ready(function() {
         }
     }
     
-    // Submit wizard (placeholder for actual submission logic)
     function submitWizard() {
-        // TODO: Implement actual submission to backend
-        console.log('Wizard submission:', wizardData);
-        
-        // Show success message for now
+        var payload = buildPayload();
+        var $submitBtn = $('#wizardSubmitBtn');
+        $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Submitting...');
+
+        if (currentDraftUuid) {
+            $.ajax({
+                url: '/api/rcs-agents/' + currentDraftUuid,
+                method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(payload),
+                success: function(updateResponse) {
+                    if (updateResponse.success) {
+                        doSubmitCall(currentDraftUuid, $submitBtn);
+                    } else {
+                        $submitBtn.prop('disabled', false).html('Submit');
+                        showSubmissionError(updateResponse.error || 'Failed to save before submitting.');
+                    }
+                },
+                error: function(xhr) {
+                    $submitBtn.prop('disabled', false).html('Submit');
+                    showSubmissionError(parseAjaxError(xhr, 'Failed to save before submitting.'));
+                }
+            });
+        } else {
+            payload.submit = true;
+            $.ajax({
+                url: '/api/rcs-agents',
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(payload),
+                success: function(response) {
+                    if (response.success) {
+                        showSubmissionSuccess();
+                    } else {
+                        $submitBtn.prop('disabled', false).html('Submit');
+                        showSubmissionError(response.error || 'Failed to submit agent.');
+                    }
+                },
+                error: function(xhr) {
+                    $submitBtn.prop('disabled', false).html('Submit');
+                    showSubmissionError(parseAjaxError(xhr, 'Failed to submit agent.'));
+                }
+            });
+        }
+    }
+
+    function doSubmitCall(uuid, $submitBtn) {
+        $.ajax({
+            url: '/api/rcs-agents/' + uuid + '/submit',
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({}),
+            success: function(response) {
+                if (response.success) {
+                    showSubmissionSuccess();
+                } else {
+                    $submitBtn.prop('disabled', false).html('Submit');
+                    showSubmissionError(response.error || 'Failed to submit agent.');
+                }
+            },
+            error: function(xhr) {
+                $submitBtn.prop('disabled', false).html('Submit');
+                showSubmissionError(parseAjaxError(xhr, 'Failed to submit agent.'));
+            }
+        });
+    }
+
+    function parseAjaxError(xhr, defaultMsg) {
+        var msg = defaultMsg;
+        try {
+            var err = JSON.parse(xhr.responseText);
+            if (err.errors) {
+                var msgs = [];
+                for (var field in err.errors) {
+                    msgs.push(err.errors[field][0]);
+                }
+                msg = msgs.join(' ');
+            } else {
+                msg = err.error || err.message || msg;
+            }
+        } catch(e) {}
+        return msg;
+    }
+
+    function showSubmissionSuccess() {
         var successHtml = '<div class="text-center py-4">';
         successHtml += '<i class="fas fa-check-circle text-success fa-4x mb-3"></i>';
         successHtml += '<h4>Agent Submitted Successfully!</h4>';
         successHtml += '<p class="text-muted">Your RCS Agent registration has been submitted for review.</p>';
         successHtml += '<p class="text-muted">You will receive an email notification once the review is complete.</p>';
         successHtml += '</div>';
-        
+
         if ($('#validationSummaryModal').length) {
+            $('#validationSummaryModal .modal-header').css({'background-color': '#fff', 'border-bottom': '1px solid #e9ecef'});
             $('#validationSummaryModal .modal-title').html('<i class="fas fa-check-circle me-2 text-success"></i>Submission Complete');
             $('#validationSummaryModal .modal-body').html(successHtml);
-            $('#validationSummaryModal .modal-footer').html('<button type="button" class="btn btn-success" onclick="window.location.href=\'/management/rcs-agents\'">View My Agents</button>');
+            $('#validationSummaryModal .modal-footer').html('<button type="button" class="btn" style="background-color: var(--primary, #886CC0); color: #fff;" onclick="window.location.href=\'/management/rcs-agent\'">View My Agents</button>');
             $('#validationSummaryModal').modal('show');
         } else {
             var modalHtml = '<div class="modal fade" id="validationSummaryModal" tabindex="-1">';
             modalHtml += '<div class="modal-dialog modal-dialog-centered">';
             modalHtml += '<div class="modal-content">';
-            modalHtml += '<div class="modal-header bg-light">';
+            modalHtml += '<div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;">';
             modalHtml += '<h5 class="modal-title"><i class="fas fa-check-circle me-2 text-success"></i>Submission Complete</h5>';
             modalHtml += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button>';
             modalHtml += '</div>';
             modalHtml += '<div class="modal-body">' + successHtml + '</div>';
             modalHtml += '<div class="modal-footer">';
-            modalHtml += '<button type="button" class="btn btn-success" onclick="window.location.href=\'/management/rcs-agents\'">View My Agents</button>';
+            modalHtml += '<button type="button" class="btn" style="background-color: var(--primary, #886CC0); color: #fff;" onclick="window.location.href=\'/management/rcs-agent\'">View My Agents</button>';
             modalHtml += '</div></div></div></div>';
-            
+
+            $('body').append(modalHtml);
+            $('#validationSummaryModal').modal('show');
+        }
+    }
+
+    function showSubmissionError(msg) {
+        if ($('#validationSummaryModal').length) {
+            $('#validationSummaryModal .modal-header').css({'background-color': '#fff', 'border-bottom': '1px solid #e9ecef'});
+            $('#validationSummaryModal .modal-title').html('<i class="fas fa-times-circle me-2 text-danger"></i>Submission Failed').css('color', '#212529');
+            $('#validationSummaryModal .modal-body').html('<div class="text-center py-3"><p style="color: #212529;">' + msg + '</p></div>');
+            $('#validationSummaryModal .modal-footer').html('<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>');
+            $('#validationSummaryModal').modal('show');
+        } else {
+            var modalHtml = '<div class="modal fade" id="validationSummaryModal" tabindex="-1">';
+            modalHtml += '<div class="modal-dialog modal-dialog-centered"><div class="modal-content">';
+            modalHtml += '<div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #e9ecef;"><h5 class="modal-title" style="color: #212529;"><i class="fas fa-times-circle me-2 text-danger"></i>Submission Failed</h5>';
+            modalHtml += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>';
+            modalHtml += '<div class="modal-body"><div class="text-center py-3"><p style="color: #212529;">' + msg + '</p></div></div>';
+            modalHtml += '<div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>';
+            modalHtml += '</div></div></div>';
             $('body').append(modalHtml);
             $('#validationSummaryModal').modal('show');
         }
@@ -1695,9 +2024,14 @@ $(document).ready(function() {
         
         var $toolbar = $(this).find('.toolbar');
         if (stepIndex === 6) {
-            $toolbar.find('.sw-btn-next').text('Submit');
+            $toolbar.find('.sw-btn-next').hide();
+            if (!$toolbar.find('#wizardSubmitBtn').length) {
+                $toolbar.find('.sw-btn-next').after('<button type="button" id="wizardSubmitBtn" class="btn" style="background-color: var(--primary, #886CC0); border: 0; padding: 0.75rem 1.5rem; color: #fff; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">Submit</button>');
+            }
+            $toolbar.find('#wizardSubmitBtn').show();
         } else {
-            $toolbar.find('.sw-btn-next').text('Next');
+            $toolbar.find('.sw-btn-next').show().text('Next');
+            $toolbar.find('#wizardSubmitBtn').hide();
         }
     });
     

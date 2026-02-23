@@ -669,18 +669,16 @@
                                     @php $savedSector = $account->business_sector ?? ''; @endphp
                                     <select class="form-select company-field" id="companySector">
                                         <option value="">Select sector...</option>
-                                        <option value="telecommunications" @if($savedSector === 'telecommunications') selected @endif>Telecommunications & Media</option>
-                                        <option value="financial" @if($savedSector === 'financial') selected @endif>Financial Services</option>
-                                        <option value="healthcare" @if($savedSector === 'healthcare') selected @endif>Healthcare</option>
-                                        <option value="retail" @if($savedSector === 'retail') selected @endif>Retail & E-commerce</option>
-                                        <option value="travel" @if($savedSector === 'travel') selected @endif>Travel & Hospitality</option>
-                                        <option value="education" @if($savedSector === 'education') selected @endif>Education</option>
-                                        <option value="government" @if($savedSector === 'government') selected @endif>Government & Public Sector</option>
-                                        <option value="technology" @if($savedSector === 'technology') selected @endif>Technology</option>
-                                        <option value="manufacturing" @if($savedSector === 'manufacturing') selected @endif>Manufacturing</option>
-                                        <option value="professional" @if($savedSector === 'professional') selected @endif>Professional Services</option>
-                                        <option value="utilities" @if($savedSector === 'utilities') selected @endif>Utilities & Energy</option>
-                                        <option value="logistics" @if($savedSector === 'logistics') selected @endif>Logistics & Transport</option>
+                                        <option value="it-telecoms" @if($savedSector === 'it-telecoms') selected @endif>IT and Telecoms</option>
+                                        <option value="government" @if($savedSector === 'government') selected @endif>Government</option>
+                                        <option value="health" @if($savedSector === 'health') selected @endif>Health</option>
+                                        <option value="logistics" @if($savedSector === 'logistics') selected @endif>Logistics</option>
+                                        <option value="travel-transport" @if($savedSector === 'travel-transport') selected @endif>Travel and Transport</option>
+                                        <option value="finance" @if($savedSector === 'finance') selected @endif>Finance</option>
+                                        <option value="retail-hospitality" @if($savedSector === 'retail-hospitality') selected @endif>Retail and Hospitality</option>
+                                        <option value="media-leisure" @if($savedSector === 'media-leisure') selected @endif>Media and Leisure</option>
+                                        <option value="utilities" @if($savedSector === 'utilities') selected @endif>Utilities</option>
+                                        <option value="marketing-advertising" @if($savedSector === 'marketing-advertising') selected @endif>Marketing/Advertising Agency</option>
                                         <option value="other" @if($savedSector === 'other') selected @endif>Other</option>
                                     </select>
                                     <div class="validation-error">Please select a sector</div>
@@ -1094,233 +1092,6 @@
                 </div>
         
         <div class="row g-4" id="pricingTiersDisplay">
-            <!-- Starter Tier -->
-            <div class="col-md-4">
-                <div class="card pricing-display-card h-100">
-                    <div class="card-header pricing-header-starter text-center py-4">
-                        <h4 class="text-white mb-2">Starter</h4>
-                        <p class="text-white-50 mb-0 small">0 – 50,000 messages</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="pricing-section">
-                            <h6 class="pricing-section-title">SMS Rates</h6>
-                            <div class="pricing-rates">
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">SMS UK</span>
-                                        <span class="rate-basis">per SMS submitted</span>
-                                    </div>
-                                    <span class="rate-value">£0.034</span>
-                                </div>
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">SMS International</span>
-                                        <span class="rate-basis">per SMS submitted</span>
-                                    </div>
-                                    <span class="rate-value">£0.045</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pricing-section">
-                            <h6 class="pricing-section-title">RCS Rates</h6>
-                            <div class="pricing-rates">
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">RCS Basic</span>
-                                        <span class="rate-basis">per RCS submitted</span>
-                                    </div>
-                                    <span class="rate-value">£0.042</span>
-                                </div>
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">RCS Rich</span>
-                                        <span class="rate-basis">per RCS submitted</span>
-                                    </div>
-                                    <span class="rate-value">£0.065</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pricing-section">
-                            <h6 class="pricing-section-title">Other Services</h6>
-                            <div class="pricing-badges">
-                                <div class="pricing-badge">
-                                    <span class="badge-price">£0.002</span>
-                                    <span class="badge-label">AI Token</span>
-                                </div>
-                                <div class="pricing-badge">
-                                    <span class="badge-price">£5.00</span>
-                                    <span class="badge-label">VMN /mo</span>
-                                </div>
-                                <div class="pricing-badge">
-                                    <span class="badge-price">£25.00</span>
-                                    <span class="badge-label">Keyword /mo</span>
-                                </div>
-                            </div>
-                        </div>
-                        <hr>
-                        <ul class="pricing-features list-unstyled mb-0">
-                            <li><i class="fas fa-check text-success me-2"></i>Portal access</li>
-                            <li><i class="fas fa-check text-success me-2"></i>API access</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Email support</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Enterprise Tier -->
-            <div class="col-md-4">
-                <div class="card pricing-display-card h-100 pricing-active">
-                    <div class="active-badge">Your Plan</div>
-                    <div class="card-header pricing-header-enterprise text-center py-4">
-                        <h4 class="text-white mb-2">Enterprise</h4>
-                        <p class="text-white-50 mb-0 small">50,000 – 1,000,000 messages</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="pricing-section">
-                            <h6 class="pricing-section-title">SMS Rates</h6>
-                            <div class="pricing-rates">
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">SMS UK</span>
-                                        <span class="rate-basis">per delivered SMS</span>
-                                    </div>
-                                    <span class="rate-value">£0.028</span>
-                                </div>
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">SMS International</span>
-                                        <span class="rate-basis">per delivered SMS</span>
-                                    </div>
-                                    <span class="rate-value">£0.038</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pricing-section">
-                            <h6 class="pricing-section-title">RCS Rates</h6>
-                            <div class="pricing-rates">
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">RCS Basic</span>
-                                        <span class="rate-basis">per delivered RCS</span>
-                                    </div>
-                                    <span class="rate-value">£0.035</span>
-                                </div>
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">RCS Rich</span>
-                                        <span class="rate-basis">per delivered RCS</span>
-                                    </div>
-                                    <span class="rate-value">£0.052</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pricing-section">
-                            <h6 class="pricing-section-title">Other Services</h6>
-                            <div class="pricing-badges">
-                                <div class="pricing-badge">
-                                    <span class="badge-price">£0.0015</span>
-                                    <span class="badge-label">AI Token</span>
-                                </div>
-                                <div class="pricing-badge">
-                                    <span class="badge-price">£4.00</span>
-                                    <span class="badge-label">VMN /mo</span>
-                                </div>
-                                <div class="pricing-badge">
-                                    <span class="badge-price">£20.00</span>
-                                    <span class="badge-label">Keyword /mo</span>
-                                </div>
-                            </div>
-                        </div>
-                        <hr>
-                        <ul class="pricing-features list-unstyled mb-0">
-                            <li><i class="fas fa-check text-success me-2"></i>Portal access</li>
-                            <li><i class="fas fa-check text-success me-2"></i>API access</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Priority support</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Dedicated account manager</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Bespoke Tier -->
-            <div class="col-md-4">
-                <div class="card pricing-display-card h-100">
-                    <div class="card-header pricing-header-bespoke text-center py-4">
-                        <span class="badge bg-white text-dark mb-2"><i class="fas fa-gem me-1"></i>Custom</span>
-                        <h4 class="text-white mb-2">Bespoke</h4>
-                        <p class="text-white-50 mb-0 small">1,000,000+ messages</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="pricing-section">
-                            <h6 class="pricing-section-title">SMS Rates</h6>
-                            <div class="pricing-rates">
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">SMS UK</span>
-                                        <span class="rate-basis">per delivered SMS</span>
-                                    </div>
-                                    <span class="rate-value">Custom</span>
-                                </div>
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">SMS International</span>
-                                        <span class="rate-basis">per delivered SMS</span>
-                                    </div>
-                                    <span class="rate-value">Custom</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pricing-section">
-                            <h6 class="pricing-section-title">RCS Rates</h6>
-                            <div class="pricing-rates">
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">RCS Basic</span>
-                                        <span class="rate-basis">per delivered RCS</span>
-                                    </div>
-                                    <span class="rate-value">Custom</span>
-                                </div>
-                                <div class="rate-row">
-                                    <div class="rate-info">
-                                        <span class="rate-label">RCS Rich</span>
-                                        <span class="rate-basis">per delivered RCS</span>
-                                    </div>
-                                    <span class="rate-value">Custom</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pricing-section">
-                            <h6 class="pricing-section-title">Other Services</h6>
-                            <div class="pricing-badges">
-                                <div class="pricing-badge">
-                                    <span class="badge-price">Custom</span>
-                                    <span class="badge-label">AI Token</span>
-                                </div>
-                                <div class="pricing-badge">
-                                    <span class="badge-price">Custom</span>
-                                    <span class="badge-label">VMN /mo</span>
-                                </div>
-                                <div class="pricing-badge">
-                                    <span class="badge-price">Custom</span>
-                                    <span class="badge-label">Keyword /mo</span>
-                                </div>
-                            </div>
-                        </div>
-                        <hr>
-                        <ul class="pricing-features list-unstyled mb-0">
-                            <li><i class="fas fa-check text-success me-2"></i>All Enterprise features</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Volume discounts</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Custom SLAs</li>
-                            <li><i class="fas fa-check text-success me-2"></i>24/7 support</li>
-                        </ul>
-                    </div>
-                    <div class="card-footer bg-transparent text-center py-3">
-                        <a href="#" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-envelope me-1"></i>Contact Sales
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
         
         <div class="row mt-4">
@@ -1329,7 +1100,7 @@
                     <div class="d-flex align-items-start">
                         <i class="fas fa-info-circle text-primary me-2 mt-1"></i>
                         <div>
-                            <strong>Note:</strong> Pricing shown is from HubSpot and reflects your current agreement. VAT is applied separately on invoices where applicable. For pricing changes, please contact your account manager.
+                            <strong>Note:</strong> Pricing reflects your current agreement. VAT is applied separately on invoices where applicable. For pricing changes, please contact your account manager.
                         </div>
                     </div>
                 </div>
@@ -1353,102 +1124,243 @@ $(document).ready(function() {
         $('#vatDetailsSection').hide();
     }
 
-    // Pricing Service - Mock HubSpot Integration
     var PricingService = {
-        simulateError: false, // Set to true to test error state
-        
+        pricingLoaded: false,
+
         fetchPricing: function() {
             var self = this;
-            return new Promise(function(resolve, reject) {
-                // Show loading state
-                $('#pricingLoadingState').show();
+            $('#pricingLoadingState').show();
+            $('#pricingErrorState').hide();
+            $('#pricingContentLoaded').hide();
+
+            return $.ajax({
+                url: '/api/account/pricing',
+                method: 'GET',
+                dataType: 'json',
+                headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
+            }).then(function(data) {
+                self.pricingLoaded = true;
+                self.renderPricing(data);
+                $('#pricingLoadingState').hide();
                 $('#pricingErrorState').hide();
-                $('#pricingContentLoaded').hide();
-                
-                // Simulate API delay
-                setTimeout(function() {
-                    $('#pricingLoadingState').hide();
-                    
-                    if (self.simulateError) {
-                        // Simulate HubSpot API failure
-                        reject({ 
-                            message: 'Unable to connect to HubSpot. Please check your connection and try again.',
-                            code: 'HUBSPOT_UNAVAILABLE'
-                        });
-                    } else {
-                        // Simulate successful fetch
-                        resolve({
-                            currentPlan: 'enterprise',
-                            tiers: {
-                                starter: { sms: 0.065, rcs_rich: 0.085, rcs_basic: 0.068, ai_token: 0.002, vmn: 5.00, keyword: 25.00 },
-                                enterprise: { sms: 0.052, rcs_rich: 0.072, rcs_basic: 0.056, ai_token: 0.0015, vmn: 4.00, keyword: 20.00 },
-                                bespoke: { sms: 'custom', rcs_rich: 'custom', rcs_basic: 'custom', ai_token: 'custom', vmn: 'custom', keyword: 'custom' }
-                            },
-                            lastUpdated: new Date().toISOString()
-                        });
-                    }
-                }, 800);
+                $('#pricingContentLoaded').show();
+            }).catch(function(xhr) {
+                var msg = (xhr.responseJSON && xhr.responseJSON.error) || 'Failed to fetch pricing data. Please try again.';
+                self.showError({ message: msg });
             });
         },
-        
+
         showError: function(error) {
             $('#pricingLoadingState').hide();
             $('#pricingContentLoaded').hide();
             $('#pricingErrorMessage').text(error.message || 'Failed to fetch pricing data. Please try again.');
             $('#pricingErrorState').show();
         },
-        
-        showContent: function(data) {
-            $('#pricingLoadingState').hide();
-            $('#pricingErrorState').hide();
-            $('#pricingContentLoaded').show();
-            console.log('[PricingService] Pricing loaded:', data);
+
+        renderPricing: function(data) {
+            var currentTier = data.current_tier;
+            var isBespoke = data.is_bespoke;
+            var services = data.services;
+
+            var messageServices = services.filter(function(s) { return s.is_per_message && !s.bespoke_only; });
+            var otherServices = services.filter(function(s) { return !s.is_per_message && !s.bespoke_only; });
+
+            var colClass = isBespoke ? 'col-md-4' : 'col-md-6';
+            var html = '';
+
+            html += '<div class="' + colClass + '">';
+            html += this.renderTierCard('starter', 'Starter', currentTier, messageServices, otherServices, false);
+            html += '</div>';
+
+            html += '<div class="' + colClass + '">';
+            html += this.renderTierCard('enterprise', 'Enterprise', currentTier, messageServices, otherServices, false);
+            html += '</div>';
+
+            if (isBespoke) {
+                html += '<div class="' + colClass + '">';
+                html += this.renderBespokeCard(currentTier, services);
+                html += '</div>';
+            }
+
+            $('#pricingTiersDisplay').html(html);
+        },
+
+        renderTierCard: function(tier, tierLabel, currentTier, messageServices, otherServices, isBespoke) {
+            var isActive = (currentTier === tier);
+            var cardClass = isActive ? 'card pricing-display-card h-100 pricing-active' : 'card pricing-display-card h-100';
+            var headerClass = tier === 'starter' ? 'pricing-header-starter' : 'pricing-header-enterprise';
+            var subtitle = tier === 'starter' ? '0 – 50,000 messages' : '50,000 – 1,000,000 messages';
+
+            var html = '<div class="' + cardClass + '">';
+            if (isActive) html += '<div class="active-badge">Your Plan</div>';
+            html += '<div class="card-header ' + headerClass + ' text-center py-4">';
+            html += '<h4 class="text-white mb-2">' + tierLabel + '</h4>';
+            html += '<p class="text-white-50 mb-0 small">' + subtitle + '</p>';
+            html += '</div>';
+            html += '<div class="card-body">';
+
+            var priceKey = tier + '_formatted';
+            var grouped = this.groupServices(messageServices, otherServices);
+
+            for (var g = 0; g < grouped.length; g++) {
+                var group = grouped[g];
+                html += '<div class="pricing-section">';
+                html += '<h6 class="pricing-section-title">' + group.title + '</h6>';
+
+                if (group.type === 'rates') {
+                    html += '<div class="pricing-rates">';
+                    for (var i = 0; i < group.items.length; i++) {
+                        var svc = group.items[i];
+                        var price = svc[priceKey] || '—';
+                        html += '<div class="rate-row">';
+                        html += '<div class="rate-info">';
+                        html += '<span class="rate-label">' + svc.display_name + '</span>';
+                        html += '<span class="rate-basis">' + svc.unit_label + '</span>';
+                        html += '</div>';
+                        html += '<span class="rate-value">' + price + '</span>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                } else {
+                    html += '<div class="pricing-badges">';
+                    for (var j = 0; j < group.items.length; j++) {
+                        var svc2 = group.items[j];
+                        var price2 = svc2[priceKey] || '—';
+                        var label = svc2.display_name;
+                        if (svc2.is_recurring) label += ' /mo';
+                        html += '<div class="pricing-badge">';
+                        html += '<span class="badge-price">' + price2 + '</span>';
+                        html += '<span class="badge-label">' + label + '</span>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+
+            html += '<hr>';
+            html += '<ul class="pricing-features list-unstyled mb-0">';
+            if (tier === 'starter') {
+                html += '<li><i class="fas fa-check text-success me-2"></i>Portal access</li>';
+                html += '<li><i class="fas fa-check text-success me-2"></i>API access</li>';
+                html += '<li><i class="fas fa-check text-success me-2"></i>Email support</li>';
+            } else {
+                html += '<li><i class="fas fa-check text-success me-2"></i>Portal access</li>';
+                html += '<li><i class="fas fa-check text-success me-2"></i>API access</li>';
+                html += '<li><i class="fas fa-check text-success me-2"></i>Priority support</li>';
+                html += '<li><i class="fas fa-check text-success me-2"></i>Dedicated account manager</li>';
+            }
+            html += '</ul>';
+            html += '</div></div>';
+            return html;
+        },
+
+        renderBespokeCard: function(currentTier, allServices) {
+            var isActive = (currentTier === 'bespoke');
+            var cardClass = isActive ? 'card pricing-display-card h-100 pricing-active' : 'card pricing-display-card h-100';
+
+            var html = '<div class="' + cardClass + '">';
+            if (isActive) html += '<div class="active-badge">Your Plan</div>';
+            html += '<div class="card-header pricing-header-bespoke text-center py-4">';
+            html += '<span class="badge bg-white text-dark mb-2"><i class="fas fa-gem me-1"></i>Custom</span>';
+            html += '<h4 class="text-white mb-2">Bespoke</h4>';
+            html += '<p class="text-white-50 mb-0 small">1,000,000+ messages</p>';
+            html += '</div>';
+            html += '<div class="card-body">';
+
+            var messageServices = allServices.filter(function(s) { return s.is_per_message; });
+            var otherServices = allServices.filter(function(s) { return !s.is_per_message; });
+            var grouped = this.groupServices(messageServices, otherServices);
+
+            for (var g = 0; g < grouped.length; g++) {
+                var group = grouped[g];
+                html += '<div class="pricing-section">';
+                html += '<h6 class="pricing-section-title">' + group.title + '</h6>';
+
+                if (group.type === 'rates') {
+                    html += '<div class="pricing-rates">';
+                    for (var i = 0; i < group.items.length; i++) {
+                        var svc = group.items[i];
+                        var price = svc.bespoke_formatted || 'Custom';
+                        var basisLabel = svc.unit_label;
+                        if (svc.bespoke_billing_type) {
+                            basisLabel = svc.bespoke_billing_type.replace('_', ' ');
+                        }
+                        html += '<div class="rate-row">';
+                        html += '<div class="rate-info">';
+                        html += '<span class="rate-label">' + svc.display_name + '</span>';
+                        html += '<span class="rate-basis">' + basisLabel + '</span>';
+                        html += '</div>';
+                        html += '<span class="rate-value">' + price + '</span>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                } else {
+                    html += '<div class="pricing-badges">';
+                    for (var j = 0; j < group.items.length; j++) {
+                        var svc2 = group.items[j];
+                        var price2 = svc2.bespoke_formatted || 'Custom';
+                        var label = svc2.display_name;
+                        if (svc2.is_recurring) label += ' /mo';
+                        html += '<div class="pricing-badge">';
+                        html += '<span class="badge-price">' + price2 + '</span>';
+                        html += '<span class="badge-label">' + label + '</span>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+
+            html += '<hr>';
+            html += '<ul class="pricing-features list-unstyled mb-0">';
+            html += '<li><i class="fas fa-check text-success me-2"></i>All Enterprise features</li>';
+            html += '<li><i class="fas fa-check text-success me-2"></i>Volume discounts</li>';
+            html += '<li><i class="fas fa-check text-success me-2"></i>Custom SLAs</li>';
+            html += '<li><i class="fas fa-check text-success me-2"></i>24/7 support</li>';
+            html += '</ul>';
+            html += '</div>';
+            if (!isActive) {
+                html += '<div class="card-footer bg-transparent text-center py-3">';
+                html += '<a href="#" class="btn btn-outline-primary btn-sm">';
+                html += '<i class="fas fa-envelope me-1"></i>Contact Sales</a></div>';
+            }
+            html += '</div>';
+            return html;
+        },
+
+        groupServices: function(messageServices, otherServices) {
+            var groups = [];
+            var smsGroup = messageServices.filter(function(s) { return s.slug.indexOf('sms') !== -1; });
+            var rcsGroup = messageServices.filter(function(s) { return s.slug.indexOf('rcs') !== -1; });
+            var otherMsg = messageServices.filter(function(s) { return s.slug.indexOf('sms') === -1 && s.slug.indexOf('rcs') === -1; });
+
+            if (smsGroup.length > 0) groups.push({ title: 'SMS Rates', type: 'rates', items: smsGroup });
+            if (rcsGroup.length > 0) groups.push({ title: 'RCS Rates', type: 'rates', items: rcsGroup });
+            if (otherMsg.length > 0) groups.push({ title: 'Per-Message Services', type: 'rates', items: otherMsg });
+            if (otherServices.length > 0) groups.push({ title: 'Other Services', type: 'badges', items: otherServices });
+
+            return groups;
         }
     };
-    
-    // Load pricing when tab is clicked
+
     $('#pricing-tab').on('shown.bs.tab', function() {
-        // Only load if not already loaded
-        if ($('#pricingContentLoaded').is(':visible')) return;
-        
-        PricingService.fetchPricing()
-            .then(function(data) {
-                PricingService.showContent(data);
-            })
-            .catch(function(error) {
-                PricingService.showError(error);
-            });
+        if (PricingService.pricingLoaded) return;
+        PricingService.fetchPricing();
     });
-    
-    // Retry button
+
     $('#retryPricingBtn').on('click', function() {
-        PricingService.fetchPricing()
-            .then(function(data) {
-                PricingService.showContent(data);
-            })
-            .catch(function(error) {
-                PricingService.showError(error);
-            });
+        PricingService.fetchPricing();
     });
-    
-    // Refresh button
+
     $('#refreshPricingBtn').on('click', function() {
         var $btn = $(this);
         $btn.addClass('loading').prop('disabled', true);
-        
-        PricingService.fetchPricing()
-            .then(function(data) {
-                PricingService.showContent(data);
-            })
-            .catch(function(error) {
-                PricingService.showError(error);
-            })
-            .finally(function() {
-                $btn.removeClass('loading').prop('disabled', false);
-            });
+        PricingService.fetchPricing().always(function() {
+            $btn.removeClass('loading').prop('disabled', false);
+        });
     });
-    
-    // Expose for testing error state: PricingService.simulateError = true
+
     window.PricingService = PricingService;
     
     var originalValues = {};

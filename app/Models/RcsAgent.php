@@ -2,91 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
-/**
- * GREEN SIDE: RCS Agent Registration & Approval Workflow
- *
- * DATA CLASSIFICATION: Internal - Messaging Asset
- * SIDE: GREEN (customer portal accessible for own account)
- * TENANT ISOLATION: account_id scoped via RLS + global scope
- *
- * State machine follows the SenderId approval pattern with extended states
- * for pending_info/info_provided and suspension/revocation.
- */
 class RcsAgent extends Model
 {
-    use SoftDeletes;
-
-    protected $table = 'rcs_agents';
-
-    // =====================================================
-    // STATUS CONSTANTS
-    // =====================================================
+    use HasFactory, SoftDeletes;
 
     const STATUS_DRAFT = 'draft';
     const STATUS_SUBMITTED = 'submitted';
     const STATUS_IN_REVIEW = 'in_review';
     const STATUS_PENDING_INFO = 'pending_info';
     const STATUS_INFO_PROVIDED = 'info_provided';
+    const STATUS_SENT_TO_SUPPLIER = 'sent_to_supplier';
+    const STATUS_SUPPLIER_APPROVED = 'supplier_approved';
     const STATUS_APPROVED = 'approved';
     const STATUS_REJECTED = 'rejected';
     const STATUS_SUSPENDED = 'suspended';
     const STATUS_REVOKED = 'revoked';
-
-    // =====================================================
-    // BILLING CATEGORY CONSTANTS
-    // =====================================================
-
-    const BILLING_CONVERSATIONAL = 'conversational';
-    const BILLING_NON_CONVERSATIONAL = 'non-conversational';
-
-    // =====================================================
-    // USE CASE CONSTANTS
-    // =====================================================
-
-    const USE_CASE_OTP = 'otp';
-    const USE_CASE_TRANSACTIONAL = 'transactional';
-    const USE_CASE_PROMOTIONAL = 'promotional';
-    const USE_CASE_MULTI_USE = 'multi-use';
-
-    // =====================================================
-    // STATE MACHINE: Allowed transitions
-    // =====================================================
-
-    const TRANSITIONS = [
-        self::STATUS_DRAFT         => [self::STATUS_SUBMITTED],
-        self::STATUS_SUBMITTED     => [self::STATUS_IN_REVIEW],
-        self::STATUS_IN_REVIEW     => [self::STATUS_APPROVED, self::STATUS_REJECTED, self::STATUS_PENDING_INFO],
-        self::STATUS_PENDING_INFO  => [self::STATUS_INFO_PROVIDED],
-        self::STATUS_INFO_PROVIDED => [self::STATUS_IN_REVIEW, self::STATUS_APPROVED, self::STATUS_REJECTED, self::STATUS_PENDING_INFO],
-        self::STATUS_APPROVED      => [self::STATUS_SUSPENDED],
-        self::STATUS_REJECTED      => [self::STATUS_DRAFT],
-        self::STATUS_SUSPENDED     => [self::STATUS_APPROVED, self::STATUS_REVOKED],
-        self::STATUS_REVOKED       => [], // terminal state
-    ];
-
-    // Who can trigger each transition target
-    const TRANSITION_ACTORS = [
-        self::STATUS_SUBMITTED     => 'customer',
-        self::STATUS_IN_REVIEW     => 'admin',
-        self::STATUS_APPROVED      => 'admin',
-        self::STATUS_REJECTED      => 'admin',
-        self::STATUS_PENDING_INFO  => 'admin',
-        self::STATUS_INFO_PROVIDED => 'customer',
-        self::STATUS_SUSPENDED     => 'admin',
-        self::STATUS_REVOKED       => 'admin',
-        self::STATUS_DRAFT         => 'customer', // re-edit after rejection
-    ];
-
-    // =====================================================
-    // MODEL CONFIGURATION
-    // =====================================================
 
     protected $fillable = [
         'uuid',
@@ -120,262 +55,261 @@ class RcsAgent extends Model
         'approver_name',
         'approver_job_title',
         'approver_email',
+        'sector',
         'workflow_status',
-        'submitted_at',
-        'reviewed_by',
-        'reviewed_at',
         'rejection_reason',
         'admin_notes',
         'suspension_reason',
         'revocation_reason',
         'additional_info',
-        'version',
-        'version_history',
+        'submitted_at',
+        'reviewed_at',
+        'reviewed_by',
         'full_payload',
         'is_locked',
         'created_by',
+        'version',
+        'version_history',
     ];
 
     protected $casts = [
-        'account_id' => 'string',
-        'created_by' => 'string',
-        'reviewed_by' => 'string',
         'logo_crop_metadata' => 'array',
         'hero_crop_metadata' => 'array',
         'test_numbers' => 'array',
         'full_payload' => 'array',
+        'registered_address' => 'array',
         'version_history' => 'array',
         'show_phone' => 'boolean',
         'show_website' => 'boolean',
         'show_email' => 'boolean',
         'is_locked' => 'boolean',
-        'version' => 'integer',
         'submitted_at' => 'datetime',
         'reviewed_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-    ];
-
-    protected $hidden = [
-        'admin_notes', // RED side - never expose to customer portal
     ];
 
     protected static function boot()
     {
         parent::boot();
 
-        // Auto-generate UUID on create
         static::creating(function ($model) {
             if (empty($model->uuid)) {
                 $model->uuid = (string) Str::uuid();
             }
         });
-
-        // Auto-scope by tenant if authenticated
-        static::addGlobalScope('tenant', function (Builder $builder) {
-            if (auth()->check() && auth()->user()->tenant_id) {
-                $builder->where('rcs_agents.account_id', auth()->user()->tenant_id);
-            }
-        });
     }
 
-    // =====================================================
-    // RELATIONSHIPS
-    // =====================================================
+    public function statusHistories()
+    {
+        return $this->hasMany(RcsAgentStatusHistory::class)->orderBy('created_at', 'desc');
+    }
 
-    public function account(): BelongsTo
+    public function toPortalArray(): array
+    {
+        return [
+            'id' => $this->uuid,
+            'name' => $this->name,
+            'description' => $this->description,
+            'status' => str_replace('_', '-', $this->workflow_status ?? 'draft'),
+            'billing' => $this->billing_category,
+            'useCase' => str_replace('_', '-', $this->use_case ?? ''),
+            'created' => $this->created_at ? $this->created_at->toDateString() : null,
+            'updated' => $this->updated_at ? $this->updated_at->toDateString() : null,
+            'rejectionReason' => $this->rejection_reason,
+            'brandColor' => $this->brand_color ?? '#886CC0',
+            'logoUrl' => $this->logo_url,
+            'heroUrl' => $this->hero_url,
+            'supportPhone' => $this->support_phone,
+            'showPhone' => (bool) $this->show_phone,
+            'website' => $this->website,
+            'supportEmail' => $this->support_email,
+            'showEmail' => (bool) $this->show_email,
+            'privacyUrl' => $this->privacy_url,
+            'termsUrl' => $this->terms_url,
+            'useCaseOverview' => $this->use_case_overview,
+            'userConsent' => !empty($this->opt_in_description),
+            'optOutAvailable' => !empty($this->opt_out_description),
+            'monthlyVolume' => $this->monthly_volume,
+            'testNumbers' => $this->test_numbers ?? [],
+            'companyName' => $this->account ? $this->account->company_name : null,
+            'companyNumber' => $this->company_number,
+            'approverName' => $this->approver_name,
+            'approverJobTitle' => $this->approver_job_title,
+            'approverEmail' => $this->approver_email,
+        ];
+    }
+
+    public function account()
     {
         return $this->belongsTo(Account::class, 'account_id');
     }
 
-    public function createdBy(): BelongsTo
+    public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function reviewedBy(): BelongsTo
+    public function reviewedBy()
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
 
-    public function assignments(): HasMany
+    public function statusHistory()
     {
-        return $this->hasMany(RcsAgentAssignment::class, 'rcs_agent_id');
+        return $this->hasMany(RcsAgentStatusHistory::class)->orderBy('created_at', 'desc');
     }
 
-    public function statusHistory(): HasMany
+    public function comments()
     {
-        return $this->hasMany(RcsAgentStatusHistory::class, 'rcs_agent_id')
-            ->orderBy('created_at', 'desc');
+        return $this->hasMany(RcsAgentComment::class)->orderBy('created_at', 'desc');
     }
 
-    // Backward-compatible alias
-    public function statusHistories(): HasMany
+    public function customerComments()
     {
-        return $this->statusHistory();
+        return $this->hasMany(RcsAgentComment::class)->customerVisible()->orderBy('created_at', 'desc');
     }
 
-    public function comments(): HasMany
+    public function assignments()
     {
-        return $this->hasMany(RcsAgentComment::class, 'rcs_agent_id');
+        return $this->hasMany(RcsAgentAssignment::class)->orderBy('created_at', 'desc');
     }
 
-    public function customerComments(): HasMany
+    public function toAdminArray(): array
     {
-        return $this->comments()->customerVisible()->orderBy('created_at', 'desc');
+        $createdByUser = $this->relationLoaded('createdBy') ? $this->createdBy : null;
+
+        return [
+            'id' => $this->uuid,
+            'uuid' => $this->uuid,
+            'account_id' => $this->account_id,
+            'name' => $this->name,
+            'description' => $this->description,
+            'brand_color' => $this->brand_color ?? '#886CC0',
+            'logo_url' => $this->logo_url,
+            'logo_crop_metadata' => $this->logo_crop_metadata,
+            'hero_url' => $this->hero_url,
+            'hero_crop_metadata' => $this->hero_crop_metadata,
+            'support_phone' => $this->support_phone,
+            'support_email' => $this->support_email,
+            'website' => $this->website,
+            'privacy_url' => $this->privacy_url,
+            'terms_url' => $this->terms_url,
+            'show_phone' => (bool) $this->show_phone,
+            'show_email' => (bool) $this->show_email,
+            'show_website' => (bool) $this->show_website,
+            'billing_category' => $this->billing_category,
+            'use_case' => $this->use_case,
+            'use_case_overview' => $this->use_case_overview,
+            'campaign_frequency' => $this->campaign_frequency,
+            'monthly_volume' => $this->monthly_volume,
+            'opt_in_description' => $this->opt_in_description,
+            'opt_out_description' => $this->opt_out_description,
+            'test_numbers' => $this->test_numbers ?? [],
+            'company_number' => $this->company_number,
+            'company_website' => $this->company_website,
+            'registered_address' => $this->registered_address,
+            'approver_name' => $this->approver_name,
+            'approver_job_title' => $this->approver_job_title,
+            'approver_email' => $this->approver_email,
+            'sector' => $this->sector,
+            'workflow_status' => $this->workflow_status,
+            'submitted_at' => $this->submitted_at,
+            'reviewed_at' => $this->reviewed_at,
+            'reviewed_by' => $this->reviewed_by,
+            'rejection_reason' => $this->rejection_reason,
+            'admin_notes' => $this->admin_notes,
+            'suspension_reason' => $this->suspension_reason,
+            'revocation_reason' => $this->revocation_reason,
+            'additional_info' => $this->additional_info,
+            'version' => $this->version,
+            'full_payload' => $this->full_payload,
+            'is_locked' => (bool) $this->is_locked,
+            'created_by' => $this->created_by,
+            'created_by_name' => $createdByUser ? trim(($createdByUser->first_name ?? '') . ' ' . ($createdByUser->last_name ?? '')) : null,
+            'created_by_email' => $createdByUser->email ?? null,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
     }
 
-    public function internalComments(): HasMany
+    public function isEditable(): bool
     {
-        return $this->comments()->internal()->orderBy('created_at', 'desc');
+        return in_array($this->workflow_status, [self::STATUS_DRAFT, self::STATUS_REJECTED, self::STATUS_PENDING_INFO]);
     }
 
-    // =====================================================
-    // STATE MACHINE
-    // =====================================================
+    public function isLocked(): bool
+    {
+        return in_array($this->workflow_status, [self::STATUS_SUBMITTED, self::STATUS_IN_REVIEW, self::STATUS_SENT_TO_SUPPLIER, self::STATUS_SUPPLIER_APPROVED, self::STATUS_APPROVED]);
+    }
 
-    /**
-     * Transition to a new workflow status with full validation and audit trail
-     *
-     * @param string $newStatus Target status
-     * @param string|null $actorId User ID performing the transition
-     * @param string|null $reason Reason for the transition
-     * @param string|null $notes Additional notes
-     * @param mixed $actingUser User model for audit (name, email)
-     * @return bool
-     * @throws \InvalidArgumentException if transition is not allowed
-     */
-    public function transitionTo(
-        string $newStatus,
-        ?string $actorId = null,
-        ?string $reason = null,
-        ?string $notes = null,
-        $actingUser = null
-    ): bool {
+    public function transitionTo(string $newStatus, $userId, ?string $reason = null, ?string $notes = null, $actingUser = null): void
+    {
         $oldStatus = $this->workflow_status;
 
-        // Validate transition is allowed
-        $allowedTransitions = self::TRANSITIONS[$oldStatus] ?? [];
-        if (!in_array($newStatus, $allowedTransitions)) {
-            throw new \InvalidArgumentException(
-                "Invalid transition from '{$oldStatus}' to '{$newStatus}'. Allowed: " . implode(', ', $allowedTransitions)
-            );
-        }
-
-        // Apply status-specific logic
-        switch ($newStatus) {
-            case self::STATUS_SUBMITTED:
-                $this->full_payload = $this->toArray();
-                $this->submitted_at = now();
-                $this->is_locked = true;
-                break;
-
-            case self::STATUS_IN_REVIEW:
-                $this->is_locked = true;
-                break;
-
-            case self::STATUS_APPROVED:
-                $this->reviewed_at = now();
-                $this->reviewed_by = $actorId;
-                $this->is_locked = true;
-                $this->rejection_reason = null;
-                break;
-
-            case self::STATUS_REJECTED:
-                $this->reviewed_at = now();
-                $this->reviewed_by = $actorId;
-                $this->rejection_reason = $reason;
-                $this->is_locked = false;
-                $this->full_payload = array_merge($this->full_payload ?? [], [
-                    'rejection_reason' => $reason,
-                    'reviewed_at' => now()->toIso8601String(),
-                ]);
-                break;
-
-            case self::STATUS_PENDING_INFO:
-                $this->admin_notes = $notes ?? $this->admin_notes;
-                break;
-
-            case self::STATUS_INFO_PROVIDED:
-                $this->additional_info = $reason; // customer's response
-                break;
-
-            case self::STATUS_DRAFT:
-                // Re-edit after rejection: bump version, archive previous state
-                $this->is_locked = false;
-                $this->version = ($this->version ?? 1) + 1;
-                $history = $this->version_history ?? [];
-                $history[] = [
-                    'version' => $this->version - 1,
-                    'payload' => $this->full_payload,
-                    'rejected_at' => $this->reviewed_at?->toIso8601String(),
-                    'rejection_reason' => $this->rejection_reason,
-                ];
-                $this->version_history = $history;
-                $this->rejection_reason = null;
-                $this->reviewed_at = null;
-                $this->reviewed_by = null;
-                break;
-
-            case self::STATUS_SUSPENDED:
-                $this->suspension_reason = $reason;
-                $this->is_locked = true;
-                break;
-
-            case self::STATUS_REVOKED:
-                $this->revocation_reason = $reason;
-                $this->is_locked = true;
-                break;
+        if ($newStatus === self::STATUS_SUBMITTED) {
+            $this->full_payload = $this->toArray();
+            $this->submitted_at = now();
+            $this->is_locked = true;
+        } elseif ($newStatus === self::STATUS_REJECTED) {
+            $this->rejection_reason = $reason;
+            $this->reviewed_at = now();
+            $this->reviewed_by = $userId;
+            $this->is_locked = false;
+            $this->full_payload = array_merge($this->full_payload ?? [], [
+                'rejection_reason' => $reason,
+                'reviewed_at' => now()->toIso8601String(),
+            ]);
+        } elseif ($newStatus === self::STATUS_SENT_TO_SUPPLIER) {
+            $this->reviewed_at = now();
+            $this->reviewed_by = $userId;
+            $this->is_locked = true;
+        } elseif ($newStatus === self::STATUS_SUPPLIER_APPROVED) {
+            $this->is_locked = true;
+        } elseif ($newStatus === self::STATUS_APPROVED) {
+            $this->reviewed_at = now();
+            $this->reviewed_by = $userId;
+            $this->is_locked = true;
+        } elseif ($newStatus === self::STATUS_PENDING_INFO) {
+            $this->is_locked = false;
+        } elseif ($newStatus === self::STATUS_DRAFT) {
+            $this->is_locked = false;
+        } elseif ($newStatus === self::STATUS_SUSPENDED) {
+            $this->suspension_reason = $reason;
+            $this->is_locked = true;
+        } elseif ($newStatus === self::STATUS_REVOKED) {
+            $this->revocation_reason = $reason;
+            $this->is_locked = true;
         }
 
         $this->workflow_status = $newStatus;
         $this->save();
 
-        // Record status history
-        $this->recordStatusHistory(
-            $oldStatus,
-            $newStatus,
-            $this->getActionForTransition($oldStatus, $newStatus),
-            $actorId,
-            $reason,
-            $notes,
-            $actingUser
-        );
-
-        return true;
+        $this->recordStatusHistory($oldStatus, $newStatus, $this->getActionForTransition($oldStatus, $newStatus), $userId, $reason, $notes, $actingUser);
     }
 
-    /**
-     * Backward-compatible transition method (delegates to transitionTo)
-     */
     public function transitionStatus(string $newStatus, $userId, ?string $reason = null, ?string $notes = null, $actingUser = null): void
     {
-        $this->transitionTo($newStatus, (string) $userId, $reason, $notes, $actingUser);
+        $this->transitionTo($newStatus, $userId, $reason, $notes, $actingUser);
     }
 
-    /**
-     * Record a status transition in the audit history
-     */
     public function recordStatusHistory(
         ?string $fromStatus,
         string $toStatus,
         string $action,
-        ?string $userId = null,
+        $userId,
         ?string $reason = null,
         ?string $notes = null,
         $actingUser = null
     ): RcsAgentStatusHistory {
         $ipAddress = null;
         $userAgent = null;
-
+        
         try {
             $ipAddress = request()->ip();
             $userAgent = request()->userAgent();
         } catch (\Exception $e) {
-            // CLI or queue context
         }
-
-        return $this->statusHistory()->create([
+        
+        return $this->statusHistories()->create([
             'from_status' => $fromStatus,
             'to_status' => $toStatus,
             'action' => $action,
@@ -383,16 +317,13 @@ class RcsAgent extends Model
             'notes' => $notes,
             'payload_snapshot' => $this->full_payload,
             'user_id' => $userId,
-            'user_name' => $actingUser ? ($actingUser->first_name . ' ' . $actingUser->last_name) : null,
-            'user_email' => $actingUser ? $actingUser->email : null,
+            'user_name' => $actingUser ? $actingUser->name ?? null : null,
+            'user_email' => $actingUser ? $actingUser->email ?? null : null,
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
         ]);
     }
 
-    /**
-     * Map transitions to human-readable action names
-     */
     protected function getActionForTransition(?string $from, string $to): string
     {
         $transitions = [
@@ -400,178 +331,25 @@ class RcsAgent extends Model
             'submitted_in_review' => 'review_started',
             'in_review_approved' => 'approved',
             'in_review_rejected' => 'rejected',
-            'in_review_pending_info' => 'info_requested',
-            'pending_info_info_provided' => 'info_provided',
-            'info_provided_in_review' => 'review_resumed',
-            'rejected_draft' => 'resubmission_started',
+            'in_review_pending_info' => 'returned_to_customer',
+            'submitted_sent_to_supplier' => 'sent_to_supplier',
+            'submitted_rejected' => 'rejected',
+            'submitted_pending_info' => 'returned_to_customer',
+            'pending_info_submitted' => 'resubmitted',
+            'info_provided_sent_to_supplier' => 'sent_to_supplier',
+            'info_provided_rejected' => 'rejected',
+            'info_provided_pending_info' => 'returned_to_customer',
+            'rejected_submitted' => 'resubmitted',
+            'in_review_sent_to_supplier' => 'sent_to_supplier',
+            'sent_to_supplier_supplier_approved' => 'supplier_approved',
+            'supplier_approved_approved' => 'approved',
             'approved_suspended' => 'suspended',
+            'supplier_approved_suspended' => 'suspended',
             'suspended_approved' => 'reactivated',
             'suspended_revoked' => 'revoked',
         ];
 
         $key = ($from ?? 'null') . '_' . $to;
         return $transitions[$key] ?? 'status_changed';
-    }
-
-    // =====================================================
-    // STATUS CHECKS
-    // =====================================================
-
-    public function isUsable(): bool
-    {
-        return $this->workflow_status === self::STATUS_APPROVED;
-    }
-
-    public function isEditable(): bool
-    {
-        return in_array($this->workflow_status, [self::STATUS_DRAFT, self::STATUS_REJECTED]);
-    }
-
-    public function isLocked(): bool
-    {
-        return in_array($this->workflow_status, [
-            self::STATUS_SUBMITTED,
-            self::STATUS_IN_REVIEW,
-            self::STATUS_PENDING_INFO,
-            self::STATUS_APPROVED,
-            self::STATUS_SUSPENDED,
-            self::STATUS_REVOKED,
-        ]);
-    }
-
-    public function isPending(): bool
-    {
-        return in_array($this->workflow_status, [
-            self::STATUS_SUBMITTED,
-            self::STATUS_IN_REVIEW,
-            self::STATUS_PENDING_INFO,
-            self::STATUS_INFO_PROVIDED,
-        ]);
-    }
-
-    public function canCustomerProvideInfo(): bool
-    {
-        return $this->workflow_status === self::STATUS_PENDING_INFO;
-    }
-
-    // =====================================================
-    // SCOPES
-    // =====================================================
-
-    public function scopeUsable($query)
-    {
-        return $query->where('workflow_status', self::STATUS_APPROVED);
-    }
-
-    public function scopePending($query)
-    {
-        return $query->whereIn('workflow_status', [
-            self::STATUS_SUBMITTED,
-            self::STATUS_IN_REVIEW,
-            self::STATUS_PENDING_INFO,
-            self::STATUS_INFO_PROVIDED,
-        ]);
-    }
-
-    public function scopeForAccount($query, string $accountId)
-    {
-        return $query->withoutGlobalScope('tenant')->where('account_id', $accountId);
-    }
-
-    /**
-     * Get approved RCS Agents usable by a specific user
-     * Checks: account-level (no assignments = available to all) OR assigned to user OR assigned to user's sub-account
-     */
-    public function scopeUsableByUser($query, User $user)
-    {
-        return $query->where('workflow_status', self::STATUS_APPROVED)
-            ->where('account_id', $user->tenant_id)
-            ->where(function ($q) use ($user) {
-                // Agents with no assignments are available to all users on the account
-                $q->whereDoesntHave('assignments')
-                    // OR assigned directly to this user
-                    ->orWhereHas('assignments', function ($assignQ) use ($user) {
-                        $assignQ->where(function ($innerQ) use ($user) {
-                            $innerQ->where('assignable_type', User::class)
-                                ->where('assignable_id', $user->id);
-                        });
-                        if ($user->sub_account_id) {
-                            $assignQ->orWhere(function ($innerQ) use ($user) {
-                                $innerQ->where('assignable_type', SubAccount::class)
-                                    ->where('assignable_id', $user->sub_account_id);
-                            });
-                        }
-                    });
-            });
-    }
-
-    // =====================================================
-    // PORTAL METHODS
-    // =====================================================
-
-    /**
-     * Format for customer portal display
-     * NEVER expose admin_notes (RED side)
-     */
-    public function toPortalArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'uuid' => $this->uuid,
-            'name' => $this->name,
-            'description' => $this->description,
-            'brand_color' => $this->brand_color,
-            'logo_url' => $this->logo_url,
-            'hero_url' => $this->hero_url,
-            'billing_category' => $this->billing_category,
-            'use_case' => $this->use_case,
-            'support_phone' => $this->support_phone,
-            'website' => $this->website,
-            'support_email' => $this->support_email,
-            'privacy_url' => $this->privacy_url,
-            'terms_url' => $this->terms_url,
-            'show_phone' => $this->show_phone,
-            'show_website' => $this->show_website,
-            'show_email' => $this->show_email,
-            'campaign_frequency' => $this->campaign_frequency,
-            'monthly_volume' => $this->monthly_volume,
-            'opt_in_description' => $this->opt_in_description,
-            'opt_out_description' => $this->opt_out_description,
-            'use_case_overview' => $this->use_case_overview,
-            'company_number' => $this->company_number,
-            'company_website' => $this->company_website,
-            'registered_address' => $this->registered_address,
-            'approver_name' => $this->approver_name,
-            'approver_job_title' => $this->approver_job_title,
-            'approver_email' => $this->approver_email,
-            'workflow_status' => $this->workflow_status,
-            'submitted_at' => $this->submitted_at?->toIso8601String(),
-            'reviewed_at' => $this->reviewed_at?->toIso8601String(),
-            'rejection_reason' => $this->rejection_reason,
-            'version' => $this->version,
-            'is_locked' => $this->is_locked,
-            'created_at' => $this->created_at?->toIso8601String(),
-        ];
-    }
-
-    /**
-     * Format for admin display (includes RED side data)
-     */
-    public function toAdminArray(): array
-    {
-        return array_merge($this->toPortalArray(), [
-            'admin_notes' => $this->admin_notes,
-            'suspension_reason' => $this->suspension_reason,
-            'revocation_reason' => $this->revocation_reason,
-            'additional_info' => $this->additional_info,
-            'full_payload' => $this->full_payload,
-            'version_history' => $this->version_history,
-            'logo_crop_metadata' => $this->logo_crop_metadata,
-            'hero_crop_metadata' => $this->hero_crop_metadata,
-            'test_numbers' => $this->test_numbers,
-            'created_by' => $this->created_by,
-            'reviewed_by' => $this->reviewed_by,
-            'account_id' => $this->account_id,
-        ]);
     }
 }

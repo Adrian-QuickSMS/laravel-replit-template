@@ -1,0 +1,163 @@
+You are working inside the QuickSMS monorepo (Replit project) that contains BOTH the Customer Portal and the Admin Console (Fillow template). 
+
+TASK:
+Produce a “Billing Platform Spec Pack” that documents (1) what is already built in the UI and code, and (2) what backend design/data/APIs exist or need to exist for Balance/Credit, Pricing, Billing and Invoicing. This must cover BOTH Customer Portal and Admin Console.
+
+CRITICAL RULES:
+1) DO NOT invent screens or code locations. You MUST inspect the repository and cite real file paths, folder names, routes, controllers/services, components and DB models that exist today. If something is missing, state clearly “NOT IMPLEMENTED” and propose the exact additions (tables/endpoints/services) needed.
+2) Admin Console is a superset: any admin overrides must not change logic definitions vs customer portal, only scope (global) and permissions.
+3) UI must use Fillow components; Admin uses blue tokens but otherwise identical patterns. Customer uses purple.
+4) Use UK terminology and GBP defaults.
+
+DELIVERABLE FORMAT:
+Produce a single structured document with the following sections (use headings exactly as below):
+
+A. Executive Summary
+- One-page summary of how Balance/Credit, Pricing, Billing, Invoicing work end-to-end.
+- Identify system sources of truth (HubSpot, internal DB/ledger, Xero).
+
+B. Glossary (Must Include)
+- Balance, Credit Limit, Available Credit, Available Balance
+- Test Credit (100 fragments/messages test allowance) and how it differs from real balance
+- Prepay vs Postpay
+- Billing basis: Submitted vs Delivered
+- Invoice status impacts on balance
+
+C. Current UI Spec (AS-BUILT) — Customer Portal
+For each area below:
+- Describe where it is in navigation
+- What fields are shown
+- What actions exist
+- What validations / business rules are implied by the UI
+- The exact component/page route and the file path(s) in git
+
+Include:
+C1) Dashboard: where Balance/Credit/Available Balance appears, and any banners/alerts
+C2) Account > Details: VAT/business info used for invoicing
+C3) Account > Security Settings: anything that influences billing (if any)
+C4) Billing/Payments/Invoices screens (where customer sees invoices, payments, topups)
+C5) Anywhere else balance/pricing is displayed (pricing pages, send-message warnings, etc.)
+C6) Notification UX: low balance notifications / thresholds and how they appear
+
+D. Current UI Spec (AS-BUILT) — Admin Console
+Same style as section C, but covering:
+D1) Admin > Invoices & Payments > Invoices (global view)
+D2) Admin > Accounts table billing icon modal/page (customer-scoped billing control centre)
+D3) “Create Invoice / Create Credit” modal flow (Xero integration UI)
+D4) Admin pricing views (pricing icon / pricing drill) and any edit flows
+D5) Admin restrictions: what admins can override vs what customers cannot
+
+E. Data Model & Storage (Backend)
+Define the backend data model required to support everything, using real existing migrations/models if present. If missing, specify new tables and fields.
+
+Must include at minimum:
+
+E1) Accounts billing profile (tied to Account > Details)
+- Legal entity name, address, VAT number, VAT handling rules
+- Billing email
+- Payment terms (for postpay: 15/30/60 days)
+- Billing type: prepaid/postpaid
+- Billing basis: submitted/delivered (and which products allow it: Starter/Enterprise default submitted; Bespoke may use delivered)
+- HubSpot identifiers (company id / deal id / pricing object id)
+- Xero contact id mapping
+
+E2) Balance & Ledger
+- “Real balance” ledger (topups, invoice payments, credits, adjustments)
+- Credit limit for postpay
+- Available balance calculation: (balance + credit limit) (or explain if outstanding model differs)
+- How to store and compute “available credit” vs “balance”
+- Test credit allowance and lifecycle (only valid in Test Mode, expires on Live activation, must not mix with real balance)
+- Events that mutate balance (message sends, purchases of numbers, AI tokens, etc.)
+
+E3) Pricing
+- Product tiers: Starter / Enterprise / Bespoke
+- Services list: SMS, RCS Basic, RCS Single, AI Token, VMN, Dedicated shortcode, Free-to-end-user shortcode, Inbound SMS
+- Country-specific pricing: country list is derived from MCC mapping
+- Pricing basis per product/service: submitted vs delivered
+- Storage structure: price books, overrides, effective dates, audit trail
+- Sync model with HubSpot as primary, but Admin Console can edit:
+  - Two-way update process: describe exactly how to avoid drift/conflicts (locking/versioning, last-write-wins, timestamps, reconciliation job)
+  - API contracts for HubSpot pull/push
+
+E4) Invoicing & Xero
+You must define two tables as requested (or map to existing ones):
+Table 1: Invoice Header (invoice_id, account_id, xero_invoice_id, invoice_number, dates, status, totals, VAT, billing address snapshot, etc.)
+Table 2: Invoice Line Items (invoice_id FK, service, description, quantity, unit_price, subtotal, VAT rate, tax, total)
+
+- Explain invoice status lifecycle: Draft/Sent/Authorised/Paid/Void/etc (use Xero’s terminology) and map to internal statuses
+- Explain how status impacts balance:
+  - Prepay: invoice marked Paid immediately when payment succeeds (or when topup is confirmed)
+  - Postpay: invoices affect outstanding, credit exposure, and available credit
+- Handling credit notes / credits (preferred: Xero credit note) and mapping to internal ledger
+- Unique identifiers: invoice_id + account_id + user_id (if needed)
+
+F. Core Business Logic (Backend)
+Provide exact logic rules as pseudocode + references to existing code if present:
+
+F1) Available Balance calculations
+F2) Test Mode credit enforcement (100 fragments) vs real ledger
+F3) “Submitted” billing: deduct at submission time
+F4) “Delivered” billing: deduct only on successful handset DLR; define when the deduction happens (DLR pipeline)
+F5) Low balance notifications: thresholds, frequency, throttling, per-account configs, email recipients
+F6) Postpay terms: invoice due dates, overdue handling, suspension triggers (if any)
+
+G. API Endpoints (Internal + External Integrations)
+List all endpoints that exist today (with routes + controllers paths). If missing, propose them.
+
+Must include:
+- Customer pricing fetch
+- Admin pricing update
+- HubSpot sync endpoints/jobs
+- Xero create invoice/credit endpoints
+- Invoice list/detail endpoints (customer-scoped and global)
+- Balance/ledger endpoints
+- Webhook handlers for Xero payment status updates (if used)
+- Security: authentication/authorization requirements per endpoint
+
+H. Permissions & Guardrails
+- Who can view/edit balance/credit/pricing/invoices in customer portal
+- Who can view/edit in admin console
+- Confirm “customer cannot override admin suspensions” rule
+- Audit log events required for:
+  - pricing change
+  - credit limit change
+  - billing type change
+  - invoice/credit creation
+  - payment status updates
+
+I. “Where in Git” — Code Map (Mandatory)
+This section must be concrete and repo-verified.
+
+Include:
+- Frontend routes/pages/components for customer + admin
+- Backend controllers/services
+- Models/migrations
+- Integration clients (HubSpot, Xero)
+- Jobs/queues/webhooks
+For each, provide:
+- file path
+- brief description
+- key functions/classes
+
+Method:
+Use repo search to find keywords like: “invoice”, “xero”, “hubspot”, “balance”, “credit”, “ledger”, “pricing”, “billing”, “payment”, “topup”, “availableBalance”, “submitted”, “delivered”.
+
+J. Gaps & Implementation Plan
+Only after documenting the as-built system:
+- list what is missing or inconsistent
+- propose exact additions with:
+  - new DB tables/fields
+  - new endpoints
+  - UI wiring changes
+  - integration changes
+  - migration strategy
+  - test plan
+
+OUTPUT QUALITY BAR:
+- This document must read like an internal engineering spec.
+- Use tables where helpful.
+- Be explicit about edge cases.
+- Never invent file paths: verify them in repo first.
+- If you cannot find something, mark it “NOT FOUND IN REPO” and propose the most likely correct location + what to create.
+
+Now produce the full document.

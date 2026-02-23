@@ -147,6 +147,30 @@
     background: rgba(220, 53, 69, 0.15);
     color: #dc3545;
 }
+.badge-pending-info {
+    background: rgba(255, 152, 0, 0.15);
+    color: #e65100;
+}
+.badge-info-provided {
+    background: rgba(48, 101, 208, 0.15);
+    color: #3065D0;
+}
+.badge-sent-to-supplier {
+    background: rgba(67, 56, 202, 0.15);
+    color: #4338ca;
+}
+.badge-supplier-approved {
+    background: rgba(15, 118, 110, 0.15);
+    color: #0f766e;
+}
+.badge-suspended {
+    background: rgba(108, 117, 125, 0.15);
+    color: #6c757d;
+}
+.badge-revoked {
+    background: rgba(0, 0, 0, 0.15);
+    color: #333;
+}
 .badge-conversational {
     background: rgba(48, 101, 208, 0.15);
     color: #3065D0;
@@ -795,6 +819,8 @@
                                 <option value="draft">Draft</option>
                                 <option value="submitted">Submitted</option>
                                 <option value="in-review">In Review</option>
+                                <option value="pending-info">Returned</option>
+                                <option value="info-provided">Info Provided</option>
                                 <option value="approved">Approved</option>
                                 <option value="rejected">Rejected</option>
                             </select>
@@ -887,6 +913,24 @@
                             <div>
                                 <strong>Rejection Reason</strong>
                                 <p class="mb-0 mt-1" id="viewAgentRejectionReason"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3" id="viewReturnedCommentsContainer" style="display: none;">
+                    <div class="alert alert-warning mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-reply me-2 mt-1"></i>
+                            <div style="width: 100%;">
+                                <strong>Returned for Review</strong>
+                                <p class="text-muted small mb-2">Our review team has returned this agent with the following comments. Please address them and resubmit.</p>
+                                <div id="viewReturnedCommentsList"></div>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="var modal = bootstrap.Modal.getInstance(document.getElementById('viewAgentModal')); if(modal) modal.hide(); var agentId = document.getElementById('viewReturnedCommentsContainer').dataset.agentId; editAgent(agentId);">
+                                        <i class="fas fa-edit me-1"></i> Edit & Resubmit
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1065,6 +1109,24 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-info" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="returnCommentsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title"><i class="fas fa-comments me-2 text-warning"></i>Review Comments — <span id="returnCommentsAgentName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="returnCommentsBody">
+                <div class="text-center py-3"><i class="fas fa-spinner fa-spin me-2"></i>Loading comments...</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="returnCommentsEditBtn"><i class="fas fa-edit me-1"></i> Edit & Resubmit</button>
             </div>
         </div>
     </div>
@@ -1940,264 +2002,41 @@ function getCurrentUserId() {
 }
 
 
-var mockAgents = [
-    {
-        id: 'agent-001',
-        name: 'QuickSMS Notifications',
-        description: 'Official transactional messaging agent for order confirmations and delivery updates.',
-        status: 'approved',
-        billing: 'conversational',
-        useCase: 'transactional',
-        created: '2025-09-15',
-        updated: '2025-10-02',
-        rejectionReason: null,
-        brandColor: '#886CC0',
-        logoUrl: '/images/placeholder-logo.png',
-        heroUrl: '/images/placeholder-hero.png',
-        supportPhone: '+44 20 7946 0958',
-        showPhone: true,
-        website: 'https://quicksms.example.com',
-        supportEmail: 'support@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Sends order confirmations, shipping updates, and delivery notifications to customers who have made purchases.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '50,000 - 100,000',
-        testNumbers: ['+447911123456', '+447911123457', '+447911123458'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'Sarah Johnson',
-        approverJobTitle: 'Head of Marketing',
-        approverEmail: 'sarah.johnson@quicksms.example.com'
-    },
-    {
-        id: 'agent-002',
-        name: 'Marketing Campaigns',
-        description: 'Promotional messaging agent for marketing campaigns and special offers.',
-        status: 'approved',
-        billing: 'non-conversational',
-        useCase: 'promotional',
-        created: '2025-08-20',
-        updated: '2025-09-10',
-        rejectionReason: null,
-        brandColor: '#3065D0',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0959',
-        showPhone: false,
-        website: 'https://marketing.quicksms.example.com',
-        supportEmail: 'marketing@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Sends promotional offers, discounts, and marketing messages to opted-in customers.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '100,000 - 500,000',
-        testNumbers: ['+447911234567'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'John Smith',
-        approverJobTitle: 'Marketing Director',
-        approverEmail: 'john.smith@quicksms.example.com'
-    },
-    {
-        id: 'agent-003',
-        name: 'OTP Verification',
-        description: 'Secure one-time password delivery for two-factor authentication.',
-        status: 'in-review',
-        billing: 'non-conversational',
-        useCase: 'otp',
-        created: '2025-12-01',
-        updated: '2025-12-01',
-        rejectionReason: null,
-        brandColor: '#1cbb8c',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0960',
-        showPhone: true,
-        website: 'https://auth.quicksms.example.com',
-        supportEmail: 'security@quicksms.example.com',
-        showEmail: false,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Delivers OTP codes for account verification, password resets, and two-factor authentication.',
-        userConsent: true,
-        optOutAvailable: false,
-        monthlyVolume: '10,000 - 50,000',
-        testNumbers: ['+447911345678', '+447911345679'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'Sarah Johnson',
-        approverJobTitle: 'Head of Security',
-        approverEmail: 'sarah.johnson@quicksms.example.com'
-    },
-    {
-        id: 'agent-004',
-        name: 'Customer Support Bot',
-        description: 'AI-powered customer support agent for handling inquiries and providing assistance.',
-        status: 'submitted',
-        billing: 'conversational',
-        useCase: 'multi-use',
-        created: '2025-12-28',
-        updated: '2025-12-28',
-        rejectionReason: null,
-        brandColor: '#FF6B35',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0961',
-        showPhone: true,
-        website: 'https://support.quicksms.example.com',
-        supportEmail: 'help@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Provides 24/7 customer support via conversational AI, handling FAQs, order status, and support tickets.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '5,000 - 10,000',
-        testNumbers: [],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'Emma Wilson',
-        approverJobTitle: 'Customer Success Manager',
-        approverEmail: 'emma.wilson@quicksms.example.com'
-    },
-    {
-        id: 'agent-005',
-        name: 'Holiday Promotions',
-        description: 'Seasonal promotional messaging for holiday sales and events.',
-        status: 'rejected',
-        billing: 'non-conversational',
-        useCase: 'promotional',
-        created: '2025-11-15',
-        updated: '2025-11-20',
-        rejectionReason: 'Brand logo does not meet minimum resolution requirements. Please upload a logo with at least 224x224 pixels.',
-        brandColor: '#dc3545',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0962',
-        showPhone: true,
-        website: 'https://holidays.quicksms.example.com',
-        supportEmail: 'holidays@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Holiday-specific promotional campaigns for Black Friday, Christmas, and seasonal sales.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '200,000 - 500,000',
-        testNumbers: ['+447911456789'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'Michael Brown',
-        approverJobTitle: 'Marketing Manager',
-        approverEmail: 'michael.brown@quicksms.example.com'
-    },
-    {
-        id: 'agent-006',
-        name: 'Appointment Reminders',
-        description: 'Automated appointment reminders and scheduling notifications.',
-        status: 'draft',
-        billing: 'non-conversational',
-        useCase: 'transactional',
-        created: '2026-01-05',
-        updated: '2026-01-05',
-        rejectionReason: null,
-        brandColor: '#17a2b8',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '',
-        showPhone: false,
-        website: '',
-        supportEmail: '',
-        showEmail: false,
-        privacyUrl: '',
-        termsUrl: '',
-        useCaseOverview: '',
-        userConsent: false,
-        optOutAvailable: false,
-        monthlyVolume: '',
-        testNumbers: [],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: '',
-        approverJobTitle: '',
-        approverEmail: ''
-    },
-    {
-        id: 'agent-007',
-        name: 'Order Updates',
-        description: 'Real-time order status updates and delivery tracking notifications.',
-        status: 'approved',
-        billing: 'non-conversational',
-        useCase: 'transactional',
-        created: '2025-07-10',
-        updated: '2025-08-15',
-        rejectionReason: null,
-        brandColor: '#28a745',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '+44 20 7946 0963',
-        showPhone: true,
-        website: 'https://orders.quicksms.example.com',
-        supportEmail: 'orders@quicksms.example.com',
-        showEmail: true,
-        privacyUrl: 'https://quicksms.example.com/privacy',
-        termsUrl: 'https://quicksms.example.com/terms',
-        useCaseOverview: 'Sends real-time order updates including confirmation, processing, shipped, and delivered notifications.',
-        userConsent: true,
-        optOutAvailable: true,
-        monthlyVolume: '75,000 - 150,000',
-        testNumbers: ['+447911567890', '+447911567891'],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: 'David Lee',
-        approverJobTitle: 'Operations Manager',
-        approverEmail: 'david.lee@quicksms.example.com'
-    },
-    {
-        id: 'agent-008',
-        name: 'Loyalty Program',
-        description: 'Customer loyalty program communications and rewards notifications.',
-        status: 'draft',
-        billing: 'conversational',
-        useCase: 'promotional',
-        created: '2026-01-02',
-        updated: '2026-01-06',
-        rejectionReason: null,
-        brandColor: '#ffc107',
-        logoUrl: null,
-        heroUrl: null,
-        supportPhone: '',
-        showPhone: false,
-        website: '',
-        supportEmail: '',
-        showEmail: false,
-        privacyUrl: '',
-        termsUrl: '',
-        useCaseOverview: '',
-        userConsent: false,
-        optOutAvailable: false,
-        monthlyVolume: '',
-        testNumbers: [],
-        companyName: 'QuickSMS Ltd',
-        companyNumber: '12345678',
-        approverName: '',
-        approverJobTitle: '',
-        approverEmail: ''
-    }
-];
-
-var filteredAgents = [...mockAgents];
+var allAgents = [];
+var filteredAgents = [];
 var currentSort = { field: 'updated', direction: 'desc' };
 var currentPage = 1;
 var pageSize = 10;
 
+function loadAgentsFromApi() {
+    fetch('/api/rcs-agents', {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
+        if (result.success && result.data) {
+            allAgents = result.data;
+        } else {
+            allAgents = [];
+        }
+        filteredAgents = allAgents.slice();
+        sortAgents();
+        renderTable();
+    })
+    .catch(function(err) {
+        console.error('[RcsAgent] Failed to load agents:', err);
+        allAgents = [];
+        filteredAgents = [];
+        renderTable();
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    renderTable();
+    loadAgentsFromApi();
     
     document.getElementById('searchInput').addEventListener('input', debounce(applyFilters, 300));
     document.getElementById('statusFilter').addEventListener('change', applyFilters);
@@ -2225,15 +2064,29 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('confirmResubmitBtn').addEventListener('click', function() {
         if (!pendingResubmitAgentId) return;
         
-        var agent = mockAgents.find(function(a) { return a.id === pendingResubmitAgentId; });
+        var agent = allAgents.find(function(a) { return a.id === pendingResubmitAgentId; });
+        if (!agent) return;
         
-        if (agent) {
-            agent.status = 'submitted';
-            agent.updated = new Date().toISOString().split('T')[0];
-            
-            applyFilters();
-            showNotification('success', 'Agent Resubmitted', agent.name + ' has been resubmitted for review. You will be notified when a decision is made.');
-        }
+        fetch('/api/rcs-agents/' + pendingResubmitAgentId + '/resubmit', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(result) {
+            if (result.success) {
+                showNotification('success', 'Agent Resubmitted', agent.name + ' has been resubmitted for review.');
+                loadAgentsFromApi();
+            } else {
+                showNotification('error', 'Error', result.error || 'Failed to resubmit agent.');
+            }
+        })
+        .catch(function() {
+            showNotification('error', 'Error', 'Failed to resubmit agent. Please try again.');
+        });
         
         pendingResubmitAgentId = null;
         bootstrap.Modal.getInstance(document.getElementById('resubmitAgentModal')).hide();
@@ -2275,7 +2128,7 @@ function applyFilters() {
     var billing = document.getElementById('billingFilter').value;
     var useCase = document.getElementById('useCaseFilter').value;
     
-    filteredAgents = mockAgents.filter(function(agent) {
+    filteredAgents = allAgents.filter(function(agent) {
         var matchesSearch = !search || agent.name.toLowerCase().includes(search);
         var matchesStatus = !status || agent.status === status;
         var matchesBilling = !billing || agent.billing === billing;
@@ -2370,15 +2223,27 @@ function getStatusBadge(status) {
         'draft': 'Draft',
         'submitted': 'Submitted',
         'in-review': 'In Review',
-        'approved': 'Approved',
-        'rejected': 'Rejected'
+        'approved': 'Live',
+        'rejected': 'Rejected',
+        'pending-info': 'Returned',
+        'info-provided': 'Info Provided',
+        'sent-to-supplier': 'Sent to Mobile Networks',
+        'supplier-approved': 'Network Approved',
+        'suspended': 'Suspended',
+        'revoked': 'Revoked'
     };
     var classes = {
         'draft': 'badge-draft',
         'submitted': 'badge-submitted',
         'in-review': 'badge-in-review',
         'approved': 'badge-approved',
-        'rejected': 'badge-rejected'
+        'rejected': 'badge-rejected',
+        'pending-info': 'badge-pending-info',
+        'info-provided': 'badge-info-provided',
+        'sent-to-supplier': 'badge-sent-to-supplier',
+        'supplier-approved': 'badge-supplier-approved',
+        'suspended': 'badge-suspended',
+        'revoked': 'badge-revoked'
     };
     return '<span class="badge ' + classes[status] + '">' + labels[status] + '</span>';
 }
@@ -2409,7 +2274,7 @@ function formatDate(dateStr) {
 
 function getActionsMenu(agent) {
     // Status-based permissions (agent must be editable)
-    var agentIsEditable = agent.status === 'draft' || agent.status === 'rejected';
+    var agentIsEditable = agent.status === 'draft' || agent.status === 'rejected' || agent.status === 'pending-info';
     var agentCanResubmit = agent.status === 'rejected';
     var agentCanDelete = agent.status === 'draft'; // Only draft agents can be deleted
     
@@ -2433,6 +2298,16 @@ function getActionsMenu(agent) {
             '<i class="fas fa-edit"></i>Edit</a></li>';
     }
     
+    // View Comments & Edit - for returned agents
+    if (agent.status === 'pending-info') {
+        menuItems += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="viewReturnComments(\'' + agent.id + '\')">' +
+            '<i class="fas fa-comments"></i>View Comments</a></li>';
+        if (showEdit) {
+            menuItems += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="editAgent(\'' + agent.id + '\')">' +
+                '<i class="fas fa-edit"></i>Edit & Resubmit</a></li>';
+        }
+    }
+
     // Resubmit - requires canSubmit permission AND agent is rejected
     if (showResubmit) {
         menuItems += '<li><a class="dropdown-item" href="javascript:void(0)" onclick="resubmitAgent(\'' + agent.id + '\')">' +
@@ -2454,8 +2329,67 @@ function getActionsMenu(agent) {
     '</div>';
 }
 
+function viewReturnComments(agentId) {
+    var agent = allAgents.find(function(a) { return a.id === agentId; });
+    if (!agent) return;
+
+    var modalBody = document.getElementById('returnCommentsBody');
+    modalBody.innerHTML = '<div class="text-center py-3"><i class="fas fa-spinner fa-spin me-2"></i>Loading comments...</div>';
+    document.getElementById('returnCommentsAgentName').textContent = agent.name;
+    document.getElementById('returnCommentsEditBtn').onclick = function() {
+        var modal = bootstrap.Modal.getInstance(document.getElementById('returnCommentsModal'));
+        if (modal) modal.hide();
+        editAgent(agentId);
+    };
+    new bootstrap.Modal(document.getElementById('returnCommentsModal')).show();
+
+    $.ajax({
+        url: '/api/rcs-agents/' + agentId,
+        method: 'GET',
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+        success: function(response) {
+            if (response.success) {
+                var comments = response.comments || [];
+                var returnInfo = response.return_info;
+                var html = '';
+
+                if (returnInfo && returnInfo.returned_at) {
+                    var returnDate = new Date(returnInfo.returned_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    html += '<div class="text-muted small mb-3"><i class="fas fa-clock me-1"></i>Returned on ' + returnDate + '</div>';
+                }
+
+                if (comments.length > 0) {
+                    comments.forEach(function(c) {
+                        var date = c.created_at ? new Date(c.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                        html += '<div class="p-3 mb-2 rounded border" style="background: #fff9ed;">';
+                        html += '<div class="d-flex justify-content-between align-items-center mb-1">';
+                        html += '<strong class="small"><i class="fas fa-user-shield me-1 text-muted"></i>' + escapeHtml(c.created_by_actor_type) + '</strong>';
+                        html += '<span class="text-muted small">' + date + '</span>';
+                        html += '</div>';
+                        html += '<p class="mb-0">' + escapeHtml(c.comment_text) + '</p>';
+                        html += '</div>';
+                    });
+                } else if (returnInfo && returnInfo.reason) {
+                    html += '<div class="p-3 mb-2 rounded border" style="background: #fff9ed;">';
+                    html += '<p class="mb-0">' + escapeHtml(returnInfo.reason) + '</p>';
+                    html += '</div>';
+                } else {
+                    html += '<div class="text-muted text-center py-3">No comments available.</div>';
+                }
+
+                modalBody.innerHTML = html;
+            } else {
+                modalBody.innerHTML = '<div class="text-danger text-center py-3">Failed to load comments.</div>';
+            }
+        },
+        error: function() {
+            modalBody.innerHTML = '<div class="text-danger text-center py-3">Failed to load comments. Please try again.</div>';
+        }
+    });
+}
+
 function viewAgent(agentId) {
-    var agent = mockAgents.find(function(a) { return a.id === agentId; });
+    var agent = allAgents.find(function(a) { return a.id === agentId; });
     if (!agent) return;
     
     // Section A: Agent Identity & Branding
@@ -2555,20 +2489,51 @@ function viewAgent(agentId) {
     } else {
         rejectionContainer.style.display = 'none';
     }
+
+    // Returned with comments
+    var returnedContainer = document.getElementById('viewReturnedCommentsContainer');
+    returnedContainer.style.display = 'none';
+    if (agent.status === 'pending-info') {
+        returnedContainer.dataset.agentId = agent.id;
+        $.ajax({
+            url: '/api/rcs-agents/' + agent.id,
+            method: 'GET',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+            success: function(response) {
+                if (response.success) {
+                    var comments = response.comments || [];
+                    var returnInfo = response.return_info;
+                    if (comments.length > 0 || returnInfo) {
+                        returnedContainer.style.display = 'block';
+                        var commentsHtml = '';
+                        comments.forEach(function(c) {
+                            var date = c.created_at ? new Date(c.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                            commentsHtml += '<div class="p-2 mb-2 bg-white rounded border">';
+                            commentsHtml += '<div class="d-flex justify-content-between"><strong class="small">' + escapeHtml(c.created_by_actor_type) + '</strong><span class="text-muted small">' + date + '</span></div>';
+                            commentsHtml += '<p class="mb-0 mt-1 small">' + escapeHtml(c.comment_text) + '</p>';
+                            commentsHtml += '</div>';
+                        });
+                        if (commentsHtml === '' && returnInfo) {
+                            commentsHtml = '<div class="p-2 mb-2 bg-white rounded border"><p class="mb-0 small">' + escapeHtml(returnInfo.reason || 'Please review and resubmit.') + '</p></div>';
+                        }
+                        document.getElementById('viewReturnedCommentsList').innerHTML = commentsHtml;
+                    }
+                }
+            }
+        });
+    }
     
     new bootstrap.Modal(document.getElementById('viewAgentModal')).show();
 }
 
 function editAgent(agentId) {
-    var agent = mockAgents.find(function(a) { return a.id === agentId; });
-    if (!agent) return;
-    openAgentWizard(agent);
+    window.location.href = '/management/rcs-agent/' + agentId + '/edit';
 }
 
 var pendingResubmitAgentId = null;
 
 function resubmitAgent(agentId) {
-    var agent = mockAgents.find(function(a) { return a.id === agentId; });
+    var agent = allAgents.find(function(a) { return a.id === agentId; });
     if (!agent) return;
     
     pendingResubmitAgentId = agentId;
@@ -2594,7 +2559,7 @@ function confirmDeleteAgent(agentId) {
         return;
     }
     
-    var agent = mockAgents.find(function(a) { return a.id === agentId; });
+    var agent = allAgents.find(function(a) { return a.id === agentId; });
     if (!agent) return;
     
     // Only draft agents can be deleted
@@ -2611,27 +2576,40 @@ function confirmDeleteAgent(agentId) {
 function deleteAgent() {
     if (!pendingDeleteAgentId) return;
     
-    // RBAC check: Only admin can delete
     if (!userPermissions.canDelete) {
         showNotification('error', 'Access Denied', 'You do not have permission to delete RCS agents.');
         return;
     }
     
-    var agent = mockAgents.find(function(a) { return a.id === pendingDeleteAgentId; });
+    var agent = allAgents.find(function(a) { return a.id === pendingDeleteAgentId; });
     if (!agent) return;
     
-    // TODO: Replace with API call - DELETE /api/rcs-agents/{id}
-    // API should validate: user role is admin, agent status is 'draft'
-    
     var agentName = agent.name;
-    mockAgents = mockAgents.filter(function(a) { return a.id !== pendingDeleteAgentId; });
+    
+    fetch('/api/rcs-agents/' + pendingDeleteAgentId, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
+        if (result.success) {
+            showNotification('success', 'Agent Deleted', 'The RCS agent "' + agentName + '" has been permanently deleted.');
+            loadAgentsFromApi();
+        } else {
+            showNotification('error', 'Error', result.error || 'Failed to delete agent.');
+        }
+    })
+    .catch(function() {
+        showNotification('error', 'Error', 'Failed to delete agent. Please try again.');
+    });
     
     var modal = bootstrap.Modal.getInstance(document.getElementById('deleteAgentModal'));
     if (modal) modal.hide();
     
     pendingDeleteAgentId = null;
-    renderTable();
-    showNotification('success', 'Agent Deleted', 'The RCS agent "' + agentName + '" has been permanently deleted.');
 }
 
 function showNotification(type, title, message) {
@@ -3432,23 +3410,28 @@ function validateCurrentStep() {
         }
     } else if (wizardData.currentStep === 3) {
         // Step 3: Handset + Compliance (contact details + privacy/terms URLs)
-        if (!wizardData.supportPhone.trim() || !isValidUKPhone(wizardData.supportPhone)) {
+        var phoneDisplayed = wizardData.showPhone && wizardData.supportPhone && wizardData.supportPhone.trim();
+        var emailDisplayed = wizardData.showEmail && wizardData.supportEmail && wizardData.supportEmail.trim();
+        var websiteProvided = wizardData.website && wizardData.website.trim();
+
+        if (wizardData.showPhone && wizardData.supportPhone && wizardData.supportPhone.trim() && !isValidUKPhone(wizardData.supportPhone)) {
             document.getElementById('supportPhone').classList.add('is-invalid');
             isValid = false;
         }
-        if (!wizardData.website.trim() || !isValidHttpsUrl(wizardData.website)) {
-            document.getElementById('businessWebsite').classList.add('is-invalid');
-            isValid = false;
-        }
-        if (!wizardData.supportEmail.trim() || !isValidEmail(wizardData.supportEmail)) {
+        if (wizardData.showEmail && wizardData.supportEmail && wizardData.supportEmail.trim() && !isValidEmail(wizardData.supportEmail)) {
             document.getElementById('supportEmail').classList.add('is-invalid');
             isValid = false;
         }
-        if (!wizardData.privacyUrl.trim() || !isValidHttpsUrl(wizardData.privacyUrl)) {
+        if (!phoneDisplayed && !emailDisplayed && !websiteProvided) {
+            var webEl = document.getElementById('businessWebsite');
+            if (webEl) webEl.classList.add('is-invalid');
+            isValid = false;
+        }
+        if (!wizardData.privacyUrl || !wizardData.privacyUrl.trim()) {
             document.getElementById('privacyUrl').classList.add('is-invalid');
             isValid = false;
         }
-        if (!wizardData.termsUrl.trim() || !isValidHttpsUrl(wizardData.termsUrl)) {
+        if (!wizardData.termsUrl || !wizardData.termsUrl.trim()) {
             document.getElementById('termsUrl').classList.add('is-invalid');
             isValid = false;
         }
@@ -3948,20 +3931,26 @@ function validateAllSteps() {
     if (!wizardData.logoDataUrl) {
         errors.push('Logo image is required');
     }
-    if (!wizardData.supportPhone.trim() || !isValidUKPhone(wizardData.supportPhone)) {
-        errors.push('Valid UK phone number is required');
+
+    var phoneDisplayed = wizardData.showPhone && wizardData.supportPhone && wizardData.supportPhone.trim();
+    var emailDisplayed = wizardData.showEmail && wizardData.supportEmail && wizardData.supportEmail.trim();
+    var websiteProvided = wizardData.website && wizardData.website.trim();
+
+    if (wizardData.showPhone && wizardData.supportPhone && wizardData.supportPhone.trim() && !isValidUKPhone(wizardData.supportPhone)) {
+        errors.push('Phone number must be a valid UK number');
     }
-    if (!wizardData.website.trim() || !isValidHttpsUrl(wizardData.website)) {
-        errors.push('Website URL must be valid HTTPS');
+    if (wizardData.showEmail && wizardData.supportEmail && wizardData.supportEmail.trim() && !isValidEmail(wizardData.supportEmail)) {
+        errors.push('Email address must be valid');
     }
-    if (!wizardData.supportEmail.trim() || !isValidEmail(wizardData.supportEmail)) {
-        errors.push('Valid email address is required');
+    if (!phoneDisplayed && !emailDisplayed && !websiteProvided) {
+        errors.push('At least one contact method is required (phone, email, or website)');
     }
-    if (!wizardData.privacyUrl.trim() || !isValidHttpsUrl(wizardData.privacyUrl)) {
-        errors.push('Privacy Policy URL must be valid HTTPS');
+
+    if (!wizardData.privacyUrl || !wizardData.privacyUrl.trim()) {
+        errors.push('Privacy Policy URL is required');
     }
-    if (!wizardData.termsUrl.trim() || !isValidHttpsUrl(wizardData.termsUrl)) {
-        errors.push('Terms of Service URL must be valid HTTPS');
+    if (!wizardData.termsUrl || !wizardData.termsUrl.trim()) {
+        errors.push('Terms of Service URL is required');
     }
     
     if (!wizardData.billing) {
@@ -3976,32 +3965,29 @@ function validateAllSteps() {
     if (!wizardData.monthlyVolume) {
         errors.push('Monthly volume is required');
     }
-    if (!wizardData.optInDescription.trim()) {
+    if (!wizardData.optInDescription || !wizardData.optInDescription.trim()) {
         errors.push('Opt-in description is required');
     }
-    if (!wizardData.optOutDescription.trim()) {
+    if (!wizardData.optOutDescription || !wizardData.optOutDescription.trim()) {
         errors.push('Opt-out description is required');
     }
-    if (!wizardData.useCaseOverview.trim()) {
+    if (!wizardData.useCaseOverview || !wizardData.useCaseOverview.trim()) {
         errors.push('Use case overview is required');
     }
     
-    if (!wizardData.companyNumber.trim()) {
+    if (!wizardData.companyNumber || !wizardData.companyNumber.trim()) {
         errors.push('Company number is required');
     }
-    if (!wizardData.companyWebsite.trim() || !isValidUrl(wizardData.companyWebsite)) {
-        errors.push('Company website must be a valid URL');
-    }
-    if (!wizardData.registeredAddress.trim()) {
+    if (!wizardData.registeredAddress || !wizardData.registeredAddress.trim()) {
         errors.push('Registered address is required');
     }
-    if (!wizardData.approverName.trim()) {
+    if (!wizardData.approverName || !wizardData.approverName.trim()) {
         errors.push('Approver name is required');
     }
-    if (!wizardData.approverJobTitle.trim()) {
+    if (!wizardData.approverJobTitle || !wizardData.approverJobTitle.trim()) {
         errors.push('Approver job title is required');
     }
-    if (!wizardData.approverEmail.trim() || !isValidEmail(wizardData.approverEmail)) {
+    if (!wizardData.approverEmail || !wizardData.approverEmail.trim() || !isValidEmail(wizardData.approverEmail)) {
         errors.push('Approver email must be valid');
     }
     
@@ -4076,22 +4062,14 @@ function submitAgent() {
             approverName: wizardData.approverName,
             approverJobTitle: wizardData.approverJobTitle,
             approverEmail: wizardData.approverEmail,
-            created: wizardData.isEditing ? (mockAgents.find(function(a) { return a.id === wizardData.id; }) || {}).created || new Date().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            created: wizardData.isEditing ? (allAgents.find(function(a) { return a.id === wizardData.id; }) || {}).created || new Date().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
             updated: new Date().toISOString().split('T')[0],
             rejectionReason: null
         };
         
-        var existingIdx = mockAgents.findIndex(function(a) { return a.id === wizardData.id; });
-        if (existingIdx >= 0) {
-            mockAgents[existingIdx] = newAgent;
-        } else {
-            mockAgents.unshift(newAgent);
-        }
-        
-        // Clear the draft from localStorage after successful submission
         clearDraftFromStorage(wizardData.id);
         
-        applyFilters();
+        loadAgentsFromApi();
         wizardModal.hide();
         
         showNotification('success', 'Agent Submitted', 'RCS Agent submitted for review successfully! You will be notified once a decision has been made.');

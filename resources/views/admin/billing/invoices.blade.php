@@ -1001,69 +1001,20 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    function generateMockData() {
-        const accounts = [
-            { id: 'ACC-001', name: 'Acme Corporation Ltd' },
-            { id: 'ACC-002', name: 'TechStart Solutions' },
-            { id: 'ACC-003', name: 'Global Retail Group' },
-            { id: 'ACC-004', name: 'FinanceFirst Partners' },
-            { id: 'ACC-005', name: 'HealthCare Plus' },
-            { id: 'ACC-006', name: 'MediaMax Agency' },
-            { id: 'ACC-007', name: 'LogiTrans Shipping' },
-            { id: 'ACC-008', name: 'EduLearn Institute' },
-            { id: 'ACC-009', name: 'GreenEnergy Co' },
-            { id: 'ACC-010', name: 'FoodService Network' }
-        ];
-
-        allAccountsData = accounts;
-
-        const statuses = ['paid', 'issued', 'overdue', 'draft', 'void'];
-        const invoices = [];
-
-        for (let i = 0; i < 87; i++) {
-            const account = accounts[Math.floor(Math.random() * accounts.length)];
-            const status = statuses[Math.floor(Math.random() * statuses.length)];
-            const subtotal = Math.floor(Math.random() * 5000) + 500;
-            const vat = subtotal * 0.2;
-            const total = subtotal + vat;
-            const balanceDue = status === 'paid' ? 0 : (status === 'draft' ? total : Math.random() > 0.5 ? total : 0);
-
-            const issueDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
-            const dueDate = new Date(issueDate);
-            dueDate.setDate(dueDate.getDate() + 14);
-
-            invoices.push({
-                id: `INV-${String(i + 1).padStart(4, '0')}`,
-                invoiceNumber: `INV-2024-${String(i + 1).padStart(4, '0')}`,
-                accountId: account.id,
-                accountName: account.name,
-                billingPeriodStart: new Date(issueDate.getFullYear(), issueDate.getMonth(), 1).toISOString(),
-                billingPeriodEnd: new Date(issueDate.getFullYear(), issueDate.getMonth() + 1, 0).toISOString(),
-                issueDate: issueDate.toISOString(),
-                dueDate: dueDate.toISOString(),
-                status: status,
-                subtotal: subtotal,
-                vat: vat,
-                total: total,
-                balanceDue: balanceDue,
-                currency: 'GBP',
-                lineItems: [
-                    { name: 'SMS Messages', description: `${Math.floor(Math.random() * 50000) + 5000} messages`, amount: subtotal * 0.7 },
-                    { name: 'RCS Messages', description: `${Math.floor(Math.random() * 5000) + 500} messages`, amount: subtotal * 0.25 },
-                    { name: 'Platform Fee', amount: subtotal * 0.05 }
-                ]
-            });
-        }
-
-        return invoices;
-    }
-
     async function loadInvoices() {
         showLoading();
 
         try {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            invoicesData = generateMockData();
+            const response = await fetch('/admin/api/billing/invoices');
+            const data = await response.json();
+
+            if (!data.success) {
+                showError(data.error || 'Failed to load invoices');
+                return;
+            }
+
+            invoicesData = data.invoices || [];
+            allAccountsData = data.accounts || [];
 
             const filteredData = filterInvoices(invoicesData);
             const sortedData = sortInvoices(filteredData);

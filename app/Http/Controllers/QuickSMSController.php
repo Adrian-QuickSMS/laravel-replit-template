@@ -8,7 +8,9 @@ use App\Models\ContactList;
 use App\Models\OptOutList;
 use App\Models\OptOutRecord;
 use App\Models\Tag;
+use App\Models\Account;
 use App\Models\SenderId;
+use App\Models\User;
 
 class QuickSMSController extends Controller
 {
@@ -263,9 +265,76 @@ class QuickSMSController extends Controller
     
     public function dashboard()
     {
-        // TODO: Replace with actual data from API
+        $accountId = session('customer_tenant_id');
+        $balanceData = [
+            'balance' => 0,
+            'effectiveAvailable' => 0,
+            'creditLimit' => 0,
+            'reserved' => 0,
+            'currency' => 'GBP',
+        ];
+
+        if ($accountId) {
+            $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
+            $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
+
+            if ($account) {
+                $currentBalance = $balance ? (float) $balance->balance : 0;
+                $creditLimit = (float) ($account->credit_limit ?? 0);
+                $reserved = $balance ? (float) $balance->reserved : 0;
+                $effectiveAvailable = $balance ? (float) $balance->effective_available : $creditLimit;
+
+                $balanceData = [
+                    'balance' => $currentBalance,
+                    'effectiveAvailable' => $effectiveAvailable,
+                    'creditLimit' => $creditLimit,
+                    'reserved' => $reserved,
+                    'currency' => $account->currency ?? 'GBP',
+                ];
+            }
+        }
+
+        $pricingData = ['sms' => null, 'rcs_basic' => null, 'rcs_single' => null];
+        if ($accountId && $account) {
+            $productTypes = ['sms', 'rcs_basic', 'rcs_single'];
+
+            $customerPrices = \App\Models\Billing\CustomerPrice::where('account_id', $accountId)
+                ->whereIn('product_type', $productTypes)
+                ->whereNull('country_iso')
+                ->active()
+                ->validAt()
+                ->get()
+                ->keyBy('product_type');
+
+            foreach ($productTypes as $type) {
+                if ($customerPrices->has($type)) {
+                    $pricingData[$type] = (float) $customerPrices[$type]->unit_price;
+                }
+            }
+
+            $missingTypes = array_filter($productTypes, fn($t) => $pricingData[$t] === null);
+            if (!empty($missingTypes)) {
+                $tier = $account->product_tier ?? 'starter';
+                $tierPrices = \App\Models\Billing\ProductTierPrice::where('product_tier', $tier)
+                    ->whereIn('product_type', $missingTypes)
+                    ->whereNull('country_iso')
+                    ->active()
+                    ->validAt()
+                    ->get()
+                    ->keyBy('product_type');
+
+                foreach ($missingTypes as $type) {
+                    if ($tierPrices->has($type)) {
+                        $pricingData[$type] = (float) $tierPrices[$type]->unit_price;
+                    }
+                }
+            }
+        }
+
         return view('quicksms.dashboard', [
-            'page_title' => 'Dashboard'
+            'page_title' => 'Dashboard',
+            'balanceData' => $balanceData,
+            'pricingData' => $pricingData,
         ]);
     }
 
@@ -1492,8 +1561,14 @@ class QuickSMSController extends Controller
 
     public function purchaseMessages()
     {
+        $accountId = session('customer_tenant_id');
+        $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
+        $productTier = $account ? $account->product_tier : 'starter';
+
         return view('quicksms.purchase.messages', [
-            'page_title' => 'Purchase Messages'
+            'page_title' => 'Purchase Messages',
+            'account_id' => $accountId,
+            'productTier' => $productTier,
         ]);
     }
 
@@ -1533,8 +1608,80 @@ class QuickSMSController extends Controller
 
     public function rcsAgentCreate()
     {
+        $tenantId = session('customer_tenant_id');
+        $account = Account::find($tenantId);
+        $owner = $account ? $account->getOwner() : null;
+
+        $companyDefaults = [];
+        if ($account) {
+            $companyDefaults = [
+                'company_name' => $account->company_name ?? '',
+                'company_number' => $account->company_number ?? '',
+                'company_website' => $account->website ?? '',
+                'sector' => $account->business_sector ?? '',
+                'address_line1' => $account->address_line1 ?? '',
+                'address_line2' => $account->address_line2 ?? '',
+                'city' => $account->city ?? '',
+                'post_code' => $account->postcode ?? '',
+                'country' => $account->country ?? '',
+            ];
+        }
+
+        $approverDefaults = [];
+        if ($owner) {
+            $approverDefaults = [
+                'name' => trim(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')),
+                'job_title' => $owner->job_title ?? '',
+                'email' => $owner->email ?? '',
+            ];
+        }
+
         return view('quicksms.management.rcs-agent-wizard', [
-            'page_title' => 'Register RCS Agent'
+            'page_title' => 'Register RCS Agent',
+            'company_defaults' => $companyDefaults,
+            'approver_defaults' => $approverDefaults,
+        ]);
+    }
+
+    public function rcsAgentEdit(string $uuid)
+    {
+        $tenantId = session('customer_tenant_id');
+        $account = Account::find($tenantId);
+        $owner = $account ? $account->getOwner() : null;
+
+        $agent = \App\Models\RcsAgent::where('uuid', $uuid)
+            ->where('account_id', $tenantId)
+            ->firstOrFail();
+
+        $companyDefaults = [];
+        if ($account) {
+            $companyDefaults = [
+                'company_name' => $account->company_name ?? '',
+                'company_number' => $account->company_number ?? '',
+                'company_website' => $account->website ?? '',
+                'sector' => $account->business_sector ?? '',
+                'address_line1' => $account->address_line1 ?? '',
+                'address_line2' => $account->address_line2 ?? '',
+                'city' => $account->city ?? '',
+                'post_code' => $account->postcode ?? '',
+                'country' => $account->country ?? '',
+            ];
+        }
+
+        $approverDefaults = [];
+        if ($owner) {
+            $approverDefaults = [
+                'name' => trim(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')),
+                'job_title' => $owner->job_title ?? '',
+                'email' => $owner->email ?? '',
+            ];
+        }
+
+        return view('quicksms.management.rcs-agent-wizard', [
+            'page_title' => 'Edit RCS Agent',
+            'company_defaults' => $companyDefaults,
+            'approver_defaults' => $approverDefaults,
+            'editing_agent' => $agent,
         ]);
     }
 
@@ -2273,6 +2420,89 @@ class QuickSMSController extends Controller
         ]);
     }
     
+    public function accountPricingApi(Request $request)
+    {
+        $tenantId = session('customer_tenant_id');
+        if (!$tenantId) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+        if (!$account) {
+            return response()->json(['error' => 'Account not found'], 404);
+        }
+
+        $currentTier = $account->product_tier ?? 'starter';
+        $isBespoke = ($currentTier === 'bespoke');
+
+        $services = \App\Models\Billing\ServiceCatalogue::where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('display_name')
+            ->get();
+
+        $tierPrices = \App\Models\Billing\ProductTierPrice::where('active', true)
+            ->whereRaw("valid_from <= CURRENT_DATE")
+            ->where(function ($q) {
+                $q->whereNull('valid_to')->orWhereRaw("valid_to >= CURRENT_DATE");
+            })
+            ->get();
+
+        $customerPrices = [];
+        if ($isBespoke) {
+            $customerPrices = \App\Models\Billing\CustomerPrice::where('account_id', $tenantId)
+                ->where('active', true)
+                ->whereRaw("valid_from <= CURRENT_DATE")
+                ->where(function ($q) {
+                    $q->whereNull('valid_to')->orWhereRaw("valid_to >= CURRENT_DATE");
+                })
+                ->get()
+                ->keyBy('product_type')
+                ->toArray();
+        }
+
+        $starterPrices = $tierPrices->where('product_tier', 'starter')->keyBy('product_type');
+        $enterprisePrices = $tierPrices->where('product_tier', 'enterprise')->keyBy('product_type');
+
+        $result = [];
+        foreach ($services as $service) {
+            $slug = $service->slug;
+            $starterPrice = $starterPrices->get($slug);
+            $enterprisePrice = $enterprisePrices->get($slug);
+
+            $item = [
+                'slug' => $slug,
+                'display_name' => $service->display_name,
+                'unit_label' => $service->unit_label,
+                'display_format' => $service->display_format,
+                'decimal_places' => $service->decimal_places ?? 2,
+                'is_per_message' => $service->is_per_message,
+                'is_recurring' => $service->is_recurring,
+                'bespoke_only' => $service->bespoke_only,
+                'available_on_starter' => $service->available_on_starter,
+                'available_on_enterprise' => $service->available_on_enterprise,
+                'starter_price' => $starterPrice ? (float) $starterPrice->unit_price : null,
+                'starter_formatted' => $starterPrice ? $service->formatPrice($starterPrice->unit_price) : null,
+                'enterprise_price' => $enterprisePrice ? (float) $enterprisePrice->unit_price : null,
+                'enterprise_formatted' => $enterprisePrice ? $service->formatPrice($enterprisePrice->unit_price) : null,
+            ];
+
+            if ($isBespoke) {
+                $cp = $customerPrices[$slug] ?? null;
+                $item['bespoke_price'] = $cp ? (float) $cp['unit_price'] : null;
+                $item['bespoke_formatted'] = $cp ? $service->formatPrice($cp['unit_price']) : null;
+                $item['bespoke_billing_type'] = $cp ? ($cp['billing_type'] ?? 'per_submitted') : null;
+            }
+
+            $result[] = $item;
+        }
+
+        return response()->json([
+            'current_tier' => $currentTier,
+            'is_bespoke' => $isBespoke,
+            'services' => $result,
+        ]);
+    }
+
     public function accountActivate()
     {
         $user = null;

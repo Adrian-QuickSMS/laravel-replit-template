@@ -613,7 +613,6 @@
                                         </tbody>
                                     </table>
                                 </div>
-                                        
                                 <div id="completionSection" style="display: none;">
                                     <div class="completion-card">
                                         <div class="completion-icon">
@@ -621,7 +620,7 @@
                                         </div>
                                         <h4 class="mb-2">API Connection Created!</h4>
                                         <p class="text-muted mb-4">Your API connection has been created successfully. Save your credentials below - they will only be shown once.</p>
-
+                                        
                                         <div class="credential-box text-start">
                                             <div class="credential-row">
                                                 <span class="credential-label">Base URL</span>
@@ -652,12 +651,12 @@
                                                 </div>
                                             </div>
                                         </div>
-
+                                        
                                         <div class="alert alert-warning mt-3 text-start">
                                             <i class="fas fa-exclamation-triangle me-2"></i>
                                             <strong>Important:</strong> These credentials will only be shown once. Please save them securely.
                                         </div>
-
+                                        
                                         <div class="mt-4">
                                             <a href="{{ route('management.api-connections') }}" class="btn btn-primary">
                                                 <i class="fas fa-arrow-left me-2"></i>Back to API Connections
@@ -884,27 +883,11 @@ $(document).ready(function() {
         return false;
     }
     
-    // Fix wizard step height: forcefully reset tab-content height on every transition.
-    // Uses multiple timing strategies to ensure the fix runs after any library code.
-    function resetWizardHeight() {
-        var tc = document.querySelector('#apiConnectionWizard > .tab-content');
-        if (!tc) return;
-        tc.style.setProperty('height', 'auto', 'important');
-        tc.style.setProperty('min-height', '0', 'important');
-        tc.style.setProperty('overflow', 'visible', 'important');
-        // Also reset any inline height on the active tab-pane
-        var activePane = tc.querySelector('.tab-pane[style*="display: block"]');
-        if (activePane) {
-            activePane.style.removeProperty('height');
-            activePane.style.removeProperty('min-height');
-        }
-    }
-
     $('#apiConnectionWizard').on('leaveStep', function(e, anchorObject, currentStepIndex, nextStepIndex, stepDirection) {
         if (connectionCreated) return false;
-
+        
         saveFormData();
-
+        
         // Mark step as validated (user has left it at least once)
         markStepValidated(currentStepIndex);
         

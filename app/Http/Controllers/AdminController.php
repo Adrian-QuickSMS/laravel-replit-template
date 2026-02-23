@@ -216,8 +216,10 @@ class AdminController extends Controller
     {
         $systemId = '00000000-0000-0000-0000-000000000001';
 
-        $accounts = Account::where('id', '!=', $systemId)
-            ->orderBy('created_at', 'desc')
+        $accounts = Account::where('accounts.id', '!=', $systemId)
+            ->leftJoin('account_balances', 'accounts.id', '=', 'account_balances.account_id')
+            ->select('accounts.*', 'account_balances.balance as current_balance')
+            ->orderBy('accounts.created_at', 'desc')
             ->get();
 
         $counts = [
@@ -260,6 +262,23 @@ class AdminController extends Controller
         $flags = DB::table('account_flags')->where('account_id', $account->id)->first();
         $settings = DB::table('account_settings')->where('account_id', $account->id)->first();
 
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $customerPrices = DB::table('customer_prices')
+            ->where('account_id', $accountId)
+            ->where('active', true)
+            ->orderBy('product_type')
+            ->orderBy('country_iso')
+            ->get();
+
+        $productTier = $account->product_tier ?? 'starter';
+        $tierPrices = DB::table('product_tier_prices')
+            ->where('product_tier', $productTier)
+            ->where('active', true)
+            ->orderBy('product_type')
+            ->orderBy('country_iso')
+            ->get();
+
         return view('admin.accounts.details', [
             'page_title' => 'Account Details',
             'account_id' => $accountId,
@@ -267,6 +286,9 @@ class AdminController extends Controller
             'owner' => $owner,
             'flags' => $flags,
             'settings' => $settings,
+            'customerPrices' => $customerPrices,
+            'tierPrices' => $tierPrices,
+            'productTier' => $productTier,
         ]);
     }
 
@@ -462,6 +484,483 @@ class AdminController extends Controller
         return view('admin.billing.invoices', [
             'page_title' => 'Invoices (All Clients)'
         ]);
+    }
+
+    public function billingInvoicesApi(Request $request)
+    {
+        $query = DB::table('invoices')
+            ->join('accounts', 'invoices.account_id', '=', 'accounts.id')
+            ->select(
+                'invoices.*',
+                'accounts.company_name as account_name'
+            )
+            ->orderBy('invoices.issued_date', 'desc');
+
+        if ($status = $request->input('status')) {
+            if ($status === 'issued') {
+                $query->where('invoices.status', 'sent');
+            } else {
+                $query->where('invoices.status', $status);
+            }
+        }
+
+        if ($search = $request->input('search')) {
+            $query->where('invoices.invoice_number', 'ilike', "%{$search}%");
+        }
+
+        if ($accountId = $request->input('accountId')) {
+            $query->where('invoices.account_id', $accountId);
+        }
+
+        if ($year = $request->input('billingYear')) {
+            $query->whereRaw('EXTRACT(YEAR FROM invoices.billing_period_start) = ?', [$year]);
+        }
+
+        if ($month = $request->input('billingMonth')) {
+            $query->whereRaw('EXTRACT(MONTH FROM invoices.billing_period_start) = ?', [$month]);
+        }
+
+        $invoices = $query->get()->map(function ($inv) {
+            $status = $inv->status;
+            if ($status === 'sent') {
+                $status = 'issued';
+            }
+            if (in_array($inv->status, ['sent', 'overdue']) && $inv->due_date && now()->isAfter($inv->due_date)) {
+                $status = 'overdue';
+            }
+
+            return [
+                'id' => $inv->id,
+                'invoiceNumber' => $inv->invoice_number,
+                'accountId' => $inv->account_id,
+                'accountName' => $inv->account_name ?? 'Unknown',
+                'billingPeriodStart' => $inv->billing_period_start,
+                'billingPeriodEnd' => $inv->billing_period_end,
+                'issueDate' => $inv->issued_date,
+                'dueDate' => $inv->due_date,
+                'status' => $status,
+                'subtotal' => (float) $inv->subtotal,
+                'vat' => (float) $inv->tax_amount,
+                'total' => (float) $inv->total,
+                'balanceDue' => (float) $inv->amount_due,
+                'currency' => $inv->currency ?? 'GBP',
+                'xeroInvoiceId' => $inv->xero_invoice_id,
+            ];
+        });
+
+        $accounts = DB::table('accounts')
+            ->select('id', 'company_name')
+            ->orderBy('company_name')
+            ->get()
+            ->map(function ($a) {
+                return ['id' => $a->id, 'name' => $a->company_name];
+            });
+
+        return response()->json([
+            'success' => true,
+            'invoices' => $invoices,
+            'accounts' => $accounts,
+        ]);
+    }
+
+    public function accountBillingApi($accountId)
+    {
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
+
+        $billingMode = $account->billing_type === 'postpay' ? 'postpaid' : 'prepaid';
+        $creditLimit = (float) ($account->credit_limit ?? 0);
+        $currentBalance = $balance ? (float) $balance->balance : 0;
+        $reserved = $balance ? (float) $balance->reserved : 0;
+        $totalOutstanding = $balance ? (float) $balance->total_outstanding : 0;
+
+        if ($billingMode === 'prepaid') {
+            $availableCredit = max(0, $currentBalance - $reserved) + $creditLimit;
+        } else {
+            $availableCredit = $creditLimit - $totalOutstanding + $currentBalance - $reserved;
+        }
+
+        $paymentTermsDays = $account->payment_terms_days ?? 30;
+        $paymentTermsLabel = $paymentTermsDays === 0 ? 'Immediate' : "Net {$paymentTermsDays}";
+
+        return response()->json([
+            'success' => true,
+            'accountId' => $account->id,
+            'name' => $account->company_name ?? 'Unknown',
+            'status' => $account->status ?? 'active',
+            'hubspotId' => $account->hubspot_company_id,
+            'billingMode' => $billingMode,
+            'currentBalance' => $currentBalance,
+            'creditLimit' => $creditLimit,
+            'availableCredit' => $availableCredit,
+            'paymentTerms' => $paymentTermsLabel,
+            'currency' => $account->currency ?? 'GBP',
+            'vatRegistered' => (bool) $account->vat_registered,
+            'vatRate' => 20,
+            'reverseCharge' => (bool) $account->vat_reverse_charges,
+            'vatCountry' => $account->tax_country ?? 'GB',
+            'lastUpdated' => ($balance ? $balance->updated_at : $account->updated_at)?->toISOString(),
+        ]);
+    }
+
+    public function updateAccountBillingMode(Request $request, $accountId)
+    {
+        $request->validate([
+            'billingMode' => 'required|in:prepaid,postpaid',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        $previousMode = $account->billing_type;
+        $newDbMode = $request->input('billingMode') === 'postpaid' ? 'postpay' : 'prepay';
+
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+        $account->billing_type = $newDbMode;
+        $account->save();
+
+        $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
+        if ($balance) {
+            $balance->recalculateEffectiveAvailable();
+            $balance->save();
+        }
+
+        Log::info('Admin updated billing mode', [
+            'account_id' => $accountId,
+            'previous_mode' => $previousMode,
+            'new_mode' => $newDbMode,
+            'admin_user' => session('admin_user_email'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'accountId' => $accountId,
+                'billingMode' => $request->input('billingMode'),
+                'previousMode' => $previousMode === 'postpay' ? 'postpaid' : 'prepaid',
+                'hubspotSynced' => false,
+                'syncTimestamp' => now()->toISOString(),
+            ],
+        ]);
+    }
+
+    public function updateAccountCreditLimit(Request $request, $accountId)
+    {
+        $request->validate([
+            'creditLimit' => 'required|numeric|min:0|max:1000000',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        $previousLimit = (float) ($account->credit_limit ?? 0);
+        $newLimit = (float) $request->input('creditLimit');
+
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+        $account->credit_limit = $newLimit;
+        $account->save();
+
+        $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
+        if ($balance) {
+            $balance->credit_limit = $newLimit;
+            $balance->recalculateEffectiveAvailable();
+            $balance->save();
+        }
+
+        Log::info('Admin updated credit limit', [
+            'account_id' => $accountId,
+            'previous_limit' => $previousLimit,
+            'new_limit' => $newLimit,
+            'admin_user' => session('admin_user_email'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'accountId' => $accountId,
+                'creditLimit' => $newLimit,
+                'previousLimit' => $previousLimit,
+                'hubspotSynced' => false,
+                'syncTimestamp' => now()->toISOString(),
+            ],
+        ]);
+    }
+
+    public function accountPricingApi($accountId)
+    {
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        $services = \App\Models\Billing\ServiceCatalogue::active()->ordered()->get();
+        $productTier = $account->product_tier ?? 'starter';
+
+        $tierLookup = $productTier === 'bespoke' ? 'enterprise' : $productTier;
+        $tierPrices = DB::table('product_tier_prices')
+            ->where('product_tier', $tierLookup)
+            ->where('active', true)
+            ->whereNull('country_iso')
+            ->get()
+            ->keyBy('product_type');
+
+        $starterPrices = collect();
+        $enterprisePrices = collect();
+        if ($productTier === 'bespoke') {
+            $starterPrices = DB::table('product_tier_prices')
+                ->where('product_tier', 'starter')
+                ->where('active', true)
+                ->whereNull('country_iso')
+                ->get()
+                ->keyBy('product_type');
+            $enterprisePrices = $tierPrices;
+        }
+
+        $customerPrices = DB::table('customer_prices')
+            ->where('account_id', $accountId)
+            ->where('active', true)
+            ->whereNull('valid_to')
+            ->whereNull('country_iso')
+            ->get()
+            ->keyBy('product_type');
+
+        $countryPrices = DB::table('customer_prices')
+            ->where('account_id', $accountId)
+            ->where('active', true)
+            ->whereNull('valid_to')
+            ->whereNotNull('country_iso')
+            ->orderBy('country_iso')
+            ->get()
+            ->groupBy('product_type');
+
+        $messagingTypes = ['sms', 'rcs_basic', 'rcs_single'];
+
+        $items = [];
+        foreach ($services as $service) {
+            $slug = $service->slug;
+            $tierPrice = $tierPrices->get($slug);
+            $bespokePrice = $customerPrices->get($slug);
+            $isMessaging = in_array($slug, $messagingTypes);
+            $isInternational = $slug === 'sms_international';
+
+            $item = [
+                'slug' => $slug,
+                'display_name' => $service->display_name,
+                'display_format' => $service->display_format,
+                'decimal_places' => $service->decimal_places,
+                'unit_label' => $service->unit_label,
+                'tier_price' => $tierPrice ? (float) $tierPrice->unit_price : null,
+                'tier_price_formatted' => $tierPrice ? $service->formatPrice($tierPrice->unit_price) : 'N/A',
+                'bespoke_price' => $bespokePrice ? (float) $bespokePrice->unit_price : null,
+                'bespoke_price_formatted' => $bespokePrice ? $service->formatPrice($bespokePrice->unit_price) : null,
+                'has_bespoke' => $bespokePrice !== null,
+                'supports_billing_type' => $isMessaging,
+                'billing_type' => $bespokePrice ? ($bespokePrice->billing_type ?? 'per_submitted') : ($tierPrice ? ($tierPrice->billing_type ?? 'per_submitted') : 'per_submitted'),
+                'supports_country_pricing' => $isInternational,
+                'country_prices' => [],
+            ];
+
+            if ($productTier === 'bespoke') {
+                $sp = $starterPrices->get($slug);
+                $ep = $enterprisePrices->get($slug);
+                $item['starter_price'] = $sp ? (float) $sp->unit_price : null;
+                $item['starter_price_formatted'] = $sp ? $service->formatPrice($sp->unit_price) : 'N/A';
+                $item['enterprise_price'] = $ep ? (float) $ep->unit_price : null;
+                $item['enterprise_price_formatted'] = $ep ? $service->formatPrice($ep->unit_price) : 'N/A';
+            }
+
+            if ($isInternational && $countryPrices->has($slug)) {
+                foreach ($countryPrices->get($slug) as $cp) {
+                    $item['country_prices'][] = [
+                        'country_iso' => $cp->country_iso,
+                        'unit_price' => (float) $cp->unit_price,
+                        'billing_type' => $cp->billing_type ?? 'per_submitted',
+                    ];
+                }
+            }
+
+            $items[] = $item;
+        }
+
+        $mccCountries = DB::table('mcc_mnc_master')
+            ->select('country_iso', 'country_name')
+            ->where('active', true)
+            ->whereNotNull('country_iso')
+            ->where('country_iso', '!=', 'GB')
+            ->groupBy('country_iso', 'country_name')
+            ->orderBy('country_name')
+            ->get()
+            ->map(fn($c) => ['iso' => $c->country_iso, 'name' => $c->country_name])
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'success' => true,
+            'product_tier' => $productTier,
+            'account_name' => $account->company_name ?? 'Unknown',
+            'items' => $items,
+            'countries' => $mccCountries,
+        ]);
+    }
+
+    public function updateAccountPricing(Request $request, $accountId)
+    {
+        $request->validate([
+            'product_tier' => 'required|string|in:starter,enterprise,bespoke',
+            'prices' => 'nullable|array',
+            'prices.*.slug' => 'required|string',
+            'prices.*.unit_price' => 'required|numeric|min:0',
+            'prices.*.billing_type' => 'nullable|in:per_submitted,per_delivered',
+            'prices.*.country_iso' => 'nullable|string|size:2',
+            'change_reason' => 'nullable|string|max:500',
+        ]);
+
+        $account = Account::withoutGlobalScopes()->find($accountId);
+        if (!$account) {
+            return response()->json(['success' => false, 'error' => 'Account not found'], 404);
+        }
+
+        DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$accountId]);
+
+        $adminEmail = session('admin_auth.email', 'admin');
+        $adminId = session('admin_auth.admin_id');
+        $changeReason = $request->input('change_reason', 'Admin pricing override');
+        $newTier = $request->input('product_tier');
+        $previousTier = $account->product_tier;
+        $updatedCount = 0;
+
+        DB::beginTransaction();
+        try {
+            if ($newTier !== 'bespoke') {
+                DB::table('customer_prices')
+                    ->where('account_id', $accountId)
+                    ->where('active', true)
+                    ->update(['active' => false, 'valid_to' => now()->toDateString()]);
+
+                $account->product_tier = $newTier;
+                $account->save();
+
+                DB::commit();
+
+                Log::info('Admin changed account tier', [
+                    'account_id' => $accountId,
+                    'previous_tier' => $previousTier,
+                    'new_tier' => $newTier,
+                    'admin_user' => $adminEmail,
+                    'reason' => $changeReason,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'accountId' => $accountId,
+                        'pricesUpdated' => 0,
+                        'productTier' => $newTier,
+                        'previousTier' => $previousTier,
+                        'bespokeDeactivated' => true,
+                    ],
+                ]);
+            }
+
+            $prices = $request->input('prices', []);
+            foreach ($prices as $priceData) {
+                $slug = $priceData['slug'];
+                $newUnitPrice = $priceData['unit_price'];
+                $billingType = $priceData['billing_type'] ?? 'per_submitted';
+                $countryIso = $priceData['country_iso'] ?? null;
+
+                $query = DB::table('customer_prices')
+                    ->where('account_id', $accountId)
+                    ->where('product_type', $slug)
+                    ->where('active', true);
+
+                if ($countryIso) {
+                    $query->where('country_iso', $countryIso);
+                } else {
+                    $query->whereNull('country_iso');
+                }
+
+                $existing = $query->first();
+
+                if ($existing) {
+                    DB::table('customer_prices')
+                        ->where('id', $existing->id)
+                        ->update(['active' => false, 'valid_to' => now()->toDateString()]);
+                    $previousVersionId = $existing->id;
+                    $version = ($existing->version ?? 1) + 1;
+                } else {
+                    $previousVersionId = null;
+                    $version = 1;
+                }
+
+                DB::table('customer_prices')->insert([
+                    'id' => \Illuminate\Support\Str::uuid()->toString(),
+                    'account_id' => $accountId,
+                    'product_type' => $slug,
+                    'country_iso' => $countryIso,
+                    'unit_price' => $newUnitPrice,
+                    'billing_type' => $billingType,
+                    'currency' => $account->currency ?? 'GBP',
+                    'source' => 'admin_override',
+                    'set_by' => $adminId,
+                    'set_at' => now(),
+                    'valid_from' => now()->toDateString(),
+                    'valid_to' => null,
+                    'active' => true,
+                    'version' => $version,
+                    'previous_version_id' => $previousVersionId,
+                    'change_reason' => $changeReason,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                $updatedCount++;
+            }
+
+            if ($previousTier !== 'bespoke') {
+                $account->product_tier = 'bespoke';
+                $account->save();
+            }
+
+            DB::commit();
+
+            Log::info('Admin updated account pricing', [
+                'account_id' => $accountId,
+                'previous_tier' => $previousTier,
+                'new_tier' => 'bespoke',
+                'prices_updated' => $updatedCount,
+                'admin_user' => $adminEmail,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'accountId' => $accountId,
+                    'pricesUpdated' => $updatedCount,
+                    'productTier' => 'bespoke',
+                    'previousTier' => $previousTier,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to update account pricing', [
+                'account_id' => $accountId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'error' => 'Failed to update pricing'], 500);
+        }
     }
 
     public function billingPayments()

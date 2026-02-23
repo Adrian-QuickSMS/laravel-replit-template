@@ -154,31 +154,6 @@
     gap: 0.75rem;
 }
 
-.agent-logo {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.agent-logo.has-image {
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-}
-
-.agent-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 7px;
-}
-
 .agent-desc {
     font-size: 0.75rem;
     color: #94a3b8;
@@ -198,65 +173,37 @@
     font-weight: 500;
 }
 
-.carrier-badge {
+.rcs-status-badge {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    padding: 0.15rem 0.4rem;
-    border-radius: 3px;
-    font-size: 0.65rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.rcs-status-badge.draft { background: #f3f4f6; color: #374151; }
+.rcs-status-badge.submitted { background: #dbeafe; color: #1e40af; }
+.rcs-status-badge.in_review { background: #e0e7ff; color: #3730a3; }
+.rcs-status-badge.pending_info { background: #fef3c7; color: #92400e; }
+.rcs-status-badge.info_provided { background: #fce7f3; color: #9d174d; }
+.rcs-status-badge.sent_to_supplier { background: #e0e7ff; color: #4338ca; }
+.rcs-status-badge.supplier_approved { background: #ccfbf1; color: #0f766e; }
+.rcs-status-badge.approved { background: #d1fae5; color: #065f46; }
+.rcs-status-badge.rejected { background: #fee2e2; color: #991b1b; }
+.rcs-status-badge.suspended { background: #ffedd5; color: #9a3412; }
+.rcs-status-badge.revoked { background: #f3f4f6; color: #6b7280; }
+
+.billing-cat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
     font-weight: 500;
     background: rgba(30, 58, 95, 0.08);
-    color: var(--admin-primary);
-}
-
-.branding-preview {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-}
-
-.branding-preview .logo-preview {
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.branding-preview .logo-preview img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.branding-preview .hero-preview {
-    width: 160px;
-    height: 80px;
-    border-radius: 8px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    overflow: hidden;
-}
-
-.branding-preview .hero-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.color-swatch {
-    width: 24px;
-    height: 24px;
-    border-radius: 4px;
-    border: 1px solid #e2e8f0;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 0.5rem;
+    color: var(--admin-primary, #1e3a5f);
 }
 </style>
 @endpush
@@ -298,29 +245,37 @@
                                 <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
                                 <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
                             </div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Submitted" id="statusSubmitted"><label class="form-check-label small" for="statusSubmitted">Submitted</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="In Review" id="statusInReview"><label class="form-check-label small" for="statusInReview">In Review</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Approved" id="statusApproved"><label class="form-check-label small" for="statusApproved">Approved</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Rejected" id="statusRejected"><label class="form-check-label small" for="statusRejected">Rejected</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="draft" id="statusDraft"><label class="form-check-label small" for="statusDraft">Draft</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="submitted" id="statusSubmitted"><label class="form-check-label small" for="statusSubmitted">Submitted</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="in_review" id="statusInReview"><label class="form-check-label small" for="statusInReview">In Review</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="pending_info" id="statusPendingInfo"><label class="form-check-label small" for="statusPendingInfo">Pending Info</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="info_provided" id="statusInfoProvided"><label class="form-check-label small" for="statusInfoProvided">Info Provided</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="sent_to_supplier" id="statusSentToSupplier"><label class="form-check-label small" for="statusSentToSupplier">Sent to Mobile Networks</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="supplier_approved" id="statusSupplierApproved"><label class="form-check-label small" for="statusSupplierApproved">Supplier Approved</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="approved" id="statusApproved"><label class="form-check-label small" for="statusApproved">Live</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="rejected" id="statusRejected"><label class="form-check-label small" for="statusRejected">Rejected</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="suspended" id="statusSuspended"><label class="form-check-label small" for="statusSuspended">Suspended</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" value="revoked" id="statusRevoked"><label class="form-check-label small" for="statusRevoked">Revoked</label></div>
                         </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-4 col-lg-2">
-                    <label class="form-label small fw-bold">Type</label>
-                    <div class="dropdown multiselect-dropdown" data-filter="types">
-                        <button class="btn btn-sm dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" style="background-color: #fff; border: 1px solid #ced4da; color: #495057;">
-                            <span class="dropdown-label">All Types</span>
-                        </button>
-                        <div class="dropdown-menu w-100 p-2">
-                            <div class="d-flex justify-content-between mb-2 border-bottom pb-2">
-                                <a href="#" class="small text-decoration-none select-all-btn">Select All</a>
-                                <a href="#" class="small text-decoration-none clear-all-btn">Clear</a>
-                            </div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Conversational" id="typeConversational"><label class="form-check-label small" for="typeConversational">Conversational</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Promotional" id="typePromotional"><label class="form-check-label small" for="typePromotional">Promotional</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" value="Transactional" id="typeTransactional"><label class="form-check-label small" for="typeTransactional">Transactional</label></div>
-                        </div>
-                    </div>
+                    <label class="form-label small fw-bold">Billing Category</label>
+                    <select class="form-select form-select-sm" id="filterBillingCategory">
+                        <option value="">All Categories</option>
+                        <option value="conversational">Conversational</option>
+                        <option value="non-conversational">Non-Conversational</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-4 col-lg-2">
+                    <label class="form-label small fw-bold">Use Case</label>
+                    <select class="form-select form-select-sm" id="filterUseCase">
+                        <option value="">All Use Cases</option>
+                        <option value="otp">OTP</option>
+                        <option value="transactional">Transactional</option>
+                        <option value="promotional">Promotional</option>
+                        <option value="multi-use">Multi-Use</option>
+                    </select>
                 </div>
                 <div class="col-6 col-md-4 col-lg-2">
                     <label class="form-label small fw-bold">Submitted From</label>
@@ -346,24 +301,24 @@
     </div>
 
     <div class="approval-queue-stats mb-3">
-        <div class="approval-stat-card pending" data-status="submitted">
-            <div class="stat-count" id="stat-submitted">4</div>
+        <div class="approval-stat-card pending active" data-status="submitted" onclick="filterByTile('submitted')" style="cursor: pointer;">
+            <div class="stat-count" id="stat-submitted">-</div>
             <div class="stat-label">Submitted</div>
         </div>
-        <div class="approval-stat-card in-review" data-status="in-review">
-            <div class="stat-count" id="stat-in-review">4</div>
+        <div class="approval-stat-card in-review" data-status="in_review" onclick="filterByTile('in_review')" style="cursor: pointer;">
+            <div class="stat-count" id="stat-in-review">-</div>
             <div class="stat-label">In Review</div>
         </div>
-        <div class="approval-stat-card approved" data-status="approved">
-            <div class="stat-count" id="stat-approved">226</div>
+        <div class="approval-stat-card approved" data-status="approved" onclick="filterByTile('approved')" style="cursor: pointer;">
+            <div class="stat-count" id="stat-approved">-</div>
             <div class="stat-label">Approved</div>
         </div>
-        <div class="approval-stat-card rejected" data-status="rejected">
-            <div class="stat-count" id="stat-rejected">4</div>
+        <div class="approval-stat-card rejected" data-status="rejected" onclick="filterByTile('rejected')" style="cursor: pointer;">
+            <div class="stat-count" id="stat-rejected">-</div>
             <div class="stat-label">Rejected</div>
         </div>
-        <div class="approval-stat-card total" data-status="all">
-            <div class="stat-count" id="stat-total">254</div>
+        <div class="approval-stat-card total" data-status="all" onclick="filterByTile('all')" style="cursor: pointer;">
+            <div class="stat-count" id="stat-total">-</div>
             <div class="stat-label">Total</div>
         </div>
     </div>
@@ -407,7 +362,7 @@
                             <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
                         </th>
                         <th data-sort="name">Agent Name <i class="fas fa-sort sort-icon"></i></th>
-                        <th data-sort="type">Type <i class="fas fa-sort sort-icon"></i></th>
+                        <th data-sort="billing_category">Category <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="account">Account <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="submitted">Submitted <i class="fas fa-sort sort-icon"></i></th>
                         <th data-sort="status">Status <i class="fas fa-sort sort-icon"></i></th>
@@ -415,397 +370,11 @@
                     </tr>
                 </thead>
                 <tbody id="approvalQueueBody">
-                    <tr data-item-id="RCS-001" data-status="submitted" data-type="conversational">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-001')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">Acme Support Bot</div>
-                                    <div class="agent-desc">Customer support and FAQ assistance</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">Acme Corporation</div>
-                                    <div class="account-id">ACC-1234</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 20, 2026</span><br>
-                                3 hours ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="markInReview('RCS-001')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="RCS-002" data-status="in-review" data-type="transactional">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-002')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">Finance Alerts</div>
-                                    <div class="agent-desc">Transaction alerts and security notifications</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge transactional">Transactional</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">Finance Ltd</div>
-                                    <div class="account-id">ACC-5678</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 19, 2026</span><br>
-                                1 day ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge in-review"><i class="fas fa-search"></i> In Review</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <span class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-clock me-1"></i>Awaiting RCS Provider</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="RCS-003" data-status="submitted" data-type="promotional">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-003')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">RetailMax Offers</div>
-                                    <div class="agent-desc">Promotional campaigns and special offers</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge promotional">Promotional</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">RetailMax Group</div>
-                                    <div class="account-id">ACC-4001</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 19, 2026</span><br>
-                                1 day ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="markInReview('RCS-003')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="RCS-004" data-status="in-review" data-type="conversational">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-004')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">HealthPlus Assistant</div>
-                                    <div class="agent-desc">Appointment booking and health reminders</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">HealthPlus Care</div>
-                                    <div class="account-id">ACC-4005</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 18, 2026</span><br>
-                                2 days ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge in-review"><i class="fas fa-search"></i> In Review</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <span class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-clock me-1"></i>Awaiting RCS Provider</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="RCS-005" data-status="submitted" data-type="transactional">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-005')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">FoodDelivery Updates</div>
-                                    <div class="agent-desc">Order tracking and delivery notifications</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge transactional">Transactional</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">FoodDelivery Pro</div>
-                                    <div class="account-id">ACC-4009</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 18, 2026</span><br>
-                                2 days ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="markInReview('RCS-005')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="RCS-006" data-status="in-review" data-type="promotional">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-006')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">TravelWorld Deals</div>
-                                    <div class="agent-desc">Travel packages and holiday offers</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge promotional">Promotional</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">TravelWorld Agency</div>
-                                    <div class="account-id">ACC-4011</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 17, 2026</span><br>
-                                3 days ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge in-review"><i class="fas fa-search"></i> In Review</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <span class="text-muted" style="font-size: 0.75rem;"><i class="fas fa-clock me-1"></i>Awaiting RCS Provider</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="RCS-007" data-status="submitted" data-type="conversational">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-007')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">EduLearn Helper</div>
-                                    <div class="agent-desc">Course info and student support</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">EduLearn Academy</div>
-                                    <div class="account-id">ACC-4006</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 17, 2026</span><br>
-                                3 days ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="markInReview('RCS-007')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="RCS-008" data-status="submitted" data-type="transactional">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-008')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">SecureBank Notify</div>
-                                    <div class="agent-desc">Security alerts and account notifications</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge transactional">Transactional</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">SecureBank Financial</div>
-                                    <div class="account-id">ACC-4012</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 16, 2026</span><br>
-                                4 days ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge submitted"><i class="fas fa-paper-plane"></i> Submitted</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <button class="approval-action-btn review" onclick="markInReview('RCS-008')">Review</button>
-                            </div>
-                        </td>
-                    </tr>
-                    {{-- Sample Approved Agents (hidden by default with Awaiting Action filter) --}}
-                    <tr data-item-id="RCS-101" data-status="approved" data-type="conversational" style="display: none;">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-101')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">ShopRight Assistant</div>
-                                    <div class="agent-desc">E-commerce customer support</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">ShopRight Ltd</div>
-                                    <div class="account-id">ACC-5001</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 10, 2026</span><br>
-                                10 days ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge approved"><i class="fas fa-check-circle"></i> Approved</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <span class="text-muted small">Completed</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="RCS-102" data-status="approved" data-type="transactional" style="display: none;">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-102')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">PayQuick Alerts</div>
-                                    <div class="agent-desc">Payment notifications and receipts</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge transactional">Transactional</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">PayQuick Services</div>
-                                    <div class="account-id">ACC-5002</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 8, 2026</span><br>
-                                12 days ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge approved"><i class="fas fa-check-circle"></i> Approved</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <span class="text-muted small">Completed</span>
-                            </div>
-                        </td>
-                    </tr>
-                    {{-- Sample Rejected Agents (hidden by default with Awaiting Action filter) --}}
-                    <tr data-item-id="RCS-201" data-status="rejected" data-type="promotional" style="display: none;">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-201')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">SpamPromo Bot</div>
-                                    <div class="agent-desc">Mass promotional messaging</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge promotional">Promotional</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">Unknown Corp</div>
-                                    <div class="account-id">ACC-9001</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 5, 2026</span><br>
-                                15 days ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge rejected"><i class="fas fa-times-circle"></i> Rejected</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <span class="text-muted small">Completed</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr data-item-id="RCS-202" data-status="rejected" data-type="conversational" style="display: none;">
-                        <td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect('RCS-202')"></td>
-                        <td>
-                            <div class="agent-name-cell">
-                                <div>
-                                    <div class="approval-item-name">FakeBank Helper</div>
-                                    <div class="agent-desc">Unverified banking agent</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="rcs-agent-type-badge conversational">Conversational</span></td>
-                        <td>
-                            <div class="approval-item-account">
-                                <div class="account-info">
-                                    <div class="account-name">Suspicious LLC</div>
-                                    <div class="account-id">ACC-9002</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="submitted-time">
-                                <span class="date">Jan 3, 2026</span><br>
-                                17 days ago
-                            </div>
-                        </td>
-                        <td><span class="approval-status-badge rejected"><i class="fas fa-times-circle"></i> Rejected</span></td>
-                        <td>
-                            <div class="approval-quick-actions">
-                                <span class="text-muted small">Completed</span>
-                            </div>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
         <div class="card-footer d-flex justify-content-between align-items-center">
-            <span class="text-muted small">Showing 1-8 of 8 pending items</span>
+            <span class="text-muted small">Loading...</span>
             <nav>
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
@@ -817,131 +386,6 @@
     </div>
 </div>
 
-<div class="approval-drawer-overlay"></div>
-<div class="approval-drawer">
-    <div class="approval-drawer-header">
-        <h5><i class="fas fa-robot me-2"></i>RCS Agent Details</h5>
-        <button class="approval-drawer-close"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="approval-drawer-body">
-        <div class="asset-preview-card">
-            <div class="preview-label">Agent Name</div>
-            <div class="preview-value" id="drawerAgentName">Acme Support Bot</div>
-        </div>
-
-        <div class="approval-detail-section">
-            <div class="approval-detail-section-title">Agent Configuration</div>
-            <div class="approval-detail-row">
-                <span class="label">Agent Type</span>
-                <span class="value" id="drawerAgentType">Conversational</span>
-            </div>
-            <div class="approval-detail-row">
-                <span class="label">Description</span>
-                <span class="value" id="drawerDescription">Customer support and FAQ assistance</span>
-            </div>
-            <div class="approval-detail-row">
-                <span class="label">Request ID</span>
-                <span class="value" id="drawerRequestId">RCS-001</span>
-            </div>
-            <div class="approval-detail-row">
-                <span class="label">Submitted</span>
-                <span class="value" id="drawerSubmitted">Jan 20, 2026 at 9:15 AM</span>
-            </div>
-        </div>
-
-        <div class="approval-detail-section">
-            <div class="approval-detail-section-title">Account Information</div>
-            <div class="approval-detail-row">
-                <span class="label">Account Name</span>
-                <span class="value" id="drawerAccountName">Acme Corporation</span>
-            </div>
-            <div class="approval-detail-row">
-                <span class="label">Account ID</span>
-                <span class="value" id="drawerAccountId">ACC-1234</span>
-            </div>
-            <div class="approval-detail-row">
-                <span class="label">Account Status</span>
-                <span class="value"><span class="admin-status-badge active">Live</span></span>
-            </div>
-            <div class="approval-detail-row">
-                <span class="label">Existing RCS Agents</span>
-                <span class="value" id="drawerExistingAgents">3</span>
-            </div>
-        </div>
-
-        <div class="approval-detail-section">
-            <div class="approval-detail-section-title">Branding Assets</div>
-            <div class="branding-preview mb-3">
-                <div>
-                    <div class="text-muted mb-1" style="font-size: 0.7rem;">Logo</div>
-                    <div class="logo-preview">
-                        <i class="fas fa-image text-muted" style="font-size: 1.5rem;"></i>
-                    </div>
-                </div>
-                <div>
-                    <div class="text-muted mb-1" style="font-size: 0.7rem;">Hero Image</div>
-                    <div class="hero-preview">
-                        <i class="fas fa-image text-muted" style="font-size: 1.5rem; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="approval-detail-row">
-                <span class="label">Primary Color</span>
-                <span class="value"><span class="color-swatch" style="background: #667eea;"></span>#667EEA</span>
-            </div>
-            <div class="approval-detail-row">
-                <span class="label">Secondary Color</span>
-                <span class="value"><span class="color-swatch" style="background: #764ba2;"></span>#764BA2</span>
-            </div>
-        </div>
-
-        <div class="approval-detail-section">
-            <div class="approval-detail-section-title">Target Carriers</div>
-            <div class="d-flex gap-2 flex-wrap">
-                <span class="carrier-badge">EE</span>
-                <span class="carrier-badge">Vodafone</span>
-                <span class="carrier-badge">O2</span>
-            </div>
-        </div>
-
-        <div class="approval-detail-section">
-            <div class="approval-detail-section-title">Compliance Checklist</div>
-            <ul class="compliance-checklist">
-                <li class="pass"><i class="fas fa-check-circle"></i> Logo meets quality requirements (224x224px)</li>
-                <li class="pass"><i class="fas fa-check-circle"></i> Hero image provided (1440x448px)</li>
-                <li class="pass"><i class="fas fa-check-circle"></i> Privacy policy URL valid</li>
-                <li class="pass"><i class="fas fa-check-circle"></i> Terms of service URL valid</li>
-                <li class="pass"><i class="fas fa-check-circle"></i> Business verified with Google</li>
-                <li class="pending"><i class="fas fa-question-circle"></i> Carrier approval pending</li>
-            </ul>
-        </div>
-
-        <div class="approval-detail-section">
-            <div class="approval-detail-section-title">Approval History</div>
-            <div class="approval-timeline">
-                <div class="approval-timeline-item submitted">
-                    <div class="approval-timeline-event">Agent Registration Submitted</div>
-                    <div class="approval-timeline-meta">Jan 20, 2026 at 9:15 AM by user@acme.com</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="approval-detail-section">
-            <div class="approval-detail-section-title">Admin Notes</div>
-            <textarea class="approval-notes-input" id="drawerNotes" placeholder="Add notes (optional)..."></textarea>
-        </div>
-    </div>
-    <div class="approval-drawer-footer">
-        <button class="btn btn-outline-secondary" onclick="closeDrawer()">Cancel</button>
-        <button class="btn btn-outline-danger" onclick="showRejectModalFromDrawer()">
-            <i class="fas fa-times me-1"></i> Reject
-        </button>
-        <button class="btn btn-success" onclick="approveFromDrawer()">
-            <i class="fas fa-check me-1"></i> Approve
-        </button>
-    </div>
-</div>
-
 <div class="modal fade" id="rejectModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -950,7 +394,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="text-muted mb-3">Rejecting: <strong id="rejectItemName">Acme Support Bot</strong></p>
+                <p class="text-muted mb-3">Rejecting: <strong id="rejectItemName"></strong></p>
                 
                 <div class="mb-3">
                     <label class="form-label">Rejection Reason <span class="text-danger">*</span></label>
@@ -982,111 +426,321 @@
 
 @push('scripts')
 <script>
+var csrfToken = $('meta[name="csrf-token"]').attr('content');
+var currentPage = 1;
+var currentFilterStatus = '';
+var currentFilterBillingCategory = '';
+var currentFilterUseCase = '';
+var currentFilterAccount = '';
+var currentSearchQuery = '';
+var currentRejectItemUuid = null;
+var selectedItems = [];
+var allLoadedItems = [];
+
+function ajaxHeaders() {
+    return { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[RCS Agent Approvals] Initializing...');
     
     if (typeof AdminControlPlane !== 'undefined') {
-        AdminControlPlane.ApprovalFramework.init('RCS_AGENT');
+        if (AdminControlPlane.ApprovalFramework) {
+            AdminControlPlane.ApprovalFramework.init('RCS_AGENT');
+        }
+        AdminControlPlane.logAdminAction('PAGE_VIEW', 'rcs-agent-approvals', {
+            module: 'messaging_assets'
+        });
     }
 
-    AdminControlPlane.logAdminAction('PAGE_VIEW', 'rcs-agent-approvals', {
-        module: 'messaging_assets'
-    });
-
-    initStatCardClicks();
-    applyFilters();
+    loadRcsAgents();
+    loadStatCounts();
 });
 
-function initStatCardClicks() {
-    document.querySelectorAll('.approval-stat-card').forEach(function(card) {
-        card.style.cursor = 'pointer';
-        card.addEventListener('click', function() {
-            var status = this.dataset.status;
-            
-            document.querySelectorAll('.approval-stat-card').forEach(function(c) {
-                c.classList.remove('active');
-            });
-            this.classList.add('active');
-            
-            var filterSelect = document.getElementById('filterStatus');
-            if (status === 'all') {
-                filterSelect.value = 'all';
-            } else if (status === 'submitted') {
-                filterSelect.value = 'submitted';
-            } else if (status === 'in-review') {
-                filterSelect.value = 'in-review';
-            } else if (status === 'approved') {
-                filterSelect.value = 'approved';
-            } else if (status === 'rejected') {
-                filterSelect.value = 'rejected';
+function loadRcsAgents() {
+    var params = { page: currentPage, per_page: 20 };
+    if (currentFilterStatus && currentFilterStatus !== 'all') {
+        params.status = currentFilterStatus;
+    }
+    if (currentFilterBillingCategory) {
+        params.billing_category = currentFilterBillingCategory;
+    }
+    if (currentFilterUseCase) {
+        params.use_case = currentFilterUseCase;
+    }
+    if (currentFilterAccount) {
+        params.account_id = currentFilterAccount;
+    }
+
+    var tbody = document.getElementById('approvalQueueBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading...</td></tr>';
+
+    $.ajax({
+        url: '/admin/api/rcs-agents',
+        method: 'GET',
+        data: params,
+        headers: ajaxHeaders(),
+        success: function(response) {
+            if (response.success && response.data) {
+                var paginator = response.data;
+                var items = paginator.data || [];
+                allLoadedItems = items;
+                renderTableRows(items);
+                renderPagination(paginator);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No RCS agents found.</td></tr>';
             }
-            
-            applyFilters();
-        });
+        },
+        error: function(xhr) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Failed to load data. Please try again.</td></tr>';
+            console.error('[RCS Agents] Load error:', xhr.responseText);
+        }
     });
 }
 
-var currentRejectItem = null;
-var selectedItems = [];
+function loadStatCounts() {
+    var statuses = ['submitted', 'in_review', 'approved', 'rejected'];
+
+    statuses.forEach(function(status) {
+        $.ajax({
+            url: '/admin/api/rcs-agents',
+            method: 'GET',
+            data: { status: status, per_page: 1 },
+            headers: ajaxHeaders(),
+            success: function(response) {
+                if (response.success && response.data) {
+                    var count = response.data.total || 0;
+                    if (status === 'submitted') {
+                        document.getElementById('stat-submitted').textContent = count.toLocaleString();
+                    } else if (status === 'in_review') {
+                        document.getElementById('stat-in-review').textContent = count.toLocaleString();
+                    } else if (status === 'approved') {
+                        document.getElementById('stat-approved').textContent = count.toLocaleString();
+                    } else if (status === 'rejected') {
+                        document.getElementById('stat-rejected').textContent = count.toLocaleString();
+                    }
+                }
+            }
+        });
+    });
+
+    $.ajax({
+        url: '/admin/api/rcs-agents',
+        method: 'GET',
+        data: { per_page: 1 },
+        headers: ajaxHeaders(),
+        success: function(response) {
+            if (response.success && response.data) {
+                document.getElementById('stat-total').textContent = (response.data.total || 0).toLocaleString();
+            }
+        }
+    });
+}
+
+function renderTableRows(items) {
+    var tbody = document.getElementById('approvalQueueBody');
+
+    if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No RCS agents found matching your filters.</td></tr>';
+        return;
+    }
+
+    var html = '';
+    items.forEach(function(item) {
+        var uuid = item.uuid || '';
+        var agentName = item.name || '';
+        var description = item.description || '';
+        var billingCategory = item.billing_category || '';
+        var useCase = item.use_case || '';
+        var workflowStatus = item.workflow_status || item.status || '';
+        var submittedAt = item.submitted_at ? new Date(item.submitted_at) : (item.created_at ? new Date(item.created_at) : null);
+        var accountName = (item.account && item.account.company_name) ? item.account.company_name : '';
+        var accountNumber = (item.account && item.account.account_number) ? item.account.account_number : '';
+
+        var dateStr = '';
+        var timeAgo = '';
+        if (submittedAt) {
+            dateStr = submittedAt.toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' });
+            timeAgo = getTimeAgo(submittedAt);
+        }
+
+        var statusBadge = getStatusBadge(workflowStatus);
+        var actionButtons = getActionButtons(uuid, workflowStatus);
+
+        html += '<tr data-item-id="' + escapeHtml(uuid) + '" data-status="' + escapeHtml(workflowStatus) + '">';
+        html += '<td><input type="checkbox" class="item-checkbox" onchange="toggleItemSelect(\'' + escapeHtml(uuid) + '\')"></td>';
+        html += '<td>';
+        html += '<div class="agent-name-cell"><div>';
+        html += '<div class="approval-item-name">' + escapeHtml(agentName) + '</div>';
+        html += '<div class="agent-desc">' + escapeHtml(description) + '</div>';
+        html += '</div></div>';
+        html += '</td>';
+        html += '<td>';
+        if (billingCategory) {
+            html += '<span class="billing-cat-badge">' + escapeHtml(billingCategory) + '</span>';
+        }
+        if (useCase) {
+            html += '<div style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px;">' + escapeHtml(useCase) + '</div>';
+        }
+        html += '</td>';
+        html += '<td>';
+        html += '<div class="approval-item-account"><div class="account-info">';
+        html += '<div class="account-name">' + escapeHtml(accountName) + '</div>';
+        html += '<div class="account-id">' + escapeHtml(accountNumber) + '</div>';
+        html += '</div></div>';
+        html += '</td>';
+        html += '<td>';
+        html += '<div class="submitted-time">';
+        html += '<span class="date">' + escapeHtml(dateStr) + '</span><br>';
+        html += escapeHtml(timeAgo);
+        html += '</div>';
+        html += '</td>';
+        html += '<td>' + statusBadge + '</td>';
+        html += '<td><div class="approval-quick-actions">' + actionButtons + '</div></td>';
+        html += '</tr>';
+    });
+
+    tbody.innerHTML = html;
+}
+
+function getStatusBadge(status) {
+    var map = {
+        'draft': { icon: 'fa-pencil-alt', label: 'Draft' },
+        'submitted': { icon: 'fa-paper-plane', label: 'Submitted' },
+        'in_review': { icon: 'fa-search', label: 'In Review' },
+        'pending_info': { icon: 'fa-undo', label: 'Pending Info' },
+        'info_provided': { icon: 'fa-reply', label: 'Info Provided' },
+        'sent_to_supplier': { icon: 'fa-satellite-dish', label: 'Sent to Mobile Networks' },
+        'supplier_approved': { icon: 'fa-check-double', label: 'Supplier Approved' },
+        'approved': { icon: 'fa-check-circle', label: 'Live' },
+        'rejected': { icon: 'fa-times-circle', label: 'Rejected' },
+        'suspended': { icon: 'fa-pause-circle', label: 'Suspended' },
+        'revoked': { icon: 'fa-ban', label: 'Revoked' }
+    };
+    var info = map[status] || { icon: 'fa-question', label: status };
+    return '<span class="rcs-status-badge ' + escapeHtml(status) + '"><i class="fas ' + info.icon + '"></i> ' + escapeHtml(info.label) + '</span>';
+}
+
+function getActionButtons(uuid, status) {
+    if (status === 'submitted' || status === 'in_review' || status === 'pending_info' || status === 'info_provided') {
+        return '<button class="approval-action-btn review" onclick="goToDetail(\'' + escapeHtml(uuid) + '\')">Review</button>';
+    }
+    return '<button class="approval-action-btn review" onclick="goToDetail(\'' + escapeHtml(uuid) + '\')">View</button>';
+}
+
+function renderPagination(paginator) {
+    var current = paginator.current_page || 1;
+    var last = paginator.last_page || 1;
+    var total = paginator.total || 0;
+    var perPage = paginator.per_page || 20;
+    var from = ((current - 1) * perPage) + 1;
+    var to = Math.min(current * perPage, total);
+
+    document.querySelector('.card-footer .text-muted').textContent = 'Showing ' + (total > 0 ? from : 0) + '-' + to + ' of ' + total + ' items';
+
+    var paginationHtml = '';
+    paginationHtml += '<li class="page-item ' + (current <= 1 ? 'disabled' : '') + '"><a class="page-link" href="#" onclick="goToPage(' + (current - 1) + '); return false;">Previous</a></li>';
+    
+    var startPage = Math.max(1, current - 2);
+    var endPage = Math.min(last, current + 2);
+    for (var i = startPage; i <= endPage; i++) {
+        paginationHtml += '<li class="page-item ' + (i === current ? 'active' : '') + '"><a class="page-link" href="#" onclick="goToPage(' + i + '); return false;">' + i + '</a></li>';
+    }
+    
+    paginationHtml += '<li class="page-item ' + (current >= last ? 'disabled' : '') + '"><a class="page-link" href="#" onclick="goToPage(' + (current + 1) + '); return false;">Next</a></li>';
+
+    document.querySelector('.card-footer .pagination').innerHTML = paginationHtml;
+}
+
+function goToPage(page) {
+    if (page < 1) return;
+    currentPage = page;
+    loadRcsAgents();
+}
+
+function getTimeAgo(date) {
+    var now = new Date();
+    var diffMs = now - date;
+    var diffMins = Math.floor(diffMs / 60000);
+    var diffHours = Math.floor(diffMs / 3600000);
+    var diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return diffMins + ' min ago';
+    if (diffHours < 24) return diffHours + ' hours ago';
+    if (diffDays === 1) return '1 day ago';
+    return diffDays + ' days ago';
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
 
 function applyFilters() {
-    var status = document.getElementById('filterStatus').value;
-    var type = document.getElementById('filterType').value;
-    var account = document.getElementById('filterAccount').value;
-    var search = document.getElementById('searchInput').value.toLowerCase();
-
-    document.querySelectorAll('.api-table tbody tr').forEach(function(row) {
-        var show = true;
-        var rowStatus = row.dataset.status;
-
-        if (status === 'awaiting-action') {
-            if (rowStatus !== 'submitted' && rowStatus !== 'in-review') {
-                show = false;
-            }
-        } else if (status !== 'all' && rowStatus !== status) {
-            show = false;
-        }
-
-        if (type && row.dataset.type !== type) {
-            show = false;
-        }
-
-        if (account && row.querySelector('.account-id').textContent !== account) {
-            show = false;
-        }
-
-        if (search) {
-            var name = row.querySelector('.approval-item-name').textContent.toLowerCase();
-            if (name.indexOf(search) === -1) {
-                show = false;
-            }
-        }
-
-        row.style.display = show ? '' : 'none';
-    });
-
-    updateVisibleCount();
+    var statusCheckboxes = document.querySelectorAll('[data-filter="statuses"] .form-check-input:checked');
+    var statuses = [];
+    statusCheckboxes.forEach(function(cb) { statuses.push(cb.value); });
     
-    AdminControlPlane.logAdminAction('FILTER_APPLIED', 'rcs-agent-queue', {
-        status: status,
-        type: type,
-        account: account,
-        search: search
-    });
+    currentFilterStatus = statuses.length === 1 ? statuses[0] : '';
+    currentFilterBillingCategory = document.getElementById('filterBillingCategory').value;
+    currentFilterUseCase = document.getElementById('filterUseCase').value;
+    currentFilterAccount = document.getElementById('filterAccount').value;
+    currentSearchQuery = document.getElementById('quickSearchInput').value;
+    currentPage = 1;
+
+    loadRcsAgents();
+
+    if (typeof AdminControlPlane !== 'undefined') {
+        AdminControlPlane.logAdminAction('FILTER_APPLIED', 'rcs-agent-queue', {
+            status: currentFilterStatus,
+            billing_category: currentFilterBillingCategory,
+            use_case: currentFilterUseCase,
+            account: currentFilterAccount,
+            search: currentSearchQuery
+        });
+    }
 }
 
 function clearFilters() {
-    document.getElementById('filterStatus').value = 'awaiting-action';
-    document.getElementById('filterType').value = '';
+    document.querySelectorAll('.multiselect-dropdown .form-check-input').forEach(function(cb) { cb.checked = false; });
     document.getElementById('filterAccount').value = '';
-    document.getElementById('searchInput').value = '';
-    applyFilters();
+    document.getElementById('filterBillingCategory').value = '';
+    document.getElementById('filterUseCase').value = '';
+    document.getElementById('quickSearchInput').value = '';
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
+    currentFilterStatus = '';
+    currentFilterBillingCategory = '';
+    currentFilterUseCase = '';
+    currentFilterAccount = '';
+    currentSearchQuery = '';
+    currentPage = 1;
+    loadRcsAgents();
 }
 
-function updateVisibleCount() {
-    var visible = document.querySelectorAll('.api-table tbody tr:not([style*="display: none"])').length;
-    document.querySelector('.card-footer .text-muted').textContent = 'Showing 1-' + visible + ' of ' + visible + ' items';
-}
+document.addEventListener('DOMContentLoaded', function() {
+    var applyBtn = document.getElementById('btnApplyFilters');
+    if (applyBtn) applyBtn.addEventListener('click', applyFilters);
+    
+    var resetBtn = document.getElementById('btnResetFilters');
+    if (resetBtn) resetBtn.addEventListener('click', clearFilters);
+
+    var searchInput = document.getElementById('quickSearchInput');
+    if (searchInput) {
+        var searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                currentSearchQuery = searchInput.value;
+                currentPage = 1;
+                loadRcsAgents();
+            }, 400);
+        });
+    }
+});
 
 function toggleSelectAll() {
     var checked = document.getElementById('selectAllCheckbox').checked;
@@ -1129,33 +783,26 @@ function clearSelection() {
     updateBulkBar();
 }
 
-function markInReview(itemId) {
-    AdminControlPlane.ApprovalFramework.markInReview(itemId, AdminControlPlane.getCurrentAdmin().email);
-    window.location.href = '/admin/assets/rcs-agents/' + itemId;
-}
-
-function quickApprove(itemId) {
-    if (confirm('Approve RCS Agent ' + itemId + '?')) {
-        var result = AdminControlPlane.approveItem('RCS_AGENT', itemId, '');
-        if (result.success) {
-            updateRowStatus(itemId, 'approved');
-            showToast('RCS Agent approved successfully', 'success');
-        }
+function filterByTile(status) {
+    document.querySelectorAll('.approval-stat-card').forEach(function(card) {
+        card.classList.remove('active');
+    });
+    var activeCard = document.querySelector('.approval-stat-card[data-status="' + status + '"]');
+    if (activeCard) {
+        activeCard.classList.add('active');
     }
+
+    if (status === 'all') {
+        currentFilterStatus = '';
+    } else {
+        currentFilterStatus = status;
+    }
+    currentPage = 1;
+    loadRcsAgents();
 }
 
-function showRejectModal(itemId) {
-    currentRejectItem = itemId;
-    var row = document.querySelector('[data-item-id="' + itemId + '"]');
-    var name = row.querySelector('.approval-item-name').textContent;
-    document.getElementById('rejectItemName').textContent = name;
-    document.getElementById('rejectReason').value = '';
-    new bootstrap.Modal(document.getElementById('rejectModal')).show();
-}
-
-function showRejectModalFromDrawer() {
-    var itemId = document.getElementById('drawerRequestId').textContent;
-    showRejectModal(itemId);
+function goToDetail(uuid) {
+    window.location.href = '/admin/assets/rcs-agents/' + uuid;
 }
 
 function useRejectTemplate(el) {
@@ -1167,114 +814,112 @@ function useRejectTemplate(el) {
 function confirmReject() {
     var reason = document.getElementById('rejectReason').value.trim();
     if (reason.length < 10) {
-        alert('Please provide a rejection reason (minimum 10 characters)');
+        showToast('Please provide a rejection reason (minimum 10 characters)', 'warning');
         return;
     }
 
-    var result = AdminControlPlane.rejectItem('RCS_AGENT', currentRejectItem, reason);
-    if (result.success) {
-        updateRowStatus(currentRejectItem, 'rejected');
-        bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
-        closeDrawer();
-        showToast('RCS Agent rejected', 'warning');
-    } else {
-        alert(result.error);
+    var uuid = currentRejectItemUuid;
+    if (uuid === 'BULK') {
+        bulkRejectConfirm(reason);
+        return;
     }
-}
 
-function approveFromDrawer() {
-    var itemId = document.getElementById('drawerRequestId').textContent;
-    var notes = document.getElementById('drawerNotes').value;
-    
-    var result = AdminControlPlane.approveItem('RCS_AGENT', itemId, notes);
-    if (result.success) {
-        updateRowStatus(itemId, 'approved');
-        closeDrawer();
-        showToast('RCS Agent approved successfully', 'success');
-    }
-}
-
-function updateRowStatus(itemId, newStatus) {
-    var row = document.querySelector('[data-item-id="' + itemId + '"]');
-    if (row) {
-        row.dataset.status = newStatus;
-        var badge = row.querySelector('.approval-status-badge');
-        badge.className = 'approval-status-badge ' + newStatus;
-        
-        var icons = {
-            'approved': '<i class="fas fa-check-circle"></i>',
-            'rejected': '<i class="fas fa-times-circle"></i>',
-            'submitted': '<i class="fas fa-paper-plane"></i>',
-            'in-review': '<i class="fas fa-search"></i>'
-        };
-        var labels = {
-            'approved': 'Approved',
-            'rejected': 'Rejected',
-            'submitted': 'Submitted',
-            'in-review': 'In Review'
-        };
-        badge.innerHTML = icons[newStatus] + ' ' + labels[newStatus];
-
-        var actions = row.querySelector('.approval-quick-actions');
-        if (newStatus === 'approved' || newStatus === 'rejected') {
-            actions.innerHTML = '<span class="text-muted small">Completed</span>';
-        } else if (newStatus === 'in-review') {
-            actions.innerHTML = '<button class="approval-action-btn approve" onclick="quickApprove(\'' + itemId + '\')">Approve</button>' +
-                              '<button class="approval-action-btn reject" onclick="showRejectModal(\'' + itemId + '\')">Reject</button>';
-        }
-    }
-    updateStatCounts();
-}
-
-function updateStatCounts() {
-    var counts = { submitted: 0, 'in-review': 0, approved: 0, rejected: 0 };
-    document.querySelectorAll('.api-table tbody tr').forEach(function(row) {
-        var status = row.dataset.status;
-        if (counts.hasOwnProperty(status)) {
-            counts[status]++;
+    $.ajax({
+        url: '/admin/api/rcs-agents/' + uuid + '/reject',
+        method: 'POST',
+        headers: ajaxHeaders(),
+        data: JSON.stringify({ reason: reason }),
+        success: function(response) {
+            if (response.success) {
+                bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+                showToast('RCS Agent rejected', 'warning');
+                loadRcsAgents();
+                loadStatCounts();
+            } else {
+                showToast(response.error || 'Failed to reject', 'error');
+            }
+        },
+        error: function(xhr) {
+            var msg = 'Failed to reject';
+            try { msg = JSON.parse(xhr.responseText).error || msg; } catch(e) {}
+            showToast(msg, 'error');
         }
     });
-    
-    document.getElementById('stat-submitted').textContent = counts.submitted;
-    document.getElementById('stat-in-review').textContent = counts['in-review'];
-    document.getElementById('stat-approved').textContent = (226 + counts.approved);
-    document.getElementById('stat-rejected').textContent = (4 + counts.rejected);
-}
-
-function closeDrawer() {
-    document.querySelector('.approval-drawer').classList.remove('open');
-    document.querySelector('.approval-drawer-overlay').classList.remove('open');
-    document.body.style.overflow = '';
 }
 
 function bulkApprove() {
-    if (confirm('Approve ' + selectedItems.length + ' items?')) {
-        selectedItems.forEach(function(id) {
-            AdminControlPlane.approveItem('RCS_AGENT', id, 'Bulk approval');
-            updateRowStatus(id, 'approved');
+    if (selectedItems.length === 0) return;
+    if (!confirm('Approve ' + selectedItems.length + ' items?')) return;
+
+    var completed = 0;
+    var errors = 0;
+    selectedItems.forEach(function(uuid) {
+        $.ajax({
+            url: '/admin/api/rcs-agents/' + uuid + '/approve',
+            method: 'POST',
+            headers: ajaxHeaders(),
+            data: JSON.stringify({ notes: 'Bulk approval' }),
+            success: function() { completed++; checkBulkDone(); },
+            error: function() { errors++; completed++; checkBulkDone(); }
         });
-        clearSelection();
-        showToast(selectedItems.length + ' agents approved', 'success');
+    });
+
+    function checkBulkDone() {
+        if (completed === selectedItems.length) {
+            clearSelection();
+            showToast((completed - errors) + ' items approved' + (errors > 0 ? ', ' + errors + ' failed' : ''), errors > 0 ? 'warning' : 'success');
+            loadRcsAgents();
+            loadStatCounts();
+        }
+    }
+}
+
+function bulkRejectConfirm(reason) {
+    var completed = 0;
+    var errors = 0;
+    selectedItems.forEach(function(uuid) {
+        $.ajax({
+            url: '/admin/api/rcs-agents/' + uuid + '/reject',
+            method: 'POST',
+            headers: ajaxHeaders(),
+            data: JSON.stringify({ reason: reason }),
+            success: function() { completed++; checkBulkDone(); },
+            error: function() { errors++; completed++; checkBulkDone(); }
+        });
+    });
+
+    function checkBulkDone() {
+        if (completed === selectedItems.length) {
+            bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+            clearSelection();
+            showToast((completed - errors) + ' items rejected' + (errors > 0 ? ', ' + errors + ' failed' : ''), errors > 0 ? 'warning' : 'success');
+            loadRcsAgents();
+            loadStatCounts();
+        }
     }
 }
 
 function showBulkRejectModal() {
-    currentRejectItem = 'BULK';
+    currentRejectItemUuid = 'BULK';
     document.getElementById('rejectItemName').textContent = selectedItems.length + ' items';
     document.getElementById('rejectReason').value = '';
     new bootstrap.Modal(document.getElementById('rejectModal')).show();
 }
 
-function exportQueue(format) {
-    AdminControlPlane.logAdminAction('EXPORT_INITIATED', 'rcs-agent-queue', {
-        format: format,
-        count: document.querySelectorAll('.api-table tbody tr').length
-    });
-    showToast('Export started...', 'info');
-}
-
 function showToast(message, type) {
-    console.log('[Toast]', type, message);
+    var colors = {
+        success: { bg: '#22c55e', icon: 'fa-check-circle' },
+        error: { bg: '#ef4444', icon: 'fa-times-circle' },
+        warning: { bg: '#f59e0b', icon: 'fa-exclamation-triangle' },
+        info: { bg: '#3b82f6', icon: 'fa-info-circle' }
+    };
+    var c = colors[type] || colors.info;
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:99999;background:' + c.bg + ';color:#fff;padding:0.75rem 1.25rem;border-radius:8px;font-size:0.85rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);display:flex;align-items:center;gap:0.5rem;animation:slideInRight 0.3s ease;max-width:400px;';
+    toast.innerHTML = '<i class="fas ' + c.icon + '"></i> ' + message;
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; }, 4000);
+    setTimeout(function() { toast.remove(); }, 4500);
 }
 </script>
 @endpush

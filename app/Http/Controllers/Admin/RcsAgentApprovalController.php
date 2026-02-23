@@ -192,14 +192,14 @@ class RcsAgentApprovalController extends Controller
                 ]);
 
                 // Create customer-visible comment with admin's notes
-                $adminUser = $request->user();
+                $adminSession = session('admin_auth', []);
                 RcsAgentComment::create([
                     'rcs_agent_id' => $agent->id,
                     'comment_type' => RcsAgentComment::TYPE_CUSTOMER,
                     'comment_text' => $validated['notes'],
                     'created_by_actor_type' => RcsAgentComment::ACTOR_ADMIN,
-                    'created_by_actor_id' => $adminUser->id ?? null,
-                    'created_by_actor_name' => $adminUser ? (($adminUser->first_name ?? '') . ' ' . ($adminUser->last_name ?? '')) : 'Admin',
+                    'created_by_actor_id' => $adminSession['admin_id'] ?? ($request->user()->id ?? null),
+                    'created_by_actor_name' => $adminSession['name'] ?? 'QuickSMS Review Team',
                 ]);
 
                 $this->logGovernanceEvent(
@@ -215,6 +215,121 @@ class RcsAgentApprovalController extends Controller
         }
 
         return $response;
+    }
+
+    /**
+     * Approve and send to RCS Supplier (in_review -> approved, then submit to supplier)
+     * POST /admin/api/rcs-agents/{uuid}/approve-and-submit
+     */
+    public function approveAndSubmitToSupplier(Request $request, string $uuid): JsonResponse
+    {
+        $request->validate([
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        $agent = RcsAgent::withoutGlobalScope('tenant')
+            ->where('uuid', $uuid)
+            ->with(['account:id,company_name,account_number'])
+            ->first();
+
+        if (!$agent) {
+            return response()->json(['success' => false, 'error' => 'RCS Agent not found.'], 404);
+        }
+
+        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_SUBMITTED, RcsAgent::STATUS_IN_REVIEW, RcsAgent::STATUS_PENDING_INFO, RcsAgent::STATUS_INFO_PROVIDED, RcsAgent::STATUS_SENT_TO_SUPPLIER])) {
+            return response()->json(['success' => false, 'error' => 'Agent must be submitted or in review to approve and submit to supplier.'], 422);
+        }
+
+        $beforeState = $agent->toAdminArray();
+
+        try {
+            $adminUser = $request->user();
+            $adminId = session('admin_auth.admin_id') ?? ($adminUser->id ?? null);
+
+            $agent->transitionTo(
+                RcsAgent::STATUS_SENT_TO_SUPPLIER,
+                $adminId,
+                null,
+                $request->input('notes', 'Approved and submitted to RCS supplier'),
+                $adminUser
+            );
+
+            $supplierPayload = $this->buildSupplierPayload($agent);
+
+            $agent->admin_notes = trim(($agent->admin_notes ?? '') . "\n[" . now()->toDateTimeString() . "] Submitted to RCS supplier.");
+            $agent->save();
+
+            try {
+                Notification::create([
+                    'tenant_id' => $agent->account_id,
+                    'type' => 'RCS_AGENT_APPROVED',
+                    'severity' => 'success',
+                    'title' => "RCS Agent approved",
+                    'body' => "Your RCS Agent '{$agent->name}' has been approved and submitted to the RCS supplier for provisioning.",
+                    'deep_link' => "/management/rcs-agent?view={$agent->uuid}",
+                    'meta' => [
+                        'agent_name' => $agent->name,
+                        'request_uuid' => $agent->uuid,
+                        'request_id' => $agent->id,
+                    ],
+                ]);
+            } catch (\Exception $e) {
+                Log::error('[RcsAgentApproval] Failed to create approval notification: ' . $e->getMessage());
+            }
+
+            $this->logGovernanceEvent(
+                $agent,
+                $beforeState,
+                'RCS_AGENT_APPROVED_AND_SUBMITTED_TO_SUPPLIER',
+                $request,
+                'Approved and submitted to RCS supplier'
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'RCS Agent approved and submitted to supplier.',
+                'supplier_payload' => $supplierPayload,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('[RcsAgentApproval] Approve and submit failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'error' => 'Failed to approve and submit: ' . $e->getMessage()], 500);
+        }
+    }
+
+    private function buildSupplierPayload(RcsAgent $agent): array
+    {
+        return [
+            'agent_id' => $agent->uuid,
+            'agent_name' => $agent->name,
+            'description' => $agent->description,
+            'brand_color' => $agent->brand_color,
+            'logo_url' => $agent->logo_url,
+            'hero_url' => $agent->hero_url,
+            'support_phone' => $agent->support_phone,
+            'support_email' => $agent->support_email,
+            'website' => $agent->website,
+            'privacy_url' => $agent->privacy_url,
+            'terms_url' => $agent->terms_url,
+            'show_phone' => (bool) $agent->show_phone,
+            'show_email' => (bool) $agent->show_email,
+            'show_website' => (bool) $agent->show_website,
+            'billing_category' => $agent->billing_category,
+            'use_case' => $agent->use_case,
+            'use_case_overview' => $agent->use_case_overview,
+            'campaign_frequency' => $agent->campaign_frequency,
+            'monthly_volume' => $agent->monthly_volume,
+            'opt_in_description' => $agent->opt_in_description,
+            'opt_out_description' => $agent->opt_out_description,
+            'test_numbers' => $agent->test_numbers ?? [],
+            'company_name' => $agent->account?->company_name,
+            'company_number' => $agent->company_number,
+            'company_website' => $agent->company_website,
+            'registered_address' => $agent->registered_address,
+            'approver_name' => $agent->approver_name,
+            'approver_job_title' => $agent->approver_job_title,
+            'approver_email' => $agent->approver_email,
+            'sector' => $agent->sector,
+        ];
     }
 
     /**
@@ -256,6 +371,32 @@ class RcsAgentApprovalController extends Controller
         return $this->performTransition($request, $uuid, RcsAgent::STATUS_REVOKED, $validated['reason']);
     }
 
+    /**
+     * Mark supplier approved (sent_to_supplier -> supplier_approved)
+     * POST /admin/api/rcs-agents/{uuid}/supplier-approved
+     */
+    public function supplierApproved(Request $request, string $uuid): JsonResponse
+    {
+        $request->validate([
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        return $this->performTransition($request, $uuid, RcsAgent::STATUS_SUPPLIER_APPROVED, null, $request->input('notes', 'Supplier has approved the RCS agent'));
+    }
+
+    /**
+     * Mark fully approved / live (supplier_approved -> approved)
+     * POST /admin/api/rcs-agents/{uuid}/mark-live
+     */
+    public function markLive(Request $request, string $uuid): JsonResponse
+    {
+        $request->validate([
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        return $this->performTransition($request, $uuid, RcsAgent::STATUS_APPROVED, null, $request->input('notes', 'Agent is now live'));
+    }
+
     // =====================================================
     // PRIVATE HELPERS
     // =====================================================
@@ -282,7 +423,7 @@ class RcsAgentApprovalController extends Controller
 
         try {
             $adminUser = $request->user();
-            $adminId = $adminUser->id ?? null;
+            $adminId = session('admin_auth.admin_id') ?? ($adminUser->id ?? null);
 
             $agent->transitionTo(
                 $targetStatus,
@@ -356,9 +497,9 @@ class RcsAgentApprovalController extends Controller
                 'entity_id' => $agent->id,
                 'account_id' => null,
                 'sub_account_id' => null,
-                'actor_id' => $request->user()->id ?? null,
+                'actor_id' => session('admin_auth.admin_id') ?? ($request->user()->id ?? null),
                 'actor_type' => 'ADMIN',
-                'actor_email' => $request->user()->email ?? 'admin@quicksms.co.uk',
+                'actor_email' => session('admin_auth.email') ?? ($request->user()->email ?? 'admin@quicksms.co.uk'),
                 'before_state' => json_encode([
                     'workflow_status' => $beforeState['workflow_status'] ?? null,
                     'agent_name' => $beforeState['name'] ?? $agent->name,

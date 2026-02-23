@@ -53,10 +53,10 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('account_id')->references('id')->on('accounts');
-            $table->foreign('previous_version_id')->references('id')->on('customer_prices');
         });
         DB::statement("ALTER TABLE customer_prices ADD COLUMN product_type billable_product_type NOT NULL");
         DB::statement("ALTER TABLE customer_prices ADD COLUMN source price_source NOT NULL DEFAULT 'admin_override'");
+        DB::statement("ALTER TABLE customer_prices ADD CONSTRAINT customer_prices_previous_version_id_foreign FOREIGN KEY (previous_version_id) REFERENCES customer_prices (id)");
         DB::statement("CREATE INDEX idx_customer_prices_lookup ON customer_prices (account_id, product_type, country_iso, active)");
         DB::statement("CREATE INDEX idx_customer_prices_source ON customer_prices (account_id, source, active)");
 
