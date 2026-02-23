@@ -2027,7 +2027,7 @@ $(document).ready(function() {
         
         var $toolbar = $(this).find('.toolbar');
         if (stepIndex === 6) {
-            $toolbar.find('.sw-btn-next').text('Submit');
+            $toolbar.find('.sw-btn-next').text('Submit').prop('disabled', false).removeClass('disabled');
         } else {
             $toolbar.find('.sw-btn-next').text('Next');
         }
