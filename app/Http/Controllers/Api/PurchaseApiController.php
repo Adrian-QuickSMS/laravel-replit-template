@@ -79,26 +79,48 @@ class PurchaseApiController extends Controller
             ->get()
             ->keyBy('product_type');
 
+        $tenantId = session('customer_tenant_id');
+        $account = $tenantId ? Account::withoutGlobalScopes()->find($tenantId) : null;
+        $isBespoke = $account && $account->product_tier === 'bespoke';
+
+        $bespokePrices = collect();
+        if ($isBespoke && $tenantId) {
+            $bespokePrices = \App\Models\Billing\CustomerPrice::where('account_id', $tenantId)
+                ->whereIn('product_type', $productTypes)
+                ->whereNull('country_iso')
+                ->where('active', true)
+                ->whereRaw("valid_from <= CURRENT_DATE")
+                ->where(function ($q) {
+                    $q->whereNull('valid_to')->orWhereRaw("valid_to >= CURRENT_DATE");
+                })
+                ->get()
+                ->keyBy('product_type');
+        }
+
         $products = [];
         foreach (self::PRODUCT_TYPE_TO_KEY as $dbType => $frontendKey) {
             $starterPrice = $starterPrices->get($dbType);
             $enterprisePrice = $enterprisePrices->get($dbType);
+            $bespokePrice = $bespokePrices->get($dbType);
 
-            if (!$starterPrice && !$enterprisePrice) {
+            if (!$starterPrice && !$enterprisePrice && !$bespokePrice) {
                 continue;
             }
 
             $price = $starterPrice ? (float) $starterPrice->unit_price : 0;
             $priceEnterprise = $enterprisePrice ? (float) $enterprisePrice->unit_price : null;
+            $priceBespoke = $bespokePrice ? (float) $bespokePrice->unit_price : null;
 
-            $vatCalc = $this->vatService->calculateVat($price, $vatApplicable);
+            $displayPrice = $priceBespoke ?? $price;
+            $vatCalc = $this->vatService->calculateVat($displayPrice, $vatApplicable);
 
             $products[$frontendKey] = [
-                'id' => $starterPrice->id ?? $enterprisePrice->id,
+                'id' => $bespokePrice->id ?? $starterPrice->id ?? $enterprisePrice->id,
                 'name' => self::PRODUCT_NAMES[$frontendKey] ?? $frontendKey,
                 'sku' => 'QSMS-' . strtoupper(str_replace('_', '-', $frontendKey)),
                 'price' => $price,
                 'price_enterprise' => $priceEnterprise,
+                'price_bespoke' => $priceBespoke,
                 'description' => self::PRODUCT_DESCRIPTIONS[$frontendKey] ?? '',
                 'billing_period' => self::BILLING_PERIODS[$frontendKey] ?? null,
                 'currency' => $currency,
@@ -109,6 +131,7 @@ class PurchaseApiController extends Controller
         return response()->json([
             'success' => true,
             'products' => $products,
+            'is_bespoke' => $isBespoke,
             'currency' => $currency,
             'vat_applicable' => $vatApplicable,
             'vat_rate' => $vatApplicable ? $this->vatService->getVatRatePercentage() : 0,

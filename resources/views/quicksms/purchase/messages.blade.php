@@ -812,7 +812,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const smsProduct = state.products.sms;
         if (!smsProduct) return 0;
         
-        // Enterprise and Bespoke tiers get discounted pricing
+        if (tier === 'bespoke' && smsProduct.price_bespoke != null) {
+            return smsProduct.price_bespoke;
+        }
         if ((tier === 'enterprise' || tier === 'bespoke') && smsProduct.price_enterprise) {
             return smsProduct.price_enterprise;
         }
@@ -1033,10 +1035,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const product = state.products[key];
             if (!product) continue;
             
-            // Use tier-specific pricing: Enterprise gets lower prices
-            const price = (tierId === 'enterprise' || tierId === 'bespoke') && product.price_enterprise 
-                ? product.price_enterprise 
-                : product.price;
+            let price;
+            if (tierId === 'bespoke' && product.price_bespoke != null) {
+                price = product.price_bespoke;
+            } else if ((tierId === 'enterprise' || tierId === 'bespoke') && product.price_enterprise) {
+                price = product.price_enterprise;
+            } else {
+                price = product.price;
+            }
             
             const label = badgeLabels[key] || key.toUpperCase();
             html += `
