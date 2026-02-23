@@ -910,11 +910,14 @@ function renderCompanySection(data) {
     
     var addr = data.registered_address;
     if (addr) {
-        if (typeof addr === 'object') {
+        if (typeof addr === 'string') {
+            try { addr = JSON.parse(addr); } catch (e) {}
+        }
+        if (typeof addr === 'object' && addr !== null) {
             var parts = [addr.line1, addr.line2, addr.city, addr.post_code, addr.country].filter(Boolean);
             html += '<div class="detail-row"><span class="detail-label">Registered Address</span><span class="detail-value">' + escapeHtml(parts.join(', ')) + '</span></div>';
         } else {
-            html += '<div class="detail-row"><span class="detail-label">Registered Address</span><span class="detail-value">' + escapeHtml(addr) + '</span></div>';
+            html += '<div class="detail-row"><span class="detail-label">Registered Address</span><span class="detail-value">' + escapeHtml(String(addr)) + '</span></div>';
         }
     }
     document.getElementById('sectionCompany').innerHTML = html;
