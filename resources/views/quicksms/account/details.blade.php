@@ -669,18 +669,16 @@
                                     @php $savedSector = $account->business_sector ?? ''; @endphp
                                     <select class="form-select company-field" id="companySector">
                                         <option value="">Select sector...</option>
-                                        <option value="telecommunications" @if($savedSector === 'telecommunications') selected @endif>Telecommunications & Media</option>
-                                        <option value="financial" @if($savedSector === 'financial') selected @endif>Financial Services</option>
-                                        <option value="healthcare" @if($savedSector === 'healthcare') selected @endif>Healthcare</option>
-                                        <option value="retail" @if($savedSector === 'retail') selected @endif>Retail & E-commerce</option>
-                                        <option value="travel" @if($savedSector === 'travel') selected @endif>Travel & Hospitality</option>
-                                        <option value="education" @if($savedSector === 'education') selected @endif>Education</option>
-                                        <option value="government" @if($savedSector === 'government') selected @endif>Government & Public Sector</option>
-                                        <option value="technology" @if($savedSector === 'technology') selected @endif>Technology</option>
-                                        <option value="manufacturing" @if($savedSector === 'manufacturing') selected @endif>Manufacturing</option>
-                                        <option value="professional" @if($savedSector === 'professional') selected @endif>Professional Services</option>
-                                        <option value="utilities" @if($savedSector === 'utilities') selected @endif>Utilities & Energy</option>
-                                        <option value="logistics" @if($savedSector === 'logistics') selected @endif>Logistics & Transport</option>
+                                        <option value="it-telecoms" @if($savedSector === 'it-telecoms') selected @endif>IT and Telecoms</option>
+                                        <option value="government" @if($savedSector === 'government') selected @endif>Government</option>
+                                        <option value="health" @if($savedSector === 'health') selected @endif>Health</option>
+                                        <option value="logistics" @if($savedSector === 'logistics') selected @endif>Logistics</option>
+                                        <option value="travel-transport" @if($savedSector === 'travel-transport') selected @endif>Travel and Transport</option>
+                                        <option value="finance" @if($savedSector === 'finance') selected @endif>Finance</option>
+                                        <option value="retail-hospitality" @if($savedSector === 'retail-hospitality') selected @endif>Retail and Hospitality</option>
+                                        <option value="media-leisure" @if($savedSector === 'media-leisure') selected @endif>Media and Leisure</option>
+                                        <option value="utilities" @if($savedSector === 'utilities') selected @endif>Utilities</option>
+                                        <option value="marketing-advertising" @if($savedSector === 'marketing-advertising') selected @endif>Marketing/Advertising Agency</option>
                                         <option value="other" @if($savedSector === 'other') selected @endif>Other</option>
                                     </select>
                                     <div class="validation-error">Please select a sector</div>

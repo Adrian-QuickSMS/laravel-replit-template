@@ -351,11 +351,17 @@
                                                 <label class="form-label">Sector<span class="required-indicator">*</span></label>
                                                 <select class="form-select" id="companySector">
                                                     <option value="">Select sector...</option>
-                                                    <option value="telecommunications">Telecommunications & Media</option>
-                                                    <option value="financial">Financial Services</option>
-                                                    <option value="healthcare">Healthcare</option>
-                                                    <option value="retail">Retail & E-commerce</option>
-                                                    <option value="technology">Technology</option>
+                                                    <option value="it-telecoms">IT and Telecoms</option>
+                                                    <option value="government">Government</option>
+                                                    <option value="health">Health</option>
+                                                    <option value="logistics">Logistics</option>
+                                                    <option value="travel-transport">Travel and Transport</option>
+                                                    <option value="finance">Finance</option>
+                                                    <option value="retail-hospitality">Retail and Hospitality</option>
+                                                    <option value="media-leisure">Media and Leisure</option>
+                                                    <option value="utilities">Utilities</option>
+                                                    <option value="marketing-advertising">Marketing/Advertising Agency</option>
+                                                    <option value="other">Other</option>
                                                 </select>
                                             </div>
                                         </div>
