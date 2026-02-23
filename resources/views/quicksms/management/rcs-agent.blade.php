@@ -147,6 +147,22 @@
     background: rgba(220, 53, 69, 0.15);
     color: #dc3545;
 }
+.badge-pending-info {
+    background: rgba(255, 152, 0, 0.15);
+    color: #e65100;
+}
+.badge-info-provided {
+    background: rgba(48, 101, 208, 0.15);
+    color: #3065D0;
+}
+.badge-suspended {
+    background: rgba(108, 117, 125, 0.15);
+    color: #6c757d;
+}
+.badge-revoked {
+    background: rgba(0, 0, 0, 0.15);
+    color: #333;
+}
 .badge-conversational {
     background: rgba(48, 101, 208, 0.15);
     color: #3065D0;
@@ -795,6 +811,8 @@
                                 <option value="draft">Draft</option>
                                 <option value="submitted">Submitted</option>
                                 <option value="in-review">In Review</option>
+                                <option value="pending-info">Returned</option>
+                                <option value="info-provided">Info Provided</option>
                                 <option value="approved">Approved</option>
                                 <option value="rejected">Rejected</option>
                             </select>
@@ -887,6 +905,24 @@
                             <div>
                                 <strong>Rejection Reason</strong>
                                 <p class="mb-0 mt-1" id="viewAgentRejectionReason"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3" id="viewReturnedCommentsContainer" style="display: none;">
+                    <div class="alert alert-warning mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-reply me-2 mt-1"></i>
+                            <div style="width: 100%;">
+                                <strong>Returned for Review</strong>
+                                <p class="text-muted small mb-2">Our review team has returned this agent with the following comments. Please address them and resubmit.</p>
+                                <div id="viewReturnedCommentsList"></div>
+                                <div class="mt-2">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="var modal = bootstrap.Modal.getInstance(document.getElementById('viewAgentModal')); if(modal) modal.hide(); var agentId = document.getElementById('viewReturnedCommentsContainer').dataset.agentId; editAgent(agentId);">
+                                        <i class="fas fa-edit me-1"></i> Edit & Resubmit
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2162,14 +2198,22 @@ function getStatusBadge(status) {
         'submitted': 'Submitted',
         'in-review': 'In Review',
         'approved': 'Approved',
-        'rejected': 'Rejected'
+        'rejected': 'Rejected',
+        'pending-info': 'Returned',
+        'info-provided': 'Info Provided',
+        'suspended': 'Suspended',
+        'revoked': 'Revoked'
     };
     var classes = {
         'draft': 'badge-draft',
         'submitted': 'badge-submitted',
         'in-review': 'badge-in-review',
         'approved': 'badge-approved',
-        'rejected': 'badge-rejected'
+        'rejected': 'badge-rejected',
+        'pending-info': 'badge-pending-info',
+        'info-provided': 'badge-info-provided',
+        'suspended': 'badge-suspended',
+        'revoked': 'badge-revoked'
     };
     return '<span class="badge ' + classes[status] + '">' + labels[status] + '</span>';
 }
@@ -2200,7 +2244,7 @@ function formatDate(dateStr) {
 
 function getActionsMenu(agent) {
     // Status-based permissions (agent must be editable)
-    var agentIsEditable = agent.status === 'draft' || agent.status === 'rejected';
+    var agentIsEditable = agent.status === 'draft' || agent.status === 'rejected' || agent.status === 'pending-info';
     var agentCanResubmit = agent.status === 'rejected';
     var agentCanDelete = agent.status === 'draft'; // Only draft agents can be deleted
     
@@ -2345,6 +2389,39 @@ function viewAgent(agentId) {
         document.getElementById('viewAgentRejectionReason').textContent = agent.rejectionReason;
     } else {
         rejectionContainer.style.display = 'none';
+    }
+
+    // Returned with comments
+    var returnedContainer = document.getElementById('viewReturnedCommentsContainer');
+    returnedContainer.style.display = 'none';
+    if (agent.status === 'pending-info') {
+        returnedContainer.dataset.agentId = agent.id;
+        $.ajax({
+            url: '/api/rcs-agents/' + agent.id,
+            method: 'GET',
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') },
+            success: function(response) {
+                if (response.success) {
+                    var comments = response.comments || [];
+                    var returnInfo = response.return_info;
+                    if (comments.length > 0 || returnInfo) {
+                        returnedContainer.style.display = 'block';
+                        var commentsHtml = '';
+                        comments.forEach(function(c) {
+                            var date = c.created_at ? new Date(c.created_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+                            commentsHtml += '<div class="p-2 mb-2 bg-white rounded border">';
+                            commentsHtml += '<div class="d-flex justify-content-between"><strong class="small">' + escapeHtml(c.created_by_actor_type) + '</strong><span class="text-muted small">' + date + '</span></div>';
+                            commentsHtml += '<p class="mb-0 mt-1 small">' + escapeHtml(c.comment_text) + '</p>';
+                            commentsHtml += '</div>';
+                        });
+                        if (commentsHtml === '' && returnInfo) {
+                            commentsHtml = '<div class="p-2 mb-2 bg-white rounded border"><p class="mb-0 small">' + escapeHtml(returnInfo.reason || 'Please review and resubmit.') + '</p></div>';
+                        }
+                        document.getElementById('viewReturnedCommentsList').innerHTML = commentsHtml;
+                    }
+                }
+            }
+        });
     }
     
     new bootstrap.Modal(document.getElementById('viewAgentModal')).show();

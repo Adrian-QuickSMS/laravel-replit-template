@@ -161,6 +161,11 @@ class RcsAgent extends Model
         return $this->hasMany(RcsAgentComment::class)->orderBy('created_at', 'desc');
     }
 
+    public function customerComments()
+    {
+        return $this->hasMany(RcsAgentComment::class)->customerVisible()->orderBy('created_at', 'desc');
+    }
+
     public function assignments()
     {
         return $this->hasMany(RcsAgentAssignment::class)->orderBy('created_at', 'desc');
@@ -226,7 +231,7 @@ class RcsAgent extends Model
 
     public function isEditable(): bool
     {
-        return $this->workflow_status === self::STATUS_DRAFT || $this->workflow_status === self::STATUS_REJECTED;
+        return in_array($this->workflow_status, [self::STATUS_DRAFT, self::STATUS_REJECTED, self::STATUS_PENDING_INFO]);
     }
 
     public function isLocked(): bool
