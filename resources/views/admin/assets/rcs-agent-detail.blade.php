@@ -1097,7 +1097,7 @@ function updateStatusPill(status) {
 }
 
 function updateActionButtonVisibility(status) {
-    var btnIds = ['btnStartReview', 'btnApprove', 'btnReject', 'btnRequestInfo', 'btnSuspend', 'btnReactivate', 'btnRevoke'];
+    var btnIds = ['btnStartReview', 'btnApproveSubmit', 'btnReject', 'btnRequestInfo', 'btnSuspend', 'btnReactivate', 'btnRevoke'];
     var noActionsMsg = document.getElementById('noActionsMsg');
 
     btnIds.forEach(function(id) {
@@ -1115,6 +1115,9 @@ function updateActionButtonVisibility(status) {
     switch (status) {
         case 'submitted':
             showBtn('btnStartReview');
+            showBtn('btnApproveSubmit');
+            showBtn('btnReject');
+            showBtn('btnRequestInfo');
             break;
         case 'in_review':
             showBtn('btnApproveSubmit');

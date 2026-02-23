@@ -236,8 +236,8 @@ class RcsAgentApprovalController extends Controller
             return response()->json(['success' => false, 'error' => 'RCS Agent not found.'], 404);
         }
 
-        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_IN_REVIEW, RcsAgent::STATUS_PENDING_INFO, RcsAgent::STATUS_INFO_PROVIDED])) {
-            return response()->json(['success' => false, 'error' => 'Agent must be in review to approve and submit to supplier.'], 422);
+        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_SUBMITTED, RcsAgent::STATUS_IN_REVIEW, RcsAgent::STATUS_PENDING_INFO, RcsAgent::STATUS_INFO_PROVIDED])) {
+            return response()->json(['success' => false, 'error' => 'Agent must be submitted or in review to approve and submit to supplier.'], 422);
         }
 
         $beforeState = $agent->toAdminArray();

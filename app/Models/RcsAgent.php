@@ -324,6 +324,8 @@ class RcsAgent extends Model
             'in_review_approved' => 'approved',
             'in_review_rejected' => 'rejected',
             'in_review_pending_info' => 'returned_to_customer',
+            'submitted_approved' => 'approved',
+            'submitted_rejected' => 'rejected',
             'submitted_pending_info' => 'returned_to_customer',
             'pending_info_submitted' => 'resubmitted',
             'info_provided_approved' => 'approved',
