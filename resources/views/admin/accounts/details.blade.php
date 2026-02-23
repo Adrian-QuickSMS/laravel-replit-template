@@ -703,7 +703,7 @@
 
 <!-- Edit Pricing Modal -->
 <div class="modal fade" id="editPricingModal" tabindex="-1" aria-labelledby="editPricingModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header" style="background: #1e3a5f; color: white;">
                 <h5 class="modal-title" id="editPricingModalLabel">
@@ -735,7 +735,8 @@
                                 <th class="ps-3">Service</th>
                                 <th>Tier Price</th>
                                 <th>Bespoke Price</th>
-                                <th style="width: 200px;">New Price (£)</th>
+                                <th style="width: 180px;">New Price (£)</th>
+                                <th style="width: 150px;">Billing</th>
                             </tr>
                         </thead>
                         <tbody id="editPricingTableBody">
@@ -957,10 +958,40 @@ function editPricingModal() {
 
         var tbody = document.getElementById('editPricingTableBody');
         var html = '';
+        var intlCountries = [
+            {iso:'US',name:'United States'},{iso:'CA',name:'Canada'},{iso:'FR',name:'France'},
+            {iso:'DE',name:'Germany'},{iso:'ES',name:'Spain'},{iso:'IT',name:'Italy'},
+            {iso:'NL',name:'Netherlands'},{iso:'BE',name:'Belgium'},{iso:'IE',name:'Ireland'},
+            {iso:'PT',name:'Portugal'},{iso:'AT',name:'Austria'},{iso:'CH',name:'Switzerland'},
+            {iso:'SE',name:'Sweden'},{iso:'NO',name:'Norway'},{iso:'DK',name:'Denmark'},
+            {iso:'FI',name:'Finland'},{iso:'PL',name:'Poland'},{iso:'AU',name:'Australia'},
+            {iso:'NZ',name:'New Zealand'},{iso:'IN',name:'India'},{iso:'AE',name:'UAE'},
+            {iso:'SA',name:'Saudi Arabia'},{iso:'ZA',name:'South Africa'},{iso:'NG',name:'Nigeria'},
+            {iso:'SG',name:'Singapore'},{iso:'HK',name:'Hong Kong'},{iso:'JP',name:'Japan'}
+        ];
+
         data.items.forEach(function(item, idx) {
             var currentPrice = item.has_bespoke ? item.bespoke_price : (item.tier_price !== null ? item.tier_price : '');
-            html += '<tr>' +
-                '<td class="ps-3"><strong>' + item.display_name + '</strong><br><span class="text-muted small">' + item.unit_label + '</span></td>' +
+            var billingType = item.billing_type || 'per_submitted';
+            var billingCol = '';
+
+            if (item.supports_billing_type) {
+                billingCol = '<select class="form-select form-select-sm billing-type-select" data-slug="' + item.slug + '" data-original-bt="' + billingType + '">' +
+                    '<option value="per_submitted"' + (billingType === 'per_submitted' ? ' selected' : '') + '>Per Submitted</option>' +
+                    '<option value="per_delivered"' + (billingType === 'per_delivered' ? ' selected' : '') + '>Per Delivered</option>' +
+                '</select>';
+            } else {
+                billingCol = '<span class="text-muted small">—</span>';
+            }
+
+            var expandBtn = '';
+            if (item.supports_country_pricing) {
+                expandBtn = ' <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 ms-1" onclick="toggleCountryPricing(\'' + item.slug + '\')" title="Per-country pricing">' +
+                    '<i class="fas fa-globe fa-xs"></i> <i class="fas fa-chevron-down fa-xs" id="countryChevron_' + item.slug + '"></i></button>';
+            }
+
+            html += '<tr data-row-slug="' + item.slug + '">' +
+                '<td class="ps-3"><strong>' + item.display_name + '</strong>' + expandBtn + '<br><span class="text-muted small">' + item.unit_label + '</span></td>' +
                 '<td>' + item.tier_price_formatted + '</td>' +
                 '<td>' + (item.has_bespoke ? '<span class="badge bg-success">Bespoke</span> ' + item.bespoke_price_formatted : '<span class="text-muted small">—</span>') + '</td>' +
                 '<td><div class="input-group input-group-sm">' +
@@ -971,12 +1002,36 @@ function editPricingModal() {
                         'value="' + currentPrice + '" ' +
                         'step="0.000001" min="0" placeholder="0.00">' +
                 '</div></td>' +
+                '<td>' + billingCol + '</td>' +
                 '</tr>';
+
+            if (item.supports_country_pricing) {
+                var existingCountryMap = {};
+                (item.country_prices || []).forEach(function(cp) {
+                    existingCountryMap[cp.country_iso] = cp;
+                });
+
+                html += '<tr class="country-pricing-rows d-none" id="countryRows_' + item.slug + '">' +
+                    '<td colspan="5" class="ps-4 pe-3 py-2" style="background: #f8f9fa;">' +
+                    '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                        '<strong class="small"><i class="fas fa-globe me-1"></i>Per-Country Pricing</strong>' +
+                        '<button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" onclick="addCountryRow(\'' + item.slug + '\')">' +
+                            '<i class="fas fa-plus fa-xs me-1"></i>Add Country</button>' +
+                    '</div>' +
+                    '<div id="countryList_' + item.slug + '">';
+
+                (item.country_prices || []).forEach(function(cp) {
+                    html += buildCountryRowHtml(item.slug, cp.country_iso, cp.unit_price, cp.billing_type, intlCountries, true);
+                });
+
+                html += '</div></td></tr>';
+            }
         });
         tbody.innerHTML = html;
 
-        document.querySelectorAll('.pricing-input').forEach(function(input) {
-            input.addEventListener('input', function() { checkPricingChanges(); });
+        document.querySelectorAll('.pricing-input, .billing-type-select').forEach(function(el) {
+            el.addEventListener('input', function() { checkPricingChanges(); });
+            el.addEventListener('change', function() { checkPricingChanges(); });
         });
 
         document.getElementById('editPricingLoading').classList.add('d-none');
@@ -987,6 +1042,68 @@ function editPricingModal() {
         document.getElementById('editPricingErrorMsg').textContent = err.message || 'Failed to load pricing data.';
         document.getElementById('editPricingError').classList.remove('d-none');
     });
+}
+
+var intlCountriesList = [
+    {iso:'US',name:'United States'},{iso:'CA',name:'Canada'},{iso:'FR',name:'France'},
+    {iso:'DE',name:'Germany'},{iso:'ES',name:'Spain'},{iso:'IT',name:'Italy'},
+    {iso:'NL',name:'Netherlands'},{iso:'BE',name:'Belgium'},{iso:'IE',name:'Ireland'},
+    {iso:'PT',name:'Portugal'},{iso:'AT',name:'Austria'},{iso:'CH',name:'Switzerland'},
+    {iso:'SE',name:'Sweden'},{iso:'NO',name:'Norway'},{iso:'DK',name:'Denmark'},
+    {iso:'FI',name:'Finland'},{iso:'PL',name:'Poland'},{iso:'AU',name:'Australia'},
+    {iso:'NZ',name:'New Zealand'},{iso:'IN',name:'India'},{iso:'AE',name:'UAE'},
+    {iso:'SA',name:'Saudi Arabia'},{iso:'ZA',name:'South Africa'},{iso:'NG',name:'Nigeria'},
+    {iso:'SG',name:'Singapore'},{iso:'HK',name:'Hong Kong'},{iso:'JP',name:'Japan'}
+];
+
+function buildCountryRowHtml(slug, countryIso, unitPrice, billingType, countries, isExisting) {
+    var opts = '<option value="">Select country...</option>';
+    countries.forEach(function(c) {
+        opts += '<option value="' + c.iso + '"' + (c.iso === countryIso ? ' selected' : '') + '>' + c.name + ' (' + c.iso + ')</option>';
+    });
+    var origPrice = isExisting ? unitPrice : '';
+    var origBt = isExisting ? (billingType || 'per_submitted') : '';
+    return '<div class="d-flex align-items-center gap-2 mb-2 country-price-row" data-slug="' + slug + '" data-country-original="' + (countryIso || '') + '" data-price-original="' + origPrice + '" data-bt-original="' + origBt + '">' +
+        '<select class="form-select form-select-sm country-iso-select" style="width:180px;" ' + (isExisting ? 'disabled' : '') + '>' + opts + '</select>' +
+        '<div class="input-group input-group-sm" style="width:140px;">' +
+            '<span class="input-group-text">£</span>' +
+            '<input type="number" class="form-control form-control-sm country-price-input" value="' + (unitPrice || '') + '" step="0.000001" min="0" placeholder="0.00">' +
+        '</div>' +
+        '<select class="form-select form-select-sm country-bt-select" style="width:130px;">' +
+            '<option value="per_submitted"' + ((billingType || 'per_submitted') === 'per_submitted' ? ' selected' : '') + '>Per Submitted</option>' +
+            '<option value="per_delivered"' + (billingType === 'per_delivered' ? ' selected' : '') + '>Per Delivered</option>' +
+        '</select>' +
+        '<button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" onclick="removeCountryRow(this)" title="Remove"><i class="fas fa-times fa-xs"></i></button>' +
+    '</div>';
+}
+
+function toggleCountryPricing(slug) {
+    var rows = document.getElementById('countryRows_' + slug);
+    var chevron = document.getElementById('countryChevron_' + slug);
+    if (rows) {
+        rows.classList.toggle('d-none');
+        if (chevron) {
+            chevron.classList.toggle('fa-chevron-down');
+            chevron.classList.toggle('fa-chevron-up');
+        }
+    }
+}
+
+function addCountryRow(slug) {
+    var container = document.getElementById('countryList_' + slug);
+    if (container) {
+        container.insertAdjacentHTML('beforeend', buildCountryRowHtml(slug, '', '', 'per_submitted', intlCountriesList, false));
+        container.querySelectorAll('input, select').forEach(function(el) {
+            el.addEventListener('input', function() { checkPricingChanges(); });
+            el.addEventListener('change', function() { checkPricingChanges(); });
+        });
+        checkPricingChanges();
+    }
+}
+
+function removeCountryRow(btn) {
+    btn.closest('.country-price-row').remove();
+    checkPricingChanges();
 }
 
 function checkPricingChanges() {
@@ -1001,17 +1118,61 @@ function checkPricingChanges() {
             input.closest('tr').style.background = '';
         }
     });
+    document.querySelectorAll('.billing-type-select').forEach(function(sel) {
+        var original = sel.getAttribute('data-original-bt');
+        if (sel.value !== original) {
+            hasChanges = true;
+            sel.closest('tr').style.background = 'rgba(25, 135, 84, 0.06)';
+        }
+    });
+    document.querySelectorAll('.country-price-row').forEach(function(row) {
+        var origCountry = row.getAttribute('data-country-original');
+        var origPrice = row.getAttribute('data-price-original');
+        var origBt = row.getAttribute('data-bt-original');
+        var currentIso = row.querySelector('.country-iso-select').value;
+        var currentPrice = row.querySelector('.country-price-input').value;
+        var currentBt = row.querySelector('.country-bt-select').value;
+        if (!origCountry && currentIso && currentPrice) {
+            hasChanges = true;
+        } else if (origCountry) {
+            if (Math.abs((parseFloat(origPrice) || 0) - (parseFloat(currentPrice) || 0)) > 0.0000001 || origBt !== currentBt) {
+                hasChanges = true;
+            }
+        }
+    });
     document.getElementById('savePricingBtn').disabled = !hasChanges;
 }
 
 function saveAccountPricing() {
     var accountId = @json($account_id);
     var changedPrices = [];
+
     document.querySelectorAll('.pricing-input').forEach(function(input) {
+        var slug = input.getAttribute('data-slug');
         var original = parseFloat(input.getAttribute('data-original')) || 0;
         var current = parseFloat(input.value) || 0;
-        if (Math.abs(original - current) > 0.0000001) {
-            changedPrices.push({ slug: input.getAttribute('data-slug'), unit_price: current });
+        var btSelect = document.querySelector('.billing-type-select[data-slug="' + slug + '"]');
+        var billingType = btSelect ? btSelect.value : 'per_submitted';
+        var originalBt = btSelect ? btSelect.getAttribute('data-original-bt') : 'per_submitted';
+
+        if (Math.abs(original - current) > 0.0000001 || (btSelect && billingType !== originalBt)) {
+            changedPrices.push({ slug: slug, unit_price: current, billing_type: billingType });
+        }
+    });
+
+    document.querySelectorAll('.country-price-row').forEach(function(row) {
+        var slug = row.getAttribute('data-slug');
+        var countryIso = row.querySelector('.country-iso-select').value;
+        var unitPrice = parseFloat(row.querySelector('.country-price-input').value) || 0;
+        var billingType = row.querySelector('.country-bt-select').value;
+        var origCountry = row.getAttribute('data-country-original');
+        var origPrice = row.getAttribute('data-price-original');
+        var origBt = row.getAttribute('data-bt-original');
+
+        if (!countryIso) return;
+
+        if (!origCountry || Math.abs((parseFloat(origPrice) || 0) - unitPrice) > 0.0000001 || origBt !== billingType) {
+            changedPrices.push({ slug: slug, unit_price: unitPrice, billing_type: billingType, country_iso: countryIso });
         }
     });
 
@@ -1026,6 +1187,7 @@ function saveAccountPricing() {
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
         body: JSON.stringify({
@@ -1033,7 +1195,10 @@ function saveAccountPricing() {
             change_reason: document.getElementById('editPricingReason').value || null
         })
     })
-    .then(function(res) { return res.json(); })
+    .then(function(res) {
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        return res.json();
+    })
     .then(function(data) {
         if (!data.success) throw new Error(data.error || 'Failed to save pricing');
 

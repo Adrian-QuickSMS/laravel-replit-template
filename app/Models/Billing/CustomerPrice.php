@@ -16,7 +16,7 @@ class CustomerPrice extends Model
         'account_id', 'product_type', 'country_iso', 'unit_price',
         'currency', 'source', 'hubspot_deal_line_item_id',
         'set_by', 'set_at', 'valid_from', 'valid_to', 'active',
-        'version', 'previous_version_id', 'change_reason',
+        'version', 'previous_version_id', 'change_reason', 'billing_type',
     ];
 
     protected $casts = [

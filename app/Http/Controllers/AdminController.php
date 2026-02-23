@@ -711,6 +711,7 @@ class AdminController extends Controller
         $tierPrices = DB::table('product_tier_prices')
             ->where('product_tier', $productTier)
             ->where('active', true)
+            ->whereNull('country_iso')
             ->get()
             ->keyBy('product_type');
 
@@ -718,16 +719,30 @@ class AdminController extends Controller
             ->where('account_id', $accountId)
             ->where('active', true)
             ->whereNull('valid_to')
+            ->whereNull('country_iso')
             ->get()
             ->keyBy('product_type');
+
+        $countryPrices = DB::table('customer_prices')
+            ->where('account_id', $accountId)
+            ->where('active', true)
+            ->whereNull('valid_to')
+            ->whereNotNull('country_iso')
+            ->orderBy('country_iso')
+            ->get()
+            ->groupBy('product_type');
+
+        $messagingTypes = ['sms', 'rcs_basic', 'rcs_single'];
 
         $items = [];
         foreach ($services as $service) {
             $slug = $service->slug;
             $tierPrice = $tierPrices->get($slug);
             $bespokePrice = $customerPrices->get($slug);
+            $isMessaging = in_array($slug, $messagingTypes);
+            $isInternational = $slug === 'sms_international';
 
-            $items[] = [
+            $item = [
                 'slug' => $slug,
                 'display_name' => $service->display_name,
                 'display_format' => $service->display_format,
@@ -738,7 +753,23 @@ class AdminController extends Controller
                 'bespoke_price' => $bespokePrice ? (float) $bespokePrice->unit_price : null,
                 'bespoke_price_formatted' => $bespokePrice ? $service->formatPrice($bespokePrice->unit_price) : null,
                 'has_bespoke' => $bespokePrice !== null,
+                'supports_billing_type' => $isMessaging,
+                'billing_type' => $bespokePrice ? ($bespokePrice->billing_type ?? 'per_submitted') : ($tierPrice ? ($tierPrice->billing_type ?? 'per_submitted') : 'per_submitted'),
+                'supports_country_pricing' => $isInternational,
+                'country_prices' => [],
             ];
+
+            if ($isInternational && $countryPrices->has($slug)) {
+                foreach ($countryPrices->get($slug) as $cp) {
+                    $item['country_prices'][] = [
+                        'country_iso' => $cp->country_iso,
+                        'unit_price' => (float) $cp->unit_price,
+                        'billing_type' => $cp->billing_type ?? 'per_submitted',
+                    ];
+                }
+            }
+
+            $items[] = $item;
         }
 
         return response()->json([
@@ -755,6 +786,8 @@ class AdminController extends Controller
             'prices' => 'required|array|min:1',
             'prices.*.slug' => 'required|string',
             'prices.*.unit_price' => 'required|numeric|min:0',
+            'prices.*.billing_type' => 'nullable|in:per_submitted,per_delivered',
+            'prices.*.country_iso' => 'nullable|string|size:2',
             'change_reason' => 'nullable|string|max:500',
         ]);
 
@@ -775,13 +808,21 @@ class AdminController extends Controller
             foreach ($prices as $priceData) {
                 $slug = $priceData['slug'];
                 $newUnitPrice = $priceData['unit_price'];
+                $billingType = $priceData['billing_type'] ?? 'per_submitted';
+                $countryIso = $priceData['country_iso'] ?? null;
 
-                $existing = DB::table('customer_prices')
+                $query = DB::table('customer_prices')
                     ->where('account_id', $accountId)
                     ->where('product_type', $slug)
-                    ->where('active', true)
-                    ->whereNull('country_iso')
-                    ->first();
+                    ->where('active', true);
+
+                if ($countryIso) {
+                    $query->where('country_iso', $countryIso);
+                } else {
+                    $query->whereNull('country_iso');
+                }
+
+                $existing = $query->first();
 
                 if ($existing) {
                     DB::table('customer_prices')
@@ -798,8 +839,9 @@ class AdminController extends Controller
                     'id' => \Illuminate\Support\Str::uuid()->toString(),
                     'account_id' => $accountId,
                     'product_type' => $slug,
-                    'country_iso' => null,
+                    'country_iso' => $countryIso,
                     'unit_price' => $newUnitPrice,
+                    'billing_type' => $billingType,
                     'currency' => $account->currency ?? 'GBP',
                     'source' => 'admin_override',
                     'set_by' => $adminEmail,
