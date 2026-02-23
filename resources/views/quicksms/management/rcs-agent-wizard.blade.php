@@ -1192,58 +1192,101 @@ $(document).ready(function() {
         };
     }
 
+    function canAutosave() {
+        var required = [
+            wizardData.name,
+            wizardData.description,
+            wizardData.supportPhone,
+            wizardData.website,
+            wizardData.supportEmail,
+            wizardData.privacyUrl,
+            wizardData.termsUrl,
+            wizardData.billing,
+            wizardData.useCase,
+            wizardData.campaignFrequency,
+            wizardData.monthlyVolume,
+            wizardData.userConsent,
+            wizardData.optOutAvailable,
+            wizardData.useCaseOverview,
+            wizardData.companyNumber,
+            wizardData.companyWebsite,
+            wizardData.approverName,
+            wizardData.approverJobTitle,
+            wizardData.approverEmail
+        ];
+        for (var i = 0; i < required.length; i++) {
+            if (!required[i] || (typeof required[i] === 'string' && !required[i].trim())) return false;
+        }
+        return true;
+    }
+
     function triggerAutosave() {
         if (autosaveTimeout) clearTimeout(autosaveTimeout);
-        $('#autosaveIndicator').removeClass('saved error').addClass('saving');
-        $('#autosaveText').text('Saving...');
 
         autosaveTimeout = setTimeout(function() {
-            if (!wizardData.name || !wizardData.description) {
-                $('#autosaveIndicator').removeClass('saving error').addClass('saved');
-                $('#autosaveText').text('Draft saved');
+            if (!canAutosave() && !currentDraftUuid) {
+                $('#autosaveIndicator').removeClass('saving error saved');
+                $('#autosaveText').text('');
                 return;
             }
 
-            var payload = buildPayload();
-            var url, method;
-
-            if (currentDraftUuid) {
-                url = '/api/rcs-agents/' + currentDraftUuid;
-                method = 'PUT';
-            } else {
-                url = '/api/rcs-agents';
-                method = 'POST';
+            if (!canAutosave() && currentDraftUuid) {
+                performAutosave();
+                return;
             }
 
-            $.ajax({
-                url: url,
-                method: method,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                data: JSON.stringify(payload),
-                success: function(response) {
-                    if (response.success && response.data) {
-                        if (!currentDraftUuid && response.data.uuid) {
-                            currentDraftUuid = response.data.uuid;
-                            wizardData.id = response.data.uuid;
-                        }
-                        $('#autosaveIndicator').removeClass('saving error').addClass('saved');
-                        $('#autosaveText').text('Draft saved');
-                    } else {
-                        $('#autosaveIndicator').removeClass('saving saved').addClass('error');
-                        $('#autosaveText').text('Save failed');
+            performAutosave();
+        }, 2000);
+    }
+
+    function performAutosave() {
+        $('#autosaveIndicator').removeClass('saved error').addClass('saving');
+        $('#autosaveText').text('Saving...');
+
+        var payload = buildPayload();
+        var url, method;
+
+        if (currentDraftUuid) {
+            url = '/api/rcs-agents/' + currentDraftUuid;
+            method = 'PUT';
+        } else {
+            url = '/api/rcs-agents';
+            method = 'POST';
+        }
+
+        $.ajax({
+            url: url,
+            method: method,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify(payload),
+            success: function(response) {
+                if (response.success && response.data) {
+                    if (!currentDraftUuid && response.data.uuid) {
+                        currentDraftUuid = response.data.uuid;
+                        wizardData.id = response.data.uuid;
                     }
-                },
-                error: function(xhr) {
-                    console.log('[Autosave] Error:', xhr.status, xhr.responseText);
+                    $('#autosaveIndicator').removeClass('saving error').addClass('saved');
+                    $('#autosaveText').text('Draft saved');
+                } else {
                     $('#autosaveIndicator').removeClass('saving saved').addClass('error');
                     $('#autosaveText').text('Save failed');
                 }
-            });
-        }, 2000);
+            },
+            error: function(xhr) {
+                console.log('[Autosave] Error:', xhr.status, xhr.responseText);
+                if (xhr.status === 422) {
+                    $('#autosaveIndicator').removeClass('saving error saved');
+                    $('#autosaveText').text('');
+                } else {
+                    $('#autosaveIndicator').removeClass('saving saved').addClass('error');
+                    $('#autosaveText').text('Save failed');
+                }
+            }
+        });
     }
     
     function validateStep(stepNumber) {
