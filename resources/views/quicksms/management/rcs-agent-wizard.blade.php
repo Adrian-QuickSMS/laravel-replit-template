@@ -1278,9 +1278,9 @@ $(document).ready(function() {
             data: JSON.stringify(payload),
             success: function(response) {
                 if (response.success && response.data) {
-                    if (!currentDraftUuid && response.data.uuid) {
-                        currentDraftUuid = response.data.uuid;
-                        wizardData.id = response.data.uuid;
+                    if (!currentDraftUuid && (response.data.id || response.data.uuid)) {
+                        currentDraftUuid = response.data.id || response.data.uuid;
+                        wizardData.id = currentDraftUuid;
                     }
                     $('#autosaveIndicator').removeClass('saving error').addClass('saved');
                     $('#autosaveText').text('Draft saved');
