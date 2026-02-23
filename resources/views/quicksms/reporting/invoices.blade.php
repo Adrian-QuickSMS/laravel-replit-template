@@ -510,7 +510,7 @@
                             <strong><i class="fas fa-info-circle me-1"></i> Understanding Your Credit</strong>
                             <ul class="mb-0 mt-2 ps-3">
                                 <li><strong>Current Balance:</strong> Your prepaid credit available for sending messages.</li>
-                                <li><strong>Credit Limit:</strong> Additional credit extended to your account (postpaid accounts only).</li>
+                                <li><strong>Credit Limit:</strong> Additional credit extended to your account.</li>
                                 <li><strong>Available Credit:</strong> Total funds you can use (Balance + Credit Limit).</li>
                             </ul>
                         </div>
