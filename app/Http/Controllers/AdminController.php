@@ -216,8 +216,10 @@ class AdminController extends Controller
     {
         $systemId = '00000000-0000-0000-0000-000000000001';
 
-        $accounts = Account::where('id', '!=', $systemId)
-            ->orderBy('created_at', 'desc')
+        $accounts = Account::where('accounts.id', '!=', $systemId)
+            ->leftJoin('account_balances', 'accounts.id', '=', 'account_balances.account_id')
+            ->select('accounts.*', 'account_balances.balance as current_balance')
+            ->orderBy('accounts.created_at', 'desc')
             ->get();
 
         $counts = [

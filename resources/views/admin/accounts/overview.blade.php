@@ -390,7 +390,7 @@
                             $badgeMap = ['live' => 'badge-success', 'test' => 'badge-info', 'suspended' => 'badge-danger', 'archived' => 'badge-secondary'];
                             $badgeClass = $badgeMap[$displayStatus] ?? 'badge-primary';
                             $statusLabel = ucfirst($displayStatus);
-                            $balance = 0;
+                            $balance = (float) ($acct->current_balance ?? 0);
                         @endphp
                         <tr class="account-row" data-account="{{ $acct->account_number }}" data-name="{{ $acct->company_name }}" data-status="{{ $displayStatus }}" data-volume-year="0" data-volume-month="0" data-balance="{{ $balance }}">
                             <td class="client-name-cell">
@@ -404,7 +404,7 @@
                             </td>
                             <td class="text-end">0</td>
                             <td class="text-end">0</td>
-                            <td class="text-end">£{{ number_format($balance) }}</td>
+                            <td class="text-end">£{{ number_format($balance, 2) }}</td>
                             <td><span class="badge light {{ $badgeClass }}">{{ $statusLabel }}</span></td>
                             <td class="text-center">
                                 <div class="action-icons">
