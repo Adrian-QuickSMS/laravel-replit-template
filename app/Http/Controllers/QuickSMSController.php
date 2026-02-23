@@ -263,7 +263,7 @@ class QuickSMSController extends Controller
     
     public function dashboard()
     {
-        $user = auth()->user();
+        $accountId = session('customer_tenant_id');
         $balanceData = [
             'balance' => 0,
             'effectiveAvailable' => 0,
@@ -272,8 +272,7 @@ class QuickSMSController extends Controller
             'currency' => 'GBP',
         ];
 
-        if ($user && $user->tenant_id) {
-            $accountId = $user->tenant_id;
+        if ($accountId) {
             $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
             $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
 
