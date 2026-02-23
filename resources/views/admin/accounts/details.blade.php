@@ -719,15 +719,31 @@
                     <p class="mt-2 text-muted">Loading pricing data...</p>
                 </div>
                 <div id="editPricingContent" class="d-none">
-                    <div class="alert alert-warning d-flex align-items-start mb-3" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3);">
+                    <div class="alert alert-warning d-flex align-items-start mb-3" id="editPricingBespokeWarning" style="background: rgba(255, 193, 7, 0.1); border-color: rgba(255, 193, 7, 0.3);">
                         <i class="fas fa-exclamation-triangle me-2 mt-1 text-warning"></i>
                         <div style="font-size: 0.85rem;">
                             <strong>Important:</strong> Editing any price will change this account to <strong>Bespoke</strong> pricing. Custom prices override standard tier prices.
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <span class="text-muted small">Current Tier:</span>
-                        <span class="badge bg-info ms-1" id="editPricingCurrentTier"></span>
+                    <div class="alert alert-info d-flex align-items-start mb-3 d-none" id="editPricingTierChangeInfo" style="background: rgba(30, 58, 95, 0.06); border-color: rgba(30, 58, 95, 0.2);">
+                        <i class="fas fa-info-circle me-2 mt-1" style="color: #1e3a5f;"></i>
+                        <div style="font-size: 0.85rem;">
+                            <strong>Tier Change:</strong> Switching to <strong id="tierChangeTarget">Starter</strong> will deactivate all bespoke prices. The account will use standard tier pricing.
+                        </div>
+                    </div>
+                    <div class="mb-3 d-flex align-items-center gap-3">
+                        <div>
+                            <span class="text-muted small">Current Tier:</span>
+                            <span class="badge bg-info ms-1" id="editPricingCurrentTier"></span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted small">Change to:</span>
+                            <select class="form-select form-select-sm" id="editPricingTierSelect" onchange="onTierSelectChange()" style="width: 160px;">
+                                <option value="starter">Starter</option>
+                                <option value="enterprise">Enterprise</option>
+                                <option value="bespoke">Bespoke</option>
+                            </select>
+                        </div>
                     </div>
                     <table class="table table-sm table-hover mb-3" id="editPricingTable">
                         <thead style="background: #f8f9fa;">
@@ -954,7 +970,10 @@ function editPricingModal() {
         if (!data.success) throw new Error(data.error || 'Failed to load pricing');
 
         editPricingData = data.items;
-        document.getElementById('editPricingCurrentTier').textContent = (data.product_tier || 'starter').charAt(0).toUpperCase() + (data.product_tier || 'starter').slice(1);
+        var currentTier = data.product_tier || 'starter';
+        document.getElementById('editPricingCurrentTier').textContent = currentTier.charAt(0).toUpperCase() + currentTier.slice(1);
+        document.getElementById('editPricingTierSelect').value = currentTier;
+        document.getElementById('editPricingTierSelect').setAttribute('data-original-tier', currentTier);
 
         var tbody = document.getElementById('editPricingTableBody');
         var html = '';
@@ -980,9 +999,17 @@ function editPricingModal() {
                     '<i class="fas fa-globe fa-xs"></i> <i class="fas fa-chevron-down fa-xs" id="countryChevron_' + item.slug + '"></i></button>';
             }
 
+            var tierPriceDisplay = item.tier_price_formatted;
+            if (item.enterprise_price_formatted !== undefined) {
+                tierPriceDisplay = '<span class="text-muted small" title="Enterprise">E:</span> ' + item.enterprise_price_formatted;
+                if (item.starter_price_formatted !== undefined && item.starter_price_formatted !== 'N/A') {
+                    tierPriceDisplay += '<br><span class="text-muted small" title="Starter">S:</span> ' + item.starter_price_formatted;
+                }
+            }
+
             html += '<tr data-row-slug="' + item.slug + '">' +
                 '<td class="ps-3"><strong>' + item.display_name + '</strong>' + expandBtn + '<br><span class="text-muted small">' + item.unit_label + '</span></td>' +
-                '<td>' + item.tier_price_formatted + '</td>' +
+                '<td>' + tierPriceDisplay + '</td>' +
                 '<td>' + (item.has_bespoke ? '<span class="badge bg-success">Bespoke</span> ' + item.bespoke_price_formatted : '<span class="text-muted small">—</span>') + '</td>' +
                 '<td><div class="input-group input-group-sm">' +
                     '<span class="input-group-text">£</span>' +
@@ -1086,81 +1113,136 @@ function removeCountryRow(btn) {
     checkPricingChanges();
 }
 
+function onTierSelectChange() {
+    var tierSelect = document.getElementById('editPricingTierSelect');
+    var selectedTier = tierSelect.value;
+    var originalTier = tierSelect.getAttribute('data-original-tier');
+    var isBespoke = selectedTier === 'bespoke';
+    var pricingTable = document.getElementById('editPricingTable');
+    var bespokeWarning = document.getElementById('editPricingBespokeWarning');
+    var tierChangeInfo = document.getElementById('editPricingTierChangeInfo');
+
+    if (!isBespoke) {
+        pricingTable.style.opacity = '0.5';
+        pricingTable.style.pointerEvents = 'none';
+        bespokeWarning.classList.add('d-none');
+        tierChangeInfo.classList.remove('d-none');
+        document.getElementById('tierChangeTarget').textContent = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
+    } else {
+        pricingTable.style.opacity = '1';
+        pricingTable.style.pointerEvents = '';
+        bespokeWarning.classList.remove('d-none');
+        tierChangeInfo.classList.add('d-none');
+    }
+
+    checkPricingChanges();
+}
+
 function checkPricingChanges() {
     var hasChanges = false;
-    document.querySelectorAll('.pricing-input').forEach(function(input) {
-        var original = parseFloat(input.getAttribute('data-original')) || 0;
-        var current = parseFloat(input.value) || 0;
-        if (Math.abs(original - current) > 0.0000001) {
-            hasChanges = true;
-            input.closest('tr').style.background = 'rgba(25, 135, 84, 0.06)';
-        } else {
-            input.closest('tr').style.background = '';
-        }
-    });
-    document.querySelectorAll('.billing-type-select').forEach(function(sel) {
-        var original = sel.getAttribute('data-original-bt');
-        if (sel.value !== original) {
-            hasChanges = true;
-            sel.closest('tr').style.background = 'rgba(25, 135, 84, 0.06)';
-        }
-    });
-    document.querySelectorAll('.country-price-row').forEach(function(row) {
-        var origCountry = row.getAttribute('data-country-original');
-        var origPrice = row.getAttribute('data-price-original');
-        var origBt = row.getAttribute('data-bt-original');
-        var currentIso = row.querySelector('.country-iso-select').value;
-        var currentPrice = row.querySelector('.country-price-input').value;
-        var currentBt = row.querySelector('.country-bt-select').value;
-        if (!origCountry && currentIso && currentPrice) {
-            hasChanges = true;
-        } else if (origCountry) {
-            if (Math.abs((parseFloat(origPrice) || 0) - (parseFloat(currentPrice) || 0)) > 0.0000001 || origBt !== currentBt) {
+
+    var tierSelect = document.getElementById('editPricingTierSelect');
+    var selectedTier = tierSelect.value;
+    var originalTier = tierSelect.getAttribute('data-original-tier');
+    if (selectedTier !== originalTier) {
+        hasChanges = true;
+    }
+
+    if (selectedTier === 'bespoke') {
+        document.querySelectorAll('.pricing-input').forEach(function(input) {
+            var original = parseFloat(input.getAttribute('data-original')) || 0;
+            var current = parseFloat(input.value) || 0;
+            if (Math.abs(original - current) > 0.0000001) {
                 hasChanges = true;
+                input.closest('tr').style.background = 'rgba(25, 135, 84, 0.06)';
+            } else {
+                input.closest('tr').style.background = '';
             }
-        }
-    });
+        });
+        document.querySelectorAll('.billing-type-select').forEach(function(sel) {
+            var original = sel.getAttribute('data-original-bt');
+            if (sel.value !== original) {
+                hasChanges = true;
+                sel.closest('tr').style.background = 'rgba(25, 135, 84, 0.06)';
+            }
+        });
+        document.querySelectorAll('.country-price-row').forEach(function(row) {
+            var origCountry = row.getAttribute('data-country-original');
+            var origPrice = row.getAttribute('data-price-original');
+            var origBt = row.getAttribute('data-bt-original');
+            var currentIso = row.querySelector('.country-iso-select').value;
+            var currentPrice = row.querySelector('.country-price-input').value;
+            var currentBt = row.querySelector('.country-bt-select').value;
+            if (!origCountry && currentIso && currentPrice) {
+                hasChanges = true;
+            } else if (origCountry) {
+                if (Math.abs((parseFloat(origPrice) || 0) - (parseFloat(currentPrice) || 0)) > 0.0000001 || origBt !== currentBt) {
+                    hasChanges = true;
+                }
+            }
+        });
+    }
+
     document.getElementById('savePricingBtn').disabled = !hasChanges;
 }
 
 function saveAccountPricing() {
     var accountId = @json($account_id);
+    var selectedTier = document.getElementById('editPricingTierSelect').value;
+    var originalTier = document.getElementById('editPricingTierSelect').getAttribute('data-original-tier');
     var changedPrices = [];
 
-    document.querySelectorAll('.pricing-input').forEach(function(input) {
-        var slug = input.getAttribute('data-slug');
-        var original = parseFloat(input.getAttribute('data-original')) || 0;
-        var current = parseFloat(input.value) || 0;
-        var btSelect = document.querySelector('.billing-type-select[data-slug="' + slug + '"]');
-        var billingType = btSelect ? btSelect.value : 'per_submitted';
-        var originalBt = btSelect ? btSelect.getAttribute('data-original-bt') : 'per_submitted';
-
-        if (Math.abs(original - current) > 0.0000001 || (btSelect && billingType !== originalBt)) {
-            changedPrices.push({ slug: slug, unit_price: current, billing_type: billingType });
+    if (selectedTier !== 'bespoke' && selectedTier !== originalTier) {
+        var tierLabel = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
+        if (!confirm('Change this account to ' + tierLabel + ' tier?\n\nAll bespoke pricing will be deactivated and the account will use standard ' + tierLabel + ' prices.')) {
+            return;
         }
-    });
+    }
 
-    document.querySelectorAll('.country-price-row').forEach(function(row) {
-        var slug = row.getAttribute('data-slug');
-        var countryIso = row.querySelector('.country-iso-select').value;
-        var unitPrice = parseFloat(row.querySelector('.country-price-input').value) || 0;
-        var billingType = row.querySelector('.country-bt-select').value;
-        var origCountry = row.getAttribute('data-country-original');
-        var origPrice = row.getAttribute('data-price-original');
-        var origBt = row.getAttribute('data-bt-original');
+    if (selectedTier === 'bespoke') {
+        document.querySelectorAll('.pricing-input').forEach(function(input) {
+            var slug = input.getAttribute('data-slug');
+            var original = parseFloat(input.getAttribute('data-original')) || 0;
+            var current = parseFloat(input.value) || 0;
+            var btSelect = document.querySelector('.billing-type-select[data-slug="' + slug + '"]');
+            var billingType = btSelect ? btSelect.value : 'per_submitted';
+            var originalBt = btSelect ? btSelect.getAttribute('data-original-bt') : 'per_submitted';
 
-        if (!countryIso) return;
+            if (Math.abs(original - current) > 0.0000001 || (btSelect && billingType !== originalBt)) {
+                changedPrices.push({ slug: slug, unit_price: current, billing_type: billingType });
+            }
+        });
 
-        if (!origCountry || Math.abs((parseFloat(origPrice) || 0) - unitPrice) > 0.0000001 || origBt !== billingType) {
-            changedPrices.push({ slug: slug, unit_price: unitPrice, billing_type: billingType, country_iso: countryIso });
-        }
-    });
+        document.querySelectorAll('.country-price-row').forEach(function(row) {
+            var slug = row.getAttribute('data-slug');
+            var countryIso = row.querySelector('.country-iso-select').value;
+            var unitPrice = parseFloat(row.querySelector('.country-price-input').value) || 0;
+            var billingType = row.querySelector('.country-bt-select').value;
+            var origCountry = row.getAttribute('data-country-original');
+            var origPrice = row.getAttribute('data-price-original');
+            var origBt = row.getAttribute('data-bt-original');
 
-    if (changedPrices.length === 0) return;
+            if (!countryIso) return;
+
+            if (!origCountry || Math.abs((parseFloat(origPrice) || 0) - unitPrice) > 0.0000001 || origBt !== billingType) {
+                changedPrices.push({ slug: slug, unit_price: unitPrice, billing_type: billingType, country_iso: countryIso });
+            }
+        });
+
+        if (changedPrices.length === 0 && selectedTier === originalTier) return;
+    }
 
     var btn = document.getElementById('savePricingBtn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+    var payload = {
+        product_tier: selectedTier,
+        change_reason: document.getElementById('editPricingReason').value || null
+    };
+    if (changedPrices.length > 0) {
+        payload.prices = changedPrices;
+    }
 
     fetch('/admin/api/accounts/' + accountId + '/pricing', {
         method: 'PUT',
@@ -1170,10 +1252,7 @@ function saveAccountPricing() {
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
-        body: JSON.stringify({
-            prices: changedPrices,
-            change_reason: document.getElementById('editPricingReason').value || null
-        })
+        body: JSON.stringify(payload)
     })
     .then(function(res) {
         if (!res.ok) throw new Error('Server returned ' + res.status);
@@ -1185,8 +1264,14 @@ function saveAccountPricing() {
         if (editPricingModalInstance) editPricingModalInstance.hide();
 
         var toastEl = document.getElementById('saveSuccessToast');
-        toastEl.querySelector('.toast-body').innerHTML =
-            '<i class="fas fa-check-circle me-2"></i>' + changedPrices.length + ' price(s) updated. Account set to Bespoke pricing.';
+        var tierLabel = selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1);
+        var msg;
+        if (selectedTier !== 'bespoke') {
+            msg = '<i class="fas fa-check-circle me-2"></i>Account changed to ' + tierLabel + ' tier. All bespoke prices deactivated.';
+        } else {
+            msg = '<i class="fas fa-check-circle me-2"></i>' + changedPrices.length + ' price(s) updated. Account set to Bespoke pricing.';
+        }
+        toastEl.querySelector('.toast-body').innerHTML = msg;
         var toast = new bootstrap.Toast(toastEl);
         toast.show();
 

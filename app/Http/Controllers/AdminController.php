@@ -708,12 +708,25 @@ class AdminController extends Controller
         $services = \App\Models\Billing\ServiceCatalogue::active()->ordered()->get();
         $productTier = $account->product_tier ?? 'starter';
 
+        $tierLookup = $productTier === 'bespoke' ? 'enterprise' : $productTier;
         $tierPrices = DB::table('product_tier_prices')
-            ->where('product_tier', $productTier)
+            ->where('product_tier', $tierLookup)
             ->where('active', true)
             ->whereNull('country_iso')
             ->get()
             ->keyBy('product_type');
+
+        $starterPrices = collect();
+        $enterprisePrices = collect();
+        if ($productTier === 'bespoke') {
+            $starterPrices = DB::table('product_tier_prices')
+                ->where('product_tier', 'starter')
+                ->where('active', true)
+                ->whereNull('country_iso')
+                ->get()
+                ->keyBy('product_type');
+            $enterprisePrices = $tierPrices;
+        }
 
         $customerPrices = DB::table('customer_prices')
             ->where('account_id', $accountId)
@@ -759,6 +772,15 @@ class AdminController extends Controller
                 'country_prices' => [],
             ];
 
+            if ($productTier === 'bespoke') {
+                $sp = $starterPrices->get($slug);
+                $ep = $enterprisePrices->get($slug);
+                $item['starter_price'] = $sp ? (float) $sp->unit_price : null;
+                $item['starter_price_formatted'] = $sp ? $service->formatPrice($sp->unit_price) : 'N/A';
+                $item['enterprise_price'] = $ep ? (float) $ep->unit_price : null;
+                $item['enterprise_price_formatted'] = $ep ? $service->formatPrice($ep->unit_price) : 'N/A';
+            }
+
             if ($isInternational && $countryPrices->has($slug)) {
                 foreach ($countryPrices->get($slug) as $cp) {
                     $item['country_prices'][] = [
@@ -796,7 +818,8 @@ class AdminController extends Controller
     public function updateAccountPricing(Request $request, $accountId)
     {
         $request->validate([
-            'prices' => 'required|array|min:1',
+            'product_tier' => 'required|string|in:starter,enterprise,bespoke',
+            'prices' => 'nullable|array',
             'prices.*.slug' => 'required|string',
             'prices.*.unit_price' => 'required|numeric|min:0',
             'prices.*.billing_type' => 'nullable|in:per_submitted,per_delivered',
@@ -814,11 +837,44 @@ class AdminController extends Controller
         $adminEmail = session('admin_auth.email', 'admin');
         $adminId = session('admin_auth.admin_id');
         $changeReason = $request->input('change_reason', 'Admin pricing override');
-        $prices = $request->input('prices');
+        $newTier = $request->input('product_tier');
+        $previousTier = $account->product_tier;
         $updatedCount = 0;
 
         DB::beginTransaction();
         try {
+            if ($newTier !== 'bespoke') {
+                DB::table('customer_prices')
+                    ->where('account_id', $accountId)
+                    ->where('active', true)
+                    ->update(['active' => false, 'valid_to' => now()->toDateString()]);
+
+                $account->product_tier = $newTier;
+                $account->save();
+
+                DB::commit();
+
+                Log::info('Admin changed account tier', [
+                    'account_id' => $accountId,
+                    'previous_tier' => $previousTier,
+                    'new_tier' => $newTier,
+                    'admin_user' => $adminEmail,
+                    'reason' => $changeReason,
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'accountId' => $accountId,
+                        'pricesUpdated' => 0,
+                        'productTier' => $newTier,
+                        'previousTier' => $previousTier,
+                        'bespokeDeactivated' => true,
+                    ],
+                ]);
+            }
+
+            $prices = $request->input('prices', []);
             foreach ($prices as $priceData) {
                 $slug = $priceData['slug'];
                 $newUnitPrice = $priceData['unit_price'];
@@ -873,7 +929,6 @@ class AdminController extends Controller
                 $updatedCount++;
             }
 
-            $previousTier = $account->product_tier;
             if ($previousTier !== 'bespoke') {
                 $account->product_tier = 'bespoke';
                 $account->save();
