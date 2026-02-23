@@ -958,17 +958,7 @@ function editPricingModal() {
 
         var tbody = document.getElementById('editPricingTableBody');
         var html = '';
-        var intlCountries = [
-            {iso:'US',name:'United States'},{iso:'CA',name:'Canada'},{iso:'FR',name:'France'},
-            {iso:'DE',name:'Germany'},{iso:'ES',name:'Spain'},{iso:'IT',name:'Italy'},
-            {iso:'NL',name:'Netherlands'},{iso:'BE',name:'Belgium'},{iso:'IE',name:'Ireland'},
-            {iso:'PT',name:'Portugal'},{iso:'AT',name:'Austria'},{iso:'CH',name:'Switzerland'},
-            {iso:'SE',name:'Sweden'},{iso:'NO',name:'Norway'},{iso:'DK',name:'Denmark'},
-            {iso:'FI',name:'Finland'},{iso:'PL',name:'Poland'},{iso:'AU',name:'Australia'},
-            {iso:'NZ',name:'New Zealand'},{iso:'IN',name:'India'},{iso:'AE',name:'UAE'},
-            {iso:'SA',name:'Saudi Arabia'},{iso:'ZA',name:'South Africa'},{iso:'NG',name:'Nigeria'},
-            {iso:'SG',name:'Singapore'},{iso:'HK',name:'Hong Kong'},{iso:'JP',name:'Japan'}
-        ];
+        intlCountriesList = data.countries || [];
 
         data.items.forEach(function(item, idx) {
             var currentPrice = item.has_bespoke ? item.bespoke_price : (item.tier_price !== null ? item.tier_price : '');
@@ -1021,7 +1011,7 @@ function editPricingModal() {
                     '<div id="countryList_' + item.slug + '">';
 
                 (item.country_prices || []).forEach(function(cp) {
-                    html += buildCountryRowHtml(item.slug, cp.country_iso, cp.unit_price, cp.billing_type, intlCountries, true);
+                    html += buildCountryRowHtml(item.slug, cp.country_iso, cp.unit_price, cp.billing_type, intlCountriesList, true);
                 });
 
                 html += '</div></td></tr>';
@@ -1044,17 +1034,7 @@ function editPricingModal() {
     });
 }
 
-var intlCountriesList = [
-    {iso:'US',name:'United States'},{iso:'CA',name:'Canada'},{iso:'FR',name:'France'},
-    {iso:'DE',name:'Germany'},{iso:'ES',name:'Spain'},{iso:'IT',name:'Italy'},
-    {iso:'NL',name:'Netherlands'},{iso:'BE',name:'Belgium'},{iso:'IE',name:'Ireland'},
-    {iso:'PT',name:'Portugal'},{iso:'AT',name:'Austria'},{iso:'CH',name:'Switzerland'},
-    {iso:'SE',name:'Sweden'},{iso:'NO',name:'Norway'},{iso:'DK',name:'Denmark'},
-    {iso:'FI',name:'Finland'},{iso:'PL',name:'Poland'},{iso:'AU',name:'Australia'},
-    {iso:'NZ',name:'New Zealand'},{iso:'IN',name:'India'},{iso:'AE',name:'UAE'},
-    {iso:'SA',name:'Saudi Arabia'},{iso:'ZA',name:'South Africa'},{iso:'NG',name:'Nigeria'},
-    {iso:'SG',name:'Singapore'},{iso:'HK',name:'Hong Kong'},{iso:'JP',name:'Japan'}
-];
+var intlCountriesList = [];
 
 function buildCountryRowHtml(slug, countryIso, unitPrice, billingType, countries, isExisting) {
     var opts = '<option value="">Select country...</option>';

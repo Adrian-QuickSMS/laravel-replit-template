@@ -772,11 +772,24 @@ class AdminController extends Controller
             $items[] = $item;
         }
 
+        $mccCountries = DB::table('mcc_mnc_master')
+            ->select('country_iso', 'country_name')
+            ->where('active', true)
+            ->whereNotNull('country_iso')
+            ->where('country_iso', '!=', 'GB')
+            ->groupBy('country_iso', 'country_name')
+            ->orderBy('country_name')
+            ->get()
+            ->map(fn($c) => ['iso' => $c->country_iso, 'name' => $c->country_name])
+            ->values()
+            ->toArray();
+
         return response()->json([
             'success' => true,
             'product_tier' => $productTier,
             'account_name' => $account->company_name ?? 'Unknown',
             'items' => $items,
+            'countries' => $mccCountries,
         ]);
     }
 
