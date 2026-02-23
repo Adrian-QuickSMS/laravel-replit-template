@@ -260,8 +260,16 @@ class RcsAgent extends Model
             $this->reviewed_at = now();
             $this->reviewed_by = $userId;
             $this->is_locked = true;
+        } elseif ($newStatus === self::STATUS_PENDING_INFO) {
+            $this->is_locked = false;
         } elseif ($newStatus === self::STATUS_DRAFT) {
             $this->is_locked = false;
+        } elseif ($newStatus === self::STATUS_SUSPENDED) {
+            $this->suspension_reason = $reason;
+            $this->is_locked = true;
+        } elseif ($newStatus === self::STATUS_REVOKED) {
+            $this->revocation_reason = $reason;
+            $this->is_locked = true;
         }
 
         $this->workflow_status = $newStatus;
@@ -315,7 +323,16 @@ class RcsAgent extends Model
             'submitted_in_review' => 'review_started',
             'in_review_approved' => 'approved',
             'in_review_rejected' => 'rejected',
+            'in_review_pending_info' => 'returned_to_customer',
+            'submitted_pending_info' => 'returned_to_customer',
+            'pending_info_submitted' => 'resubmitted',
+            'info_provided_approved' => 'approved',
+            'info_provided_rejected' => 'rejected',
+            'info_provided_pending_info' => 'returned_to_customer',
             'rejected_submitted' => 'resubmitted',
+            'approved_suspended' => 'suspended',
+            'suspended_approved' => 'reactivated',
+            'suspended_revoked' => 'revoked',
         ];
 
         $key = ($from ?? 'null') . '_' . $to;

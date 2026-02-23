@@ -1109,9 +1109,9 @@
 <div class="modal fade" id="returnCommentsModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, #ff9800 0%, #e65100 100%); color: #fff;">
-                <h5 class="modal-title"><i class="fas fa-comments me-2"></i>Review Comments — <span id="returnCommentsAgentName"></span></h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header" style="background: #fff; border-bottom: 1px solid #e9ecef;">
+                <h5 class="modal-title"><i class="fas fa-comments me-2 text-warning"></i>Review Comments — <span id="returnCommentsAgentName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="returnCommentsBody">
                 <div class="text-center py-3"><i class="fas fa-spinner fa-spin me-2"></i>Loading comments...</div>
