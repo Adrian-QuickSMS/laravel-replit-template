@@ -283,8 +283,8 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h4 class="card-title mb-0"><i class="fas fa-robot me-2 text-primary"></i>Register RCS Agent</h4>
-                    <span class="autosave-indicator saved" id="autosaveIndicator">
-                        <i class="fas fa-cloud me-1"></i><span id="autosaveText">Draft saved</span>
+                    <span class="autosave-indicator" id="autosaveIndicator">
+                        <i class="fas fa-cloud me-1"></i><span id="autosaveText"></span>
                     </span>
                 </div>
                 <div class="card-body">
@@ -1160,81 +1160,47 @@ $(document).ready(function() {
             country: wizardData.addressCountry || ''
         };
 
-        return {
+        var payload = {
             name: wizardData.name || '',
-            description: wizardData.description || '',
+            description: wizardData.description || null,
             brand_color: wizardData.brandColor || '#886CC0',
             logo_url: wizardData.logoDataUrl || null,
             logo_crop_metadata: wizardData.logoCropMetadata || null,
             hero_url: wizardData.heroDataUrl || null,
             hero_crop_metadata: wizardData.heroCropMetadata || null,
-            support_phone: wizardData.supportPhone || '',
-            website: wizardData.website || '',
-            support_email: wizardData.supportEmail || '',
-            privacy_url: wizardData.privacyUrl || '',
-            terms_url: wizardData.termsUrl || '',
+            support_phone: wizardData.supportPhone || null,
+            website: wizardData.website || null,
+            support_email: wizardData.supportEmail || null,
+            privacy_url: wizardData.privacyUrl || null,
+            terms_url: wizardData.termsUrl || null,
             show_phone: wizardData.showPhone !== false,
             show_email: wizardData.showEmail !== false,
-            billing_category: wizardData.billing || 'non-conversational',
-            use_case: wizardData.useCase || '',
-            campaign_frequency: wizardData.campaignFrequency || '',
-            monthly_volume: wizardData.monthlyVolume || '',
-            opt_in_description: wizardData.userConsent || '',
-            opt_out_description: wizardData.optOutAvailable || '',
-            use_case_overview: wizardData.useCaseOverview || '',
+            billing_category: wizardData.billing || null,
+            use_case: wizardData.useCase || null,
+            campaign_frequency: wizardData.campaignFrequency || null,
+            monthly_volume: wizardData.monthlyVolume || null,
+            opt_in_description: wizardData.userConsent || null,
+            opt_out_description: wizardData.optOutAvailable || null,
+            use_case_overview: wizardData.useCaseOverview || null,
             test_numbers: wizardData.testNumbers || [],
-            company_number: wizardData.companyNumber || '',
-            company_website: wizardData.companyWebsite || '',
-            registered_address: JSON.stringify(addressObj),
-            approver_name: wizardData.approverName || '',
-            approver_job_title: wizardData.approverJobTitle || '',
-            approver_email: wizardData.approverEmail || ''
+            company_number: wizardData.companyNumber || null,
+            company_website: wizardData.companyWebsite || null,
+            registered_address: (addressObj.line1 || addressObj.city) ? JSON.stringify(addressObj) : null,
+            approver_name: wizardData.approverName || null,
+            approver_job_title: wizardData.approverJobTitle || null,
+            approver_email: wizardData.approverEmail || null
         };
-    }
 
-    function canAutosave() {
-        var required = [
-            wizardData.name,
-            wizardData.description,
-            wizardData.supportPhone,
-            wizardData.website,
-            wizardData.supportEmail,
-            wizardData.privacyUrl,
-            wizardData.termsUrl,
-            wizardData.billing,
-            wizardData.useCase,
-            wizardData.campaignFrequency,
-            wizardData.monthlyVolume,
-            wizardData.userConsent,
-            wizardData.optOutAvailable,
-            wizardData.useCaseOverview,
-            wizardData.companyNumber,
-            wizardData.companyWebsite,
-            wizardData.approverName,
-            wizardData.approverJobTitle,
-            wizardData.approverEmail
-        ];
-        for (var i = 0; i < required.length; i++) {
-            if (!required[i] || (typeof required[i] === 'string' && !required[i].trim())) return false;
-        }
-        return true;
+        return payload;
     }
 
     function triggerAutosave() {
         if (autosaveTimeout) clearTimeout(autosaveTimeout);
 
         autosaveTimeout = setTimeout(function() {
-            if (!canAutosave() && !currentDraftUuid) {
-                $('#autosaveIndicator').removeClass('saving error saved');
-                $('#autosaveText').text('');
+            if (!wizardData.name || !wizardData.name.trim()) {
                 return;
             }
-
-            if (!canAutosave() && currentDraftUuid) {
-                performAutosave();
-                return;
-            }
-
             performAutosave();
         }, 2000);
     }
@@ -1661,19 +1627,111 @@ $(document).ready(function() {
         }
     }
     
-    // Submit wizard (placeholder for actual submission logic)
     function submitWizard() {
-        // TODO: Implement actual submission to backend
-        console.log('Wizard submission:', wizardData);
-        
-        // Show success message for now
+        var payload = buildPayload();
+        var $submitBtn = $('.sw-btn-next:visible');
+        $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Submitting...');
+
+        if (currentDraftUuid) {
+            $.ajax({
+                url: '/api/rcs-agents/' + currentDraftUuid,
+                method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(payload),
+                success: function(updateResponse) {
+                    if (updateResponse.success) {
+                        doSubmitCall(currentDraftUuid, $submitBtn);
+                    } else {
+                        $submitBtn.prop('disabled', false).html('Submit');
+                        showSubmissionError(updateResponse.error || 'Failed to save before submitting.');
+                    }
+                },
+                error: function(xhr) {
+                    $submitBtn.prop('disabled', false).html('Submit');
+                    showSubmissionError(parseAjaxError(xhr, 'Failed to save before submitting.'));
+                }
+            });
+        } else {
+            payload.submit = true;
+            $.ajax({
+                url: '/api/rcs-agents',
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify(payload),
+                success: function(response) {
+                    if (response.success) {
+                        showSubmissionSuccess();
+                    } else {
+                        $submitBtn.prop('disabled', false).html('Submit');
+                        showSubmissionError(response.error || 'Failed to submit agent.');
+                    }
+                },
+                error: function(xhr) {
+                    $submitBtn.prop('disabled', false).html('Submit');
+                    showSubmissionError(parseAjaxError(xhr, 'Failed to submit agent.'));
+                }
+            });
+        }
+    }
+
+    function doSubmitCall(uuid, $submitBtn) {
+        $.ajax({
+            url: '/api/rcs-agents/' + uuid + '/submit',
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({}),
+            success: function(response) {
+                if (response.success) {
+                    showSubmissionSuccess();
+                } else {
+                    $submitBtn.prop('disabled', false).html('Submit');
+                    showSubmissionError(response.error || 'Failed to submit agent.');
+                }
+            },
+            error: function(xhr) {
+                $submitBtn.prop('disabled', false).html('Submit');
+                showSubmissionError(parseAjaxError(xhr, 'Failed to submit agent.'));
+            }
+        });
+    }
+
+    function parseAjaxError(xhr, defaultMsg) {
+        var msg = defaultMsg;
+        try {
+            var err = JSON.parse(xhr.responseText);
+            if (err.errors) {
+                var msgs = [];
+                for (var field in err.errors) {
+                    msgs.push(err.errors[field][0]);
+                }
+                msg = msgs.join(' ');
+            } else {
+                msg = err.error || err.message || msg;
+            }
+        } catch(e) {}
+        return msg;
+    }
+
+    function showSubmissionSuccess() {
         var successHtml = '<div class="text-center py-4">';
         successHtml += '<i class="fas fa-check-circle text-success fa-4x mb-3"></i>';
         successHtml += '<h4>Agent Submitted Successfully!</h4>';
         successHtml += '<p class="text-muted">Your RCS Agent registration has been submitted for review.</p>';
         successHtml += '<p class="text-muted">You will receive an email notification once the review is complete.</p>';
         successHtml += '</div>';
-        
+
         if ($('#validationSummaryModal').length) {
             $('#validationSummaryModal .modal-title').html('<i class="fas fa-check-circle me-2 text-success"></i>Submission Complete');
             $('#validationSummaryModal .modal-body').html(successHtml);
@@ -1691,7 +1749,26 @@ $(document).ready(function() {
             modalHtml += '<div class="modal-footer">';
             modalHtml += '<button type="button" class="btn btn-success" onclick="window.location.href=\'/management/rcs-agents\'">View My Agents</button>';
             modalHtml += '</div></div></div></div>';
-            
+
+            $('body').append(modalHtml);
+            $('#validationSummaryModal').modal('show');
+        }
+    }
+
+    function showSubmissionError(msg) {
+        if ($('#validationSummaryModal').length) {
+            $('#validationSummaryModal .modal-title').html('<i class="fas fa-times-circle me-2 text-danger"></i>Submission Failed');
+            $('#validationSummaryModal .modal-body').html('<div class="text-center py-3"><p class="text-danger">' + msg + '</p></div>');
+            $('#validationSummaryModal .modal-footer').html('<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>');
+            $('#validationSummaryModal').modal('show');
+        } else {
+            var modalHtml = '<div class="modal fade" id="validationSummaryModal" tabindex="-1">';
+            modalHtml += '<div class="modal-dialog modal-dialog-centered"><div class="modal-content">';
+            modalHtml += '<div class="modal-header bg-light"><h5 class="modal-title"><i class="fas fa-times-circle me-2 text-danger"></i>Submission Failed</h5>';
+            modalHtml += '<button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>';
+            modalHtml += '<div class="modal-body"><div class="text-center py-3"><p class="text-danger">' + msg + '</p></div></div>';
+            modalHtml += '<div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button></div>';
+            modalHtml += '</div></div></div>';
             $('body').append(modalHtml);
             $('#validationSummaryModal').modal('show');
         }
