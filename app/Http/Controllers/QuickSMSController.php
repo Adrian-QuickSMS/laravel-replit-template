@@ -1610,7 +1610,7 @@ class QuickSMSController extends Controller
     {
         $tenantId = session('customer_tenant_id');
         $account = Account::find($tenantId);
-        $owner = $account ? $account->primaryOwner() : null;
+        $owner = $account ? $account->getOwner() : null;
 
         $companyDefaults = [];
         if ($account) {

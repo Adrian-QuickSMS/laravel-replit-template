@@ -58,7 +58,7 @@ class RcsAgentController extends Controller
             ->get();
 
         $account = Account::find($tenantId);
-        $owner = $account ? $account->primaryOwner() : null;
+        $owner = $account ? $account->getOwner() : null;
 
         $companyDefaults = [];
         if ($account) {
