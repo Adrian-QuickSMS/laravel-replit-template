@@ -485,10 +485,10 @@ class RcsAgentController extends Controller
             return response()->json(['success' => false, 'error' => 'RCS Agent not found.'], 404);
         }
 
-        if ($agent->workflow_status !== RcsAgent::STATUS_DRAFT) {
+        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_DRAFT, RcsAgent::STATUS_PENDING_INFO])) {
             return response()->json([
                 'success' => false,
-                'error' => 'Only draft RCS Agents can be submitted for review.',
+                'error' => 'Only draft or returned RCS Agents can be submitted for review.',
             ], 422);
         }
 
@@ -718,10 +718,10 @@ class RcsAgentController extends Controller
             return response()->json(['success' => false, 'error' => 'RCS Agent not found.'], 404);
         }
 
-        if ($agent->workflow_status !== RcsAgent::STATUS_REJECTED) {
+        if (!in_array($agent->workflow_status, [RcsAgent::STATUS_REJECTED, RcsAgent::STATUS_PENDING_INFO])) {
             return response()->json([
                 'success' => false,
-                'error' => 'Only rejected RCS Agents can be re-edited.',
+                'error' => 'Only rejected or returned RCS Agents can be re-edited.',
             ], 422);
         }
 
