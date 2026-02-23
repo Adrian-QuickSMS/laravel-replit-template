@@ -1644,15 +1644,10 @@ $(document).ready(function() {
         return true;
     });
     
-    // Handle Submit button click on Review step (step 7)
-    $(document).on('click', '.sw-btn-next', function(e) {
-        var currentStep = $('#rcsAgentWizard').smartWizard('getStepIndex');
-        if (currentStep === 6) {
-            e.preventDefault();
-            e.stopPropagation();
-            handleFinalSubmission();
-            return false;
-        }
+    // Handle Submit: hide SmartWizard Next on step 7, show dedicated Submit button
+    $(document).on('click', '#wizardSubmitBtn', function(e) {
+        e.preventDefault();
+        handleFinalSubmission();
     });
     
     // Handle final submission with validation summary
@@ -1754,7 +1749,7 @@ $(document).ready(function() {
     
     function submitWizard() {
         var payload = buildPayload();
-        var $submitBtn = $('.sw-btn-next:visible');
+        var $submitBtn = $('#wizardSubmitBtn');
         $submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Submitting...');
 
         if (currentDraftUuid) {
@@ -2027,9 +2022,14 @@ $(document).ready(function() {
         
         var $toolbar = $(this).find('.toolbar');
         if (stepIndex === 6) {
-            $toolbar.find('.sw-btn-next').text('Submit').prop('disabled', false).removeClass('disabled');
+            $toolbar.find('.sw-btn-next').hide();
+            if (!$toolbar.find('#wizardSubmitBtn').length) {
+                $toolbar.find('.sw-btn-next').after('<button type="button" id="wizardSubmitBtn" class="btn" style="background-color: var(--primary, #886CC0); border: 0; padding: 0.75rem 1.5rem; color: #fff; border-radius: 0.375rem; font-weight: 500; cursor: pointer;">Submit</button>');
+            }
+            $toolbar.find('#wizardSubmitBtn').show();
         } else {
-            $toolbar.find('.sw-btn-next').text('Next');
+            $toolbar.find('.sw-btn-next').show().text('Next');
+            $toolbar.find('#wizardSubmitBtn').hide();
         }
     });
     
