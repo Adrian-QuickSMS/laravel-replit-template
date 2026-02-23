@@ -1184,6 +1184,7 @@ $(document).ready(function() {
         wizardData.optOutAvailable = agent.opt_out_description || '';
         wizardData.useCaseOverview = agent.use_case_overview || '';
         wizardData.testNumbers = agent.test_numbers || [];
+        if (agent.sector) wizardData.companySector = agent.sector;
         wizardData.companyName = agent.company_number ? (wizardData.companyName || '') : wizardData.companyName;
         wizardData.companyNumber = agent.company_number || wizardData.companyNumber;
         wizardData.companyWebsite = agent.company_website || wizardData.companyWebsite;
@@ -1235,7 +1236,8 @@ $(document).ready(function() {
             registered_address: (addressObj.line1 || addressObj.city) ? JSON.stringify(addressObj) : null,
             approver_name: wizardData.approverName || null,
             approver_job_title: wizardData.approverJobTitle || null,
-            approver_email: wizardData.approverEmail || null
+            approver_email: wizardData.approverEmail || null,
+            sector: wizardData.companySector || null
         };
 
         return payload;

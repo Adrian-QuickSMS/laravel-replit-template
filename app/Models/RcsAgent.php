@@ -53,6 +53,7 @@ class RcsAgent extends Model
         'approver_name',
         'approver_job_title',
         'approver_email',
+        'sector',
         'workflow_status',
         'rejection_reason',
         'admin_notes',
