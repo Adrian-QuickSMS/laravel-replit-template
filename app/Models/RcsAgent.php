@@ -139,6 +139,11 @@ class RcsAgent extends Model
         return $this->belongsTo(Account::class, 'account_id');
     }
 
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
     public function isEditable(): bool
     {
         return $this->workflow_status === self::STATUS_DRAFT || $this->workflow_status === self::STATUS_REJECTED;
