@@ -181,10 +181,10 @@
     font-size: 0.75rem;
     font-weight: 600;
 }
-.event-status-badge.draft { background: #dbeafe; color: #1e40af; }
-.event-status-badge.scheduled { background: #fef3c7; color: #92400e; }
+.event-status-badge.draft { background: #f3f4f6; color: #6b7280; }
+.event-status-badge.scheduled { background: #dbeafe; color: #1e40af; }
 .event-status-badge.applied { background: #d1fae5; color: #065f46; }
-.event-status-badge.cancelled { background: #f3f4f6; color: #6b7280; }
+.event-status-badge.cancelled { background: #fee2e2; color: #991b1b; }
 .availability-icon {
     font-size: 0.85rem;
 }
@@ -747,7 +747,7 @@ function formatPrice(rawPrice, displayFormat, decimalPlaces) {
     if (rawPrice === null || rawPrice === undefined) return '—';
     var val = parseFloat(rawPrice);
     if (displayFormat === 'pounds') {
-        return '£' + val.toFixed(0);
+        return '£' + val.toFixed(2);
     }
     var pence = val * 100;
     return pence.toFixed(decimalPlaces) + 'p';
