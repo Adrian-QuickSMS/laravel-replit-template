@@ -1007,23 +1007,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         },
         
-        // GET /api/pricing/rcs-calculator
         getCalculatorDefaults: function() {
-            return new Promise(function(resolve, reject) {
-                setTimeout(function() {
-                    if (MockAPI.shouldFail()) {
-                        reject(new Error('Failed to fetch pricing data'));
-                    } else {
-                        resolve({
-                            smsPrice: 0.035,
-                            rcsBasicPrice: 0.040,
-                            rcsSinglePrice: 0.055,
-                            avgFragments: 1,
-                            penetration: 65
-                        });
-                    }
-                }, MockAPI.delay());
-            });
+            return Promise.resolve({});
         }
     };
     
@@ -1158,31 +1143,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function loadCalculatorDefaults() {
-        MockAPI.getCalculatorDefaults()
-            .then(function(data) {
-                if (data.smsPrice !== undefined) {
-                    document.getElementById('calcSmsPrice').value = data.smsPrice;
-                }
-                if (data.rcsBasicPrice !== undefined) {
-                    document.getElementById('calcRcsBasicPrice').value = data.rcsBasicPrice;
-                }
-                if (data.rcsSinglePrice !== undefined) {
-                    document.getElementById('calcRcsSinglePrice').value = data.rcsSinglePrice;
-                }
-                if (data.avgFragments !== undefined) {
-                    document.getElementById('calcFragments').value = data.avgFragments;
-                }
-                if (data.penetration !== undefined) {
-                    document.getElementById('calcPenetration').value = data.penetration;
-                }
-                // Trigger initial calculation
-                calculateSavings();
-            })
-            .catch(function(err) {
-                console.error('Calculator defaults error:', err);
-                // Use fallback defaults already in HTML
-                calculateSavings();
-            });
+        calculateSavings();
     }
     
     // ========================================
