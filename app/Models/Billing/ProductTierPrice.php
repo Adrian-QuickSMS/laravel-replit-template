@@ -14,6 +14,7 @@ class ProductTierPrice extends Model
     protected $fillable = [
         'product_tier', 'product_type', 'country_iso', 'unit_price',
         'currency', 'valid_from', 'valid_to', 'active', 'created_by',
+        'service_catalogue_id', 'pricing_event_id',
     ];
 
     protected $casts = [
@@ -21,7 +22,26 @@ class ProductTierPrice extends Model
         'active' => 'boolean',
         'valid_from' => 'date',
         'valid_to' => 'date',
+        'service_catalogue_id' => 'integer',
     ];
+
+    // =====================================================
+    // RELATIONSHIPS
+    // =====================================================
+
+    public function service()
+    {
+        return $this->belongsTo(ServiceCatalogue::class, 'service_catalogue_id');
+    }
+
+    public function pricingEvent()
+    {
+        return $this->belongsTo(PricingEvent::class, 'pricing_event_id');
+    }
+
+    // =====================================================
+    // SCOPES
+    // =====================================================
 
     public function scopeActive($query)
     {
@@ -44,5 +64,16 @@ class ProductTierPrice extends Model
             ->where('country_iso', $countryIso)
             ->active()
             ->validAt();
+    }
+
+    public function scopeForTier($query, string $tier)
+    {
+        return $query->where('product_tier', $tier);
+    }
+
+    public function scopeFuture($query, $date = null)
+    {
+        $date = $date ?? now()->toDateString();
+        return $query->where('valid_from', '>', $date);
     }
 }

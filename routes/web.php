@@ -411,6 +411,36 @@ Route::prefix('admin')->group(function () {
                 Route::get('/locked-entities', 'getLockedEntities')->name('admin.api.governance.locked-entities');
             });
             
+            // Pricing Management — view + API
+            Route::get('/management/pricing', [\App\Http\Controllers\Admin\PricingManagementController::class, 'index'])->name('admin.management.pricing');
+
+            Route::prefix('api/pricing')->controller(\App\Http\Controllers\Admin\PricingManagementController::class)->group(function () {
+                // Service catalogue
+                Route::get('/services', 'services')->name('admin.api.pricing.services');
+                Route::post('/services', 'storeService')->name('admin.api.pricing.services.store');
+                Route::put('/services/{id}', 'updateService')->name('admin.api.pricing.services.update');
+
+                // Tier pricing grid
+                Route::get('/current', 'currentPricing')->name('admin.api.pricing.current');
+                Route::get('/preview', 'previewPricing')->name('admin.api.pricing.preview');
+                Route::put('/tier-prices', 'updateTierPrice')->name('admin.api.pricing.tier-prices.update');
+
+                // Pricing events (grouped changes)
+                Route::get('/events', 'events')->name('admin.api.pricing.events');
+                Route::post('/events', 'storeEvent')->name('admin.api.pricing.events.store');
+                Route::get('/events/{id}', 'showEvent')->name('admin.api.pricing.events.show');
+                Route::put('/events/{id}', 'updateEvent')->name('admin.api.pricing.events.update');
+                Route::post('/events/{id}/schedule', 'scheduleEvent')->name('admin.api.pricing.events.schedule');
+                Route::post('/events/{id}/cancel', 'cancelEvent')->name('admin.api.pricing.events.cancel');
+
+                // Upcoming scheduled changes
+                Route::get('/upcoming', 'upcoming')->name('admin.api.pricing.upcoming');
+
+                // History and export
+                Route::get('/history', 'history')->name('admin.api.pricing.history');
+                Route::get('/export', 'export')->name('admin.api.pricing.export');
+            });
+
             Route::get('/system/pricing', 'systemPricing')->name('admin.system.pricing');
             Route::get('/system/routing', 'systemRouting')->name('admin.system.routing');
             Route::get('/system/flags', 'systemFlags')->name('admin.system.flags');
