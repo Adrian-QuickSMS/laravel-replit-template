@@ -264,26 +264,38 @@ class QuickSMSController extends Controller
     public function dashboard()
     {
         $user = auth()->user();
-        $accountId = $user->tenant_id;
+        $balanceData = [
+            'balance' => 0,
+            'effectiveAvailable' => 0,
+            'creditLimit' => 0,
+            'reserved' => 0,
+            'currency' => 'GBP',
+        ];
 
-        $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
-        $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
+        if ($user && $user->tenant_id) {
+            $accountId = $user->tenant_id;
+            $balance = \App\Models\Billing\AccountBalance::where('account_id', $accountId)->first();
+            $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
 
-        $currentBalance = $balance ? (float) $balance->balance : 0;
-        $creditLimit = (float) ($account->credit_limit ?? 0);
-        $reserved = $balance ? (float) $balance->reserved : 0;
-        $effectiveAvailable = $balance ? (float) $balance->effective_available : $creditLimit;
-        $currency = $account->currency ?? 'GBP';
+            if ($account) {
+                $currentBalance = $balance ? (float) $balance->balance : 0;
+                $creditLimit = (float) ($account->credit_limit ?? 0);
+                $reserved = $balance ? (float) $balance->reserved : 0;
+                $effectiveAvailable = $balance ? (float) $balance->effective_available : $creditLimit;
+
+                $balanceData = [
+                    'balance' => $currentBalance,
+                    'effectiveAvailable' => $effectiveAvailable,
+                    'creditLimit' => $creditLimit,
+                    'reserved' => $reserved,
+                    'currency' => $account->currency ?? 'GBP',
+                ];
+            }
+        }
 
         return view('quicksms.dashboard', [
             'page_title' => 'Dashboard',
-            'balanceData' => [
-                'balance' => $currentBalance,
-                'effectiveAvailable' => $effectiveAvailable,
-                'creditLimit' => $creditLimit,
-                'reserved' => $reserved,
-                'currency' => $currency,
-            ],
+            'balanceData' => $balanceData,
         ]);
     }
 
