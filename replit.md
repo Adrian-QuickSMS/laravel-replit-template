@@ -80,9 +80,11 @@ The admin account billing page (`/admin/accounts/{id}/billing`) has been wired t
 
 *   **3 admin API endpoints** in `AdminController`:
     *   `GET /admin/api/accounts/{id}/billing` — returns billing mode, balance, credit limit, available credit, payment terms, VAT status from `accounts` + `account_balances` tables.
-    *   `PUT /admin/api/accounts/{id}/billing-mode` — updates `billing_type` (prepay/postpay) on `accounts` table. Resets credit limit to 0 when switching to prepay. Also updates `account_balances` if present.
-    *   `PUT /admin/api/accounts/{id}/credit-limit` — updates `credit_limit` on `accounts` table and mirrors to `account_balances.credit_limit`. Only allowed for postpay accounts.
+    *   `PUT /admin/api/accounts/{id}/billing-mode` — updates `billing_type` (prepay/postpay) on `accounts` table. Preserves credit limit across mode changes. Also updates `account_balances` if present.
+    *   `PUT /admin/api/accounts/{id}/credit-limit` — updates `credit_limit` on `accounts` table and mirrors to `account_balances.credit_limit`. Allowed for both prepay and postpay accounts.
 *   **Billing fields** added to Account model's `$fillable`: `billing_type`, `billing_method`, `product_tier`, `credit_limit`, `payment_terms_days`, `currency`, `platform_fee_monthly`, `stripe_customer_id`, `xero_contact_id`.
 *   **Frontend adapter** (`AdminAccountBillingService` in billing blade) rewired to call admin API endpoints directly instead of going through `BillingServices` layer (which was designed for customer-scoped API calls).
-*   **RLS handling**: Admin endpoints use `SET LOCAL app.current_tenant_id` before querying/updating tenant-scoped tables.
+*   **RLS handling**: Admin endpoints use `set_config('app.current_tenant_id', ?, false)` before querying/updating tenant-scoped tables.
 *   **DB value mapping**: `prepay`/`postpay` (DB enum) ↔ `prepaid`/`postpaid` (UI/API).
+*   **Available credit calculation**: For both prepaid and postpaid accounts, credit limit is included in available credit. Prepaid: `max(0, balance - reserved) + creditLimit`. Postpaid: `creditLimit - totalOutstanding + balance - reserved`.
+*   **Auto-created balance records**: The `Account` model's `booted()` method hooks into the `created` event to automatically insert an `account_balances` row with zero balance and the account's currency/credit limit whenever a new account is created.

@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -173,6 +175,37 @@ class Account extends Model
     ];
 
     protected $hidden = [];
+
+    protected static function booted()
+    {
+        static::created(function (Account $account) {
+            try {
+                DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$account->id]);
+
+                DB::table('account_balances')->insert([
+                    'account_id' => $account->id,
+                    'balance' => 0,
+                    'reserved' => 0,
+                    'credit_limit' => (float) ($account->credit_limit ?? 0),
+                    'total_outstanding' => 0,
+                    'effective_available' => (float) ($account->credit_limit ?? 0),
+                    'currency' => $account->currency ?? 'GBP',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                Log::info('Account balance record auto-created', [
+                    'account_id' => $account->id,
+                    'currency' => $account->currency ?? 'GBP',
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to auto-create account balance record', [
+                    'account_id' => $account->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        });
+    }
 
     // =====================================================
     // RELATIONSHIPS
