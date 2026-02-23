@@ -925,6 +925,7 @@ var editPricingModalInstance = null;
 var editPricingData = [];
 
 function editPricingModal() {
+    var accountId = @json($account_id);
     if (!editPricingModalInstance) {
         editPricingModalInstance = new bootstrap.Modal(document.getElementById('editPricingModal'));
     }
@@ -938,9 +939,16 @@ function editPricingModal() {
     editPricingModalInstance.show();
 
     fetch('/admin/api/accounts/' + accountId + '/pricing', {
-        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
     })
-    .then(function(res) { return res.json(); })
+    .then(function(res) {
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        return res.json();
+    })
     .then(function(data) {
         if (!data.success) throw new Error(data.error || 'Failed to load pricing');
 
@@ -997,6 +1005,7 @@ function checkPricingChanges() {
 }
 
 function saveAccountPricing() {
+    var accountId = @json($account_id);
     var changedPrices = [];
     document.querySelectorAll('.pricing-input').forEach(function(input) {
         var original = parseFloat(input.getAttribute('data-original')) || 0;
