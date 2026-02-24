@@ -2,6 +2,7 @@
 
 namespace App\Services\Campaign;
 
+use App\Jobs\ResolveRecipientContentJob;
 use App\Models\Account;
 use App\Models\Campaign;
 use App\Models\CampaignRecipient;
@@ -104,6 +105,20 @@ class CampaignService
                 $campaign->encoding = MessageTemplate::detectEncoding($campaign->message_content);
                 $campaign->segment_count = MessageTemplate::calculateSegments($campaign->message_content, $campaign->encoding);
             }
+
+            // Invalidate resolved content — per-recipient segments are now stale
+            $campaign->content_resolved_at = null;
+            $campaign->preparation_status = null;
+            $campaign->preparation_progress = 0;
+            $campaign->preparation_error = null;
+
+            DB::table('campaign_recipients')
+                ->where('campaign_id', $campaign->id)
+                ->update([
+                    'resolved_content' => null,
+                    'segments' => $campaign->segment_count ?: 1,
+                    'encoding' => null,
+                ]);
         }
 
         $campaign->updated_by = $data['updated_by'] ?? $campaign->updated_by;
@@ -170,17 +185,127 @@ class CampaignService
     }
 
     // =====================================================
+    // CAMPAIGN PREPARATION (recipient resolution + content resolution)
+    // =====================================================
+
+    /**
+     * Prepare a campaign for the confirm page.
+     *
+     * 1. Resolve recipients synchronously (contact list/tag expansion, dedup, opt-out filtering)
+     * 2. Dispatch async content resolution job (merge field substitution + per-recipient segment calculation)
+     *
+     * The frontend should poll preparationStatus() until preparation_status === 'ready',
+     * then call estimateCost() for the accurate total.
+     *
+     * @throws \RuntimeException if campaign is not in draft status
+     */
+    public function prepareCampaign(Campaign $campaign): ResolverResult
+    {
+        if (!$campaign->isDraft()) {
+            throw new \RuntimeException("Campaign must be in draft status to prepare.");
+        }
+
+        // Clear any existing recipients (supports re-preparation after message edits)
+        DB::table('campaign_recipients')
+            ->where('campaign_id', $campaign->id)
+            ->delete();
+
+        // Reset preparation state
+        $campaign->update([
+            'content_resolved_at' => null,
+            'preparation_status' => 'preparing',
+            'preparation_progress' => 0,
+            'preparation_error' => null,
+        ]);
+
+        // Step 1: Resolve recipients synchronously
+        // (expands lists/tags, deduplicates, filters opt-outs, inserts campaign_recipients)
+        $resolverResult = $this->recipientResolver->resolve($campaign);
+
+        if ($resolverResult->totalCreated === 0) {
+            $campaign->update([
+                'preparation_status' => 'ready',
+                'preparation_progress' => 100,
+                'content_resolved_at' => now(),
+            ]);
+            return $resolverResult;
+        }
+
+        // Step 2: Dispatch async content resolution
+        // (merge fields + per-recipient encoding detection + segment calculation)
+        ResolveRecipientContentJob::dispatch($campaign->id);
+
+        Log::info('[CampaignService] Campaign preparation started', [
+            'campaign_id' => $campaign->id,
+            'recipients_resolved' => $resolverResult->totalCreated,
+        ]);
+
+        return $resolverResult;
+    }
+
+    /**
+     * Get the current preparation status and segment statistics.
+     * Called by the frontend to poll until preparation is ready.
+     */
+    public function getPreparationStatus(Campaign $campaign): array
+    {
+        $result = [
+            'preparation_status' => $campaign->preparation_status,
+            'preparation_progress' => $campaign->preparation_progress ?? 0,
+        ];
+
+        if ($campaign->preparation_status === 'ready') {
+            // Include segment distribution statistics
+            $segmentStats = DB::table('campaign_recipients')
+                ->where('campaign_id', $campaign->id)
+                ->where('status', CampaignRecipient::STATUS_PENDING)
+                ->select([
+                    DB::raw('MIN(segments) as min_segments'),
+                    DB::raw('MAX(segments) as max_segments'),
+                    DB::raw('ROUND(AVG(segments)::numeric, 2) as avg_segments'),
+                    DB::raw("COUNT(*) FILTER (WHERE encoding = 'unicode') as unicode_count"),
+                    DB::raw('COUNT(*) as total_count'),
+                    DB::raw('SUM(segments) as total_segments'),
+                ])
+                ->first();
+
+            $result['segment_stats'] = [
+                'min_segments' => (int) ($segmentStats->min_segments ?? 1),
+                'max_segments' => (int) ($segmentStats->max_segments ?? 1),
+                'avg_segments' => (float) ($segmentStats->avg_segments ?? 1),
+                'unicode_count' => (int) ($segmentStats->unicode_count ?? 0),
+                'total_count' => (int) ($segmentStats->total_count ?? 0),
+                'total_segments' => (int) ($segmentStats->total_segments ?? 0),
+            ];
+        } elseif ($campaign->preparation_status === 'failed') {
+            $result['error'] = $campaign->preparation_error;
+        }
+
+        return $result;
+    }
+
+    // =====================================================
     // COST ESTIMATION
     // =====================================================
 
     /**
      * Get a cost estimate for the campaign.
      * Requires recipients to be resolved first.
+     *
+     * If content has been resolved (per-recipient segments calculated),
+     * returns an accurate cost based on actual segment distribution.
+     * Otherwise falls back to flat segment_count estimate.
      */
     public function estimateCost(Campaign $campaign): CostEstimate
     {
         $account = Account::findOrFail($campaign->account_id);
 
+        // Accurate path: content resolved, use per-recipient segment data
+        if ($campaign->content_resolved_at) {
+            return $this->estimateCostFromResolvedRecipients($account, $campaign);
+        }
+
+        // Fallback: flat estimate using campaign-level segment_count
         $countryBreakdown = DB::table('campaign_recipients')
             ->where('campaign_id', $campaign->id)
             ->where('status', CampaignRecipient::STATUS_PENDING)
@@ -194,6 +319,29 @@ class CampaignService
             $campaign->type,
             $countryBreakdown,
             $campaign->segment_count ?: 1
+        );
+    }
+
+    /**
+     * Calculate cost using actual per-recipient segment data.
+     *
+     * Groups recipients by (country_iso, segments) so each group is priced
+     * independently — a recipient with 2 segments costs exactly double
+     * a recipient with 1 segment in the same country.
+     */
+    private function estimateCostFromResolvedRecipients(Account $account, Campaign $campaign): CostEstimate
+    {
+        $breakdown = DB::table('campaign_recipients')
+            ->where('campaign_id', $campaign->id)
+            ->where('status', CampaignRecipient::STATUS_PENDING)
+            ->select('country_iso', 'segments', DB::raw('COUNT(*) as recipient_count'))
+            ->groupBy('country_iso', 'segments')
+            ->get();
+
+        return $this->billingPreflight->estimateCostPerSegmentGroup(
+            $account,
+            $campaign->type,
+            $breakdown
         );
     }
 
@@ -381,6 +529,9 @@ class CampaignService
     /**
      * Process a scheduled campaign that's due for send.
      * Called by the ScheduledCampaignDispatcher job.
+     *
+     * Forces content re-resolution because contact data may have changed
+     * between scheduling and the actual send time.
      */
     public function processScheduled(Campaign $campaign): PreflightResult
     {
@@ -388,10 +539,13 @@ class CampaignService
             throw new \RuntimeException("Campaign is not in scheduled status.");
         }
 
+        // Force re-resolution — contact data may have changed since scheduling
+        $campaign->update(['content_resolved_at' => null]);
+
         // Billing preflight
         $preflightResult = $this->billingPreflight->runPreflight($campaign);
 
-        // Resolve per-recipient content
+        // Resolve per-recipient content (re-runs because content_resolved_at was cleared)
         $this->resolveRecipientContent($campaign);
 
         // Transition to queued
@@ -576,18 +730,29 @@ class CampaignService
 
     /**
      * Resolve merge fields in message content for all pending recipients.
-     * Pre-computes resolved_content so the delivery worker doesn't need to.
+     * Pre-computes resolved_content, encoding, and segments per-recipient
+     * so the delivery worker doesn't need to, and cost estimation is accurate.
+     *
+     * Skips if content has already been resolved (e.g. during prepareCampaign).
      */
-    private function resolveRecipientContent(Campaign $campaign): void
+    public function resolveRecipientContent(Campaign $campaign): void
     {
+        // Skip if already resolved (e.g. done during campaign preparation)
+        if ($campaign->content_resolved_at) {
+            return;
+        }
+
         if (!$campaign->message_content) {
+            $campaign->update(['content_resolved_at' => now()]);
             return;
         }
 
         // Only resolve if there are actually placeholders in the content
         $placeholders = MessageTemplate::extractPlaceholders($campaign->message_content);
         if (empty($placeholders)) {
-            // No placeholders — just copy message_content to all recipients
+            // No placeholders — bulk update with identical content/encoding/segments
+            $encoding = MessageTemplate::detectEncoding($campaign->message_content);
+
             DB::table('campaign_recipients')
                 ->where('campaign_id', $campaign->id)
                 ->where('status', CampaignRecipient::STATUS_PENDING)
@@ -595,7 +760,10 @@ class CampaignService
                 ->update([
                     'resolved_content' => $campaign->message_content,
                     'segments' => $campaign->segment_count ?: 1,
+                    'encoding' => $encoding,
                 ]);
+
+            $campaign->update(['content_resolved_at' => now()]);
             return;
         }
 
@@ -622,9 +790,12 @@ class CampaignService
                         ->update([
                             'resolved_content' => $resolvedContent,
                             'segments' => $segments,
+                            'encoding' => $encoding,
                         ]);
                 }
             });
+
+        $campaign->update(['content_resolved_at' => now()]);
     }
 
     /**
