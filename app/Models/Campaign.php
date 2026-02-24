@@ -379,7 +379,7 @@ class Campaign extends Model
      */
     public function getProgressPercentage(): float
     {
-        if ($this->total_unique_recipients === 0) {
+        if (empty($this->total_unique_recipients)) {
             return 0;
         }
 
