@@ -533,11 +533,14 @@ class QuickSMSController extends Controller
                     }
                 }
                 $recipientCount = $sessionData['recipient_count'] ?? $dbCampaign->total_recipients ?? 0;
+                $optedOutCount = $sessionData['opted_out_count'] ?? $dbCampaign->total_opted_out ?? 0;
+                $invalidCount = $sessionData['invalid_count'] ?? $dbCampaign->total_invalid ?? 0;
+                $validCount = $sessionData['valid_count'] ?? ($recipientCount - $optedOutCount - $invalidCount);
                 $recipients = [
                     'total_selected' => $recipientCount,
-                    'valid' => $sessionData['valid_count'] ?? $recipientCount,
-                    'invalid' => $sessionData['invalid_count'] ?? 0,
-                    'opted_out' => $sessionData['opted_out_count'] ?? 0,
+                    'valid' => $validCount,
+                    'invalid' => $invalidCount,
+                    'opted_out' => $optedOutCount,
                     'sources' => $mappedSources,
                 ];
                 $account = \App\Models\Account::find($dbCampaign->account_id);
@@ -575,7 +578,7 @@ class QuickSMSController extends Controller
 
                 if (empty($segmentBreakdown)) {
                     $segCount = $dbCampaign->segment_count ?? 1;
-                    $totalSmsParts = $recipientCount * $segCount;
+                    $totalSmsParts = $validCount * $segCount;
                 }
 
                 return view('quicksms.messages.confirm-campaign', [

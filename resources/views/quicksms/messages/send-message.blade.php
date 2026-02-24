@@ -3139,7 +3139,7 @@ function continueToConfirmation() {
             if (prepResult && prepResult.success && prepResult.data && prepResult.data.resolver_result) {
                 var rr = prepResult.data.resolver_result;
                 sessionConfig.recipient_count = rr.total_resolved || recipientCount;
-                sessionConfig.valid_count = rr.total_resolved || recipientCount;
+                sessionConfig.valid_count = rr.total_created || (rr.total_resolved - (rr.total_opted_out || 0) - (rr.total_invalid || 0));
                 sessionConfig.invalid_count = rr.total_invalid || invalidCount;
                 sessionConfig.opted_out_count = rr.total_opted_out || 0;
             }
