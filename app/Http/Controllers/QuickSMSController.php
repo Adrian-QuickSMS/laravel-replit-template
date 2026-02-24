@@ -431,10 +431,10 @@ class QuickSMSController extends Controller
     {
         $campaignId = $request->query('campaign_id');
         if ($campaignId) {
-            $dbCampaign = Campaign::where('uuid', $campaignId)->first();
+            $dbCampaign = Campaign::find($campaignId);
             if ($dbCampaign) {
                 $campaign = [
-                    'id' => $dbCampaign->uuid,
+                    'id' => $dbCampaign->id,
                     'name' => $dbCampaign->name,
                     'created_by' => session('customer_email', 'Current User'),
                     'created_at' => $dbCampaign->created_at->format('d/m/Y H:i'),
