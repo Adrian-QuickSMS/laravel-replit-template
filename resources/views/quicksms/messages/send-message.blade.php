@@ -486,119 +486,177 @@
 
 <div class="modal fade" id="contactBookModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h5 class="modal-title"><i class="fas fa-address-book me-2"></i>Select from Contact Book</h5>
+        <div class="modal-content" style="border-radius: 0.75rem; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+            <div class="modal-header py-3 px-4" style="border-bottom: 1px solid #f0ebf8;">
+                <h5 class="modal-title" style="font-weight: 600; color: #2c2c2c;"><i class="fas fa-address-book me-2" style="color: #886CC0;"></i>Select from Contact Book</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-2">
-                <ul class="nav nav-tabs mb-2" style="font-size: 12px;">
-                    <li class="nav-item"><button class="nav-link active py-1 px-3" data-bs-toggle="tab" data-bs-target="#cbContacts">Contacts</button></li>
-                    <li class="nav-item"><button class="nav-link py-1 px-3" data-bs-toggle="tab" data-bs-target="#cbLists">Lists</button></li>
-                    <li class="nav-item"><button class="nav-link py-1 px-3" data-bs-toggle="tab" data-bs-target="#cbDynamicLists">Dynamic Lists</button></li>
-                    <li class="nav-item"><button class="nav-link py-1 px-3" data-bs-toggle="tab" data-bs-target="#cbTags">Tags</button></li>
+            <div class="modal-body p-0">
+                <ul class="nav nav-tabs px-4 pt-3 mb-0" style="border-bottom: none;">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#cbContacts" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Contacts</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#cbLists" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Lists</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#cbDynamicLists" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Dynamic Lists</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#cbTags" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Tags</button></li>
                 </ul>
-                <div class="tab-content">
+                <div class="tab-content px-4 pt-3">
                     <div class="tab-pane fade show active" id="cbContacts">
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control" id="cbContactSearch" placeholder="Search names, numbers, tags, custom fields..." oninput="filterContacts()">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control" id="cbContactSearch" placeholder="Search names, numbers, tags, custom fields..." oninput="filterContacts()" style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="d-flex gap-2 align-items-center" style="font-size: 11px;">
-                                    <select class="form-select form-select-sm" id="cbContactSort" onchange="sortContacts()">
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" id="cbContactSort" onchange="sortContacts()" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
                                         <option value="recent">Most recently contacted</option>
                                         <option value="added">Most recently added</option>
                                         <option value="name_asc">Name A-Z</option>
                                         <option value="name_desc">Name Z-A</option>
                                     </select>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleContactFilters()"><i class="fas fa-filter"></i></button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleContactFilters()" style="border-color: #e6e6e6; border-radius: 0.625rem; color: #886CC0;"><i class="fas fa-filter"></i></button>
                                 </div>
                             </div>
                         </div>
-                        <div class="d-none mb-2 p-2 bg-light rounded" id="cbContactFilters" style="font-size: 11px;">
+                        <div class="d-none mb-3 p-3 rounded" id="cbContactFilters" style="font-size: 13px; background: #f8f7fc;">
                             <div class="row">
-                                <div class="col-md-3"><label class="form-label mb-1">Tags</label><select class="form-select form-select-sm" id="cbFilterTags"><option value="">All tags</option></select></div>
-                                <div class="col-md-3"><label class="form-label mb-1">Has Mobile</label><select class="form-select form-select-sm" id="cbFilterMobile"><option value="">Any</option><option value="yes">Yes</option><option value="no">No</option></select></div>
-                                <div class="col-md-3"><label class="form-label mb-1">Opt-out Status</label><select class="form-select form-select-sm" id="cbFilterOptout"><option value="exclude">Exclude opted-out</option><option value="include">Include all</option></select></div>
-                                <div class="col-md-3 d-flex align-items-end"><button class="btn btn-link btn-sm" onclick="clearContactFilters()">Clear filters</button></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Tags</label><select class="form-select form-select-sm" id="cbFilterTags" style="border-radius: 0.625rem;"><option value="">All tags</option></select></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Has Mobile</label><select class="form-select form-select-sm" id="cbFilterMobile" style="border-radius: 0.625rem;"><option value="">Any</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Opt-out Status</label><select class="form-select form-select-sm" id="cbFilterOptout" style="border-radius: 0.625rem;"><option value="exclude">Exclude opted-out</option><option value="include">Include all</option></select></div>
+                                <div class="col-md-3 d-flex align-items-end"><button class="btn btn-link btn-sm" onclick="clearContactFilters()" style="color: #886CC0;">Clear filters</button></div>
                             </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 11px;">
-                                <thead class="table-light sticky-top">
-                                    <tr>
-                                        <th style="width: 30px;"><input type="checkbox" class="form-check-input" id="cbSelectAllContacts" onchange="toggleAllContacts()"></th>
-                                        <th>Name</th>
-                                        <th>Mobile</th>
-                                        <th>Tags</th>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"><input type="checkbox" class="form-check-input" id="cbSelectAllContacts" onchange="toggleAllContacts()"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Mobile</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tags</th>
                                     </tr>
                                 </thead>
                                 <tbody id="cbContactsTable">
-                                    <tr><td colspan="4" class="text-center text-muted py-3">Loading contacts...</td></tr>
+                                    <tr><td colspan="4" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading contacts...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="cbLists">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" placeholder="Search lists...">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control" id="cbListSearch" placeholder="Search lists..." oninput="filterLists()" style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" id="cbListSort" onchange="sortLists()" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                        <option value="updated">Recently updated</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 300px;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 11px;">
-                                <thead class="table-light">
-                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Contacts</th><th>Last Updated</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">List Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Last Updated</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="cbListsTable">
-                                    <tr><td colspan="4" class="text-center text-muted py-3">Loading lists...</td></tr>
+                                    <tr><td colspan="4" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading lists...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="cbDynamicLists">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" placeholder="Search dynamic lists...">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control" id="cbDynamicSearch" placeholder="Search dynamic lists..." oninput="filterDynamicLists()" style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" id="cbDynamicSort" onchange="sortDynamicLists()" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 300px;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 11px;">
-                                <thead class="table-light">
-                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Rules</th><th>Contacts</th><th>Last Evaluated</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">List Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Rules</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Last Evaluated</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="cbDynamicListsTable">
-                                    <tr><td colspan="5" class="text-center text-muted py-3">Loading dynamic lists...</td></tr>
+                                    <tr><td colspan="5" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading dynamic lists...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="cbTags">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" placeholder="Search tags...">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control" id="cbTagSearch" placeholder="Search tags..." oninput="filterTagsList()" style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" id="cbTagSort" onchange="sortTagsList()" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 300px;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 11px;">
-                                <thead class="table-light">
-                                    <tr><th style="width: 30px;"></th><th>Tag</th><th>Contacts</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tag</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="cbTagsTable">
-                                    <tr><td colspan="3" class="text-center text-muted py-3">Loading tags...</td></tr>
+                                    <tr><td colspan="3" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading tags...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                <div class="border-top mt-2 pt-2" style="font-size: 11px;">
-                    <strong>Selected:</strong> <span id="cbSelectionSummary">0 contacts, 0 lists, 0 dynamic lists, 0 tags</span>
+                <div class="px-4 py-2 mt-2" style="font-size: 13px; border-top: 1px solid #f0ebf8; background: #faf9fd;">
+                    <strong style="color: #6b5b95;">Selected:</strong> <span id="cbSelectionSummary" style="color: #555;">0 contacts, 0 lists, 0 dynamic lists, 0 tags</span>
                 </div>
             </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="confirmContactBookSelection()"><i class="fas fa-plus me-1"></i>Add to Campaign</button>
+            <div class="modal-footer py-3 px-4" style="border-top: 1px solid #f0ebf8;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 0.625rem;">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmContactBookSelection()" style="border-radius: 0.625rem; background-color: #886CC0; border-color: #886CC0;"><i class="fas fa-plus me-1"></i>Add to Campaign</button>
             </div>
         </div>
     </div>
@@ -3180,6 +3238,27 @@ function loadContactBookData() {
     });
 }
 
+var cbAvatarColors = [
+    '#6f42c1', '#e83e8c', '#20c997', '#fd7e14', '#0d6efd',
+    '#6610f2', '#d63384', '#198754', '#dc3545', '#0dcaf0'
+];
+
+function cbGetAvatarColor(name) {
+    var hash = 0;
+    for (var i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return cbAvatarColors[Math.abs(hash) % cbAvatarColors.length];
+}
+
+function cbGetInitials(firstName, lastName) {
+    var f = (firstName || '').trim();
+    var l = (lastName || '').trim();
+    if (f && l) return (f.charAt(0) + l.charAt(0)).toUpperCase();
+    if (f) return f.substring(0, 2).toUpperCase();
+    return '?';
+}
+
 function escapeContactHtml(str) {
     if (!str) return '';
     var div = document.createElement('div');
@@ -3190,24 +3269,34 @@ function escapeContactHtml(str) {
 function renderCbContacts(contacts) {
     var tbody = document.getElementById('cbContactsTable');
     if (!contacts.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No contacts found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No contacts found</td></tr>';
         return;
     }
     var html = '';
-    contacts.forEach(function(c) {
-        var name = escapeContactHtml((c.first_name || '') + ' ' + (c.last_name || '')).trim() || 'Unnamed';
+    contacts.forEach(function(c, idx) {
+        var firstName = c.first_name || '';
+        var lastName = c.last_name || '';
+        var name = escapeContactHtml((firstName + ' ' + lastName).trim()) || 'Unnamed';
         var mobile = escapeContactHtml(c.mobile_masked || 'No mobile');
+        var initials = cbGetInitials(firstName, lastName);
+        var color = cbGetAvatarColor(firstName + lastName);
+        var bgColor = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
         var tagsHtml = '';
         if (c.tags && c.tags.length) {
             c.tags.forEach(function(t) {
-                tagsHtml += '<span class="badge bg-info me-1">' + escapeContactHtml(t) + '</span>';
+                tagsHtml += '<span class="badge badge-pastel-secondary me-1">' + escapeContactHtml(t) + '</span>';
             });
         }
-        html += '<tr>' +
-            '<td><input type="checkbox" class="form-check-input cb-contact" value="' + c.id + '" data-name="' + escapeContactHtml(name) + '"></td>' +
-            '<td>' + name + '</td>' +
-            '<td>' + mobile + '</td>' +
-            '<td>' + tagsHtml + '</td>' +
+        html += '<tr style="' + bgColor + ' border-bottom: 1px solid #f5f3fa;">' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="' + c.id + '" data-name="' + escapeContactHtml(name) + '"></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' +
+                '<div class="d-flex align-items-center">' +
+                    '<div class="contact-avatar me-2" style="background-color: ' + color + '20; color: ' + color + '; flex-shrink: 0;">' + escapeContactHtml(initials) + '</div>' +
+                    '<span style="font-weight: 500; color: #2c2c2c;">' + name + '</span>' +
+                '</div>' +
+            '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">' + mobile + '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' + tagsHtml + '</td>' +
             '</tr>';
     });
     tbody.innerHTML = html;
@@ -3216,18 +3305,25 @@ function renderCbContacts(contacts) {
 function renderCbLists(lists) {
     var tbody = document.getElementById('cbListsTable');
     if (!lists.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No lists found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No lists found</td></tr>';
         return;
     }
     var html = '';
-    lists.forEach(function(l) {
+    lists.forEach(function(l, idx) {
         var count = l.contact_count || 0;
         var updated = l.updated_at || '-';
-        html += '<tr>' +
-            '<td><input type="checkbox" class="form-check-input cb-list" value="' + l.id + '" data-name="' + escapeContactHtml(l.name) + '" data-count="' + count + '"></td>' +
-            '<td>' + escapeContactHtml(l.name) + '</td>' +
-            '<td>' + count.toLocaleString() + '</td>' +
-            '<td>' + escapeContactHtml(updated) + '</td>' +
+        var bgColor = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
+        var initials = (l.name || '').substring(0, 2).toUpperCase();
+        html += '<tr style="' + bgColor + ' border-bottom: 1px solid #f5f3fa;">' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-list" value="' + l.id + '" data-name="' + escapeContactHtml(l.name) + '" data-count="' + count + '"></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' +
+                '<div class="d-flex align-items-center">' +
+                    '<div class="list-icon-static me-2" style="flex-shrink: 0;"><i class="fas fa-list" style="font-size: 14px;"></i></div>' +
+                    '<span style="font-weight: 500; color: #2c2c2c;">' + escapeContactHtml(l.name) + '</span>' +
+                '</div>' +
+            '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-pink">' + count.toLocaleString() + '</span></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">' + escapeContactHtml(updated) + '</td>' +
             '</tr>';
     });
     tbody.innerHTML = html;
@@ -3236,20 +3332,26 @@ function renderCbLists(lists) {
 function renderCbDynamicLists(lists) {
     var tbody = document.getElementById('cbDynamicListsTable');
     if (!lists.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No dynamic lists found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No dynamic lists found</td></tr>';
         return;
     }
     var html = '';
-    lists.forEach(function(l) {
+    lists.forEach(function(l, idx) {
         var count = l.contact_count || 0;
         var rules = l.rules ? JSON.stringify(l.rules).substring(0, 50) : '-';
         var evaluated = l.last_evaluated || '-';
-        html += '<tr>' +
-            '<td><input type="checkbox" class="form-check-input cb-dynamic" value="' + l.id + '" data-name="' + escapeContactHtml(l.name) + '" data-count="' + count + '"></td>' +
-            '<td>' + escapeContactHtml(l.name) + '</td>' +
-            '<td>' + escapeContactHtml(rules) + '</td>' +
-            '<td>' + count.toLocaleString() + '</td>' +
-            '<td>' + escapeContactHtml(evaluated) + '</td>' +
+        var bgColor = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
+        html += '<tr style="' + bgColor + ' border-bottom: 1px solid #f5f3fa;">' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-dynamic" value="' + l.id + '" data-name="' + escapeContactHtml(l.name) + '" data-count="' + count + '"></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' +
+                '<div class="d-flex align-items-center">' +
+                    '<div class="list-icon-dynamic me-2" style="flex-shrink: 0;"><i class="fas fa-sync-alt" style="font-size: 14px;"></i></div>' +
+                    '<span style="font-weight: 500; color: #2c2c2c;">' + escapeContactHtml(l.name) + '</span>' +
+                '</div>' +
+            '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d; font-size: 12px;">' + escapeContactHtml(rules) + '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-pink">' + count.toLocaleString() + '</span></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">' + escapeContactHtml(evaluated) + '</td>' +
             '</tr>';
     });
     tbody.innerHTML = html;
@@ -3258,17 +3360,23 @@ function renderCbDynamicLists(lists) {
 function renderCbTags(tags) {
     var tbody = document.getElementById('cbTagsTable');
     if (!tags.length) {
-        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">No tags found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">No tags found</td></tr>';
         return;
     }
     var html = '';
-    tags.forEach(function(t) {
+    tags.forEach(function(t, idx) {
         var count = t.contact_count || 0;
         var color = t.color || '#6f42c1';
-        html += '<tr>' +
-            '<td><input type="checkbox" class="form-check-input cb-tag" value="' + t.id + '" data-name="' + escapeContactHtml(t.name) + '" data-count="' + count + '"></td>' +
-            '<td><span class="badge" style="background-color: ' + escapeContactHtml(color) + ';">' + escapeContactHtml(t.name) + '</span></td>' +
-            '<td>' + count.toLocaleString() + '</td>' +
+        var bgColor = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
+        html += '<tr style="' + bgColor + ' border-bottom: 1px solid #f5f3fa;">' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-tag" value="' + t.id + '" data-name="' + escapeContactHtml(t.name) + '" data-count="' + count + '"></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' +
+                '<div class="d-flex align-items-center">' +
+                    '<div class="contact-avatar me-2" style="background-color: ' + escapeContactHtml(color) + '20; color: ' + escapeContactHtml(color) + '; flex-shrink: 0;"><i class="fas fa-tag" style="font-size: 14px;"></i></div>' +
+                    '<span class="badge badge-pastel-secondary" style="font-size: 12px;">' + escapeContactHtml(t.name) + '</span>' +
+                '</div>' +
+            '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-info">' + count.toLocaleString() + '</span></td>' +
             '</tr>';
     });
     tbody.innerHTML = html;
@@ -3352,6 +3460,73 @@ function sortContacts() {
         sorted.sort(function(a, b) { return (b.created_at || '').localeCompare(a.created_at || ''); });
     }
     renderCbContacts(sorted);
+    restoreContactBookSelections();
+}
+
+function filterLists() {
+    clearTimeout(cbSearchTimeout);
+    cbSearchTimeout = setTimeout(function() {
+        var query = (document.getElementById('cbListSearch').value || '').toLowerCase();
+        if (!query) { renderCbLists(cbListsData); restoreContactBookSelections(); return; }
+        var filtered = cbListsData.filter(function(l) { return (l.name || '').toLowerCase().indexOf(query) !== -1; });
+        renderCbLists(filtered);
+        restoreContactBookSelections();
+    }, 300);
+}
+
+function sortLists() {
+    var sortBy = document.getElementById('cbListSort').value;
+    var sorted = cbListsData.slice();
+    if (sortBy === 'name_asc') sorted.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+    else if (sortBy === 'name_desc') sorted.sort(function(a, b) { return (b.name || '').localeCompare(a.name || ''); });
+    else if (sortBy === 'count_desc') sorted.sort(function(a, b) { return (b.contact_count || 0) - (a.contact_count || 0); });
+    else if (sortBy === 'count_asc') sorted.sort(function(a, b) { return (a.contact_count || 0) - (b.contact_count || 0); });
+    else if (sortBy === 'updated') sorted.sort(function(a, b) { return (b.updated_at || '').localeCompare(a.updated_at || ''); });
+    renderCbLists(sorted);
+    restoreContactBookSelections();
+}
+
+function filterDynamicLists() {
+    clearTimeout(cbSearchTimeout);
+    cbSearchTimeout = setTimeout(function() {
+        var query = (document.getElementById('cbDynamicSearch').value || '').toLowerCase();
+        if (!query) { renderCbDynamicLists(cbDynamicListsData); restoreContactBookSelections(); return; }
+        var filtered = cbDynamicListsData.filter(function(l) { return (l.name || '').toLowerCase().indexOf(query) !== -1; });
+        renderCbDynamicLists(filtered);
+        restoreContactBookSelections();
+    }, 300);
+}
+
+function sortDynamicLists() {
+    var sortBy = document.getElementById('cbDynamicSort').value;
+    var sorted = cbDynamicListsData.slice();
+    if (sortBy === 'name_asc') sorted.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+    else if (sortBy === 'name_desc') sorted.sort(function(a, b) { return (b.name || '').localeCompare(a.name || ''); });
+    else if (sortBy === 'count_desc') sorted.sort(function(a, b) { return (b.contact_count || 0) - (a.contact_count || 0); });
+    else if (sortBy === 'count_asc') sorted.sort(function(a, b) { return (a.contact_count || 0) - (b.contact_count || 0); });
+    renderCbDynamicLists(sorted);
+    restoreContactBookSelections();
+}
+
+function filterTagsList() {
+    clearTimeout(cbSearchTimeout);
+    cbSearchTimeout = setTimeout(function() {
+        var query = (document.getElementById('cbTagSearch').value || '').toLowerCase();
+        if (!query) { renderCbTags(cbTagsData); restoreContactBookSelections(); return; }
+        var filtered = cbTagsData.filter(function(t) { return (t.name || '').toLowerCase().indexOf(query) !== -1; });
+        renderCbTags(filtered);
+        restoreContactBookSelections();
+    }, 300);
+}
+
+function sortTagsList() {
+    var sortBy = document.getElementById('cbTagSort').value;
+    var sorted = cbTagsData.slice();
+    if (sortBy === 'name_asc') sorted.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+    else if (sortBy === 'name_desc') sorted.sort(function(a, b) { return (b.name || '').localeCompare(a.name || ''); });
+    else if (sortBy === 'count_desc') sorted.sort(function(a, b) { return (b.contact_count || 0) - (a.contact_count || 0); });
+    else if (sortBy === 'count_asc') sorted.sort(function(a, b) { return (a.contact_count || 0) - (b.contact_count || 0); });
+    renderCbTags(sorted);
     restoreContactBookSelections();
 }
 
