@@ -178,7 +178,7 @@
                         <button type="button" class="btn btn-outline-primary" onclick="openContactBookModal()">
                             <i class="fas fa-users me-1"></i>Select from Contact Book
                         </button>
-                        <input type="file" class="d-none" id="recipientFile" accept=".csv,.xlsx,.xls" onchange="handleFileSelect()">
+                        
                     </div>
                     
                     <div class="d-none mb-3" id="uploadProgress">
@@ -662,43 +662,166 @@
     </div>
 </div>
 
-<div class="modal fade" id="columnMappingModal" tabindex="-1">
+<div class="modal fade" id="csvUploadModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h5 class="modal-title"><i class="fas fa-columns me-2"></i>Map Columns</h5>
+        <div class="modal-content" style="border-radius: 0.75rem; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+            <div class="modal-header py-3 px-4" style="border-bottom: 1px solid #f0ebf8;">
+                <h5 class="modal-title" style="font-weight: 600; color: #2c2c2c;"><i class="fas fa-file-import me-2" style="color: #886CC0;"></i>Upload Recipients</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="py-2 rounded" style="font-size: 12px; background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
-                    <i class="fas fa-info-circle me-1"></i>Map your file columns to the required fields. Mobile Number is required.
-                </div>
-                <div class="mb-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="hasHeaders" checked>
-                        <label class="form-check-label" for="hasHeaders">First row contains column headings</label>
+            <div class="modal-body px-4">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #886CC0; color: #fff;" id="csvStepCircle1">1</div>
+                            <div class="small mt-1">Upload</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #fff; color: #886CC0; border: 2px solid #886CC0;" id="csvStepCircle2">2</div>
+                            <div class="small mt-1">Map Columns</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #fff; color: #886CC0; border: 2px solid #886CC0;" id="csvStepCircle3">3</div>
+                            <div class="small mt-1">Review</div>
+                        </div>
                     </div>
                 </div>
-                <table class="table table-sm" style="font-size: 12px;">
-                    <thead><tr><th>Detected Column</th><th>Map to Field</th><th>Sample Data</th></tr></thead>
-                    <tbody id="columnMappingTable">
-                        <tr><td>Column A</td><td><select class="form-select form-select-sm"><option value="">-- Skip --</option><option value="mobile" selected>Mobile Number *</option><option value="firstname">First Name</option><option value="lastname">Last Name</option><option value="email">Email</option></select></td><td class="text-muted">07700900123</td></tr>
-                        <tr><td>Column B</td><td><select class="form-select form-select-sm"><option value="">-- Skip --</option><option value="mobile">Mobile Number *</option><option value="firstname" selected>First Name</option><option value="lastname">Last Name</option><option value="email">Email</option></select></td><td class="text-muted">John</td></tr>
-                        <tr><td>Column C</td><td><select class="form-select form-select-sm"><option value="">-- Skip --</option><option value="mobile">Mobile Number *</option><option value="firstname">First Name</option><option value="lastname" selected>Last Name</option><option value="email">Email</option></select></td><td class="text-muted">Smith</td></tr>
-                    </tbody>
-                </table>
-                <div class="py-2 d-none rounded" id="excelZeroWarning" style="font-size: 12px; background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    <strong>Excel formatting detected:</strong> Numbers starting with '7' may have had leading zeros removed. 
-                    <div class="form-check mt-1">
-                        <input class="form-check-input" type="checkbox" id="fixExcelZeros" checked>
-                        <label class="form-check-label" for="fixExcelZeros">Convert to UK format (+447...)</label>
+
+                <div id="csvStep1">
+                    <h6 class="mb-3">Step 1: Upload File</h6>
+                    <div class="border rounded p-4 text-center" id="csvDropZone" style="border-style: dashed !important; background-color: #f0ebf8; border-color: #886CC0 !important; cursor: pointer;">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #886CC0;"></i>
+                        <p class="mb-2">Drag and drop your file here, or click to browse</p>
+                        <input type="file" class="d-none" id="csvFileInput" accept=".csv,.xlsx,.xls">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('csvFileInput').click()" style="border-color: #886CC0; color: #886CC0;">
+                            <i class="fas fa-folder-open me-1"></i> Browse Files
+                        </button>
+                        <p class="text-muted small mt-2 mb-0">Accepted formats: CSV, Excel (.xlsx)</p>
+                    </div>
+                    <div id="csvSelectedFileInfo" class="d-none mt-3">
+                        <div class="d-flex align-items-center p-3 rounded" style="background-color: #f0ebf8;">
+                            <i class="fas fa-file-alt fa-2x me-3" style="color: #886CC0;"></i>
+                            <div>
+                                <strong id="csvSelectedFileName" style="color: #2c2c2c;">filename.csv</strong>
+                                <div class="small text-muted" id="csvSelectedFileSize">123 KB</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="csvClearFile()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="csvHasHeaders" checked>
+                            <label class="form-check-label" for="csvHasHeaders">First row contains column headings</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="csvStep2" class="d-none">
+                    <h6 class="mb-3">Step 2: Map Columns</h6>
+                    <div class="small p-3 rounded" style="background-color: #f0ebf8; color: #6c5ce7;">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Map your file columns to the required fields. <strong style="color: #886CC0;">Mobile Number</strong> <span class="text-dark">is required.</span>
+                    </div>
+                    <div class="table-responsive mt-3">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Detected Column</th>
+                                    <th>Map To Field</th>
+                                    <th>Sample Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="csvColumnMappingBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <input type="hidden" id="csvExcelCorrectionApplied" value="">
+                    <div id="csvNormalisationWarning" class="d-none p-3 rounded mt-2" style="background-color: #f0ebf8;">
+                        <div id="csvNormalisationContent">
+                            <i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>
+                            <strong style="color: #886CC0;">UK Number Normalisation</strong>
+                            <p class="mb-2 mt-2 text-dark" id="csvNormalisationDetail">We've detected mixed mobile number formats in your file.</p>
+                            <p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)?</p>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="csvSetNormalisation(true)">
+                                    <i class="fas fa-check me-1"></i> Yes, normalise to UK format
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="csvSetNormalisation(false)">
+                                    <i class="fas fa-times me-1"></i> No, leave as-is
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="csvStep3" class="d-none">
+                    <h6 class="mb-3">Step 3: Review & Validate</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-dark" id="csvStatTotalRows">0</div>
+                                    <div class="small text-dark">Total Rows</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-dark" id="csvStatUniqueNumbers">0</div>
+                                    <div class="small text-dark">Unique Numbers</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-dark" id="csvStatValidNumbers">0</div>
+                                    <div class="small text-dark">Valid Numbers</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-dark" id="csvStatInvalidNumbers">0</div>
+                                    <div class="small text-dark">Invalid Numbers</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="csvImportIndicators" class="mb-3"></div>
+                    <div id="csvInvalidRowsSection" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0"><i class="fas fa-exclamation-circle text-danger me-2"></i>Invalid Rows</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="csvDownloadInvalidRows()">
+                                <i class="fas fa-download me-1"></i> Download
+                            </button>
+                        </div>
+                        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr><th>Row</th><th>Original Value</th><th>Reason</th></tr>
+                                </thead>
+                                <tbody id="csvInvalidRowsBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="confirmColumnMapping()"><i class="fas fa-check me-1"></i>Confirm & Import</button>
+            <div class="modal-footer py-3 px-4" style="border-top: 1px solid #f0ebf8;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="csvCancelBtn" style="border-radius: 0.625rem;">Cancel</button>
+                <button type="button" class="btn btn-outline-primary d-none" id="csvBackBtn" onclick="csvPrevStep()" style="border-radius: 0.625rem; border-color: #886CC0; color: #886CC0;">
+                    <i class="fas fa-arrow-left me-1"></i> Back
+                </button>
+                <button type="button" class="btn btn-primary" id="csvNextBtn" onclick="csvNextStep()" disabled style="border-radius: 0.625rem; background-color: #886CC0; border-color: #886CC0;">
+                    Next <i class="fas fa-arrow-right ms-1"></i>
+                </button>
+                <button type="button" class="btn btn-success d-none" id="csvConfirmBtn" onclick="csvConfirmImport()" style="border-radius: 0.625rem;">
+                    <i class="fas fa-check me-1"></i> Confirm & Import
+                </button>
             </div>
         </div>
     </div>
@@ -1193,6 +1316,7 @@
 
 @include('quicksms.partials.rcs-wizard-modal')
 
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106b"></script>
 <script src="{{ asset('js/rcs-wizard.js') }}?v=20260210d"></script>
 <script>
@@ -3137,60 +3261,452 @@ function revalidateNumbers() {
     }
 }
 
+var csvCurrentStep = 1;
+var csvFileData = null;
+var csvValidationResults = null;
+
 function triggerFileUpload() {
-    document.getElementById('recipientFile').click();
+    csvCurrentStep = 1;
+    csvFileData = null;
+    csvValidationResults = null;
+    csvShowStep(1);
+    document.getElementById('csvSelectedFileInfo').classList.add('d-none');
+    document.getElementById('csvDropZone').classList.remove('d-none');
+    document.getElementById('csvFileInput').value = '';
+    document.getElementById('csvNextBtn').disabled = true;
+    var modal = new bootstrap.Modal(document.getElementById('csvUploadModal'));
+    modal.show();
 }
 
-function handleFileSelect() {
-    var fileInput = document.getElementById('recipientFile');
-    if (fileInput.files.length) {
-        processFileUpload();
+document.addEventListener('DOMContentLoaded', function() {
+    var csvFileInput = document.getElementById('csvFileInput');
+    if (csvFileInput) {
+        csvFileInput.addEventListener('change', function(e) {
+            csvHandleFile(e.target.files[0]);
+        });
+    }
+
+    var csvDZ = document.getElementById('csvDropZone');
+    if (csvDZ) {
+        csvDZ.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+                document.getElementById('csvFileInput').click();
+            }
+        });
+        csvDZ.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#6c5ce7';
+            this.style.backgroundColor = '#e8e0f5';
+        });
+        csvDZ.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#886CC0';
+            this.style.backgroundColor = '#f0ebf8';
+        });
+        csvDZ.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#886CC0';
+            this.style.backgroundColor = '#f0ebf8';
+            if (e.dataTransfer.files.length) {
+                csvHandleFile(e.dataTransfer.files[0]);
+            }
+        });
+    }
+});
+
+function csvHandleFile(file) {
+    if (!file) return;
+    var ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    var validExtensions = ['.csv', '.xlsx', '.xls'];
+    if (!validExtensions.includes(ext)) {
+        alert('Please upload a CSV or Excel file.');
+        return;
+    }
+    csvFileData = {
+        file: file,
+        name: file.name,
+        size: csvFormatFileSize(file.size),
+        type: ext === '.csv' ? 'csv' : 'excel',
+        parsedHeaders: null,
+        parsedRows: null
+    };
+    document.getElementById('csvSelectedFileName').textContent = file.name;
+    document.getElementById('csvSelectedFileSize').textContent = csvFormatFileSize(file.size);
+    document.getElementById('csvSelectedFileInfo').classList.remove('d-none');
+    document.getElementById('csvDropZone').classList.add('d-none');
+    document.getElementById('csvNextBtn').disabled = false;
+}
+
+function csvFormatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function csvClearFile() {
+    csvFileData = null;
+    document.getElementById('csvFileInput').value = '';
+    document.getElementById('csvSelectedFileInfo').classList.add('d-none');
+    document.getElementById('csvDropZone').classList.remove('d-none');
+    document.getElementById('csvNextBtn').disabled = true;
+}
+
+function csvShowStep(step) {
+    csvCurrentStep = step;
+    for (var i = 1; i <= 3; i++) {
+        document.getElementById('csvStep' + i).classList.add('d-none');
+        var circle = document.getElementById('csvStepCircle' + i);
+        circle.style.backgroundColor = '#fff';
+        circle.style.color = '#886CC0';
+        circle.style.border = '2px solid #886CC0';
+    }
+    document.getElementById('csvStep' + step).classList.remove('d-none');
+    for (var i = 1; i <= step; i++) {
+        var circle = document.getElementById('csvStepCircle' + i);
+        circle.style.backgroundColor = '#886CC0';
+        circle.style.color = '#fff';
+        circle.style.border = 'none';
+    }
+    document.getElementById('csvBackBtn').classList.toggle('d-none', step === 1);
+    document.getElementById('csvNextBtn').classList.toggle('d-none', step >= 3);
+    document.getElementById('csvConfirmBtn').classList.toggle('d-none', step !== 3);
+}
+
+function csvNextStep() {
+    if (csvCurrentStep === 1) {
+        csvShowStep(2);
+        csvDetectColumns();
+    } else if (csvCurrentStep === 2) {
+        if (!csvValidateMappings()) return;
+        csvShowStep(3);
+        csvRunValidation();
     }
 }
 
-function processFileUpload() {
-    var fileInput = document.getElementById('recipientFile');
-    if (!fileInput.files.length) return;
-    
-    var file = fileInput.files[0];
-    var isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
-    
-    document.getElementById('uploadProgress').classList.remove('d-none');
-    document.getElementById('uploadResult').classList.add('d-none');
-    
-    setTimeout(function() {
-        document.getElementById('uploadProgressBar').style.width = '50%';
-        document.getElementById('uploadStatus').textContent = 'Detecting columns...';
-        
-        if (isExcel) {
-            document.getElementById('excelZeroWarning').classList.remove('d-none');
-        }
-        
-        setTimeout(function() {
-            document.getElementById('uploadProgressBar').style.width = '100%';
-            var modal = new bootstrap.Modal(document.getElementById('columnMappingModal'));
-            modal.show();
-        }, 500);
-    }, 500);
+function csvPrevStep() {
+    if (csvCurrentStep > 1) {
+        csvShowStep(csvCurrentStep - 1);
+    }
 }
 
-function confirmColumnMapping() {
-    bootstrap.Modal.getInstance(document.getElementById('columnMappingModal')).hide();
-    
-    recipientState.upload.valid = ['+447700900111', '+447700900222', '+447700900333', '+447700900444', '+447700900555'];
-    recipientState.upload.invalid = [
-        { row: 6, original: 'invalid', reason: 'Not a valid number' },
-        { row: 12, original: '123', reason: 'Too short' }
-    ];
-    
+function csvParseCSVLine(line) {
+    line = line.trim();
+    if (line.length >= 2 && line[0] === '"' && line[line.length - 1] === '"') {
+        var inner = line.substring(1, line.length - 1);
+        if (inner.indexOf('"') === -1) line = inner;
+    }
+    var result = [];
+    var current = '';
+    var inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+        var ch = line[i];
+        if (inQuotes) {
+            if (ch === '"' && i + 1 < line.length && line[i + 1] === '"') {
+                current += '"'; i++;
+            } else if (ch === '"') {
+                inQuotes = false;
+            } else {
+                current += ch;
+            }
+        } else {
+            if (ch === '"') { inQuotes = true; }
+            else if (ch === ',') { result.push(current.trim()); current = ''; }
+            else { current += ch; }
+        }
+    }
+    result.push(current.trim());
+    return result;
+}
+
+function csvDetectColumns() {
+    if (!csvFileData || !csvFileData.file) return;
+    var hasHeaders = document.getElementById('csvHasHeaders').checked;
+
+    if (csvFileData.type === 'excel') {
+        if (typeof XLSX === 'undefined') {
+            alert('Excel file support is not available. Please upload a CSV file instead.');
+            csvPrevStep();
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheet = workbook.Sheets[workbook.SheetNames[0]];
+                var jsonRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                jsonRows = jsonRows.filter(function(r) {
+                    return r.some(function(cell) { return cell !== '' && cell !== null && cell !== undefined; });
+                });
+                if (jsonRows.length === 0) { alert('The spreadsheet appears to be empty.'); return; }
+                var headerRow = jsonRows[0].map(function(c) { return String(c); });
+                var sampleRow = jsonRows.length > 1 ? jsonRows[1].map(function(c) { return String(c); }) : headerRow;
+                var dataRows = jsonRows.slice(hasHeaders ? 1 : 0).map(function(r) { return r.map(function(c) { return String(c); }); });
+                csvBuildMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
+            } catch (err) {
+                alert('Could not read the Excel file. Please check the format and try again.');
+            }
+        };
+        reader.readAsArrayBuffer(csvFileData.file);
+    } else {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var text = e.target.result;
+            var lines = text.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
+            if (lines.length === 0) return;
+            var headerRow = csvParseCSVLine(lines[0]);
+            var sampleRow = lines.length > 1 ? csvParseCSVLine(lines[1]) : headerRow;
+            var dataRows = lines.slice(hasHeaders ? 1 : 0).map(csvParseCSVLine);
+            csvBuildMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
+        };
+        reader.readAsText(csvFileData.file);
+    }
+}
+
+function csvBuildMappingUI(headerRow, sampleRow, allDataRows, hasHeaders) {
+    csvFileData.parsedHeaders = headerRow;
+    csvFileData.parsedRows = allDataRows;
+
+    var columns = hasHeaders
+        ? headerRow
+        : headerRow.map(function(_, i) { return 'Column ' + String.fromCharCode(65 + i); });
+    var samples = hasHeaders ? sampleRow : headerRow;
+
+    var tbody = document.getElementById('csvColumnMappingBody');
+    tbody.innerHTML = '';
+
+    var mappingOptions = '<option value="">-- Do not import --</option>' +
+        '<option value="mobile">Mobile Number *</option>' +
+        '<option value="first_name">First Name</option>' +
+        '<option value="last_name">Last Name</option>' +
+        '<option value="email">Email</option>';
+
+    columns.forEach(function(col, idx) {
+        var autoMap = '';
+        var colLower = String(col).toLowerCase();
+        if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn') || colLower.includes('number')) autoMap = 'mobile';
+        else if (colLower.includes('first')) autoMap = 'first_name';
+        else if (colLower.includes('last') || colLower.includes('surname')) autoMap = 'last_name';
+        else if (colLower.includes('email')) autoMap = 'email';
+
+        var sampleVal = (samples[idx] !== undefined && samples[idx] !== null) ? String(samples[idx]) : '';
+        var row = document.createElement('tr');
+        row.innerHTML = '<td><strong>' + escapeContactHtml(col) + '</strong></td>' +
+            '<td><select class="form-select form-select-sm csv-column-mapping" data-column="' + idx + '">' + mappingOptions + '</select></td>' +
+            '<td class="text-muted small">' + escapeContactHtml(sampleVal) + '</td>';
+        tbody.appendChild(row);
+
+        if (autoMap) {
+            row.querySelector('select').value = autoMap;
+        }
+    });
+
+    var mobileColIdx = -1;
+    columns.forEach(function(col, idx) {
+        var sel = tbody.querySelectorAll('.csv-column-mapping')[idx];
+        if (sel && sel.value === 'mobile') mobileColIdx = idx;
+    });
+
+    var needsNormalisation = false;
+    var issues = [];
+    if (mobileColIdx >= 0) {
+        var checkRows = allDataRows.slice(0, Math.min(20, allDataRows.length));
+        var hasLeading7 = false, hasPlus = false, hasSpaces = false, hasLeading07 = false, hasLeading44 = false;
+        checkRows.forEach(function(row) {
+            var val = String(row[mobileColIdx] || '');
+            if (val.indexOf(' ') !== -1) hasSpaces = true;
+            var cleaned = val.replace(/[\s\-]/g, '');
+            if (cleaned.match(/^\+/)) hasPlus = true;
+            cleaned = cleaned.replace(/^\+/, '');
+            if (cleaned.match(/^07\d{9}$/)) hasLeading07 = true;
+            else if (cleaned.match(/^7\d{9,}$/)) hasLeading7 = true;
+            else if (cleaned.match(/^44\d{10,}$/)) hasLeading44 = true;
+        });
+        if (hasLeading7) issues.push("numbers starting with '7' (missing country code)");
+        if (hasLeading07) issues.push("numbers starting with '07' (local UK format)");
+        if (hasPlus) issues.push("numbers with '+' prefix");
+        if (hasSpaces) issues.push("numbers containing spaces");
+        if (hasLeading44 && (hasLeading7 || hasLeading07)) issues.push("mixed '44...' and shorter formats");
+        needsNormalisation = issues.length > 0;
+    }
+
+    if (needsNormalisation) {
+        document.getElementById('csvNormalisationDetail').textContent =
+            'We\'ve detected mixed mobile number formats: ' + issues.join(', ') + '.';
+        document.getElementById('csvNormalisationWarning').classList.remove('d-none');
+    } else {
+        document.getElementById('csvNormalisationWarning').classList.add('d-none');
+    }
+}
+
+function csvSetNormalisation(apply) {
+    document.getElementById('csvExcelCorrectionApplied').value = apply ? 'yes' : 'no';
+    var content = document.getElementById('csvNormalisationContent');
+    content.innerHTML =
+        '<i class="fas fa-check-circle me-2" style="color: #886CC0;"></i>' +
+        '<strong style="color: #886CC0;">' + (apply ? 'UK number normalisation will be applied' : 'Numbers will be left as-is') + '</strong> ' +
+        '<button type="button" class="btn btn-sm btn-link" style="color: #886CC0;" onclick="csvResetNormalisation()">Change</button>';
+}
+
+function csvResetNormalisation() {
+    document.getElementById('csvExcelCorrectionApplied').value = '';
+    document.getElementById('csvNormalisationContent').innerHTML =
+        '<i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>' +
+        '<strong style="color: #886CC0;">UK Number Normalisation</strong>' +
+        '<p class="mb-2 mt-2 text-dark" id="csvNormalisationDetail">We\'ve detected mixed mobile number formats in your file.</p>' +
+        '<p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)?</p>' +
+        '<div class="d-flex gap-2">' +
+            '<button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="csvSetNormalisation(true)">' +
+                '<i class="fas fa-check me-1"></i> Yes, normalise to UK format</button>' +
+            '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="csvSetNormalisation(false)">' +
+                '<i class="fas fa-times me-1"></i> No, leave as-is</button>' +
+        '</div>';
+}
+
+function csvValidateMappings() {
+    var hasMobile = false;
+    document.querySelectorAll('.csv-column-mapping').forEach(function(select) {
+        if (select.value === 'mobile') hasMobile = true;
+    });
+    if (!hasMobile) {
+        alert('Please map at least one column to Mobile Number.');
+        return false;
+    }
+    var normWarning = document.getElementById('csvNormalisationWarning');
+    if (!normWarning.classList.contains('d-none') && document.getElementById('csvExcelCorrectionApplied').value === '') {
+        alert('Please confirm the UK number normalisation option above.');
+        return false;
+    }
+    return true;
+}
+
+function csvNormaliseMobile(raw, applyUkNormalisation) {
+    var mobile = String(raw).replace(/[\s\-\(\)]/g, '');
+    if (applyUkNormalisation) {
+        mobile = mobile.replace(/^\+/, '');
+        if (mobile.match(/^07\d{9}$/)) {
+            mobile = '44' + mobile.substring(1);
+        } else if (mobile.match(/^7\d{9,}$/)) {
+            mobile = '44' + mobile;
+        }
+    } else {
+        mobile = mobile.replace(/^\+/, '');
+    }
+    return mobile;
+}
+
+function csvRunValidation() {
+    var rows = (csvFileData && csvFileData.parsedRows) ? csvFileData.parsedRows : [];
+    var mappings = {};
+    document.querySelectorAll('.csv-column-mapping').forEach(function(sel) {
+        if (sel.value) mappings[sel.value] = parseInt(sel.dataset.column, 10);
+    });
+
+    var mobileIdx = typeof mappings.mobile === 'number' ? mappings.mobile : -1;
+    var applyNormalisation = document.getElementById('csvExcelCorrectionApplied').value === 'yes';
+    var seenNumbers = {};
+    var duplicateCount = 0;
+    var invalidCount = 0;
+    var invalidRows = [];
+    var validNumbers = [];
+
+    rows.forEach(function(row, rowIdx) {
+        var rawMobile = (mobileIdx >= 0 && row[mobileIdx]) ? String(row[mobileIdx]) : '';
+        if (!rawMobile.trim()) return;
+
+        var mobile = csvNormaliseMobile(rawMobile, applyNormalisation);
+
+        if (!mobile.match(/^\d{10,15}$/)) {
+            invalidCount++;
+            var reason = 'Invalid format';
+            if (mobile.match(/[a-zA-Z]/)) reason = 'Contains letters';
+            else if (mobile.length < 10) reason = 'Too short';
+            invalidRows.push({ row: rowIdx + 1, value: rawMobile, reason: reason });
+            return;
+        }
+
+        if (seenNumbers[mobile]) {
+            duplicateCount++;
+            return;
+        }
+        seenNumbers[mobile] = true;
+        validNumbers.push(mobile);
+    });
+
+    document.getElementById('csvStatTotalRows').textContent = rows.length;
+    document.getElementById('csvStatUniqueNumbers').textContent = validNumbers.length;
+    document.getElementById('csvStatValidNumbers').textContent = validNumbers.length;
+    document.getElementById('csvStatInvalidNumbers').textContent = invalidCount;
+
+    var indicators = document.getElementById('csvImportIndicators');
+    indicators.innerHTML = '';
+    if (applyNormalisation) {
+        indicators.innerHTML += '<span class="badge me-2" style="background-color: #f0ebf8; color: #886CC0; border: 1px solid #886CC0;"><i class="fas fa-sync-alt me-1"></i> UK normalisation applied</span>';
+    }
+    if (duplicateCount > 0) {
+        indicators.innerHTML += '<span class="badge" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffc107;"><i class="fas fa-copy me-1"></i> ' + duplicateCount + ' duplicates removed</span>';
+    }
+
+    if (invalidRows.length > 0) {
+        document.getElementById('csvInvalidRowsSection').classList.remove('d-none');
+        var tbody = document.getElementById('csvInvalidRowsBody');
+        tbody.innerHTML = '';
+        invalidRows.forEach(function(item) {
+            var row = document.createElement('tr');
+            row.innerHTML = '<td>' + escapeContactHtml(String(item.row)) + '</td>' +
+                '<td class="text-muted">' + escapeContactHtml(item.value) + '</td>' +
+                '<td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">' + escapeContactHtml(item.reason) + '</span></td>';
+            tbody.appendChild(row);
+        });
+    } else {
+        document.getElementById('csvInvalidRowsSection').classList.add('d-none');
+    }
+
+    csvValidationResults = {
+        validNumbers: validNumbers,
+        invalidRows: invalidRows,
+        totalRows: rows.length,
+        duplicateCount: duplicateCount,
+        mappings: mappings,
+        applyNormalisation: applyNormalisation
+    };
+}
+
+function csvDownloadInvalidRows() {
+    var csvContent = 'Row,Original Value,Reason\n';
+    document.querySelectorAll('#csvInvalidRowsBody tr').forEach(function(row) {
+        var cells = row.querySelectorAll('td');
+        csvContent += '"' + cells[0].textContent + '","' + cells[1].textContent + '","' + cells[2].textContent + '"\n';
+    });
+    var blob = new Blob([csvContent], { type: 'text/csv' });
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'invalid_rows_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function csvConfirmImport() {
+    if (!csvValidationResults || csvValidationResults.validNumbers.length === 0) {
+        alert('No valid numbers found to import.');
+        return;
+    }
+
+    recipientState.upload.valid = csvValidationResults.validNumbers;
+    recipientState.upload.invalid = csvValidationResults.invalidRows.map(function(item) {
+        return { row: item.row, original: item.value, reason: item.reason };
+    });
+
+    bootstrap.Modal.getInstance(document.getElementById('csvUploadModal')).hide();
+
     document.getElementById('uploadProgress').classList.add('d-none');
     document.getElementById('uploadResult').classList.remove('d-none');
     document.getElementById('uploadValid').textContent = recipientState.upload.valid.length;
     document.getElementById('uploadInvalid').textContent = recipientState.upload.invalid.length;
     document.getElementById('uploadInvalidLink').classList.toggle('d-none', recipientState.upload.invalid.length === 0);
-    
+
     updateRecipientSummary();
-    console.log('TODO: API - Process file upload with column mapping');
 }
 
 var cbContactsData = [];
