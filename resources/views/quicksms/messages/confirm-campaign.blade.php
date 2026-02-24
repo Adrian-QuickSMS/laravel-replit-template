@@ -176,18 +176,30 @@
                 <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
                         @php
+                            $segmentCount = $campaign['segment_count'] ?? 1;
                             $messageCount = $recipients['valid'];
-                            $subtotal = $messageCount * $pricing['sms_unit_price'];
+                            $totalMessages = $messageCount * $segmentCount;
+                            $subtotal = $totalMessages * $pricing['sms_unit_price'];
                             $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($pricing['vat_rate'] / 100) : 0;
                             $total = $subtotal + $vatAmount;
                         @endphp
                         <div class="row mb-2">
-                            <div class="col-6 text-muted">Messages</div>
+                            <div class="col-6 text-muted">Recipients</div>
                             <div class="col-6 text-end">{{ number_format($messageCount) }}</div>
                         </div>
+                        @if($segmentCount > 1)
                         <div class="row mb-2">
-                            <div class="col-6 text-muted">Price per SMS</div>
-                            <div class="col-6 text-end">&pound;{{ number_format($pricing['sms_unit_price'], 3) }}</div>
+                            <div class="col-6 text-muted">Segments per message</div>
+                            <div class="col-6 text-end">{{ $segmentCount }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6 text-muted">Total SMS parts</div>
+                            <div class="col-6 text-end">{{ number_format($totalMessages) }}</div>
+                        </div>
+                        @endif
+                        <div class="row mb-2">
+                            <div class="col-6 text-muted">Price per SMS part</div>
+                            <div class="col-6 text-end">&pound;{{ number_format($pricing['sms_unit_price'], 4) }}</div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-6 text-muted">Subtotal (ex VAT)</div>

@@ -1704,6 +1704,7 @@ function handleContentChange() {
     }
     
     updatePreview();
+    updatePreviewCost();
 }
 
 function updateCharCount() {

@@ -468,6 +468,7 @@ class QuickSMSController extends Controller
                     'sending_window' => 'No restrictions',
                     'type' => $dbCampaign->type,
                     'status' => $dbCampaign->status,
+                    'segment_count' => $dbCampaign->segment_count ?? 1,
                 ];
                 $channelTypeMap = ['sms' => 'sms_only', 'rcs_basic' => 'basic_rcs', 'rcs_single' => 'rich_rcs'];
                 $channel = [
