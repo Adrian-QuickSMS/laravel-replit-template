@@ -391,11 +391,11 @@ class Campaign extends Model
      */
     public function getProgressPercentage(): float
     {
-        if ($this->total_unique_recipients === 0) {
+        if (empty($this->total_unique_recipients)) {
             return 0;
         }
 
-        $processed = $this->sent_count + $this->delivered_count + $this->failed_count;
+        $processed = ($this->sent_count ?? 0) + ($this->delivered_count ?? 0) + ($this->failed_count ?? 0);
         return round(($processed / $this->total_unique_recipients) * 100, 1);
     }
 
@@ -404,16 +404,20 @@ class Campaign extends Model
      */
     public function getDeliveryRate(): float
     {
-        if ($this->sent_count === 0 && $this->delivered_count === 0) {
+        $sent = $this->sent_count ?? 0;
+        $delivered = $this->delivered_count ?? 0;
+        $failed = $this->failed_count ?? 0;
+
+        if ($sent === 0 && $delivered === 0) {
             return 0;
         }
 
-        $totalAttempted = $this->sent_count + $this->delivered_count + $this->failed_count;
+        $totalAttempted = $sent + $delivered + $failed;
         if ($totalAttempted === 0) {
             return 0;
         }
 
-        return round(($this->delivered_count / $totalAttempted) * 100, 1);
+        return round(($delivered / $totalAttempted) * 100, 1);
     }
 
     /**
