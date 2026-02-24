@@ -172,7 +172,7 @@
                     </div>
                     
                     <div class="d-flex gap-2 mb-4">
-                        <button type="button" class="btn btn-outline-primary" onclick="triggerFileUpload()">
+                        <button type="button" class="btn btn-outline-primary" id="uploadCsvBtn" onclick="triggerFileUpload()">
                             <i class="fas fa-upload me-1"></i>Upload File
                         </button>
                         <button type="button" class="btn btn-outline-primary" onclick="openContactBookModal()">
@@ -181,15 +181,10 @@
                         
                     </div>
                     
-                    <div class="d-none mb-3" id="uploadProgress">
-                        <div class="progress mb-2" style="height: 6px;"><div class="progress-bar" id="uploadProgressBar" style="width: 0%;"></div></div>
-                        <span id="uploadStatus" class="text-muted">Processing...</span>
-                    </div>
-                    <div class="d-none mb-3" id="uploadResult">
-                        <span class="badge bg-light text-dark me-2"><i class="fas fa-file-csv me-1"></i>File uploaded</span>
-                        <span class="text-success"><i class="fas fa-check-circle me-1"></i><span id="uploadValid">0</span> valid</span>
-                        <span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i><span id="uploadInvalid">0</span> invalid</span>
-                        <a href="#" class="ms-2 d-none" id="uploadInvalidLink" onclick="showInvalidNumbers('upload')">View</a>
+                    <div id="uploadedFilesContainer" class="mb-3"></div>
+                    <div class="d-none mb-3" id="fileProcessingIndicator">
+                        <div class="progress mb-2" style="height: 6px;"><div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%; background-color: #886CC0;"></div></div>
+                        <span class="text-muted">Processing file...</span>
                     </div>
                     
                     <div class="d-none mb-3" id="contactBookSelection">
@@ -896,21 +891,16 @@
                 <div class="mb-3">
                     <h6 class="text-muted mb-2">Contact Book Fields</h6>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('firstName')">@{{firstName}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('lastName')">@{{lastName}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('fullName')">@{{fullName}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('mobile')">@{{mobile}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('first_name')">@{{first_name}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('last_name')">@{{last_name}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('full_name')">@{{full_name}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('mobile_number')">@{{mobile_number}}</button>
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('email')">@{{email}}</button>
                     </div>
                 </div>
                 <div class="mb-3">
                     <h6 class="text-muted mb-2">Custom Fields</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('appointmentDate')">@{{appointmentDate}}</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('appointmentTime')">@{{appointmentTime}}</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('clinicName')">@{{clinicName}}</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('customField_1')">@{{customField_1}}</button>
-                    </div>
+                    <p class="text-muted small mb-0" id="noCustomFieldsHint">Upload a CSV/Excel file with extra columns to see custom field placeholders here.</p>
                 </div>
                 <div class="mb-3" id="csvFieldsSection" style="display: none;">
                     <h6 class="text-muted mb-2">CSV/Excel Columns</h6>
@@ -2770,16 +2760,15 @@ function collectCampaignConfig() {
     if (recipientState && recipientState.manual && recipientState.manual.valid) {
         recipientsList = recipientsList.concat(recipientState.manual.valid);
     }
-    if (recipientState && recipientState.upload && recipientState.upload.valid) {
-        recipientsList = recipientsList.concat(recipientState.upload.valid);
-    }
+    recipientState.files.forEach(function(f) {
+        recipientsList = recipientsList.concat(f.valid);
+    });
     if (recipientState && recipientState.contacts && recipientState.contacts.valid) {
         recipientsList = recipientsList.concat(recipientState.contacts.valid);
     }
     
-    // Calculate recipient counts from all sources
     var manualCount = recipientState.manual.valid.length;
-    var uploadCount = recipientState.upload.valid.length;
+    var uploadCount = recipientState.files.reduce(function(acc, f) { return acc + f.valid.length; }, 0);
     var contactsCount = recipientState.contactBook.contacts.reduce(function(acc, c) { return acc + (c.count || 1); }, 0);
     var listsCount = recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
     var dynamicListsCount = recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
@@ -2797,7 +2786,7 @@ function collectCampaignConfig() {
         recipients: recipientsList,
         recipient_count: totalRecipientCount,
         valid_count: totalRecipientCount,
-        invalid_count: recipientState.manual.invalid.length + recipientState.upload.invalid.length,
+        invalid_count: recipientState.manual.invalid.length + recipientState.files.reduce(function(acc, f) { return acc + f.invalid.length; }, 0),
         sources: {
             manual_input: manualCount,
             file_upload: uploadCount,
@@ -2954,7 +2943,7 @@ function continueToConfirmation() {
     var manualNumbers = document.getElementById('manualNumbers').value.trim();
     var hasRecipients = manualNumbers.length > 0 || 
         (recipientState && recipientState.manual && recipientState.manual.valid && recipientState.manual.valid.length > 0) ||
-        (recipientState && recipientState.upload && recipientState.upload.valid && recipientState.upload.valid.length > 0) ||
+        (recipientState && recipientState.files && recipientState.files.reduce(function(acc, f) { return acc + f.valid.length; }, 0) > 0) ||
         (recipientState && recipientState.contactBook && (
             recipientState.contactBook.contacts.length > 0 ||
             recipientState.contactBook.lists.length > 0 ||
@@ -3003,13 +2992,13 @@ function continueToConfirmation() {
     var rcsAgentId = rcsAgentSelect ? rcsAgentSelect.value : null;
     
     var manualCount = recipientState.manual.valid.length;
-    var uploadCount = recipientState.upload.valid.length;
+    var uploadCount = recipientState.files.reduce(function(acc, f) { return acc + f.valid.length; }, 0);
     var contactsCount = recipientState.contactBook.contacts.length;
     var listsCount = recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
     var dynamicListsCount = recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
     var tagsCount = recipientState.contactBook.tags.reduce(function(acc, t) { return acc + (t.count || 0); }, 0);
     var recipientCount = manualCount + uploadCount + contactsCount + listsCount + dynamicListsCount + tagsCount;
-    var invalidCount = recipientState.manual.invalid.length + recipientState.upload.invalid.length;
+    var invalidCount = recipientState.manual.invalid.length + recipientState.files.reduce(function(acc, f) { return acc + f.invalid.length; }, 0);
     
     var scheduledTimeValue = 'now';
     var scheduledAt = null;
@@ -3043,9 +3032,11 @@ function continueToConfirmation() {
     if (recipientState.manual.valid.length > 0) {
         recipientSources.push({ type: 'manual', numbers: recipientState.manual.valid });
     }
-    if (recipientState.upload.valid.length > 0) {
-        recipientSources.push({ type: 'manual', numbers: recipientState.upload.valid });
-    }
+    recipientState.files.forEach(function(f) {
+        if (f.valid.length > 0) {
+            recipientSources.push({ type: 'manual', numbers: f.valid });
+        }
+    });
     recipientState.contactBook.lists.forEach(function(l) {
         recipientSources.push({ type: 'list', id: l.id, name: l.name });
     });
@@ -3187,7 +3178,7 @@ function updateOptoutCount() {
 
 var recipientState = {
     manual: { valid: [], invalid: [] },
-    upload: { valid: [], invalid: [] },
+    files: [],
     contactBook: { contacts: [], lists: [], dynamicLists: [], tags: [] },
     ukMode: true,
     convert07: true
@@ -3321,16 +3312,37 @@ function normalizeNumber(num) {
 
 function revalidateNumbers() {
     validateManualNumbers();
-    if (recipientState.upload.valid.length > 0 || recipientState.upload.invalid.length > 0) {
-        console.log('TODO: Revalidate uploaded numbers');
-    }
+    recipientState.files.forEach(function(file) {
+        var allNumbers = file.valid.concat(file.invalid.map(function(inv) { return inv.original; }));
+        var newValid = [];
+        var newInvalid = [];
+        allNumbers.forEach(function(num, idx) {
+            var cleaned = String(num).replace(/[\s\-\(\)]/g, '').replace(/^\+/, '');
+            if (cleaned.match(/^\d{10,15}$/)) {
+                newValid.push(cleaned);
+            } else {
+                newInvalid.push({ row: idx + 1, original: num, reason: 'Invalid format' });
+            }
+        });
+        file.valid = newValid;
+        file.invalid = newInvalid;
+    });
+    renderUploadedFiles();
+    updateRecipientSummary();
 }
 
 var csvCurrentStep = 1;
 var csvFileData = null;
 var csvValidationResults = null;
 
+var pendingFiles = [];
+var currentProcessingFileIndex = -1;
+
 function triggerFileUpload() {
+    if (recipientState.files.length >= 5) {
+        alert('Maximum 5 files allowed');
+        return;
+    }
     csvCurrentStep = 1;
     csvFileData = null;
     csvValidationResults = null;
@@ -3544,11 +3556,12 @@ function csvBuildMappingUI(headerRow, sampleRow, allDataRows, hasHeaders) {
         '<option value="mobile">Mobile Number *</option>' +
         '<option value="first_name">First Name</option>' +
         '<option value="last_name">Last Name</option>' +
-        '<option value="email">Email</option>';
+        '<option value="email">Email</option>' +
+        '<option value="custom">Custom Field (keep as-is)</option>';
 
     columns.forEach(function(col, idx) {
-        var autoMap = '';
-        var colLower = String(col).toLowerCase();
+        var colLower = String(col).toLowerCase().trim();
+        var autoMap = colLower === '' ? '' : 'custom';
         if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn') || colLower.includes('number')) autoMap = 'mobile';
         else if (colLower.includes('first')) autoMap = 'first_name';
         else if (colLower.includes('last') || colLower.includes('surname')) autoMap = 'last_name';
@@ -3662,18 +3675,31 @@ function csvNormaliseMobile(raw, applyUkNormalisation) {
 
 function csvRunValidation() {
     var rows = (csvFileData && csvFileData.parsedRows) ? csvFileData.parsedRows : [];
+    var headers = (csvFileData && csvFileData.parsedHeaders) ? csvFileData.parsedHeaders : [];
+    var hasHeaders = document.getElementById('csvHasHeaders').checked;
     var mappings = {};
+    var customFieldNames = [];
     document.querySelectorAll('.csv-column-mapping').forEach(function(sel) {
-        if (sel.value) mappings[sel.value] = parseInt(sel.dataset.column, 10);
+        var colIdx = parseInt(sel.dataset.column, 10);
+        if (sel.value === 'custom') {
+            var headerName = hasHeaders ? headers[colIdx] : ('Column ' + String.fromCharCode(65 + colIdx));
+            customFieldNames.push({ index: colIdx, name: headerName.trim() });
+        } else if (sel.value) {
+            mappings[sel.value] = colIdx;
+        }
     });
 
     var mobileIdx = typeof mappings.mobile === 'number' ? mappings.mobile : -1;
+    var firstNameIdx = typeof mappings.first_name === 'number' ? mappings.first_name : -1;
+    var lastNameIdx = typeof mappings.last_name === 'number' ? mappings.last_name : -1;
+    var emailIdx = typeof mappings.email === 'number' ? mappings.email : -1;
     var applyNormalisation = document.getElementById('csvExcelCorrectionApplied').value === 'yes';
     var seenNumbers = {};
     var duplicateCount = 0;
     var invalidCount = 0;
     var invalidRows = [];
     var validNumbers = [];
+    var validData = [];
 
     rows.forEach(function(row, rowIdx) {
         var rawMobile = (mobileIdx >= 0 && row[mobileIdx]) ? String(row[mobileIdx]) : '';
@@ -3696,6 +3722,15 @@ function csvRunValidation() {
         }
         seenNumbers[mobile] = true;
         validNumbers.push(mobile);
+
+        var rowData = { mobile_number: mobile };
+        if (firstNameIdx >= 0) rowData.first_name = (row[firstNameIdx] || '').trim();
+        if (lastNameIdx >= 0) rowData.last_name = (row[lastNameIdx] || '').trim();
+        if (emailIdx >= 0) rowData.email = (row[emailIdx] || '').trim();
+        customFieldNames.forEach(function(cf) {
+            rowData[cf.name] = (row[cf.index] || '').trim();
+        });
+        validData.push(rowData);
     });
 
     document.getElementById('csvStatTotalRows').textContent = rows.length;
@@ -3729,10 +3764,12 @@ function csvRunValidation() {
 
     csvValidationResults = {
         validNumbers: validNumbers,
+        validData: validData,
         invalidRows: invalidRows,
         totalRows: rows.length,
         duplicateCount: duplicateCount,
         mappings: mappings,
+        customFields: customFieldNames.map(function(cf) { return cf.name; }),
         applyNormalisation: applyNormalisation
     };
 }
@@ -3758,20 +3795,118 @@ function csvConfirmImport() {
         return;
     }
 
-    recipientState.upload.valid = csvValidationResults.validNumbers;
-    recipientState.upload.invalid = csvValidationResults.invalidRows.map(function(item) {
-        return { row: item.row, original: item.value, reason: item.reason };
-    });
+    var fileEntry = {
+        id: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        name: csvFileData ? csvFileData.name : 'uploaded_file.csv',
+        size: csvFileData ? csvFileData.size : '',
+        valid: csvValidationResults.validNumbers,
+        invalid: csvValidationResults.invalidRows.map(function(item) {
+            return { row: item.row, original: item.value, reason: item.reason };
+        }),
+        data: csvValidationResults.validData || [],
+        columnMapping: csvValidationResults.mappings || {},
+        customFields: csvValidationResults.customFields || []
+    };
 
+    recipientState.files.push(fileEntry);
     bootstrap.Modal.getInstance(document.getElementById('csvUploadModal')).hide();
-
-    document.getElementById('uploadProgress').classList.add('d-none');
-    document.getElementById('uploadResult').classList.remove('d-none');
-    document.getElementById('uploadValid').textContent = recipientState.upload.valid.length;
-    document.getElementById('uploadInvalid').textContent = recipientState.upload.invalid.length;
-    document.getElementById('uploadInvalidLink').classList.toggle('d-none', recipientState.upload.invalid.length === 0);
-
+    renderUploadedFiles();
+    updateUploadButtonState();
     updateRecipientSummary();
+    refreshCsvFieldButtons();
+}
+
+function renderUploadedFiles() {
+    var container = document.getElementById('uploadedFilesContainer');
+    if (recipientState.files.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    var html = '';
+    recipientState.files.forEach(function(file) {
+        html += '<div class="d-flex align-items-center p-2 mb-2 rounded" style="background-color: #f0ebf8; border: 1px solid #e0d8f0;" id="fileCard_' + file.id + '">';
+        html += '<i class="fas fa-file-csv me-2" style="color: #886CC0;"></i>';
+        html += '<div class="flex-grow-1">';
+        html += '<div class="fw-medium" style="font-size: 13px;">' + escapeContactHtml(file.name) + ' <span class="text-muted">(' + escapeContactHtml(file.size) + ')</span></div>';
+        html += '<div style="font-size: 12px;">';
+        html += '<span class="text-success"><i class="fas fa-check-circle me-1"></i>' + file.valid.length + ' valid</span>';
+        if (file.invalid.length > 0) {
+            html += '<span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i>' + file.invalid.length + ' invalid</span>';
+            html += ' <a href="#" class="ms-1" style="font-size: 11px;" onclick="showFileInvalidNumbers(\'' + file.id + '\'); return false;">View</a>';
+        }
+        html += '</div></div>';
+        html += '<button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeUploadedFile(\'' + file.id + '\')" title="Remove file"><i class="fas fa-times"></i></button>';
+        html += '</div>';
+    });
+    container.innerHTML = html;
+}
+
+function removeUploadedFile(fileId) {
+    recipientState.files = recipientState.files.filter(function(f) { return f.id !== fileId; });
+    renderUploadedFiles();
+    updateUploadButtonState();
+    updateRecipientSummary();
+    refreshCsvFieldButtons();
+}
+
+function showFileInvalidNumbers(fileId) {
+    var file = recipientState.files.find(function(f) { return f.id === fileId; });
+    if (file) {
+        showInvalidNumbersTable(file.invalid);
+    }
+}
+
+function updateUploadButtonState() {
+    var btn = document.getElementById('uploadCsvBtn');
+    if (!btn) return;
+    var count = recipientState.files.length;
+    if (count >= 5) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File <span class="badge bg-secondary ms-1">5/5</span>';
+    } else if (count > 0) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File <span class="badge ms-1" style="background-color: #886CC0;">' + count + '/5</span>';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File';
+    }
+}
+
+function refreshCsvFieldButtons() {
+    var csvSection = document.getElementById('csvFieldsSection');
+    var csvBtnContainer = document.getElementById('csvFieldButtons');
+    var hintEl = document.getElementById('noCustomFieldsHint');
+
+    var filesWithCustom = recipientState.files.filter(function(f) { return f.customFields && f.customFields.length > 0; });
+
+    if (filesWithCustom.length === 0) {
+        if (csvSection) csvSection.style.display = 'none';
+        if (csvBtnContainer) csvBtnContainer.innerHTML = '';
+        if (hintEl) hintEl.style.display = '';
+        return;
+    }
+
+    var intersection = filesWithCustom[0].customFields.slice();
+    for (var i = 1; i < filesWithCustom.length; i++) {
+        intersection = intersection.filter(function(field) {
+            return filesWithCustom[i].customFields.indexOf(field) !== -1;
+        });
+    }
+
+    if (intersection.length === 0) {
+        if (csvSection) csvSection.style.display = 'none';
+        if (csvBtnContainer) csvBtnContainer.innerHTML = '';
+        if (hintEl) hintEl.style.display = '';
+        return;
+    }
+
+    if (csvSection) csvSection.style.display = '';
+    if (hintEl) hintEl.style.display = 'none';
+    var html = '';
+    intersection.forEach(function(fieldName) {
+        html += '<button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder(\'' + escapeContactHtml(fieldName.replace(/'/g, "\\'")) + '\')">{{' + escapeContactHtml(fieldName) + '}}</button>';
+    });
+    csvBtnContainer.innerHTML = html;
 }
 
 var cbContactsData = [];
@@ -4177,7 +4312,7 @@ function renderContactBookChips() {
 
 function updateRecipientSummary() {
     var manualValid = recipientState.manual.valid.length;
-    var uploadValid = recipientState.upload.valid.length;
+    var uploadValid = recipientState.files.reduce(function(acc, f) { return acc + f.valid.length; }, 0);
     var contactBookCount = recipientState.contactBook.contacts.length +
                           recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0) +
                           recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0) +
@@ -4192,12 +4327,18 @@ function updateRecipientSummary() {
 }
 
 function showInvalidNumbers(source) {
-    var invalid = source === 'manual' ? recipientState.manual.invalid : recipientState.upload.invalid;
-    showInvalidNumbersTable(invalid);
+    if (source === 'manual') {
+        showInvalidNumbersTable(recipientState.manual.invalid);
+    } else {
+        var allFileInvalid = [];
+        recipientState.files.forEach(function(f) { allFileInvalid = allFileInvalid.concat(f.invalid); });
+        showInvalidNumbersTable(allFileInvalid);
+    }
 }
 
 function showAllInvalidNumbers() {
-    var all = recipientState.manual.invalid.concat(recipientState.upload.invalid);
+    var all = recipientState.manual.invalid.slice();
+    recipientState.files.forEach(function(f) { all = all.concat(f.invalid); });
     showInvalidNumbersTable(all);
 }
 
@@ -4213,7 +4354,8 @@ function showInvalidNumbersTable(invalid) {
 }
 
 function downloadInvalidNumbers() {
-    var all = recipientState.manual.invalid.concat(recipientState.upload.invalid);
+    var all = recipientState.manual.invalid.slice();
+    recipientState.files.forEach(function(f) { all = all.concat(f.invalid); });
     var csv = 'Row,Original Value,Reason\n';
     all.forEach(function(item) {
         csv += item.row + ',"' + item.original + '","' + item.reason + '"\n';
