@@ -898,13 +898,13 @@
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('email')">@{{email}}</button>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <h6 class="text-muted mb-2">Custom Fields</h6>
-                    <p class="text-muted small mb-0" id="noCustomFieldsHint">Upload a CSV/Excel file with extra columns to see custom field placeholders here.</p>
-                </div>
                 <div class="mb-3" id="csvFieldsSection" style="display: none;">
-                    <h6 class="text-muted mb-2">CSV/Excel Columns</h6>
+                    <h6 class="text-muted mb-2">File Upload Fields</h6>
                     <div class="d-flex flex-wrap gap-2" id="csvFieldButtons"></div>
+                </div>
+                <div id="noCustomFieldsHint">
+                    <h6 class="text-muted mb-2">Custom Fields</h6>
+                    <p class="text-muted small mb-0">Upload a CSV/Excel file with extra columns to see custom field placeholders here.</p>
                 </div>
             </div>
             <div class="modal-footer py-2">
@@ -3901,19 +3901,40 @@ function refreshCsvFieldButtons() {
     var csvBtnContainer = document.getElementById('csvFieldButtons');
     var hintEl = document.getElementById('noCustomFieldsHint');
 
-    var filesWithCustom = recipientState.files.filter(function(f) { return f.customFields && f.customFields.length > 0; });
-
-    if (filesWithCustom.length === 0) {
+    if (recipientState.files.length === 0) {
         if (csvSection) csvSection.style.display = 'none';
         if (csvBtnContainer) csvBtnContainer.innerHTML = '';
         if (hintEl) hintEl.style.display = '';
         return;
     }
 
-    var intersection = filesWithCustom[0].customFields.slice();
-    for (var i = 1; i < filesWithCustom.length; i++) {
+    var builtInMap = { 'mobile': 'mobile_number', 'first_name': 'first_name', 'last_name': 'last_name', 'email': 'email' };
+    var builtInFields = ['first_name', 'last_name', 'full_name', 'mobile_number', 'email'];
+
+    var allFileFields = [];
+    recipientState.files.forEach(function(file) {
+        var fileFields = [];
+        if (file.columnMapping) {
+            Object.keys(file.columnMapping).forEach(function(key) {
+                var mapped = builtInMap[key];
+                if (mapped && fileFields.indexOf(mapped) === -1) fileFields.push(mapped);
+            });
+            if (fileFields.indexOf('first_name') !== -1 && fileFields.indexOf('last_name') !== -1 && fileFields.indexOf('full_name') === -1) {
+                fileFields.push('full_name');
+            }
+        }
+        if (file.customFields) {
+            file.customFields.forEach(function(cf) {
+                if (fileFields.indexOf(cf) === -1) fileFields.push(cf);
+            });
+        }
+        allFileFields.push(fileFields);
+    });
+
+    var intersection = allFileFields[0] ? allFileFields[0].slice() : [];
+    for (var i = 1; i < allFileFields.length; i++) {
         intersection = intersection.filter(function(field) {
-            return filesWithCustom[i].customFields.indexOf(field) !== -1;
+            return allFileFields[i].indexOf(field) !== -1;
         });
     }
 
@@ -3928,7 +3949,9 @@ function refreshCsvFieldButtons() {
     if (hintEl) hintEl.style.display = 'none';
     var html = '';
     intersection.forEach(function(fieldName) {
-        html += '<button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder(\'' + escapeContactHtml(fieldName.replace(/'/g, "\\'")) + '\')">{{' + escapeContactHtml(fieldName) + '}}</button>';
+        var isBuiltIn = builtInFields.indexOf(fieldName) !== -1;
+        var btnClass = isBuiltIn ? 'btn btn-outline-primary btn-sm' : 'btn btn-outline-secondary btn-sm';
+        html += '<button type="button" class="' + btnClass + '" onclick="insertPlaceholder(\'' + escapeContactHtml(fieldName.replace(/'/g, "\\'")) + '\')">{{' + escapeContactHtml(fieldName) + '}}</button>';
     });
     csvBtnContainer.innerHTML = html;
 }
