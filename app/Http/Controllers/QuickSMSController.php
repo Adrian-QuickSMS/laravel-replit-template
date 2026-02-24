@@ -438,6 +438,15 @@ class QuickSMSController extends Controller
             }
         }
 
+        $editCampaignId = request()->query('campaign_id');
+        $editCampaignConfig = null;
+        if ($editCampaignId) {
+            $sessionConfig = session('campaign_config', []);
+            if (!empty($sessionConfig) && ($sessionConfig['campaign_id'] ?? null) === $editCampaignId) {
+                $editCampaignConfig = $sessionConfig;
+            }
+        }
+
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
             'sender_ids' => $sender_ids,
@@ -449,6 +458,7 @@ class QuickSMSController extends Controller
             'virtual_numbers' => $virtual_numbers,
             'optout_domains' => $optout_domains,
             'account_pricing' => $accountPricing,
+            'edit_campaign_config' => $editCampaignConfig,
         ]);
     }
 
@@ -600,6 +610,7 @@ class QuickSMSController extends Controller
         
         // Campaign summary - use session data with fallbacks
         $campaign = [
+            'id' => $sessionData['campaign_id'] ?? null,
             'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
             'created_by' => auth()->check() ? auth()->user()->name ?? 'Current User' : 'Current User',
             'created_at' => now()->format('d/m/Y H:i'),

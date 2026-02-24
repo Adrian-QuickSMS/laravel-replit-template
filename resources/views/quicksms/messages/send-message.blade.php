@@ -162,6 +162,7 @@
                         </div>
                     </div>
                     
+                    <div id="recipientSummaryText" class="alert mb-3" style="display: none; background-color: #f0ebf8; color: #6b5b95; border: 1px solid #d4c8e8;"></div>
                     <label class="form-label mb-2">Enter mobile numbers</label>
                     <textarea class="form-control mb-3" id="manualNumbers" rows="4" placeholder="Paste or type numbers separated by commas, spaces, or new lines" onblur="validateManualNumbers()"></textarea>
                     
@@ -1348,6 +1349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     populateTemplateSelector();
     checkForDuplicatePrefill();
+    restoreCampaignFromConfirm();
     updatePreview();
     loadPreselectedContacts();
 });
@@ -1390,6 +1392,61 @@ function checkForDuplicatePrefill() {
             }
         }
     }
+}
+
+function restoreCampaignFromConfirm() {
+    @if(!empty($edit_campaign_config))
+    var config = @json($edit_campaign_config);
+    console.log('[Restore] Restoring campaign from confirm page', config);
+
+    var nameInput = document.getElementById('campaignName');
+    if (nameInput && config.campaign_name) nameInput.value = config.campaign_name;
+
+    if (config.channel) {
+        var channelMap = { 'sms_only': 'sms_only', 'basic_rcs': 'basic_rcs', 'rich_rcs': 'rich_rcs' };
+        var radioVal = channelMap[config.channel] || config.channel;
+        var radio = document.querySelector('input[name="channel"][value="' + radioVal + '"]');
+        if (radio) {
+            radio.checked = true;
+            selectChannel(radioVal);
+        }
+    }
+
+    if (config.sender_id) {
+        var senderSelect = document.getElementById('senderIdSelect');
+        if (senderSelect) {
+            for (var i = 0; i < senderSelect.options.length; i++) {
+                if (senderSelect.options[i].value == config.sender_id) {
+                    senderSelect.value = config.sender_id;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (config.message_content) {
+        var msgInput = document.getElementById('smsContent');
+        if (msgInput) {
+            msgInput.value = config.message_content;
+            updateCharCount();
+            updatePreview();
+        }
+    }
+
+    if (config.recipient_count && config.recipient_count > 0) {
+        var summaryEl = document.getElementById('recipientSummaryText');
+        if (summaryEl) {
+            summaryEl.innerHTML = '<i class="fas fa-info-circle me-1" style="color: #886CC0;"></i> ' +
+                '<strong>' + config.recipient_count + '</strong> recipients loaded from previous session. ' +
+                'Click <strong>Continue</strong> to proceed or modify your selections.';
+            summaryEl.style.display = '';
+        }
+    }
+
+    if (config.campaign_id) {
+        window._restoredCampaignId = config.campaign_id;
+    }
+    @endif
 }
 
 function loadDraftForEditing(draftId) {
@@ -3050,7 +3107,9 @@ function continueToConfirmation() {
         recipientSources.push({ type: 'manual', numbers: recipientState.manual.valid });
     }
     recipientState.files.forEach(function(f) {
-        if (f.valid.length > 0) {
+        if (f.data && f.data.length > 0) {
+            recipientSources.push({ type: 'csv', data: f.data });
+        } else if (f.valid.length > 0) {
             recipientSources.push({ type: 'manual', numbers: f.valid });
         }
     });
@@ -3099,7 +3158,20 @@ function continueToConfirmation() {
         sending_window_end: sendingWindowEndVal
     };
 
-    CampaignService.create(campaignData).then(function(result) {
+    var existingCampaignId = window._restoredCampaignId || null;
+
+    var campaignPromise;
+    if (existingCampaignId) {
+        campaignPromise = CampaignService.update(existingCampaignId, campaignData).then(function(result) {
+            return { data: { id: existingCampaignId } };
+        }).catch(function() {
+            return CampaignService.create(campaignData);
+        });
+    } else {
+        campaignPromise = CampaignService.create(campaignData);
+    }
+
+    campaignPromise.then(function(result) {
         var campaignId = result && result.data ? result.data.id : null;
         if (!campaignId) {
             if (continueBtn) {

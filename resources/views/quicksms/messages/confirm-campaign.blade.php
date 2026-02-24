@@ -272,7 +272,7 @@
             <div class="card border-0 bg-transparent">
                 <div class="card-body px-0">
                     <div class="d-flex gap-2">
-                        <a href="{{ route('messages.send') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('messages.send') }}{{ !empty($campaign['id']) ? '?campaign_id=' . $campaign['id'] : '' }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Back
                         </a>
                         <button type="button" class="btn btn-primary flex-grow-1" id="sendCampaignBtn" onclick="confirmSend()">
