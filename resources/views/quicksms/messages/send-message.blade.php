@@ -3538,7 +3538,8 @@ function csvDetectColumns() {
                 var dataRows = jsonRows.slice(hasHeaders ? 1 : 0).map(function(r) { return r.map(function(c) { return String(c); }); });
                 csvBuildMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
             } catch (err) {
-                showCsvAlert('Could not read the Excel file. Please check the format and try again.');
+                console.error('[CSV Upload] Excel parse error:', err);
+                showCsvAlert('Could not read the Excel file: ' + escapeContactHtml(err.message || 'Unknown error') + '. Please check the format and try again.');
             }
         };
         reader.readAsArrayBuffer(csvFileData.file);
