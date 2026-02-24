@@ -4185,11 +4185,7 @@ function updatePreviewCost() {
     var costEl = document.getElementById('previewCost');
     if (costEl) {
         var isTest = (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.isTest && AccountLifecycle.isTest());
-        var formatted = cost % 1 === 0 ? cost.toFixed(2) : parseFloat(cost.toFixed(4)).toString();
-        if (formatted.indexOf('.') !== -1) {
-            var decimals = formatted.split('.')[1].length;
-            if (decimals < 2) formatted = cost.toFixed(2);
-        }
+        var formatted = cost.toFixed(4);
         if (isTest) {
             costEl.textContent = formatted + ' cr';
         } else {
