@@ -438,28 +438,22 @@ class RecipientResolverService
             return [[], []];
         }
 
-        // Collect all mobile numbers for bulk lookup
-        $allNumbers = array_column($recipients, 'mobile_number');
+        $allOptedOutNormalised = [];
+        $optOutRecords = DB::table('opt_out_records')
+            ->where('account_id', $accountId)
+            ->pluck('mobile_number')
+            ->toArray();
 
-        // Batch lookup opted-out numbers (chunked for large campaigns)
-        $optedOutNumbers = [];
-        foreach (array_chunk($allNumbers, self::CHUNK_SIZE) as $chunk) {
-            $found = DB::table('opt_out_records')
-                ->where('account_id', $accountId)
-                ->whereIn('mobile_number', $chunk)
-                ->pluck('mobile_number')
-                ->toArray();
-
-            $optedOutNumbers = array_merge($optedOutNumbers, $found);
+        foreach ($optOutRecords as $num) {
+            $allOptedOutNormalised[$this->normaliseForComparison($num)] = true;
         }
-
-        $optedOutSet = array_flip($optedOutNumbers);
 
         $clean = [];
         $optedOut = [];
 
         foreach ($recipients as $recipient) {
-            if (isset($optedOutSet[$recipient['mobile_number']])) {
+            $normalised = $this->normaliseForComparison($recipient['mobile_number']);
+            if (isset($allOptedOutNormalised[$normalised])) {
                 $optedOut[] = $recipient;
             } else {
                 $clean[] = $recipient;
@@ -467,6 +461,18 @@ class RecipientResolverService
         }
 
         return [$clean, $optedOut];
+    }
+
+    private function normaliseForComparison(string $number): string
+    {
+        $number = preg_replace('/[\s\-\(\)]/', '', $number);
+        $number = ltrim($number, '+');
+
+        if (preg_match('/^0[1-9]/', $number)) {
+            $number = '44' . substr($number, 1);
+        }
+
+        return $number;
     }
 
     /**
