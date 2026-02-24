@@ -172,6 +172,11 @@ class SenderId extends Model
         return $this->hasMany(SenderIdAssignment::class, 'sender_id_id');
     }
 
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class, 'sender_id_id');
+    }
+
     public function statusHistory(): HasMany
     {
         return $this->hasMany(SenderIdStatusHistory::class, 'sender_id_id')

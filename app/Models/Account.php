@@ -263,6 +263,21 @@ class Account extends Model
         return $this->hasMany(SenderId::class, 'account_id');
     }
 
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class, 'account_id');
+    }
+
+    public function messageTemplates(): HasMany
+    {
+        return $this->hasMany(MessageTemplate::class, 'account_id');
+    }
+
+    public function mediaLibrary(): HasMany
+    {
+        return $this->hasMany(MediaLibraryItem::class, 'account_id');
+    }
+
     // =====================================================
     // SCOPES
     // =====================================================

@@ -220,6 +220,11 @@ class RcsAgent extends Model
         return $this->hasMany(RcsAgentAssignment::class)->orderBy('created_at', 'desc');
     }
 
+    public function campaigns()
+    {
+        return $this->hasMany(Campaign::class, 'rcs_agent_id');
+    }
+
     public function toAdminArray(): array
     {
         $createdByUser = $this->relationLoaded('createdBy') ? $this->createdBy : null;

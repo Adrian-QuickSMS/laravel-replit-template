@@ -3,6 +3,7 @@
 namespace App\Models\Billing;
 
 use App\Models\Account;
+use App\Models\Campaign;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
@@ -28,6 +29,11 @@ class CampaignReservation extends Model
     public function account()
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function campaign()
+    {
+        return $this->hasOne(Campaign::class, 'reservation_id');
     }
 
     public function remainingAmount(): string
