@@ -1,0 +1,44 @@
+Pull Security & Performance Fixes from Claude Branch
+
+Please pull the latest changes from the branch claude/quicksms-security-performance-dr8sw and merge them into your working branch.
+
+git fetch origin claude/quicksms-security-performance-dr8sw
+git merge origin/claude/quicksms-security-performance-dr8sw
+
+What changed (13 files, 243 insertions, 119 deletions):
+
+This commit applies fixes for 103 security, bug, and performance issues identified during audit across 5 modules: Contact Book, API Connections, RCS Agent Registration, SMS SenderID Registration, and Billing/Pricing.
+
+CRITICAL — Do not revert these changes:
+
+Tenant isolation (4 models) — Contact.php, ApiConnection.php, RcsAgent.php, SenderId.php global scopes now fail-closed with whereRaw('1 = 0') when no tenant context exists. Previously they returned ALL rows if session was empty.
+
+RcsAgent state machine — RcsAgent.php now has a TRANSITIONS constant and TRANSITION_ACTORS constant. transitionTo() validates transitions and throws InvalidArgumentException on illegal status changes. Two missing methods added: canCustomerProvideInfo() and scopeUsableByUser() — without these, the provide-info and approved-agents endpoints crash at runtime.
+
+Mass assignment hardened — Admin-only fields (admin_notes, rejection_reason, suspension_reason, revocation_reason, reviewed_by, reviewed_at, is_locked, full_payload, version, version_history, submitted_at) removed from $fillable on both RcsAgent and SenderId. These are now only settable via transitionTo() or forceFill(). ApiConnection had status removed from $fillable — status is only changed via state machine methods.
+
+Billing transactions — manualAdjustment(), updateCreditLimit(), and updateAccountPricing() in BillingAdminController.php are now wrapped in DB::transaction(). Previously, ledger entry + balance update were separate — a failure between them would corrupt the balance.
+
+Admin identity enforcement — getAdminId() now throws RuntimeException instead of falling back to 'system'. Every financial operation must have a real admin identity.
+
+IDOR fix — bulkRemoveFromList in ContactBookApiController.php now verifies contact_ids against the tenant scope before deletion. Previously raw IDs were passed directly to the delete query.
+
+HIGH priority changes:
+
+All bulk endpoints (bulkAddToList, bulkRemoveFromList, bulkRemoveTags, bulkExport) capped at max:1000 items
+Mobile number validation now uses regex ^\+?[0-9]{7,15}$
+custom_data limited to max:50 keys, max:1000 chars per value
+Zero price prevented: min:0 → min:0.0001 across all pricing endpoints (PricingManagementController.php, BillingAdminController.php)
+RcsAgentController::update() and SenderIdController::update() now explicitly strip admin fields before passing to $model->update()
+RCS agent API routes now have throttle:60,1 rate limiting (was missing)
+Contact toPortalArray() no longer exposes raw mobile_number — only mobile_masked is returned
+XSS fixes (blade views):
+
+rcs-agent.blade.php — Logo/hero URLs now use document.createElement('img') + .src = instead of string concatenation in innerHTML. Test numbers, phone, email escaped via escapeHtml(). Toast title and message escaped.
+rcs-agents.blade.php — Toast message escaped via escapeHtml()
+rcs-agent-detail.blade.php — Toast message escaped via escapeHtml()
+Important for your UI code:
+
+If any frontend JS reads contact.mobile from the API, it will now be undefined. Use contact.mobile_masked instead. The raw number is only available via the reveal-msisdn endpoint.
+The RCS agent transitionTo() now throws InvalidArgumentException on invalid transitions. If you have any custom admin transition flows, make sure they follow the TRANSITIONS map defined in RcsAgent.php.
+ApiConnection status can no longer be set via ->update(['status' => ...]). Use the existing state machine methods: activate(), suspend(), reactivate(), archive().
