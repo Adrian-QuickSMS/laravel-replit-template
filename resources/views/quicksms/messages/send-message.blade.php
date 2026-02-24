@@ -173,7 +173,7 @@
                     
                     <div class="d-flex gap-2 mb-4">
                         <button type="button" class="btn btn-outline-primary" onclick="triggerFileUpload()">
-                            <i class="fas fa-upload me-1"></i>Upload CSV
+                            <i class="fas fa-upload me-1"></i>Upload File
                         </button>
                         <button type="button" class="btn btn-outline-primary" onclick="openContactBookModal()">
                             <i class="fas fa-users me-1"></i>Select from Contact Book
