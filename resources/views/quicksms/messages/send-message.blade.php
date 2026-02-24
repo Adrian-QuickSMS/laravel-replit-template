@@ -3098,13 +3098,40 @@ function continueToConfirmation() {
             optout_config: optoutConfig
         };
 
-        return fetch('{{ route("messages.store-campaign-config") }}', {
+        if (continueBtn) {
+            continueBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Preparing campaign...';
+        }
+
+        return fetch('/api/campaigns/' + campaignId + '/prepare', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify(sessionConfig)
+            }
+        }).then(function(prepResp) {
+            if (!prepResp.ok) {
+                console.warn('[Campaign] Prepare failed with status ' + prepResp.status + ', continuing with flat estimate');
+                return null;
+            }
+            return prepResp.json();
+        }).then(function(prepResult) {
+            if (prepResult && prepResult.success && prepResult.data && prepResult.data.resolver_result) {
+                var rr = prepResult.data.resolver_result;
+                sessionConfig.recipient_count = rr.total_resolved || recipientCount;
+                sessionConfig.valid_count = rr.total_resolved || recipientCount;
+                sessionConfig.invalid_count = rr.total_invalid || invalidCount;
+                sessionConfig.opted_out_count = rr.total_opted_out || 0;
+            }
+
+            return fetch('{{ route("messages.store-campaign-config") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(sessionConfig)
+            });
         }).then(function() {
             window.location.href = '{{ route("messages.confirm") }}?campaign_id=' + campaignId;
         });

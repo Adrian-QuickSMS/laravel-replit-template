@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Contact;
 use App\Models\ContactList;
 use App\Models\OptOutList;
@@ -532,6 +533,29 @@ class QuickSMSController extends Controller
                     'vat_applicable' => $account ? (bool) ($account->vat_registered ?? true) : true,
                     'vat_rate' => 20,
                 ];
+
+                $segmentBreakdown = [];
+                $totalSmsParts = 0;
+                if ($dbCampaign->content_resolved_at) {
+                    $segmentBreakdown = DB::table('campaign_recipients')
+                        ->where('campaign_id', $dbCampaign->id)
+                        ->where('status', 'pending')
+                        ->select('segments', DB::raw('COUNT(*) as recipient_count'))
+                        ->groupBy('segments')
+                        ->orderBy('segments')
+                        ->get()
+                        ->toArray();
+
+                    foreach ($segmentBreakdown as $group) {
+                        $totalSmsParts += ($group->segments ?? 1) * $group->recipient_count;
+                    }
+                }
+
+                if (empty($segmentBreakdown)) {
+                    $segCount = $dbCampaign->segment_count ?? 1;
+                    $totalSmsParts = $recipientCount * $segCount;
+                }
+
                 return view('quicksms.messages.confirm-campaign', [
                     'page_title' => 'Confirm & Send Campaign',
                     'campaign' => $campaign,
@@ -539,6 +563,9 @@ class QuickSMSController extends Controller
                     'recipients' => $recipients,
                     'pricing' => $pricing,
                     'message' => $message,
+                    'segment_breakdown' => $segmentBreakdown,
+                    'total_sms_parts' => $totalSmsParts,
+                    'content_resolved' => $dbCampaign->content_resolved_at !== null,
                 ]);
             }
         }
@@ -621,6 +648,9 @@ class QuickSMSController extends Controller
             'channel' => $channel,
             'recipients' => $recipients,
             'pricing' => $pricing,
+            'segment_breakdown' => [],
+            'total_sms_parts' => $recipientCount * ($campaign['segment_count'] ?? 1),
+            'content_resolved' => false,
             'message' => $message,
         ]);
     }

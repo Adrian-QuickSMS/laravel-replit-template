@@ -176,29 +176,47 @@
                 <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
                         @php
-                            $segmentCount = $campaign['segment_count'] ?? 1;
                             $messageCount = $recipients['valid'] ?? 0;
-                            $totalMessages = $messageCount * $segmentCount;
                             $smsUnitPrice = is_object($pricing['sms_unit_price']) ? (float) $pricing['sms_unit_price']->unitPrice : (float) ($pricing['sms_unit_price'] ?? 0);
-                            $subtotal = $totalMessages * $smsUnitPrice;
+                            $resolvedParts = $total_sms_parts ?? 0;
+                            $subtotal = $resolvedParts * $smsUnitPrice;
                             $vatRate = (float) ($pricing['vat_rate'] ?? 0);
                             $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($vatRate / 100) : 0;
                             $total = $subtotal + $vatAmount;
+                            $hasBreakdown = !empty($segment_breakdown ?? []);
                         @endphp
                         <div class="row mb-2">
                             <div class="col-6 text-muted">Recipients</div>
                             <div class="col-6 text-end">{{ number_format($messageCount) }}</div>
                         </div>
-                        @if($segmentCount > 1)
+                        @if($hasBreakdown && count($segment_breakdown) > 1)
+                        <div class="mb-2">
+                            <p class="text-muted small mb-1">Segment breakdown (personalised per recipient)</p>
+                            @foreach($segment_breakdown as $group)
+                            <div class="d-flex justify-content-between py-1 ps-3">
+                                <span class="small text-muted">{{ number_format($group->recipient_count) }} recipients &times; {{ $group->segments }} {{ $group->segments === 1 ? 'segment' : 'segments' }}</span>
+                                <span class="small">{{ number_format($group->recipient_count * $group->segments) }} parts</span>
+                            </div>
+                            @endforeach
+                        </div>
+                        @elseif($hasBreakdown && count($segment_breakdown) === 1)
                         <div class="row mb-2">
                             <div class="col-6 text-muted">Segments per message</div>
-                            <div class="col-6 text-end">{{ $segmentCount }}</div>
+                            <div class="col-6 text-end">{{ $segment_breakdown[0]->segments }}</div>
                         </div>
+                        @else
+                            @php $segmentCount = $campaign['segment_count'] ?? 1; @endphp
+                            @if($segmentCount > 1)
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Segments per message</div>
+                                <div class="col-6 text-end">{{ $segmentCount }}</div>
+                            </div>
+                            @endif
+                        @endif
                         <div class="row mb-2">
                             <div class="col-6 text-muted">Total SMS parts</div>
-                            <div class="col-6 text-end">{{ number_format($totalMessages) }}</div>
+                            <div class="col-6 text-end">{{ number_format($resolvedParts) }}</div>
                         </div>
-                        @endif
                         <div class="row mb-2">
                             <div class="col-6 text-muted">Price per SMS part</div>
                             <div class="col-6 text-end">&pound;{{ number_format($smsUnitPrice, 4) }}</div>
