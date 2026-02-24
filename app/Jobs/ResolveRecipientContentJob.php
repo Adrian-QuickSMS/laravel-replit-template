@@ -123,7 +123,11 @@ class ResolveRecipientContentJob implements ShouldQueue
             ->orderBy('id')
             ->chunk(2000, function ($recipients) use ($campaign, $messageContent, &$processed, $totalPending) {
                 foreach ($recipients as $row) {
-                    $recipient = new CampaignRecipient((array) $row);
+                    $attrs = (array) $row;
+                    if (isset($attrs['custom_data']) && is_string($attrs['custom_data'])) {
+                        $attrs['custom_data'] = json_decode($attrs['custom_data'], true) ?? [];
+                    }
+                    $recipient = new CampaignRecipient($attrs);
                     $recipient->exists = true;
                     $recipient->id = $row->id;
 
