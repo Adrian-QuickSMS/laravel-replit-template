@@ -515,9 +515,12 @@ class QuickSMSController extends Controller
                 ];
                 $account = \App\Models\Account::find($dbCampaign->account_id);
                 $pricingEngine = app(PricingEngine::class);
-                $smsPrice = $account ? $pricingEngine->resolvePrice($account, 'sms', null) : 0.023;
-                $rcsBasicPrice = $account ? $pricingEngine->resolvePrice($account, 'rcs_basic', null) : 0.035;
-                $rcsSinglePrice = $account ? $pricingEngine->resolvePrice($account, 'rcs_single', null) : 0.045;
+                $smsPriceResult = $account ? $pricingEngine->resolvePrice($account, 'sms', null) : null;
+                $rcsBasicResult = $account ? $pricingEngine->resolvePrice($account, 'rcs_basic', null) : null;
+                $rcsSingleResult = $account ? $pricingEngine->resolvePrice($account, 'rcs_single', null) : null;
+                $smsPrice = $smsPriceResult ? (float) $smsPriceResult->unitPrice : 0.023;
+                $rcsBasicPrice = $rcsBasicResult ? (float) $rcsBasicResult->unitPrice : 0.035;
+                $rcsSinglePrice = $rcsSingleResult ? (float) $rcsSingleResult->unitPrice : 0.045;
                 $pricing = [
                     'sms_unit_price' => $smsPrice,
                     'rcs_basic_price' => $rcsBasicPrice,
