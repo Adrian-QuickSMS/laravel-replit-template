@@ -468,7 +468,8 @@ class QuickSMSController extends Controller
 
                 $messageValidity = 'Default (48 hours)';
                 if (isset($sessionData['message_expiry']) && $sessionData['message_expiry']) {
-                    $messageValidity = $sessionData['message_expiry'] . ' hours';
+                    $expiryVal = $sessionData['message_expiry'];
+                    $messageValidity = stripos($expiryVal, 'hour') !== false ? $expiryVal : $expiryVal . ' hours';
                 }
 
                 $sendingWindow = 'No restrictions';
@@ -599,7 +600,7 @@ class QuickSMSController extends Controller
                 ? $sessionData['scheduled_time'] 
                 : 'Immediate',
             'message_validity' => isset($sessionData['message_expiry']) && $sessionData['message_expiry'] 
-                ? $sessionData['message_expiry'] . ' hours' 
+                ? (stripos($sessionData['message_expiry'], 'hour') !== false ? $sessionData['message_expiry'] : $sessionData['message_expiry'] . ' hours')
                 : 'Default (48 hours)',
             'sending_window' => isset($sessionData['sending_window']) && $sessionData['sending_window'] 
                 ? $sessionData['sending_window'] 

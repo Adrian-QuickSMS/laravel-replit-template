@@ -3013,16 +3013,26 @@ function continueToConfirmation() {
     
     var scheduledTimeValue = 'now';
     var scheduledAt = null;
-    var scheduledRadio = document.querySelector('input[name="scheduling"]:checked');
-    if (scheduledRadio && scheduledRadio.value === 'scheduled') {
-        var dateInput = document.getElementById('scheduledDate');
-        var timeInput = document.getElementById('scheduledTime');
+    var scheduleToggle = document.getElementById('scheduleToggle');
+    if (scheduleToggle && scheduleToggle.checked) {
+        var dateInput = document.getElementById('scheduleDate');
+        var timeInput = document.getElementById('scheduleTime');
         if (dateInput && timeInput && dateInput.value && timeInput.value) {
             scheduledTimeValue = dateInput.value + ' ' + timeInput.value;
             scheduledAt = dateInput.value + 'T' + timeInput.value + ':00';
         }
     }
-    
+
+    var sendingWindowValue = null;
+    var unsociableToggle = document.getElementById('unsociableToggle');
+    if (unsociableToggle && unsociableToggle.checked) {
+        var fromVal = document.getElementById('unsociableFrom');
+        var toVal = document.getElementById('unsociableTo');
+        if (fromVal && toVal && fromVal.value && toVal.value) {
+            sendingWindowValue = 'Quiet hours: ' + fromVal.value + ' - ' + toVal.value;
+        }
+    }
+
     var messageExpiry = null;
     if (document.getElementById('messageExpiry') && document.getElementById('messageExpiry').checked) {
         var expiryVal = document.getElementById('messageExpiryValue');
@@ -3094,7 +3104,7 @@ function continueToConfirmation() {
             },
             scheduled_time: scheduledTimeValue,
             message_expiry: messageExpiry,
-            sending_window: null,
+            sending_window: sendingWindowValue,
             optout_config: optoutConfig
         };
 
