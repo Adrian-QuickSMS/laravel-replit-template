@@ -469,8 +469,9 @@ class QuickSMSController extends Controller
                     'type' => $dbCampaign->type,
                     'status' => $dbCampaign->status,
                 ];
+                $channelTypeMap = ['sms' => 'sms_only', 'rcs_basic' => 'basic_rcs', 'rcs_single' => 'rich_rcs'];
                 $channel = [
-                    'type' => $dbCampaign->type,
+                    'type' => $channelTypeMap[$dbCampaign->type] ?? $dbCampaign->type,
                     'sms_sender_id' => $dbCampaign->senderId ? $dbCampaign->senderId->sender_id : 'Not selected',
                     'rcs_agent' => [
                         'name' => $dbCampaign->rcsAgent ? $dbCampaign->rcsAgent->name : 'Not selected',
@@ -511,11 +512,16 @@ class QuickSMSController extends Controller
                     'opted_out' => $sessionData['opted_out_count'] ?? 0,
                     'sources' => $mappedSources,
                 ];
+                $account = \App\Models\Account::find($dbCampaign->account_id);
+                $pricingEngine = app(PricingEngine::class);
+                $smsPrice = $account ? $pricingEngine->resolvePrice($account, 'sms', null) : 0.023;
+                $rcsBasicPrice = $account ? $pricingEngine->resolvePrice($account, 'rcs_basic', null) : 0.035;
+                $rcsSinglePrice = $account ? $pricingEngine->resolvePrice($account, 'rcs_single', null) : 0.045;
                 $pricing = [
-                    'sms_unit_price' => 0.023,
-                    'rcs_basic_price' => 0.035,
-                    'rcs_single_price' => 0.045,
-                    'vat_applicable' => true,
+                    'sms_unit_price' => $smsPrice,
+                    'rcs_basic_price' => $rcsBasicPrice,
+                    'rcs_single_price' => $rcsSinglePrice,
+                    'vat_applicable' => $account ? (bool) ($account->vat_registered ?? true) : true,
                     'vat_rate' => 20,
                 ];
                 return view('quicksms.messages.confirm-campaign', [
