@@ -3962,10 +3962,14 @@ function refreshCsvFieldButtons() {
     if (csvSection) csvSection.style.display = '';
     if (hintEl) hintEl.style.display = 'none';
     var html = '';
+    var lb = String.fromCharCode(123, 123);
+    var rb = String.fromCharCode(125, 125);
     intersection.forEach(function(fieldName) {
         var isBuiltIn = builtInFields.indexOf(fieldName) !== -1;
         var btnClass = isBuiltIn ? 'btn btn-outline-primary btn-sm' : 'btn btn-outline-secondary btn-sm';
-        html += '<button type="button" class="' + btnClass + '" onclick="insertPlaceholder(\'' + escapeContactHtml(fieldName.replace(/'/g, "\\'")) + '\')">{{' + escapeContactHtml(fieldName) + '}}</button>';
+        var escaped = escapeContactHtml(fieldName);
+        var escapedAttr = fieldName.replace(/'/g, "\\'");
+        html += '<button type="button" class="' + btnClass + '" onclick="insertPlaceholder(\'' + escapedAttr + '\')">' + lb + escaped + rb + '</button>';
     });
     csvBtnContainer.innerHTML = html;
 }
