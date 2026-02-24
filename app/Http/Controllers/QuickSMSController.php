@@ -365,7 +365,9 @@ class QuickSMSController extends Controller
                 return [
                     'id' => $agent->id,
                     'name' => $agent->name,
-                    'logo' => $agent->logo_url ? asset('storage/' . $agent->logo_url) : asset('images/default-agent-logo.png'),
+                    'logo' => $agent->logo_url
+                        ? (str_starts_with($agent->logo_url, 'data:') ? $agent->logo_url : asset('storage/' . $agent->logo_url))
+                        : asset('images/default-agent-logo.png'),
                     'tagline' => $agent->description ?? '',
                     'brand_color' => $agent->brand_color ?? '#886CC0',
                     'status' => $agent->workflow_status,
@@ -447,7 +449,9 @@ class QuickSMSController extends Controller
                     'sms_sender_id' => $dbCampaign->senderId ? $dbCampaign->senderId->sender_id : 'Not selected',
                     'rcs_agent' => [
                         'name' => $dbCampaign->rcsAgent ? $dbCampaign->rcsAgent->name : 'Not selected',
-                        'logo' => $dbCampaign->rcsAgent && $dbCampaign->rcsAgent->logo_url ? asset('storage/' . $dbCampaign->rcsAgent->logo_url) : asset('images/default-agent-logo.png'),
+                        'logo' => $dbCampaign->rcsAgent && $dbCampaign->rcsAgent->logo_url
+                            ? (str_starts_with($dbCampaign->rcsAgent->logo_url, 'data:') ? $dbCampaign->rcsAgent->logo_url : asset('storage/' . $dbCampaign->rcsAgent->logo_url))
+                            : asset('images/default-agent-logo.png'),
                     ],
                 ];
                 $message = [
