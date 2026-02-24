@@ -359,14 +359,14 @@ class QuickSMSController extends Controller
         $sender_ids = $this->getApprovedSenderIds();
 
         $rcs_agents = RcsAgent::where('workflow_status', 'approved')
-            ->select('id', 'name', 'logo_url', 'tagline', 'brand_color', 'workflow_status')
+            ->select('id', 'name', 'logo_url', 'description', 'brand_color', 'workflow_status')
             ->get()
             ->map(function($agent) {
                 return [
                     'id' => $agent->id,
                     'name' => $agent->name,
                     'logo' => $agent->logo_url ? asset('storage/' . $agent->logo_url) : asset('images/default-agent-logo.png'),
-                    'tagline' => $agent->tagline ?? '',
+                    'tagline' => $agent->description ?? '',
                     'brand_color' => $agent->brand_color ?? '#886CC0',
                     'status' => $agent->workflow_status,
                 ];
