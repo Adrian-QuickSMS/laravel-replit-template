@@ -3626,6 +3626,20 @@ function csvBuildMappingUI(headerRow, sampleRow, allDataRows, hasHeaders) {
         needsNormalisation = issues.length > 0;
     }
 
+    document.getElementById('csvExcelCorrectionApplied').value = '';
+    var normContent = document.getElementById('csvNormalisationContent');
+    normContent.innerHTML =
+        '<i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>' +
+        '<strong style="color: #886CC0;">UK Number Normalisation</strong>' +
+        '<p class="mb-2 mt-2 text-dark" id="csvNormalisationDetail">We\'ve detected mixed mobile number formats in your file.</p>' +
+        '<p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)?</p>' +
+        '<div class="d-flex gap-2">' +
+            '<button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="csvSetNormalisation(true)">' +
+                '<i class="fas fa-check me-1"></i> Yes, normalise to UK format</button>' +
+            '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="csvSetNormalisation(false)">' +
+                '<i class="fas fa-times me-1"></i> No, leave as-is</button>' +
+        '</div>';
+
     if (needsNormalisation) {
         document.getElementById('csvNormalisationDetail').textContent =
             'We\'ve detected mixed mobile number formats: ' + issues.join(', ') + '.';
