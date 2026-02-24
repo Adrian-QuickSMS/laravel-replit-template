@@ -459,14 +459,31 @@ class QuickSMSController extends Controller
         if ($campaignId && $campaignId !== 'null' && $campaignId !== 'undefined') {
             $dbCampaign = Campaign::find($campaignId);
             if ($dbCampaign) {
+                $scheduledTime = 'Immediate';
+                if ($dbCampaign->scheduled_at) {
+                    $scheduledTime = $dbCampaign->scheduled_at->format('d/m/Y H:i');
+                } elseif (isset($sessionData['scheduled_time']) && $sessionData['scheduled_time'] !== 'now') {
+                    $scheduledTime = $sessionData['scheduled_time'];
+                }
+
+                $messageValidity = 'Default (48 hours)';
+                if (isset($sessionData['message_expiry']) && $sessionData['message_expiry']) {
+                    $messageValidity = $sessionData['message_expiry'] . ' hours';
+                }
+
+                $sendingWindow = 'No restrictions';
+                if (isset($sessionData['sending_window']) && $sessionData['sending_window']) {
+                    $sendingWindow = $sessionData['sending_window'];
+                }
+
                 $campaign = [
                     'id' => $dbCampaign->id,
                     'name' => $dbCampaign->name,
                     'created_by' => session('customer_email', 'Current User'),
                     'created_at' => $dbCampaign->created_at->format('d/m/Y H:i'),
-                    'scheduled_time' => $dbCampaign->scheduled_at ? $dbCampaign->scheduled_at->format('d/m/Y H:i') : 'Immediate',
-                    'message_validity' => 'Default (48 hours)',
-                    'sending_window' => 'No restrictions',
+                    'scheduled_time' => $scheduledTime,
+                    'message_validity' => $messageValidity,
+                    'sending_window' => $sendingWindow,
                     'type' => $dbCampaign->type,
                     'status' => $dbCampaign->status,
                     'segment_count' => $dbCampaign->segment_count ?? 1,
@@ -475,9 +492,9 @@ class QuickSMSController extends Controller
                 $channel = [
                     'type' => $channelTypeMap[$dbCampaign->type] ?? $dbCampaign->type,
                     'sms_sender_id' => $dbCampaign->senderId
-                        ? $dbCampaign->senderId->sender_id
+                        ? $dbCampaign->senderId->sender_id_value
                         : ($sessionData['sender_id'] ?? ($dbCampaign->sender_id_id
-                            ? (SenderId::withoutGlobalScopes()->find($dbCampaign->sender_id_id)->sender_id ?? 'Not selected')
+                            ? (SenderId::withoutGlobalScopes()->find($dbCampaign->sender_id_id)->sender_id_value ?? 'Not selected')
                             : 'Not selected')),
                     'rcs_agent' => [
                         'name' => $dbCampaign->rcsAgent ? $dbCampaign->rcsAgent->name : 'Not selected',
