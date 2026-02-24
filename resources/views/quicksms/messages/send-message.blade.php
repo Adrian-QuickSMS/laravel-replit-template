@@ -3984,10 +3984,10 @@ function updateUploadButtonState() {
     var count = recipientState.files.length;
     if (count >= 5) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File <span class="badge bg-secondary ms-1">5/5</span>';
+        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File <span class="badge ms-1" style="background-color: #e8dff5; color: #886CC0;">5/5</span>';
     } else if (count > 0) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File <span class="badge ms-1" style="background-color: #886CC0;">' + count + '/5</span>';
+        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File <span class="badge ms-1" style="background-color: #e8dff5; color: #886CC0;">' + count + '/5</span>';
     } else {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File';
