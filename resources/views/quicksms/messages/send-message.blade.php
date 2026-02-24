@@ -1155,6 +1155,23 @@
     </div>
 </div>
 
+<div class="modal fade" id="csvAlertModal" tabindex="-1" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" style="color: #886CC0;"><i class="fas fa-info-circle me-2"></i>Attention</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-0" id="csvAlertMessage"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="aiAssistantModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -3340,7 +3357,7 @@ var currentProcessingFileIndex = -1;
 
 function triggerFileUpload() {
     if (recipientState.files.length >= 5) {
-        alert('Maximum 5 files allowed');
+        showCsvAlert('Maximum <strong>5 files</strong> allowed.');
         return;
     }
     csvCurrentStep = 1;
@@ -3396,7 +3413,7 @@ function csvHandleFile(file) {
     var ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     var validExtensions = ['.csv', '.xlsx', '.xls'];
     if (!validExtensions.includes(ext)) {
-        alert('Please upload a CSV or Excel file.');
+        showCsvAlert('Please upload a <strong>CSV</strong> or <strong>Excel</strong> file.');
         return;
     }
     csvFileData = {
@@ -3501,7 +3518,7 @@ function csvDetectColumns() {
 
     if (csvFileData.type === 'excel') {
         if (typeof XLSX === 'undefined') {
-            alert('Excel file support is not available. Please upload a CSV file instead.');
+            showCsvAlert('Excel file support is not available. Please upload a <strong>CSV</strong> file instead.');
             csvPrevStep();
             return;
         }
@@ -3515,13 +3532,13 @@ function csvDetectColumns() {
                 jsonRows = jsonRows.filter(function(r) {
                     return r.some(function(cell) { return cell !== '' && cell !== null && cell !== undefined; });
                 });
-                if (jsonRows.length === 0) { alert('The spreadsheet appears to be empty.'); return; }
+                if (jsonRows.length === 0) { showCsvAlert('The spreadsheet appears to be empty.'); return; }
                 var headerRow = jsonRows[0].map(function(c) { return String(c); });
                 var sampleRow = jsonRows.length > 1 ? jsonRows[1].map(function(c) { return String(c); }) : headerRow;
                 var dataRows = jsonRows.slice(hasHeaders ? 1 : 0).map(function(r) { return r.map(function(c) { return String(c); }); });
                 csvBuildMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
             } catch (err) {
-                alert('Could not read the Excel file. Please check the format and try again.');
+                showCsvAlert('Could not read the Excel file. Please check the format and try again.');
             }
         };
         reader.readAsArrayBuffer(csvFileData.file);
@@ -3647,15 +3664,21 @@ function csvValidateMappings() {
         if (select.value === 'mobile') hasMobile = true;
     });
     if (!hasMobile) {
-        alert('Please map at least one column to Mobile Number.');
+        showCsvAlert('Please map at least one column to <strong>Mobile Number</strong>.');
         return false;
     }
     var normWarning = document.getElementById('csvNormalisationWarning');
     if (!normWarning.classList.contains('d-none') && document.getElementById('csvExcelCorrectionApplied').value === '') {
-        alert('Please confirm the UK number normalisation option above.');
+        showCsvAlert('Please confirm the <strong>UK number normalisation</strong> option above.');
         return false;
     }
     return true;
+}
+
+function showCsvAlert(message) {
+    document.getElementById('csvAlertMessage').innerHTML = message;
+    var modal = new bootstrap.Modal(document.getElementById('csvAlertModal'));
+    modal.show();
 }
 
 function csvNormaliseMobile(raw, applyUkNormalisation) {
@@ -3791,7 +3814,7 @@ function csvDownloadInvalidRows() {
 
 function csvConfirmImport() {
     if (!csvValidationResults || csvValidationResults.validNumbers.length === 0) {
-        alert('No valid numbers found to import.');
+        showCsvAlert('No valid numbers found to import.');
         return;
     }
 
