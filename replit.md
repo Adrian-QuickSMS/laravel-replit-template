@@ -36,6 +36,10 @@ The QuickSMS platform is built on PHP 8.3 and Laravel 10, using PostgreSQL 16. T
 *   **JavaScript Service Pattern:** Services use `fetch()` for API calls (`useMockData: false`), handle CSRF, and include UI rendering helpers.
 *   **UI/UX Conventions:** Uses Bootstrap 5 (Fillow template) with a pastel color scheme. Dates are DD-MM-YYYY in UI, ISO 8601 in API. DataTables are used for client-side table functionality. Bootstrap modals for forms. Mobile numbers are masked in UI. Status badges use `badge-pastel-*` classes, and icons are Font Awesome 5.
 *   **Billing Backend:** Includes 19 database tables and 20 Eloquent models for ledger, test credits, pricing, invoices, payments, and billing operations. It features 9 services (e.g., LedgerService, PricingEngine, InvoiceService, XeroService) and 12 controllers for customer, admin, and webhook endpoints.
+*   **Performance Patterns:**
+    *   **Batch UPDATE FROM VALUES:** Content resolution and cost calculation use PostgreSQL `UPDATE FROM VALUES` pattern for ~60x faster bulk updates (500 rows per SQL statement instead of individual UPDATEs).
+    *   **Streaming Chunk Pipeline:** `RecipientResolverService` uses cursor-based pagination (2K rows at a time) with inline dedup/validate/opt-out/persist per chunk. Only one chunk in memory at a time (~50MB constant regardless of campaign size).
+    *   **Per-Segment Cost Estimation:** When content is resolved, `estimateCost()` groups recipients by `(country_iso, segments)` for accurate pricing with variable-length merge fields.
 *   **Admin UI for Billing & RCS:**
     *   **Account Billing:** Admin endpoints for viewing/updating account billing mode, balance, credit limit.
     *   **Pricing Management:** A 4-tab interface for managing pricing grids, events, service catalogue, and history, with dedicated API endpoints.

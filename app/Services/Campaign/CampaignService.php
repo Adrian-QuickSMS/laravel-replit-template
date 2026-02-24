@@ -147,7 +147,19 @@ class CampaignService
             'rcs_content' => $template->rcs_content,
             'encoding' => $template->encoding,
             'segment_count' => $template->segment_count,
+            'content_resolved_at' => null,
+            'preparation_status' => null,
+            'preparation_progress' => 0,
+            'preparation_error' => null,
         ]);
+
+        DB::table('campaign_recipients')
+            ->where('campaign_id', $campaign->id)
+            ->update([
+                'resolved_content' => null,
+                'segments' => $template->segment_count ?: 1,
+                'encoding' => null,
+            ]);
 
         return $campaign;
     }
@@ -253,10 +265,18 @@ class CampaignService
     /**
      * Get a cost estimate for the campaign.
      * Requires recipients to be resolved first.
+     *
+     * If content has been resolved (per-recipient segments calculated),
+     * returns an accurate cost based on actual segment distribution.
+     * Otherwise falls back to flat segment_count estimate.
      */
     public function estimateCost(Campaign $campaign): CostEstimate
     {
         $account = Account::findOrFail($campaign->account_id);
+
+        if ($campaign->content_resolved_at) {
+            return $this->estimateCostFromResolvedRecipients($account, $campaign);
+        }
 
         $countryBreakdown = DB::table('campaign_recipients')
             ->where('campaign_id', $campaign->id)
@@ -271,6 +291,29 @@ class CampaignService
             $campaign->type,
             $countryBreakdown,
             $campaign->segment_count ?: 1
+        );
+    }
+
+    /**
+     * Calculate cost using actual per-recipient segment data.
+     *
+     * Groups recipients by (country_iso, segments) so each group is priced
+     * independently — a recipient with 2 segments costs exactly double
+     * a recipient with 1 segment in the same country.
+     */
+    private function estimateCostFromResolvedRecipients(Account $account, Campaign $campaign): CostEstimate
+    {
+        $breakdown = DB::table('campaign_recipients')
+            ->where('campaign_id', $campaign->id)
+            ->where('status', CampaignRecipient::STATUS_PENDING)
+            ->select('country_iso', 'segments', DB::raw('COUNT(*) as recipient_count'))
+            ->groupBy('country_iso', 'segments')
+            ->get();
+
+        return $this->billingPreflight->estimateCostPerSegmentGroup(
+            $account,
+            $campaign->type,
+            $breakdown
         );
     }
 
@@ -685,12 +728,16 @@ class CampaignService
             return;
         }
 
+        $batchUpdateSize = 500;
+
         DB::table('campaign_recipients')
             ->where('campaign_id', $campaign->id)
             ->where('status', CampaignRecipient::STATUS_PENDING)
             ->whereNull('resolved_content')
             ->orderBy('id')
-            ->chunk(2000, function ($recipients) use ($campaign) {
+            ->chunk(2000, function ($recipients) use ($campaign, $batchUpdateSize) {
+                $pendingUpdates = [];
+
                 foreach ($recipients as $row) {
                     $recipient = new CampaignRecipient((array) $row);
                     $recipient->exists = true;
@@ -700,17 +747,54 @@ class CampaignService
                     $encoding = MessageTemplate::detectEncoding($resolvedContent);
                     $segments = MessageTemplate::calculateSegments($resolvedContent, $encoding);
 
-                    DB::table('campaign_recipients')
-                        ->where('id', $row->id)
-                        ->update([
-                            'resolved_content' => $resolvedContent,
-                            'segments' => $segments,
-                            'encoding' => $encoding,
-                        ]);
+                    $pendingUpdates[] = [
+                        'id' => $row->id,
+                        'resolved_content' => $resolvedContent,
+                        'segments' => $segments,
+                        'encoding' => $encoding,
+                    ];
+
+                    if (count($pendingUpdates) >= $batchUpdateSize) {
+                        $this->flushBatchContentUpdate($pendingUpdates);
+                        $pendingUpdates = [];
+                    }
+                }
+
+                if (!empty($pendingUpdates)) {
+                    $this->flushBatchContentUpdate($pendingUpdates);
                 }
             });
 
         $campaign->update(['content_resolved_at' => now()]);
+    }
+
+    private function flushBatchContentUpdate(array $updates): void
+    {
+        if (empty($updates)) {
+            return;
+        }
+
+        $values = [];
+        $bindings = [];
+
+        foreach ($updates as $update) {
+            $values[] = '(?, ?, ?, ?)';
+            $bindings[] = $update['id'];
+            $bindings[] = $update['resolved_content'];
+            $bindings[] = $update['segments'];
+            $bindings[] = $update['encoding'];
+        }
+
+        $valuesSql = implode(', ', $values);
+
+        DB::statement("
+            UPDATE campaign_recipients AS cr
+            SET resolved_content = v.resolved_content,
+                segments = v.segments::integer,
+                encoding = v.encoding
+            FROM (VALUES {$valuesSql}) AS v(id, resolved_content, segments, encoding)
+            WHERE cr.id = v.id::uuid
+        ", $bindings);
     }
 
     /**
