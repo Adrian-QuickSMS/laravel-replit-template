@@ -538,11 +538,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="cbContactsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="1"></td><td>John Smith</td><td>+44 7700***123</td><td><span class="badge bg-info">VIP</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="2"></td><td>Jane Doe</td><td>+44 7700***456</td><td><span class="badge bg-success">Asthma</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="3"></td><td>Robert Brown</td><td>+44 7700***789</td><td></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="4"></td><td>Sarah Wilson</td><td>+44 7700***012</td><td><span class="badge bg-warning">Diabetes</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="5"></td><td>Michael Johnson</td><td>+44 7700***345</td><td><span class="badge bg-info">VIP</span></td></tr>
+                                    <tr><td colspan="4" class="text-center text-muted py-3">Loading contacts...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -557,10 +553,8 @@
                                 <thead class="table-light">
                                     <tr><th style="width: 30px;"></th><th>List Name</th><th>Contacts</th><th>Last Updated</th></tr>
                                 </thead>
-                                <tbody>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="1"></td><td>VIP Patients</td><td>1,234</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="2"></td><td>Newsletter Subscribers</td><td>5,678</td><td>21-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="3"></td><td>Flu Campaign 2025</td><td>3,456</td><td>20-Dec-2025</td></tr>
+                                <tbody id="cbListsTable">
+                                    <tr><td colspan="4" class="text-center text-muted py-3">Loading lists...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -575,9 +569,8 @@
                                 <thead class="table-light">
                                     <tr><th style="width: 30px;"></th><th>List Name</th><th>Rules</th><th>Contacts</th><th>Last Evaluated</th></tr>
                                 </thead>
-                                <tbody>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="1"></td><td>Over 65s</td><td>Age > 65</td><td>2,345</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="2"></td><td>Local Postcodes</td><td>Postcode starts with SW</td><td>1,890</td><td>22-Dec-2025</td></tr>
+                                <tbody id="cbDynamicListsTable">
+                                    <tr><td colspan="5" class="text-center text-muted py-3">Loading dynamic lists...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -592,11 +585,8 @@
                                 <thead class="table-light">
                                     <tr><th style="width: 30px;"></th><th>Tag</th><th>Contacts</th></tr>
                                 </thead>
-                                <tbody>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="1"></td><td><span class="badge" style="background-color: #0d6efd;">VIP</span></td><td>456</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="2"></td><td><span class="badge" style="background-color: #198754;">Asthma</span></td><td>1,234</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="3"></td><td><span class="badge" style="background-color: #ffc107;">Diabetes</span></td><td>890</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="4"></td><td><span class="badge" style="background-color: #dc3545;">Hypertension</span></td><td>567</td></tr>
+                                <tbody id="cbTagsTable">
+                                    <tr><td colspan="3" class="text-center text-muted py-3">Loading tags...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -3145,10 +3135,171 @@ function confirmColumnMapping() {
     console.log('TODO: API - Process file upload with column mapping');
 }
 
+var cbContactsData = [];
+var cbListsData = [];
+var cbDynamicListsData = [];
+var cbTagsData = [];
+var cbDataLoaded = false;
+var cbSearchTimeout = null;
+
 function openContactBookModal() {
     var modal = new bootstrap.Modal(document.getElementById('contactBookModal'));
     modal.show();
+    if (!cbDataLoaded) {
+        loadContactBookData();
+    }
+    restoreContactBookSelections();
     updateContactBookSummary();
+}
+
+function loadContactBookData() {
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var headers = { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken };
+
+    Promise.all([
+        fetch('/api/contacts?per_page=100', { headers: headers }).then(function(r) { return r.json(); }),
+        fetch('/api/contact-lists', { headers: headers }).then(function(r) { return r.json(); }),
+        fetch('/api/tags', { headers: headers }).then(function(r) { return r.json(); })
+    ]).then(function(results) {
+        cbContactsData = results[0].data || [];
+        var allLists = results[1].data || [];
+        cbListsData = allLists.filter(function(l) { return l.type === 'static'; });
+        cbDynamicListsData = allLists.filter(function(l) { return l.type === 'dynamic'; });
+        cbTagsData = results[2].data || [];
+        cbDataLoaded = true;
+
+        renderCbContacts(cbContactsData);
+        renderCbLists(cbListsData);
+        renderCbDynamicLists(cbDynamicListsData);
+        renderCbTags(cbTagsData);
+        populateTagFilter(cbTagsData);
+        restoreContactBookSelections();
+    }).catch(function(err) {
+        console.error('Failed to load contact book data:', err);
+        document.getElementById('cbContactsTable').innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">Failed to load contacts</td></tr>';
+    });
+}
+
+function escapeContactHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function renderCbContacts(contacts) {
+    var tbody = document.getElementById('cbContactsTable');
+    if (!contacts.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No contacts found</td></tr>';
+        return;
+    }
+    var html = '';
+    contacts.forEach(function(c) {
+        var name = escapeContactHtml((c.first_name || '') + ' ' + (c.last_name || '')).trim() || 'Unnamed';
+        var mobile = escapeContactHtml(c.mobile_masked || 'No mobile');
+        var tagsHtml = '';
+        if (c.tags && c.tags.length) {
+            c.tags.forEach(function(t) {
+                tagsHtml += '<span class="badge bg-info me-1">' + escapeContactHtml(t) + '</span>';
+            });
+        }
+        html += '<tr>' +
+            '<td><input type="checkbox" class="form-check-input cb-contact" value="' + c.id + '" data-name="' + escapeContactHtml(name) + '"></td>' +
+            '<td>' + name + '</td>' +
+            '<td>' + mobile + '</td>' +
+            '<td>' + tagsHtml + '</td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function renderCbLists(lists) {
+    var tbody = document.getElementById('cbListsTable');
+    if (!lists.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No lists found</td></tr>';
+        return;
+    }
+    var html = '';
+    lists.forEach(function(l) {
+        var count = l.contact_count || 0;
+        var updated = l.updated_at || '-';
+        html += '<tr>' +
+            '<td><input type="checkbox" class="form-check-input cb-list" value="' + l.id + '" data-name="' + escapeContactHtml(l.name) + '" data-count="' + count + '"></td>' +
+            '<td>' + escapeContactHtml(l.name) + '</td>' +
+            '<td>' + count.toLocaleString() + '</td>' +
+            '<td>' + escapeContactHtml(updated) + '</td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function renderCbDynamicLists(lists) {
+    var tbody = document.getElementById('cbDynamicListsTable');
+    if (!lists.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No dynamic lists found</td></tr>';
+        return;
+    }
+    var html = '';
+    lists.forEach(function(l) {
+        var count = l.contact_count || 0;
+        var rules = l.rules ? JSON.stringify(l.rules).substring(0, 50) : '-';
+        var evaluated = l.last_evaluated || '-';
+        html += '<tr>' +
+            '<td><input type="checkbox" class="form-check-input cb-dynamic" value="' + l.id + '" data-name="' + escapeContactHtml(l.name) + '" data-count="' + count + '"></td>' +
+            '<td>' + escapeContactHtml(l.name) + '</td>' +
+            '<td>' + escapeContactHtml(rules) + '</td>' +
+            '<td>' + count.toLocaleString() + '</td>' +
+            '<td>' + escapeContactHtml(evaluated) + '</td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function renderCbTags(tags) {
+    var tbody = document.getElementById('cbTagsTable');
+    if (!tags.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">No tags found</td></tr>';
+        return;
+    }
+    var html = '';
+    tags.forEach(function(t) {
+        var count = t.contact_count || 0;
+        var color = t.color || '#6f42c1';
+        html += '<tr>' +
+            '<td><input type="checkbox" class="form-check-input cb-tag" value="' + t.id + '" data-name="' + escapeContactHtml(t.name) + '" data-count="' + count + '"></td>' +
+            '<td><span class="badge" style="background-color: ' + escapeContactHtml(color) + ';">' + escapeContactHtml(t.name) + '</span></td>' +
+            '<td>' + count.toLocaleString() + '</td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function populateTagFilter(tags) {
+    var select = document.getElementById('cbFilterTags');
+    if (!select) return;
+    select.innerHTML = '<option value="">All tags</option>';
+    tags.forEach(function(t) {
+        select.innerHTML += '<option value="' + escapeContactHtml(t.name) + '">' + escapeContactHtml(t.name) + '</option>';
+    });
+}
+
+function restoreContactBookSelections() {
+    recipientState.contactBook.contacts.forEach(function(c) {
+        var cb = document.querySelector('.cb-contact[value="' + c.id + '"]');
+        if (cb) cb.checked = true;
+    });
+    recipientState.contactBook.lists.forEach(function(l) {
+        var cb = document.querySelector('.cb-list[value="' + l.id + '"]');
+        if (cb) cb.checked = true;
+    });
+    recipientState.contactBook.dynamicLists.forEach(function(dl) {
+        var cb = document.querySelector('.cb-dynamic[value="' + dl.id + '"]');
+        if (cb) cb.checked = true;
+    });
+    recipientState.contactBook.tags.forEach(function(t) {
+        var cb = document.querySelector('.cb-tag[value="' + t.id + '"]');
+        if (cb) cb.checked = true;
+    });
 }
 
 function toggleContactFilters() {
@@ -3159,6 +3310,7 @@ function clearContactFilters() {
     document.getElementById('cbFilterTags').value = '';
     document.getElementById('cbFilterMobile').value = '';
     document.getElementById('cbFilterOptout').value = 'exclude';
+    renderCbContacts(cbContactsData);
 }
 
 function toggleAllContacts() {
@@ -3170,11 +3322,37 @@ function toggleAllContacts() {
 }
 
 function filterContacts() {
-    console.log('TODO: Filter contacts based on search');
+    clearTimeout(cbSearchTimeout);
+    cbSearchTimeout = setTimeout(function() {
+        var query = (document.getElementById('cbContactSearch').value || '').toLowerCase();
+        if (!query) {
+            renderCbContacts(cbContactsData);
+            restoreContactBookSelections();
+            return;
+        }
+        var filtered = cbContactsData.filter(function(c) {
+            var name = ((c.first_name || '') + ' ' + (c.last_name || '')).toLowerCase();
+            var mobile = (c.mobile_masked || '').toLowerCase();
+            var tags = (c.tags || []).join(' ').toLowerCase();
+            return name.indexOf(query) !== -1 || mobile.indexOf(query) !== -1 || tags.indexOf(query) !== -1;
+        });
+        renderCbContacts(filtered);
+        restoreContactBookSelections();
+    }, 300);
 }
 
 function sortContacts() {
-    console.log('TODO: Sort contacts based on selection');
+    var sortBy = document.getElementById('cbContactSort').value;
+    var sorted = cbContactsData.slice();
+    if (sortBy === 'name_asc') {
+        sorted.sort(function(a, b) { return ((a.first_name || '') + ' ' + (a.last_name || '')).localeCompare((b.first_name || '') + ' ' + (b.last_name || '')); });
+    } else if (sortBy === 'name_desc') {
+        sorted.sort(function(a, b) { return ((b.first_name || '') + ' ' + (b.last_name || '')).localeCompare((a.first_name || '') + ' ' + (a.last_name || '')); });
+    } else if (sortBy === 'added') {
+        sorted.sort(function(a, b) { return (b.created_at || '').localeCompare(a.created_at || ''); });
+    }
+    renderCbContacts(sorted);
+    restoreContactBookSelections();
 }
 
 function updateContactBookSummary() {
@@ -3197,17 +3375,24 @@ document.addEventListener('change', function(e) {
 });
 
 function confirmContactBookSelection() {
-    var contacts = Array.from(document.querySelectorAll('.cb-contact:checked')).map(cb => cb.value);
-    var lists = Array.from(document.querySelectorAll('.cb-list:checked')).map(cb => cb.value);
-    var dynamic = Array.from(document.querySelectorAll('.cb-dynamic:checked')).map(cb => cb.value);
-    var tags = Array.from(document.querySelectorAll('.cb-tag:checked')).map(cb => cb.value);
+    var contacts = Array.from(document.querySelectorAll('.cb-contact:checked')).map(function(cb) {
+        return { id: cb.value, name: cb.dataset.name || 'Contact' };
+    });
+    var lists = Array.from(document.querySelectorAll('.cb-list:checked')).map(function(cb) {
+        return { id: cb.value, name: cb.dataset.name || 'List', count: parseInt(cb.dataset.count) || 0 };
+    });
+    var dynamic = Array.from(document.querySelectorAll('.cb-dynamic:checked')).map(function(cb) {
+        return { id: cb.value, name: cb.dataset.name || 'Dynamic List', count: parseInt(cb.dataset.count) || 0 };
+    });
+    var tags = Array.from(document.querySelectorAll('.cb-tag:checked')).map(function(cb) {
+        return { id: cb.value, name: cb.dataset.name || 'Tag', count: parseInt(cb.dataset.count) || 0 };
+    });
     
     recipientState.contactBook = { contacts: contacts, lists: lists, dynamicLists: dynamic, tags: tags };
     
     bootstrap.Modal.getInstance(document.getElementById('contactBookModal')).hide();
     renderContactBookChips();
     updateRecipientSummary();
-    console.log('TODO: API - Resolve contact book selections to actual numbers');
 }
 
 function removeContactBookItem(type) {
@@ -3237,10 +3422,10 @@ function renderContactBookChips() {
 function updateRecipientSummary() {
     var manualValid = recipientState.manual.valid.length;
     var uploadValid = recipientState.upload.valid.length;
-    var contactBookCount = (recipientState.contactBook.contacts.length * 1) + 
-                          (recipientState.contactBook.lists.length * 1234) + 
-                          (recipientState.contactBook.dynamicLists.length * 2000) + 
-                          (recipientState.contactBook.tags.length * 500);
+    var contactBookCount = recipientState.contactBook.contacts.length +
+                          recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0) +
+                          recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0) +
+                          recipientState.contactBook.tags.reduce(function(acc, t) { return acc + (t.count || 0); }, 0);
     
     var totalValid = manualValid + uploadValid + contactBookCount;
     
