@@ -106,8 +106,17 @@ class CampaignApiController extends Controller
             'rcs_content' => 'nullable|array',
             'sender_id_id' => 'nullable|integer',
             'rcs_agent_id' => 'nullable|integer',
-            'recipient_sources' => 'nullable|array',
+            'recipient_sources' => 'nullable|array|max:50',
             'recipient_sources.*.type' => 'required_with:recipient_sources|string|in:list,tag,individual,manual,csv',
+            'recipient_sources.*.id' => 'nullable|uuid',
+            'recipient_sources.*.contact_ids' => 'nullable|array|max:100000',
+            'recipient_sources.*.contact_ids.*' => 'uuid',
+            'recipient_sources.*.numbers' => 'nullable|array|max:100000',
+            'recipient_sources.*.numbers.*' => 'string|max:30',
+            'recipient_sources.*.data' => 'nullable|array|max:1000000',
+            'recipient_sources.*.data.*.mobile_number' => 'nullable|string|max:30',
+            'recipient_sources.*.data.*.phone' => 'nullable|string|max:30',
+            'recipient_sources.*.data.*.mobile' => 'nullable|string|max:30',
             'scheduled_at' => 'nullable|date|after:now',
             'timezone' => 'nullable|string|max:50',
             'send_rate' => 'nullable|integer|min:0|max:500',
@@ -150,7 +159,13 @@ class CampaignApiController extends Controller
             'rcs_content' => 'nullable|array',
             'sender_id_id' => 'nullable|integer',
             'rcs_agent_id' => 'nullable|integer',
-            'recipient_sources' => 'nullable|array',
+            'recipient_sources' => 'nullable|array|max:50',
+            'recipient_sources.*.type' => 'required_with:recipient_sources|string|in:list,tag,individual,manual,csv',
+            'recipient_sources.*.id' => 'nullable|uuid',
+            'recipient_sources.*.contact_ids' => 'nullable|array|max:100000',
+            'recipient_sources.*.contact_ids.*' => 'uuid',
+            'recipient_sources.*.numbers' => 'nullable|array|max:100000',
+            'recipient_sources.*.numbers.*' => 'string|max:30',
             'scheduled_at' => 'nullable|date|after:now',
             'timezone' => 'nullable|string|max:50',
             'send_rate' => 'nullable|integer|min:0|max:500',
@@ -590,6 +605,10 @@ class CampaignApiController extends Controller
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
         }
+
+        $request->validate([
+            'name' => 'nullable|string|max:255',
+        ]);
 
         $newName = $request->input('name');
         $clone = $this->campaignService->clone($campaign, $newName);
