@@ -3305,7 +3305,7 @@ function loadPreselectedContacts() {
             });
         }
         
-        updateContactBookDisplay();
+        renderContactBookChips();
         updateRecipientSummary();
         
         sessionStorage.removeItem('sendMessageRecipients');
