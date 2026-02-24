@@ -173,6 +173,12 @@ class Campaign extends Model
     {
         parent::boot();
 
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = auth()->check() && auth()->user()->tenant_id
                 ? auth()->user()->tenant_id
