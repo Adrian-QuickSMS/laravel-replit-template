@@ -4171,7 +4171,7 @@ function downloadInvalidNumbers() {
     console.log('TODO: Log invalid numbers download for audit');
 }
 
-var accountPricing = @json($account_pricing ?? ['sms' => 0.035, 'rcs_basic' => 0.05, 'rcs_rich' => 0.08, 'currency' => 'GBP']);
+var accountPricing = {!! json_encode($account_pricing ?? ['sms' => 0.035, 'rcs_basic' => 0.05, 'rcs_rich' => 0.08, 'currency' => 'GBP']) !!};
 
 function updatePreviewCost() {
     var recipientEl = document.getElementById('previewRecipients');
