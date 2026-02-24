@@ -642,15 +642,44 @@ class QuickSMSController extends Controller
             'rcs_content' => $sessionData['rcs_content'] ?? null,
         ];
 
+        $segmentBreakdown = [];
+        $totalSmsParts = $recipientCount * ($campaign['segment_count'] ?? 1);
+        $contentResolved = false;
+
+        $campaignId = $sessionData['campaign_id'] ?? null;
+        if ($campaignId) {
+            $campaignModel = \App\Models\Campaign::find($campaignId);
+            if ($campaignModel && $campaignModel->content_resolved_at) {
+                $contentResolved = true;
+                $segmentBreakdown = DB::table('campaign_recipients')
+                    ->join('campaigns', 'campaigns.id', '=', 'campaign_recipients.campaign_id')
+                    ->where('campaign_recipients.campaign_id', $campaignId)
+                    ->where('campaigns.account_id', auth()->user()->tenant_id)
+                    ->whereNotNull('campaign_recipients.segments')
+                    ->selectRaw('campaign_recipients.segments, COUNT(*) as recipient_count')
+                    ->groupBy('campaign_recipients.segments')
+                    ->orderBy('campaign_recipients.segments')
+                    ->get()
+                    ->all();
+
+                if (!empty($segmentBreakdown)) {
+                    $totalSmsParts = 0;
+                    foreach ($segmentBreakdown as $group) {
+                        $totalSmsParts += $group->segments * $group->recipient_count;
+                    }
+                }
+            }
+        }
+
         return view('quicksms.messages.confirm-campaign', [
             'page_title' => 'Confirm & Send Campaign',
             'campaign' => $campaign,
             'channel' => $channel,
             'recipients' => $recipients,
             'pricing' => $pricing,
-            'segment_breakdown' => [],
-            'total_sms_parts' => $recipientCount * ($campaign['segment_count'] ?? 1),
-            'content_resolved' => false,
+            'segment_breakdown' => $segmentBreakdown,
+            'total_sms_parts' => $totalSmsParts,
+            'content_resolved' => $contentResolved,
             'message' => $message,
         ]);
     }
