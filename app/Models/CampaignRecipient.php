@@ -302,12 +302,17 @@ class CampaignRecipient extends Model
             'last_name' => $this->last_name ?? '',
             'email' => $this->email ?? '',
             'mobile_number' => $this->mobile_number ?? '',
+            'firstName' => $this->first_name ?? '',
+            'lastName' => $this->last_name ?? '',
+            'mobileNumber' => $this->mobile_number ?? '',
         ];
 
         // Merge custom_data fields with dot-notation support
         $customData = $this->custom_data ?? [];
-        foreach ($customData as $key => $value) {
-            $data["custom_data.{$key}"] = $value ?? '';
+        if (is_array($customData)) {
+            foreach ($customData as $key => $value) {
+                $data["custom_data.{$key}"] = $value ?? '';
+            }
         }
 
         // Replace all {{placeholder}} tokens
