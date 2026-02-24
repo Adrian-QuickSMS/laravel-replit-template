@@ -4171,12 +4171,14 @@ function downloadInvalidNumbers() {
     console.log('TODO: Log invalid numbers download for audit');
 }
 
+var accountPricing = @json($account_pricing ?? ['sms' => 0.035, 'rcs_basic' => 0.05, 'rcs_rich' => 0.08, 'currency' => 'GBP']);
+
 function updatePreviewCost() {
     var recipientEl = document.getElementById('previewRecipients');
     var recipients = recipientEl ? (parseInt(recipientEl.textContent) || 0) : 0;
     var channelEl = document.querySelector('input[name="channel"]:checked');
     var channel = channelEl ? channelEl.value : 'sms';
-    var costPerMsg = channel === 'sms' ? 0.035 : (channel === 'rcs_basic' ? 0.05 : 0.08);
+    var costPerMsg = accountPricing[channel] || accountPricing['sms'] || 0.035;
     var partsEl = document.getElementById('smsPartCount');
     var parts = partsEl ? (parseInt(partsEl.textContent) || 1) : 1;
     var cost = recipients * parts * costPerMsg;
@@ -4186,7 +4188,8 @@ function updatePreviewCost() {
         if (isTest) {
             costEl.textContent = cost.toFixed(2) + ' cr';
         } else {
-            costEl.textContent = '\u00A3' + cost.toFixed(2);
+            var symbol = accountPricing.currency === 'GBP' ? '\u00A3' : (accountPricing.currency === 'USD' ? '$' : accountPricing.currency + ' ');
+            costEl.textContent = symbol + cost.toFixed(2);
         }
     }
 }

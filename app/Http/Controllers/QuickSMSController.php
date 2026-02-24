@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\RcsAgent;
 use App\Models\MessageTemplate;
 use App\Models\Campaign;
+use App\Services\Billing\PricingEngine;
 
 class QuickSMSController extends Controller
 {
@@ -414,6 +415,28 @@ class QuickSMSController extends Controller
             ['id' => 2, 'domain' => 'unsubscribe.quicksms.uk', 'is_default' => false],
         ];
 
+        $accountPricing = ['sms' => 0.035, 'rcs_basic' => 0.05, 'rcs_rich' => 0.08, 'currency' => 'GBP'];
+        $tenantId = session('customer_tenant_id');
+        if ($tenantId) {
+            $account = Account::find($tenantId);
+            if ($account) {
+                try {
+                    $pricingEngine = app(PricingEngine::class);
+                    $smsPrice = $pricingEngine->resolvePrice($account, 'sms', null);
+                    $rcsBasicPrice = $pricingEngine->resolvePrice($account, 'rcs_basic', null);
+                    $rcsSinglePrice = $pricingEngine->resolvePrice($account, 'rcs_single', null);
+                    $accountPricing = [
+                        'sms' => (float) $smsPrice->unitPrice,
+                        'rcs_basic' => (float) $rcsBasicPrice->unitPrice,
+                        'rcs_rich' => (float) $rcsSinglePrice->unitPrice,
+                        'currency' => $smsPrice->currency,
+                    ];
+                } catch (\Throwable $e) {
+                    // Fall back to defaults if pricing lookup fails
+                }
+            }
+        }
+
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
             'sender_ids' => $sender_ids,
@@ -424,6 +447,7 @@ class QuickSMSController extends Controller
             'opt_out_lists' => $opt_out_lists,
             'virtual_numbers' => $virtual_numbers,
             'optout_domains' => $optout_domains,
+            'account_pricing' => $accountPricing,
         ]);
     }
 
