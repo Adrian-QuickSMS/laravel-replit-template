@@ -400,7 +400,7 @@ class QuickSMSController extends Controller
         $opt_out_lists = OptOutList::orderBy('name')
             ->get()
             ->map(function($l) {
-                return ['id' => $l->id, 'name' => $l->name, 'count' => $l->record_count ?? 0, 'is_default' => $l->is_default ?? false];
+                return ['id' => $l->id, 'name' => $l->name, 'count' => $l->count ?? 0, 'is_default' => $l->is_master ?? false];
             })
             ->toArray();
 
