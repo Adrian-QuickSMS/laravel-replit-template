@@ -1747,23 +1747,35 @@ function handleContentChange() {
     var charCount = content.length;
     var isGsm = isGSM7(content);
     var channel = document.querySelector('input[name="channel"]:checked').value;
-    
-    document.getElementById('charCount').textContent = charCount;
-    document.getElementById('encodingType').textContent = isGsm ? 'GSM-7' : 'Unicode';
-    document.getElementById('unicodeWarning').classList.toggle('d-none', isGsm);
-    
-    var segmentDisplay = document.getElementById('segmentDisplay');
-    if (channel === 'rcs_basic' && charCount > 160) {
-        segmentDisplay.innerHTML = '<em class="text-success">Single RCS message</em>';
-        document.getElementById('rcsTextHelper').classList.remove('d-none');
-        document.getElementById('rcsHelperText').textContent = 'This message will be delivered as a single RCS text message.';
-    } else {
-        var singleLimit = isGsm ? 160 : 70;
-        var concatLimit = isGsm ? 153 : 67;
-        var parts = charCount <= singleLimit ? 1 : Math.ceil(charCount / concatLimit);
-        segmentDisplay.innerHTML = 'Segments: <strong id="smsPartCount">' + parts + '</strong>';
+    var hasPlaceholders = /\{\{\s*[^}]+?\s*\}\}/.test(content);
+
+    if (hasPlaceholders && content.length > 0) {
+        document.getElementById('charCount').textContent = 'N/A';
+        document.getElementById('encodingType').textContent = 'N/A';
+        document.getElementById('unicodeWarning').classList.add('d-none');
+        var segmentDisplay = document.getElementById('segmentDisplay');
+        segmentDisplay.innerHTML = 'Segments: <strong id="smsPartCount">N/A</strong>';
         if (channel !== 'rcs_basic') {
             document.getElementById('rcsTextHelper').classList.add('d-none');
+        }
+    } else {
+        document.getElementById('charCount').textContent = charCount;
+        document.getElementById('encodingType').textContent = isGsm ? 'GSM-7' : 'Unicode';
+        document.getElementById('unicodeWarning').classList.toggle('d-none', isGsm);
+
+        var segmentDisplay = document.getElementById('segmentDisplay');
+        if (channel === 'rcs_basic' && charCount > 160) {
+            segmentDisplay.innerHTML = '<em class="text-success">Single RCS message</em>';
+            document.getElementById('rcsTextHelper').classList.remove('d-none');
+            document.getElementById('rcsHelperText').textContent = 'This message will be delivered as a single RCS text message.';
+        } else {
+            var singleLimit = isGsm ? 160 : 70;
+            var concatLimit = isGsm ? 153 : 67;
+            var parts = charCount <= singleLimit ? 1 : Math.ceil(charCount / concatLimit);
+            segmentDisplay.innerHTML = 'Segments: <strong id="smsPartCount">' + parts + '</strong>';
+            if (channel !== 'rcs_basic') {
+                document.getElementById('rcsTextHelper').classList.add('d-none');
+            }
         }
     }
     
@@ -4516,9 +4528,16 @@ function updatePreviewCost() {
     var channel = channelEl ? channelEl.value : 'sms';
     var costPerMsg = accountPricing[channel] || accountPricing['sms'] || 0.035;
     var partsEl = document.getElementById('smsPartCount');
-    var parts = partsEl ? (parseInt(partsEl.textContent) || 1) : 1;
-    var cost = recipients * parts * costPerMsg;
+    var partsText = partsEl ? partsEl.textContent : '1';
     var costEl = document.getElementById('previewCost');
+
+    if (partsText === 'N/A') {
+        if (costEl) costEl.textContent = 'N/A';
+        return;
+    }
+
+    var parts = parseInt(partsText) || 1;
+    var cost = recipients * parts * costPerMsg;
     if (costEl) {
         var isTest = (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.isTest && AccountLifecycle.isTest());
         var formatted = cost.toFixed(4);
