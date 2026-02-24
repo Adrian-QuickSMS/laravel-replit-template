@@ -69,7 +69,22 @@ class CampaignService
             'created_by' => $data['created_by'] ?? null,
         ]);
 
-        // Auto-calculate encoding/segments if SMS content provided
+        $totalRecipients = 0;
+        foreach (($data['recipient_sources'] ?? []) as $src) {
+            $srcType = $src['type'] ?? '';
+            if (in_array($srcType, ['manual', 'csv']) && !empty($src['numbers'])) {
+                $totalRecipients += count($src['numbers']);
+            } elseif ($srcType === 'individual' && !empty($src['contact_ids'])) {
+                $totalRecipients += count($src['contact_ids']);
+            } elseif (isset($src['count'])) {
+                $totalRecipients += (int) $src['count'];
+            }
+        }
+        if ($totalRecipients > 0) {
+            $campaign->total_recipients = $totalRecipients;
+            $campaign->save();
+        }
+
         if ($campaign->message_content && in_array($campaign->type, [Campaign::TYPE_SMS, Campaign::TYPE_RCS_BASIC])) {
             $campaign->encoding = MessageTemplate::detectEncoding($campaign->message_content);
             $campaign->segment_count = MessageTemplate::calculateSegments($campaign->message_content, $campaign->encoding);

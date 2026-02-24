@@ -454,6 +454,7 @@ class QuickSMSController extends Controller
     public function confirmCampaign(Request $request)
     {
         $campaignId = $request->query('campaign_id');
+        $sessionData = $request->session()->get('campaign_config', []);
         if ($campaignId && $campaignId !== 'null' && $campaignId !== 'undefined') {
             $dbCampaign = Campaign::find($campaignId);
             if ($dbCampaign) {
@@ -483,13 +484,32 @@ class QuickSMSController extends Controller
                     'sms_content' => $dbCampaign->message_content ?? '',
                     'rcs_content' => $dbCampaign->rcs_content ?? null,
                 ];
-                $recipientCount = $dbCampaign->total_recipients ?? 0;
+                $sourceDefaults = ['manual_input' => 0, 'file_upload' => 0, 'contacts' => 0, 'lists' => 0, 'dynamic_lists' => 0, 'tags' => 0];
+                if (!empty($sessionData['sources'])) {
+                    $mappedSources = array_merge($sourceDefaults, $sessionData['sources']);
+                } else {
+                    $rawSources = $dbCampaign->recipient_sources ?? [];
+                    if (!empty($rawSources) && isset($rawSources[0]['type'])) {
+                        $mappedSources = $sourceDefaults;
+                        foreach ($rawSources as $src) {
+                            $type = $src['type'] ?? '';
+                            if ($type === 'manual') $mappedSources['manual_input'] += count($src['numbers'] ?? []);
+                            elseif ($type === 'csv') $mappedSources['file_upload'] += count($src['numbers'] ?? []);
+                            elseif ($type === 'individual') $mappedSources['contacts'] += count($src['contact_ids'] ?? []);
+                            elseif ($type === 'list') $mappedSources['lists']++;
+                            elseif ($type === 'tag') $mappedSources['tags']++;
+                        }
+                    } else {
+                        $mappedSources = array_merge($sourceDefaults, $rawSources);
+                    }
+                }
+                $recipientCount = $sessionData['recipient_count'] ?? $dbCampaign->total_recipients ?? 0;
                 $recipients = [
                     'total_selected' => $recipientCount,
-                    'valid' => $recipientCount,
-                    'invalid' => 0,
-                    'opted_out' => 0,
-                    'sources' => $dbCampaign->recipient_sources ?? [],
+                    'valid' => $sessionData['valid_count'] ?? $recipientCount,
+                    'invalid' => $sessionData['invalid_count'] ?? 0,
+                    'opted_out' => $sessionData['opted_out_count'] ?? 0,
+                    'sources' => $mappedSources,
                 ];
                 $pricing = [
                     'sms_unit_price' => 0.023,

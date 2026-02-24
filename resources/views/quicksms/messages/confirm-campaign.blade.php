@@ -129,37 +129,37 @@
 
                     <div class="border-top pt-3">
                         <p class="text-muted small mb-2">Source Breakdown</p>
-                        @if($recipients['sources']['manual_input'] > 0)
+                        @if(($recipients['sources']['manual_input'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-keyboard text-muted me-2"></i>Manual input</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['manual_input']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['file_upload'] > 0)
+                        @if(($recipients['sources']['file_upload'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-file-upload text-muted me-2"></i>File upload</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['file_upload']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['contacts'] > 0)
+                        @if(($recipients['sources']['contacts'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-address-book text-muted me-2"></i>Contacts</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['contacts']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['lists'] > 0)
+                        @if(($recipients['sources']['lists'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-list text-muted me-2"></i>Lists</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['lists']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['dynamic_lists'] > 0)
+                        @if(($recipients['sources']['dynamic_lists'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-magic text-muted me-2"></i>Dynamic lists</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['dynamic_lists']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['tags'] > 0)
+                        @if(($recipients['sources']['tags'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-tags text-muted me-2"></i>Tags</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['tags']) }}</span>
