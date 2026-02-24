@@ -2808,39 +2808,45 @@ function continueToConfirmation() {
     var channel = document.querySelector('input[name="channel"]:checked');
     var channelValue = channel ? channel.value : 'sms';
     
-    // Map frontend channel values to backend expected values
-    var channelMap = {
+    var apiChannelMap = {
+        'sms': 'sms',
+        'rcs_basic': 'rcs_basic',
+        'rcs_rich': 'rcs_single'
+    };
+    var apiChannelValue = apiChannelMap[channelValue] || 'sms';
+
+    var sessionChannelMap = {
         'sms': 'sms_only',
         'rcs_basic': 'basic_rcs',
         'rcs_rich': 'rich_rcs'
     };
-    channelValue = channelMap[channelValue] || 'sms_only';
+    var sessionChannelValue = sessionChannelMap[channelValue] || 'sms_only';
     
     var senderIdSelect = document.getElementById('senderId');
     var senderIdText = senderIdSelect && senderIdSelect.selectedIndex > 0 ? senderIdSelect.options[senderIdSelect.selectedIndex].text : senderId;
     
     var rcsAgentSelect = document.getElementById('rcsAgent');
     var rcsAgentName = rcsAgentSelect && rcsAgentSelect.selectedIndex > 0 ? rcsAgentSelect.options[rcsAgentSelect.selectedIndex].text : null;
+    var rcsAgentId = rcsAgentSelect ? rcsAgentSelect.value : null;
     
-    var recipientCount = 0;
     var manualCount = recipientState.manual.valid.length;
     var uploadCount = recipientState.upload.valid.length;
     var contactsCount = recipientState.contactBook.contacts.length;
     var listsCount = recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
     var dynamicListsCount = recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
     var tagsCount = recipientState.contactBook.tags.reduce(function(acc, t) { return acc + (t.count || 0); }, 0);
-    
-    recipientCount = manualCount + uploadCount + contactsCount + listsCount + dynamicListsCount + tagsCount;
-    
+    var recipientCount = manualCount + uploadCount + contactsCount + listsCount + dynamicListsCount + tagsCount;
     var invalidCount = recipientState.manual.invalid.length + recipientState.upload.invalid.length;
     
     var scheduledTimeValue = 'now';
+    var scheduledAt = null;
     var scheduledRadio = document.querySelector('input[name="scheduling"]:checked');
     if (scheduledRadio && scheduledRadio.value === 'scheduled') {
         var dateInput = document.getElementById('scheduledDate');
         var timeInput = document.getElementById('scheduledTime');
         if (dateInput && timeInput && dateInput.value && timeInput.value) {
             scheduledTimeValue = dateInput.value + ' ' + timeInput.value;
+            scheduledAt = dateInput.value + 'T' + timeInput.value + ':00';
         }
     }
     
@@ -2849,50 +2855,92 @@ function continueToConfirmation() {
         var expiryVal = document.getElementById('messageExpiryValue');
         if (expiryVal) messageExpiry = expiryVal.textContent;
     }
-    
-    var campaignConfig = {
-        campaign_name: campaignName,
-        channel: channelValue,
-        sender_id: senderIdText,
-        rcs_agent: rcsAgentName,
+
+    var recipientSources = [];
+    if (recipientState.manual.valid.length > 0) {
+        recipientSources.push({ type: 'manual', numbers: recipientState.manual.valid });
+    }
+    if (recipientState.upload.valid.length > 0) {
+        recipientSources.push({ type: 'manual', numbers: recipientState.upload.valid });
+    }
+    recipientState.contactBook.lists.forEach(function(l) {
+        recipientSources.push({ type: 'list', id: l.id, name: l.name });
+    });
+    recipientState.contactBook.tags.forEach(function(t) {
+        recipientSources.push({ type: 'tag', id: t.id, name: t.name });
+    });
+    if (recipientState.contactBook.contacts.length > 0) {
+        recipientSources.push({ type: 'individual', contact_ids: recipientState.contactBook.contacts.map(function(c) { return c.id; }) });
+    }
+
+    var continueBtn = document.getElementById('continueBtn') || document.querySelector('[onclick*="continueToConfirmation"]');
+    if (continueBtn) {
+        continueBtn.disabled = true;
+        continueBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Creating campaign...';
+    }
+
+    var campaignData = {
+        name: campaignName,
+        type: apiChannelValue,
         message_content: smsContent,
-        recipient_count: recipientCount,
-        valid_count: recipientCount,
-        invalid_count: invalidCount,
-        opted_out_count: 0,
-        sources: {
-            manual_input: manualCount,
-            file_upload: uploadCount,
-            contacts: contactsCount,
-            lists: listsCount,
-            dynamic_lists: dynamicListsCount,
-            tags: tagsCount
-        },
-        scheduled_time: scheduledTimeValue,
-        message_expiry: messageExpiry,
-        sending_window: null,
-        optout_config: optoutConfig
+        sender_id_id: senderId || null,
+        rcs_agent_id: rcsAgentId || null,
+        recipient_sources: recipientSources,
+        scheduled_at: scheduledAt
     };
-    
-    fetch('{{ route("messages.store-campaign-config") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify(campaignConfig)
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-        if (data.success) {
-            window.location.href = '{{ route("messages.confirm") }}';
-        } else {
-            alert('Failed to save campaign configuration. Please try again.');
+
+    CampaignService.create(campaignData).then(function(result) {
+        var campaignId = result.data.id;
+
+        var sessionConfig = {
+            campaign_id: campaignId,
+            campaign_name: campaignName,
+            channel: sessionChannelValue,
+            sender_id: senderIdText,
+            rcs_agent: rcsAgentName,
+            message_content: smsContent,
+            recipient_count: recipientCount,
+            valid_count: recipientCount,
+            invalid_count: invalidCount,
+            opted_out_count: 0,
+            sources: {
+                manual_input: manualCount,
+                file_upload: uploadCount,
+                contacts: contactsCount,
+                lists: listsCount,
+                dynamic_lists: dynamicListsCount,
+                tags: tagsCount
+            },
+            scheduled_time: scheduledTimeValue,
+            message_expiry: messageExpiry,
+            sending_window: null,
+            optout_config: optoutConfig
+        };
+
+        return fetch('{{ route("messages.store-campaign-config") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(sessionConfig)
+        }).then(function() {
+            window.location.href = '{{ route("messages.confirm") }}?campaign_id=' + campaignId;
+        });
+    }).catch(function(error) {
+        if (continueBtn) {
+            continueBtn.disabled = false;
+            continueBtn.innerHTML = '<i class="fas fa-arrow-right me-1"></i> Continue';
         }
-    })
-    .catch(function(error) {
-        console.error('Error:', error);
-        window.location.href = '{{ route("messages.confirm") }}';
+        if (error.validationErrors) {
+            var errorList = [];
+            Object.keys(error.validationErrors).forEach(function(field) {
+                errorList.push({ fieldId: null, message: error.validationErrors[field][0] });
+            });
+            showValidationErrors(errorList);
+        } else {
+            showValidationErrors([{ fieldId: null, message: error.message || 'Failed to create campaign. Please try again.' }]);
+        }
     });
 }
 

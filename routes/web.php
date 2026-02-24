@@ -228,6 +228,58 @@ Route::middleware('customer.auth')->prefix('api/purchase')->group(function () {
     });
 });
 
+// =====================================================
+// Campaign / Send Message API (session-based auth)
+// =====================================================
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
+    ->controller(\App\Http\Controllers\Api\CampaignApiController::class)->group(function () {
+    Route::get('/', 'index')->name('api.campaigns.index');
+    Route::post('/', 'store')->name('api.campaigns.store');
+    Route::get('/{id}', 'show')->name('api.campaigns.show');
+    Route::put('/{id}', 'update')->name('api.campaigns.update');
+    Route::delete('/{id}', 'destroy')->name('api.campaigns.destroy');
+
+    // Template application
+    Route::post('/{id}/apply-template', 'applyTemplate')->name('api.campaigns.apply-template');
+
+    // Recipient operations
+    Route::get('/{id}/recipients/preview', 'previewRecipients')->name('api.campaigns.recipients.preview');
+    Route::post('/{id}/recipients/resolve', 'resolveRecipients')->name('api.campaigns.recipients.resolve');
+    Route::get('/{id}/recipients', 'recipients')->name('api.campaigns.recipients.index');
+
+    // Cost estimation
+    Route::get('/{id}/estimate-cost', 'estimateCost')->name('api.campaigns.estimate-cost');
+
+    // Validation
+    Route::get('/{id}/validate', 'validate_')->name('api.campaigns.validate');
+
+    // Send operations
+    Route::post('/{id}/send', 'sendNow')->name('api.campaigns.send');
+    Route::post('/{id}/schedule', 'schedule')->name('api.campaigns.schedule');
+    Route::post('/{id}/pause', 'pause')->name('api.campaigns.pause');
+    Route::post('/{id}/resume', 'resume')->name('api.campaigns.resume');
+    Route::post('/{id}/cancel', 'cancel')->name('api.campaigns.cancel');
+
+    // Clone
+    Route::post('/{id}/clone', 'clone')->name('api.campaigns.clone');
+});
+
+// Message Template API (session-based auth)
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/message-templates')
+    ->controller(\App\Http\Controllers\Api\MessageTemplateApiController::class)->group(function () {
+    Route::get('/', 'index')->name('api.message-templates.index');
+    Route::post('/', 'store')->name('api.message-templates.store');
+    Route::get('/{id}', 'show')->name('api.message-templates.show');
+    Route::put('/{id}', 'update')->name('api.message-templates.update');
+    Route::delete('/{id}', 'destroy')->name('api.message-templates.destroy');
+
+    // Favourites
+    Route::post('/{id}/toggle-favourite', 'toggleFavourite')->name('api.message-templates.toggle-favourite');
+
+    // Content analysis (stateless utility)
+    Route::post('/analyse-content', 'analyseContent')->name('api.message-templates.analyse-content');
+});
+
 Route::prefix('admin')->group(function () {
     Route::controller(\App\Http\Controllers\AdminAuthController::class)->group(function () {
         Route::get('/login', 'showLogin')->name('admin.login');

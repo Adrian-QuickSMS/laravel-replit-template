@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -95,6 +96,11 @@ class Contact extends Model
     {
         return $this->belongsToMany(ContactList::class, 'contact_list_member', 'contact_id', 'list_id')
             ->withPivot('created_at');
+    }
+
+    public function campaignRecipients(): HasMany
+    {
+        return $this->hasMany(CampaignRecipient::class, 'contact_id');
     }
 
     // =====================================================

@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\SubAccount;
@@ -132,6 +132,7 @@ class RcsAgent extends Model
             }
         });
 
+        // Fail-closed tenant scope — matches Contact, ApiConnection, SenderId pattern
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = auth()->check() && auth()->user()->tenant_id
                 ? auth()->user()->tenant_id
@@ -217,6 +218,11 @@ class RcsAgent extends Model
     public function assignments()
     {
         return $this->hasMany(RcsAgentAssignment::class)->orderBy('created_at', 'desc');
+    }
+
+    public function campaigns()
+    {
+        return $this->hasMany(Campaign::class, 'rcs_agent_id');
     }
 
     public function toAdminArray(): array
