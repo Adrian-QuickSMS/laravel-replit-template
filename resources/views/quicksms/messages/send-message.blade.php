@@ -474,7 +474,7 @@
                         <div class="row text-center">
                             <div class="col-4"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel" class="small">SMS</strong></div>
                             <div class="col-4"><small class="text-muted d-block mb-1">Recipients</small><strong id="previewRecipients" class="small">0</strong></div>
-                            <div class="col-4"><small class="text-muted d-block mb-1">Cost</small><strong id="previewCost" class="small">0 cr</strong></div>
+                            <div class="col-4"><small class="text-muted d-block mb-1">Cost</small><strong id="previewCost" class="small">&pound;0.00</strong></div>
                         </div>
                     </div>
                 </div>
@@ -4173,7 +4173,14 @@ function updatePreviewCost() {
     var parts = partsEl ? (parseInt(partsEl.textContent) || 1) : 1;
     var cost = recipients * parts * costPerMsg;
     var costEl = document.getElementById('previewCost');
-    if (costEl) costEl.textContent = cost.toFixed(2) + ' cr';
+    if (costEl) {
+        var isTest = (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.isTest && AccountLifecycle.isTest());
+        if (isTest) {
+            costEl.textContent = cost.toFixed(2) + ' cr';
+        } else {
+            costEl.textContent = '\u00A3' + cost.toFixed(2);
+        }
+    }
 }
 
 var testMessageModal = null;
