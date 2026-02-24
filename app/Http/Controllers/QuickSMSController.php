@@ -473,7 +473,11 @@ class QuickSMSController extends Controller
                 $channelTypeMap = ['sms' => 'sms_only', 'rcs_basic' => 'basic_rcs', 'rcs_single' => 'rich_rcs'];
                 $channel = [
                     'type' => $channelTypeMap[$dbCampaign->type] ?? $dbCampaign->type,
-                    'sms_sender_id' => $dbCampaign->senderId ? $dbCampaign->senderId->sender_id : 'Not selected',
+                    'sms_sender_id' => $dbCampaign->senderId
+                        ? $dbCampaign->senderId->sender_id
+                        : ($sessionData['sender_id'] ?? ($dbCampaign->sender_id_id
+                            ? (SenderId::withoutGlobalScopes()->find($dbCampaign->sender_id_id)->sender_id ?? 'Not selected')
+                            : 'Not selected')),
                     'rcs_agent' => [
                         'name' => $dbCampaign->rcsAgent ? $dbCampaign->rcsAgent->name : 'Not selected',
                         'logo' => $dbCampaign->rcsAgent && $dbCampaign->rcsAgent->logo_url
