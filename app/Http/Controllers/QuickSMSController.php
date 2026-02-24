@@ -430,7 +430,7 @@ class QuickSMSController extends Controller
     public function confirmCampaign(Request $request)
     {
         $campaignId = $request->query('campaign_id');
-        if ($campaignId) {
+        if ($campaignId && $campaignId !== 'null' && $campaignId !== 'undefined') {
             $dbCampaign = Campaign::find($campaignId);
             if ($dbCampaign) {
                 $campaign = [

@@ -3062,7 +3062,15 @@ function continueToConfirmation() {
     };
 
     CampaignService.create(campaignData).then(function(result) {
-        var campaignId = result.data.id;
+        var campaignId = result && result.data ? result.data.id : null;
+        if (!campaignId) {
+            if (continueBtn) {
+                continueBtn.disabled = false;
+                continueBtn.innerHTML = '<i class="fas fa-arrow-right me-1"></i> Continue';
+            }
+            showValidationErrors([{ fieldId: null, message: 'Failed to create campaign. Please try again.' }]);
+            return;
+        }
 
         var sessionConfig = {
             campaign_id: campaignId,
