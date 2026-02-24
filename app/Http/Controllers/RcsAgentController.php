@@ -393,7 +393,15 @@ class RcsAgentController extends Controller
         try {
             DB::beginTransaction();
 
-            $updateData = $validated;
+            // Only pass customer-editable fields to model update
+            $updateData = collect($validated)->except([
+                'sub_account_ids', 'user_ids', 'submit',
+                'workflow_status', 'admin_notes', 'rejection_reason',
+                'suspension_reason', 'revocation_reason', 'reviewed_by',
+                'reviewed_at', 'submitted_at', 'is_locked', 'full_payload',
+                'version', 'version_history',
+            ])->toArray();
+
             if (array_key_exists('billing_category', $updateData) && empty($updateData['billing_category'])) {
                 unset($updateData['billing_category']);
             }

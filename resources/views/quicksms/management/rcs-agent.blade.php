@@ -2405,32 +2405,44 @@ function viewAgent(agentId) {
     // Logo
     var logoContainer = document.getElementById('viewAgentLogo');
     if (agent.logoUrl) {
-        logoContainer.innerHTML = '<img src="' + agent.logoUrl + '" class="rcs-logo-preview" alt="Logo" onerror="this.parentNode.innerHTML=\'<span class=text-muted>Not uploaded</span>\'">';
+        logoContainer.textContent = '';
+        var logoImg = document.createElement('img');
+        logoImg.src = agent.logoUrl;
+        logoImg.className = 'rcs-logo-preview';
+        logoImg.alt = 'Logo';
+        logoImg.onerror = function() { this.parentNode.innerHTML = '<span class="text-muted">Not uploaded</span>'; };
+        logoContainer.appendChild(logoImg);
     } else {
         logoContainer.innerHTML = '<span class="text-muted">Not uploaded</span>';
     }
-    
+
     // Hero
     var heroContainer = document.getElementById('viewAgentHero');
     if (agent.heroUrl) {
-        heroContainer.innerHTML = '<img src="' + agent.heroUrl + '" class="rcs-hero-preview" alt="Hero" onerror="this.parentNode.innerHTML=\'<span class=text-muted>Not uploaded</span>\'">';
+        heroContainer.textContent = '';
+        var heroImg = document.createElement('img');
+        heroImg.src = agent.heroUrl;
+        heroImg.className = 'rcs-hero-preview';
+        heroImg.alt = 'Hero';
+        heroImg.onerror = function() { this.parentNode.innerHTML = '<span class="text-muted">Not uploaded</span>'; };
+        heroContainer.appendChild(heroImg);
     } else {
         heroContainer.innerHTML = '<span class="text-muted">Not uploaded</span>';
     }
     
     // Section B: Handset Contact Details
-    var phoneHtml = agent.supportPhone || '-';
+    var phoneHtml = escapeHtml(agent.supportPhone || '-');
     if (agent.supportPhone) {
-        phoneHtml += agent.showPhone ? 
+        phoneHtml += agent.showPhone ?
             ' <span class="rcs-toggle-badge shown ms-2"><i class="fas fa-eye"></i> Displayed</span>' :
             ' <span class="rcs-toggle-badge hidden ms-2"><i class="fas fa-eye-slash"></i> Hidden</span>';
     }
     document.getElementById('viewAgentPhone').innerHTML = phoneHtml;
     document.getElementById('viewAgentWebsite').textContent = agent.website || '-';
     
-    var emailHtml = agent.supportEmail || '-';
+    var emailHtml = escapeHtml(agent.supportEmail || '-');
     if (agent.supportEmail) {
-        emailHtml += agent.showEmail ? 
+        emailHtml += agent.showEmail ?
             ' <span class="rcs-toggle-badge shown ms-2"><i class="fas fa-eye"></i> Displayed</span>' :
             ' <span class="rcs-toggle-badge hidden ms-2"><i class="fas fa-eye-slash"></i> Hidden</span>';
     }
@@ -2468,7 +2480,7 @@ function viewAgent(agentId) {
     var testNumbersContainer = document.getElementById('viewAgentTestNumbers');
     if (testNumbers.length > 0) {
         testNumbersContainer.innerHTML = testNumbers.map(function(num) {
-            return '<span class="rcs-test-number-pill">' + num + '</span>';
+            return '<span class="rcs-test-number-pill">' + escapeHtml(num) + '</span>';
         }).join('');
     } else {
         testNumbersContainer.innerHTML = '<span class="text-muted">No test numbers added</span>';
@@ -2633,11 +2645,11 @@ function showNotification(type, title, message) {
     var toastHtml = '<div id="' + toastId + '" class="toast" role="alert">' +
         '<div class="toast-header">' +
             '<i class="fas ' + (icons[type] || icons['info']) + ' me-2"></i>' +
-            '<strong class="me-auto">' + title + '</strong>' +
+            '<strong class="me-auto">' + escapeHtml(title) + '</strong>' +
             '<small>Just now</small>' +
             '<button type="button" class="btn-close" data-bs-dismiss="toast"></button>' +
         '</div>' +
-        '<div class="toast-body">' + message + '</div>' +
+        '<div class="toast-body">' + escapeHtml(message) + '</div>' +
     '</div>';
     
     toastContainer.insertAdjacentHTML('beforeend', toastHtml);

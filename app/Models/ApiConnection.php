@@ -45,7 +45,7 @@ class ApiConnection extends Model
         'type',
         'auth_type',
         'environment',
-        'status',
+        // 'status' removed — only set via state machine methods (activate/suspend/reactivate/archive)
         'ip_allowlist_enabled',
         'ip_allowlist',
         'webhook_dlr_url',
@@ -97,6 +97,9 @@ class ApiConnection extends Model
                 : session('customer_tenant_id');
             if ($tenantId) {
                 $builder->where('api_connections.account_id', $tenantId);
+            } else {
+                // Fail-closed: return zero rows when no tenant context
+                $builder->whereRaw('1 = 0');
             }
         });
     }

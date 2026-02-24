@@ -103,7 +103,7 @@ class ContactBookApiController extends Controller
     public function contactsStore(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'mobile_number' => 'required|string|max:20',
+            'mobile_number' => ['required', 'string', 'max:20', 'regex:/^\+?[0-9]{7,15}$/'],
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
@@ -112,7 +112,8 @@ class ContactBookApiController extends Controller
             'city' => 'nullable|string|max:255',
             'country' => 'nullable|string|size:2',
             'sub_account_id' => 'nullable|uuid',
-            'custom_data' => 'nullable|array',
+            'custom_data' => 'nullable|array|max:50',
+            'custom_data.*' => 'nullable|string|max:1000',
         ]);
 
         $validated['account_id'] = $this->tenantId();
@@ -133,7 +134,7 @@ class ContactBookApiController extends Controller
         }
 
         $validated = $request->validate([
-            'mobile_number' => 'sometimes|string|max:20',
+            'mobile_number' => ['sometimes', 'string', 'max:20', 'regex:/^\+?[0-9]{7,15}$/'],
             'first_name' => 'nullable|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
@@ -142,7 +143,8 @@ class ContactBookApiController extends Controller
             'city' => 'nullable|string|max:255',
             'country' => 'nullable|string|size:2',
             'sub_account_id' => 'nullable|uuid',
-            'custom_data' => 'nullable|array',
+            'custom_data' => 'nullable|array|max:50',
+            'custom_data.*' => 'nullable|string|max:1000',
         ]);
 
         $validated['updated_by'] = session('customer_email', session('customer_user_id'));
@@ -174,7 +176,7 @@ class ContactBookApiController extends Controller
     public function bulkAddToList(Request $request): JsonResponse
     {
         $request->validate([
-            'contact_ids' => 'required|array|min:1',
+            'contact_ids' => 'required|array|min:1|max:1000',
             'contact_ids.*' => 'uuid',
             'list_name' => 'required|string|max:255',
         ]);
@@ -212,16 +214,19 @@ class ContactBookApiController extends Controller
     public function bulkRemoveFromList(Request $request): JsonResponse
     {
         $request->validate([
-            'contact_ids' => 'required|array|min:1',
+            'contact_ids' => 'required|array|min:1|max:1000',
             'contact_ids.*' => 'uuid',
             'list_name' => 'required|string|max:255',
         ]);
 
         $list = ContactList::where('name', $request->input('list_name'))->firstOrFail();
 
+        // Verify contact_ids belong to current tenant via global scope (prevents IDOR)
+        $verifiedContactIds = Contact::whereIn('id', $request->input('contact_ids'))->pluck('id');
+
         $deleted = DB::table('contact_list_member')
             ->where('list_id', $list->id)
-            ->whereIn('contact_id', $request->input('contact_ids'))
+            ->whereIn('contact_id', $verifiedContactIds)
             ->delete();
 
         $list->refreshContactCount();
@@ -236,9 +241,9 @@ class ContactBookApiController extends Controller
     public function bulkAddTags(Request $request): JsonResponse
     {
         $request->validate([
-            'contact_ids' => 'required|array|min:1',
+            'contact_ids' => 'required|array|min:1|max:1000',
             'contact_ids.*' => 'uuid',
-            'tags' => 'required|array|min:1',
+            'tags' => 'required|array|min:1|max:50',
             'tags.*' => 'string|max:100',
         ]);
 
@@ -278,9 +283,9 @@ class ContactBookApiController extends Controller
     public function bulkRemoveTags(Request $request): JsonResponse
     {
         $request->validate([
-            'contact_ids' => 'required|array|min:1',
+            'contact_ids' => 'required|array|min:1|max:1000',
             'contact_ids.*' => 'uuid',
-            'tags' => 'required|array|min:1',
+            'tags' => 'required|array|min:1|max:50',
             'tags.*' => 'string|max:100',
         ]);
 
@@ -312,7 +317,7 @@ class ContactBookApiController extends Controller
     public function bulkDelete(Request $request): JsonResponse
     {
         $request->validate([
-            'contact_ids' => 'required|array|min:1',
+            'contact_ids' => 'required|array|min:1|max:1000',
             'contact_ids.*' => 'uuid',
         ]);
 
@@ -329,7 +334,7 @@ class ContactBookApiController extends Controller
     public function bulkExport(Request $request): JsonResponse
     {
         $request->validate([
-            'contact_ids' => 'required|array|min:1',
+            'contact_ids' => 'required|array|min:1|max:5000',
             'contact_ids.*' => 'uuid',
             'fields' => 'nullable|array',
             'format' => 'nullable|string|in:csv,xlsx',

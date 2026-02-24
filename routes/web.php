@@ -119,7 +119,7 @@ Route::middleware('customer.auth')->prefix('api/sender-ids')->controller(SenderI
 Route::middleware('customer.auth')->post('/api/sub-accounts/users', [SenderIdController::class, 'subAccountUsers'])->name('api.sub-accounts.users');
 
 // RCS Agent Registration — Customer Portal API
-Route::middleware('customer.auth')->prefix('api/rcs-agents')->controller(RcsAgentController::class)->group(function () {
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/rcs-agents')->controller(RcsAgentController::class)->group(function () {
     Route::get('/', 'list')->name('api.rcs-agents.list');
     Route::get('/approved', 'approved')->name('api.rcs-agents.approved');
     Route::post('/', 'store')->name('api.rcs-agents.store');

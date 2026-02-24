@@ -19494,9 +19494,7 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
       display: none; }
   @media only screen and (max-width: 47.9375rem) {
     .form-wizard .nav-wizard {
-      flex-direction: unset !important; }
-    .form-wizard .tab-content {
-      height: 100% !important; } }
+      flex-direction: unset !important; } }
   @media only screen and (max-width: 35.9375rem) {
     .form-wizard .nav-wizard li .nav-link {
       padding: 0; } }

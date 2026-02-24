@@ -92,21 +92,16 @@ class SenderId extends Model
         'permission_confirmed',
         'permission_explanation',
         'workflow_status',
-        'submitted_at',
-        'reviewed_by',
-        'reviewed_at',
-        'rejection_reason',
-        'admin_notes',
-        'suspension_reason',
-        'revocation_reason',
         'additional_info',
-        'version',
-        'version_history',
-        'full_payload',
-        'is_locked',
         'is_default',
         'created_by',
     ];
+
+    /**
+     * Admin-only fields excluded from $fillable (set only via transitionTo/forceFill):
+     * submitted_at, reviewed_by, reviewed_at, rejection_reason, admin_notes,
+     * suspension_reason, revocation_reason, version, version_history, full_payload, is_locked
+     */
 
     protected $casts = [
         'account_id' => 'string',
@@ -141,8 +136,14 @@ class SenderId extends Model
 
         // Auto-scope by tenant if authenticated
         static::addGlobalScope('tenant', function (Builder $builder) {
-            if (auth()->check() && auth()->user()->tenant_id) {
-                $builder->where('sender_ids.account_id', auth()->user()->tenant_id);
+            $tenantId = auth()->check() && auth()->user()->tenant_id
+                ? auth()->user()->tenant_id
+                : session('customer_tenant_id');
+            if ($tenantId) {
+                $builder->where('sender_ids.account_id', $tenantId);
+            } else {
+                // Fail-closed: return zero rows when no tenant context
+                $builder->whereRaw('1 = 0');
             }
         });
     }

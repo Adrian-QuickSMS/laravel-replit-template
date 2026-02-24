@@ -238,7 +238,7 @@ class PricingManagementController extends Controller
         $validated = $request->validate([
             'service_catalogue_id' => 'required|exists:service_catalogue,id',
             'tier' => 'required|in:starter,enterprise',
-            'unit_price' => 'required|numeric|min:0',
+            'unit_price' => 'required|numeric|min:0.0001',
             'effective_from' => 'required|date',
             'reason' => 'nullable|string|max:500',
         ]);
@@ -261,11 +261,11 @@ class PricingManagementController extends Controller
 
             // If effective date is today or past, apply immediately
             if ($effectiveFrom <= now()->toDateString()) {
-                // Close out old price
+                // Close out old price — deactivate it
                 if ($currentPrice) {
                     $currentPrice->update([
                         'valid_to' => now()->subDay()->toDateString(),
-                        'active' => $effectiveFrom <= now()->toDateString(),
+                        'active' => false,
                     ]);
                 }
 
@@ -390,7 +390,7 @@ class PricingManagementController extends Controller
             'items' => 'required|array|min:1',
             'items.*.service_catalogue_id' => 'required|exists:service_catalogue,id',
             'items.*.tier' => 'required|in:starter,enterprise',
-            'items.*.new_price' => 'required|numeric|min:0',
+            'items.*.new_price' => 'required|numeric|min:0.0001',
             'items.*.country_iso' => 'nullable|string|size:2',
         ]);
 
@@ -488,7 +488,7 @@ class PricingManagementController extends Controller
             'items' => 'sometimes|array|min:1',
             'items.*.service_catalogue_id' => 'required_with:items|exists:service_catalogue,id',
             'items.*.tier' => 'required_with:items|in:starter,enterprise',
-            'items.*.new_price' => 'required_with:items|numeric|min:0',
+            'items.*.new_price' => 'required_with:items|numeric|min:0.0001',
             'items.*.country_iso' => 'nullable|string|size:2',
         ]);
 
