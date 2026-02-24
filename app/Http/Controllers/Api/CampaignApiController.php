@@ -278,11 +278,108 @@ class CampaignApiController extends Controller
     }
 
     // =====================================================
+    // CAMPAIGN PREPARATION (resolve recipients + content + segments)
+    // =====================================================
+
+    public function prepare(string $id): JsonResponse
+    {
+        $campaign = Campaign::find($id);
+
+        if (!$campaign) {
+            return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
+        }
+
+        try {
+            $resolverResult = $this->campaignService->prepareCampaign($campaign);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Campaign preparation started',
+                'data' => [
+                    'resolver_result' => $resolverResult->toArray(),
+                    'preparation_status' => $campaign->fresh()->preparation_status,
+                ],
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+    }
+
+    public function preparationStatus(string $id): JsonResponse
+    {
+        $campaign = Campaign::find($id);
+
+        if (!$campaign) {
+            return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
+        }
+
+        $result = $this->campaignService->getPreparationStatus($campaign);
+
+        if ($campaign->preparation_status === 'ready') {
+            $estimate = $this->campaignService->estimateCost($campaign);
+            $result['cost_estimate'] = $estimate->toArray();
+        }
+
+        return response()->json(['data' => $result]);
+    }
+
+    public function fieldStatistics(Request $request): JsonResponse
+    {
+        $accountId = $this->tenantId();
+
+        $listIds = $request->input('list_ids', []);
+        $tagIds = $request->input('tag_ids', []);
+        $contactIds = $request->input('contact_ids', []);
+
+        $query = DB::table('contacts')
+            ->where('account_id', $accountId)
+            ->whereNull('deleted_at');
+
+        if (!empty($listIds) || !empty($tagIds) || !empty($contactIds)) {
+            $query->where(function ($q) use ($listIds, $tagIds, $contactIds) {
+                if (!empty($listIds)) {
+                    $q->orWhereIn('id', function ($sub) use ($listIds) {
+                        $sub->select('contact_id')
+                            ->from('contact_list_member')
+                            ->whereIn('list_id', $listIds);
+                    });
+                }
+                if (!empty($tagIds)) {
+                    $q->orWhereIn('id', function ($sub) use ($tagIds) {
+                        $sub->select('contact_id')
+                            ->from('contact_tag')
+                            ->whereIn('tag_id', $tagIds);
+                    });
+                }
+                if (!empty($contactIds)) {
+                    $q->orWhereIn('id', $contactIds);
+                }
+            });
+        }
+
+        $stats = $query->select([
+            DB::raw('ROUND(AVG(LENGTH(COALESCE(first_name, \'\'))), 1) as avg_first_name_len'),
+            DB::raw('MAX(LENGTH(COALESCE(first_name, \'\'))) as max_first_name_len'),
+            DB::raw('ROUND(AVG(LENGTH(COALESCE(last_name, \'\'))), 1) as avg_last_name_len'),
+            DB::raw('MAX(LENGTH(COALESCE(last_name, \'\'))) as max_last_name_len'),
+            DB::raw('ROUND(AVG(LENGTH(COALESCE(email, \'\'))), 1) as avg_email_len'),
+            DB::raw('MAX(LENGTH(COALESCE(email, \'\'))) as max_email_len'),
+            DB::raw('COUNT(*) as total_contacts'),
+        ])->first();
+
+        return response()->json(['data' => $stats]);
+    }
+
+    // =====================================================
     // COST ESTIMATION
     // =====================================================
 
     /**
      * Get cost estimate for a campaign.
+     *
+     * If content has been resolved (via prepare), returns an accurate
+     * cost based on per-recipient segment counts. Otherwise returns
+     * a flat estimate using the campaign-level segment count.
      */
     public function estimateCost(string $id): JsonResponse
     {

@@ -119,6 +119,10 @@ class Campaign extends Model
         'actual_cost',
         'currency',
         'reservation_id',
+        'content_resolved_at',
+        'preparation_status',
+        'preparation_progress',
+        'preparation_error',
         'tags',
         'metadata',
         'created_by',
@@ -149,6 +153,8 @@ class Campaign extends Model
         'fallback_sms_count' => 'integer',
         'estimated_cost' => 'decimal:4',
         'actual_cost' => 'decimal:4',
+        'content_resolved_at' => 'datetime',
+        'preparation_progress' => 'integer',
         'scheduled_at' => 'datetime',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
@@ -385,7 +391,7 @@ class Campaign extends Model
      */
     public function getProgressPercentage(): float
     {
-        if (empty($this->total_unique_recipients)) {
+        if ($this->total_unique_recipients === 0) {
             return 0;
         }
 
@@ -513,6 +519,9 @@ class Campaign extends Model
             'estimated_cost' => $this->estimated_cost,
             'actual_cost' => $this->actual_cost,
             'currency' => $this->currency,
+            'content_resolved_at' => $this->content_resolved_at?->toIso8601String(),
+            'preparation_status' => $this->preparation_status,
+            'preparation_progress' => $this->preparation_progress,
             'progress_percentage' => $this->getProgressPercentage(),
             'delivery_rate' => $this->getDeliveryRate(),
             'tags' => $this->tags,

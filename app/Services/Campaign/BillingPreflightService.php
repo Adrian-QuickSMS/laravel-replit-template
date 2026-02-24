@@ -110,6 +110,102 @@ class BillingPreflightService
     }
 
     /**
+     * Estimate cost with per-recipient segment accuracy.
+     *
+     * Instead of assuming every recipient has the same segment count,
+     * this method accepts rows grouped by (country_iso, segments) and
+     * prices each group independently.
+     */
+    public function estimateCostPerSegmentGroup(
+        Account $account,
+        string $productType,
+        $breakdown
+    ): CostEstimate {
+        $totalCost = '0';
+        $perCountryCosts = [];
+        $errors = [];
+
+        foreach ($breakdown as $row) {
+            $countryIso = $row->country_iso;
+            if ($countryIso === 'unknown' || $countryIso === null) {
+                $countryIso = null;
+            }
+
+            $segments = $row->segments ?: 1;
+            $recipientCount = $row->recipient_count;
+
+            try {
+                $calculation = $this->pricingEngine->calculateMessageCost(
+                    $account,
+                    $productType,
+                    $countryIso,
+                    $segments
+                );
+
+                $groupCost = bcmul($calculation->totalCost, (string) $recipientCount, 6);
+                $totalCost = bcadd($totalCost, $groupCost, 4);
+
+                $countryKey = $countryIso ?? 'default';
+                if (!isset($perCountryCosts[$countryKey])) {
+                    $perCountryCosts[$countryKey] = [
+                        'country_iso' => $countryIso,
+                        'recipient_count' => 0,
+                        'total_cost' => '0',
+                        'currency' => $calculation->currency,
+                        'price_source' => $calculation->priceSource,
+                        'unit_price' => $calculation->unitPrice,
+                        'segment_breakdown' => [],
+                    ];
+                }
+
+                $perCountryCosts[$countryKey]['recipient_count'] += $recipientCount;
+                $perCountryCosts[$countryKey]['total_cost'] = bcadd(
+                    $perCountryCosts[$countryKey]['total_cost'],
+                    $groupCost,
+                    6
+                );
+                $perCountryCosts[$countryKey]['segment_breakdown'][] = [
+                    'segments' => $segments,
+                    'count' => $recipientCount,
+                    'cost_per_message' => $calculation->totalCost,
+                ];
+            } catch (PriceNotFoundException $e) {
+                Log::warning('[BillingPreflight] No price found for country (segment group)', [
+                    'account_id' => $account->id,
+                    'product_type' => $productType,
+                    'country_iso' => $countryIso,
+                    'segments' => $segments,
+                ]);
+                $errors[] = [
+                    'country_iso' => $countryIso,
+                    'recipient_count' => $recipientCount,
+                    'error' => 'No pricing configured for this destination',
+                ];
+            }
+        }
+
+        foreach ($perCountryCosts as $key => &$country) {
+            $country['cost_per_message'] = $country['recipient_count'] > 0
+                ? bcdiv($country['total_cost'], (string) $country['recipient_count'], 6)
+                : '0';
+            $country['segments'] = null;
+        }
+        unset($country);
+
+        $balance = AccountBalance::where('account_id', $account->id)->first();
+
+        return new CostEstimate(
+            totalCost: $totalCost,
+            currency: $account->currency ?? 'GBP',
+            perCountryCosts: $perCountryCosts,
+            errors: $errors,
+            availableBalance: $balance?->effective_available ?? '0',
+            hasSufficientBalance: $balance ? $balance->hasSufficientBalance($totalCost) : false,
+            isPostpay: $account->billing_type === 'postpay',
+        );
+    }
+
+    /**
      * Run full billing preflight checks for a campaign.
      *
      * This is called before a campaign transitions to sending.

@@ -2,6 +2,7 @@
 
 namespace App\Services\Campaign;
 
+use App\Jobs\ResolveRecipientContentJob;
 use App\Models\Account;
 use App\Models\Campaign;
 use App\Models\CampaignRecipient;
@@ -69,22 +70,7 @@ class CampaignService
             'created_by' => $data['created_by'] ?? null,
         ]);
 
-        $totalRecipients = 0;
-        foreach (($data['recipient_sources'] ?? []) as $src) {
-            $srcType = $src['type'] ?? '';
-            if (in_array($srcType, ['manual', 'csv']) && !empty($src['numbers'])) {
-                $totalRecipients += count($src['numbers']);
-            } elseif ($srcType === 'individual' && !empty($src['contact_ids'])) {
-                $totalRecipients += count($src['contact_ids']);
-            } elseif (isset($src['count'])) {
-                $totalRecipients += (int) $src['count'];
-            }
-        }
-        if ($totalRecipients > 0) {
-            $campaign->total_recipients = $totalRecipients;
-            $campaign->save();
-        }
-
+        // Auto-calculate encoding/segments if SMS content provided
         if ($campaign->message_content && in_array($campaign->type, [Campaign::TYPE_SMS, Campaign::TYPE_RCS_BASIC])) {
             $campaign->encoding = MessageTemplate::detectEncoding($campaign->message_content);
             $campaign->segment_count = MessageTemplate::calculateSegments($campaign->message_content, $campaign->encoding);
@@ -119,6 +105,19 @@ class CampaignService
                 $campaign->encoding = MessageTemplate::detectEncoding($campaign->message_content);
                 $campaign->segment_count = MessageTemplate::calculateSegments($campaign->message_content, $campaign->encoding);
             }
+
+            $campaign->content_resolved_at = null;
+            $campaign->preparation_status = null;
+            $campaign->preparation_progress = 0;
+            $campaign->preparation_error = null;
+
+            DB::table('campaign_recipients')
+                ->where('campaign_id', $campaign->id)
+                ->update([
+                    'resolved_content' => null,
+                    'segments' => $campaign->segment_count ?: 1,
+                    'encoding' => null,
+                ]);
         }
 
         $campaign->updated_by = $data['updated_by'] ?? $campaign->updated_by;
@@ -182,6 +181,66 @@ class CampaignService
             ->delete();
 
         return $this->recipientResolver->resolve($campaign);
+    }
+
+    // =====================================================
+    // CAMPAIGN PREPARATION (recipient resolution + content resolution)
+    // =====================================================
+
+    /**
+     * Prepare a campaign for the confirm page.
+     *
+     * 1. Resolve recipients synchronously (contact list/tag expansion, dedup, opt-out filtering)
+     * 2. Dispatch async content resolution job (merge field substitution + per-recipient segment calculation)
+     *
+     * @throws \RuntimeException if campaign is not in draft status
+     */
+    public function prepareCampaign(Campaign $campaign): ResolverResult
+    {
+        if (!$campaign->isDraft()) {
+            throw new \RuntimeException("Campaign must be in draft status to prepare.");
+        }
+
+        DB::table('campaign_recipients')
+            ->where('campaign_id', $campaign->id)
+            ->delete();
+
+        $campaign->update([
+            'preparation_status' => 'preparing',
+            'preparation_progress' => 0,
+            'preparation_error' => null,
+            'content_resolved_at' => null,
+        ]);
+
+        $result = $this->recipientResolver->resolve($campaign);
+
+        $campaign->update([
+            'total_recipients' => $result->totalResolved,
+            'total_unique_recipients' => $result->totalResolved,
+        ]);
+
+        ResolveRecipientContentJob::dispatch($campaign->id);
+
+        Log::info('[CampaignService] Campaign preparation started', [
+            'campaign_id' => $campaign->id,
+            'recipients_resolved' => $result->totalResolved,
+        ]);
+
+        return $result;
+    }
+
+    /**
+     * Get preparation status for polling.
+     */
+    public function getPreparationStatus(Campaign $campaign): array
+    {
+        return [
+            'status' => $campaign->preparation_status,
+            'progress' => $campaign->preparation_progress,
+            'error' => $campaign->preparation_error,
+            'content_resolved' => $campaign->content_resolved_at !== null,
+            'total_recipients' => $campaign->total_recipients,
+        ];
     }
 
     // =====================================================
@@ -590,19 +649,25 @@ class CampaignService
     // =====================================================
 
     /**
-     * Resolve merge fields in message content for all pending recipients.
-     * Pre-computes resolved_content so the delivery worker doesn't need to.
+     * Resolve merge fields for all campaign recipients.
+     *
+     * Skips if content has already been resolved (e.g. during prepareCampaign).
      */
-    private function resolveRecipientContent(Campaign $campaign): void
+    public function resolveRecipientContent(Campaign $campaign): void
     {
-        if (!$campaign->message_content) {
+        if ($campaign->content_resolved_at) {
             return;
         }
 
-        // Only resolve if there are actually placeholders in the content
+        if (!$campaign->message_content) {
+            $campaign->update(['content_resolved_at' => now()]);
+            return;
+        }
+
         $placeholders = MessageTemplate::extractPlaceholders($campaign->message_content);
         if (empty($placeholders)) {
-            // No placeholders — just copy message_content to all recipients
+            $encoding = MessageTemplate::detectEncoding($campaign->message_content);
+
             DB::table('campaign_recipients')
                 ->where('campaign_id', $campaign->id)
                 ->where('status', CampaignRecipient::STATUS_PENDING)
@@ -610,11 +675,13 @@ class CampaignService
                 ->update([
                     'resolved_content' => $campaign->message_content,
                     'segments' => $campaign->segment_count ?: 1,
+                    'encoding' => $encoding,
                 ]);
+
+            $campaign->update(['content_resolved_at' => now()]);
             return;
         }
 
-        // Process in chunks to avoid memory issues
         DB::table('campaign_recipients')
             ->where('campaign_id', $campaign->id)
             ->where('status', CampaignRecipient::STATUS_PENDING)
@@ -627,8 +694,6 @@ class CampaignService
                     $recipient->id = $row->id;
 
                     $resolvedContent = $recipient->resolveContent($campaign->message_content);
-
-                    // Recalculate segments for personalised content (length may vary)
                     $encoding = MessageTemplate::detectEncoding($resolvedContent);
                     $segments = MessageTemplate::calculateSegments($resolvedContent, $encoding);
 
@@ -637,9 +702,12 @@ class CampaignService
                         ->update([
                             'resolved_content' => $resolvedContent,
                             'segments' => $segments,
+                            'encoding' => $encoding,
                         ]);
                 }
             });
+
+        $campaign->update(['content_resolved_at' => now()]);
     }
 
     /**

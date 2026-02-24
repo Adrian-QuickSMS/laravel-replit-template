@@ -101,6 +101,7 @@ class CampaignRecipient extends Model
         'resolved_content',
         'delivered_channel',
         'segments',
+        'encoding',
         'cost',
         'currency',
         'country_iso',

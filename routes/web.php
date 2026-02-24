@@ -235,9 +235,15 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
     ->controller(\App\Http\Controllers\Api\CampaignApiController::class)->group(function () {
     Route::get('/', 'index')->name('api.campaigns.index');
     Route::post('/', 'store')->name('api.campaigns.store');
+
+    Route::post('/field-statistics', 'fieldStatistics')->name('api.campaigns.field-statistics');
+
     Route::get('/{id}', 'show')->name('api.campaigns.show');
     Route::put('/{id}', 'update')->name('api.campaigns.update');
     Route::delete('/{id}', 'destroy')->name('api.campaigns.destroy');
+
+    Route::post('/{id}/prepare', 'prepare')->name('api.campaigns.prepare');
+    Route::get('/{id}/preparation-status', 'preparationStatus')->name('api.campaigns.preparation-status');
 
     // Template application
     Route::post('/{id}/apply-template', 'applyTemplate')->name('api.campaigns.apply-template');
