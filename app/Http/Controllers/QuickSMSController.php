@@ -467,13 +467,17 @@ class QuickSMSController extends Controller
                 }
 
                 $messageValidity = 'Default (48 hours)';
-                if (isset($sessionData['message_expiry']) && $sessionData['message_expiry']) {
+                if ($dbCampaign->validity_period) {
+                    $messageValidity = $dbCampaign->validity_period . ' hours';
+                } elseif (isset($sessionData['message_expiry']) && $sessionData['message_expiry']) {
                     $expiryVal = $sessionData['message_expiry'];
                     $messageValidity = stripos($expiryVal, 'hour') !== false ? $expiryVal : $expiryVal . ' hours';
                 }
 
                 $sendingWindow = 'No restrictions';
-                if (isset($sessionData['sending_window']) && $sessionData['sending_window']) {
+                if ($dbCampaign->sending_window_start && $dbCampaign->sending_window_end) {
+                    $sendingWindow = 'Quiet hours: ' . $dbCampaign->sending_window_start . ' - ' . $dbCampaign->sending_window_end;
+                } elseif (isset($sessionData['sending_window']) && $sessionData['sending_window']) {
                     $sendingWindow = $sessionData['sending_window'];
                 }
 
@@ -1571,6 +1575,7 @@ class QuickSMSController extends Controller
         $totalContacts = Contact::count();
         $availableTags = Tag::orderBy('name')->pluck('name')->toArray();
         $availableLists = ContactList::orderBy('name')->pluck('name')->toArray();
+        $optOutLists = OptOutList::orderBy('name')->get()->map(fn($l) => ['id' => $l->id, 'name' => $l->name])->toArray();
 
         return view('quicksms.contacts.all-contacts', [
             'page_title' => 'All Contacts',
@@ -1578,6 +1583,7 @@ class QuickSMSController extends Controller
             'total_contacts' => $totalContacts,
             'available_tags' => $availableTags,
             'available_lists' => $availableLists,
+            'opt_out_lists' => $optOutLists,
         ]);
     }
 

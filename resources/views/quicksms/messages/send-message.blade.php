@@ -3062,6 +3062,22 @@ function continueToConfirmation() {
         continueBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Creating campaign...';
     }
 
+    var validityPeriod = null;
+    if (messageExpiry) {
+        var match = messageExpiry.match(/(\d+)/);
+        if (match) validityPeriod = parseInt(match[1], 10);
+    }
+
+    var sendingWindowStartVal = null;
+    var sendingWindowEndVal = null;
+    var unsociableToggleEl = document.getElementById('unsociableToggle');
+    if (unsociableToggleEl && unsociableToggleEl.checked) {
+        var fromEl = document.getElementById('unsociableFrom');
+        var toEl = document.getElementById('unsociableTo');
+        if (fromEl && fromEl.value) sendingWindowStartVal = fromEl.value;
+        if (toEl && toEl.value) sendingWindowEndVal = toEl.value;
+    }
+
     var campaignData = {
         name: campaignName,
         type: apiChannelValue,
@@ -3069,7 +3085,10 @@ function continueToConfirmation() {
         sender_id_id: senderId || null,
         rcs_agent_id: rcsAgentId || null,
         recipient_sources: recipientSources,
-        scheduled_at: scheduledAt
+        scheduled_at: scheduledAt,
+        validity_period: validityPeriod,
+        sending_window_start: sendingWindowStartVal,
+        sending_window_end: sendingWindowEndVal
     };
 
     CampaignService.create(campaignData).then(function(result) {

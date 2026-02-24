@@ -145,6 +145,8 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/contacts')->g
     Route::post('/bulk/remove-tags', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveTags'])->name('api.contacts.bulk.remove-tags');
     Route::post('/bulk/delete', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkDelete'])->name('api.contacts.bulk.delete');
     Route::post('/bulk/export', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkExport'])->name('api.contacts.bulk.export');
+    Route::post('/bulk/add-to-optout', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkAddToOptOut'])->name('api.contacts.bulk.add-to-optout');
+    Route::post('/bulk/remove-from-optout', [\App\Http\Controllers\Api\ContactBookApiController::class, 'bulkRemoveFromOptOut'])->name('api.contacts.bulk.remove-from-optout');
 
     Route::get('/{id}/timeline', [\App\Http\Controllers\Api\ContactBookApiController::class, 'timeline'])->name('api.contacts.timeline');
     Route::post('/{id}/reveal-msisdn', [\App\Http\Controllers\Api\ContactBookApiController::class, 'revealMsisdn'])->name('api.contacts.reveal-msisdn');
