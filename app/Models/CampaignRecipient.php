@@ -293,31 +293,42 @@ class CampaignRecipient extends Model
 
     /**
      * Resolve merge fields in a message template against this recipient's data.
-     * Replaces {{first_name}}, {{last_name}}, {{custom_data.field}}, etc.
+     *
+     * Supports:
+     * - Built-in fields: {{first_name}}, {{last_name}}, {{full_name}}, {{email}}, {{mobile_number}}
+     * - camelCase aliases (backward compat): {{firstName}}, {{lastName}}, {{fullName}}, {{mobile}}
+     * - Custom CSV fields (flat): {{Appointment Date}}, {{company}}, {{amount_due}}
+     * - Prefixed custom fields (backward compat): {{custom_data.fieldname}}
      */
     public function resolveContent(string $template): string
     {
+        $firstName = $this->first_name ?? '';
+        $lastName = $this->last_name ?? '';
+        $fullName = trim($firstName . ' ' . $lastName);
+
         $data = [
-            'first_name' => $this->first_name ?? '',
-            'last_name' => $this->last_name ?? '',
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'full_name' => $fullName,
             'email' => $this->email ?? '',
             'mobile_number' => $this->mobile_number ?? '',
-            'firstName' => $this->first_name ?? '',
-            'lastName' => $this->last_name ?? '',
+
+            'firstName' => $firstName,
+            'lastName' => $lastName,
+            'fullName' => $fullName,
             'mobileNumber' => $this->mobile_number ?? '',
+            'mobile' => $this->mobile_number ?? '',
         ];
 
-        // Merge custom_data fields with dot-notation support
         $customData = $this->custom_data ?? [];
-        if (is_array($customData)) {
-            foreach ($customData as $key => $value) {
-                $data["custom_data.{$key}"] = $value ?? '';
-            }
+        foreach ($customData as $key => $value) {
+            $safeValue = $value ?? '';
+            $data[$key] = $safeValue;
+            $data["custom_data.{$key}"] = $safeValue;
         }
 
-        // Replace all {{placeholder}} tokens
-        return preg_replace_callback('/\{\{\s*([\w.]+)\s*\}\}/', function ($matches) use ($data) {
-            $field = $matches[1];
+        return preg_replace_callback('/\{\{\s*([^}]+?)\s*\}\}/', function ($matches) use ($data) {
+            $field = trim($matches[1]);
             return $data[$field] ?? '';
         }, $template);
     }
