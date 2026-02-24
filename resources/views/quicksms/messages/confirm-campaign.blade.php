@@ -177,10 +177,12 @@
                     @if($channel['type'] === 'sms_only')
                         @php
                             $segmentCount = $campaign['segment_count'] ?? 1;
-                            $messageCount = $recipients['valid'];
+                            $messageCount = $recipients['valid'] ?? 0;
                             $totalMessages = $messageCount * $segmentCount;
-                            $subtotal = $totalMessages * $pricing['sms_unit_price'];
-                            $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($pricing['vat_rate'] / 100) : 0;
+                            $smsUnitPrice = is_object($pricing['sms_unit_price']) ? (float) $pricing['sms_unit_price']->unitPrice : (float) ($pricing['sms_unit_price'] ?? 0);
+                            $subtotal = $totalMessages * $smsUnitPrice;
+                            $vatRate = (float) ($pricing['vat_rate'] ?? 0);
+                            $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($vatRate / 100) : 0;
                             $total = $subtotal + $vatAmount;
                         @endphp
                         <div class="row mb-2">
@@ -199,7 +201,7 @@
                         @endif
                         <div class="row mb-2">
                             <div class="col-6 text-muted">Price per SMS part</div>
-                            <div class="col-6 text-end">&pound;{{ number_format($pricing['sms_unit_price'], 4) }}</div>
+                            <div class="col-6 text-end">&pound;{{ number_format($smsUnitPrice, 4) }}</div>
                         </div>
                         <div class="row mb-2">
                             <div class="col-6 text-muted">Subtotal (ex VAT)</div>
@@ -226,19 +228,22 @@
                             <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
                                     <div class="small" style="color: #495057;">SMS Rate</div>
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($pricing['sms_unit_price'], 3) }}</div>
+                                    @php $displaySmsPrice = is_object($pricing['sms_unit_price'] ?? null) ? (float)$pricing['sms_unit_price']->unitPrice : (float)($pricing['sms_unit_price'] ?? 0); @endphp
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($displaySmsPrice, 3) }}</div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
                                     <div class="small" style="color: #495057;">RCS Basic</div>
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($pricing['rcs_basic_price'], 3) }}</div>
+                                    @php $displayRcsBasic = is_object($pricing['rcs_basic_price'] ?? null) ? (float)$pricing['rcs_basic_price']->unitPrice : (float)($pricing['rcs_basic_price'] ?? 0); @endphp
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($displayRcsBasic, 3) }}</div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
                                     <div class="small" style="color: #495057;">RCS Single</div>
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($pricing['rcs_single_price'], 3) }}</div>
+                                    @php $displayRcsSingle = is_object($pricing['rcs_single_price'] ?? null) ? (float)$pricing['rcs_single_price']->unitPrice : (float)($pricing['rcs_single_price'] ?? 0); @endphp
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($displayRcsSingle, 3) }}</div>
                                 </div>
                             </div>
                         </div>
