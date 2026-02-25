@@ -127,6 +127,14 @@ class Campaign extends Model
         'metadata',
         'created_by',
         'updated_by',
+        // Opt-out configuration
+        'opt_out_enabled',
+        'opt_out_method',
+        'opt_out_number_id',
+        'opt_out_keyword',
+        'opt_out_text',
+        'opt_out_list_id',
+        'opt_out_url_enabled',
     ];
 
     protected $casts = [
@@ -155,6 +163,10 @@ class Campaign extends Model
         'actual_cost' => 'decimal:4',
         'content_resolved_at' => 'datetime',
         'preparation_progress' => 'integer',
+        'opt_out_enabled' => 'boolean',
+        'opt_out_url_enabled' => 'boolean',
+        'opt_out_number_id' => 'string',
+        'opt_out_list_id' => 'string',
         'scheduled_at' => 'datetime',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
@@ -228,6 +240,16 @@ class Campaign extends Model
     public function recipients(): HasMany
     {
         return $this->hasMany(CampaignRecipient::class, 'campaign_id');
+    }
+
+    public function optOutNumber(): BelongsTo
+    {
+        return $this->belongsTo(PurchasedNumber::class, 'opt_out_number_id');
+    }
+
+    public function optOutList(): BelongsTo
+    {
+        return $this->belongsTo(OptOutList::class, 'opt_out_list_id');
     }
 
     // =====================================================
@@ -519,6 +541,14 @@ class Campaign extends Model
             'progress_percentage' => $this->getProgressPercentage(),
             'delivery_rate' => $this->getDeliveryRate(),
             'tags' => $this->tags,
+            'opt_out_enabled' => $this->opt_out_enabled,
+            'opt_out_method' => $this->opt_out_method,
+            'opt_out_number_id' => $this->opt_out_number_id,
+            'opt_out_number' => $this->optOutNumber?->number,
+            'opt_out_keyword' => $this->opt_out_keyword,
+            'opt_out_text' => $this->opt_out_text,
+            'opt_out_list_id' => $this->opt_out_list_id,
+            'opt_out_url_enabled' => $this->opt_out_url_enabled,
             'is_editable' => $this->isEditable(),
             'can_pause' => $this->canPause(),
             'can_resume' => $this->canResume(),

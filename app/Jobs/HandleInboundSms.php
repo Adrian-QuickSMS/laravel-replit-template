@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\NumberAutoReplyRule;
 use App\Models\PurchasedNumber;
 use App\Services\Numbers\NumberService;
+use App\Services\OptOutService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -53,10 +54,28 @@ class HandleInboundSms implements ShouldQueue
             'body_length' => strlen($this->messageBody),
         ]);
 
-        // Step 1: Update last_used_at on the purchased number
+        // Step 1: Check for campaign opt-out keyword match FIRST (highest priority)
+        $optOutService = app(OptOutService::class);
+        $wasOptOut = $optOutService->processInboundOptOut(
+            $this->destinationNumber,
+            $this->senderNumber,
+            $this->messageBody
+        );
+
+        if ($wasOptOut) {
+            Log::info('[HandleInboundSms] Opt-out processed, skipping further processing', [
+                'destination' => $this->destinationNumber,
+                'sender' => $this->senderNumber,
+            ]);
+            // Still update last_used_at
+            NumberService::touchLastUsedByNumber($this->destinationNumber);
+            return;
+        }
+
+        // Step 2: Update last_used_at on the purchased number
         NumberService::touchLastUsedByNumber($this->destinationNumber);
 
-        // Step 2: Find the purchased number record
+        // Step 3: Find the purchased number record
         $number = PurchasedNumber::withoutGlobalScopes()
             ->where('number', $this->destinationNumber)
             ->where('status', PurchasedNumber::STATUS_ACTIVE)
@@ -69,7 +88,7 @@ class HandleInboundSms implements ShouldQueue
             return;
         }
 
-        // Step 3: Check auto-reply rules
+        // Step 4: Check auto-reply rules
         $matchedRule = NumberAutoReplyRule::withoutGlobalScopes()
             ->where('purchased_number_id', $number->id)
             ->where('is_active', true)
@@ -89,12 +108,12 @@ class HandleInboundSms implements ShouldQueue
             // and bill it if charge_for_reply is true
         }
 
-        // Step 4: Forward to webhook URL if configured
+        // Step 5: Forward to webhook URL if configured
         if ($number->getForwardingUrl()) {
             $this->forwardToWebhook($number);
         }
 
-        // Step 5: Forward to email if configured
+        // Step 6: Forward to email if configured
         if ($number->getForwardingEmail()) {
             $this->forwardToEmail($number);
         }

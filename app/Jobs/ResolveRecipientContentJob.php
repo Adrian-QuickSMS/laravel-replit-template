@@ -3,8 +3,10 @@
 namespace App\Jobs;
 
 use App\Models\Campaign;
+use App\Models\CampaignOptOutUrl;
 use App\Models\CampaignRecipient;
 use App\Models\MessageTemplate;
+use App\Services\OptOutService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -57,6 +59,16 @@ class ResolveRecipientContentJob implements ShouldQueue
         ]);
 
         $messageContent = $campaign->message_content;
+        $optOutUrlEnabled = $campaign->opt_out_url_enabled && $campaign->opt_out_enabled;
+
+        // Append opt-out reply text to message if configured
+        $optOutReplyText = '';
+        if ($campaign->opt_out_enabled
+            && in_array($campaign->opt_out_method, ['reply', 'both'])
+            && $campaign->opt_out_text
+        ) {
+            $optOutReplyText = "\n" . $campaign->opt_out_text;
+        }
 
         // No content to resolve (e.g. RCS-only campaign)
         if (!$messageContent) {
@@ -84,16 +96,18 @@ class ResolveRecipientContentJob implements ShouldQueue
             return;
         }
 
-        // Fast path: no placeholders — every recipient gets identical content
-        if (empty($placeholders)) {
-            $encoding = MessageTemplate::detectEncoding($messageContent);
-            $segments = MessageTemplate::calculateSegments($messageContent, $encoding);
+        // Fast path: no placeholders AND no per-recipient opt-out URLs
+        // Every recipient gets identical content — single bulk UPDATE.
+        if (empty($placeholders) && !$optOutUrlEnabled) {
+            $finalContent = $messageContent . $optOutReplyText;
+            $encoding = MessageTemplate::detectEncoding($finalContent);
+            $segments = MessageTemplate::calculateSegments($finalContent, $encoding);
 
             DB::table('campaign_recipients')
                 ->where('campaign_id', $campaign->id)
                 ->where('status', CampaignRecipient::STATUS_PENDING)
                 ->update([
-                    'resolved_content' => $messageContent,
+                    'resolved_content' => $finalContent,
                     'segments' => $segments,
                     'encoding' => $encoding,
                 ]);
@@ -113,10 +127,11 @@ class ResolveRecipientContentJob implements ShouldQueue
             return;
         }
 
-        // Slow path: placeholders present — resolve per-recipient using batch UPDATEs.
+        // Slow path: per-recipient resolution needed (placeholders and/or opt-out URLs).
         // Instead of 500K individual UPDATE queries (~17 min), we collect resolved
         // content in batches of 500 and flush with a single multi-row UPDATE using
         // PostgreSQL's UPDATE FROM VALUES pattern (~60x faster).
+        $optOutService = $optOutUrlEnabled ? app(OptOutService::class) : null;
         $processed = 0;
         $batchUpdateSize = 500;
 
@@ -125,15 +140,41 @@ class ResolveRecipientContentJob implements ShouldQueue
             ->where('status', CampaignRecipient::STATUS_PENDING)
             ->whereNull('resolved_content')
             ->orderBy('id')
-            ->chunk(2000, function ($recipients) use ($campaign, $messageContent, &$processed, $totalPending, $batchUpdateSize) {
+            ->chunk(2000, function ($recipients) use (
+                $campaign, $messageContent, &$processed, $totalPending,
+                $batchUpdateSize, $optOutService, $optOutUrlEnabled, $optOutReplyText, $placeholders
+            ) {
                 $pendingUpdates = [];
+
+                // Pre-generate opt-out URLs for this chunk if URL opt-out is enabled
+                $optOutUrlMap = [];
+                if ($optOutUrlEnabled && $optOutService) {
+                    $mobileNumbers = collect($recipients)->pluck('mobile_number')->unique()->values()->toArray();
+                    $optOutUrlMap = $optOutService->generateOptOutUrls(
+                        $campaign->id,
+                        $campaign->account_id,
+                        $mobileNumbers
+                    );
+                }
 
                 foreach ($recipients as $row) {
                     $recipient = new CampaignRecipient((array) $row);
                     $recipient->exists = true;
                     $recipient->id = $row->id;
 
-                    $resolvedContent = $recipient->resolveContent($messageContent);
+                    // Resolve merge fields if placeholders exist
+                    $resolvedContent = !empty($placeholders)
+                        ? $recipient->resolveContent($messageContent)
+                        : $messageContent;
+
+                    // Append opt-out reply text
+                    $resolvedContent .= $optOutReplyText;
+
+                    // Append opt-out URL if enabled
+                    if ($optOutUrlEnabled && isset($optOutUrlMap[$row->mobile_number])) {
+                        $resolvedContent .= "\n" . $optOutUrlMap[$row->mobile_number];
+                    }
+
                     $encoding = MessageTemplate::detectEncoding($resolvedContent);
                     $segments = MessageTemplate::calculateSegments($resolvedContent, $encoding);
 
