@@ -288,6 +288,28 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/message-templ
     Route::post('/analyse-content', 'analyseContent')->name('api.message-templates.analyse-content');
 });
 
+// Numbers Module API (session-based auth)
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/numbers')
+    ->controller(\App\Http\Controllers\Api\NumberApiController::class)->group(function () {
+    Route::get('/', 'index')->name('api.numbers.index');
+    Route::get('/pool', 'pool')->name('api.numbers.pool');
+    Route::get('/pricing', 'pricing')->name('api.numbers.pricing');
+    Route::get('/export', 'export')->name('api.numbers.export');
+    Route::post('/purchase-vmn', 'purchaseVmn')->name('api.numbers.purchase-vmn');
+    Route::post('/purchase-keyword', 'purchaseKeyword')->name('api.numbers.purchase-keyword');
+    Route::post('/bulk-assign', 'bulkAssign')->name('api.numbers.bulk-assign');
+    Route::post('/bulk-release', 'bulkRelease')->name('api.numbers.bulk-release');
+    Route::delete('/assignments/{assignmentId}', 'unassign')->name('api.numbers.unassign');
+    Route::put('/auto-reply-rules/{ruleId}', 'updateAutoReplyRule')->name('api.numbers.auto-reply-rules.update');
+    Route::delete('/auto-reply-rules/{ruleId}', 'deleteAutoReplyRule')->name('api.numbers.auto-reply-rules.destroy');
+    Route::get('/{id}', 'show')->name('api.numbers.show');
+    Route::delete('/{id}', 'release')->name('api.numbers.release');
+    Route::put('/{id}/configure', 'configure')->name('api.numbers.configure');
+    Route::post('/{id}/assign', 'assign')->name('api.numbers.assign');
+    Route::get('/{id}/auto-reply-rules', 'autoReplyRules')->name('api.numbers.auto-reply-rules.index');
+    Route::post('/{id}/auto-reply-rules', 'createAutoReplyRule')->name('api.numbers.auto-reply-rules.store');
+});
+
 Route::prefix('admin')->group(function () {
     Route::controller(\App\Http\Controllers\AdminAuthController::class)->group(function () {
         Route::get('/login', 'showLogin')->name('admin.login');
