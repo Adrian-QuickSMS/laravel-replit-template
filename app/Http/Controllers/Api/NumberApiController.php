@@ -629,6 +629,13 @@ class NumberApiController extends Controller
         }
 
         $account = \App\Models\Account::findOrFail($accountId);
+        $vatRate = $this->billingService->getVatRate($account);
+
+        // Helper: calculate VAT on a net amount string
+        $withVat = function (string $net) use ($vatRate): array {
+            $vat = bcmul(bcdiv($net, '100', 8), $vatRate, 4);
+            return ['net' => $net, 'vat' => $vat, 'inc_vat' => bcadd($net, $vat, 4)];
+        };
 
         try {
             $vmnSetupPrice = app(\App\Services\Billing\PricingEngine::class)
@@ -639,6 +646,11 @@ class NumberApiController extends Controller
             $vmnSetupPrice = null;
             $vmnMonthlyPrice = null;
         }
+
+        $vmnSetupNet = $vmnSetupPrice?->unitPrice ?? '10.0000';
+        $vmnMonthlyNet = $vmnMonthlyPrice?->unitPrice ?? '8.0000';
+        $vmnSetupVat = $withVat($vmnSetupNet);
+        $vmnMonthlyVat = $withVat($vmnMonthlyNet);
 
         try {
             $keywordPricing = $this->billingService->calculateKeywordPricing($account);
@@ -667,20 +679,37 @@ class NumberApiController extends Controller
                 'display_name' => $sc->number . ' (' . $sc->country_iso . ')',
             ])->values();
 
+        $dsSetupNet = $dedicatedSetupPrice?->unitPrice;
+        $dsMonthlyNet = $dedicatedMonthlyPrice?->unitPrice ?? '0.0000';
+
         return response()->json([
+            'vat_rate' => $vatRate,
             'vmn' => [
-                'setup_fee' => $vmnSetupPrice?->unitPrice ?? '10.0000',
-                'monthly_fee' => $vmnMonthlyPrice?->unitPrice ?? '8.0000',
+                'setup_fee' => $vmnSetupNet,
+                'setup_vat' => $vmnSetupVat['vat'],
+                'setup_inc_vat' => $vmnSetupVat['inc_vat'],
+                'monthly_fee' => $vmnMonthlyNet,
+                'monthly_vat' => $vmnMonthlyVat['vat'],
+                'monthly_inc_vat' => $vmnMonthlyVat['inc_vat'],
                 'currency' => $account->currency ?? 'GBP',
             ],
             'keyword' => $keywordPricing ?? [
                 'setup_fee' => '25.0000',
+                'setup_vat' => $withVat('25.0000')['vat'],
+                'setup_inc_vat' => $withVat('25.0000')['inc_vat'],
                 'monthly_fee' => '2.0000',
+                'monthly_vat' => $withVat('2.0000')['vat'],
+                'monthly_inc_vat' => $withVat('2.0000')['inc_vat'],
+                'vat_rate' => $vatRate,
                 'currency' => $account->currency ?? 'GBP',
             ],
-            'dedicated_shortcode' => $dedicatedSetupPrice ? [
-                'setup_fee' => $dedicatedSetupPrice->unitPrice,
-                'monthly_fee' => $dedicatedMonthlyPrice?->unitPrice ?? '0.0000',
+            'dedicated_shortcode' => $dsSetupNet ? [
+                'setup_fee' => $dsSetupNet,
+                'setup_vat' => $withVat($dsSetupNet)['vat'],
+                'setup_inc_vat' => $withVat($dsSetupNet)['inc_vat'],
+                'monthly_fee' => $dsMonthlyNet,
+                'monthly_vat' => $withVat($dsMonthlyNet)['vat'],
+                'monthly_inc_vat' => $withVat($dsMonthlyNet)['inc_vat'],
                 'currency' => $account->currency ?? 'GBP',
             ] : null,
             'shared_shortcodes' => $sharedShortcodes,

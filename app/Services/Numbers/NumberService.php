@@ -77,12 +77,13 @@ class NumberService
             // Step 2: Calculate pricing
             $pricing = $this->billing->calculateVmnPricing($account, $poolNumbers);
 
-            // Step 3: Debit setup fee (immediate debit, refund on failure)
+            // Step 3: Debit setup fee + VAT (immediate debit, refund on failure)
             $this->billing->debitSetupFee(
                 $account,
                 $pricing['total_setup_fee'],
                 'vmn_purchase',
-                count($poolNumbers) . ' VMN(s)'
+                count($poolNumbers) . ' VMN(s)',
+                $pricing['total_setup_vat'] ?? '0.0000'
             );
 
             // Step 4: Create purchased_number records + mark pool as sold + auto-create SenderIds
@@ -179,12 +180,13 @@ class NumberService
             // Calculate pricing
             $pricing = $this->billing->calculateKeywordPricing($account);
 
-            // Debit setup fee
+            // Debit setup fee + VAT
             $this->billing->debitSetupFee(
                 $account,
                 $pricing['setup_fee'],
                 'keyword_purchase',
-                "Keyword '{$keyword}'"
+                "Keyword '{$keyword}'",
+                $pricing['setup_vat'] ?? '0.0000'
             );
 
             // Create keyword record

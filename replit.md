@@ -55,6 +55,8 @@ The QuickSMS platform is built on PHP 8.3 and Laravel 10, using PostgreSQL 16. T
     *   Nested `DB::transaction()` inside outer transactions creates PostgreSQL savepoints — used in `autoCreateSenderId` to make sender-ID creation optional.
     *   Shared shortcode number is `60866`. Keyword pricing slugs: `shortcode_keyword_setup`, `shortcode_keyword_monthly`. Dedicated shortcode slugs: `shortcode_setup`, `shortcode_monthly`.
     *   Ledger entry types for numbers: `number_setup_prepay`, `number_setup_postpay`, `number_setup_refund`. Billable product type: `shortcode_keyword_monthly`.
+    *   **VAT on number purchases:** `NumberBillingService::getVatRate()` returns 20% for GB accounts, 0% otherwise. `calculateVmnPricing()` and `calculateKeywordPricing()` return `vat_rate`, `*_vat`, and `*_inc_vat` fields. `debitSetupFee()` accepts an optional `vatAmount` parameter and debits the VAT-inclusive total from the balance, with a `VAT_OUTPUT` ledger line added when VAT > 0. The purchase UI (`purchase/numbers.blade.php`) shows ex-VAT, VAT, and inc-VAT breakdowns in both the selection summary bar and the confirmation modals; balance sufficiency checks use the inc-VAT total.
+    *   **Shared shortcode in Numbers Library:** `GET /api/numbers` appends platform shortcodes (60866) that the tenant has active keywords on using a single `whereIn` query — no N+1. `GET /api/numbers/{id}` falls back to `withoutGlobalScopes()` when the tenant has keywords on a platform shortcode. Numbers Library UI shows keyword badges in the capabilities column for `shared_shortcode` rows and suppresses Configure/Suspend/Reactivate actions.
 
 ## External Dependencies
 

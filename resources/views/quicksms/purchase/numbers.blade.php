@@ -593,12 +593,28 @@
                 </div>
                 <div class="summary-costs">
                     <div class="cost-item">
-                        <span class="cost-label">Setup Total</span>
+                        <span class="cost-label">Setup (ex VAT)</span>
                         <span class="cost-value">£<span id="vmnSetupTotal">0.00</span></span>
                     </div>
+                    <div class="cost-item" id="vmnSetupVatRow" style="display:none">
+                        <span class="cost-label">VAT (<span id="vmnVatRatePct">20</span>%)</span>
+                        <span class="cost-value">£<span id="vmnSetupVat">0.00</span></span>
+                    </div>
+                    <div class="cost-item" id="vmnSetupIncVatRow" style="display:none">
+                        <span class="cost-label fw-bold">Setup Total inc VAT</span>
+                        <span class="cost-value fw-bold">£<span id="vmnSetupIncVat">0.00</span></span>
+                    </div>
                     <div class="cost-item">
-                        <span class="cost-label">Monthly Total</span>
+                        <span class="cost-label">Monthly (ex VAT)</span>
                         <span class="cost-value">£<span id="vmnMonthlyTotal">0.00</span>/mo</span>
+                    </div>
+                    <div class="cost-item" id="vmnMonthlyVatRow" style="display:none">
+                        <span class="cost-label">Monthly VAT</span>
+                        <span class="cost-value">£<span id="vmnMonthlyVat">0.00</span>/mo</span>
+                    </div>
+                    <div class="cost-item" id="vmnMonthlyIncVatRow" style="display:none">
+                        <span class="cost-label fw-bold">Monthly Total inc VAT</span>
+                        <span class="cost-value fw-bold">£<span id="vmnMonthlyIncVat">0.00</span>/mo</span>
                     </div>
                 </div>
             </div>
@@ -639,12 +655,28 @@
                 </div>
                 <div class="summary-costs">
                     <div class="cost-item">
-                        <span class="cost-label">Setup Total</span>
+                        <span class="cost-label">Setup (ex VAT)</span>
                         <span class="cost-value">£<span id="keywordSetupTotal">0.00</span></span>
                     </div>
+                    <div class="cost-item" id="kwSetupVatRow" style="display:none">
+                        <span class="cost-label">VAT (<span id="kwVatRatePct">20</span>%)</span>
+                        <span class="cost-value">£<span id="kwSetupVat">0.00</span></span>
+                    </div>
+                    <div class="cost-item" id="kwSetupIncVatRow" style="display:none">
+                        <span class="cost-label fw-bold">Setup Total inc VAT</span>
+                        <span class="cost-value fw-bold">£<span id="kwSetupIncVat">0.00</span></span>
+                    </div>
                     <div class="cost-item">
-                        <span class="cost-label">Monthly Total</span>
+                        <span class="cost-label">Monthly (ex VAT)</span>
                         <span class="cost-value">£<span id="keywordMonthlyTotal">0.00</span>/mo</span>
+                    </div>
+                    <div class="cost-item" id="kwMonthlyVatRow" style="display:none">
+                        <span class="cost-label">Monthly VAT</span>
+                        <span class="cost-value">£<span id="kwMonthlyVat">0.00</span>/mo</span>
+                    </div>
+                    <div class="cost-item" id="kwMonthlyIncVatRow" style="display:none">
+                        <span class="cost-label fw-bold">Monthly Total inc VAT</span>
+                        <span class="cost-value fw-bold">£<span id="kwMonthlyIncVat">0.00</span>/mo</span>
                     </div>
                 </div>
             </div>
@@ -703,20 +735,34 @@
                     <div id="modalVmnList" class="border rounded p-2" style="max-height: 150px; overflow-y: auto;"></div>
                 </div>
                 
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <div class="text-muted small">Setup Cost (due now)</div>
-                            <div class="fs-4 fw-bold text-primary">£<span id="modalVmnSetup">0.00</span></div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <div class="text-muted small">Monthly Cost</div>
-                            <div class="fs-4 fw-bold text-primary">£<span id="modalVmnMonthly">0.00</span>/mo</div>
-                        </div>
-                    </div>
-                </div>
+                <table class="table table-sm mb-3">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Setup fee (ex VAT)</td>
+                            <td class="text-end">£<span id="modalVmnSetup">0.00</span></td>
+                        </tr>
+                        <tr id="modalVmnVatRow">
+                            <td class="text-muted">VAT (<span id="modalVmnVatRate">20</span>%)</td>
+                            <td class="text-end">£<span id="modalVmnSetupVat">0.00</span></td>
+                        </tr>
+                        <tr class="fw-bold border-top">
+                            <td>Total due now (inc VAT)</td>
+                            <td class="text-end text-primary">£<span id="modalVmnSetupTotal">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted pt-2">Monthly fee (ex VAT)</td>
+                            <td class="text-end pt-2">£<span id="modalVmnMonthly">0.00</span>/mo</td>
+                        </tr>
+                        <tr id="modalVmnMonthlyVatRow">
+                            <td class="text-muted">Monthly VAT</td>
+                            <td class="text-end">£<span id="modalVmnMonthlyVat">0.00</span>/mo</td>
+                        </tr>
+                        <tr class="fw-bold border-top">
+                            <td>Monthly total (inc VAT)</td>
+                            <td class="text-end text-primary">£<span id="modalVmnMonthlyTotal">0.00</span>/mo</td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 <div class="alert alert-pastel-primary small mb-0">
                     <i class="fas fa-info-circle me-1 text-primary"></i>
@@ -745,21 +791,35 @@
                     <label class="form-label fw-semibold">Selected Keywords</label>
                     <div id="modalKeywordList" class="border rounded p-2" style="max-height: 150px; overflow-y: auto;"></div>
                 </div>
-                
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <div class="text-muted small">Setup Cost (due now)</div>
-                            <div class="fs-4 fw-bold text-primary">£<span id="modalKeywordSetup">0.00</span></div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <div class="text-muted small">Monthly Cost</div>
-                            <div class="fs-4 fw-bold text-primary">£<span id="modalKeywordMonthly">0.00</span>/mo</div>
-                        </div>
-                    </div>
-                </div>
+
+                <table class="table table-sm mb-3">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Setup fee (ex VAT)</td>
+                            <td class="text-end">£<span id="modalKeywordSetup">0.00</span></td>
+                        </tr>
+                        <tr id="modalKeywordVatRow">
+                            <td class="text-muted">VAT (<span id="modalKeywordVatRate">20</span>%)</td>
+                            <td class="text-end">£<span id="modalKeywordSetupVat">0.00</span></td>
+                        </tr>
+                        <tr class="fw-bold border-top">
+                            <td>Total due now (inc VAT)</td>
+                            <td class="text-end text-primary">£<span id="modalKeywordSetupTotal">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted pt-2">Monthly fee (ex VAT)</td>
+                            <td class="text-end pt-2">£<span id="modalKeywordMonthly">0.00</span>/mo</td>
+                        </tr>
+                        <tr id="modalKeywordMonthlyVatRow">
+                            <td class="text-muted">Monthly VAT</td>
+                            <td class="text-end">£<span id="modalKeywordMonthlyVat">0.00</span>/mo</td>
+                        </tr>
+                        <tr class="fw-bold border-top">
+                            <td>Monthly total (inc VAT)</td>
+                            <td class="text-end text-primary">£<span id="modalKeywordMonthlyTotal">0.00</span>/mo</td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 <div class="alert alert-pastel-primary small mb-0">
                     <i class="fas fa-info-circle me-1 text-primary"></i>
@@ -856,6 +916,7 @@ var keywordSetupFee = 0;
 var keywordMonthlyFee = 0;
 var vmnSetupFee = 0;
 var vmnMonthlyFee = 0;
+var vatRate = 0;
 
 var countryNames = {
     'GB': 'United Kingdom', 'US': 'United States', 'AU': 'Australia',
@@ -882,6 +943,7 @@ function loadPricing() {
     fetch('/api/numbers/pricing', { headers: { 'Accept': 'application/json' } })
         .then(function(r) { return r.json(); })
         .then(function(data) {
+            vatRate = parseFloat(data.vat_rate) || 0;
             if (data.vmn) {
                 vmnSetupFee = parseFloat(data.vmn.setup_fee) || 0;
                 vmnMonthlyFee = parseFloat(data.vmn.monthly_fee) || 0;
@@ -1061,10 +1123,25 @@ function updateVmnSelection() {
         var vmn = vmnPoolData.find(function(v) { return v.id === id; });
         if (vmn) { setupTotal += vmn.setupFee; monthlyTotal += vmn.monthlyFee; }
     });
+    var setupVat = setupTotal * vatRate / 100;
+    var monthlyVat = monthlyTotal * vatRate / 100;
+    var hasVat = vatRate > 0;
+
     document.getElementById('vmnPurchaseBtn').disabled = count === 0;
     document.getElementById('vmnSelectedCount').textContent = count;
     document.getElementById('vmnSetupTotal').textContent = setupTotal.toFixed(2);
     document.getElementById('vmnMonthlyTotal').textContent = monthlyTotal.toFixed(2);
+    if (hasVat && count > 0) {
+        document.getElementById('vmnVatRatePct').textContent = vatRate.toFixed(0);
+        document.getElementById('vmnSetupVat').textContent = setupVat.toFixed(2);
+        document.getElementById('vmnSetupIncVat').textContent = (setupTotal + setupVat).toFixed(2);
+        document.getElementById('vmnMonthlyVat').textContent = monthlyVat.toFixed(2);
+        document.getElementById('vmnMonthlyIncVat').textContent = (monthlyTotal + monthlyVat).toFixed(2);
+    }
+    document.getElementById('vmnSetupVatRow').style.display = (hasVat && count > 0) ? '' : 'none';
+    document.getElementById('vmnSetupIncVatRow').style.display = (hasVat && count > 0) ? '' : 'none';
+    document.getElementById('vmnMonthlyVatRow').style.display = (hasVat && count > 0) ? '' : 'none';
+    document.getElementById('vmnMonthlyIncVatRow').style.display = (hasVat && count > 0) ? '' : 'none';
     document.getElementById('vmnSelectionSummary').style.display = count > 0 ? 'flex' : 'none';
     document.getElementById('vmnSelectAll').checked = count > 0 && count === vmnPoolData.length;
 }
@@ -1169,10 +1246,24 @@ function renderSelectedKeywords() {
     var count = selectedKeywords.length;
     var setupTotal = count * keywordSetupFee;
     var monthlyTotal = count * keywordMonthlyFee;
-    
+    var setupVat = setupTotal * vatRate / 100;
+    var monthlyVat = monthlyTotal * vatRate / 100;
+    var hasVat = vatRate > 0;
+
     document.getElementById('keywordSelectedCount').textContent = count;
     document.getElementById('keywordSetupTotal').textContent = setupTotal.toFixed(2);
     document.getElementById('keywordMonthlyTotal').textContent = monthlyTotal.toFixed(2);
+    if (hasVat) {
+        document.getElementById('kwVatRatePct').textContent = vatRate.toFixed(0);
+        document.getElementById('kwSetupVat').textContent = setupVat.toFixed(2);
+        document.getElementById('kwSetupIncVat').textContent = (setupTotal + setupVat).toFixed(2);
+        document.getElementById('kwMonthlyVat').textContent = monthlyVat.toFixed(2);
+        document.getElementById('kwMonthlyIncVat').textContent = (monthlyTotal + monthlyVat).toFixed(2);
+    }
+    document.getElementById('kwSetupVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('kwSetupIncVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('kwMonthlyVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('kwMonthlyIncVatRow').style.display = hasVat ? '' : 'none';
     document.getElementById('keywordSelectionSummary').style.display = 'flex';
     document.getElementById('keywordPurchaseBtn').disabled = false;
 }
@@ -1201,18 +1292,30 @@ function showVmnPurchaseModal() {
     selectedVmns.forEach(function(vmn) {
         setupTotal += vmn.setupFee;
         monthlyTotal += vmn.monthlyFee;
-        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + vmn.number + '</span><span class="text-muted">£' + vmn.setupFee.toFixed(2) + '</span></div>';
+        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + vmn.number + '</span><span class="text-muted">£' + vmn.setupFee.toFixed(2) + ' ex VAT</span></div>';
     });
-    if (setupTotal > accountBalance) {
+    var setupVat = setupTotal * vatRate / 100;
+    var monthlyVat = monthlyTotal * vatRate / 100;
+    var setupIncVat = setupTotal + setupVat;
+    var hasVat = vatRate > 0;
+
+    if (setupIncVat > accountBalance) {
         document.getElementById('insufficientBalance').textContent = accountBalance.toFixed(2);
-        document.getElementById('insufficientRequired').textContent = setupTotal.toFixed(2);
-        document.getElementById('insufficientShortfall').textContent = (setupTotal - accountBalance).toFixed(2);
+        document.getElementById('insufficientRequired').textContent = setupIncVat.toFixed(2);
+        document.getElementById('insufficientShortfall').textContent = (setupIncVat - accountBalance).toFixed(2);
         new bootstrap.Modal(document.getElementById('insufficientBalanceModal')).show();
         return;
     }
     document.getElementById('modalVmnList').innerHTML = listHtml;
     document.getElementById('modalVmnSetup').textContent = setupTotal.toFixed(2);
+    document.getElementById('modalVmnSetupVat').textContent = setupVat.toFixed(2);
+    document.getElementById('modalVmnSetupTotal').textContent = setupIncVat.toFixed(2);
     document.getElementById('modalVmnMonthly').textContent = monthlyTotal.toFixed(2);
+    document.getElementById('modalVmnMonthlyVat').textContent = monthlyVat.toFixed(2);
+    document.getElementById('modalVmnMonthlyTotal').textContent = (monthlyTotal + monthlyVat).toFixed(2);
+    document.getElementById('modalVmnVatRate').textContent = vatRate.toFixed(0);
+    document.getElementById('modalVmnVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('modalVmnMonthlyVatRow').style.display = hasVat ? '' : 'none';
     new bootstrap.Modal(document.getElementById('vmnPurchaseModal')).show();
 }
 
@@ -1220,20 +1323,32 @@ function showKeywordPurchaseModal() {
     if (selectedKeywords.length === 0) return;
     var setupTotal = selectedKeywords.length * keywordSetupFee;
     var monthlyTotal = selectedKeywords.length * keywordMonthlyFee;
-    if (setupTotal > accountBalance) {
+    var setupVat = setupTotal * vatRate / 100;
+    var monthlyVat = monthlyTotal * vatRate / 100;
+    var setupIncVat = setupTotal + setupVat;
+    var hasVat = vatRate > 0;
+
+    if (setupIncVat > accountBalance) {
         document.getElementById('insufficientBalance').textContent = accountBalance.toFixed(2);
-        document.getElementById('insufficientRequired').textContent = setupTotal.toFixed(2);
-        document.getElementById('insufficientShortfall').textContent = (setupTotal - accountBalance).toFixed(2);
+        document.getElementById('insufficientRequired').textContent = setupIncVat.toFixed(2);
+        document.getElementById('insufficientShortfall').textContent = (setupIncVat - accountBalance).toFixed(2);
         new bootstrap.Modal(document.getElementById('insufficientBalanceModal')).show();
         return;
     }
     var listHtml = '';
     selectedKeywords.forEach(function(kw) {
-        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + kw + '</span><span class="text-muted">£' + keywordSetupFee.toFixed(2) + '</span></div>';
+        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + kw + '</span><span class="text-muted">£' + keywordSetupFee.toFixed(2) + ' ex VAT</span></div>';
     });
     document.getElementById('modalKeywordList').innerHTML = listHtml;
     document.getElementById('modalKeywordSetup').textContent = setupTotal.toFixed(2);
+    document.getElementById('modalKeywordSetupVat').textContent = setupVat.toFixed(2);
+    document.getElementById('modalKeywordSetupTotal').textContent = setupIncVat.toFixed(2);
     document.getElementById('modalKeywordMonthly').textContent = monthlyTotal.toFixed(2);
+    document.getElementById('modalKeywordMonthlyVat').textContent = monthlyVat.toFixed(2);
+    document.getElementById('modalKeywordMonthlyTotal').textContent = (monthlyTotal + monthlyVat).toFixed(2);
+    document.getElementById('modalKeywordVatRate').textContent = vatRate.toFixed(0);
+    document.getElementById('modalKeywordVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('modalKeywordMonthlyVatRow').style.display = hasVat ? '' : 'none';
     new bootstrap.Modal(document.getElementById('keywordPurchaseModal')).show();
 }
 
