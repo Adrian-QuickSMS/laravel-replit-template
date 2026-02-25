@@ -623,30 +623,30 @@ class NumberService
         User $purchaser
     ): ?SenderId {
         try {
-            $senderId = SenderId::withoutGlobalScopes()->create([
-                'account_id' => $accountId,
-                'sender_id_value' => $purchased->number,
-                'sender_type' => SenderId::TYPE_NUMERIC,
-                'brand_name' => $purchased->friendly_name ?? $purchased->number,
-                'country_code' => $purchased->country_iso,
-                'use_case' => 'Virtual mobile number',
-                'use_case_description' => 'Auto-registered from VMN purchase',
-                'permission_confirmed' => true,
-                'workflow_status' => SenderId::STATUS_APPROVED,
-                'is_default' => false,
-                'created_by' => $purchaser->id,
-                'submitted_at' => now(),
-                'reviewed_at' => now(),
-                'is_locked' => true,
-                'full_payload' => [
-                    'source' => 'vmn_purchase',
-                    'purchased_number_id' => $purchased->id,
-                ],
-            ]);
-
-            return $senderId;
+            return DB::transaction(function () use ($purchased, $accountId, $purchaser) {
+                return SenderId::withoutGlobalScopes()->create([
+                    'account_id' => $accountId,
+                    'sender_id_value' => $purchased->number,
+                    'sender_type' => SenderId::TYPE_NUMERIC,
+                    'brand_name' => $purchased->friendly_name ?? $purchased->number,
+                    'country_code' => $purchased->country_iso,
+                    'use_case' => 'Virtual mobile number',
+                    'use_case_description' => 'Auto-registered from VMN purchase',
+                    'permission_confirmed' => true,
+                    'workflow_status' => SenderId::STATUS_APPROVED,
+                    'is_default' => false,
+                    'created_by' => $purchaser->id,
+                    'submitted_at' => now(),
+                    'reviewed_at' => now(),
+                    'is_locked' => true,
+                    'full_payload' => [
+                        'source' => 'vmn_purchase',
+                        'purchased_number_id' => $purchased->id,
+                    ],
+                ]);
+            });
         } catch (\Exception $e) {
-            Log::error('[NumberService] Failed to auto-create SenderId', [
+            Log::warning('[NumberService] Skipped auto-create SenderId (savepoint rolled back)', [
                 'number' => $purchased->number,
                 'error' => $e->getMessage(),
             ]);
