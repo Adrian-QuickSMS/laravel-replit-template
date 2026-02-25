@@ -1159,6 +1159,7 @@ $(document).ready(function() {
             capabilities: caps,
             mode: mode,
             subAccounts: [],
+            keywords: Array.isArray(item.keywords) ? item.keywords : [],
             monthlyCost: parseFloat(item.monthly_fee) || 0,
             lastUsed: item.last_used_at || null,
             purchaseDate: purchaseDate,
@@ -1219,6 +1220,7 @@ $(document).ready(function() {
         switch(type) {
             case 'vmn': return 'VMN';
             case 'dedicated_shortcode': return 'Dedicated Shortcode';
+            case 'shared_shortcode': return 'Shared Shortcode';
             case 'shortcode_keyword': return 'Shortcode Keyword';
             default: return type;
         }
@@ -1353,14 +1355,27 @@ $(document).ready(function() {
         filtered.forEach(function(num) {
             var rowClass = num.status === 'suspended' ? 'suspended-row' : '';
             var isChecked = selectedNumbers.includes(num.id) ? 'checked' : '';
-            html += '<tr class="' + rowClass + '" data-id="' + num.id + '" data-mode="' + num.mode + '" data-status="' + num.status + '">';
+            html += '<tr class="' + rowClass + '" data-id="' + num.id + '" data-mode="' + num.mode + '" data-status="' + num.status + '" data-type="' + num.type + '">';
             
             html += '<td class="checkbox-col"><input type="checkbox" class="form-check-input row-checkbox" data-id="' + num.id + '" ' + isChecked + '></td>';
             html += '<td><span class="number-value">' + num.number + '</span></td>';
             html += '<td>' + num.countryName + '</td>';
             html += '<td>' + getTypeLabel(num.type) + '</td>';
             html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(num.status) + '">' + getStatusLabel(num.status) + '</span></td>';
-            html += '<td>' + formatCapabilities(num.capabilities) + '</td>';
+            // Capabilities column: show keyword badges for shared shortcodes, normal capabilities otherwise
+            if (num.type === 'shared_shortcode') {
+                var kwHtml = '';
+                if (num.keywords && num.keywords.length > 0) {
+                    num.keywords.forEach(function(kw) {
+                        kwHtml += '<span class="badge badge-pastel-primary me-1">' + kw.keyword + '</span>';
+                    });
+                } else {
+                    kwHtml = '<span class="text-muted small">No keywords</span>';
+                }
+                html += '<td>' + kwHtml + '</td>';
+            } else {
+                html += '<td>' + formatCapabilities(num.capabilities) + '</td>';
+            }
             html += '<td>' + (num.mode === 'portal' ? 'Portal' : 'API') + '</td>';
             html += '<td>' + formatSubAccounts(num.subAccounts) + '</td>';
             html += '<td><span class="cost-value">' + formatCurrency(num.monthlyCost) + '</span></td>';
@@ -1376,24 +1391,26 @@ $(document).ready(function() {
             // View Details - always available
             html += '<li><a class="dropdown-item" href="#" onclick="viewNumber(\'' + num.id + '\'); return false;"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>';
             
-            // Edit Configuration - always available
-            html += '<li><a class="dropdown-item" href="#" onclick="editNumber(\'' + num.id + '\'); return false;"><i class="fas fa-cog me-2 text-muted"></i>Edit Configuration</a></li>';
-            
-            // Assign Sub-Accounts - Portal mode only
-            if (num.mode === 'portal') {
-                html += '<li><a class="dropdown-item" href="#" onclick="assignSubAccountsToNumber(\'' + num.id + '\'); return false;"><i class="fas fa-building me-2 text-muted"></i>Assign Sub-Accounts</a></li>';
-            }
-            
-            // Suspend - only for active numbers
-            if (num.status === 'active') {
-                html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendNumber(\'' + num.id + '\'); return false;"><i class="fas fa-pause me-2"></i>Suspend</a></li>';
-            }
-            
-            // Reactivate - only for suspended numbers
-            if (num.status === 'suspended') {
-                html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateNumber(\'' + num.id + '\'); return false;"><i class="fas fa-play me-2"></i>Reactivate</a></li>';
+            if (num.type !== 'shared_shortcode') {
+                // Edit Configuration - owned numbers only
+                html += '<li><a class="dropdown-item" href="#" onclick="editNumber(\'' + num.id + '\'); return false;"><i class="fas fa-cog me-2 text-muted"></i>Edit Configuration</a></li>';
+                
+                // Assign Sub-Accounts - Portal mode only
+                if (num.mode === 'portal') {
+                    html += '<li><a class="dropdown-item" href="#" onclick="assignSubAccountsToNumber(\'' + num.id + '\'); return false;"><i class="fas fa-building me-2 text-muted"></i>Assign Sub-Accounts</a></li>';
+                }
+                
+                // Suspend - only for active numbers
+                if (num.status === 'active') {
+                    html += '<li><hr class="dropdown-divider"></li>';
+                    html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendNumber(\'' + num.id + '\'); return false;"><i class="fas fa-pause me-2"></i>Suspend</a></li>';
+                }
+                
+                // Reactivate - only for suspended numbers
+                if (num.status === 'suspended') {
+                    html += '<li><hr class="dropdown-divider"></li>';
+                    html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateNumber(\'' + num.id + '\'); return false;"><i class="fas fa-play me-2"></i>Reactivate</a></li>';
+                }
             }
             
             // NOTE: No delete/release action - numbers are never deleted
@@ -1410,11 +1427,14 @@ $(document).ready(function() {
         $('#totalCount').text(numbersData.length);
     }
 
-    // Row click to navigate to configuration page
+    // Row click to navigate to configuration page (not for shared shortcodes - tenant doesn't own those)
     $(document).on('click', '.numbers-table tbody tr', function(e) {
         if ($(e.target).closest('.dropdown').length) return;
         if ($(e.target).hasClass('row-checkbox') || $(e.target).hasClass('form-check-input')) return;
         var id = $(this).data('id');
+        var mode = $(this).data('mode');
+        var type = $(this).data('type');
+        if (type === 'shared_shortcode') return;
         navigateToConfigurePage([id]);
     });
 

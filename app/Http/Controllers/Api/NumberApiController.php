@@ -83,13 +83,40 @@ class NumberApiController extends Controller
         $perPage = min((int) $request->input('per_page', 25), 100);
         $paginated = $query->paginate($perPage);
 
+        $data = collect($paginated->items())->map->toPortalArray();
+
+        // Augment with shared shortcodes the tenant has keywords on (but doesn't own outright)
+        $tenantId = session('customer_tenant_id');
+        $extraCount = 0;
+        if ($tenantId) {
+            $existingIds = collect($paginated->items())->pluck('id')->toArray();
+
+            $keywordShortcodeIds = ShortcodeKeyword::where('account_id', $tenantId)
+                ->whereNull('deleted_at')
+                ->distinct()
+                ->pluck('purchased_number_id')
+                ->reject(fn ($id) => in_array($id, $existingIds))
+                ->values();
+
+            if ($keywordShortcodeIds->isNotEmpty()) {
+                $extraNumbers = PurchasedNumber::withoutGlobalScopes()
+                    ->with(['keywords' => fn ($q) => $q->where('account_id', $tenantId)->whereNull('deleted_at')])
+                    ->whereIn('id', $keywordShortcodeIds)
+                    ->get();
+
+                $extraItems = $extraNumbers->map->toPortalArray();
+                $extraCount = $extraItems->count();
+                $data = $data->concat($extraItems);
+            }
+        }
+
         return response()->json([
-            'data' => collect($paginated->items())->map->toPortalArray(),
+            'data' => $data,
             'meta' => [
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),
                 'per_page' => $paginated->perPage(),
-                'total' => $paginated->total(),
+                'total' => $paginated->total() + $extraCount,
             ],
             'summary' => [
                 'total_active' => PurchasedNumber::active()->count(),
@@ -106,9 +133,31 @@ class NumberApiController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        $number = PurchasedNumber::with(['assignments', 'keywords', 'autoReplyRules'])
-            ->withCount(['assignments', 'autoReplyRules'])
-            ->findOrFail($id);
+        try {
+            $number = PurchasedNumber::with(['assignments', 'keywords', 'autoReplyRules'])
+                ->withCount(['assignments', 'autoReplyRules'])
+                ->findOrFail($id);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Fall back: check if this is a platform shortcode the tenant has keywords on
+            $tenantId = session('customer_tenant_id');
+            $hasKeywords = $tenantId && ShortcodeKeyword::where('account_id', $tenantId)
+                ->where('purchased_number_id', $id)
+                ->whereNull('deleted_at')
+                ->exists();
+
+            if (!$hasKeywords) {
+                throw $e;
+            }
+
+            $number = PurchasedNumber::withoutGlobalScopes()
+                ->with([
+                    'assignments',
+                    'keywords' => fn ($q) => $q->where('account_id', $tenantId)->whereNull('deleted_at'),
+                    'autoReplyRules',
+                ])
+                ->withCount(['assignments', 'autoReplyRules'])
+                ->findOrFail($id);
+        }
 
         return response()->json([
             'data' => $number->toPortalArray(),
