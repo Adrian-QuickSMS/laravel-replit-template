@@ -733,10 +733,11 @@ class AdminNumbersApiController extends Controller
         $parentNumber = $kw->relationLoaded('purchasedNumber') ? $kw->purchasedNumber : null;
 
         return [
-            'id'           => $kw->id,
-            'number'       => $kw->keyword,
-            'country'      => $parentNumber?->country_iso ?? 'GB',
-            'type'         => 'shortcode_keyword',
+            'id'             => $kw->id,
+            'number'         => $kw->keyword,
+            'shortcodeNumber'=> $parentNumber?->number,
+            'country'        => $parentNumber?->country_iso ?? 'GB',
+            'type'           => 'shortcode_keyword',
             'status'       => $kw->status,
             'mode'         => 'portal',
             'account'      => $account ? ($account->company_name ?? $account->trading_name) : null,

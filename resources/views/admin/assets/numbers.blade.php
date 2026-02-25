@@ -1675,8 +1675,8 @@ function renderTable(data) {
                        onchange="toggleRowSelection('${num.id}')"
                        ${selectedRows.has(num.id) ? 'checked' : ''}>
             </td>
-            <td><span class="number-value">${num.number}</span></td>
-            <td>${getCountryFlag(num.country)} ${num.country}</td>
+            <td>${renderNumberCell(num)}</td>
+            <td>${num.country || '—'}</td>
             <td>${getTypeLabel(num.type)}</td>
             <td>${getStatusBadge(num.status)}</td>
             <td class="account-cell">
@@ -1889,9 +1889,12 @@ function buildContextMenu(num) {
     return `<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-${num.id}">${menuItems.join('')}</ul>`;
 }
 
-function getCountryFlag(country) {
-    const flags = { 'UK': '🇬🇧', 'US': '🇺🇸', 'DE': '🇩🇪', 'FR': '🇫🇷', 'IE': '🇮🇪' };
-    return flags[country] || '🌍';
+function renderNumberCell(num) {
+    if (num.type === 'shortcode_keyword') {
+        const sc = num.shortcodeNumber || '60866';
+        return `<span class="number-value">${sc}</span> <span class="badge badge-pastel-secondary ms-1">${num.number}</span>`;
+    }
+    return `<span class="number-value">${num.number}</span>`;
 }
 
 function getTypeLabel(type) {
