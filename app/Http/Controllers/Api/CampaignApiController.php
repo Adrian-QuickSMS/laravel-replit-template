@@ -723,14 +723,10 @@ class CampaignApiController extends Controller
      * Get available keywords for a shared shortcode.
      * Returns purchased keywords not in use by in-flight campaigns.
      */
-    public function availableKeywords(Request $request): JsonResponse
+    public function availableKeywords(string $numberId): JsonResponse
     {
-        $request->validate([
-            'number_id' => 'required|uuid',
-        ]);
-
         $keywords = $this->optOutService->getAvailableKeywords(
-            $request->input('number_id'),
+            $numberId,
             $this->tenantId()
         );
 

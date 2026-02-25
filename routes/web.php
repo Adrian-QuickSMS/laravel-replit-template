@@ -289,6 +289,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
     Route::get('/opt-out-numbers', 'optOutNumbers')->name('api.campaigns.opt-out-numbers');
     Route::post('/validate-opt-out-keyword', 'validateOptOutKeyword')->name('api.campaigns.validate-opt-out-keyword');
     Route::post('/suggest-opt-out-text', 'suggestOptOutText')->name('api.campaigns.suggest-opt-out-text');
+    Route::get('/opt-out-keywords/{numberId}', 'availableKeywords')->name('api.campaigns.available-keywords');
 
     Route::get('/{id}', 'show')->name('api.campaigns.show');
     Route::put('/{id}', 'update')->name('api.campaigns.update');
@@ -322,8 +323,6 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
     // Clone
     Route::post('/{id}/clone', 'clone')->name('api.campaigns.clone');
 
-    // Opt-out: available keywords for a specific number (nested under /{id})
-    Route::get('/{numberId}/available-keywords', 'availableKeywords')->name('api.campaigns.available-keywords');
 });
 
 // Message Template API (session-based auth)
