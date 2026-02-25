@@ -1009,29 +1009,14 @@
                 <div class="mb-3">
                     <label class="form-label fw-bold">Select Sub-Accounts</label>
                     <p class="text-muted small mb-2">Controls visibility, defaults, and reporting scope for this number.</p>
-                    <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input assign-subacc-check" type="checkbox" value="Main Account" id="assignSubAccMainSingle">
-                            <label class="form-check-label" for="assignSubAccMainSingle">Main Account</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input assign-subacc-check" type="checkbox" value="Marketing" id="assignSubAccMarketingSingle">
-                            <label class="form-check-label" for="assignSubAccMarketingSingle">Marketing</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input assign-subacc-check" type="checkbox" value="Support" id="assignSubAccSupportSingle">
-                            <label class="form-check-label" for="assignSubAccSupportSingle">Support</label>
-                        </div>
-                        <div class="form-check mb-2">
-                            <input class="form-check-input assign-subacc-check" type="checkbox" value="Sales" id="assignSubAccSalesSingle">
-                            <label class="form-check-label" for="assignSubAccSalesSingle">Sales</label>
-                        </div>
+                    <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;" id="singleAssignSubAccList">
+                        <div class="text-muted small">Loading...</div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="btnConfirmAssignSubAccounts">
+                <button type="button" class="btn btn-primary" id="btnConfirmAssignSingleSubAccounts">
                     <i class="fas fa-check me-1"></i> Apply Changes
                 </button>
             </div>
@@ -1060,9 +1045,7 @@
                             <label class="form-check-label fw-bold" for="assignSubAccAll">Select All</label>
                         </div>
                         <hr class="my-2">
-                        <div class="form-check"><input class="form-check-input assign-subacc-check" type="checkbox" value="Main Account" id="assignSubAccMain"><label class="form-check-label" for="assignSubAccMain">Main Account</label></div>
-                        <div class="form-check"><input class="form-check-input assign-subacc-check" type="checkbox" value="Marketing" id="assignSubAccMarketing"><label class="form-check-label" for="assignSubAccMarketing">Marketing</label></div>
-                        <div class="form-check"><input class="form-check-input assign-subacc-check" type="checkbox" value="Support" id="assignSubAccSupport"><label class="form-check-label" for="assignSubAccSupport">Support</label></div>
+                        <div id="bulkAssignSubAccList"><div class="text-muted small">Loading...</div></div>
                     </div>
                 </div>
             </div>
@@ -1144,167 +1127,78 @@
 <script src="{{ asset('js/table-dropdown-fix.js') }}"></script>
 <script>
 $(document).ready(function() {
-    // TODO: Replace with backend API data
-    var numbersData = [
-        {
-            id: 1,
-            number: '+447700900123',
-            country: 'UK',
-            countryName: 'United Kingdom',
-            type: 'vmn',
-            status: 'active',
-            capabilities: ['api', 'portal', 'inbox', 'optout'],
-            mode: 'portal',
-            subAccounts: ['Main Account'],
-            monthlyCost: 5.00,
-            lastUsed: '2025-01-13 14:32:45',
-            purchaseDate: '2024-06-15',
-            renewalDate: '2025-02-15',
-            createdAt: '2024-06-15 10:00:00',
-            createdBy: 'admin@quicksms.com',
-            modifiedAt: '2025-01-13 09:45:12',
-            modifiedBy: 'john.smith@company.com',
-            auditHistory: [
-                { timestamp: '2025-01-13 09:45:12', user: 'john.smith@company.com', action: 'Sub-account changed', details: 'Added to Marketing sub-account' },
-                { timestamp: '2025-01-10 14:22:08', user: 'john.smith@company.com', action: 'Mode changed', details: 'Changed from API to Portal' },
-                { timestamp: '2024-06-15 10:00:00', user: 'admin@quicksms.com', action: 'Number purchased', details: 'Initial setup' }
-            ],
-            portalConfig: {
-                allowSenderID: true,
-                enableInboxReplies: true,
-                enableOptout: true,
-                defaults: {
-                    'Main Account': { defaultSender: true, defaultInbox: false, defaultOptout: false }
-                }
-            }
-        },
-        {
-            id: 2,
-            number: '+447700900456',
-            country: 'UK',
-            countryName: 'United Kingdom',
-            type: 'vmn',
-            status: 'active',
-            capabilities: ['api', 'inbox'],
-            mode: 'api',
-            subAccounts: ['Main Account'],
-            monthlyCost: 5.00,
-            lastUsed: '2025-01-12 09:15:22',
-            purchaseDate: '2024-08-20',
-            renewalDate: '2025-02-20',
-            createdAt: '2024-08-20 11:30:00',
-            createdBy: 'admin@quicksms.com',
-            modifiedAt: '2025-01-12 09:15:22',
-            modifiedBy: 'api.integration@company.com',
-            auditHistory: [
-                { timestamp: '2025-01-12 09:15:22', user: 'api.integration@company.com', action: 'Inbound URL updated', details: 'Webhook URL configured' },
-                { timestamp: '2024-08-20 11:30:00', user: 'admin@quicksms.com', action: 'Number purchased', details: 'Initial setup as API mode' }
-            ],
-            apiConfig: {
-                inboundForwarding: true,
-                inboundUrl: 'https://api.example.com/webhooks/sms/inbound'
-            }
-        },
-        {
-            id: 3,
-            number: '88600',
-            country: 'UK',
-            countryName: 'United Kingdom',
-            type: 'dedicated_shortcode',
-            status: 'active',
-            capabilities: ['api', 'portal', 'inbox', 'optout'],
-            mode: 'portal',
-            subAccounts: ['Main Account', 'Marketing', 'Support'],
-            monthlyCost: 500.00,
-            lastUsed: '2025-01-13 11:45:18',
-            purchaseDate: '2024-01-10',
-            renewalDate: '2025-02-10',
-            createdAt: '2024-01-10 09:00:00',
-            createdBy: 'admin@quicksms.com',
-            modifiedAt: '2025-01-13 11:45:18',
-            modifiedBy: 'sarah.jones@company.com',
-            auditHistory: [
-                { timestamp: '2025-01-13 11:45:18', user: 'sarah.jones@company.com', action: 'Sub-account changed', details: 'Added to Support sub-account' },
-                { timestamp: '2025-01-05 16:10:00', user: 'john.smith@company.com', action: 'Status changed', details: 'Reactivated from suspended' },
-                { timestamp: '2025-01-02 11:00:00', user: 'admin@quicksms.com', action: 'Status changed', details: 'Suspended for maintenance' },
-                { timestamp: '2024-01-10 09:00:00', user: 'admin@quicksms.com', action: 'Number purchased', details: 'Dedicated shortcode acquired' }
-            ],
-            portalConfig: {
-                allowSenderID: true,
-                enableInboxReplies: true,
-                enableOptout: true,
-                defaults: {
-                    'Main Account': { defaultSender: false, defaultInbox: true, defaultOptout: false },
-                    'Marketing': { defaultSender: true, defaultInbox: false, defaultOptout: true },
-                    'Support': { defaultSender: false, defaultInbox: false, defaultOptout: false }
-                }
-            }
-        },
-        {
-            id: 4,
-            number: 'OFFER on 88000',
-            country: 'UK',
-            countryName: 'United Kingdom',
-            type: 'shortcode_keyword',
-            status: 'active',
-            capabilities: ['portal', 'optout'],
-            mode: 'portal',
-            subAccounts: ['Marketing'],
-            monthlyCost: 25.00,
-            lastUsed: '2025-01-10 16:30:00',
-            purchaseDate: '2024-09-05',
-            renewalDate: '2025-02-05'
-        },
-        {
-            id: 5,
-            number: '+14155551234',
-            country: 'US',
-            countryName: 'United States',
-            type: 'vmn',
-            status: 'suspended',
-            capabilities: ['api'],
-            mode: 'api',
-            subAccounts: ['Main Account'],
-            monthlyCost: 8.00,
-            lastUsed: '2024-12-15 08:00:00',
-            purchaseDate: '2024-03-22',
-            renewalDate: '2025-02-22',
-            apiConfig: {
-                inboundForwarding: false,
-                inboundUrl: ''
-            }
-        },
-        {
-            id: 6,
-            number: '+447700900789',
-            country: 'UK',
-            countryName: 'United Kingdom',
-            type: 'vmn',
-            status: 'pending',
-            capabilities: ['portal', 'inbox'],
-            mode: 'portal',
-            subAccounts: ['Support'],
-            monthlyCost: 5.00,
-            lastUsed: null,
-            purchaseDate: '2025-01-10',
-            renewalDate: '2025-02-10'
-        },
-        {
-            id: 7,
-            number: 'INFO on 88000',
-            country: 'UK',
-            countryName: 'United Kingdom',
-            type: 'shortcode_keyword',
-            status: 'active',
-            capabilities: ['api', 'portal', 'inbox'],
-            mode: 'portal',
-            subAccounts: ['Main Account'],
-            monthlyCost: 25.00,
-            lastUsed: '2025-01-08 10:22:14',
-            purchaseDate: '2024-11-18',
-            renewalDate: '2025-02-18'
-        }
-    ];
+    var numbersData = [];
+    var subAccountsData = {!! json_encode($subAccounts) !!};
+
+    var countryNames = {
+        'GB': 'United Kingdom', 'US': 'United States', 'AU': 'Australia',
+        'DE': 'Germany', 'FR': 'France', 'ES': 'Spain', 'IT': 'Italy', 'NL': 'Netherlands'
+    };
+
+    function csrfToken() {
+        var el = document.querySelector('meta[name=csrf-token]');
+        return el ? el.content : '';
+    }
+
+    function mapApiNumber(item) {
+        var hasForwardingUrl = item.configuration && item.configuration.forwarding_url;
+        var mode = hasForwardingUrl ? 'api' : 'portal';
+        var caps = mode === 'api' ? ['api'] : ['portal', 'inbox', 'optout'];
+        var purchasedTs = item.purchased_at || null;
+        var purchaseDate = purchasedTs ? purchasedTs.substring(0, 10) : null;
+        var auditHistory = purchasedTs ? [
+            { timestamp: purchasedTs.replace('T', ' ').substring(0, 19), user: '-', action: 'Number purchased', details: 'Initial setup' }
+        ] : [];
+        return {
+            id: item.id,
+            number: item.number,
+            country: item.country_iso || '',
+            countryName: countryNames[item.country_iso] || item.country_iso || '',
+            type: item.number_type,
+            status: item.status,
+            capabilities: caps,
+            mode: mode,
+            subAccounts: [],
+            monthlyCost: parseFloat(item.monthly_fee) || 0,
+            lastUsed: item.last_used_at || null,
+            purchaseDate: purchaseDate,
+            renewalDate: null,
+            createdAt: purchasedTs || null,
+            createdBy: '-',
+            modifiedAt: item.last_used_at || null,
+            modifiedBy: '-',
+            auditHistory: auditHistory,
+            portalConfig: { allowSenderID: true, enableInboxReplies: true, enableOptout: true, defaults: {} },
+            apiConfig: { inboundForwarding: !!hasForwardingUrl, inboundUrl: (item.configuration && item.configuration.forwarding_url) || '' }
+        };
+    }
+
+    function loadNumbersFromApi() {
+        $('#numbersTableBody').html('<tr><td colspan="11" class="text-center py-4"><span class="spinner-border spinner-border-sm me-2"></span>Loading numbers...</td></tr>');
+        fetch('/api/numbers?per_page=100', { headers: { 'Accept': 'application/json' } })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                numbersData = (data.data || []).map(mapApiNumber);
+                renderTable();
+            })
+            .catch(function(err) {
+                console.error('Numbers load error', err);
+                $('#numbersTableBody').html('<tr><td colspan="11" class="text-center text-danger py-4"><i class="fas fa-exclamation-circle me-2"></i>Failed to load numbers. Please refresh.</td></tr>');
+            });
+    }
+
+    function populateSubAccountCheckboxes() {
+        var filterHtml = '';
+        var assignHtml = '';
+        subAccountsData.forEach(function(sa) {
+            filterHtml += '<div class="form-check"><input class="form-check-input" type="checkbox" value="' + sa.id + '" id="filterSa_' + sa.id + '"><label class="form-check-label small" for="filterSa_' + sa.id + '">' + sa.name + '</label></div>';
+            assignHtml += '<div class="form-check"><input class="form-check-input assign-subacc-check" type="checkbox" value="' + sa.id + '" id="assignSa_' + sa.id + '"><label class="form-check-label" for="assignSa_' + sa.id + '">' + sa.name + '</label></div>';
+        });
+        var emptyMsg = '<div class="text-muted small">No sub-accounts configured</div>';
+        $('[data-filter="subAccounts"] .dropdown-options').html(filterHtml || emptyMsg);
+        $('#singleAssignSubAccList').html(assignHtml || emptyMsg);
+        $('#bulkAssignSubAccList').html(assignHtml || emptyMsg);
+    }
 
     var currentSort = { column: 'number', direction: 'asc' };
     
@@ -1480,26 +1374,26 @@ $(document).ready(function() {
             html += '<ul class="dropdown-menu dropdown-menu-end">';
             
             // View Details - always available
-            html += '<li><a class="dropdown-item" href="#" onclick="viewNumber(' + num.id + '); return false;"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>';
+            html += '<li><a class="dropdown-item" href="#" onclick="viewNumber(\'' + num.id + '\'); return false;"><i class="fas fa-eye me-2 text-muted"></i>View Details</a></li>';
             
             // Edit Configuration - always available
-            html += '<li><a class="dropdown-item" href="#" onclick="editNumber(' + num.id + '); return false;"><i class="fas fa-cog me-2 text-muted"></i>Edit Configuration</a></li>';
+            html += '<li><a class="dropdown-item" href="#" onclick="editNumber(\'' + num.id + '\'); return false;"><i class="fas fa-cog me-2 text-muted"></i>Edit Configuration</a></li>';
             
             // Assign Sub-Accounts - Portal mode only
             if (num.mode === 'portal') {
-                html += '<li><a class="dropdown-item" href="#" onclick="assignSubAccountsToNumber(' + num.id + '); return false;"><i class="fas fa-building me-2 text-muted"></i>Assign Sub-Accounts</a></li>';
+                html += '<li><a class="dropdown-item" href="#" onclick="assignSubAccountsToNumber(\'' + num.id + '\'); return false;"><i class="fas fa-building me-2 text-muted"></i>Assign Sub-Accounts</a></li>';
             }
             
             // Suspend - only for active numbers
             if (num.status === 'active') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendNumber(' + num.id + '); return false;"><i class="fas fa-pause me-2"></i>Suspend</a></li>';
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendNumber(\'' + num.id + '\'); return false;"><i class="fas fa-pause me-2"></i>Suspend</a></li>';
             }
             
             // Reactivate - only for suspended numbers
             if (num.status === 'suspended') {
                 html += '<li><hr class="dropdown-divider"></li>';
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateNumber(' + num.id + '); return false;"><i class="fas fa-play me-2"></i>Reactivate</a></li>';
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateNumber(\'' + num.id + '\'); return false;"><i class="fas fa-play me-2"></i>Reactivate</a></li>';
             }
             
             // NOTE: No delete/release action - numbers are never deleted
@@ -1631,17 +1525,25 @@ $(document).ready(function() {
         $('#confirmModalBtn').removeClass('btn-primary btn-danger').addClass('btn-warning').text('Suspend');
         
         $('#confirmModalBtn').off('click').on('click', function() {
-            // TODO: Backend API call
-            activeNumbers.forEach(function(num) {
-                num.status = 'suspended';
+            var promises = activeNumbers.map(function(num) {
+                return fetch('/api/numbers/' + num.id + '/suspend', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json', 'Content-Type': 'application/json' }
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.success !== false) { num.status = 'suspended'; return true; }
+                    return false;
+                }).catch(function() { return false; });
             });
-            selectedNumbers = [];
-            $('.row-checkbox').prop('checked', false);
-            $('#selectAllCheckbox').prop('checked', false);
-            updateBulkActionBar();
-            renderTable();
-            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
-            toastr.success(activeNumbers.length + ' number(s) suspended successfully');
+            Promise.all(promises).then(function(results) {
+                var count = results.filter(Boolean).length;
+                selectedNumbers = [];
+                $('.row-checkbox').prop('checked', false);
+                $('#selectAllCheckbox').prop('checked', false);
+                updateBulkActionBar();
+                renderTable();
+                bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+                toastr.success(count + ' number(s) suspended successfully');
+            });
         });
         
         new bootstrap.Modal(document.getElementById('confirmModal')).show();
@@ -1664,17 +1566,25 @@ $(document).ready(function() {
         $('#confirmModalBtn').removeClass('btn-warning btn-danger').addClass('btn-primary').text('Reactivate');
         
         $('#confirmModalBtn').off('click').on('click', function() {
-            // TODO: Backend API call
-            suspendedNumbers.forEach(function(num) {
-                num.status = 'active';
+            var promises = suspendedNumbers.map(function(num) {
+                return fetch('/api/numbers/' + num.id + '/reactivate', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json', 'Content-Type': 'application/json' }
+                }).then(function(r) { return r.json(); }).then(function(data) {
+                    if (data.success !== false) { num.status = 'active'; return true; }
+                    return false;
+                }).catch(function() { return false; });
             });
-            selectedNumbers = [];
-            $('.row-checkbox').prop('checked', false);
-            $('#selectAllCheckbox').prop('checked', false);
-            updateBulkActionBar();
-            renderTable();
-            bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
-            toastr.success(suspendedNumbers.length + ' number(s) reactivated successfully');
+            Promise.all(promises).then(function(results) {
+                var count = results.filter(Boolean).length;
+                selectedNumbers = [];
+                $('.row-checkbox').prop('checked', false);
+                $('#selectAllCheckbox').prop('checked', false);
+                updateBulkActionBar();
+                renderTable();
+                bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+                toastr.success(count + ' number(s) reactivated successfully');
+            });
         });
         
         new bootstrap.Modal(document.getElementById('confirmModal')).show();
@@ -1692,7 +1602,7 @@ $(document).ready(function() {
         }
         
         $('#assignNumbersCount').text(portalNumbers.length);
-        $('.assign-subacc-check').prop('checked', false);
+        $('#assignSubAccountsModal .assign-subacc-check').prop('checked', false);
         $('#assignSubAccAll').prop('checked', false);
         
         new bootstrap.Modal(document.getElementById('assignSubAccountsModal')).show();
@@ -1700,13 +1610,13 @@ $(document).ready(function() {
 
     // Select All in Assign Sub-Accounts modal
     $('#assignSubAccAll').on('change', function() {
-        $('.assign-subacc-check').prop('checked', $(this).is(':checked'));
+        $('#assignSubAccountsModal .assign-subacc-check').prop('checked', $(this).is(':checked'));
     });
 
-    // Confirm Assign Sub-Accounts
+    // Confirm Assign Sub-Accounts (bulk)
     $('#btnConfirmAssignSubAccounts').on('click', function() {
         var selectedSubAccs = [];
-        $('.assign-subacc-check:checked').each(function() {
+        $('#assignSubAccountsModal .assign-subacc-check:checked').each(function() {
             selectedSubAccs.push($(this).val());
         });
         
@@ -1719,18 +1629,27 @@ $(document).ready(function() {
             return selectedNumbers.includes(n.id) && n.mode === 'portal';
         });
         
-        // TODO: Backend API call
+        var calls = [];
         portalNumbers.forEach(function(num) {
-            num.subAccounts = selectedSubAccs.slice();
+            selectedSubAccs.forEach(function(saId) {
+                calls.push(fetch('/api/numbers/' + num.id + '/assign', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ assignable_type: 'sub_account', assignable_id: saId })
+                }).then(function(r) { return r.ok; }).catch(function() { return false; }));
+            });
         });
         
-        selectedNumbers = [];
-        $('.row-checkbox').prop('checked', false);
-        $('#selectAllCheckbox').prop('checked', false);
-        updateBulkActionBar();
-        renderTable();
-        bootstrap.Modal.getInstance(document.getElementById('assignSubAccountsModal')).hide();
-        toastr.success('Sub-accounts assigned to ' + portalNumbers.length + ' number(s)');
+        Promise.all(calls).then(function() {
+            portalNumbers.forEach(function(num) { num.subAccounts = selectedSubAccs.slice(); });
+            selectedNumbers = [];
+            $('.row-checkbox').prop('checked', false);
+            $('#selectAllCheckbox').prop('checked', false);
+            updateBulkActionBar();
+            renderTable();
+            bootstrap.Modal.getInstance(document.getElementById('assignSubAccountsModal')).hide();
+            toastr.success('Sub-accounts assigned to ' + portalNumbers.length + ' number(s)');
+        });
     });
 
     // Sorting
@@ -2550,11 +2469,22 @@ $(document).ready(function() {
                     'Suspend Now',
                     'btn-danger',
                     function() {
-                        // TODO: Backend API call with audit logging
-                        num.status = 'suspended';
-                        addAuditEntry(num, 'Status changed', 'Number suspended');
-                        renderTable();
-                        toastr.success('Number "' + num.number + '" has been suspended.');
+                        fetch('/api/numbers/' + num.id + '/suspend', {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json', 'Content-Type': 'application/json' }
+                        })
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data.success !== false) {
+                                num.status = 'suspended';
+                                addAuditEntry(num, 'Status changed', 'Number suspended');
+                                renderTable();
+                                toastr.success('Number "' + num.number + '" has been suspended.');
+                            } else {
+                                toastr.error(data.message || 'Failed to suspend number.');
+                            }
+                        })
+                        .catch(function() { toastr.error('Network error. Please try again.'); });
                     },
                     null
                 );
@@ -2588,11 +2518,22 @@ $(document).ready(function() {
                     'Reactivate Now',
                     'btn-primary',
                     function() {
-                        // TODO: Backend API call with audit logging
-                        num.status = 'active';
-                        addAuditEntry(num, 'Status changed', 'Number reactivated');
-                        renderTable();
-                        toastr.success('Number "' + num.number + '" has been reactivated.');
+                        fetch('/api/numbers/' + num.id + '/reactivate', {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json', 'Content-Type': 'application/json' }
+                        })
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data.success !== false) {
+                                num.status = 'active';
+                                addAuditEntry(num, 'Status changed', 'Number reactivated');
+                                renderTable();
+                                toastr.success('Number "' + num.number + '" has been reactivated.');
+                            } else {
+                                toastr.error(data.message || 'Failed to reactivate number.');
+                            }
+                        })
+                        .catch(function() { toastr.error('Network error. Please try again.'); });
                     },
                     null
                 );
@@ -2608,10 +2549,10 @@ $(document).ready(function() {
         
         // Populate modal with current assignments
         $('#assignSubAccountNumber').text(num.number);
-        $('.assign-subacc-check').prop('checked', false);
+        $('#assignSubAccountModal .assign-subacc-check').prop('checked', false);
         if (num.subAccounts) {
             num.subAccounts.forEach(function(sa) {
-                $('.assign-subacc-check[value="' + sa + '"]').prop('checked', true);
+                $('#assignSubAccountModal .assign-subacc-check[value="' + sa + '"]').prop('checked', true);
             });
         }
         
@@ -2621,15 +2562,14 @@ $(document).ready(function() {
         new bootstrap.Modal(document.getElementById('assignSubAccountModal')).show();
     };
     
-    // Handle Assign Sub-Accounts confirmation
-    $('#btnConfirmAssignSubAccounts').on('click', function() {
+    // Handle Assign Sub-Accounts confirmation (single number)
+    $('#btnConfirmAssignSingleSubAccounts').on('click', function() {
         var id = $('#assignSubAccountModal').data('number-id');
         var num = numbersData.find(function(n) { return n.id === id; });
         if (!num) return;
         
-        // Get selected sub-accounts
         var selectedSubAccounts = [];
-        $('.assign-subacc-check:checked').each(function() {
+        $('#assignSubAccountModal .assign-subacc-check:checked').each(function() {
             selectedSubAccounts.push($(this).val());
         });
         
@@ -2638,38 +2578,32 @@ $(document).ready(function() {
             return;
         }
         
-        // TODO: Backend API call with audit logging
-        var oldSubAccounts = num.subAccounts ? num.subAccounts.slice() : [];
-        num.subAccounts = selectedSubAccounts;
+        var calls = selectedSubAccounts.map(function(saId) {
+            return fetch('/api/numbers/' + num.id + '/assign', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assignable_type: 'sub_account', assignable_id: saId })
+            }).then(function(r) { return r.ok; }).catch(function() { return false; });
+        });
         
-        // Log sub-account changes
-        var added = selectedSubAccounts.filter(function(sa) { return !oldSubAccounts.includes(sa); });
-        var removed = oldSubAccounts.filter(function(sa) { return !selectedSubAccounts.includes(sa); });
-        var changes = [];
-        if (added.length > 0) changes.push('Added: ' + added.join(', '));
-        if (removed.length > 0) changes.push('Removed: ' + removed.join(', '));
-        if (changes.length > 0) {
-            addAuditEntry(num, 'Sub-account changed', changes.join('; '));
-        }
-        
-        // Update portalConfig defaults - remove defaults for unassigned sub-accounts
-        if (num.portalConfig && num.portalConfig.defaults) {
-            var newDefaults = {};
-            selectedSubAccounts.forEach(function(sa) {
-                if (num.portalConfig.defaults[sa]) {
-                    newDefaults[sa] = num.portalConfig.defaults[sa];
-                }
-            });
-            num.portalConfig.defaults = newDefaults;
-        }
-        
-        renderTable();
-        bootstrap.Modal.getInstance(document.getElementById('assignSubAccountModal')).hide();
-        toastr.success('Sub-account assignments updated for ' + num.number);
+        Promise.all(calls).then(function() {
+            var oldSubAccounts = num.subAccounts ? num.subAccounts.slice() : [];
+            num.subAccounts = selectedSubAccounts;
+            var added = selectedSubAccounts.filter(function(sa) { return !oldSubAccounts.includes(sa); });
+            var removed = oldSubAccounts.filter(function(sa) { return !selectedSubAccounts.includes(sa); });
+            var changes = [];
+            if (added.length > 0) changes.push('Added: ' + added.length + ' sub-account(s)');
+            if (removed.length > 0) changes.push('Removed: ' + removed.length + ' sub-account(s)');
+            if (changes.length > 0) addAuditEntry(num, 'Sub-account changed', changes.join('; '));
+            renderTable();
+            bootstrap.Modal.getInstance(document.getElementById('assignSubAccountModal')).hide();
+            toastr.success('Sub-account assignments updated for ' + num.number);
+        });
     });
 
-    // Initial render
-    renderTable();
+    // Initial load
+    populateSubAccountCheckboxes();
+    loadNumbersFromApi();
 });
 </script>
 @endpush

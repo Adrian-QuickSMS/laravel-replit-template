@@ -1765,8 +1765,21 @@ class QuickSMSController extends Controller
 
     public function purchaseNumbers()
     {
+        $tenantId = session('customer_tenant_id');
+        $accountBalance = 0;
+
+        if ($tenantId) {
+            try {
+                $balance = app(\App\Services\Billing\BalanceService::class)->getBalance($tenantId);
+                $accountBalance = (float) $balance->effective_available;
+            } catch (\Exception $e) {
+                $accountBalance = 0;
+            }
+        }
+
         return view('quicksms.purchase.numbers', [
-            'page_title' => 'Purchase Numbers'
+            'page_title' => 'Purchase Numbers',
+            'accountBalance' => $accountBalance,
         ]);
     }
 
@@ -2347,19 +2360,29 @@ class QuickSMSController extends Controller
 
     public function numbers()
     {
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = $tenantId
+            ? \App\Models\SubAccount::where('account_id', $tenantId)->get(['id', 'name'])->toArray()
+            : [];
+
         return view('quicksms.management.numbers', [
-            'page_title' => 'Numbers'
+            'page_title' => 'Numbers',
+            'subAccounts' => $subAccounts,
         ]);
     }
 
     public function numbersConfigure(Request $request)
     {
-        // Get selected number IDs from query string
         $selectedIds = $request->query('ids', '');
-        
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = $tenantId
+            ? \App\Models\SubAccount::where('account_id', $tenantId)->get(['id', 'name'])->toArray()
+            : [];
+
         return view('quicksms.management.numbers-configure', [
             'page_title' => 'Configure Numbers',
-            'selectedIds' => $selectedIds
+            'selectedIds' => $selectedIds,
+            'subAccounts' => $subAccounts,
         ]);
     }
 

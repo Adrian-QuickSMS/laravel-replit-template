@@ -581,7 +581,6 @@ class NumberApiController extends Controller
 
         $account = \App\Models\Account::findOrFail($accountId);
 
-        // Get sample VMN pricing (use a dummy pool entry)
         try {
             $vmnSetupPrice = app(\App\Services\Billing\PricingEngine::class)
                 ->resolvePrice($account, 'virtual_number_setup', 'GB');
@@ -598,6 +597,16 @@ class NumberApiController extends Controller
             $keywordPricing = null;
         }
 
+        // Find platform shared shortcodes (system-owned VMN pool numbers that are shortcodes)
+        $sharedShortcodes = \App\Models\VmnPoolNumber::where('number_type', 'shortcode')
+            ->where('status', 'available')
+            ->get(['id', 'number', 'country_iso'])
+            ->map(fn($sc) => [
+                'id' => $sc->id,
+                'shortcode' => $sc->number,
+                'display_name' => $sc->number . ' (' . $sc->country_iso . ')',
+            ])->values();
+
         return response()->json([
             'vmn' => [
                 'setup_fee' => $vmnSetupPrice?->unitPrice ?? '10.0000',
@@ -609,6 +618,80 @@ class NumberApiController extends Controller
                 'monthly_fee' => '50.0000',
                 'currency' => $account->currency ?? 'GBP',
             ],
+            'shared_shortcodes' => $sharedShortcodes,
+        ]);
+    }
+
+    // =====================================================
+    // 18. SUSPEND NUMBER
+    // =====================================================
+
+    public function suspend(string $id): JsonResponse
+    {
+        $number = PurchasedNumber::findOrFail($id);
+
+        if (!$number->isActive()) {
+            return response()->json(['error' => 'Only active numbers can be suspended.'], 422);
+        }
+
+        try {
+            $this->numberService->suspendNumber($number, 'Suspended by user');
+
+            return response()->json([
+                'success' => true,
+                'message' => "Number {$number->number} has been suspended.",
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+    }
+
+    // =====================================================
+    // 19. REACTIVATE NUMBER
+    // =====================================================
+
+    public function reactivate(string $id): JsonResponse
+    {
+        $number = PurchasedNumber::findOrFail($id);
+
+        if (!$number->isSuspended()) {
+            return response()->json(['error' => 'Only suspended numbers can be reactivated.'], 422);
+        }
+
+        try {
+            $this->numberService->reactivateNumber($number);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Number {$number->number} has been reactivated.",
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+    }
+
+    // =====================================================
+    // 20. TAKEN KEYWORDS
+    // =====================================================
+
+    public function takenKeywords(Request $request): JsonResponse
+    {
+        $shortcode = $request->input('shortcode', '82228');
+
+        // Find taken keywords on the shared shortcode (cross-tenant query — no tenant scope)
+        $taken = \DB::table('shortcode_keywords as sk')
+            ->join('purchased_numbers as pn', 'sk.purchased_number_id', '=', 'pn.id')
+            ->where('pn.number', $shortcode)
+            ->where('sk.status', '!=', 'released')
+            ->pluck('sk.keyword')
+            ->map(fn($kw) => strtoupper($kw))
+            ->sort()
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'data' => $taken,
+            'shortcode' => $shortcode,
         ]);
     }
 

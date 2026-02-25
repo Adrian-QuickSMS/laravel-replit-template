@@ -601,18 +601,50 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    var numbersData = [
-        { id: 1, number: '+447700900123', type: 'vmn', mode: 'portal', status: 'active', subAccounts: ['Main Account'] },
-        { id: 2, number: '+447700900456', type: 'vmn', mode: 'api', status: 'active', subAccounts: ['Main Account'] },
-        { id: 3, number: '88600', type: 'dedicated_shortcode', mode: 'portal', status: 'active', subAccounts: ['Main Account', 'Marketing', 'Support'] },
-        { id: 4, number: 'OFFER on 88000', type: 'shortcode_keyword', mode: 'portal', status: 'active', subAccounts: ['Marketing'] },
-        { id: 5, number: '+14155551234', type: 'vmn', mode: 'api', status: 'suspended', subAccounts: ['Main Account'] },
-        { id: 6, number: '+447700900789', type: 'vmn', mode: 'portal', status: 'pending', subAccounts: ['Support'] },
-        { id: 7, number: 'INFO on 88000', type: 'shortcode_keyword', mode: 'portal', status: 'active', subAccounts: ['Main Account'] }
-    ];
-    
-    var selectedIds = '{{ $selectedIds }}'.split(',').filter(function(id) { return id.trim() !== ''; }).map(function(id) { return parseInt(id); });
-    var selectedNumbers = numbersData.filter(function(n) { return selectedIds.includes(n.id); });
+    var subAccountsData = {!! json_encode($subAccounts) !!};
+    var subAccountNames = {};
+    subAccountsData.forEach(function(sa) { subAccountNames[sa.id] = sa.name; });
+
+    var selectedIdRaw = '{{ $selectedIds }}';
+    var selectedIds = selectedIdRaw.split(',').map(function(id) { return id.trim(); }).filter(function(id) { return id !== ''; });
+    var selectedNumbers = [];
+
+    function csrfToken() {
+        var el = document.querySelector('meta[name=csrf-token]');
+        return el ? el.content : '';
+    }
+
+    function mapApiNumber(item) {
+        var hasForwardingUrl = item.configuration && item.configuration.forwarding_url;
+        var mode = hasForwardingUrl ? 'api' : 'portal';
+        return {
+            id: item.id,
+            number: item.number,
+            type: item.number_type,
+            mode: mode,
+            status: item.status,
+            subAccounts: [],
+            configuration: item.configuration || {}
+        };
+    }
+
+    function loadSelectedNumbers() {
+        if (selectedIds.length === 0) {
+            init();
+            return;
+        }
+        var promises = selectedIds.map(function(uuid) {
+            return fetch('/api/numbers/' + uuid, { headers: { 'Accept': 'application/json' } })
+                .then(function(r) { return r.ok ? r.json() : null; })
+                .catch(function() { return null; });
+        });
+        Promise.all(promises).then(function(results) {
+            selectedNumbers = results.filter(Boolean).map(function(data) {
+                return mapApiNumber(data.data || data);
+            });
+            init();
+        });
+    }
     
     var currentMode = null;
     var pendingModeChange = null;
@@ -841,64 +873,42 @@ $(document).ready(function() {
             toastr.error('Webhook URL must start with https://');
             return;
         }
-        
-        $('#saveSuccessModal').modal('show');
+
+        var configPayload = {};
+        if (currentMode === 'api') {
+            if ($('#toggleInboundForwarding').is(':checked') && webhookUrl) {
+                configPayload.forwarding_url = webhookUrl;
+            } else {
+                configPayload.forwarding_url = null;
+            }
+        } else {
+            configPayload.forwarding_url = null;
+        }
+
+        var btn = $(this);
+        var originalText = btn.html();
+        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Saving...');
+
+        var calls = selectedNumbers.map(function(num) {
+            return fetch('/api/numbers/' + num.id + '/configure', {
+                method: 'PUT',
+                headers: { 'X-CSRF-TOKEN': csrfToken(), 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify(configPayload)
+            }).then(function(r) { return r.ok; }).catch(function() { return false; });
+        });
+
+        Promise.all(calls).then(function(results) {
+            btn.prop('disabled', false).html(originalText);
+            var failed = results.filter(function(ok) { return !ok; }).length;
+            if (failed > 0) {
+                toastr.error(failed + ' number(s) could not be saved. Please try again.');
+            } else {
+                $('#saveSuccessModal').modal('show');
+            }
+        });
     });
-    
-    // Mock user data by sub-account (TODO: Replace with backend data)
-    var usersBySubAccount = {
-        'main': [
-            { value: 'main-admin', name: 'Admin User' },
-            { value: 'main-john', name: 'John Smith' },
-            { value: 'main-sarah', name: 'Sarah Johnson' }
-        ],
-        'marketing': [
-            { value: 'mkt-mike', name: 'Mike Wilson' },
-            { value: 'mkt-emma', name: 'Emma Davis' }
-        ],
-        'support': [
-            { value: 'sup-tom', name: 'Tom Brown' },
-            { value: 'sup-lisa', name: 'Lisa Chen' }
-        ],
-        'sales': [
-            { value: 'sales-alex', name: 'Alex Turner' },
-            { value: 'sales-rachel', name: 'Rachel Green' }
-        ],
-        'operations': [
-            { value: 'ops-david', name: 'David Miller' }
-        ],
-        'finance': [
-            { value: 'fin-kate', name: 'Kate Wilson' },
-            { value: 'fin-james', name: 'James Brown' }
-        ],
-        'hr': [
-            { value: 'hr-susan', name: 'Susan Lee' }
-        ],
-        'it': [
-            { value: 'it-paul', name: 'Paul Zhang' },
-            { value: 'it-maria', name: 'Maria Garcia' }
-        ],
-        'legal': [
-            { value: 'legal-robert', name: 'Robert King' }
-        ],
-        'customer-success': [
-            { value: 'cs-amy', name: 'Amy Roberts' },
-            { value: 'cs-brian', name: 'Brian Scott' }
-        ]
-    };
-    
-    var subAccountNames = {
-        'main': 'Main Account',
-        'marketing': 'Marketing',
-        'support': 'Support',
-        'sales': 'Sales',
-        'operations': 'Operations',
-        'finance': 'Finance',
-        'hr': 'Human Resources',
-        'it': 'IT Department',
-        'legal': 'Legal',
-        'customer-success': 'Customer Success'
-    };
+
+    var usersBySubAccount = {};
     
     // Filter dropdown handlers - Select All / Clear
     $('.filter-dropdown .select-all-btn').on('click', function(e) {
@@ -995,7 +1005,19 @@ $(document).ready(function() {
         }
     });
     
-    init();
+    function populateSubAccountDropdowns() {
+        var html = '';
+        subAccountsData.forEach(function(sa) {
+            html += '<div class="form-check"><input class="form-check-input" type="checkbox" value="' + sa.id + '" id="psa_' + sa.id + '"><label class="form-check-label small" for="psa_' + sa.id + '">' + sa.name + '</label></div>';
+        });
+        var $portalDd = $('#portalSubAccountDropdown .dropdown-options');
+        var $apiDd = $('#apiSubAccountDropdown .dropdown-options');
+        if ($portalDd.length) $portalDd.html(html || '<div class="text-muted small">No sub-accounts</div>');
+        if ($apiDd.length) $apiDd.html(html || '<div class="text-muted small">No sub-accounts</div>');
+    }
+
+    populateSubAccountDropdowns();
+    loadSelectedNumbers();
 });
 </script>
 @endpush

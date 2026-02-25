@@ -302,6 +302,9 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/numbers')
     Route::delete('/assignments/{assignmentId}', 'unassign')->name('api.numbers.unassign');
     Route::put('/auto-reply-rules/{ruleId}', 'updateAutoReplyRule')->name('api.numbers.auto-reply-rules.update');
     Route::delete('/auto-reply-rules/{ruleId}', 'deleteAutoReplyRule')->name('api.numbers.auto-reply-rules.destroy');
+    Route::get('/keywords/taken', 'takenKeywords')->name('api.numbers.keywords.taken');
+    Route::post('/{id}/suspend', 'suspend')->name('api.numbers.suspend');
+    Route::post('/{id}/reactivate', 'reactivate')->name('api.numbers.reactivate');
     Route::get('/{id}', 'show')->name('api.numbers.show');
     Route::delete('/{id}', 'release')->name('api.numbers.release');
     Route::put('/{id}/configure', 'configure')->name('api.numbers.configure');
