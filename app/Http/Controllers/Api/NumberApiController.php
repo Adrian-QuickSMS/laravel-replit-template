@@ -702,7 +702,11 @@ class NumberApiController extends Controller
 
     private function getAuthenticatedUser(): User
     {
-        $user = auth()->user();
+        $userId = session('customer_user_id');
+        if (!$userId) {
+            abort(401, 'Unauthenticated');
+        }
+        $user = User::find($userId);
         if (!$user) {
             abort(401, 'Unauthenticated');
         }
