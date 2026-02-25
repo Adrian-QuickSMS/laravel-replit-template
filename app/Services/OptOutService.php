@@ -31,9 +31,28 @@ class OptOutService
 
     public function getAvailableOptOutNumbers(string $accountId, $user): array
     {
-        $vmns = PurchasedNumber::usableByUser($user)
-            ->vmns()
-            ->active()
+        $baseQuery = PurchasedNumber::withoutGlobalScope('tenant')
+            ->where('purchased_numbers.account_id', $accountId)
+            ->where('status', PurchasedNumber::STATUS_ACTIVE)
+            ->whereNull('deleted_at')
+            ->where(function ($q) use ($user) {
+                $q->whereDoesntHave('assignments')
+                    ->orWhereHas('assignments', function ($aq) use ($user) {
+                        $aq->where(function ($inner) use ($user) {
+                            $inner->where('assignable_type', \App\Models\User::class)
+                                ->where('assignable_id', $user->id);
+                        });
+                        if ($user->sub_account_id) {
+                            $aq->orWhere(function ($inner) use ($user) {
+                                $inner->where('assignable_type', \App\Models\SubAccount::class)
+                                    ->where('assignable_id', $user->sub_account_id);
+                            });
+                        }
+                    });
+            });
+
+        $vmns = (clone $baseQuery)
+            ->where('number_type', PurchasedNumber::TYPE_VMN)
             ->select('id', 'number', 'friendly_name', 'country_iso')
             ->orderBy('number')
             ->get()
@@ -47,10 +66,9 @@ class OptOutService
             ])
             ->toArray();
 
-        $shortcodes = PurchasedNumber::usableByUser($user)
-            ->shortcodes()
-            ->active()
-            ->with('keywords')
+        $shortcodes = (clone $baseQuery)
+            ->whereIn('number_type', [PurchasedNumber::TYPE_SHARED_SHORTCODE, PurchasedNumber::TYPE_DEDICATED_SHORTCODE])
+            ->with(['keywords' => fn($q) => $q->withoutGlobalScope('tenant')->where('status', 'active')->whereNull('deleted_at')])
             ->select('id', 'number', 'friendly_name', 'number_type', 'country_iso')
             ->orderBy('number')
             ->get()
@@ -61,7 +79,7 @@ class OptOutService
                 'country_iso' => $n->country_iso,
                 'type' => $n->number_type,
                 'is_dedicated' => $n->number_type === PurchasedNumber::TYPE_DEDICATED_SHORTCODE,
-                'keywords' => $n->keywords->where('status', 'active')->map(fn($k) => [
+                'keywords' => $n->keywords->map(fn($k) => [
                     'id' => $k->id,
                     'keyword' => $k->keyword,
                 ])->values()->toArray(),
