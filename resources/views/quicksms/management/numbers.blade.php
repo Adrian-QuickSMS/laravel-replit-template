@@ -1358,21 +1358,24 @@ $(document).ready(function() {
             html += '<tr class="' + rowClass + '" data-id="' + num.id + '" data-mode="' + num.mode + '" data-status="' + num.status + '" data-type="' + num.type + '">';
             
             html += '<td class="checkbox-col"><input type="checkbox" class="form-check-input row-checkbox" data-id="' + num.id + '" ' + isChecked + '></td>';
-            html += '<td><span class="number-value">' + num.number + '</span></td>';
+            // Number column: for shared shortcodes, append keyword badges next to the number
+            if (num.type === 'shared_shortcode') {
+                var kwBadges = '';
+                if (num.keywords && num.keywords.length > 0) {
+                    num.keywords.forEach(function(kw) {
+                        kwBadges += '<span class="badge badge-pastel-primary ms-1">' + kw.keyword + '</span>';
+                    });
+                }
+                html += '<td><span class="number-value">' + num.number + '</span>' + kwBadges + '</td>';
+            } else {
+                html += '<td><span class="number-value">' + num.number + '</span></td>';
+            }
             html += '<td>' + num.countryName + '</td>';
             html += '<td>' + getTypeLabel(num.type) + '</td>';
             html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(num.status) + '">' + getStatusLabel(num.status) + '</span></td>';
-            // Capabilities column: show keyword badges for shared shortcodes, normal capabilities otherwise
+            // Capabilities column: shared shortcodes show a dash (keywords are shown in the Number column)
             if (num.type === 'shared_shortcode') {
-                var kwHtml = '';
-                if (num.keywords && num.keywords.length > 0) {
-                    num.keywords.forEach(function(kw) {
-                        kwHtml += '<span class="badge badge-pastel-primary me-1">' + kw.keyword + '</span>';
-                    });
-                } else {
-                    kwHtml = '<span class="text-muted small">No keywords</span>';
-                }
-                html += '<td>' + kwHtml + '</td>';
+                html += '<td><span class="text-muted">-</span></td>';
             } else {
                 html += '<td>' + formatCapabilities(num.capabilities) + '</td>';
             }
