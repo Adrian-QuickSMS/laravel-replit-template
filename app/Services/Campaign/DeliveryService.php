@@ -14,6 +14,7 @@ use App\Models\MessageLog;
 use App\Models\RoutingRule;
 use App\Services\Billing\BalanceService;
 use App\Services\Billing\PricingEngine;
+use App\Services\Numbers\NumberService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -118,6 +119,12 @@ class DeliveryService
 
             // Step 8: Increment campaign counter
             $this->incrementCampaignCounter($campaign, 'sent_count');
+
+            // Step 9: Update last_used_at on purchased number (if sender is a VMN)
+            $senderValue = $campaign->getSenderDisplayName();
+            if ($senderValue && preg_match('/^\+?\d{7,15}$/', $senderValue)) {
+                NumberService::touchLastUsedByNumber($senderValue);
+            }
 
             return true;
 

@@ -229,6 +229,43 @@ Route::middleware('customer.auth')->prefix('api/purchase')->group(function () {
 });
 
 // =====================================================
+// Numbers Module API (session-based auth)
+// =====================================================
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/numbers')
+    ->controller(\App\Http\Controllers\Api\NumberApiController::class)->group(function () {
+    // Numbers Library
+    Route::get('/', 'index')->name('api.numbers.index');
+    Route::get('/pool', 'pool')->name('api.numbers.pool');
+    Route::get('/pricing', 'pricing')->name('api.numbers.pricing');
+    Route::get('/export', 'export')->name('api.numbers.export');
+
+    // Purchase
+    Route::post('/purchase-vmn', 'purchaseVmn')->name('api.numbers.purchase-vmn');
+    Route::post('/purchase-keyword', 'purchaseKeyword')->name('api.numbers.purchase-keyword');
+
+    // Bulk operations
+    Route::post('/bulk-assign', 'bulkAssign')->name('api.numbers.bulk-assign');
+    Route::post('/bulk-release', 'bulkRelease')->name('api.numbers.bulk-release');
+
+    // Assignment management
+    Route::delete('/assignments/{assignmentId}', 'unassign')->name('api.numbers.unassign');
+
+    // Auto-reply rule management (non-nested)
+    Route::put('/auto-reply-rules/{ruleId}', 'updateAutoReplyRule')->name('api.numbers.auto-reply-rules.update');
+    Route::delete('/auto-reply-rules/{ruleId}', 'deleteAutoReplyRule')->name('api.numbers.auto-reply-rules.destroy');
+
+    // Single number operations
+    Route::get('/{id}', 'show')->name('api.numbers.show');
+    Route::delete('/{id}', 'release')->name('api.numbers.release');
+    Route::put('/{id}/configure', 'configure')->name('api.numbers.configure');
+    Route::post('/{id}/assign', 'assign')->name('api.numbers.assign');
+
+    // Number auto-reply rules (nested)
+    Route::get('/{id}/auto-reply-rules', 'autoReplyRules')->name('api.numbers.auto-reply-rules.index');
+    Route::post('/{id}/auto-reply-rules', 'createAutoReplyRule')->name('api.numbers.auto-reply-rules.store');
+});
+
+// =====================================================
 // Campaign / Send Message API (session-based auth)
 // =====================================================
 Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
