@@ -524,11 +524,11 @@
                     <div class="product-body">
                         <div class="price-row">
                             <span class="price-label">Setup Cost</span>
-                            <span class="price-value contact-sales">Contact sales (price on request)</span>
+                            <span class="price-value" id="dedicatedSetupPrice">Loading...</span>
                         </div>
                         <div class="price-row">
                             <span class="price-label">Monthly Cost</span>
-                            <span class="price-value contact-sales">Contact sales (price on request)</span>
+                            <span class="price-value" id="dedicatedMonthlyPrice">Loading...</span>
                         </div>
                     </div>
                     <div class="product-footer">
@@ -899,6 +899,18 @@ function loadPricing() {
                 var el4 = document.getElementById('keywordMonthlyPrice');
                 if (el3) el3.textContent = sym + keywordSetupFee.toFixed(2);
                 if (el4) el4.textContent = sym + keywordMonthlyFee.toFixed(2);
+            }
+            var el5 = document.getElementById('dedicatedSetupPrice');
+            var el6 = document.getElementById('dedicatedMonthlyPrice');
+            if (data.dedicated_shortcode) {
+                var dsym = data.dedicated_shortcode.currency === 'GBP' ? '£' : (data.dedicated_shortcode.currency + ' ');
+                var dsSetup = parseFloat(data.dedicated_shortcode.setup_fee) || 0;
+                var dsMonthly = parseFloat(data.dedicated_shortcode.monthly_fee) || 0;
+                if (el5) el5.textContent = dsym + dsSetup.toFixed(2);
+                if (el6) el6.textContent = dsym + dsMonthly.toFixed(2) + '/mo';
+            } else {
+                if (el5) { el5.textContent = 'Contact sales'; el5.classList.add('contact-sales'); }
+                if (el6) { el6.textContent = 'Contact sales'; el6.classList.add('contact-sales'); }
             }
             sharedShortcodes = data.shared_shortcodes || [];
             sharedShortcodeId = sharedShortcodes.length > 0 ? sharedShortcodes[0].id : null;

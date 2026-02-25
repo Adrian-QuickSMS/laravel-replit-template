@@ -597,6 +597,16 @@ class NumberApiController extends Controller
             $keywordPricing = null;
         }
 
+        try {
+            $dedicatedSetupPrice = app(\App\Services\Billing\PricingEngine::class)
+                ->resolvePrice($account, 'shortcode_setup', null);
+            $dedicatedMonthlyPrice = app(\App\Services\Billing\PricingEngine::class)
+                ->resolvePrice($account, 'shortcode_monthly', null);
+        } catch (\Exception $e) {
+            $dedicatedSetupPrice = null;
+            $dedicatedMonthlyPrice = null;
+        }
+
         // Find platform shared shortcodes from purchased_numbers (the ID is used by purchaseKeyword)
         $sharedShortcodes = PurchasedNumber::withoutGlobalScopes()
             ->where('number_type', PurchasedNumber::TYPE_SHARED_SHORTCODE)
@@ -616,9 +626,14 @@ class NumberApiController extends Controller
             ],
             'keyword' => $keywordPricing ?? [
                 'setup_fee' => '25.0000',
-                'monthly_fee' => '50.0000',
+                'monthly_fee' => '2.0000',
                 'currency' => $account->currency ?? 'GBP',
             ],
+            'dedicated_shortcode' => $dedicatedSetupPrice ? [
+                'setup_fee' => $dedicatedSetupPrice->unitPrice,
+                'monthly_fee' => $dedicatedMonthlyPrice?->unitPrice ?? '0.0000',
+                'currency' => $account->currency ?? 'GBP',
+            ] : null,
             'shared_shortcodes' => $sharedShortcodes,
         ]);
     }
