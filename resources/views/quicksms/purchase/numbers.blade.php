@@ -475,7 +475,7 @@
                             <span class="best-value-badge">Best value</span>
                         </div>
                         <h4>UK Virtual Mobile Number</h4>
-                        <p>Standard UK mobile (07xxx) for two-way SMS and RCS messaging</p>
+                        <p>Standard UK mobile (07xxx) for two-way SMS messaging</p>
                     </div>
                     <div class="product-body">
                         <div class="price-row">
@@ -497,7 +497,7 @@
                 <div class="card product-card tryal-gradient w-100" data-product="shared" onclick="selectProduct('shared')">
                     <div class="product-header">
                         <h4>UK Shared Short Code</h4>
-                        <p>Share shortcode 82228 with custom keywords for inbound messaging</p>
+                        <p>Share shortcode 60866 with custom keywords for inbound messaging</p>
                     </div>
                     <div class="product-body">
                         <div class="price-row">
@@ -977,7 +977,7 @@ function loadVmnPool(countryIso) {
 }
 
 function loadTakenKeywords() {
-    fetch('/api/numbers/keywords/taken?shortcode=82228', { headers: { 'Accept': 'application/json' } })
+    fetch('/api/numbers/keywords/taken?shortcode=60866', { headers: { 'Accept': 'application/json' } })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             takenKeywords = data.data || [];
