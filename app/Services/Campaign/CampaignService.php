@@ -77,6 +77,7 @@ class CampaignService
             'opt_out_keyword' => $data['opt_out_keyword'] ?? null,
             'opt_out_text' => $data['opt_out_text'] ?? null,
             'opt_out_list_id' => $data['opt_out_list_id'] ?? null,
+            'opt_out_screening_list_id' => $data['opt_out_screening_list_id'] ?? null,
             'opt_out_url_enabled' => $data['opt_out_url_enabled'] ?? false,
         ]);
 

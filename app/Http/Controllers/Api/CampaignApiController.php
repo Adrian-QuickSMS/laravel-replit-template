@@ -136,6 +136,7 @@ class CampaignApiController extends Controller
             'opt_out_keyword' => 'nullable|string|max:10',
             'opt_out_text' => 'nullable|string|max:500',
             'opt_out_list_id' => 'nullable|uuid',
+            'opt_out_screening_list_id' => 'nullable|uuid',
             'opt_out_url_enabled' => 'nullable|boolean',
         ]);
 
@@ -199,6 +200,7 @@ class CampaignApiController extends Controller
             'opt_out_keyword' => 'nullable|string|max:10',
             'opt_out_text' => 'nullable|string|max:500',
             'opt_out_list_id' => 'nullable|uuid',
+            'opt_out_screening_list_id' => 'nullable|uuid',
             'opt_out_url_enabled' => 'nullable|boolean',
         ]);
 
