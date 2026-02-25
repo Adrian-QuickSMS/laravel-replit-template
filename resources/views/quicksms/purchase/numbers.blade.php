@@ -907,7 +907,7 @@ function loadPricing() {
                 var dsSetup = parseFloat(data.dedicated_shortcode.setup_fee) || 0;
                 var dsMonthly = parseFloat(data.dedicated_shortcode.monthly_fee) || 0;
                 if (el5) el5.textContent = dsym + dsSetup.toFixed(2);
-                if (el6) el6.textContent = dsym + dsMonthly.toFixed(2) + '/mo';
+                if (el6) el6.textContent = dsym + dsMonthly.toFixed(2);
             } else {
                 if (el5) { el5.textContent = 'Contact sales'; el5.classList.add('contact-sales'); }
                 if (el6) { el6.textContent = 'Contact sales'; el6.classList.add('contact-sales'); }
