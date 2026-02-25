@@ -597,9 +597,10 @@ class NumberApiController extends Controller
             $keywordPricing = null;
         }
 
-        // Find platform shared shortcodes (system-owned VMN pool numbers that are shortcodes)
-        $sharedShortcodes = \App\Models\VmnPoolNumber::where('number_type', 'shortcode')
-            ->where('status', 'available')
+        // Find platform shared shortcodes from purchased_numbers (the ID is used by purchaseKeyword)
+        $sharedShortcodes = PurchasedNumber::withoutGlobalScopes()
+            ->where('number_type', PurchasedNumber::TYPE_SHARED_SHORTCODE)
+            ->where('status', 'active')
             ->get(['id', 'number', 'country_iso'])
             ->map(fn($sc) => [
                 'id' => $sc->id,
