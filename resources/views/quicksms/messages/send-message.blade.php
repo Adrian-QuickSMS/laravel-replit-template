@@ -321,63 +321,60 @@
 
                     <div class="d-none" id="optoutManagementSection">
 
-                        {{-- Opt-out method radio group --}}
-                        <div class="mb-3">
-                            <label class="form-label form-label-sm fw-medium">Opt-out method</label>
-                            <div class="d-flex gap-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="optOutMethod" id="optOutMethodReply" value="reply" onchange="onOptOutMethodChange()">
-                                    <label class="form-check-label" for="optOutMethodReply">Reply to opt-out</label>
+                        {{-- Reply opt-out --}}
+                        <div class="mb-3 p-3 border rounded">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableReplyOptout" onchange="toggleReplyOptout()">
+                                <label class="form-check-label fw-medium" for="enableReplyOptout">Enable reply-to-opt-out</label>
+                            </div>
+                            <div class="d-none ps-2" id="replyOptoutConfig">
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm">Number to receive replies</label>
+                                    <select class="form-select form-select-sm" id="optOutNumberId" onchange="onOptOutNumberChange()">
+                                        <option value="">-- Loading numbers... --</option>
+                                    </select>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="optOutMethod" id="optOutMethodUrl" value="url" onchange="onOptOutMethodChange()">
-                                    <label class="form-check-label" for="optOutMethodUrl">Click to opt-out (URL link)</label>
+                                <div class="mb-2" id="keywordArea">
+                                    <label class="form-label form-label-sm">
+                                        Opt-out keyword
+                                        <span id="keywordValidationIcon" class="ms-1"></span>
+                                    </label>
+                                    {{-- For VMN / dedicated shortcode --}}
+                                    <input type="text" class="form-control form-control-sm" id="optOutKeywordInput"
+                                        placeholder="e.g. STOP, QUIT (4-10 chars)"
+                                        maxlength="10"
+                                        oninput="scheduleKeywordValidation()"
+                                        style="text-transform:uppercase">
+                                    {{-- For shared shortcode (hidden by default) --}}
+                                    <select class="form-select form-select-sm d-none" id="optOutKeywordSelect" onchange="onKeywordSelectChange()">
+                                        <option value="">-- Select keyword --</option>
+                                    </select>
+                                    <div class="invalid-feedback d-block d-none" id="keywordError"></div>
                                 </div>
-                            </div>
-                        </div>
-
-                        {{-- Reply opt-out config --}}
-                        <div class="d-none mb-3 ps-2" id="replyOptoutConfig">
-                            <div class="mb-2">
-                                <label class="form-label form-label-sm">Number to receive replies</label>
-                                <select class="form-select form-select-sm" id="optOutNumberId" onchange="onOptOutNumberChange()">
-                                    <option value="">-- Loading numbers... --</option>
-                                </select>
-                            </div>
-                            <div class="mb-2" id="keywordArea">
-                                <label class="form-label form-label-sm">
-                                    Opt-out keyword
-                                    <span id="keywordValidationIcon" class="ms-1"></span>
-                                </label>
-                                {{-- For VMN / dedicated shortcode --}}
-                                <input type="text" class="form-control form-control-sm" id="optOutKeywordInput"
-                                    placeholder="e.g. STOP, QUIT (4-10 chars)"
-                                    maxlength="10"
-                                    oninput="scheduleKeywordValidation()"
-                                    style="text-transform:uppercase">
-                                {{-- For shared shortcode (hidden by default) --}}
-                                <select class="form-select form-select-sm d-none" id="optOutKeywordSelect" onchange="onKeywordSelectChange()">
-                                    <option value="">-- Select keyword --</option>
-                                </select>
-                                <div class="invalid-feedback d-block d-none" id="keywordError"></div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="replyOptoutText" placeholder="Auto-generated when number + keyword are set" readonly>
-                                    <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('replyOptoutText')">Insert</button>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="replyOptoutText" placeholder="Auto-generated when number + keyword are set" readonly>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('replyOptoutText')">Insert</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- URL opt-out config --}}
-                        <div class="d-none mb-3 ps-2" id="urlOptoutConfig">
-                            <p class="text-muted mb-2 small">A unique 25-char link per recipient (e.g. <code>https://qout.uk/Ab3Kf9xZ</code>) is inserted via <code>&#123;&#123;unique_url&#125;&#125;</code>.</p>
-                            <div class="mb-2">
-                                <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" class="form-control" id="urlOptoutText" value="To stop receiving messages click &#123;&#123;unique_url&#125;&#125;">
-                                    <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
+                        {{-- URL opt-out --}}
+                        <div class="mb-3 p-3 border rounded">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableUrlOptout" onchange="toggleUrlOptout()">
+                                <label class="form-check-label fw-medium" for="enableUrlOptout">Enable click-to-opt-out</label>
+                            </div>
+                            <div class="d-none ps-2" id="urlOptoutConfig">
+                                <p class="text-muted mb-2 small">A unique 25-char link per recipient (e.g. <code>https://qout.uk/Ab3Kf9xZ</code>) is inserted via <code>&#123;&#123;unique_url&#125;&#125;</code>.</p>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="urlOptoutText" value="To stop receiving messages click &#123;&#123;unique_url&#125;&#125;">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2564,11 +2561,15 @@ function toggleOptoutManagement() {
     }
 }
 
-function onOptOutMethodChange() {
-    var selected = document.querySelector('input[name="optOutMethod"]:checked');
-    var method = selected ? selected.value : null;
-    document.getElementById('replyOptoutConfig').classList.toggle('d-none', method !== 'reply');
-    document.getElementById('urlOptoutConfig').classList.toggle('d-none', method !== 'url');
+function toggleReplyOptout() {
+    var isEnabled = document.getElementById('enableReplyOptout').checked;
+    document.getElementById('replyOptoutConfig').classList.toggle('d-none', !isEnabled);
+    validateOptoutConfig();
+}
+
+function toggleUrlOptout() {
+    var isEnabled = document.getElementById('enableUrlOptout').checked;
+    document.getElementById('urlOptoutConfig').classList.toggle('d-none', !isEnabled);
     validateOptoutConfig();
 }
 
@@ -2803,15 +2804,13 @@ function validateOptoutConfig() {
         return true;
     }
 
-    var selected = document.querySelector('input[name="optOutMethod"]:checked');
-    var method = selected ? selected.value : null;
-    var replyEnabled = method === 'reply';
-    var urlEnabled = method === 'url';
+    var replyEnabled = document.getElementById('enableReplyOptout').checked;
+    var urlEnabled = document.getElementById('enableUrlOptout').checked;
     var errorDiv = document.getElementById('optoutValidationError');
     var errorMsg = document.getElementById('optoutValidationMessage');
 
-    if (!method) {
-        errorMsg.textContent = 'Select an opt-out method (reply or URL).';
+    if (!replyEnabled && !urlEnabled) {
+        errorMsg.textContent = 'Enable at least one opt-out method (reply or URL).';
         errorDiv.classList.remove('d-none');
         return false;
     }
@@ -2868,14 +2867,13 @@ function getOptoutConfiguration() {
     var isEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
     if (!isEnabled) return null;
 
-    var selected = document.querySelector('input[name="optOutMethod"]:checked');
-    var method = selected ? selected.value : null;
-    var replyEnabled = method === 'reply';
-    var urlEnabled = method === 'url';
+    var replyEnabled = document.getElementById('enableReplyOptout').checked;
+    var urlEnabled = document.getElementById('enableUrlOptout').checked;
     var listTarget = document.querySelector('input[name="optOutListTarget"]:checked');
     var listId = (listTarget && listTarget.value === 'existing') ? document.getElementById('optOutListId').value : null;
     var newListName = document.getElementById('newOptOutListName') ? document.getElementById('newOptOutListName').value.trim() : null;
 
+    var method = (replyEnabled && urlEnabled) ? 'both' : (replyEnabled ? 'reply' : 'url');
     var numberId = replyEnabled ? document.getElementById('optOutNumberId').value : null;
     var keyword = replyEnabled
         ? (_currentNumberType === 'shared_shortcode'
