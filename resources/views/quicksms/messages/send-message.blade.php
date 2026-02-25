@@ -318,115 +318,99 @@
                             <label class="form-check-label" for="enableOptoutManagement">Enable</label>
                         </div>
                     </div>
-                    
+
                     <div class="d-none" id="optoutManagementSection">
-                        <div class="mb-3">
-                            <label class="form-label">Opt-out list <span class="text-muted">(optional)</span></label>
-                            <select class="form-select" id="optoutListSelect">
-                                <option value="" selected>No list selected</option>
+
+                        {{-- Reply opt-out --}}
+                        <div class="mb-3 p-3 border rounded">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableReplyOptout" onchange="toggleReplyOptout()">
+                                <label class="form-check-label fw-medium" for="enableReplyOptout">Enable reply-to-opt-out</label>
+                            </div>
+                            <div class="d-none ps-2" id="replyOptoutConfig">
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm">Number to receive replies</label>
+                                    <select class="form-select form-select-sm" id="optOutNumberId" onchange="onOptOutNumberChange()">
+                                        <option value="">-- Loading numbers... --</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2" id="keywordArea">
+                                    <label class="form-label form-label-sm">
+                                        Opt-out keyword
+                                        <span id="keywordValidationIcon" class="ms-1"></span>
+                                    </label>
+                                    {{-- For VMN / dedicated shortcode --}}
+                                    <input type="text" class="form-control form-control-sm" id="optOutKeywordInput"
+                                        placeholder="e.g. STOP, QUIT (4-10 chars)"
+                                        maxlength="10"
+                                        oninput="scheduleKeywordValidation()"
+                                        style="text-transform:uppercase">
+                                    {{-- For shared shortcode (hidden by default) --}}
+                                    <select class="form-select form-select-sm d-none" id="optOutKeywordSelect" onchange="onKeywordSelectChange()">
+                                        <option value="">-- Select keyword --</option>
+                                    </select>
+                                    <div class="invalid-feedback d-block d-none" id="keywordError"></div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="replyOptoutText" placeholder="Auto-generated when number + keyword are set" readonly>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('replyOptoutText')">Insert</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- URL opt-out --}}
+                        <div class="mb-3 p-3 border rounded">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableUrlOptout" onchange="toggleUrlOptout()">
+                                <label class="form-check-label fw-medium" for="enableUrlOptout">Enable click-to-opt-out</label>
+                            </div>
+                            <div class="d-none ps-2" id="urlOptoutConfig">
+                                <p class="text-muted mb-2 small">A unique 25-char link per recipient (e.g. <code>https://qout.uk/Ab3Kf9xZ</code>) is inserted via <code>&#123;&#123;unique_url&#125;&#125;</code>.</p>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="urlOptoutText" value="To stop receiving messages click {{'{{'}}unique_url{{'}}'}}">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Opt-out list --}}
+                        <div class="mb-3" id="optOutListSection">
+                            <label class="form-label">Store opt-outs in</label>
+                            <select class="form-select" id="optOutListId">
+                                <option value="">-- Select an opt-out list --</option>
                                 @foreach($opt_out_lists as $list)
                                 <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
                                 @endforeach
                             </select>
-                            <small class="text-muted">Select a list to exclude numbers. If no list is selected, you must enable an opt-out method below.</small>
-                        </div>
-                        
-                        <div class="border-top pt-3 mb-3">
-                            <h6 class="mb-3">Opt-out Options</h6>
-                            
-                            @if(count($virtual_numbers) > 0)
-                            <div class="mb-3 p-3 border rounded">
-                                <div class="form-check form-switch mb-2">
-                                    <input class="form-check-input" type="checkbox" id="enableReplyOptout" onchange="toggleReplyOptout()">
-                                    <label class="form-check-label fw-medium" for="enableReplyOptout">Enable reply-to-opt-out</label>
+                            <div class="mt-2">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="optOutListTarget" id="optOutListExisting" value="existing" checked onchange="toggleNewListField()">
+                                    <label class="form-check-label" for="optOutListExisting">Existing list</label>
                                 </div>
-                                <div class="d-none ps-3" id="replyOptoutConfig">
-                                    <div class="mb-2">
-                                        <label class="form-label">Virtual Number</label>
-                                        <select class="form-select form-select-sm" id="replyVirtualNumber">
-                                            <option value="">-- Select virtual number --</option>
-                                            @foreach($virtual_numbers as $vn)
-                                            <option value="{{ $vn['id'] }}" data-number="{{ $vn['number'] }}">{{ $vn['number'] }} ({{ $vn['label'] }})</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Opt-out Text</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" id="replyOptoutText" value="Opt-out: Reply STOP to @{{number}}" placeholder="e.g. Reply STOP to @{{number}}">
-                                            <button type="button" class="btn btn-outline-primary" onclick="addOptoutToMessage('reply')" title="Append to message">Add to message content</button>
-                                        </div>
-                                        <small class="text-muted">Use @{{number}} to insert the virtual number.</small>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Store opt-outs in</label>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="replyOptoutTarget" id="replyOptoutExisting" value="existing" checked>
-                                            <label class="form-check-label" for="replyOptoutExisting">Existing opt-out list</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="replyOptoutTarget" id="replyOptoutNew" value="new">
-                                            <label class="form-check-label" for="replyOptoutNew">Create new opt-out list</label>
-                                        </div>
-                                        <div class="d-none mt-2" id="replyNewListFields">
-                                            <input type="text" class="form-control form-control-sm mb-1" id="replyNewListName" placeholder="List name (required)">
-                                            <input type="text" class="form-control form-control-sm" id="replyNewListDesc" placeholder="Description (optional)">
-                                        </div>
-                                    </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="optOutListTarget" id="optOutListNew" value="new" onchange="toggleNewListField()">
+                                    <label class="form-check-label" for="optOutListNew">Create new list</label>
                                 </div>
-                            </div>
-                            @endif
-                            
-                            <div class="mb-3 p-3 border rounded">
-                                <div class="form-check form-switch mb-2">
-                                    <input class="form-check-input" type="checkbox" id="enableUrlOptout" onchange="toggleUrlOptout()">
-                                    <label class="form-check-label fw-medium" for="enableUrlOptout">Enable click-to-opt-out</label>
-                                </div>
-                                <div class="d-none ps-3" id="urlOptoutConfig">
-                                    <div class="mb-2">
-                                        <label class="form-label">URL Domain</label>
-                                        <select class="form-select form-select-sm" id="urlOptoutDomain">
-                                            @foreach($optout_domains as $domain)
-                                            <option value="{{ $domain['id'] }}" {{ $domain['is_default'] ? 'selected' : '' }}>{{ $domain['domain'] }}{{ $domain['is_default'] ? ' (default)' : '' }}</option>
-                                            @endforeach
-                                        </select>
-                                        <small class="text-muted">A unique URL will be generated per message.</small>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Opt-out Text</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" id="urlOptoutText" value="Opt-out: Click @{{unique_url}}" placeholder="e.g. Click @{{unique_url}}">
-                                            <button type="button" class="btn btn-outline-primary" onclick="addOptoutToMessage('url')" title="Append to message">Add to message content</button>
-                                        </div>
-                                        <small class="text-muted">Use @{{unique_url}} to insert the tracking URL.</small>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Store opt-outs in</label>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="urlOptoutTarget" id="urlOptoutExisting" value="existing" checked>
-                                            <label class="form-check-label" for="urlOptoutExisting">Existing opt-out list</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="urlOptoutTarget" id="urlOptoutNew" value="new">
-                                            <label class="form-check-label" for="urlOptoutNew">Create new opt-out list</label>
-                                        </div>
-                                        <div class="d-none mt-2" id="urlNewListFields">
-                                            <input type="text" class="form-control form-control-sm mb-1" id="urlNewListName" placeholder="List name (required)">
-                                            <input type="text" class="form-control form-control-sm" id="urlNewListDesc" placeholder="Description (optional)">
-                                        </div>
-                                    </div>
+                                <div class="d-none mt-2" id="newOptOutListFields">
+                                    <input type="text" class="form-control form-control-sm" id="newOptOutListName" placeholder="New list name (required)">
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="d-none" id="optoutValidationError">
                             <div class="alert alert-danger py-2 mb-0">
                                 <i class="fas fa-exclamation-circle me-1"></i>
-                                <span id="optoutValidationMessage">At least one opt-out mechanism must be configured.</span>
+                                <span id="optoutValidationMessage">Please complete the opt-out configuration.</span>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div id="optoutDisabledMessage">
                         <p class="text-muted mb-0"><small>No opt-out logic will be applied. Enable to configure opt-out options.</small></p>
                     </div>
@@ -2556,6 +2540,14 @@ function updateRcsWizardPreviewInMain() {
     RcsPreviewRenderer.initCarouselBehavior('#mainPreviewContainer');
 }
 
+// =====================================================
+// OPT-OUT MANAGEMENT
+// =====================================================
+
+var _optOutNumbers = { vmns: [], shortcodes: [] };
+var _keywordValidationTimer = null;
+var _currentNumberType = null;
+
 function toggleOptoutManagement() {
     var isEnabled = document.getElementById('enableOptoutManagement').checked;
     document.getElementById('optoutManagementSection').classList.toggle('d-none', !isEnabled);
@@ -2563,6 +2555,7 @@ function toggleOptoutManagement() {
     if (!isEnabled) {
         document.getElementById('optoutValidationError').classList.add('d-none');
     } else {
+        loadOptOutNumbers();
         validateOptoutConfig();
     }
 }
@@ -2570,247 +2563,335 @@ function toggleOptoutManagement() {
 function toggleReplyOptout() {
     var isEnabled = document.getElementById('enableReplyOptout').checked;
     document.getElementById('replyOptoutConfig').classList.toggle('d-none', !isEnabled);
-    
-    var urlOptoutCheckbox = document.getElementById('enableUrlOptout');
-    var urlOptoutContainer = urlOptoutCheckbox ? urlOptoutCheckbox.closest('.p-3.border.rounded') : null;
-    
-    if (isEnabled) {
-        if (urlOptoutCheckbox) {
-            urlOptoutCheckbox.checked = false;
-            urlOptoutCheckbox.disabled = true;
-            document.getElementById('urlOptoutConfig').classList.add('d-none');
-        }
-        if (urlOptoutContainer) {
-            urlOptoutContainer.classList.add('opacity-50');
-        }
-    } else {
-        if (urlOptoutCheckbox) {
-            urlOptoutCheckbox.disabled = false;
-        }
-        if (urlOptoutContainer) {
-            urlOptoutContainer.classList.remove('opacity-50');
-        }
-    }
     validateOptoutConfig();
 }
 
 function toggleUrlOptout() {
     var isEnabled = document.getElementById('enableUrlOptout').checked;
     document.getElementById('urlOptoutConfig').classList.toggle('d-none', !isEnabled);
-    
-    var replyOptoutCheckbox = document.getElementById('enableReplyOptout');
-    var replyOptoutContainer = replyOptoutCheckbox ? replyOptoutCheckbox.closest('.p-3.border.rounded') : null;
-    
-    if (isEnabled) {
-        if (replyOptoutCheckbox) {
-            replyOptoutCheckbox.checked = false;
-            replyOptoutCheckbox.disabled = true;
-            document.getElementById('replyOptoutConfig').classList.add('d-none');
-        }
-        if (replyOptoutContainer) {
-            replyOptoutContainer.classList.add('opacity-50');
-        }
-    } else {
-        if (replyOptoutCheckbox) {
-            replyOptoutCheckbox.disabled = false;
-        }
-        if (replyOptoutContainer) {
-            replyOptoutContainer.classList.remove('opacity-50');
-        }
-    }
     validateOptoutConfig();
 }
 
-var optoutAddedToMessage = { reply: false, url: false };
+function toggleNewListField() {
+    var target = document.querySelector('input[name="optOutListTarget"]:checked');
+    var newFields = document.getElementById('newOptOutListFields');
+    var listSelect = document.getElementById('optOutListId');
+    if (newFields) newFields.classList.toggle('d-none', !target || target.value !== 'new');
+    if (listSelect) listSelect.disabled = target && target.value === 'new';
+    validateOptoutConfig();
+}
 
-function addOptoutToMessage(type) {
-    var textInput = type === 'reply' ? document.getElementById('replyOptoutText') : document.getElementById('urlOptoutText');
+function loadOptOutNumbers() {
+    var select = document.getElementById('optOutNumberId');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Loading... --</option>';
+
+    fetch('/api/campaigns/opt-out-numbers', {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        _optOutNumbers = res.data || { vmns: [], shortcodes: [] };
+        select.innerHTML = '<option value="">-- Select number --</option>';
+
+        var vmns = _optOutNumbers.vmns || [];
+        var shortcodes = _optOutNumbers.shortcodes || [];
+
+        if (vmns.length > 0) {
+            var grp = document.createElement('optgroup');
+            grp.label = 'Virtual Mobile Numbers';
+            vmns.forEach(function(n) {
+                var opt = document.createElement('option');
+                opt.value = n.id;
+                opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '');
+                opt.dataset.type = 'vmn';
+                opt.dataset.number = n.number;
+                grp.appendChild(opt);
+            });
+            select.appendChild(grp);
+        }
+
+        if (shortcodes.length > 0) {
+            var grp2 = document.createElement('optgroup');
+            grp2.label = 'Shortcodes';
+            shortcodes.forEach(function(n) {
+                var opt = document.createElement('option');
+                opt.value = n.id;
+                opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '') + (n.type === 'shared_shortcode' ? ' [shared]' : '');
+                opt.dataset.type = n.type;
+                opt.dataset.number = n.number;
+                grp2.appendChild(opt);
+            });
+            select.appendChild(grp2);
+        }
+
+        if (vmns.length === 0 && shortcodes.length === 0) {
+            select.innerHTML = '<option value="">No numbers available</option>';
+        }
+    })
+    .catch(function() {
+        select.innerHTML = '<option value="">Failed to load numbers</option>';
+    });
+}
+
+function onOptOutNumberChange() {
+    var select = document.getElementById('optOutNumberId');
+    var selectedOpt = select.options[select.selectedIndex];
+    var numberType = selectedOpt ? selectedOpt.dataset.type : null;
+    _currentNumberType = numberType;
+
+    var keywordInput = document.getElementById('optOutKeywordInput');
+    var keywordSelect = document.getElementById('optOutKeywordSelect');
+
+    if (numberType === 'shared_shortcode') {
+        keywordInput.classList.add('d-none');
+        keywordSelect.classList.remove('d-none');
+        loadAvailableKeywords(select.value);
+    } else {
+        keywordInput.classList.remove('d-none');
+        keywordSelect.classList.add('d-none');
+        keywordInput.value = '';
+    }
+
+    clearKeywordValidation();
+    document.getElementById('replyOptoutText').value = '';
+    validateOptoutConfig();
+}
+
+function loadAvailableKeywords(numberId) {
+    var sel = document.getElementById('optOutKeywordSelect');
+    sel.innerHTML = '<option value="">-- Loading keywords... --</option>';
+
+    fetch('/api/campaigns/opt-out-keywords/' + numberId, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        var keywords = res.data || [];
+        sel.innerHTML = '<option value="">-- Select keyword --</option>';
+        keywords.forEach(function(kw) {
+            var opt = document.createElement('option');
+            opt.value = kw;
+            opt.text = kw;
+            sel.appendChild(opt);
+        });
+        if (keywords.length === 0) {
+            sel.innerHTML = '<option value="">No keywords available</option>';
+        }
+    })
+    .catch(function() {
+        sel.innerHTML = '<option value="">Failed to load keywords</option>';
+    });
+}
+
+function onKeywordSelectChange() {
+    clearKeywordValidation();
+    refreshOptOutText();
+    validateOptoutConfig();
+}
+
+function scheduleKeywordValidation() {
+    if (_keywordValidationTimer) clearTimeout(_keywordValidationTimer);
+    _keywordValidationTimer = setTimeout(function() {
+        validateOptOutKeyword();
+    }, 600);
+}
+
+function clearKeywordValidation() {
+    document.getElementById('keywordValidationIcon').innerHTML = '';
+    var errDiv = document.getElementById('keywordError');
+    errDiv.textContent = '';
+    errDiv.classList.add('d-none');
+}
+
+function validateOptOutKeyword() {
+    var numberId = document.getElementById('optOutNumberId').value;
+    var keyword = _currentNumberType === 'shared_shortcode'
+        ? document.getElementById('optOutKeywordSelect').value
+        : document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+
+    if (!numberId || !keyword || keyword.length < 4) {
+        clearKeywordValidation();
+        return;
+    }
+
+    var icon = document.getElementById('keywordValidationIcon');
+    icon.innerHTML = '<i class="fas fa-spinner fa-spin text-muted"></i>';
+
+    fetch('/api/campaigns/validate-opt-out-keyword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ keyword: keyword, number_id: numberId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        var errDiv = document.getElementById('keywordError');
+        if (res.valid) {
+            icon.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+            errDiv.textContent = '';
+            errDiv.classList.add('d-none');
+            refreshOptOutText();
+        } else {
+            icon.innerHTML = '<i class="fas fa-times-circle text-danger"></i>';
+            errDiv.textContent = res.message || 'Invalid keyword.';
+            errDiv.classList.remove('d-none');
+        }
+        validateOptoutConfig();
+    })
+    .catch(function() {
+        clearKeywordValidation();
+    });
+}
+
+function refreshOptOutText() {
+    var numberId = document.getElementById('optOutNumberId').value;
+    var numberOpt = document.getElementById('optOutNumberId').options[document.getElementById('optOutNumberId').selectedIndex];
+    var numberVal = numberOpt ? numberOpt.dataset.number : '';
+    var keyword = _currentNumberType === 'shared_shortcode'
+        ? document.getElementById('optOutKeywordSelect').value
+        : document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+
+    var textField = document.getElementById('replyOptoutText');
+
+    if (!numberId || !keyword || !numberVal) {
+        textField.value = '';
+        return;
+    }
+
+    fetch('/api/campaigns/suggest-opt-out-text', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ keyword: keyword, number: numberVal })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.text) textField.value = res.text;
+    })
+    .catch(function() {});
+}
+
+function insertOptOutTextToMessage(fieldId) {
+    var textField = document.getElementById(fieldId);
     var messageArea = document.getElementById('smsContent');
-    
-    if (!textInput || !messageArea) return;
-    
-    if (optoutAddedToMessage[type]) {
-        alert('Opt-out text has already been added to the message.');
+    if (!textField || !messageArea) return;
+
+    var text = textField.value.trim();
+    if (!text) {
+        alert('Opt-out text is empty. Please configure opt-out settings first.');
         return;
     }
-    
-    var optoutText = textInput.value.trim();
-    if (!optoutText) {
-        alert('Please enter opt-out text first.');
-        return;
-    }
-    
-    var currentContent = messageArea.value;
-    var separator = currentContent.trim() ? '\n\n' : '';
-    messageArea.value = currentContent + separator + optoutText;
-    
-    optoutAddedToMessage[type] = true;
-    
+
+    var current = messageArea.value;
+    var separator = current.trim() ? '\n\n' : '';
+    messageArea.value = current + separator + text;
     updateCharCount();
     updatePreview();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    var replyTargetRadios = document.querySelectorAll('input[name="replyOptoutTarget"]');
-    replyTargetRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            var replyNewFields = document.getElementById('replyNewListFields');
-            if (replyNewFields) {
-                replyNewFields.classList.toggle('d-none', this.value !== 'new');
-            }
-            validateOptoutConfig();
-        });
-    });
-    
-    var urlTargetRadios = document.querySelectorAll('input[name="urlOptoutTarget"]');
-    urlTargetRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            var urlNewFields = document.getElementById('urlNewListFields');
-            if (urlNewFields) {
-                urlNewFields.classList.toggle('d-none', this.value !== 'new');
-            }
-            validateOptoutConfig();
-        });
-    });
-    
-    var replyNewListName = document.getElementById('replyNewListName');
-    if (replyNewListName) {
-        replyNewListName.addEventListener('input', validateOptoutConfig);
-    }
-    
-    var urlNewListName = document.getElementById('urlNewListName');
-    if (urlNewListName) {
-        urlNewListName.addEventListener('input', validateOptoutConfig);
-    }
-    
-    var replyVirtualNumber = document.getElementById('replyVirtualNumber');
-    if (replyVirtualNumber) {
-        replyVirtualNumber.addEventListener('change', validateOptoutConfig);
-    }
-    
-    var replyOptoutText = document.getElementById('replyOptoutText');
-    if (replyOptoutText) {
-        replyOptoutText.addEventListener('input', validateOptoutConfig);
-    }
-    
-    var urlOptoutText = document.getElementById('urlOptoutText');
-    if (urlOptoutText) {
-        urlOptoutText.addEventListener('input', validateOptoutConfig);
-    }
-    
-    var optoutListSelect = document.getElementById('optoutListSelect');
-    if (optoutListSelect) {
-        optoutListSelect.addEventListener('change', validateOptoutConfig);
-    }
-});
-
 function validateOptoutConfig() {
-    var isEnabled = document.getElementById('enableOptoutManagement').checked;
+    var isEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
     if (!isEnabled) {
         document.getElementById('optoutValidationError').classList.add('d-none');
         return true;
     }
-    
-    var optoutListValue = document.getElementById('optoutListSelect').value;
-    var hasListSelected = optoutListValue !== '';
-    var replyEnabled = document.getElementById('enableReplyOptout') ? document.getElementById('enableReplyOptout').checked : false;
+
+    var replyEnabled = document.getElementById('enableReplyOptout').checked;
     var urlEnabled = document.getElementById('enableUrlOptout').checked;
     var errorDiv = document.getElementById('optoutValidationError');
     var errorMsg = document.getElementById('optoutValidationMessage');
-    
-    if (!hasListSelected && !replyEnabled && !urlEnabled) {
-        errorMsg.textContent = 'When no opt-out list is selected, you must enable an opt-out method (Reply-based or Click-to-opt-out).';
+
+    if (!replyEnabled && !urlEnabled) {
+        errorMsg.textContent = 'Enable at least one opt-out method (reply or URL).';
         errorDiv.classList.remove('d-none');
         return false;
     }
-    
+
     if (replyEnabled) {
-        var virtualNumber = document.getElementById('replyVirtualNumber').value;
-        var replyText = document.getElementById('replyOptoutText').value.trim();
-        
-        if (!virtualNumber) {
-            errorMsg.textContent = 'Please select a virtual number for reply-based opt-out.';
+        var numId = document.getElementById('optOutNumberId').value;
+        var kw = _currentNumberType === 'shared_shortcode'
+            ? document.getElementById('optOutKeywordSelect').value
+            : document.getElementById('optOutKeywordInput').value.trim();
+        if (!numId) {
+            errorMsg.textContent = 'Select a number for reply opt-out.';
             errorDiv.classList.remove('d-none');
             return false;
         }
-        
-        if (!replyText) {
-            errorMsg.textContent = 'Opt-out text cannot be empty for reply-based opt-out.';
+        if (!kw) {
+            errorMsg.textContent = 'Enter or select an opt-out keyword.';
             errorDiv.classList.remove('d-none');
             return false;
-        }
-        
-        var replyTarget = document.querySelector('input[name="replyOptoutTarget"]:checked');
-        if (replyTarget && replyTarget.value === 'new') {
-            var replyNewName = document.getElementById('replyNewListName');
-            if (replyNewName && !replyNewName.value.trim()) {
-                errorMsg.textContent = 'Please enter a name for the new opt-out list (reply-based).';
-                errorDiv.classList.remove('d-none');
-                return false;
-            }
         }
     }
-    
+
     if (urlEnabled) {
         var urlText = document.getElementById('urlOptoutText').value.trim();
-        
-        if (!urlText.includes('{' + '{unique_url}' + '}')) {
-            errorMsg.textContent = 'URL opt-out text must include the {' + '{unique_url}' + '} token.';
+        if (!urlText.includes('{{unique_url}}')) {
+            errorMsg.textContent = 'URL opt-out text must include {{unique_url}}.';
             errorDiv.classList.remove('d-none');
             return false;
         }
-        
-        var urlTarget = document.querySelector('input[name="urlOptoutTarget"]:checked');
-        if (urlTarget && urlTarget.value === 'new') {
-            var urlNewName = document.getElementById('urlNewListName');
-            if (urlNewName && !urlNewName.value.trim()) {
-                errorMsg.textContent = 'Please enter a name for the new opt-out list (URL-based).';
-                errorDiv.classList.remove('d-none');
-                return false;
-            }
+    }
+
+    var listTarget = document.querySelector('input[name="optOutListTarget"]:checked');
+    if (listTarget && listTarget.value === 'new') {
+        var newName = document.getElementById('newOptOutListName');
+        if (!newName || !newName.value.trim()) {
+            errorMsg.textContent = 'Enter a name for the new opt-out list.';
+            errorDiv.classList.remove('d-none');
+            return false;
+        }
+    } else {
+        var listId = document.getElementById('optOutListId').value;
+        if (!listId) {
+            errorMsg.textContent = 'Select an opt-out list to store opt-outs in.';
+            errorDiv.classList.remove('d-none');
+            return false;
         }
     }
-    
+
     errorDiv.classList.add('d-none');
     return true;
 }
 
 function getOptoutConfiguration() {
-    var isEnabled = document.getElementById('enableOptoutManagement').checked;
-    if (!isEnabled) {
-        return null;
-    }
-    
-    var config = {
-        enabled: true,
-        optout_list_id: document.getElementById('optoutListSelect').value,
-        reply_optout: null,
-        url_optout: null
-    };
-    
-    var replyEnabled = document.getElementById('enableReplyOptout') ? document.getElementById('enableReplyOptout').checked : false;
-    if (replyEnabled) {
-        config.reply_optout = {
-            virtual_number_id: document.getElementById('replyVirtualNumber').value,
-            text: document.getElementById('replyOptoutText').value,
-            target: document.querySelector('input[name="replyOptoutTarget"]:checked').value,
-            new_list_name: document.getElementById('replyNewListName') ? document.getElementById('replyNewListName').value : null,
-            new_list_desc: document.getElementById('replyNewListDesc') ? document.getElementById('replyNewListDesc').value : null
-        };
-    }
-    
+    var isEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
+    if (!isEnabled) return null;
+
+    var replyEnabled = document.getElementById('enableReplyOptout').checked;
     var urlEnabled = document.getElementById('enableUrlOptout').checked;
-    if (urlEnabled) {
-        config.url_optout = {
-            domain_id: document.getElementById('urlOptoutDomain').value,
-            text: document.getElementById('urlOptoutText').value,
-            target: document.querySelector('input[name="urlOptoutTarget"]:checked').value,
-            new_list_name: document.getElementById('urlNewListName').value,
-            new_list_desc: document.getElementById('urlNewListDesc').value
-        };
-    }
-    
-    return config;
+    var listTarget = document.querySelector('input[name="optOutListTarget"]:checked');
+    var listId = (listTarget && listTarget.value === 'existing') ? document.getElementById('optOutListId').value : null;
+    var newListName = document.getElementById('newOptOutListName') ? document.getElementById('newOptOutListName').value.trim() : null;
+
+    var method = (replyEnabled && urlEnabled) ? 'both' : (replyEnabled ? 'reply' : 'url');
+    var numberId = replyEnabled ? document.getElementById('optOutNumberId').value : null;
+    var keyword = replyEnabled
+        ? (_currentNumberType === 'shared_shortcode'
+            ? document.getElementById('optOutKeywordSelect').value
+            : document.getElementById('optOutKeywordInput').value.trim().toUpperCase())
+        : null;
+    var replyText = replyEnabled ? document.getElementById('replyOptoutText').value : null;
+    var urlText = urlEnabled ? document.getElementById('urlOptoutText').value : null;
+
+    return {
+        enabled: true,
+        opt_out_enabled: true,
+        opt_out_method: method,
+        opt_out_number_id: numberId,
+        opt_out_keyword: keyword,
+        opt_out_text: replyText || urlText,
+        opt_out_list_id: listId,
+        opt_out_url_enabled: urlEnabled,
+        new_list_name: newListName,
+    };
 }
 
 function collectCampaignConfig() {
@@ -3051,8 +3132,6 @@ function continueToConfirmation() {
         return;
     }
     
-    var optoutConfig = getOptoutConfiguration();
-    
     var channel = document.querySelector('input[name="channel"]:checked');
     var channelValue = channel ? channel.value : 'sms';
     
@@ -3157,6 +3236,8 @@ function continueToConfirmation() {
         if (toEl && toEl.value) sendingWindowEndVal = toEl.value;
     }
 
+    var optoutCfg = getOptoutConfiguration();
+
     var campaignData = {
         name: campaignName,
         type: apiChannelValue,
@@ -3167,7 +3248,14 @@ function continueToConfirmation() {
         scheduled_at: scheduledAt,
         validity_period: validityPeriod,
         sending_window_start: sendingWindowStartVal,
-        sending_window_end: sendingWindowEndVal
+        sending_window_end: sendingWindowEndVal,
+        opt_out_enabled: optoutCfg ? optoutCfg.opt_out_enabled : false,
+        opt_out_method: optoutCfg ? optoutCfg.opt_out_method : null,
+        opt_out_number_id: optoutCfg ? optoutCfg.opt_out_number_id : null,
+        opt_out_keyword: optoutCfg ? optoutCfg.opt_out_keyword : null,
+        opt_out_text: optoutCfg ? optoutCfg.opt_out_text : null,
+        opt_out_list_id: optoutCfg ? optoutCfg.opt_out_list_id : null,
+        opt_out_url_enabled: optoutCfg ? optoutCfg.opt_out_url_enabled : false,
     };
 
     var existingCampaignId = window._restoredCampaignId || null;
@@ -3216,7 +3304,7 @@ function continueToConfirmation() {
             scheduled_time: scheduledTimeValue,
             message_expiry: messageExpiry,
             sending_window: sendingWindowValue,
-            optout_config: optoutConfig
+            optout_config: optoutCfg
         };
 
         if (continueBtn) {

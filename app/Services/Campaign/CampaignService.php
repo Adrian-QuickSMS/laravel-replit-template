@@ -71,6 +71,13 @@ class CampaignService
             'tags' => $data['tags'] ?? [],
             'metadata' => $data['metadata'] ?? [],
             'created_by' => $data['created_by'] ?? null,
+            'opt_out_enabled' => $data['opt_out_enabled'] ?? false,
+            'opt_out_method' => $data['opt_out_method'] ?? null,
+            'opt_out_number_id' => $data['opt_out_number_id'] ?? null,
+            'opt_out_keyword' => $data['opt_out_keyword'] ?? null,
+            'opt_out_text' => $data['opt_out_text'] ?? null,
+            'opt_out_list_id' => $data['opt_out_list_id'] ?? null,
+            'opt_out_url_enabled' => $data['opt_out_url_enabled'] ?? false,
         ]);
 
         // Auto-calculate encoding/segments if SMS content provided

@@ -8,6 +8,12 @@ use App\Http\Controllers\Api\InvoiceApiController;
 use App\Http\Controllers\RcsAgentController;
 use App\Http\Controllers\Api\PurchaseApiController;
 
+// Public opt-out landing page (no authentication required)
+Route::prefix('o')->controller(\App\Http\Controllers\OptOutLandingController::class)->group(function () {
+    Route::get('/{token}', 'show')->name('optout.show')->where('token', '[A-Za-z0-9]{8}');
+    Route::post('/{token}/confirm', 'confirm')->name('optout.confirm')->where('token', '[A-Za-z0-9]{8}');
+});
+
 // Public auth routes (no authentication required)
 Route::controller(QuickSMSController::class)->group(function () {
     Route::get('/login', 'login')->name('auth.login');
@@ -270,6 +276,12 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
 
     // Clone
     Route::post('/{id}/clone', 'clone')->name('api.campaigns.clone');
+
+    // Opt-out helpers
+    Route::get('/opt-out-numbers', 'optOutNumbers')->name('api.campaigns.opt-out-numbers');
+    Route::post('/validate-opt-out-keyword', 'validateOptOutKeyword')->name('api.campaigns.validate-opt-out-keyword');
+    Route::post('/suggest-opt-out-text', 'suggestOptOutText')->name('api.campaigns.suggest-opt-out-text');
+    Route::get('/opt-out-keywords/{numberId}', 'availableKeywords')->name('api.campaigns.available-keywords');
 });
 
 // Message Template API (session-based auth)

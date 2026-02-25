@@ -130,6 +130,13 @@ class Campaign extends Model
         'metadata',
         'created_by',
         'updated_by',
+        'opt_out_enabled',
+        'opt_out_method',
+        'opt_out_number_id',
+        'opt_out_keyword',
+        'opt_out_text',
+        'opt_out_list_id',
+        'opt_out_url_enabled',
     ];
 
     protected $casts = [
@@ -167,6 +174,8 @@ class Campaign extends Model
         'failed_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'opt_out_enabled' => 'boolean',
+        'opt_out_url_enabled' => 'boolean',
     ];
 
     protected $attributes = [
@@ -238,6 +247,16 @@ class Campaign extends Model
     public function recipients(): HasMany
     {
         return $this->hasMany(CampaignRecipient::class, 'campaign_id');
+    }
+
+    public function optOutNumber(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\PurchasedNumber::class, 'opt_out_number_id');
+    }
+
+    public function optOutList(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\OptOutList::class, 'opt_out_list_id');
     }
 
     // =====================================================
@@ -540,6 +559,13 @@ class Campaign extends Model
             'can_pause' => $this->canPause(),
             'can_resume' => $this->canResume(),
             'can_cancel' => $this->canCancel(),
+            'opt_out_enabled' => (bool) $this->opt_out_enabled,
+            'opt_out_method' => $this->opt_out_method,
+            'opt_out_number_id' => $this->opt_out_number_id,
+            'opt_out_keyword' => $this->opt_out_keyword,
+            'opt_out_text' => $this->opt_out_text,
+            'opt_out_list_id' => $this->opt_out_list_id,
+            'opt_out_url_enabled' => (bool) $this->opt_out_url_enabled,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

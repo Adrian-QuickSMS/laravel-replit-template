@@ -404,18 +404,6 @@ class QuickSMSController extends Controller
             })
             ->toArray();
 
-        // Virtual numbers - not yet built, using mock data
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main'],
-            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
-        ];
-
-        // Opt-out domains - not yet built, using mock data
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'stop.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'unsubscribe.quicksms.uk', 'is_default' => false],
-        ];
-
         $accountPricing = ['sms' => 0.035, 'rcs_basic' => 0.05, 'rcs_rich' => 0.08, 'currency' => 'GBP'];
         $tenantId = session('customer_tenant_id');
         if ($tenantId) {
@@ -455,8 +443,6 @@ class QuickSMSController extends Controller
             'lists' => $lists,
             'tags' => $tags,
             'opt_out_lists' => $opt_out_lists,
-            'virtual_numbers' => $virtual_numbers,
-            'optout_domains' => $optout_domains,
             'account_pricing' => $accountPricing,
             'edit_campaign_config' => $editCampaignConfig,
         ]);
@@ -1906,25 +1892,11 @@ class QuickSMSController extends Controller
             ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
         ];
 
-        // TODO: Replace with database query - GET /api/virtual-numbers
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main Number'],
-            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
-        ];
-
-        // TODO: Replace with database query - GET /api/optout-domains
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'qsms.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'optout.quicksms.com', 'is_default' => false],
-        ];
-
         return view('quicksms.management.templates', [
             'page_title' => 'Message Templates',
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
             'opt_out_lists' => $opt_out_lists,
-            'virtual_numbers' => $virtual_numbers,
-            'optout_domains' => $optout_domains
         ]);
     }
 
@@ -1953,18 +1925,6 @@ class QuickSMSController extends Controller
             ['id' => 2, 'name' => 'Transactional Opt-outs', 'count' => 89],
         ];
 
-        // TODO: Replace with API call - numbersService.getVirtualNumbers()
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900200', 'label' => 'Customer Support'],
-            ['id' => 2, 'number' => '+447700900201', 'label' => 'Sales'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getDomains()
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'optout.quicksms.co.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'stop.quicksms.co.uk', 'is_default' => false],
-        ];
-
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Create Template - Content',
             'isEditMode' => false,
@@ -1973,8 +1933,6 @@ class QuickSMSController extends Controller
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
             'opt_out_lists' => $opt_out_lists,
-            'virtual_numbers' => $virtual_numbers,
-            'optout_domains' => $optout_domains
         ]);
     }
 
@@ -2027,18 +1985,6 @@ class QuickSMSController extends Controller
             ['id' => 2, 'name' => 'Transactional Opt-outs', 'count' => 89],
         ];
 
-        // TODO: Replace with API call - numbersService.getVirtualNumbers()
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900200', 'label' => 'Customer Support'],
-            ['id' => 2, 'number' => '+447700900201', 'label' => 'Sales'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getDomains()
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'optout.quicksms.co.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'stop.quicksms.co.uk', 'is_default' => false],
-        ];
-
         // TODO: Replace with API call - templatesService.getTemplate(templateId)
         $template = $this->getMockTemplate($templateId);
 
@@ -2051,8 +1997,6 @@ class QuickSMSController extends Controller
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
             'opt_out_lists' => $opt_out_lists,
-            'virtual_numbers' => $virtual_numbers,
-            'optout_domains' => $optout_domains
         ]);
     }
 
