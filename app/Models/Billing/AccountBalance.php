@@ -33,10 +33,25 @@ class AccountBalance extends Model
 
     /**
      * Lock this row for atomic balance operations.
+     * Auto-initializes a zero balance record if none exists.
      */
     public static function lockForAccount(string $accountId): self
     {
-        return static::where('account_id', $accountId)->lockForUpdate()->firstOrFail();
+        $balance = static::where('account_id', $accountId)->lockForUpdate()->first();
+
+        if (!$balance) {
+            $balance = static::create([
+                'account_id'          => $accountId,
+                'currency'            => 'GBP',
+                'balance'             => '0',
+                'reserved'            => '0',
+                'credit_limit'        => '0',
+                'effective_available' => '0',
+                'total_outstanding'   => '0',
+            ]);
+        }
+
+        return $balance;
     }
 
     public function hasSufficientBalance(string $amount): bool

@@ -49,6 +49,12 @@ The QuickSMS platform is built on PHP 8.3 and Laravel 10, using PostgreSQL 16. T
     *   **RCS Agent Library:** Customer-facing page loads agents from the database via API, supporting dynamic tables and API-driven actions (resubmit, delete).
     *   **Account Pricing Tab:** Dynamically fetches and displays pricing based on the account's product tier (Starter, Enterprise, Bespoke).
     *   **Purchase Page:** Uses database-driven pricing from `product_tier_prices` for product selection and payment.
+*   **Numbers Module:** All three views (Purchase > Numbers, Management > Numbers Library, Management > Numbers Configure) are wired to real backend APIs. No mock data.
+    *   `AccountBalance::lockForAccount()` auto-initialises a zero-balance record if none exists (prevents `ModelNotFoundException` on accounts provisioned without a balance row).
+    *   `purchase_audit_logs.user_id` is `varchar(36)` (UUID); `sub_account_id` is nullable (main-account users have no sub-account).
+    *   Nested `DB::transaction()` inside outer transactions creates PostgreSQL savepoints — used in `autoCreateSenderId` to make sender-ID creation optional.
+    *   Shared shortcode number is `60866`. Keyword pricing slugs: `shortcode_keyword_setup`, `shortcode_keyword_monthly`. Dedicated shortcode slugs: `shortcode_setup`, `shortcode_monthly`.
+    *   Ledger entry types for numbers: `number_setup_prepay`, `number_setup_postpay`, `number_setup_refund`. Billable product type: `shortcode_keyword_monthly`.
 
 ## External Dependencies
 
