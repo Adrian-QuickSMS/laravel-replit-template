@@ -321,6 +321,36 @@
 
                     <div class="d-none" id="optoutManagementSection">
 
+                        {{-- Opt-out list --}}
+                        <div class="mb-3 p-3 border rounded" id="optOutListSection">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableOptOutList" onchange="toggleOptOutList()">
+                                <label class="form-check-label fw-medium" for="enableOptOutList">Opt-out list</label>
+                            </div>
+                            <div class="d-none ps-2" id="optOutListConfig">
+                                <small class="text-muted d-block mb-2">Recipients already on this list will be excluded from the campaign. New opt-outs from this campaign will be added to this list.</small>
+                                <select class="form-select" id="optOutListId">
+                                    <option value="">-- Select an opt-out list --</option>
+                                    @foreach($opt_out_lists as $list)
+                                    <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
+                                    @endforeach
+                                </select>
+                                <div class="mt-2">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="optOutListTarget" id="optOutListExisting" value="existing" checked onchange="toggleNewListField()">
+                                        <label class="form-check-label" for="optOutListExisting">Existing list</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="optOutListTarget" id="optOutListNew" value="new" onchange="toggleNewListField()">
+                                        <label class="form-check-label" for="optOutListNew">Create new list</label>
+                                    </div>
+                                    <div class="d-none mt-2" id="newOptOutListFields">
+                                        <input type="text" class="form-control form-control-sm" id="newOptOutListName" placeholder="New list name (required)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {{-- Reply opt-out --}}
                         <div class="mb-3 p-3 border rounded">
                             <div class="form-check form-switch mb-2">
@@ -375,31 +405,6 @@
                                         <input type="text" class="form-control" id="urlOptoutText" value="To stop receiving messages click &#123;&#123;unique_url&#125;&#125;">
                                         <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Opt-out list --}}
-                        <div class="mb-3" id="optOutListSection">
-                            <label class="form-label">Opt-out list</label>
-                            <small class="text-muted d-block mb-2">Recipients already on this list will be excluded from the campaign. New opt-outs from this campaign will be added to this list.</small>
-                            <select class="form-select" id="optOutListId">
-                                <option value="">-- Select an opt-out list --</option>
-                                @foreach($opt_out_lists as $list)
-                                <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
-                                @endforeach
-                            </select>
-                            <div class="mt-2">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="optOutListTarget" id="optOutListExisting" value="existing" checked onchange="toggleNewListField()">
-                                    <label class="form-check-label" for="optOutListExisting">Existing list</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="optOutListTarget" id="optOutListNew" value="new" onchange="toggleNewListField()">
-                                    <label class="form-check-label" for="optOutListNew">Create new list</label>
-                                </div>
-                                <div class="d-none mt-2" id="newOptOutListFields">
-                                    <input type="text" class="form-control form-control-sm" id="newOptOutListName" placeholder="New list name (required)">
                                 </div>
                             </div>
                         </div>
@@ -2561,6 +2566,12 @@ function toggleOptoutManagement() {
     }
 }
 
+function toggleOptOutList() {
+    var isEnabled = document.getElementById('enableOptOutList').checked;
+    document.getElementById('optOutListConfig').classList.toggle('d-none', !isEnabled);
+    validateOptoutConfig();
+}
+
 function toggleReplyOptout() {
     var isEnabled = document.getElementById('enableReplyOptout').checked;
     document.getElementById('replyOptoutConfig').classList.toggle('d-none', !isEnabled);
@@ -2804,13 +2815,14 @@ function validateOptoutConfig() {
         return true;
     }
 
+    var listEnabled = document.getElementById('enableOptOutList').checked;
     var replyEnabled = document.getElementById('enableReplyOptout').checked;
     var urlEnabled = document.getElementById('enableUrlOptout').checked;
     var errorDiv = document.getElementById('optoutValidationError');
     var errorMsg = document.getElementById('optoutValidationMessage');
 
-    if (!replyEnabled && !urlEnabled) {
-        errorMsg.textContent = 'Enable at least one opt-out method (reply or URL).';
+    if (!listEnabled && !replyEnabled && !urlEnabled) {
+        errorMsg.textContent = 'Enable at least one opt-out method (reply or URL), or enable an opt-out list.';
         errorDiv.classList.remove('d-none');
         return false;
     }
@@ -2842,20 +2854,22 @@ function validateOptoutConfig() {
         }
     }
 
-    var listTarget = document.querySelector('input[name="optOutListTarget"]:checked');
-    if (listTarget && listTarget.value === 'new') {
-        var newName = document.getElementById('newOptOutListName');
-        if (!newName || !newName.value.trim()) {
-            errorMsg.textContent = 'Enter a name for the new opt-out list.';
-            errorDiv.classList.remove('d-none');
-            return false;
-        }
-    } else {
-        var listId = document.getElementById('optOutListId').value;
-        if (!listId) {
-            errorMsg.textContent = 'Select an opt-out list to store opt-outs in.';
-            errorDiv.classList.remove('d-none');
-            return false;
+    if (listEnabled) {
+        var listTarget = document.querySelector('input[name="optOutListTarget"]:checked');
+        if (listTarget && listTarget.value === 'new') {
+            var newName = document.getElementById('newOptOutListName');
+            if (!newName || !newName.value.trim()) {
+                errorMsg.textContent = 'Enter a name for the new opt-out list.';
+                errorDiv.classList.remove('d-none');
+                return false;
+            }
+        } else {
+            var listId = document.getElementById('optOutListId').value;
+            if (!listId) {
+                errorMsg.textContent = 'Select an opt-out list.';
+                errorDiv.classList.remove('d-none');
+                return false;
+            }
         }
     }
 
@@ -2867,13 +2881,14 @@ function getOptoutConfiguration() {
     var isEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
     if (!isEnabled) return null;
 
+    var listEnabled = document.getElementById('enableOptOutList').checked;
     var replyEnabled = document.getElementById('enableReplyOptout').checked;
     var urlEnabled = document.getElementById('enableUrlOptout').checked;
     var listTarget = document.querySelector('input[name="optOutListTarget"]:checked');
-    var listId = (listTarget && listTarget.value === 'existing') ? document.getElementById('optOutListId').value : null;
-    var newListName = document.getElementById('newOptOutListName') ? document.getElementById('newOptOutListName').value.trim() : null;
+    var listId = (listEnabled && listTarget && listTarget.value === 'existing') ? document.getElementById('optOutListId').value : null;
+    var newListName = (listEnabled && document.getElementById('newOptOutListName')) ? document.getElementById('newOptOutListName').value.trim() : null;
 
-    var method = (replyEnabled && urlEnabled) ? 'both' : (replyEnabled ? 'reply' : 'url');
+    var method = (replyEnabled && urlEnabled) ? 'both' : (replyEnabled ? 'reply' : (urlEnabled ? 'url' : null));
     var numberId = replyEnabled ? document.getElementById('optOutNumberId').value : null;
     var keyword = replyEnabled
         ? (_currentNumberType === 'shared_shortcode'
