@@ -15,8 +15,8 @@ const NumbersAdminService = (function() {
     'use strict';
 
     const config = {
-        useMockData: true,
-        apiBaseUrl: '/api/admin/numbers',
+        useMockData: false,
+        apiBaseUrl: '/admin/api/numbers',
         defaultDelay: { min: 200, max: 600 },
         pageSize: 20
     };

@@ -570,6 +570,26 @@ Route::prefix('admin')->group(function () {
             Route::post('/system/routing/create-override', 'routingCreateOverride')->name('admin.routing.create-override');
             Route::post('/system/routing/cancel-override', 'routingCancelOverride')->name('admin.routing.cancel-override');
 
+            // Numbers — global cross-tenant management
+            Route::prefix('api/numbers')->controller(\App\Http\Controllers\Admin\AdminNumbersApiController::class)->group(function () {
+                Route::get('/', 'index')->name('admin.api.numbers.index');
+                Route::post('/bulk/reassign', 'bulkReassign')->name('admin.api.numbers.bulk.reassign');
+                Route::put('/bulk/mode', 'bulkMode')->name('admin.api.numbers.bulk.mode');
+                Route::put('/bulk/capabilities', 'bulkCapabilities')->name('admin.api.numbers.bulk.capabilities');
+                Route::post('/bulk/return-to-pool', 'bulkReturnToPool')->name('admin.api.numbers.bulk.return-to-pool');
+                Route::get('/{id}', 'show')->name('admin.api.numbers.show');
+                Route::post('/{id}/suspend', 'suspend')->name('admin.api.numbers.suspend');
+                Route::post('/{id}/reactivate', 'reactivate')->name('admin.api.numbers.reactivate');
+                Route::post('/{id}/reassign', 'reassign')->name('admin.api.numbers.reassign');
+                Route::put('/{id}/mode', 'updateMode')->name('admin.api.numbers.mode');
+                Route::put('/{id}/capabilities', 'updateCapabilities')->name('admin.api.numbers.capabilities');
+                Route::put('/{id}/webhook', 'updateWebhook')->name('admin.api.numbers.webhook');
+                Route::post('/{id}/disable-keyword', 'disableKeyword')->name('admin.api.numbers.disable-keyword');
+                Route::post('/{id}/return-to-pool', 'returnToPool')->name('admin.api.numbers.return-to-pool');
+                Route::put('/{id}/optout-routing', 'updateOptoutRouting')->name('admin.api.numbers.optout-routing');
+                Route::get('/{id}/audit', 'audit')->name('admin.api.numbers.audit');
+            });
+
             // API Connections — admin cross-tenant management
             Route::prefix('api/api-connections')->controller(\App\Http\Controllers\Admin\AdminApiConnectionController::class)->group(function () {
                 Route::get('/', 'index')->name('admin.api.api-connections.index');

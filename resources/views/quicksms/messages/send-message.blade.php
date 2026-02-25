@@ -372,7 +372,7 @@
                                 <div class="mb-2">
                                     <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
                                     <div class="input-group input-group-sm">
-                                        <input type="text" class="form-control" id="urlOptoutText" value="To stop receiving messages click {{'{{'}}unique_url{{'}}'}}">
+                                        <input type="text" class="form-control" id="urlOptoutText" value="To stop receiving messages click &#123;&#123;unique_url&#125;&#125;">
                                         <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
                                     </div>
                                 </div>
@@ -2833,8 +2833,9 @@ function validateOptoutConfig() {
 
     if (urlEnabled) {
         var urlText = document.getElementById('urlOptoutText').value.trim();
-        if (!urlText.includes('{{unique_url}}')) {
-            errorMsg.textContent = 'URL opt-out text must include {{unique_url}}.';
+        var urlPlaceholder = '{' + '{unique_url}' + '}';
+        if (!urlText.includes(urlPlaceholder)) {
+            errorMsg.textContent = 'URL opt-out text must include ' + urlPlaceholder + '.';
             errorDiv.classList.remove('d-none');
             return false;
         }
