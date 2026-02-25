@@ -94,7 +94,7 @@ class NumberService
                 $purchased = PurchasedNumber::withoutGlobalScopes()->create([
                     'account_id' => $accountId,
                     'vmn_pool_id' => $poolNumber->id,
-                    'number' => $poolNumber->number,
+                    'number' => self::normalizeToE164($poolNumber->number, $poolNumber->country_iso),
                     'number_type' => PurchasedNumber::TYPE_VMN,
                     'country_iso' => $poolNumber->country_iso,
                     'friendly_name' => null,
@@ -587,14 +587,16 @@ class NumberService
         $added = 0;
 
         foreach ($numbers as $data) {
+            $normalizedNumber = self::normalizeToE164($data['number'], $data['country_iso']);
+
             // Skip if already in pool
-            $exists = VmnPoolNumber::where('number', $data['number'])->exists();
+            $exists = VmnPoolNumber::where('number', $normalizedNumber)->exists();
             if ($exists) {
                 continue;
             }
 
             VmnPoolNumber::create([
-                'number' => $data['number'],
+                'number' => $normalizedNumber,
                 'country_iso' => $data['country_iso'],
                 'number_type' => $data['number_type'] ?? 'mobile',
                 'capabilities' => $data['capabilities'] ?? 'sms',
@@ -703,6 +705,34 @@ class NumberService
     // =====================================================
     // LAST USED AT (static helper for integration hooks)
     // =====================================================
+
+    /**
+     * Normalise a phone number to E.164 format without '+'.
+     *
+     * Rules applied in order:
+     *   1. Strip leading '+' if present (e.g. +447700900002 → 447700900002)
+     *   2. GB national format (07XXXXXXXXX) → 447XXXXXXXXX
+     *
+     * Shortcodes (≤ 6 digits) are returned unchanged.
+     */
+    public static function normalizeToE164(string $number, string $countryIso): string
+    {
+        $number = trim($number);
+
+        // Strip leading '+' if present
+        if (str_starts_with($number, '+')) {
+            $number = substr($number, 1);
+        }
+
+        // Already in E.164 — leave as-is
+        if (strlen($number) > 6) {
+            if ($countryIso === 'GB' && str_starts_with($number, '07')) {
+                $number = '44' . substr($number, 1);
+            }
+        }
+
+        return $number;
+    }
 
     /**
      * Update last_used_at for a number by its E.164 number string.
