@@ -820,19 +820,8 @@
                     <div class="mb-4">
                         <label class="form-label fw-bold small">Sub-Account Assignment</label>
                         <p class="text-muted small mb-2">Controls visibility, defaults, and reporting scope.</p>
-                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
-                            <div class="form-check mb-1">
-                                <input class="form-check-input portal-subacc-check" type="checkbox" value="Main Account" id="portalSubAccMain">
-                                <label class="form-check-label small" for="portalSubAccMain">Main Account</label>
-                            </div>
-                            <div class="form-check mb-1">
-                                <input class="form-check-input portal-subacc-check" type="checkbox" value="Marketing" id="portalSubAccMarketing">
-                                <label class="form-check-label small" for="portalSubAccMarketing">Marketing</label>
-                            </div>
-                            <div class="form-check mb-1">
-                                <input class="form-check-input portal-subacc-check" type="checkbox" value="Support" id="portalSubAccSupport">
-                                <label class="form-check-label small" for="portalSubAccSupport">Support</label>
-                            </div>
+                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;" id="portalSubAccList">
+                            <div class="text-muted small">No sub-accounts configured</div>
                         </div>
                     </div>
                     
@@ -1191,14 +1180,17 @@ $(document).ready(function() {
     function populateSubAccountCheckboxes() {
         var filterHtml = '';
         var assignHtml = '';
+        var portalHtml = '';
         subAccountsData.forEach(function(sa) {
             filterHtml += '<div class="form-check"><input class="form-check-input" type="checkbox" value="' + sa.id + '" id="filterSa_' + sa.id + '"><label class="form-check-label small" for="filterSa_' + sa.id + '">' + sa.name + '</label></div>';
             assignHtml += '<div class="form-check"><input class="form-check-input assign-subacc-check" type="checkbox" value="' + sa.id + '" id="assignSa_' + sa.id + '"><label class="form-check-label" for="assignSa_' + sa.id + '">' + sa.name + '</label></div>';
+            portalHtml += '<div class="form-check mb-1"><input class="form-check-input portal-subacc-check" type="checkbox" value="' + sa.name + '" id="portalSa_' + sa.id + '"><label class="form-check-label small" for="portalSa_' + sa.id + '">' + sa.name + '</label></div>';
         });
         var emptyMsg = '<div class="text-muted small">No sub-accounts configured</div>';
         $('[data-filter="subAccounts"] .dropdown-options').html(filterHtml || emptyMsg);
         $('#singleAssignSubAccList').html(assignHtml || emptyMsg);
         $('#bulkAssignSubAccList').html(assignHtml || emptyMsg);
+        $('#portalSubAccList').html(portalHtml || emptyMsg);
     }
 
     var currentSort = { column: 'number', direction: 'asc' };
