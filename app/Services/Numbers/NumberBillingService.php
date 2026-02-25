@@ -47,6 +47,9 @@ class NumberBillingService
      */
     public function getVatRate(Account $account): string
     {
+        if ($account->vat_reverse_charges) {
+            return '0.00';
+        }
         return $account->country === 'GB' ? '20.00' : '0.00';
     }
 

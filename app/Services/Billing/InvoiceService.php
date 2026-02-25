@@ -300,11 +300,15 @@ class InvoiceService
 
     private function getVatRate(Account $account): string
     {
-        // UK VAT standard rate. Can be extended per-country.
+        // Reverse charge accounts self-account for VAT — charge 0%.
+        if ($account->vat_reverse_charges) {
+            return '0.00';
+        }
+        // UK VAT standard rate.
         if ($account->country === 'GB') {
             return '20.00';
         }
-        // EU reverse charge, etc.
+        // Non-UK, EU reverse charge, etc.
         return '0.00';
     }
 
