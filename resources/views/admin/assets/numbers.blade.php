@@ -1456,23 +1456,17 @@ function initNumbersPage() {
             return;
         }
         
-        console.log('[Admin Numbers] Service loaded, mock mode:', NumbersAdminService.config.useMockData);
-        
-        numbersData = NumbersAdminService._mockDb.numbers.slice();
-        filteredData = numbersData.slice();
-        console.log('[Admin Numbers] Mock data loaded:', numbersData.length, 'numbers');
+        console.log('[Admin Numbers] Service loaded');
         
         initializeSorting();
         initializeMultiSelectDropdowns();
         
-        renderTable(numbersData);
-        updatePaginationInfo({ totalCount: numbersData.length, page: 1, pageSize: rowsPerPage });
-        
-        if (typeof ADMIN_AUDIT !== 'undefined') {
-            ADMIN_AUDIT.logDataAccess('NUMBERS_LIBRARY_VIEWED', 'numbers', { action: 'view_list' });
-        }
-        
-        console.log('[Admin Numbers] Page initialized successfully');
+        loadNumbersData().then(function() {
+            if (typeof ADMIN_AUDIT !== 'undefined') {
+                ADMIN_AUDIT.logDataAccess('NUMBERS_LIBRARY_VIEWED', 'numbers', { action: 'view_list' });
+            }
+            console.log('[Admin Numbers] Page initialized successfully');
+        });
     } catch (e) {
         console.error('[Admin Numbers] Init error:', e);
     }
@@ -1567,12 +1561,12 @@ function handleSearch(value) {
             filteredData = numbersData.slice();
         } else {
             filteredData = numbersData.filter(num => 
-                num.number.toLowerCase().includes(searchTerm) ||
-                num.account.toLowerCase().includes(searchTerm) ||
-                num.subAccount.toLowerCase().includes(searchTerm) ||
-                num.type.toLowerCase().includes(searchTerm) ||
-                num.supplier.toLowerCase().includes(searchTerm) ||
-                num.country.toLowerCase().includes(searchTerm)
+                (num.number || '').toLowerCase().includes(searchTerm) ||
+                (num.account || '').toLowerCase().includes(searchTerm) ||
+                (num.subAccount || '').toLowerCase().includes(searchTerm) ||
+                (num.type || '').toLowerCase().includes(searchTerm) ||
+                (num.supplier || '').toLowerCase().includes(searchTerm) ||
+                (num.country || '').toLowerCase().includes(searchTerm)
             );
         }
         currentPage = 1;
@@ -1655,11 +1649,6 @@ function getSelectedValues(dropdownId) {
     return Array.from(checked).map(cb => cb.value);
 }
 
-function loadNumbersData() {
-    renderTable(filteredData);
-    updatePaginationInfo();
-}
-
 function renderTable(data) {
     const tbody = document.getElementById('numbersTableBody');
     
@@ -1691,11 +1680,11 @@ function renderTable(data) {
             <td>${getTypeLabel(num.type)}</td>
             <td>${getStatusBadge(num.status)}</td>
             <td class="account-cell">
-                <div class="account-name">${num.account}</div>
-                <div class="sub-account">${num.subAccount}</div>
+                <div class="account-name">${num.account || '—'}</div>
+                <div class="sub-account">${num.subAccount || ''}</div>
             </td>
-            <td class="text-end"><span class="cost-value">£${num.cost.toFixed(2)}</span></td>
-            <td><span class="supplier-value">${num.supplier}</span></td>
+            <td class="text-end"><span class="cost-value">${num.cost != null ? '£' + parseFloat(num.cost).toFixed(2) : '—'}</span></td>
+            <td><span class="supplier-value">${num.supplier || '—'}</span></td>
             <td><span class="date-value">${formatDate(num.created)}</span></td>
             <td class="text-center">
                 <div class="dropdown">
@@ -2121,6 +2110,9 @@ function sortTable() {
             default: aVal = a.number; bVal = b.number;
         }
         
+        if (aVal == null && bVal == null) return 0;
+        if (aVal == null) return sortDirection === 'asc' ? -1 : 1;
+        if (bVal == null) return sortDirection === 'asc' ? 1 : -1;
         if (typeof aVal === 'string') {
             return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
         }

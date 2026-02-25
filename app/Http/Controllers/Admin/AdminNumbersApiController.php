@@ -155,10 +155,14 @@ class AdminNumbersApiController extends Controller
         $pageRows  = array_slice($rows, $offset, $pageSize);
 
         return response()->json([
+            'success'    => true,
             'data'       => $pageRows,
-            'totalCount' => $total,
-            'page'       => $page,
-            'pageSize'   => $pageSize,
+            'pagination' => [
+                'page'       => $page,
+                'pageSize'   => $pageSize,
+                'totalCount' => $total,
+                'totalPages' => $pageSize > 0 ? (int) ceil($total / $pageSize) : 1,
+            ],
         ]);
     }
 
