@@ -66,28 +66,48 @@ class OptOutService
             ])
             ->toArray();
 
-        $shortcodes = (clone $baseQuery)
-            ->whereIn('number_type', [PurchasedNumber::TYPE_SHARED_SHORTCODE, PurchasedNumber::TYPE_DEDICATED_SHORTCODE])
-            ->with(['keywords' => fn($q) => $q->withoutGlobalScope('tenant')->where('status', 'active')->whereNull('deleted_at')])
-            ->select('id', 'number', 'friendly_name', 'number_type', 'country_iso')
+        // Dedicated shortcodes owned directly by the account
+        $dedicated = (clone $baseQuery)
+            ->where('number_type', PurchasedNumber::TYPE_DEDICATED_SHORTCODE)
+            ->select('id', 'number', 'friendly_name', 'country_iso')
             ->orderBy('number')
             ->get()
             ->map(fn($n) => [
-                'id' => $n->id,
-                'number' => $n->number,
-                'friendly_name' => $n->friendly_name,
-                'country_iso' => $n->country_iso,
-                'type' => $n->number_type,
-                'is_dedicated' => $n->number_type === PurchasedNumber::TYPE_DEDICATED_SHORTCODE,
-                'keywords' => $n->keywords->map(fn($k) => [
-                    'id' => $k->id,
-                    'keyword' => $k->keyword,
-                ])->values()->toArray(),
+                'id'           => $n->id,
+                'number'       => $n->number,
+                'friendly_name'=> $n->friendly_name,
+                'country_iso'  => $n->country_iso,
+                'type'         => PurchasedNumber::TYPE_DEDICATED_SHORTCODE,
+                'is_dedicated' => true,
+                'keyword'      => null,
             ])
             ->toArray();
 
+        // Shared shortcodes: one entry per active keyword the account has registered
+        $sharedEntries = ShortcodeKeyword::withoutGlobalScope('tenant')
+            ->where('account_id', $accountId)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')
+            ->with(['purchasedNumber' => fn($q) => $q->withoutGlobalScopes()])
+            ->orderBy('keyword')
+            ->get()
+            ->filter(fn($k) => $k->purchasedNumber !== null)
+            ->map(fn($k) => [
+                'id'           => $k->purchasedNumber->id,
+                'number'       => $k->purchasedNumber->number,
+                'friendly_name'=> $k->purchasedNumber->friendly_name,
+                'country_iso'  => $k->purchasedNumber->country_iso,
+                'type'         => PurchasedNumber::TYPE_SHARED_SHORTCODE,
+                'is_dedicated' => false,
+                'keyword'      => $k->keyword,
+            ])
+            ->values()
+            ->toArray();
+
+        $shortcodes = array_merge($dedicated, $sharedEntries);
+
         return [
-            'vmns' => $vmns,
+            'vmns'       => $vmns,
             'shortcodes' => $shortcodes,
         ];
     }

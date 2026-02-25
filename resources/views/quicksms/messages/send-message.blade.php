@@ -2629,9 +2629,14 @@ function loadOptOutNumbers() {
             shortcodes.forEach(function(n) {
                 var opt = document.createElement('option');
                 opt.value = n.id;
-                opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '') + (n.type === 'shared_shortcode' ? ' [shared]' : '');
+                if (n.type === 'shared_shortcode' && n.keyword) {
+                    opt.text = n.number + ' (' + n.keyword + ') [shared]';
+                } else {
+                    opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '');
+                }
                 opt.dataset.type = n.type;
                 opt.dataset.number = n.number;
+                opt.dataset.keyword = n.keyword || '';
                 grp2.appendChild(opt);
             });
             select.appendChild(grp2);
@@ -2656,17 +2661,25 @@ function onOptOutNumberChange() {
     var keywordSelect = document.getElementById('optOutKeywordSelect');
 
     if (numberType === 'shared_shortcode') {
-        keywordInput.classList.add('d-none');
-        keywordSelect.classList.remove('d-none');
-        loadAvailableKeywords(select.value);
+        var presetKeyword = selectedOpt ? selectedOpt.dataset.keyword : '';
+        keywordInput.classList.remove('d-none');
+        keywordInput.value = presetKeyword;
+        keywordInput.readOnly = true;
+        keywordInput.style.backgroundColor = '#f8f9fa';
+        keywordSelect.classList.add('d-none');
+        refreshOptOutText();
     } else {
         keywordInput.classList.remove('d-none');
-        keywordSelect.classList.add('d-none');
         keywordInput.value = '';
+        keywordInput.readOnly = false;
+        keywordInput.style.backgroundColor = '';
+        keywordSelect.classList.add('d-none');
     }
 
     clearKeywordValidation();
-    document.getElementById('replyOptoutText').value = '';
+    if (numberType !== 'shared_shortcode') {
+        document.getElementById('replyOptoutText').value = '';
+    }
     validateOptoutConfig();
 }
 
@@ -2718,12 +2731,15 @@ function clearKeywordValidation() {
 
 function validateOptOutKeyword() {
     var numberId = document.getElementById('optOutNumberId').value;
-    var keyword = _currentNumberType === 'shared_shortcode'
-        ? document.getElementById('optOutKeywordSelect').value
-        : document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+    var keyword = document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
 
     if (!numberId || !keyword || keyword.length < 4) {
         clearKeywordValidation();
+        return;
+    }
+
+    if (_currentNumberType === 'shared_shortcode') {
+        document.getElementById('keywordValidationIcon').innerHTML = '<i class="fas fa-check-circle text-success"></i>';
         return;
     }
 
@@ -2763,9 +2779,7 @@ function refreshOptOutText() {
     var numberId = document.getElementById('optOutNumberId').value;
     var numberOpt = document.getElementById('optOutNumberId').options[document.getElementById('optOutNumberId').selectedIndex];
     var numberVal = numberOpt ? numberOpt.dataset.number : '';
-    var keyword = _currentNumberType === 'shared_shortcode'
-        ? document.getElementById('optOutKeywordSelect').value
-        : document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+    var keyword = document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
 
     var textField = document.getElementById('replyOptoutText');
 
@@ -2829,9 +2843,7 @@ function validateOptoutConfig() {
 
     if (replyEnabled) {
         var numId = document.getElementById('optOutNumberId').value;
-        var kw = _currentNumberType === 'shared_shortcode'
-            ? document.getElementById('optOutKeywordSelect').value
-            : document.getElementById('optOutKeywordInput').value.trim();
+        var kw = document.getElementById('optOutKeywordInput').value.trim();
         if (!numId) {
             errorMsg.textContent = 'Select a number for reply opt-out.';
             errorDiv.classList.remove('d-none');
@@ -2891,9 +2903,7 @@ function getOptoutConfiguration() {
     var method = (replyEnabled && urlEnabled) ? 'both' : (replyEnabled ? 'reply' : (urlEnabled ? 'url' : null));
     var numberId = replyEnabled ? document.getElementById('optOutNumberId').value : null;
     var keyword = replyEnabled
-        ? (_currentNumberType === 'shared_shortcode'
-            ? document.getElementById('optOutKeywordSelect').value
-            : document.getElementById('optOutKeywordInput').value.trim().toUpperCase())
+        ? document.getElementById('optOutKeywordInput').value.trim().toUpperCase()
         : null;
     var replyText = replyEnabled ? document.getElementById('replyOptoutText').value : null;
     var urlText = urlEnabled ? document.getElementById('urlOptoutText').value : null;
