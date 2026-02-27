@@ -1768,7 +1768,9 @@ function isGSM7(text) {
 }
 
 function handleContentChange() {
-    var content = document.getElementById('smsContent').value;
+    var rawContent = document.getElementById('smsContent').value;
+    // {{unique_url}} always renders as qout.uk/XXXXX (13 chars) — substitute before counting
+    var content = rawContent.replace(/\{\{\s*unique_url\s*\}\}/g, 'qout.uk/XXXXX');
     var charCount = content.length;
     var isGsm = isGSM7(content);
     var channel = document.querySelector('input[name="channel"]:checked').value;
