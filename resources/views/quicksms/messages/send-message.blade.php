@@ -3,7 +3,7 @@
 @section('title', 'Send Message')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
+<link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}?v=20260227b">
 <style>
 /* Page-specific validation styles */
 .validation-error-field {
