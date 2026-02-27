@@ -618,7 +618,8 @@ class NumberApiController extends Controller
 
     private function getAuthenticatedUser(): User
     {
-        $user = auth()->user();
+        $userId = session('customer_user_id');
+        $user = User::withoutGlobalScope('tenant')->find($userId);
         if (!$user) {
             abort(401, 'Unauthenticated');
         }

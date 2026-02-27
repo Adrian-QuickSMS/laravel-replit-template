@@ -497,7 +497,7 @@ class QuickSMSController extends Controller
         // Campaign summary - use session data with fallbacks
         $campaign = [
             'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
-            'created_by' => auth()->check() ? auth()->user()->name ?? 'Current User' : 'Current User',
+            'created_by' => session('customer_name', 'Current User'),
             'created_at' => now()->format('d/m/Y H:i'),
             'scheduled_time' => isset($sessionData['scheduled_time']) && $sessionData['scheduled_time'] !== 'now' 
                 ? $sessionData['scheduled_time'] 
