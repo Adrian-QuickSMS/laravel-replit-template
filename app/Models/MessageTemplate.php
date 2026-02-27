@@ -31,11 +31,13 @@ class MessageTemplate extends Model
     const TYPE_SMS = 'sms';
     const TYPE_RCS_BASIC = 'rcs_basic';
     const TYPE_RCS_SINGLE = 'rcs_single';
+    const TYPE_RCS_CAROUSEL = 'rcs_carousel';
 
     const TYPES = [
         self::TYPE_SMS,
         self::TYPE_RCS_BASIC,
         self::TYPE_RCS_SINGLE,
+        self::TYPE_RCS_CAROUSEL,
     ];
 
     // =====================================================

@@ -27,18 +27,25 @@ class RcsAssetService
         string $url,
         array $editParams = [],
         ?string $draftSession = null,
-        ?int $userId = null
+        ?int $userId = null,
+        ?string $accountId = null
     ): array {
         $imageData = $this->fetchImage($url);
-        
+
         $processedImage = $this->applyEdits($imageData['content'], $editParams);
-        
+
+        // Store original image for lossless re-cropping
+        $originalFilename = $this->generateFilename($imageData['mime_type']);
+        Storage::disk(self::DISK)->put($originalFilename, $imageData['content']);
+
         $asset = $this->saveAsset($processedImage, [
             'source_type' => 'url',
             'source_url' => $url,
+            'original_storage_path' => $originalFilename,
             'edit_params' => $editParams,
             'draft_session' => $draftSession,
             'user_id' => $userId,
+            'account_id' => $accountId,
         ]);
 
         return [
@@ -58,7 +65,8 @@ class RcsAssetService
         $file,
         array $editParams = [],
         ?string $draftSession = null,
-        ?int $userId = null
+        ?int $userId = null,
+        ?string $accountId = null
     ): array {
         $mimeType = $file->getMimeType();
         if (!in_array($mimeType, self::ALLOWED_MIME_TYPES)) {
@@ -66,15 +74,21 @@ class RcsAssetService
         }
 
         $content = file_get_contents($file->getRealPath());
-        
+
         $processedImage = $this->applyEdits($content, $editParams);
-        
+
+        // Store original image for lossless re-cropping
+        $originalFilename = $this->generateFilename($mimeType);
+        Storage::disk(self::DISK)->put($originalFilename, $content);
+
         $asset = $this->saveAsset($processedImage, [
             'source_type' => 'upload',
             'source_url' => null,
+            'original_storage_path' => $originalFilename,
             'edit_params' => $editParams,
             'draft_session' => $draftSession,
             'user_id' => $userId,
+            'account_id' => $accountId,
         ]);
 
         return [
@@ -96,21 +110,28 @@ class RcsAssetService
         ?string $imageContent = null
     ): array {
         $asset = RcsAsset::where('uuid', $uuid)->firstOrFail();
-        
+
+        // Always re-crop from original image to prevent quality degradation
         if ($imageContent === null) {
-            $imageContent = Storage::disk(self::DISK)->get($asset->storage_path);
+            if ($asset->original_storage_path && Storage::disk(self::DISK)->exists($asset->original_storage_path)) {
+                $imageContent = Storage::disk(self::DISK)->get($asset->original_storage_path);
+            } else {
+                // Fallback to processed image if original not available (legacy assets)
+                $imageContent = Storage::disk(self::DISK)->get($asset->storage_path);
+            }
         }
-        
+
         $processedImage = $this->applyEdits($imageContent, $editParams);
-        
+
+        // Delete old processed file (keep original)
         Storage::disk(self::DISK)->delete($asset->storage_path);
-        
+
         $filename = $this->generateFilename($processedImage['mime_type']);
         Storage::disk(self::DISK)->put($filename, $processedImage['content']);
-        
+
         $asset->update([
             'storage_path' => $filename,
-            'public_url' => Storage::disk(self::DISK)->url($filename),
+            'public_url' => url('/storage/rcs-assets/' . $filename),
             'mime_type' => $processedImage['mime_type'],
             'file_size' => $processedImage['size'],
             'width' => $processedImage['width'],
@@ -435,15 +456,17 @@ class RcsAssetService
     private function saveAsset(array $processedImage, array $metadata): RcsAsset
     {
         $filename = $this->generateFilename($processedImage['mime_type']);
-        
+
         Storage::disk(self::DISK)->put($filename, $processedImage['content']);
-        
+
         $publicUrl = url('/storage/rcs-assets/' . $filename);
-        
-        return RcsAsset::create([
+
+        return RcsAsset::withoutGlobalScope('tenant')->create([
+            'account_id' => $metadata['account_id'],
             'user_id' => $metadata['user_id'],
             'source_type' => $metadata['source_type'],
             'source_url' => $metadata['source_url'],
+            'original_storage_path' => $metadata['original_storage_path'] ?? null,
             'storage_path' => $filename,
             'public_url' => $publicUrl,
             'mime_type' => $processedImage['mime_type'],

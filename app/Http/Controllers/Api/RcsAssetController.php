@@ -22,18 +22,24 @@ class RcsAssetController extends Controller
         $request->validate([
             'url' => 'required|url',
             'edit_params' => 'nullable|array',
-            'edit_params.zoom' => 'nullable|numeric|min:100|max:300',
+            'edit_params.zoom' => 'nullable|numeric|min:25|max:200',
             'edit_params.crop_position' => 'nullable|string|in:center,top,bottom,left,right,top-left,top-right,bottom-left,bottom-right',
             'edit_params.orientation' => 'nullable|string|in:vertical_short,vertical_medium,vertical_tall,horizontal',
             'draft_session' => 'nullable|string|max:64',
         ]);
+
+        $accountId = $request->user()?->tenant_id ?? session('customer_tenant_id');
+        if (!$accountId) {
+            return response()->json(['success' => false, 'error' => 'No account context.'], 403);
+        }
 
         try {
             $result = $this->assetService->processFromUrl(
                 $request->input('url'),
                 $request->input('edit_params', []),
                 $request->input('draft_session'),
-                $request->user()?->id
+                $request->user()?->id,
+                $accountId
             );
 
             Log::info('[AUDIT] RCS asset created from URL', [
@@ -67,18 +73,24 @@ class RcsAssetController extends Controller
         $request->validate([
             'file' => 'required|file|mimes:jpeg,jpg,png,gif|max:1024',
             'edit_params' => 'nullable|array',
-            'edit_params.zoom' => 'nullable|numeric|min:100|max:300',
+            'edit_params.zoom' => 'nullable|numeric|min:25|max:200',
             'edit_params.crop_position' => 'nullable|string|in:center,top,bottom,left,right,top-left,top-right,bottom-left,bottom-right',
             'edit_params.orientation' => 'nullable|string|in:vertical_short,vertical_medium,vertical_tall,horizontal',
             'draft_session' => 'nullable|string|max:64',
         ]);
+
+        $accountId = $request->user()?->tenant_id ?? session('customer_tenant_id');
+        if (!$accountId) {
+            return response()->json(['success' => false, 'error' => 'No account context.'], 403);
+        }
 
         try {
             $result = $this->assetService->processFromUpload(
                 $request->file('file'),
                 $request->input('edit_params', []),
                 $request->input('draft_session'),
-                $request->user()?->id
+                $request->user()?->id,
+                $accountId
             );
 
             Log::info('[AUDIT] RCS asset created from upload', [
@@ -109,7 +121,7 @@ class RcsAssetController extends Controller
     {
         $request->validate([
             'edit_params' => 'required|array',
-            'edit_params.zoom' => 'nullable|numeric|min:100|max:300',
+            'edit_params.zoom' => 'nullable|numeric|min:25|max:200',
             'edit_params.crop_position' => 'nullable|string|in:center,top,bottom,left,right,top-left,top-right,bottom-left,bottom-right',
             'edit_params.orientation' => 'nullable|string|in:vertical_short,vertical_medium,vertical_tall,horizontal',
         ]);
