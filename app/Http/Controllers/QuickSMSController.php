@@ -392,39 +392,11 @@ class QuickSMSController extends Controller
             ['id' => 6, 'name' => 'Archived Welcome', 'content' => 'Old welcome message.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Archived', 'version' => 1],
         ];
 
-        // TODO: Replace with database query - GET /api/lists
-        $lists = [
-            ['id' => 1, 'name' => 'Marketing', 'count' => 1247],
-            ['id' => 2, 'name' => 'Promotions', 'count' => 856],
-            ['id' => 3, 'name' => 'Updates', 'count' => 2103],
-            ['id' => 4, 'name' => 'Newsletter', 'count' => 3421],
-        ];
-
-        // TODO: Replace with database query - GET /api/tags
-        $tags = [
-            ['id' => 1, 'name' => 'VIP', 'color' => '#6f42c1', 'count' => 234],
-            ['id' => 2, 'name' => 'Customer', 'color' => '#198754', 'count' => 1892],
-            ['id' => 3, 'name' => 'Newsletter', 'color' => '#0d6efd', 'count' => 567],
-        ];
-
-        // TODO: Replace with database query - GET /api/opt-out-lists
-        $opt_out_lists = [
-            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847, 'is_default' => true],
-            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245, 'is_default' => false],
-            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
-        ];
-
-        // TODO: Replace with database query - GET /api/virtual-numbers
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main'],
-            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
-        ];
-
-        // TODO: Replace with database query - GET /api/optout-domains
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'stop.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'unsubscribe.quicksms.uk', 'is_default' => false],
-        ];
+        $lists = $this->getContactListsForView();
+        $tags = $this->getTagsForView();
+        $opt_out_lists = $this->getOptOutListsForView();
+        $virtual_numbers = [];
+        $optout_domains = [];
 
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
@@ -438,6 +410,110 @@ class QuickSMSController extends Controller
             'optout_domains' => $optout_domains,
             'account_pricing' => $this->getAccountPricingForView(),
         ]);
+    }
+
+    /**
+     * Get real approved RCS agents for the current user, mapped for Blade views.
+     */
+    private function getRcsAgentsForView(): array
+    {
+        $userId = session('customer_user_id');
+        $user = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
+        if (!$user) {
+            return [];
+        }
+        return \App\Models\RcsAgent::usableByUser($user)
+            ->select('uuid', 'name', 'description', 'brand_color', 'logo_url')
+            ->get()
+            ->map(fn($a) => [
+                'id'          => $a->uuid,
+                'name'        => $a->name,
+                'logo'        => $a->logo_url ?: null,
+                'tagline'     => $a->description ?? '',
+                'brand_color' => $a->brand_color ?? '#886CC0',
+                'status'      => 'approved',
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Get real opt-out lists for the current tenant, mapped for Blade views.
+     * Creates a default master list if none exist yet.
+     */
+    private function getOptOutListsForView(): array
+    {
+        $tenantId = session('customer_tenant_id', '');
+        if (!$tenantId) {
+            return [];
+        }
+        $lists = \App\Models\OptOutList::where('account_id', $tenantId)
+            ->orderByDesc('is_master')
+            ->orderBy('name')
+            ->get(['id', 'name', 'is_master', 'count']);
+
+        if ($lists->isEmpty()) {
+            try {
+                $master = \App\Models\OptOutList::create([
+                    'account_id'  => $tenantId,
+                    'name'        => 'Master Opt-Out List',
+                    'description' => 'Default opt-out list for this account',
+                    'count'       => 0,
+                ]);
+                \DB::table('opt_out_lists')->where('id', $master->id)->update(['is_master' => true]);
+                $master->refresh();
+                $lists = collect([$master]);
+            } catch (\Throwable $e) {
+                return [];
+            }
+        }
+
+        return $lists->map(fn($l) => [
+            'id'         => $l->id,
+            'name'       => $l->name,
+            'count'      => $l->count ?? 0,
+            'is_default' => (bool) $l->is_master,
+        ])->toArray();
+    }
+
+    /**
+     * Get real contact lists for the current tenant.
+     */
+    private function getContactListsForView(): array
+    {
+        $tenantId = session('customer_tenant_id', '');
+        if (!$tenantId) {
+            return [];
+        }
+        return \App\Models\ContactList::where('account_id', $tenantId)
+            ->orderBy('name')
+            ->get(['id', 'name', 'contact_count'])
+            ->map(fn($l) => [
+                'id'    => $l->id,
+                'name'  => $l->name,
+                'count' => $l->contact_count ?? 0,
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Get real tags for the current tenant.
+     */
+    private function getTagsForView(): array
+    {
+        $tenantId = session('customer_tenant_id', '');
+        if (!$tenantId) {
+            return [];
+        }
+        return \App\Models\Tag::where('account_id', $tenantId)
+            ->orderBy('name')
+            ->get(['id', 'name', 'color', 'contact_count'])
+            ->map(fn($t) => [
+                'id'    => $t->id,
+                'name'  => $t->name,
+                'color' => $t->color ?? '#886CC0',
+                'count' => $t->contact_count ?? 0,
+            ])
+            ->toArray();
     }
 
     /**
@@ -1840,31 +1916,10 @@ class QuickSMSController extends Controller
     public function templates()
     {
         $sender_ids = $this->getApprovedSenderIds();
-
-        // TODO: Replace with database query - GET /api/rcs-agents?status=approved
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
-
-        // TODO: Replace with database query - GET /api/opt-out-lists
-        $opt_out_lists = [
-            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847, 'is_default' => true],
-            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245, 'is_default' => false],
-            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
-        ];
-
-        // TODO: Replace with database query - GET /api/virtual-numbers
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main Number'],
-            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
-        ];
-
-        // TODO: Replace with database query - GET /api/optout-domains
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'qsms.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'optout.quicksms.com', 'is_default' => false],
-        ];
+        $rcs_agents = $this->getRcsAgentsForView();
+        $opt_out_lists = $this->getOptOutListsForView();
+        $virtual_numbers = [];
+        $optout_domains = [];
 
         return view('quicksms.management.templates', [
             'page_title' => 'Message Templates',
@@ -1889,29 +1944,10 @@ class QuickSMSController extends Controller
     public function templateCreateStep2()
     {
         $sender_ids = $this->getApprovedSenderIds();
-
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getLists()
-        $opt_out_lists = [
-            ['id' => 1, 'name' => 'Marketing Opt-outs', 'count' => 1250],
-            ['id' => 2, 'name' => 'Transactional Opt-outs', 'count' => 89],
-        ];
-
-        // TODO: Replace with API call - numbersService.getVirtualNumbers()
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900200', 'label' => 'Customer Support'],
-            ['id' => 2, 'number' => '+447700900201', 'label' => 'Sales'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getDomains()
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'optout.quicksms.co.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'stop.quicksms.co.uk', 'is_default' => false],
-        ];
+        $rcs_agents = $this->getRcsAgentsForView();
+        $opt_out_lists = $this->getOptOutListsForView();
+        $virtual_numbers = [];
+        $optout_domains = [];
 
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Create Template - Content',
@@ -1963,29 +1999,10 @@ class QuickSMSController extends Controller
     public function templateEditStep2($templateId)
     {
         $sender_ids = $this->getApprovedSenderIds();
-
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getLists()
-        $opt_out_lists = [
-            ['id' => 1, 'name' => 'Marketing Opt-outs', 'count' => 1250],
-            ['id' => 2, 'name' => 'Transactional Opt-outs', 'count' => 89],
-        ];
-
-        // TODO: Replace with API call - numbersService.getVirtualNumbers()
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900200', 'label' => 'Customer Support'],
-            ['id' => 2, 'number' => '+447700900201', 'label' => 'Sales'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getDomains()
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'optout.quicksms.co.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'stop.quicksms.co.uk', 'is_default' => false],
-        ];
+        $rcs_agents = $this->getRcsAgentsForView();
+        $opt_out_lists = $this->getOptOutListsForView();
+        $virtual_numbers = [];
+        $optout_domains = [];
 
         // TODO: Replace with API call - templatesService.getTemplate(templateId)
         $template = $this->getMockTemplate($templateId);
@@ -2070,19 +2087,24 @@ class QuickSMSController extends Controller
                 'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
             ])->toArray();
 
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
+        $rcs_agents = \App\Models\RcsAgent::where('account_id', $accountId)
+            ->where('workflow_status', 'approved')
+            ->select('uuid', 'name', 'description', 'brand_color', 'logo_url')
+            ->get()
+            ->map(fn($a) => [
+                'id'          => $a->uuid,
+                'name'        => $a->name,
+                'logo'        => $a->logo_url ?: null,
+                'tagline'     => $a->description ?? '',
+                'brand_color' => $a->brand_color ?? '#886CC0',
+                'status'      => 'approved',
+            ])
+            ->toArray();
 
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
         $template = $this->getMockTemplate($templateId);
-        
-        // TODO: Replace with API call - accountsService.getAccount(accountId)
-        $account = [
-            'id' => $accountId,
-            'name' => 'Acme Corp'
-        ];
+
+        $accountModel = \App\Models\Account::withoutGlobalScope('tenant')->find($accountId);
+        $account = $accountModel ? ['id' => $accountModel->id, 'name' => $accountModel->company_name ?? $accountModel->trading_name ?? 'Unknown'] : ['id' => $accountId, 'name' => 'Unknown'];
 
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Edit Template - Content',
