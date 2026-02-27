@@ -527,6 +527,8 @@ class QuickSMSController extends Controller
             'rcs_basic'     => 0.0395,
             'rcs_single'    => 0.0600,
             'rcs_carousel'  => 0.0600,
+            'rcs_rich'      => 0.0600,
+            'currency'      => 'GBP',
         ];
 
         try {
@@ -558,6 +560,10 @@ class QuickSMSController extends Controller
             if (!isset($rows['rcs_carousel']) && isset($rows['rcs_single'])) {
                 $pricing['rcs_carousel'] = (float) $rows['rcs_single'];
             }
+
+            // rcs_rich maps to rcs_single pricing; currency from account record
+            $pricing['rcs_rich'] = $pricing['rcs_single'];
+            $pricing['currency'] = $account->currency ?? 'GBP';
 
             return $pricing;
         } catch (\Throwable $e) {

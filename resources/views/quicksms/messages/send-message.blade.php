@@ -1351,7 +1351,7 @@
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260227a"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v=20260210d"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260227b"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -1722,7 +1722,7 @@ function updatePreview() {
             var selectedOption = rcsAgentSelect?.selectedOptions[0];
             previewConfig.agent = {
                 name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
-                logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                logo: selectedOption?.dataset?.logo || null,
                 verified: true,
                 tagline: selectedOption?.dataset?.tagline || 'Business messaging'
             };
@@ -1735,7 +1735,7 @@ function updatePreview() {
             var selectedOption = rcsAgentSelect?.selectedOptions[0];
             var agent = {
                 name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
-                logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                logo: selectedOption?.dataset?.logo || null,
                 verified: true,
                 tagline: selectedOption?.dataset?.tagline || 'Business messaging'
             };
@@ -2561,7 +2561,7 @@ function updateRcsWizardPreviewInMain() {
     var rcsAgentSelect = document.getElementById('rcsAgent');
     var selectedOption = rcsAgentSelect?.selectedOptions[0];
     var agentName = selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand';
-    var agentLogo = selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}';
+    var agentLogo = selectedOption?.dataset?.logo || null;
     var agentTagline = selectedOption?.dataset?.tagline || 'Business messaging';
     
     var isCarousel = document.querySelector('input[name="rcsMessageType"]:checked')?.value === 'carousel';
