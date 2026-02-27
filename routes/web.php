@@ -36,6 +36,7 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/messages/send', 'sendMessage')->name('messages.send');
     Route::post('/messages/store-campaign-config', 'storeCampaignConfig')->name('messages.store-campaign-config');
     Route::get('/messages/confirm', 'confirmCampaign')->name('messages.confirm');
+    Route::post('/messages/confirm-send', 'confirmAndSend')->name('messages.confirm-send');
     Route::get('/messages/inbox', 'inbox')->name('messages.inbox');
     Route::get('/messages/campaign-history', 'campaignHistory')->name('messages.campaign-history');
     Route::get('/messages/campaign-approvals', 'campaignApprovals')->name('messages.campaign-approvals');

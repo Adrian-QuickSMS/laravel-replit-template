@@ -2850,12 +2850,64 @@ function continueToConfirmation() {
         if (expiryVal) messageExpiry = expiryVal.textContent;
     }
     
+    // Capture RCS content from the wizard when using rich RCS channel
+    var rcsContent = null;
+    if (channelValue === 'rich_rcs' && typeof getRcsSendPayload === 'function') {
+        rcsContent = getRcsSendPayload();
+    }
+
+    // Capture actual IDs (not just display names) for campaign creation
+    var senderIdValue = senderIdSelect ? senderIdSelect.value : null;
+    var rcsAgentId = rcsAgentSelect ? rcsAgentSelect.value : null;
+
+    // Build recipient sources for the Campaign API
+    var recipientSources = [];
+    if (recipientState.manual.valid.length > 0) {
+        recipientSources.push({ type: 'manual', numbers: recipientState.manual.valid });
+    }
+    if (recipientState.upload.valid.length > 0) {
+        recipientSources.push({ type: 'csv', data: recipientState.upload.valid });
+    }
+    if (recipientState.contactBook.lists.length > 0) {
+        recipientState.contactBook.lists.forEach(function(list) {
+            recipientSources.push({ type: 'list', id: list.id || list.uuid });
+        });
+    }
+    if (recipientState.contactBook.dynamicLists.length > 0) {
+        recipientState.contactBook.dynamicLists.forEach(function(list) {
+            recipientSources.push({ type: 'list', id: list.id || list.uuid });
+        });
+    }
+    if (recipientState.contactBook.tags.length > 0) {
+        recipientState.contactBook.tags.forEach(function(tag) {
+            recipientSources.push({ type: 'tag', id: tag.id || tag.uuid });
+        });
+    }
+    if (recipientState.contactBook.contacts.length > 0) {
+        recipientSources.push({
+            type: 'individual',
+            contact_ids: recipientState.contactBook.contacts.map(function(c) { return c.id || c.uuid; })
+        });
+    }
+
+    // Map channel to Campaign API type
+    var campaignTypeMap = {
+        'sms_only': 'sms',
+        'basic_rcs': 'rcs_basic',
+        'rich_rcs': rcsContent && rcsContent.messageType === 'carousel' ? 'rcs_carousel' : 'rcs_single'
+    };
+
     var campaignConfig = {
         campaign_name: campaignName,
         channel: channelValue,
         sender_id: senderIdText,
+        sender_id_id: senderIdValue,
         rcs_agent: rcsAgentName,
+        rcs_agent_id: rcsAgentId,
         message_content: smsContent,
+        rcs_content: rcsContent,
+        campaign_type: campaignTypeMap[channelValue] || 'sms',
+        recipient_sources: recipientSources,
         recipient_count: recipientCount,
         valid_count: recipientCount,
         invalid_count: invalidCount,

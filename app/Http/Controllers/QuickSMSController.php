@@ -516,14 +516,106 @@ class QuickSMSController extends Controller
     public function storeCampaignConfig(Request $request)
     {
         $allowed = [
-            'campaign_name', 'channel', 'sender_id', 'rcs_agent',
-            'message_content', 'rcs_content', 'scheduled_time',
-            'message_expiry', 'sending_window', 'recipient_count',
-            'valid_count', 'invalid_count', 'opted_out_count', 'sources',
+            'campaign_name', 'channel', 'sender_id', 'sender_id_id',
+            'rcs_agent', 'rcs_agent_id', 'campaign_type',
+            'message_content', 'rcs_content', 'recipient_sources',
+            'scheduled_time', 'message_expiry', 'sending_window',
+            'recipient_count', 'valid_count', 'invalid_count',
+            'opted_out_count', 'sources', 'optout_config',
         ];
         $request->session()->put('campaign_config', $request->only($allowed));
         
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Create a Campaign record from session data and initiate send.
+     * Called by the Confirm & Send page.
+     */
+    public function confirmAndSend(Request $request)
+    {
+        $sessionData = $request->session()->get('campaign_config', []);
+
+        if (empty($sessionData)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No campaign configuration found. Please go back and configure your campaign.',
+            ], 422);
+        }
+
+        $accountId = session('customer_tenant_id');
+        if (!$accountId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No account context. Please log in again.',
+            ], 401);
+        }
+
+        try {
+            $campaignService = app(\App\Services\Campaign\CampaignService::class);
+
+            // Build Campaign API payload from session data
+            $campaignData = [
+                'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
+                'type' => $sessionData['campaign_type'] ?? 'sms',
+                'message_content' => $sessionData['message_content'] ?? null,
+                'rcs_content' => $sessionData['rcs_content'] ?? null,
+                'sender_id_id' => $sessionData['sender_id_id'] ?? null,
+                'rcs_agent_id' => $sessionData['rcs_agent_id'] ?? null,
+                'recipient_sources' => $sessionData['recipient_sources'] ?? [],
+            ];
+
+            // Create the campaign as draft
+            $campaign = $campaignService->create($accountId, $campaignData);
+
+            // Handle scheduling vs immediate send
+            $scheduledTime = $sessionData['scheduled_time'] ?? 'now';
+
+            if ($scheduledTime !== 'now' && $scheduledTime !== '') {
+                $timezone = $sessionData['timezone'] ?? config('app.timezone', 'Europe/London');
+                $result = $campaignService->schedule($campaign, $scheduledTime, $timezone);
+
+                // Clear session data after successful scheduling
+                $request->session()->forget('campaign_config');
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Campaign scheduled successfully.',
+                    'campaign_id' => $campaign->id,
+                    'status' => 'scheduled',
+                ]);
+            }
+
+            // Immediate send
+            $result = $campaignService->sendNow($campaign);
+
+            // Clear session data after successful send
+            $request->session()->forget('campaign_config');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Campaign queued for delivery.',
+                'campaign_id' => $campaign->id,
+                'status' => 'queued',
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Campaign confirmAndSend failed', [
+                'error' => $e->getMessage(),
+                'account_id' => $accountId,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send campaign: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function inbox()

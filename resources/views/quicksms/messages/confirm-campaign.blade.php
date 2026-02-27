@@ -285,15 +285,41 @@
 function confirmSend() {
     var btn = document.getElementById('sendCampaignBtn');
     btn.disabled = true;
-    
+
     var sendingModal = new bootstrap.Modal(document.getElementById('sendingModal'));
     sendingModal.show();
-    
-    setTimeout(function() {
+
+    fetch('{{ route("messages.confirm-send") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({})
+    })
+    .then(function(response) { return response.json().then(function(data) { return { ok: response.ok, data: data }; }); })
+    .then(function(result) {
         sendingModal.hide();
-        var successModal = new bootstrap.Modal(document.getElementById('successModal'));
-        successModal.show();
-    }, 2000);
+
+        if (result.ok && result.data.success) {
+            var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+        } else {
+            btn.disabled = false;
+            var msg = result.data.message || 'Failed to send campaign.';
+            if (result.data.errors) {
+                var errorList = Object.values(result.data.errors).flat().join('\n');
+                msg += '\n\n' + errorList;
+            }
+            alert(msg);
+        }
+    })
+    .catch(function(error) {
+        sendingModal.hide();
+        btn.disabled = false;
+        console.error('Error:', error);
+        alert('Network error. Please try again.');
+    });
 }
 </script>
 @endpush

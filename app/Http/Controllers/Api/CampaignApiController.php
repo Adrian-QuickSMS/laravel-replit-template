@@ -103,7 +103,7 @@ class CampaignApiController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'type' => 'required|string|in:sms,rcs_basic,rcs_single',
+            'type' => 'required|string|in:sms,rcs_basic,rcs_single,rcs_carousel',
             'message_template_id' => 'nullable|uuid',
             'message_content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
@@ -177,7 +177,7 @@ class CampaignApiController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'type' => 'sometimes|string|in:sms,rcs_basic,rcs_single',
+            'type' => 'sometimes|string|in:sms,rcs_basic,rcs_single,rcs_carousel',
             'message_template_id' => 'nullable|uuid',
             'message_content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
