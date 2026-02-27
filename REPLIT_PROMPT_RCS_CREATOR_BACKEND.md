@@ -1,195 +1,114 @@
-# Replit Prompt: RCS Rich Message Creator — Pull & Merge Backend
+# Replit Prompt: Pull & Merge RCS Content Wizard Backend
 
-## Overview
+## What to do
 
-The complete backend for the **RCS Rich Message Creator** (single rich cards + carousels) has been built on branch `claude/quicksms-security-performance-dr8sw`. This includes the media asset pipeline, content validation, campaign integration, and placeholder resolution — everything needed for creating and sending rich RCS messages with images, text, and buttons.
-
-### Step 1: Pull and merge the backend branch
+Pull and merge the RCS Content Wizard backend from the feature branch. This adds the complete backend for creating and sending rich RCS messages (single rich cards + carousels) — media asset pipeline, content validation, campaign creation, and the full send flow from the confirm page.
 
 ```bash
 git fetch origin claude/quicksms-security-performance-dr8sw
 git merge origin/claude/quicksms-security-performance-dr8sw
-```
-
-### Step 2: Run migrations
-
-```bash
 php artisan migrate
 ```
 
----
-
-## What Was Deployed — RCS Content Creator Backend
-
-### New Database Table
-
-| Table | Purpose |
-|---|---|
-| `rcs_assets` | RCS media storage: upload/URL import, crop/zoom edit params, draft sessions, tenant-scoped via `account_id` |
-
-### Campaign Table Updates
-
-The `campaigns` table now supports RCS rich content:
-- `rcs_content` (JSONB) — stores the rich card/carousel structure
-- `rcs_agent_id` (FK) — links to the approved RCS Agent used as sender
-- `type` check constraint updated: `sms`, `rcs_basic`, `rcs_single`, `rcs_carousel`
-
-### New Service: `RcsContentValidator` (257 lines)
-
-`app/Services/RcsContentValidator.php` — Full structural validation for RCS rich messages:
-
-- **Card counts:** Single = exactly 1 card, Carousel = 2–10 cards
-- **Button limits:** Max 4 per card, label max 25 chars
-- **Button types:** `url`, `phone`, `calendar`, `postback` — each with required action fields
-- **Text limits:** Body max 2,000 chars, callback_data max 64 chars
-- **Orientation consistency:** All carousel cards must use the same orientation
-- **Asset finalization:** Before send, validates all media asset UUIDs exist in `rcs_assets` with `is_draft = false`
-
-Two validation levels:
-- `validateStructure()` — called on campaign save (lenient, allows drafts)
-- `validateForSend()` — called before send (strict, checks asset finalization)
-
-### Updated Service: `RcsAssetService` (481 lines)
-
-`app/Services/RcsAssetService.php` — Image processing pipeline:
-
-- Import from URL or file upload (JPEG, PNG, GIF)
-- Apply edit params: zoom (25–200%), crop position, orientation
-- **Lossless re-editing:** Stores original at `original_storage_path`, always re-crops from original
-- Draft session tracking for cleanup
-- Finalization workflow (`is_draft` → `false`)
-
-### New Controller: `RcsAssetController` (273 lines)
-
-`app/Http/Controllers/Api/RcsAssetController.php` — Media API:
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| `POST` | `/api/rcs/assets/process-url` | Import image from URL. Body: `{ url, edit_params?, draft_session? }` |
-| `POST` | `/api/rcs/assets/process-upload` | Upload image file (max 1MB). Multipart: `file` + `edit_params?` |
-| `POST` | `/api/rcs/assets/proxy-image` | SSRF-safe image proxy for previews. Returns base64 data URL |
-| `PUT` | `/api/rcs/assets/{uuid}` | Update crop/zoom. Body: `{ edit_params: { zoom, crop_position, orientation } }` |
-| `POST` | `/api/rcs/assets/{uuid}/finalize` | Mark asset as non-draft (required before campaign send) |
-
-### Updated: `CampaignService` — RCS Validation Wired In
-
-`app/Services/Campaign/CampaignService.php`:
-
-- **`create()`** and **`update()`** — validates RCS structure via `RcsContentValidator::validateStructure()` for `rcs_single` and `rcs_carousel` types
-- **`validateForSend()`** — full validation via `RcsContentValidator::validateForSend()`, including asset finalization checks
-- **Placeholder resolution** — `{{merge_fields}}` resolved in RCS card `description` and `textBody` per-recipient, stored as `resolved_rcs_content` in recipient metadata
-
-### Updated: Campaign & MessageTemplate Models
-
-- `Campaign::TYPE_RCS_SINGLE = 'rcs_single'`
-- `Campaign::TYPE_RCS_CAROUSEL = 'rcs_carousel'`
-- Both models: `'rcs_content' => 'array'` cast, fillable
-
-### New: Draft Cleanup Command
-
-`app/Console/Commands/CleanupDraftRcsAssets.php`:
-- `php artisan rcs:cleanup-drafts [--hours=24] [--dry-run]`
-- Scheduled daily at 03:00, removes stale draft assets from disk + database
-
----
-
-## Campaign API Endpoints (Already Registered)
-
-All under `customer.auth` middleware:
-
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| `POST` | `/api/campaigns` | Create draft campaign. Body includes `type`, `rcs_content`, `rcs_agent_id` |
-| `PUT` | `/api/campaigns/{id}` | Update draft. Same fields |
-| `POST` | `/api/campaigns/{id}/prepare` | Resolve recipients, dispatch content resolution |
-| `GET` | `/api/campaigns/{id}/preparation-status` | Poll preparation progress + cost estimate |
-| `GET` | `/api/campaigns/{id}/validate` | Dry-run validation before send |
-| `POST` | `/api/campaigns/{id}/send` | Validate → reserve billing → queue for delivery |
-| `POST` | `/api/campaigns/{id}/schedule` | Schedule for future send. Body: `{ scheduled_at, timezone }` |
-| `POST` | `/api/campaigns/{id}/pause` | Pause sending campaign |
-| `POST` | `/api/campaigns/{id}/resume` | Resume paused campaign |
-| `POST` | `/api/campaigns/{id}/cancel` | Cancel campaign |
-
----
-
-## RCS Content Data Structure
-
-### Single Rich Card
-
-```json
-{
-  "type": "single",
-  "cards": [
-    {
-      "cardIndex": 1,
-      "textBody": "Message text (max 2000 chars, supports {{placeholders}})",
-      "media": {
-        "assetUuid": "rcs-asset-uuid",
-        "orientation": "vertical_short|vertical_medium|vertical_tall|horizontal"
-      },
-      "buttons": [
-        {
-          "label": "Visit Website (max 25 chars)",
-          "type": "url",
-          "action": { "url": "https://example.com" }
-        },
-        {
-          "label": "Call Us",
-          "type": "phone",
-          "action": { "phoneNumber": "+44..." }
-        },
-        {
-          "label": "Add to Calendar",
-          "type": "calendar",
-          "action": { "title": "Event", "startTime": "ISO8601", "endTime": "ISO8601" }
-        },
-        {
-          "label": "Learn More",
-          "type": "postback",
-          "tracking": { "enabled": true, "callback_data": "max 64 chars" }
-        }
-      ]
-    }
-  ]
-}
-```
-
-### Carousel (2–10 cards, same orientation)
-
-```json
-{
-  "type": "carousel",
-  "width": "small|medium",
-  "cards": [
-    { "cardIndex": 1, "textBody": "...", "media": { ... }, "buttons": [ ... ] },
-    { "cardIndex": 2, "textBody": "...", "media": { ... }, "buttons": [ ... ] }
-  ]
-}
+After merge, clear caches:
+```bash
+php artisan route:clear
+php artisan config:clear
+php artisan view:clear
 ```
 
 ---
 
-## Frontend Flow (Already Built)
+## What Changed — Summary
 
-The RCS content wizard (`public/js/rcs-wizard.js`, 3,460 lines) and preview renderer (`public/js/rcs-preview-renderer.js`) are already on the branch. The send-message page already includes the wizard.
+### 1. RCS Content Wizard → Campaign Pipeline (Wiring)
 
-### End-to-end flow:
+The RCS Content Wizard modal on the Send Message page now fully submits its content to the backend:
 
-1. **User uploads media** → `POST /api/rcs/assets/process-upload` or `process-url` → gets `assetUuid`
-2. **User builds rich card(s)** — title, text, media, buttons in the wizard
-3. **User finalizes assets** → `POST /api/rcs/assets/{uuid}/finalize`
-4. **User submits campaign form** → `POST /messages/store-campaign-config` (stores in session)
-5. **Confirm page** → `POST /api/campaigns` (creates draft with `rcs_content`)
-6. **Prepare** → `POST /api/campaigns/{id}/prepare` (resolves recipients, placeholders)
-7. **Send** → `POST /api/campaigns/{id}/send` (validates via `RcsContentValidator`, reserves billing, queues)
+- **`continueToConfirmation()`** in `send-message.blade.php` now calls `getRcsSendPayload()` to capture the rich card/carousel content and includes it as `rcs_content` in the session payload
+- Also stores `sender_id_id`, `rcs_agent_id`, `campaign_type`, and `recipient_sources` (actual phone numbers, list UUIDs) — everything needed to create a real Campaign record
+- **Channel type mapping:** `rich_rcs` → `rcs_single` or `rcs_carousel` (based on wizard's `messageType`)
+
+### 2. Confirm & Send Page — Now Real
+
+The confirm page (`confirm-campaign.blade.php`) previously faked the send with a `setTimeout`. It now:
+
+- POSTs to `POST /messages/confirm-send` (new endpoint)
+- Creates a Campaign record via `CampaignService::create()` using session data
+- Calls `sendNow()` for immediate send or `schedule()` for scheduled campaigns
+- Shows proper error messages on validation failure
+- Clears session after successful send
+
+### 3. Campaign API — Carousel Support
+
+`CampaignApiController` `store()` and `update()` validation now accepts `rcs_carousel` type (was previously rejecting it).
+
+### 4. Media Asset Pipeline (New)
+
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /api/rcs/assets/process-url` | Import image from URL, apply crop/zoom |
+| `POST /api/rcs/assets/process-upload` | Upload image file (JPEG/PNG/GIF, max 1MB) |
+| `POST /api/rcs/assets/proxy-image` | SSRF-safe image proxy for previews |
+| `PUT /api/rcs/assets/{uuid}` | Update crop/zoom (lossless, re-crops from original) |
+| `POST /api/rcs/assets/{uuid}/finalize` | Mark asset as non-draft (required before send) |
+
+New table: `rcs_assets` — stores uploaded/imported images with edit params, draft sessions, tenant isolation.
+
+### 5. RCS Content Validation (New)
+
+`RcsContentValidator` service enforces:
+- Single card = exactly 1 card; Carousel = 2–10 cards
+- Max 4 buttons per card, label max 25 chars
+- Button types: `url`, `phone`, `calendar`, `postback`
+- Text body max 2,000 chars
+- All carousel cards must use same orientation
+- Before send: all media assets must be finalized (`is_draft = false`)
+
+Wired into `CampaignService::create()`, `update()`, and `validateForSend()`.
+
+### 6. Draft Cleanup
+
+`php artisan rcs:cleanup-drafts` — scheduled daily at 03:00, removes stale draft media assets.
 
 ---
 
-## Key Architecture Notes
+## Files Changed
 
-1. **Validation is two-tier:** `validateStructure()` on save (allows incomplete drafts), `validateForSend()` before send (strict — all assets must be finalized)
-2. **Assets are draft by default** — must call `/finalize` before campaign can send. Stale drafts cleaned daily.
-3. **Placeholder resolution** — `{{first_name}}`, `{{company}}` etc. resolved per-recipient in RCS card text, stored as `resolved_rcs_content` in campaign_recipients metadata
-4. **Lossless re-editing** — original image stored separately; crop/zoom always applied from original, no quality loss
-5. **SSRF protection** — image proxy validates URL doesn't resolve to private IP ranges
-6. **Tenant isolation** — `RcsAsset` model has global scope on `account_id`, matching Campaign/MessageTemplate pattern
+| File | Change |
+|------|--------|
+| `app/Http/Controllers/Api/CampaignApiController.php` | Added `rcs_carousel` to type validation |
+| `app/Http/Controllers/Api/RcsAssetController.php` | **New** — Media pipeline API |
+| `app/Http/Controllers/QuickSMSController.php` | New `confirmAndSend()` method; expanded `storeCampaignConfig` allowed fields |
+| `app/Services/RcsAssetService.php` | **New** — Image processing, crop, storage |
+| `app/Services/RcsContentValidator.php` | **New** — Rich card/carousel validation |
+| `app/Services/Campaign/CampaignService.php` | RCS validation wired into create/update/send |
+| `app/Models/RcsAsset.php` | **New** — Media asset model with tenant scope |
+| `app/Models/Campaign.php` | Added `TYPE_RCS_CAROUSEL`, `rcs_content` cast |
+| `app/Models/MessageTemplate.php` | Added `TYPE_RCS_CAROUSEL`, `rcs_content` cast |
+| `app/Console/Commands/CleanupDraftRcsAssets.php` | **New** — Draft cleanup command |
+| `database/migrations/2026_02_27_000001_create_rcs_assets_table.php` | **New** — `rcs_assets` table |
+| `resources/views/quicksms/messages/send-message.blade.php` | Wired `rcs_content`, IDs, recipient sources into session payload |
+| `resources/views/quicksms/messages/confirm-campaign.blade.php` | Real `confirmSend()` hitting backend API |
+| `routes/web.php` | Added `POST /messages/confirm-send` route |
+
+---
+
+## End-to-End Flow After Merge
+
+1. User opens Send Message → selects Rich RCS channel → opens RCS Content Wizard modal
+2. User uploads/imports media → `POST /api/rcs/assets/process-upload` or `process-url`
+3. User builds rich card(s) with text, buttons in the wizard modal
+4. User clicks "Continue" → `getRcsSendPayload()` serializes content → stored in session with recipient data
+5. Confirm page displays campaign summary
+6. User clicks "Confirm & Send" → `POST /messages/confirm-send` → creates Campaign record → sends via CampaignService
+7. Success modal → redirect to campaign history
+
+---
+
+## Important Notes
+
+- **Do not rebuild** the RCS wizard modal, `rcs-wizard.js`, or `rcs-preview-renderer.js` — they are already on the branch
+- **Do not rebuild** the RCS Asset pipeline or RcsContentValidator — they are complete
+- The `rcs_agents` table and RCS Agent Registration are **separate systems** — the only relationship is that `campaigns.rcs_agent_id` references an approved agent as the sender
+- If merge conflicts occur in `send-message.blade.php`, keep the version that includes `rcs_content` and `recipient_sources` in the `campaignConfig` object
