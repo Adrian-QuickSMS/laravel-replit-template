@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * GREEN SIDE: Campaign (Send Message campaigns)
@@ -192,6 +193,12 @@ class Campaign extends Model
     protected static function boot()
     {
         parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) Str::uuid();
+            }
+        });
 
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = auth()->check() && auth()->user()->tenant_id
