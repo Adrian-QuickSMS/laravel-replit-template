@@ -49,11 +49,11 @@ class SetTenantContext
      */
     public function handle(Request $request, Closure $next)
     {
-        // Only set tenant context if user is authenticated
+        $tenantId = null;
+
         if ($request->user()) {
             $user = $request->user();
 
-            // Validate user has tenant_id
             if (empty($user->tenant_id)) {
                 Log::error('SetTenantContext: User has no tenant_id', [
                     'user_id' => $user->id,
@@ -66,27 +66,24 @@ class SetTenantContext
                 ], 500);
             }
 
-            try {
-                // Set PostgreSQL session variable for RLS policies
-                // CRITICAL: This makes ALL queries in this request tenant-scoped
-                // Use SET (session-scoped) not SET LOCAL (transaction-scoped) because
-                // Laravel may not wrap every request in a single transaction, and
-                // SET LOCAL has no effect outside a transaction block.
-                DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$user->tenant_id]);
+            $tenantId = $user->tenant_id;
+        } elseif ($request->session()->has('customer_tenant_id')) {
+            $tenantId = $request->session()->get('customer_tenant_id');
+        }
 
-                // Log tenant context set (debug mode only)
+        if ($tenantId) {
+            try {
+                DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+
                 if (config('app.debug')) {
                     Log::debug('Tenant context set', [
-                        'user_id' => $user->id,
-                        'tenant_id' => $user->tenant_id,
-                        'email' => $user->email,
+                        'tenant_id' => $tenantId,
+                        'source' => $request->user() ? 'auth_guard' : 'session',
                     ]);
                 }
-
             } catch (\Exception $e) {
                 Log::error('SetTenantContext: Failed to set tenant context', [
-                    'user_id' => $user->id,
-                    'tenant_id' => $user->tenant_id,
+                    'tenant_id' => $tenantId,
                     'error' => $e->getMessage(),
                 ]);
 
