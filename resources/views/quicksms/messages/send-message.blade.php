@@ -1350,7 +1350,7 @@
 @include('quicksms.partials.rcs-wizard-modal')
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-<script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106b"></script>
+<script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260227a"></script>
 <script src="{{ asset('js/rcs-wizard.js') }}?v=20260210d"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

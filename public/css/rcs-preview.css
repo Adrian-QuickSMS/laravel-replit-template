@@ -149,6 +149,17 @@
   object-fit: cover;
 }
 
+.rcs-agent-logo--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+  user-select: none;
+}
+
 .rcs-verified-badge {
   position: absolute;
   bottom: -2px;

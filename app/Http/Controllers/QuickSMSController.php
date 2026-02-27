@@ -364,7 +364,7 @@ class QuickSMSController extends Controller
                 ->map(fn($a) => [
                     'id'          => $a->uuid,
                     'name'        => $a->name,
-                    'logo'        => $a->logo_url ?? '',
+                    'logo'        => $a->logo_url ?: null,
                     'tagline'     => $a->description ?? '',
                     'brand_color' => $a->brand_color ?? '#886CC0',
                 ])
