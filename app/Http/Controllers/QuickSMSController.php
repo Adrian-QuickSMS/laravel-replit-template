@@ -355,11 +355,21 @@ class QuickSMSController extends Controller
     {
         $sender_ids = $this->getApprovedSenderIds();
 
-        // TODO: Replace with database query - GET /api/rcs-agents?status=approved
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
+        $userId = session('customer_user_id');
+        $user = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
+        $rcs_agents = $user
+            ? \App\Models\RcsAgent::usableByUser($user)
+                ->select('uuid', 'name', 'description', 'brand_color', 'logo_url')
+                ->get()
+                ->map(fn($a) => [
+                    'id'          => $a->uuid,
+                    'name'        => $a->name,
+                    'logo'        => $a->logo_url ?? '',
+                    'tagline'     => $a->description ?? '',
+                    'brand_color' => $a->brand_color ?? '#886CC0',
+                ])
+                ->toArray()
+            : [];
 
         // TODO: Replace with database query - GET /api/templates (excludes API-triggered for portal UI)
         $templates = [
