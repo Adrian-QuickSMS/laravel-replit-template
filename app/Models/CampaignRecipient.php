@@ -321,6 +321,12 @@ class CampaignRecipient extends Model
         ];
 
         $customData = $this->custom_data ?? [];
+        if (is_string($customData)) {
+            $customData = json_decode($customData, true) ?? [];
+        }
+        if (!is_array($customData)) {
+            $customData = [];
+        }
         foreach ($customData as $key => $value) {
             $safeValue = $value ?? '';
             $data[$key] = $safeValue;

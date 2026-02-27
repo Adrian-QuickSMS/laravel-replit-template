@@ -184,7 +184,9 @@ class CampaignService
     {
         return $this->recipientResolver->preview(
             $campaign->recipient_sources ?? [],
-            $campaign->account_id
+            $campaign->account_id,
+            'GB',
+            $campaign->opt_out_screening_list_ids ?? []
         );
     }
 

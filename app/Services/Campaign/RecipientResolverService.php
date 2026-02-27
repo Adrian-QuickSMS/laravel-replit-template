@@ -60,6 +60,13 @@ class RecipientResolverService
         // Pre-load the opt-out set for this account (phone numbers only, ~20 bytes each)
         $optedOutSet = $this->loadOptedOutSet($accountId);
 
+        // Merge screening lists — contacts on these lists are treated as opted-out
+        $screeningListIds = $campaign->opt_out_screening_list_ids ?? [];
+        if (!empty($screeningListIds)) {
+            $screeningSet = $this->loadScreeningListSet($screeningListIds, $accountId);
+            $optedOutSet = array_merge($optedOutSet, $screeningSet);
+        }
+
         // Dedup tracker: normalised number -> true (holds only the key string, not full row)
         $seenNumbers = [];
 
@@ -513,6 +520,37 @@ class RecipientResolverService
         return $set;
     }
 
+    /**
+     * Load phone numbers from one or more opt-out screening contact lists.
+     *
+     * Used to pre-populate the opted-out hash set with contacts that appear
+     * on lists the user has chosen to screen against. Numbers are keyed by
+     * E.164 string for O(1) lookup during recipient filtering.
+     *
+     * @param  string[]  $listIds   UUIDs of ContactList records to screen against
+     * @param  string    $accountId Tenant account ID (scopes the contacts join)
+     * @return array<string, true>  Hash set of mobile numbers
+     */
+    private function loadScreeningListSet(array $listIds, string $accountId): array
+    {
+        $set = [];
+
+        DB::table('contact_list_member')
+            ->whereIn('list_id', $listIds)
+            ->join('contacts', 'contacts.id', '=', 'contact_list_member.contact_id')
+            ->where('contacts.account_id', $accountId)
+            ->whereNull('contacts.deleted_at')
+            ->select('contacts.mobile_number')
+            ->orderBy('contacts.id')
+            ->chunk(self::CHUNK_SIZE, function ($rows) use (&$set) {
+                foreach ($rows as $row) {
+                    $set[$row->mobile_number] = true;
+                }
+            });
+
+        return $set;
+    }
+
     // =====================================================
     // PERSISTENCE (chunked)
     // =====================================================
@@ -640,9 +678,15 @@ class RecipientResolverService
      * Streams through the same chunked pipeline as resolve() but only
      * collects counts, not full records. Memory-safe for any size.
      */
-    public function preview(array $sources, string $accountId, string $defaultCountry = 'GB'): array
+    public function preview(array $sources, string $accountId, string $defaultCountry = 'GB', array $screeningListIds = []): array
     {
         $optedOutSet = $this->loadOptedOutSet($accountId);
+
+        if (!empty($screeningListIds)) {
+            $screeningSet = $this->loadScreeningListSet($screeningListIds, $accountId);
+            $optedOutSet = array_merge($optedOutSet, $screeningSet);
+        }
+
         $seenNumbers = [];
 
         $totalResolved = 0;
