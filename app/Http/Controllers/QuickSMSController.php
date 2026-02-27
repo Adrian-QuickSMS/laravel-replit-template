@@ -551,7 +551,9 @@ class QuickSMSController extends Controller
                     'sms_unit_price' => $smsPrice,
                     'rcs_basic_price' => $rcsBasicPrice,
                     'rcs_single_price' => $rcsSinglePrice,
-                    'vat_applicable' => $account ? (bool) ($account->vat_registered ?? true) : true,
+                    'vat_applicable' => $account
+                        ? (!$account->vat_reverse_charges && (bool) ($account->vat_registered ?? true))
+                        : true,
                     'vat_rate' => 20,
                 ];
 
@@ -649,11 +651,15 @@ class QuickSMSController extends Controller
         }
 
         // Pricing data - use account pricing or defaults
+        $sessionAccount = Account::find(session('customer_tenant_id'));
+        $vatApplicable = $sessionAccount
+            ? (!$sessionAccount->vat_reverse_charges && (bool) ($sessionAccount->vat_registered ?? true))
+            : true;
         $pricing = [
             'sms_unit_price' => 0.023,
             'rcs_basic_price' => 0.035,
             'rcs_single_price' => 0.045,
-            'vat_applicable' => true,
+            'vat_applicable' => $vatApplicable,
             'vat_rate' => 20,
         ];
 
