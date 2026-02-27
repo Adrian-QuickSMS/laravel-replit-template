@@ -136,7 +136,7 @@ class Campaign extends Model
         'opt_out_keyword',
         'opt_out_text',
         'opt_out_list_id',
-        'opt_out_screening_list_id',
+        'opt_out_screening_list_ids',
         'opt_out_url_enabled',
     ];
 
@@ -176,6 +176,7 @@ class Campaign extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'opt_out_enabled' => 'boolean',
+        'opt_out_screening_list_ids' => 'array',
         'opt_out_url_enabled' => 'boolean',
     ];
 
@@ -566,6 +567,7 @@ class Campaign extends Model
             'opt_out_keyword' => $this->opt_out_keyword,
             'opt_out_text' => $this->opt_out_text,
             'opt_out_list_id' => $this->opt_out_list_id,
+            'opt_out_screening_list_ids' => $this->opt_out_screening_list_ids ?? [],
             'opt_out_url_enabled' => (bool) $this->opt_out_url_enabled,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
