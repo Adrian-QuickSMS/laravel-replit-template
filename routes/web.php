@@ -251,9 +251,9 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
     Route::post('/suggest-opt-out-text', 'suggestOptOutText')->name('api.campaigns.suggest-opt-out-text');
     Route::get('/opt-out-keywords/{numberId}', 'availableKeywords')->name('api.campaigns.available-keywords');
 
-    Route::get('/{id}', 'show')->name('api.campaigns.show');
-    Route::put('/{id}', 'update')->name('api.campaigns.update');
-    Route::delete('/{id}', 'destroy')->name('api.campaigns.destroy');
+    Route::get('/{id}', 'show')->name('api.campaigns.show')->where('id', '[0-9a-f\-]{36}');
+    Route::put('/{id}', 'update')->name('api.campaigns.update')->where('id', '[0-9a-f\-]{36}');
+    Route::delete('/{id}', 'destroy')->name('api.campaigns.destroy')->where('id', '[0-9a-f\-]{36}');
 
     Route::post('/{id}/prepare', 'prepare')->name('api.campaigns.prepare');
     Route::get('/{id}/preparation-status', 'preparationStatus')->name('api.campaigns.preparation-status');
