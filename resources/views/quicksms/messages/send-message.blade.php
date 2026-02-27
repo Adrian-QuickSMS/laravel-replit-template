@@ -445,8 +445,8 @@
                         </div>
 
                         <div class="d-none" id="optoutValidationError">
-                            <div class="alert alert-danger py-2 mb-0">
-                                <i class="fas fa-exclamation-circle me-1"></i>
+                            <div class="alert alert-pastel-primary py-2 mb-0">
+                                <i class="fas fa-info-circle me-1 text-primary"></i>
                                 <span id="optoutValidationMessage">Please complete the opt-out configuration.</span>
                             </div>
                         </div>
