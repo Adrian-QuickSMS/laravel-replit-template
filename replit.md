@@ -31,7 +31,7 @@ Preferred communication style: Simple, everyday language.
 
 - **Framework:** Laravel 10 with Eloquent ORM, Laravel Sanctum for API token auth, and artisan migrations.
 - **Database:** PostgreSQL 15+ (migrated from MySQL/MariaDB). Native UUID (`gen_random_uuid()`), ENUM types, JSONB, and INET types are used throughout. Do **not** use MySQL-style `BINARY(16)` UUID patterns.
-- **Multi-tenancy:** Row Level Security (RLS) enforced at the database level on all tenant-scoped tables. The `SetTenantContext` middleware sets `app.current_tenant_id` as a PostgreSQL session variable before every query. This middleware **must** remain registered in `Kernel.php` and must not be removed or reordered.
+- **Multi-tenancy:** Row Level Security (RLS) enforced at the database level on all tenant-scoped tables. The `SetTenantContext` middleware sets `app.current_tenant_id` as a PostgreSQL session variable before every query. This middleware **must** remain registered in `Kernel.php` (in BOTH `web` and `api` middleware groups) and must not be removed or reordered. It supports two auth sources: `$request->user()->tenant_id` (Sanctum/API) and `session('customer_tenant_id')` (customer portal session auth).
 - **Authentication flow:**
   - Account creation → always via `sp_create_account()` stored procedure, never `Account::create()` directly.
   - Login → always via `sp_authenticate_user()` stored procedure.

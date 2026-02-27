@@ -838,9 +838,9 @@ class CampaignService
                 $pendingUpdates = [];
 
                 foreach ($recipients as $row) {
-                    $recipient = new CampaignRecipient((array) $row);
+                    $recipient = new CampaignRecipient();
+                    $recipient->setRawAttributes((array) $row, true);
                     $recipient->exists = true;
-                    $recipient->id = $row->id;
 
                     $resolvedContent = $campaign->message_content
                         ? $recipient->resolveContent($campaign->message_content)

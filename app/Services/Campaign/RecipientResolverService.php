@@ -506,7 +506,21 @@ class RecipientResolverService
             ->orderBy('id')
             ->chunk(self::CHUNK_SIZE, function ($rows) use (&$set) {
                 foreach ($rows as $row) {
-                    $set[$row->mobile_number] = true;
+                    $number = $row->mobile_number;
+                    if (empty($number)) {
+                        continue;
+                    }
+                    $set[$number] = true;
+                    $stripped = ltrim($number, '+');
+                    if (empty($stripped)) {
+                        continue;
+                    }
+                    $set[$stripped] = true;
+                    $set['+' . $stripped] = true;
+                    if (str_starts_with($stripped, '0')) {
+                        $set['44' . substr($stripped, 1)] = true;
+                        $set['+44' . substr($stripped, 1)] = true;
+                    }
                 }
             });
 
