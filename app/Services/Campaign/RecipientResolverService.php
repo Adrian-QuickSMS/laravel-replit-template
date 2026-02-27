@@ -513,7 +513,12 @@ class RecipientResolverService
             ->orderBy('id')
             ->chunk(self::CHUNK_SIZE, function ($rows) use (&$set) {
                 foreach ($rows as $row) {
-                    $set[$row->mobile_number] = true;
+                    // Numbers in opt_out_records may lack the '+' prefix or be in local
+                    // format (e.g. '447891142165' or '07891142165'). Normalise to E.164
+                    // so lookups match campaign_recipients which are always '+447...' format.
+                    $result = PhoneNumberUtils::normalise($row->mobile_number, 'GB');
+                    $normalised = ($result['valid'] ?? false) ? $result['number'] : $row->mobile_number;
+                    $set[$normalised] = true;
                 }
             });
 
@@ -527,24 +532,26 @@ class RecipientResolverService
      * on lists the user has chosen to screen against. Numbers are keyed by
      * E.164 string for O(1) lookup during recipient filtering.
      *
-     * @param  string[]  $listIds   UUIDs of ContactList records to screen against
-     * @param  string    $accountId Tenant account ID (scopes the contacts join)
-     * @return array<string, true>  Hash set of mobile numbers
+     * @param  string[]  $listIds   UUIDs of opt_out_lists records to screen against
+     * @param  string    $accountId Tenant account ID (scopes the query)
+     * @return array<string, true>  Hash set of normalised E.164 mobile numbers
      */
     private function loadScreeningListSet(array $listIds, string $accountId): array
     {
         $set = [];
 
-        DB::table('contact_list_member')
-            ->whereIn('list_id', $listIds)
-            ->join('contacts', 'contacts.id', '=', 'contact_list_member.contact_id')
-            ->where('contacts.account_id', $accountId)
-            ->whereNull('contacts.deleted_at')
-            ->select('contacts.mobile_number')
-            ->orderBy('contacts.id')
+        // Opt-out screening lists store their members in opt_out_records
+        // (keyed by opt_out_list_id), not in contact_list_member.
+        DB::table('opt_out_records')
+            ->where('account_id', $accountId)
+            ->whereIn('opt_out_list_id', $listIds)
+            ->select('mobile_number')
+            ->orderBy('id')
             ->chunk(self::CHUNK_SIZE, function ($rows) use (&$set) {
                 foreach ($rows as $row) {
-                    $set[$row->mobile_number] = true;
+                    $result = PhoneNumberUtils::normalise($row->mobile_number, 'GB');
+                    $normalised = ($result['valid'] ?? false) ? $result['number'] : $row->mobile_number;
+                    $set[$normalised] = true;
                 }
             });
 
