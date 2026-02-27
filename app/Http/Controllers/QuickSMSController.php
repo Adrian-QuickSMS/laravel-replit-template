@@ -426,7 +426,57 @@ class QuickSMSController extends Controller
             'opt_out_lists' => $opt_out_lists,
             'virtual_numbers' => $virtual_numbers,
             'optout_domains' => $optout_domains,
+            'account_pricing' => $this->getAccountPricingForView(),
         ]);
+    }
+
+    /**
+     * Build a simple channel → unit_price map for the send-message cost preview.
+     * Reads from the account's product tier pricing; falls back to safe defaults.
+     */
+    private function getAccountPricingForView(): array
+    {
+        $defaults = [
+            'sms'           => 0.0395,
+            'rcs_basic'     => 0.0395,
+            'rcs_single'    => 0.0600,
+            'rcs_carousel'  => 0.0600,
+        ];
+
+        try {
+            $tenantId = session('customer_tenant_id');
+            if (!$tenantId) {
+                return $defaults;
+            }
+
+            $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+            $tier = $account?->product_tier ?? 'starter';
+
+            $rows = \DB::table('product_tier_prices')
+                ->where('active', true)
+                ->whereRaw('valid_from <= CURRENT_DATE')
+                ->where(function ($q) {
+                    $q->whereNull('valid_to')->orWhereRaw('valid_to >= CURRENT_DATE');
+                })
+                ->where('product_tier', $tier)
+                ->whereNull('country_iso')
+                ->whereIn('product_type', ['sms', 'rcs_basic', 'rcs_single', 'rcs_carousel'])
+                ->pluck('unit_price', 'product_type');
+
+            $pricing = $defaults;
+            foreach ($rows as $type => $price) {
+                $pricing[$type] = (float) $price;
+            }
+
+            // rcs_carousel inherits rcs_single price if not separately priced
+            if (!isset($rows['rcs_carousel']) && isset($rows['rcs_single'])) {
+                $pricing['rcs_carousel'] = (float) $rows['rcs_single'];
+            }
+
+            return $pricing;
+        } catch (\Throwable $e) {
+            return $defaults;
+        }
     }
 
     public function confirmCampaign(Request $request)
