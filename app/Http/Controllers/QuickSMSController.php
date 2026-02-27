@@ -573,11 +573,11 @@ class QuickSMSController extends Controller
 
     public function confirmCampaign(Request $request)
     {
-        // Get campaign data from session (populated by Send Message Continue button via JavaScript POST)
         $sessionData = $request->session()->get('campaign_config', []);
-        
-        // Campaign summary - use session data with fallbacks
+        $campaignId = $request->query('campaign_id', $sessionData['campaign_id'] ?? null);
+
         $campaign = [
+            'id' => $campaignId,
             'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
             'created_by' => session('customer_name', 'Current User'),
             'created_at' => now()->format('d/m/Y H:i'),
@@ -592,7 +592,6 @@ class QuickSMSController extends Controller
                 : 'No restrictions',
         ];
 
-        // Channel data from session
         $channelType = $sessionData['channel'] ?? 'sms_only';
         $channel = [
             'type' => $channelType,
@@ -603,7 +602,6 @@ class QuickSMSController extends Controller
             ],
         ];
 
-        // Recipients data from session
         $recipientCount = $sessionData['recipient_count'] ?? 0;
         $validCount = $sessionData['valid_count'] ?? $recipientCount;
         $invalidCount = $sessionData['invalid_count'] ?? 0;
@@ -624,21 +622,54 @@ class QuickSMSController extends Controller
             ],
         ];
         
-        // If no sources are set but we have recipients, set manual input
         if ($recipientCount > 0 && array_sum($recipients['sources']) === 0) {
             $recipients['sources']['manual_input'] = $recipientCount;
         }
 
-        // Pricing data - use account pricing or defaults
+        $accountPricing = $this->getAccountPricingForView();
         $pricing = [
-            'sms_unit_price' => 0.023,
-            'rcs_basic_price' => 0.035,
-            'rcs_single_price' => 0.045,
+            'sms_unit_price' => $accountPricing['sms'] ?? 0.0395,
+            'rcs_basic_price' => $accountPricing['rcs_basic'] ?? 0.0395,
+            'rcs_single_price' => $accountPricing['rcs_single'] ?? 0.0600,
             'vat_applicable' => true,
             'vat_rate' => 20,
         ];
 
-        // Message content from session
+        $segmentBreakdown = [];
+        $totalSmsParts = 0;
+
+        $accountId = session('customer_tenant_id');
+
+        if ($campaignId && $accountId) {
+            try {
+                $ownsCampaign = \DB::table('campaigns')
+                    ->where('id', $campaignId)
+                    ->where('account_id', $accountId)
+                    ->exists();
+
+                if ($ownsCampaign) {
+                    $segmentBreakdown = \DB::table('campaign_recipients')
+                        ->where('campaign_id', $campaignId)
+                        ->where('status', 'pending')
+                        ->selectRaw('segments, count(*) as recipient_count')
+                        ->groupBy('segments')
+                        ->orderBy('segments')
+                        ->get()
+                        ->all();
+
+                    $totalSmsParts = array_reduce($segmentBreakdown, function ($carry, $group) {
+                        return $carry + ($group->recipient_count * $group->segments);
+                    }, 0);
+                } else {
+                    $campaignId = null;
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('[ConfirmCampaign] Failed to load segment breakdown', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
         $message = [
             'type' => $channelType,
             'sms_content' => $sessionData['message_content'] ?? '',
@@ -652,12 +683,16 @@ class QuickSMSController extends Controller
             'recipients' => $recipients,
             'pricing' => $pricing,
             'message' => $message,
+            'segment_breakdown' => $segmentBreakdown,
+            'total_sms_parts' => $totalSmsParts,
+            'campaign_id' => $campaignId,
         ]);
     }
 
     public function storeCampaignConfig(Request $request)
     {
         $allowed = [
+            'campaign_id',
             'campaign_name', 'channel', 'sender_id', 'sender_id_id',
             'rcs_agent', 'rcs_agent_id', 'campaign_type',
             'message_content', 'rcs_content', 'recipient_sources',
@@ -695,20 +730,28 @@ class QuickSMSController extends Controller
 
         try {
             $campaignService = app(\App\Services\Campaign\CampaignService::class);
+            $campaignId = $sessionData['campaign_id'] ?? $request->input('campaign_id');
+            $campaign = null;
 
-            // Build Campaign API payload from session data
-            $campaignData = [
-                'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
-                'type' => $sessionData['campaign_type'] ?? 'sms',
-                'message_content' => $sessionData['message_content'] ?? null,
-                'rcs_content' => $sessionData['rcs_content'] ?? null,
-                'sender_id_id' => $sessionData['sender_id_id'] ?? null,
-                'rcs_agent_id' => $sessionData['rcs_agent_id'] ?? null,
-                'recipient_sources' => $sessionData['recipient_sources'] ?? [],
-            ];
+            if ($campaignId) {
+                $campaign = \App\Models\Campaign::where('id', $campaignId)
+                    ->where('account_id', $accountId)
+                    ->whereIn('status', ['draft', 'preparing', 'ready'])
+                    ->first();
+            }
 
-            // Create the campaign as draft
-            $campaign = $campaignService->create($accountId, $campaignData);
+            if (!$campaign) {
+                $campaignData = [
+                    'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
+                    'type' => $sessionData['campaign_type'] ?? 'sms',
+                    'message_content' => $sessionData['message_content'] ?? null,
+                    'rcs_content' => $sessionData['rcs_content'] ?? null,
+                    'sender_id_id' => $sessionData['sender_id_id'] ?? null,
+                    'rcs_agent_id' => $sessionData['rcs_agent_id'] ?? null,
+                    'recipient_sources' => $sessionData['recipient_sources'] ?? [],
+                ];
+                $campaign = $campaignService->create($accountId, $campaignData);
+            }
 
             // Handle scheduling vs immediate send
             $scheduledTime = $sessionData['scheduled_time'] ?? 'now';

@@ -320,15 +320,35 @@
 function confirmSend() {
     var btn = document.getElementById('sendCampaignBtn');
     btn.disabled = true;
-    
+
     var sendingModal = new bootstrap.Modal(document.getElementById('sendingModal'));
     sendingModal.show();
-    
-    setTimeout(function() {
+
+    fetch('{{ route("messages.confirm-send") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ campaign_id: '{{ $campaign_id ?? '' }}' })
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
         sendingModal.hide();
-        var successModal = new bootstrap.Modal(document.getElementById('successModal'));
-        successModal.show();
-    }, 2000);
+        if (data.success) {
+            var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+            successModal.show();
+        } else {
+            btn.disabled = false;
+            alert(data.message || 'Failed to send campaign. Please try again.');
+        }
+    })
+    .catch(function(err) {
+        sendingModal.hide();
+        btn.disabled = false;
+        alert('An error occurred. Please try again.');
+    });
 }
 </script>
 @endpush
