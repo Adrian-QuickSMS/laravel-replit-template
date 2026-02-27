@@ -116,7 +116,7 @@ class PurchaseAuditLog extends Model
         return $this;
     }
 
-    public function scopeForUser($query, string $userId)
+    public function scopeForUser($query, int $userId)
     {
         return $query->where('user_id', $userId);
     }

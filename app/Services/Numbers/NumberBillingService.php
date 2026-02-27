@@ -39,31 +39,6 @@ class NumberBillingService
     ) {}
 
     // =====================================================
-    // VAT HELPERS
-    // =====================================================
-
-    /**
-     * Return VAT rate percentage string for the account (e.g. "20.00" or "0.00").
-     */
-    public function getVatRate(Account $account): string
-    {
-        if ($account->vat_reverse_charges) {
-            return '0.00';
-        }
-        return $account->country === 'GB' ? '20.00' : '0.00';
-    }
-
-    /**
-     * Calculate VAT amount from a net amount and rate string.
-     */
-    private function applyVat(string $netAmount, string $vatRate): array
-    {
-        $vat = bcmul(bcdiv($netAmount, '100', 8), $vatRate, 4);
-        $incVat = bcadd($netAmount, $vat, 4);
-        return ['vat' => $vat, 'inc_vat' => $incVat];
-    }
-
-    // =====================================================
     // PRICING
     // =====================================================
 
@@ -74,12 +49,10 @@ class NumberBillingService
      * 1. Pool number override prices (if set by admin)
      * 2. Account tier pricing (virtual_number_setup / virtual_number_monthly)
      *
-     * @return array ['total_setup_fee', 'total_monthly_fee', 'vat_rate', 'total_setup_vat',
-     *               'total_setup_inc_vat', 'total_monthly_vat', 'total_monthly_inc_vat', 'items']
+     * @return array ['total_setup_fee', 'total_monthly_fee', 'items' => [...per-number pricing]]
      */
     public function calculateVmnPricing(Account $account, Collection $poolNumbers): array
     {
-        $vatRate = $this->getVatRate($account);
         $items = [];
         $totalSetup = '0';
         $totalMonthly = '0';
@@ -109,35 +82,20 @@ class NumberBillingService
                 }
             }
 
-            $setupVatData = $this->applyVat($setupFee, $vatRate);
-            $monthlyVatData = $this->applyVat($monthlyFee, $vatRate);
-
             $items[$poolNumber->id] = [
                 'number' => $poolNumber->number,
                 'country_iso' => $poolNumber->country_iso,
                 'setup_fee' => $setupFee,
-                'setup_vat' => $setupVatData['vat'],
-                'setup_inc_vat' => $setupVatData['inc_vat'],
                 'monthly_fee' => $monthlyFee,
-                'monthly_vat' => $monthlyVatData['vat'],
-                'monthly_inc_vat' => $monthlyVatData['inc_vat'],
             ];
 
             $totalSetup = bcadd($totalSetup, $setupFee, 4);
             $totalMonthly = bcadd($totalMonthly, $monthlyFee, 4);
         }
 
-        $totalSetupVatData = $this->applyVat($totalSetup, $vatRate);
-        $totalMonthlyVatData = $this->applyVat($totalMonthly, $vatRate);
-
         return [
             'total_setup_fee' => $totalSetup,
             'total_monthly_fee' => $totalMonthly,
-            'vat_rate' => $vatRate,
-            'total_setup_vat' => $totalSetupVatData['vat'],
-            'total_setup_inc_vat' => $totalSetupVatData['inc_vat'],
-            'total_monthly_vat' => $totalMonthlyVatData['vat'],
-            'total_monthly_inc_vat' => $totalMonthlyVatData['inc_vat'],
             'currency' => $account->currency ?? 'GBP',
             'items' => $items,
         ];
@@ -145,14 +103,9 @@ class NumberBillingService
 
     /**
      * Calculate keyword purchase pricing.
-     *
-     * @return array ['setup_fee', 'monthly_fee', 'vat_rate', 'setup_vat', 'setup_inc_vat',
-     *               'monthly_vat', 'monthly_inc_vat', 'currency']
      */
     public function calculateKeywordPricing(Account $account): array
     {
-        $vatRate = $this->getVatRate($account);
-
         try {
             $setupPrice = $this->pricingEngine->resolvePrice($account, 'shortcode_keyword_setup', null);
             $setupFee = $setupPrice->unitPrice;
@@ -161,23 +114,15 @@ class NumberBillingService
         }
 
         try {
-            $monthlyPrice = $this->pricingEngine->resolvePrice($account, 'shortcode_keyword_monthly', null);
+            $monthlyPrice = $this->pricingEngine->resolvePrice($account, 'shortcode_monthly', null);
             $monthlyFee = $monthlyPrice->unitPrice;
         } catch (\Exception $e) {
-            $monthlyFee = '2.0000';
+            $monthlyFee = '50.0000';
         }
-
-        $setupVatData = $this->applyVat($setupFee, $vatRate);
-        $monthlyVatData = $this->applyVat($monthlyFee, $vatRate);
 
         return [
             'setup_fee' => $setupFee,
-            'setup_vat' => $setupVatData['vat'],
-            'setup_inc_vat' => $setupVatData['inc_vat'],
             'monthly_fee' => $monthlyFee,
-            'monthly_vat' => $monthlyVatData['vat'],
-            'monthly_inc_vat' => $monthlyVatData['inc_vat'],
-            'vat_rate' => $vatRate,
             'currency' => $account->currency ?? 'GBP',
         ];
     }
@@ -187,74 +132,58 @@ class NumberBillingService
     // =====================================================
 
     /**
-     * Debit setup fee (+ VAT where applicable) from account balance.
+     * Debit setup fee from account balance.
      * Uses immediate debit pattern (Option 2 from spec).
      *
-     * @param string $amount      Net setup fee (ex-VAT)
-     * @param string $vatAmount   VAT portion (0.0000 for non-UK accounts)
      * @throws InsufficientBalanceException
      */
     public function debitSetupFee(
         Account $account,
         string $amount,
         string $productType,
-        string $description,
-        string $vatAmount = '0.0000'
+        string $description
     ): void {
-        $totalDebit = bcadd($amount, $vatAmount, 4);
-
-        if (bccomp($totalDebit, '0', 4) <= 0) {
+        if (bccomp($amount, '0', 4) <= 0) {
             return; // No fee to charge
         }
 
         $balance = AccountBalance::lockForAccount($account->id);
 
-        if (!$balance->hasSufficientBalance($totalDebit)) {
-            throw new InsufficientBalanceException($account->id, $totalDebit, $balance->effective_available);
+        if (!$balance->hasSufficientBalance($amount)) {
+            throw new InsufficientBalanceException($account->id, $amount, $balance->effective_available);
         }
 
         $idempotencyKey = 'number-setup-' . Str::uuid();
         $isPostpay = $account->billing_type === 'postpay';
-        $vatDesc = bccomp($vatAmount, '0', 4) > 0
-            ? " (inc. £" . number_format((float) $vatAmount, 2) . " VAT)"
-            : '';
 
         if ($isPostpay) {
-            $lines = [
-                ['account_code' => 'AR', 'debit' => $totalDebit, 'credit' => '0'],
-                ['account_code' => 'REVENUE_RECURRING', 'debit' => '0', 'credit' => $amount],
-            ];
-            if (bccomp($vatAmount, '0', 4) > 0) {
-                $lines[] = ['account_code' => 'VAT_OUTPUT', 'debit' => '0', 'credit' => $vatAmount];
-            }
             $this->ledgerService->createEntry(
                 entryType: 'number_setup_postpay',
                 accountId: $account->id,
-                amount: $totalDebit,
-                description: "Number setup fee ({$description}){$vatDesc}",
+                amount: $amount,
+                description: "Number setup fee ({$description})",
                 idempotencyKey: $idempotencyKey,
-                lines: $lines,
+                lines: [
+                    ['account_code' => 'AR', 'debit' => $amount, 'credit' => '0'],
+                    ['account_code' => 'REVENUE_RECURRING', 'debit' => '0', 'credit' => $amount],
+                ],
                 currency: $account->currency ?? 'GBP',
             );
-            $balance->total_outstanding = bcadd($balance->total_outstanding, $totalDebit, 4);
+            $balance->total_outstanding = bcadd($balance->total_outstanding, $amount, 4);
         } else {
-            $lines = [
-                ['account_code' => 'DEFERRED_REV', 'debit' => $totalDebit, 'credit' => '0'],
-                ['account_code' => 'REVENUE_RECURRING', 'debit' => '0', 'credit' => $amount],
-            ];
-            if (bccomp($vatAmount, '0', 4) > 0) {
-                $lines[] = ['account_code' => 'VAT_OUTPUT', 'debit' => '0', 'credit' => $vatAmount];
-            }
             $this->ledgerService->createEntry(
                 entryType: 'number_setup_prepay',
                 accountId: $account->id,
-                amount: $totalDebit,
-                description: "Number setup fee ({$description}){$vatDesc}",
+                amount: $amount,
+                description: "Number setup fee ({$description})",
                 idempotencyKey: $idempotencyKey,
-                lines: $lines,
+                lines: [
+                    ['account_code' => 'DEFERRED_REV', 'debit' => $amount, 'credit' => '0'],
+                    ['account_code' => 'REVENUE_RECURRING', 'debit' => '0', 'credit' => $amount],
+                ],
                 currency: $account->currency ?? 'GBP',
             );
-            $balance->balance = bcsub($balance->balance, $totalDebit, 4);
+            $balance->balance = bcsub($balance->balance, $amount, 4);
         }
 
         $balance->recalculateEffectiveAvailable();

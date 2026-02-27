@@ -307,12 +307,14 @@ class CampaignRecipient extends Model
         $fullName = trim($firstName . ' ' . $lastName);
 
         $data = [
+            // Canonical snake_case names
             'first_name' => $firstName,
             'last_name' => $lastName,
             'full_name' => $fullName,
             'email' => $this->email ?? '',
             'mobile_number' => $this->mobile_number ?? '',
 
+            // camelCase aliases (backward compatibility)
             'firstName' => $firstName,
             'lastName' => $lastName,
             'fullName' => $fullName,
@@ -320,19 +322,18 @@ class CampaignRecipient extends Model
             'mobile' => $this->mobile_number ?? '',
         ];
 
+        // Merge custom_data fields with both flat and prefixed access
         $customData = $this->custom_data ?? [];
-        if (is_string($customData)) {
-            $customData = json_decode($customData, true) ?? [];
-        }
-        if (!is_array($customData)) {
-            $customData = [];
-        }
         foreach ($customData as $key => $value) {
             $safeValue = $value ?? '';
+            // Flat access: {{Appointment Date}} or {{company}}
             $data[$key] = $safeValue;
+            // Prefixed access (backward compat): {{custom_data.fieldname}}
             $data["custom_data.{$key}"] = $safeValue;
         }
 
+        // Replace all {{placeholder}} tokens
+        // Regex supports any characters between {{ }} (spaces, hyphens, etc.)
         return preg_replace_callback('/\{\{\s*([^}]+?)\s*\}\}/', function ($matches) use ($data) {
             $field = trim($matches[1]);
             return $data[$field] ?? '';

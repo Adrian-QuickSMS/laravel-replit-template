@@ -10,6 +10,7 @@ use App\Models\MessageTemplate;
 use App\Models\RcsAgent;
 use App\Models\SenderId;
 use App\Services\Admin\MessageEnforcementService;
+use App\Services\RcsContentValidator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -31,6 +32,7 @@ class CampaignService
         private RecipientResolverService $recipientResolver,
         private BillingPreflightService $billingPreflight,
         private MessageEnforcementService $enforcement,
+        private RcsContentValidator $rcsValidator,
     ) {}
 
     // =====================================================
@@ -63,21 +65,18 @@ class CampaignService
             'recipient_sources' => $data['recipient_sources'] ?? [],
             'scheduled_at' => $data['scheduled_at'] ?? null,
             'timezone' => $data['timezone'] ?? null,
-            'validity_period' => $data['validity_period'] ?? null,
-            'sending_window_start' => $data['sending_window_start'] ?? null,
-            'sending_window_end' => $data['sending_window_end'] ?? null,
             'send_rate' => $data['send_rate'] ?? 0,
             'batch_size' => $data['batch_size'] ?? Campaign::DEFAULT_BATCH_SIZE,
             'tags' => $data['tags'] ?? [],
             'metadata' => $data['metadata'] ?? [],
             'created_by' => $data['created_by'] ?? null,
+            // Opt-out configuration
             'opt_out_enabled' => $data['opt_out_enabled'] ?? false,
             'opt_out_method' => $data['opt_out_method'] ?? null,
             'opt_out_number_id' => $data['opt_out_number_id'] ?? null,
             'opt_out_keyword' => $data['opt_out_keyword'] ?? null,
             'opt_out_text' => $data['opt_out_text'] ?? null,
             'opt_out_list_id' => $data['opt_out_list_id'] ?? null,
-            'opt_out_screening_list_ids' => $data['opt_out_screening_list_ids'] ?? [],
             'opt_out_url_enabled' => $data['opt_out_url_enabled'] ?? false,
         ]);
 
@@ -86,6 +85,14 @@ class CampaignService
             $campaign->encoding = MessageTemplate::detectEncoding($campaign->message_content);
             $campaign->segment_count = MessageTemplate::calculateSegments($campaign->message_content, $campaign->encoding);
             $campaign->save();
+        }
+
+        // Validate RCS content structure on save
+        if ($campaign->rcs_content && in_array($campaign->type, [Campaign::TYPE_RCS_SINGLE, Campaign::TYPE_RCS_CAROUSEL])) {
+            $rcsErrors = $this->rcsValidator->validateStructure($campaign->rcs_content, $campaign->type);
+            if (!empty($rcsErrors)) {
+                throw ValidationException::withMessages(['rcs_content' => $rcsErrors]);
+            }
         }
 
         Log::info('[CampaignService] Campaign created', [
@@ -117,6 +124,7 @@ class CampaignService
                 $campaign->segment_count = MessageTemplate::calculateSegments($campaign->message_content, $campaign->encoding);
             }
 
+            // Invalidate resolved content — per-recipient segments are now stale
             $campaign->content_resolved_at = null;
             $campaign->preparation_status = null;
             $campaign->preparation_progress = 0;
@@ -129,6 +137,14 @@ class CampaignService
                     'segments' => $campaign->segment_count ?: 1,
                     'encoding' => null,
                 ]);
+        }
+
+        // Validate RCS content structure if changed
+        if ($campaign->isDirty('rcs_content') && $campaign->rcs_content && in_array($campaign->type, [Campaign::TYPE_RCS_SINGLE, Campaign::TYPE_RCS_CAROUSEL])) {
+            $rcsErrors = $this->rcsValidator->validateStructure($campaign->rcs_content, $campaign->type);
+            if (!empty($rcsErrors)) {
+                throw ValidationException::withMessages(['rcs_content' => $rcsErrors]);
+            }
         }
 
         $campaign->updated_by = $data['updated_by'] ?? $campaign->updated_by;
@@ -155,12 +171,14 @@ class CampaignService
             'rcs_content' => $template->rcs_content,
             'encoding' => $template->encoding,
             'segment_count' => $template->segment_count,
+            // Invalidate any previously resolved content — template content has changed
             'content_resolved_at' => null,
             'preparation_status' => null,
             'preparation_progress' => 0,
             'preparation_error' => null,
         ]);
 
+        // Clear stale per-recipient resolved content
         DB::table('campaign_recipients')
             ->where('campaign_id', $campaign->id)
             ->update([
@@ -184,9 +202,7 @@ class CampaignService
     {
         return $this->recipientResolver->preview(
             $campaign->recipient_sources ?? [],
-            $campaign->account_id,
-            'GB',
-            $campaign->opt_out_screening_list_ids ?? []
+            $campaign->account_id
         );
     }
 
@@ -218,6 +234,9 @@ class CampaignService
      * 1. Resolve recipients synchronously (contact list/tag expansion, dedup, opt-out filtering)
      * 2. Dispatch async content resolution job (merge field substitution + per-recipient segment calculation)
      *
+     * The frontend should poll preparationStatus() until preparation_status === 'ready',
+     * then call estimateCost() for the accurate total.
+     *
      * @throws \RuntimeException if campaign is not in draft status
      */
     public function prepareCampaign(Campaign $campaign): ResolverResult
@@ -226,46 +245,83 @@ class CampaignService
             throw new \RuntimeException("Campaign must be in draft status to prepare.");
         }
 
+        // Clear any existing recipients (supports re-preparation after message edits)
         DB::table('campaign_recipients')
             ->where('campaign_id', $campaign->id)
             ->delete();
 
+        // Reset preparation state
         $campaign->update([
+            'content_resolved_at' => null,
             'preparation_status' => 'preparing',
             'preparation_progress' => 0,
             'preparation_error' => null,
-            'content_resolved_at' => null,
         ]);
 
-        $result = $this->recipientResolver->resolve($campaign);
+        // Step 1: Resolve recipients synchronously
+        // (expands lists/tags, deduplicates, filters opt-outs, inserts campaign_recipients)
+        $resolverResult = $this->recipientResolver->resolve($campaign);
 
-        $campaign->update([
-            'total_recipients' => $result->totalResolved,
-            'total_unique_recipients' => $result->totalResolved,
-        ]);
+        if ($resolverResult->totalCreated === 0) {
+            $campaign->update([
+                'preparation_status' => 'ready',
+                'preparation_progress' => 100,
+                'content_resolved_at' => now(),
+            ]);
+            return $resolverResult;
+        }
 
+        // Step 2: Dispatch async content resolution
+        // (merge fields + per-recipient encoding detection + segment calculation)
         ResolveRecipientContentJob::dispatch($campaign->id);
 
         Log::info('[CampaignService] Campaign preparation started', [
             'campaign_id' => $campaign->id,
-            'recipients_resolved' => $result->totalResolved,
+            'recipients_resolved' => $resolverResult->totalCreated,
         ]);
 
-        return $result;
+        return $resolverResult;
     }
 
     /**
-     * Get preparation status for polling.
+     * Get the current preparation status and segment statistics.
+     * Called by the frontend to poll until preparation is ready.
      */
     public function getPreparationStatus(Campaign $campaign): array
     {
-        return [
-            'status' => $campaign->preparation_status,
-            'progress' => $campaign->preparation_progress,
-            'error' => $campaign->preparation_error,
-            'content_resolved' => $campaign->content_resolved_at !== null,
-            'total_recipients' => $campaign->total_recipients,
+        $result = [
+            'preparation_status' => $campaign->preparation_status,
+            'preparation_progress' => $campaign->preparation_progress ?? 0,
         ];
+
+        if ($campaign->preparation_status === 'ready') {
+            // Include segment distribution statistics
+            $segmentStats = DB::table('campaign_recipients')
+                ->where('campaign_id', $campaign->id)
+                ->where('status', CampaignRecipient::STATUS_PENDING)
+                ->select([
+                    DB::raw('MIN(segments) as min_segments'),
+                    DB::raw('MAX(segments) as max_segments'),
+                    DB::raw('ROUND(AVG(segments)::numeric, 2) as avg_segments'),
+                    DB::raw("COUNT(*) FILTER (WHERE encoding = 'unicode') as unicode_count"),
+                    DB::raw('COUNT(*) as total_count'),
+                    DB::raw('SUM(segments) as total_segments'),
+                ])
+                ->first();
+
+            $result['segment_stats'] = [
+                'min_segments' => (int) ($segmentStats->min_segments ?? 1),
+                'max_segments' => (int) ($segmentStats->max_segments ?? 1),
+                'avg_segments' => (float) ($segmentStats->avg_segments ?? 1),
+                'unicode_count' => (int) ($segmentStats->unicode_count ?? 0),
+                'total_count' => (int) ($segmentStats->total_count ?? 0),
+                'total_segments' => (int) ($segmentStats->total_segments ?? 0),
+            ];
+        } elseif ($campaign->preparation_status === 'failed') {
+            $result['error'] = $campaign->preparation_error;
+        }
+
+        return $result;
     }
 
     // =====================================================
@@ -284,10 +340,12 @@ class CampaignService
     {
         $account = Account::findOrFail($campaign->account_id);
 
+        // Accurate path: content resolved, use per-recipient segment data
         if ($campaign->content_resolved_at) {
             return $this->estimateCostFromResolvedRecipients($account, $campaign);
         }
 
+        // Fallback: flat estimate using campaign-level segment_count
         $countryBreakdown = DB::table('campaign_recipients')
             ->where('campaign_id', $campaign->id)
             ->where('status', CampaignRecipient::STATUS_PENDING)
@@ -346,9 +404,13 @@ class CampaignService
             if (empty($campaign->message_content)) {
                 $errors[] = 'Message content is required.';
             }
-        } elseif ($campaign->type === Campaign::TYPE_RCS_SINGLE) {
+        } elseif (in_array($campaign->type, [Campaign::TYPE_RCS_SINGLE, Campaign::TYPE_RCS_CAROUSEL])) {
             if (empty($campaign->rcs_content)) {
                 $errors[] = 'RCS rich content is required.';
+            } else {
+                // Full structural validation including asset finalization checks
+                $rcsErrors = $this->rcsValidator->validateForSend($campaign->rcs_content, $campaign->type);
+                $errors = array_merge($errors, $rcsErrors);
             }
         }
 
@@ -511,6 +573,9 @@ class CampaignService
     /**
      * Process a scheduled campaign that's due for send.
      * Called by the ScheduledCampaignDispatcher job.
+     *
+     * Forces content re-resolution because contact data may have changed
+     * between scheduling and the actual send time.
      */
     public function processScheduled(Campaign $campaign): PreflightResult
     {
@@ -518,10 +583,13 @@ class CampaignService
             throw new \RuntimeException("Campaign is not in scheduled status.");
         }
 
+        // Force re-resolution — contact data may have changed since scheduling
+        $campaign->update(['content_resolved_at' => null]);
+
         // Billing preflight
         $preflightResult = $this->billingPreflight->runPreflight($campaign);
 
-        // Resolve per-recipient content
+        // Resolve per-recipient content (re-runs because content_resolved_at was cleared)
         $this->resolveRecipientContent($campaign);
 
         // Transition to queued
@@ -705,39 +773,60 @@ class CampaignService
     // =====================================================
 
     /**
-     * Resolve merge fields for all campaign recipients.
+     * Resolve merge fields in message content for all pending recipients.
+     * Pre-computes resolved_content, encoding, and segments per-recipient
+     * so the delivery worker doesn't need to, and cost estimation is accurate.
+     *
+     * Also resolves placeholders in RCS card text fields (description, textBody)
+     * and stores the resolved rcs_content per-recipient in metadata.
      *
      * Skips if content has already been resolved (e.g. during prepareCampaign).
      */
     public function resolveRecipientContent(Campaign $campaign): void
     {
+        // Skip if already resolved (e.g. done during campaign preparation)
         if ($campaign->content_resolved_at) {
             return;
         }
 
-        if (!$campaign->message_content) {
+        // Resolve RCS content placeholders if applicable
+        $hasRcsPlaceholders = false;
+        if ($campaign->rcs_content && in_array($campaign->type, [Campaign::TYPE_RCS_SINGLE, Campaign::TYPE_RCS_CAROUSEL])) {
+            $rcsText = $this->extractRcsTextContent($campaign->rcs_content);
+            $hasRcsPlaceholders = !empty(MessageTemplate::extractPlaceholders($rcsText));
+        }
+
+        if (!$campaign->message_content && !$hasRcsPlaceholders) {
             $campaign->update(['content_resolved_at' => now()]);
             return;
         }
 
-        $placeholders = MessageTemplate::extractPlaceholders($campaign->message_content);
-        if (empty($placeholders)) {
-            $encoding = MessageTemplate::detectEncoding($campaign->message_content);
+        // Check for SMS/message_content placeholders
+        $hasSmsPlaceholders = $campaign->message_content
+            ? !empty(MessageTemplate::extractPlaceholders($campaign->message_content))
+            : false;
 
-            DB::table('campaign_recipients')
-                ->where('campaign_id', $campaign->id)
-                ->where('status', CampaignRecipient::STATUS_PENDING)
-                ->whereNull('resolved_content')
-                ->update([
-                    'resolved_content' => $campaign->message_content,
-                    'segments' => $campaign->segment_count ?: 1,
-                    'encoding' => $encoding,
-                ]);
+        if (!$hasSmsPlaceholders && !$hasRcsPlaceholders) {
+            // No placeholders anywhere — bulk update with identical content
+            if ($campaign->message_content) {
+                $encoding = MessageTemplate::detectEncoding($campaign->message_content);
+
+                DB::table('campaign_recipients')
+                    ->where('campaign_id', $campaign->id)
+                    ->where('status', CampaignRecipient::STATUS_PENDING)
+                    ->whereNull('resolved_content')
+                    ->update([
+                        'resolved_content' => $campaign->message_content,
+                        'segments' => $campaign->segment_count ?: 1,
+                        'encoding' => $encoding,
+                    ]);
+            }
 
             $campaign->update(['content_resolved_at' => now()]);
             return;
         }
 
+        // Process in chunks with batch UPDATE for performance.
         $batchUpdateSize = 500;
 
         DB::table('campaign_recipients')
@@ -745,7 +834,7 @@ class CampaignService
             ->where('status', CampaignRecipient::STATUS_PENDING)
             ->whereNull('resolved_content')
             ->orderBy('id')
-            ->chunk(2000, function ($recipients) use ($campaign, $batchUpdateSize) {
+            ->chunk(2000, function ($recipients) use ($campaign, $batchUpdateSize, $hasRcsPlaceholders) {
                 $pendingUpdates = [];
 
                 foreach ($recipients as $row) {
@@ -753,58 +842,137 @@ class CampaignService
                     $recipient->exists = true;
                     $recipient->id = $row->id;
 
-                    $resolvedContent = $recipient->resolveContent($campaign->message_content);
-                    $encoding = MessageTemplate::detectEncoding($resolvedContent);
-                    $segments = MessageTemplate::calculateSegments($resolvedContent, $encoding);
+                    $resolvedContent = $campaign->message_content
+                        ? $recipient->resolveContent($campaign->message_content)
+                        : null;
 
-                    $pendingUpdates[] = [
+                    $encoding = $resolvedContent ? MessageTemplate::detectEncoding($resolvedContent) : null;
+                    $segments = $resolvedContent ? MessageTemplate::calculateSegments($resolvedContent, $encoding) : ($campaign->segment_count ?: 1);
+
+                    $update = [
                         'id' => $row->id,
                         'resolved_content' => $resolvedContent,
                         'segments' => $segments,
                         'encoding' => $encoding,
                     ];
 
+                    // Resolve RCS card placeholders per-recipient
+                    if ($hasRcsPlaceholders && $campaign->rcs_content) {
+                        $resolvedRcs = $this->resolveRcsPlaceholders($campaign->rcs_content, $recipient);
+                        $existingMeta = json_decode($row->metadata ?? '{}', true) ?: [];
+                        $existingMeta['resolved_rcs_content'] = $resolvedRcs;
+                        $update['metadata'] = json_encode($existingMeta);
+                    }
+
+                    $pendingUpdates[] = $update;
+
                     if (count($pendingUpdates) >= $batchUpdateSize) {
-                        $this->flushBatchContentUpdate($pendingUpdates);
+                        $this->flushBatchContentUpdate($pendingUpdates, $hasRcsPlaceholders);
                         $pendingUpdates = [];
                     }
                 }
 
                 if (!empty($pendingUpdates)) {
-                    $this->flushBatchContentUpdate($pendingUpdates);
+                    $this->flushBatchContentUpdate($pendingUpdates, $hasRcsPlaceholders);
                 }
             });
 
         $campaign->update(['content_resolved_at' => now()]);
     }
 
-    private function flushBatchContentUpdate(array $updates): void
+    /**
+     * Extract all text content from RCS cards for placeholder detection.
+     */
+    private function extractRcsTextContent(array $rcsContent): string
+    {
+        $texts = [];
+        foreach ($rcsContent['cards'] ?? [] as $card) {
+            if (!empty($card['description'])) {
+                $texts[] = $card['description'];
+            }
+            if (!empty($card['textBody'])) {
+                $texts[] = $card['textBody'];
+            }
+        }
+        return implode(' ', $texts);
+    }
+
+    /**
+     * Resolve placeholders in RCS content card text fields for a specific recipient.
+     */
+    private function resolveRcsPlaceholders(array $rcsContent, CampaignRecipient $recipient): array
+    {
+        $resolved = $rcsContent;
+
+        foreach ($resolved['cards'] ?? [] as $cardIndex => $card) {
+            if (!empty($card['description'])) {
+                $resolved['cards'][$cardIndex]['description'] = $recipient->resolveContent($card['description']);
+            }
+            if (!empty($card['textBody'])) {
+                $resolved['cards'][$cardIndex]['textBody'] = $recipient->resolveContent($card['textBody']);
+            }
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * Flush a batch of resolved content updates using a single SQL statement.
+     * Uses PostgreSQL UPDATE FROM VALUES for ~60x faster bulk updates.
+     */
+    private function flushBatchContentUpdate(array $updates, bool $includeMetadata = false): void
     {
         if (empty($updates)) {
             return;
         }
 
-        $values = [];
-        $bindings = [];
+        if ($includeMetadata) {
+            $values = [];
+            $bindings = [];
 
-        foreach ($updates as $update) {
-            $values[] = '(?, ?, ?, ?)';
-            $bindings[] = $update['id'];
-            $bindings[] = $update['resolved_content'];
-            $bindings[] = $update['segments'];
-            $bindings[] = $update['encoding'];
+            foreach ($updates as $update) {
+                $values[] = '(?, ?, ?, ?, ?)';
+                $bindings[] = $update['id'];
+                $bindings[] = $update['resolved_content'];
+                $bindings[] = $update['segments'];
+                $bindings[] = $update['encoding'];
+                $bindings[] = $update['metadata'] ?? '{}';
+            }
+
+            $valuesSql = implode(', ', $values);
+
+            DB::statement("
+                UPDATE campaign_recipients AS cr
+                SET resolved_content = v.resolved_content,
+                    segments = v.segments::integer,
+                    encoding = v.encoding,
+                    metadata = v.metadata::jsonb
+                FROM (VALUES {$valuesSql}) AS v(id, resolved_content, segments, encoding, metadata)
+                WHERE cr.id = v.id::uuid
+            ", $bindings);
+        } else {
+            $values = [];
+            $bindings = [];
+
+            foreach ($updates as $update) {
+                $values[] = '(?, ?, ?, ?)';
+                $bindings[] = $update['id'];
+                $bindings[] = $update['resolved_content'];
+                $bindings[] = $update['segments'];
+                $bindings[] = $update['encoding'];
+            }
+
+            $valuesSql = implode(', ', $values);
+
+            DB::statement("
+                UPDATE campaign_recipients AS cr
+                SET resolved_content = v.resolved_content,
+                    segments = v.segments::integer,
+                    encoding = v.encoding
+                FROM (VALUES {$valuesSql}) AS v(id, resolved_content, segments, encoding)
+                WHERE cr.id = v.id::uuid
+            ", $bindings);
         }
-
-        $valuesSql = implode(', ', $values);
-
-        DB::statement("
-            UPDATE campaign_recipients AS cr
-            SET resolved_content = v.resolved_content,
-                segments = v.segments::integer,
-                encoding = v.encoding
-            FROM (VALUES {$valuesSql}) AS v(id, resolved_content, segments, encoding)
-            WHERE cr.id = v.id::uuid
-        ", $bindings);
     }
 
     /**

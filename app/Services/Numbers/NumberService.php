@@ -77,13 +77,12 @@ class NumberService
             // Step 2: Calculate pricing
             $pricing = $this->billing->calculateVmnPricing($account, $poolNumbers);
 
-            // Step 3: Debit setup fee + VAT (immediate debit, refund on failure)
+            // Step 3: Debit setup fee (immediate debit, refund on failure)
             $this->billing->debitSetupFee(
                 $account,
                 $pricing['total_setup_fee'],
                 'vmn_purchase',
-                count($poolNumbers) . ' VMN(s)',
-                $pricing['total_setup_vat'] ?? '0.0000'
+                count($poolNumbers) . ' VMN(s)'
             );
 
             // Step 4: Create purchased_number records + mark pool as sold + auto-create SenderIds
@@ -94,7 +93,7 @@ class NumberService
                 $purchased = PurchasedNumber::withoutGlobalScopes()->create([
                     'account_id' => $accountId,
                     'vmn_pool_id' => $poolNumber->id,
-                    'number' => self::normalizeToE164($poolNumber->number, $poolNumber->country_iso),
+                    'number' => $poolNumber->number,
                     'number_type' => PurchasedNumber::TYPE_VMN,
                     'country_iso' => $poolNumber->country_iso,
                     'friendly_name' => null,
@@ -180,13 +179,12 @@ class NumberService
             // Calculate pricing
             $pricing = $this->billing->calculateKeywordPricing($account);
 
-            // Debit setup fee + VAT
+            // Debit setup fee
             $this->billing->debitSetupFee(
                 $account,
                 $pricing['setup_fee'],
                 'keyword_purchase',
-                "Keyword '{$keyword}'",
-                $pricing['setup_vat'] ?? '0.0000'
+                "Keyword '{$keyword}'"
             );
 
             // Create keyword record
@@ -587,16 +585,14 @@ class NumberService
         $added = 0;
 
         foreach ($numbers as $data) {
-            $normalizedNumber = self::normalizeToE164($data['number'], $data['country_iso']);
-
             // Skip if already in pool
-            $exists = VmnPoolNumber::where('number', $normalizedNumber)->exists();
+            $exists = VmnPoolNumber::where('number', $data['number'])->exists();
             if ($exists) {
                 continue;
             }
 
             VmnPoolNumber::create([
-                'number' => $normalizedNumber,
+                'number' => $data['number'],
                 'country_iso' => $data['country_iso'],
                 'number_type' => $data['number_type'] ?? 'mobile',
                 'capabilities' => $data['capabilities'] ?? 'sms',
@@ -627,30 +623,30 @@ class NumberService
         User $purchaser
     ): ?SenderId {
         try {
-            return DB::transaction(function () use ($purchased, $accountId, $purchaser) {
-                return SenderId::withoutGlobalScopes()->create([
-                    'account_id' => $accountId,
-                    'sender_id_value' => $purchased->number,
-                    'sender_type' => SenderId::TYPE_NUMERIC,
-                    'brand_name' => $purchased->friendly_name ?? $purchased->number,
-                    'country_code' => $purchased->country_iso,
-                    'use_case' => 'Virtual mobile number',
-                    'use_case_description' => 'Auto-registered from VMN purchase',
-                    'permission_confirmed' => true,
-                    'workflow_status' => SenderId::STATUS_APPROVED,
-                    'is_default' => false,
-                    'created_by' => $purchaser->id,
-                    'submitted_at' => now(),
-                    'reviewed_at' => now(),
-                    'is_locked' => true,
-                    'full_payload' => [
-                        'source' => 'vmn_purchase',
-                        'purchased_number_id' => $purchased->id,
-                    ],
-                ]);
-            });
+            $senderId = SenderId::withoutGlobalScopes()->create([
+                'account_id' => $accountId,
+                'sender_id_value' => $purchased->number,
+                'sender_type' => SenderId::TYPE_NUMERIC,
+                'brand_name' => $purchased->friendly_name ?? $purchased->number,
+                'country_code' => $purchased->country_iso,
+                'use_case' => 'Virtual mobile number',
+                'use_case_description' => 'Auto-registered from VMN purchase',
+                'permission_confirmed' => true,
+                'workflow_status' => SenderId::STATUS_APPROVED,
+                'is_default' => false,
+                'created_by' => $purchaser->id,
+                'submitted_at' => now(),
+                'reviewed_at' => now(),
+                'is_locked' => true,
+                'full_payload' => [
+                    'source' => 'vmn_purchase',
+                    'purchased_number_id' => $purchased->id,
+                ],
+            ]);
+
+            return $senderId;
         } catch (\Exception $e) {
-            Log::warning('[NumberService] Skipped auto-create SenderId (savepoint rolled back)', [
+            Log::error('[NumberService] Failed to auto-create SenderId', [
                 'number' => $purchased->number,
                 'error' => $e->getMessage(),
             ]);
@@ -705,34 +701,6 @@ class NumberService
     // =====================================================
     // LAST USED AT (static helper for integration hooks)
     // =====================================================
-
-    /**
-     * Normalise a phone number to E.164 format without '+'.
-     *
-     * Rules applied in order:
-     *   1. Strip leading '+' if present (e.g. +447700900002 → 447700900002)
-     *   2. GB national format (07XXXXXXXXX) → 447XXXXXXXXX
-     *
-     * Shortcodes (≤ 6 digits) are returned unchanged.
-     */
-    public static function normalizeToE164(string $number, string $countryIso): string
-    {
-        $number = trim($number);
-
-        // Strip leading '+' if present
-        if (str_starts_with($number, '+')) {
-            $number = substr($number, 1);
-        }
-
-        // Already in E.164 — leave as-is
-        if (strlen($number) > 6) {
-            if ($countryIso === 'GB' && str_starts_with($number, '07')) {
-                $number = '44' . substr($number, 1);
-            }
-        }
-
-        return $number;
-    }
 
     /**
      * Update last_used_at for a number by its E.164 number string.

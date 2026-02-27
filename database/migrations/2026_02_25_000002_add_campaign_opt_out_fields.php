@@ -9,6 +9,9 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // =====================================================
+        // 1. Add opt-out configuration columns to campaigns table
+        // =====================================================
         Schema::table('campaigns', function (Blueprint $table) {
             $table->boolean('opt_out_enabled')->default(false)->after('metadata');
             $table->string('opt_out_method', 20)->nullable()->after('opt_out_enabled')
@@ -24,6 +27,9 @@ return new class extends Migration
             $table->boolean('opt_out_url_enabled')->default(false)->after('opt_out_list_id');
         });
 
+        // =====================================================
+        // 2. Campaign opt-out URLs — unique URL per MSISDN per campaign
+        // =====================================================
         Schema::create('campaign_opt_out_urls', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('account_id');
@@ -45,6 +51,7 @@ return new class extends Migration
             $table->index('expires_at');
         });
 
+        // UUID trigger for campaign_opt_out_urls
         DB::unprepared("
             CREATE OR REPLACE FUNCTION generate_uuid_campaign_opt_out_urls()
             RETURNS TRIGGER AS \$\$
@@ -59,6 +66,7 @@ return new class extends Migration
             FOR EACH ROW EXECUTE FUNCTION generate_uuid_campaign_opt_out_urls();
         ");
 
+        // RLS for campaign_opt_out_urls
         DB::unprepared("
             ALTER TABLE campaign_opt_out_urls ENABLE ROW LEVEL SECURITY;
 
@@ -66,9 +74,18 @@ return new class extends Migration
                 USING (account_id::text = current_setting('app.current_tenant_id', true));
         ");
 
+        // =====================================================
+        // 3. Add campaign_sms_reply and campaign_url_click to opt_out_source ENUM
+        // =====================================================
         DB::statement("ALTER TYPE opt_out_source ADD VALUE IF NOT EXISTS 'campaign_sms_reply'");
         DB::statement("ALTER TYPE opt_out_source ADD VALUE IF NOT EXISTS 'campaign_url_click'");
 
+        // =====================================================
+        // 4. Database-level unique constraint: one keyword per number per in-flight campaign
+        //
+        // Prevents two active campaigns from using the same keyword on the same number.
+        // Uses a partial unique index filtered to non-terminal campaign statuses.
+        // =====================================================
         DB::unprepared("
             CREATE UNIQUE INDEX idx_campaign_opt_out_keyword_inflight
             ON campaigns (opt_out_number_id, opt_out_keyword)
@@ -81,6 +98,7 @@ return new class extends Migration
     public function down(): void
     {
         DB::unprepared("DROP INDEX IF EXISTS idx_campaign_opt_out_keyword_inflight");
+
         DB::unprepared("DROP POLICY IF EXISTS campaign_opt_out_urls_tenant_isolation ON campaign_opt_out_urls");
         DB::unprepared("ALTER TABLE campaign_opt_out_urls DISABLE ROW LEVEL SECURITY");
         DB::unprepared("DROP TRIGGER IF EXISTS before_insert_campaign_opt_out_urls_uuid ON campaign_opt_out_urls");

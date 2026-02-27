@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Models\Contact;
 use App\Models\ContactList;
 use App\Models\OptOutList;
@@ -12,10 +11,6 @@ use App\Models\Tag;
 use App\Models\Account;
 use App\Models\SenderId;
 use App\Models\User;
-use App\Models\RcsAgent;
-use App\Models\MessageTemplate;
-use App\Models\Campaign;
-use App\Services\Billing\PricingEngine;
 
 class QuickSMSController extends Controller
 {
@@ -360,80 +355,66 @@ class QuickSMSController extends Controller
     {
         $sender_ids = $this->getApprovedSenderIds();
 
-        $rcs_agents = RcsAgent::where('workflow_status', 'approved')
-            ->select('id', 'name', 'logo_url', 'description', 'brand_color', 'workflow_status')
-            ->get()
-            ->map(function($agent) {
-                return [
-                    'id' => $agent->id,
-                    'name' => $agent->name,
-                    'logo' => $agent->logo_url
-                        ? (str_starts_with($agent->logo_url, 'data:') ? $agent->logo_url : asset('storage/' . $agent->logo_url))
-                        : asset('images/default-agent-logo.png'),
-                    'tagline' => $agent->description ?? '',
-                    'brand_color' => $agent->brand_color ?? '#886CC0',
-                    'status' => $agent->workflow_status,
-                ];
-            })
-            ->toArray();
+        // TODO: Replace with database query - GET /api/rcs-agents?status=approved
+        $rcs_agents = [
+            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
+            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
+        ];
 
-        $templates = MessageTemplate::where('status', 'active')
-            ->orderBy('name')
-            ->get()
-            ->map(function($t) { return $t->toPortalArray(); })
-            ->toArray();
+        // TODO: Replace with database query - GET /api/templates (excludes API-triggered for portal UI)
+        $templates = [
+            ['id' => 1, 'name' => 'Welcome Message', 'content' => 'Welcome to QuickSMS! Reply STOP to opt out.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 1],
+            ['id' => 2, 'name' => 'Appointment Reminder', 'content' => 'Reminder: Your appointment is on {date} at {time}.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 2],
+            ['id' => 3, 'name' => 'Promotional Offer', 'content' => 'Special offer! Get 20% off with code {code}. T&Cs apply.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 1],
+            ['id' => 4, 'name' => 'RCS Welcome', 'content' => 'Welcome to our RCS experience! Enjoy rich messaging.', 'trigger' => 'Portal', 'channel' => 'Basic RCS + SMS', 'status' => 'Live', 'version' => 1],
+            ['id' => 5, 'name' => 'Product Showcase', 'content' => '', 'trigger' => 'Portal', 'channel' => 'Rich RCS + SMS', 'status' => 'Live', 'version' => 1, 'rcs_payload' => [
+                'type' => 'standalone',
+                'card' => [
+                    'media' => ['url' => '', 'height' => 'MEDIUM'],
+                    'title' => 'New Product Launch',
+                    'description' => 'Check out our latest product offering!',
+                    'suggestions' => [
+                        ['type' => 'url', 'text' => 'Learn More', 'url' => 'https://example.com']
+                    ]
+                ],
+                'fallback' => 'New Product Launch! Check out our latest offering at https://example.com'
+            ]],
+            ['id' => 6, 'name' => 'Archived Welcome', 'content' => 'Old welcome message.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Archived', 'version' => 1],
+        ];
 
-        $lists = ContactList::orderBy('name')
-            ->get()
-            ->map(function($l) {
-                return ['id' => $l->id, 'name' => $l->name, 'count' => $l->contact_count ?? 0];
-            })
-            ->toArray();
+        // TODO: Replace with database query - GET /api/lists
+        $lists = [
+            ['id' => 1, 'name' => 'Marketing', 'count' => 1247],
+            ['id' => 2, 'name' => 'Promotions', 'count' => 856],
+            ['id' => 3, 'name' => 'Updates', 'count' => 2103],
+            ['id' => 4, 'name' => 'Newsletter', 'count' => 3421],
+        ];
 
-        $tags = Tag::orderBy('name')
-            ->get()
-            ->map(function($t) {
-                return ['id' => $t->id, 'name' => $t->name, 'color' => $t->color ?? '#6f42c1', 'count' => $t->contacts_count ?? 0];
-            })
-            ->toArray();
+        // TODO: Replace with database query - GET /api/tags
+        $tags = [
+            ['id' => 1, 'name' => 'VIP', 'color' => '#6f42c1', 'count' => 234],
+            ['id' => 2, 'name' => 'Customer', 'color' => '#198754', 'count' => 1892],
+            ['id' => 3, 'name' => 'Newsletter', 'color' => '#0d6efd', 'count' => 567],
+        ];
 
-        $opt_out_lists = OptOutList::orderBy('name')
-            ->get()
-            ->map(function($l) {
-                return ['id' => $l->id, 'name' => $l->name, 'count' => $l->count ?? 0, 'is_default' => $l->is_master ?? false];
-            })
-            ->toArray();
+        // TODO: Replace with database query - GET /api/opt-out-lists
+        $opt_out_lists = [
+            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847, 'is_default' => true],
+            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245, 'is_default' => false],
+            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
+        ];
 
-        $accountPricing = ['sms' => 0.035, 'rcs_basic' => 0.05, 'rcs_rich' => 0.08, 'currency' => 'GBP'];
-        $tenantId = session('customer_tenant_id');
-        if ($tenantId) {
-            $account = Account::find($tenantId);
-            if ($account) {
-                try {
-                    $pricingEngine = app(PricingEngine::class);
-                    $smsPrice = $pricingEngine->resolvePrice($account, 'sms', null);
-                    $rcsBasicPrice = $pricingEngine->resolvePrice($account, 'rcs_basic', null);
-                    $rcsSinglePrice = $pricingEngine->resolvePrice($account, 'rcs_single', null);
-                    $accountPricing = [
-                        'sms' => (float) $smsPrice->unitPrice,
-                        'rcs_basic' => (float) $rcsBasicPrice->unitPrice,
-                        'rcs_rich' => (float) $rcsSinglePrice->unitPrice,
-                        'currency' => $smsPrice->currency,
-                    ];
-                } catch (\Throwable $e) {
-                    // Fall back to defaults if pricing lookup fails
-                }
-            }
-        }
+        // TODO: Replace with database query - GET /api/virtual-numbers
+        $virtual_numbers = [
+            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main'],
+            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
+        ];
 
-        $editCampaignId = request()->query('campaign_id');
-        $editCampaignConfig = null;
-        if ($editCampaignId) {
-            $sessionConfig = session('campaign_config', []);
-            if (!empty($sessionConfig) && ($sessionConfig['campaign_id'] ?? null) === $editCampaignId) {
-                $editCampaignConfig = $sessionConfig;
-            }
-        }
+        // TODO: Replace with database query - GET /api/optout-domains
+        $optout_domains = [
+            ['id' => 1, 'domain' => 'stop.uk', 'is_default' => true],
+            ['id' => 2, 'domain' => 'unsubscribe.quicksms.uk', 'is_default' => false],
+        ];
 
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
@@ -443,162 +424,18 @@ class QuickSMSController extends Controller
             'lists' => $lists,
             'tags' => $tags,
             'opt_out_lists' => $opt_out_lists,
-            'account_pricing' => $accountPricing,
-            'edit_campaign_config' => $editCampaignConfig,
+            'virtual_numbers' => $virtual_numbers,
+            'optout_domains' => $optout_domains,
         ]);
     }
 
     public function confirmCampaign(Request $request)
     {
-        $campaignId = $request->query('campaign_id');
-        $sessionData = $request->session()->get('campaign_config', []);
-        if ($campaignId && $campaignId !== 'null' && $campaignId !== 'undefined') {
-            $dbCampaign = Campaign::find($campaignId);
-            if ($dbCampaign) {
-                $scheduledTime = 'Immediate';
-                if ($dbCampaign->scheduled_at) {
-                    $scheduledTime = $dbCampaign->scheduled_at->format('d/m/Y H:i');
-                } elseif (isset($sessionData['scheduled_time']) && $sessionData['scheduled_time'] !== 'now') {
-                    $scheduledTime = $sessionData['scheduled_time'];
-                }
-
-                $messageValidity = 'Default (48 hours)';
-                if ($dbCampaign->validity_period) {
-                    $messageValidity = $dbCampaign->validity_period . ' hours';
-                } elseif (isset($sessionData['message_expiry']) && $sessionData['message_expiry']) {
-                    $expiryVal = $sessionData['message_expiry'];
-                    $messageValidity = stripos($expiryVal, 'hour') !== false ? $expiryVal : $expiryVal . ' hours';
-                }
-
-                $sendingWindow = 'No restrictions';
-                if ($dbCampaign->sending_window_start && $dbCampaign->sending_window_end) {
-                    $sendingWindow = 'Quiet hours: ' . $dbCampaign->sending_window_start . ' - ' . $dbCampaign->sending_window_end;
-                } elseif (isset($sessionData['sending_window']) && $sessionData['sending_window']) {
-                    $sendingWindow = $sessionData['sending_window'];
-                }
-
-                $campaign = [
-                    'id' => $dbCampaign->id,
-                    'name' => $dbCampaign->name,
-                    'created_by' => session('customer_email', 'Current User'),
-                    'created_at' => $dbCampaign->created_at->format('d/m/Y H:i'),
-                    'scheduled_time' => $scheduledTime,
-                    'message_validity' => $messageValidity,
-                    'sending_window' => $sendingWindow,
-                    'type' => $dbCampaign->type,
-                    'status' => $dbCampaign->status,
-                    'segment_count' => $dbCampaign->segment_count ?? 1,
-                ];
-                $channelTypeMap = ['sms' => 'sms_only', 'rcs_basic' => 'basic_rcs', 'rcs_single' => 'rich_rcs'];
-                $channel = [
-                    'type' => $channelTypeMap[$dbCampaign->type] ?? $dbCampaign->type,
-                    'sms_sender_id' => $dbCampaign->senderId
-                        ? $dbCampaign->senderId->sender_id_value
-                        : ($sessionData['sender_id'] ?? ($dbCampaign->sender_id_id
-                            ? (SenderId::withoutGlobalScopes()->find($dbCampaign->sender_id_id)->sender_id_value ?? 'Not selected')
-                            : 'Not selected')),
-                    'rcs_agent' => [
-                        'name' => $dbCampaign->rcsAgent ? $dbCampaign->rcsAgent->name : 'Not selected',
-                        'logo' => $dbCampaign->rcsAgent && $dbCampaign->rcsAgent->logo_url
-                            ? (str_starts_with($dbCampaign->rcsAgent->logo_url, 'data:') ? $dbCampaign->rcsAgent->logo_url : asset('storage/' . $dbCampaign->rcsAgent->logo_url))
-                            : asset('images/default-agent-logo.png'),
-                    ],
-                ];
-                $message = [
-                    'type' => $dbCampaign->type,
-                    'sms_content' => $dbCampaign->message_content ?? '',
-                    'rcs_content' => $dbCampaign->rcs_content ?? null,
-                ];
-                $sourceDefaults = ['manual_input' => 0, 'file_upload' => 0, 'contacts' => 0, 'lists' => 0, 'dynamic_lists' => 0, 'tags' => 0];
-                if (!empty($sessionData['sources'])) {
-                    $mappedSources = array_merge($sourceDefaults, $sessionData['sources']);
-                } else {
-                    $rawSources = $dbCampaign->recipient_sources ?? [];
-                    if (!empty($rawSources) && isset($rawSources[0]['type'])) {
-                        $mappedSources = $sourceDefaults;
-                        foreach ($rawSources as $src) {
-                            $type = $src['type'] ?? '';
-                            if ($type === 'manual') $mappedSources['manual_input'] += count($src['numbers'] ?? []);
-                            elseif ($type === 'csv') $mappedSources['file_upload'] += count($src['numbers'] ?? []);
-                            elseif ($type === 'individual') $mappedSources['contacts'] += count($src['contact_ids'] ?? []);
-                            elseif ($type === 'list') $mappedSources['lists']++;
-                            elseif ($type === 'tag') $mappedSources['tags']++;
-                        }
-                    } else {
-                        $mappedSources = array_merge($sourceDefaults, $rawSources);
-                    }
-                }
-                $recipientCount = $sessionData['recipient_count'] ?? $dbCampaign->total_recipients ?? 0;
-                $optedOutCount = $sessionData['opted_out_count'] ?? $dbCampaign->total_opted_out ?? 0;
-                $invalidCount = $sessionData['invalid_count'] ?? $dbCampaign->total_invalid ?? 0;
-                $validCount = $sessionData['valid_count'] ?? ($recipientCount - $optedOutCount - $invalidCount);
-                $recipients = [
-                    'total_selected' => $recipientCount,
-                    'valid' => $validCount,
-                    'invalid' => $invalidCount,
-                    'opted_out' => $optedOutCount,
-                    'sources' => $mappedSources,
-                ];
-                $account = \App\Models\Account::find($dbCampaign->account_id);
-                $pricingEngine = app(PricingEngine::class);
-                $smsPriceResult = $account ? $pricingEngine->resolvePrice($account, 'sms', null) : null;
-                $rcsBasicResult = $account ? $pricingEngine->resolvePrice($account, 'rcs_basic', null) : null;
-                $rcsSingleResult = $account ? $pricingEngine->resolvePrice($account, 'rcs_single', null) : null;
-                $smsPrice = $smsPriceResult ? (float) $smsPriceResult->unitPrice : 0.023;
-                $rcsBasicPrice = $rcsBasicResult ? (float) $rcsBasicResult->unitPrice : 0.035;
-                $rcsSinglePrice = $rcsSingleResult ? (float) $rcsSingleResult->unitPrice : 0.045;
-                $pricing = [
-                    'sms_unit_price' => $smsPrice,
-                    'rcs_basic_price' => $rcsBasicPrice,
-                    'rcs_single_price' => $rcsSinglePrice,
-                    'vat_applicable' => $account
-                        ? (!$account->vat_reverse_charges && (bool) ($account->vat_registered ?? true))
-                        : true,
-                    'vat_rate' => 20,
-                ];
-
-                $segmentBreakdown = [];
-                $totalSmsParts = 0;
-                if ($dbCampaign->content_resolved_at) {
-                    $segmentBreakdown = DB::table('campaign_recipients')
-                        ->where('campaign_id', $dbCampaign->id)
-                        ->where('status', 'pending')
-                        ->select('segments', DB::raw('COUNT(*) as recipient_count'))
-                        ->groupBy('segments')
-                        ->orderBy('segments')
-                        ->get()
-                        ->toArray();
-
-                    foreach ($segmentBreakdown as $group) {
-                        $totalSmsParts += ($group->segments ?? 1) * $group->recipient_count;
-                    }
-                }
-
-                if (empty($segmentBreakdown)) {
-                    $segCount = $dbCampaign->segment_count ?? 1;
-                    $totalSmsParts = $validCount * $segCount;
-                }
-
-                return view('quicksms.messages.confirm-campaign', [
-                    'page_title' => 'Confirm & Send Campaign',
-                    'campaign' => $campaign,
-                    'channel' => $channel,
-                    'recipients' => $recipients,
-                    'pricing' => $pricing,
-                    'message' => $message,
-                    'segment_breakdown' => $segmentBreakdown,
-                    'total_sms_parts' => $totalSmsParts,
-                    'content_resolved' => $dbCampaign->content_resolved_at !== null,
-                ]);
-            }
-        }
-
         // Get campaign data from session (populated by Send Message Continue button via JavaScript POST)
         $sessionData = $request->session()->get('campaign_config', []);
         
         // Campaign summary - use session data with fallbacks
         $campaign = [
-            'id' => $sessionData['campaign_id'] ?? null,
             'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
             'created_by' => auth()->check() ? auth()->user()->name ?? 'Current User' : 'Current User',
             'created_at' => now()->format('d/m/Y H:i'),
@@ -606,7 +443,7 @@ class QuickSMSController extends Controller
                 ? $sessionData['scheduled_time'] 
                 : 'Immediate',
             'message_validity' => isset($sessionData['message_expiry']) && $sessionData['message_expiry'] 
-                ? (stripos($sessionData['message_expiry'], 'hour') !== false ? $sessionData['message_expiry'] : $sessionData['message_expiry'] . ' hours')
+                ? $sessionData['message_expiry'] . ' hours' 
                 : 'Default (48 hours)',
             'sending_window' => isset($sessionData['sending_window']) && $sessionData['sending_window'] 
                 ? $sessionData['sending_window'] 
@@ -651,15 +488,11 @@ class QuickSMSController extends Controller
         }
 
         // Pricing data - use account pricing or defaults
-        $sessionAccount = Account::find(session('customer_tenant_id'));
-        $vatApplicable = $sessionAccount
-            ? (!$sessionAccount->vat_reverse_charges && (bool) ($sessionAccount->vat_registered ?? true))
-            : true;
         $pricing = [
             'sms_unit_price' => 0.023,
             'rcs_basic_price' => 0.035,
             'rcs_single_price' => 0.045,
-            'vat_applicable' => $vatApplicable,
+            'vat_applicable' => true,
             'vat_rate' => 20,
         ];
 
@@ -670,44 +503,12 @@ class QuickSMSController extends Controller
             'rcs_content' => $sessionData['rcs_content'] ?? null,
         ];
 
-        $segmentBreakdown = [];
-        $totalSmsParts = $recipientCount * ($campaign['segment_count'] ?? 1);
-        $contentResolved = false;
-
-        $campaignId = $sessionData['campaign_id'] ?? null;
-        if ($campaignId) {
-            $campaignModel = \App\Models\Campaign::find($campaignId);
-            if ($campaignModel && $campaignModel->content_resolved_at) {
-                $contentResolved = true;
-                $segmentBreakdown = DB::table('campaign_recipients')
-                    ->join('campaigns', 'campaigns.id', '=', 'campaign_recipients.campaign_id')
-                    ->where('campaign_recipients.campaign_id', $campaignId)
-                    ->where('campaigns.account_id', auth()->user()->tenant_id)
-                    ->whereNotNull('campaign_recipients.segments')
-                    ->selectRaw('campaign_recipients.segments, COUNT(*) as recipient_count')
-                    ->groupBy('campaign_recipients.segments')
-                    ->orderBy('campaign_recipients.segments')
-                    ->get()
-                    ->all();
-
-                if (!empty($segmentBreakdown)) {
-                    $totalSmsParts = 0;
-                    foreach ($segmentBreakdown as $group) {
-                        $totalSmsParts += $group->segments * $group->recipient_count;
-                    }
-                }
-            }
-        }
-
         return view('quicksms.messages.confirm-campaign', [
             'page_title' => 'Confirm & Send Campaign',
             'campaign' => $campaign,
             'channel' => $channel,
             'recipients' => $recipients,
             'pricing' => $pricing,
-            'segment_breakdown' => $segmentBreakdown,
-            'total_sms_parts' => $totalSmsParts,
-            'content_resolved' => $contentResolved,
             'message' => $message,
         ]);
     }
@@ -715,14 +516,106 @@ class QuickSMSController extends Controller
     public function storeCampaignConfig(Request $request)
     {
         $allowed = [
-            'campaign_id', 'campaign_name', 'channel', 'sender_id', 'rcs_agent',
-            'message_content', 'rcs_content', 'scheduled_time',
-            'message_expiry', 'sending_window', 'recipient_count',
-            'valid_count', 'invalid_count', 'opted_out_count', 'sources',
+            'campaign_name', 'channel', 'sender_id', 'sender_id_id',
+            'rcs_agent', 'rcs_agent_id', 'campaign_type',
+            'message_content', 'rcs_content', 'recipient_sources',
+            'scheduled_time', 'message_expiry', 'sending_window',
+            'recipient_count', 'valid_count', 'invalid_count',
+            'opted_out_count', 'sources', 'optout_config',
         ];
         $request->session()->put('campaign_config', $request->only($allowed));
         
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Create a Campaign record from session data and initiate send.
+     * Called by the Confirm & Send page.
+     */
+    public function confirmAndSend(Request $request)
+    {
+        $sessionData = $request->session()->get('campaign_config', []);
+
+        if (empty($sessionData)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No campaign configuration found. Please go back and configure your campaign.',
+            ], 422);
+        }
+
+        $accountId = session('customer_tenant_id');
+        if (!$accountId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No account context. Please log in again.',
+            ], 401);
+        }
+
+        try {
+            $campaignService = app(\App\Services\Campaign\CampaignService::class);
+
+            // Build Campaign API payload from session data
+            $campaignData = [
+                'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
+                'type' => $sessionData['campaign_type'] ?? 'sms',
+                'message_content' => $sessionData['message_content'] ?? null,
+                'rcs_content' => $sessionData['rcs_content'] ?? null,
+                'sender_id_id' => $sessionData['sender_id_id'] ?? null,
+                'rcs_agent_id' => $sessionData['rcs_agent_id'] ?? null,
+                'recipient_sources' => $sessionData['recipient_sources'] ?? [],
+            ];
+
+            // Create the campaign as draft
+            $campaign = $campaignService->create($accountId, $campaignData);
+
+            // Handle scheduling vs immediate send
+            $scheduledTime = $sessionData['scheduled_time'] ?? 'now';
+
+            if ($scheduledTime !== 'now' && $scheduledTime !== '') {
+                $timezone = $sessionData['timezone'] ?? config('app.timezone', 'Europe/London');
+                $result = $campaignService->schedule($campaign, $scheduledTime, $timezone);
+
+                // Clear session data after successful scheduling
+                $request->session()->forget('campaign_config');
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Campaign scheduled successfully.',
+                    'campaign_id' => $campaign->id,
+                    'status' => 'scheduled',
+                ]);
+            }
+
+            // Immediate send
+            $result = $campaignService->sendNow($campaign);
+
+            // Clear session data after successful send
+            $request->session()->forget('campaign_config');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Campaign queued for delivery.',
+                'campaign_id' => $campaign->id,
+                'status' => 'queued',
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Campaign confirmAndSend failed', [
+                'error' => $e->getMessage(),
+                'account_id' => $accountId,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send campaign: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function inbox()
@@ -1528,7 +1421,25 @@ class QuickSMSController extends Controller
 
     public function campaignHistory()
     {
-        $campaigns = [];
+        // TODO: Replace with API call to GET /api/campaigns
+        $campaigns = [
+            ['id' => 'camp_000', 'name' => 'Spring Promo Campaign', 'channel' => 'basic_rcs', 'status' => 'pending', 'recipients_total' => 3500, 'recipients_delivered' => null, 'send_date' => '2026-02-01 10:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['Promo', 'Spring'], 'template' => 'Seasonal Offer', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_001', 'name' => 'New Year Flash Sale', 'channel' => 'rich_rcs', 'status' => 'scheduled', 'recipients_total' => 5200, 'recipients_delivered' => null, 'send_date' => '2026-01-25 00:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['VIP', 'Promo'], 'template' => 'Sale Announcement', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_002', 'name' => 'Holiday Greetings', 'channel' => 'sms_only', 'status' => 'sending', 'recipients_total' => 3150, 'recipients_delivered' => 1840, 'send_date' => '2024-12-24 09:00', 'sender_id' => 'Greetings', 'rcs_agent' => null, 'tags' => ['Newsletter'], 'template' => null, 'has_tracking' => false, 'has_optout' => true],
+            ['id' => 'camp_003', 'name' => 'Boxing Day Deals', 'channel' => 'basic_rcs', 'status' => 'scheduled', 'recipients_total' => 2800, 'recipients_delivered' => null, 'send_date' => '2024-12-26 08:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['Promo', 'Sale'], 'template' => 'Flash Deal', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_004', 'name' => 'Christmas Eve Reminder', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 1500, 'recipients_delivered' => 1487, 'send_date' => '2024-12-24 07:00', 'sender_id' => 'Reminders', 'rcs_agent' => null, 'tags' => ['Transactional'], 'template' => 'Reminder', 'has_tracking' => false, 'has_optout' => false],
+            ['id' => 'camp_005', 'name' => 'Winter Clearance', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 4200, 'recipients_delivered' => 4156, 'send_date' => '2024-12-23 14:30', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'RetailBot', 'tags' => ['Clearance', 'VIP'], 'template' => 'Product Showcase', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_006', 'name' => 'Last Minute Gifts', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 890, 'recipients_delivered' => 885, 'send_date' => '2024-12-23 10:00', 'sender_id' => 'GiftShop', 'rcs_agent' => null, 'tags' => ['Promo'], 'template' => null, 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_007', 'name' => 'Delivery Update Batch', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 2340, 'recipients_delivered' => 2338, 'send_date' => '2024-12-22 16:45', 'sender_id' => 'Logistics', 'rcs_agent' => null, 'tags' => ['Transactional', 'Delivery'], 'template' => 'Shipping Update', 'has_tracking' => true, 'has_optout' => false],
+            ['id' => 'camp_008', 'name' => 'Weekend Special Offer', 'channel' => 'basic_rcs', 'status' => 'complete', 'recipients_total' => 1800, 'recipients_delivered' => 1756, 'send_date' => '2024-12-21 09:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['Weekend', 'Promo'], 'template' => 'Weekend Deal', 'has_tracking' => false, 'has_optout' => true],
+            ['id' => 'camp_009', 'name' => 'VIP Early Access', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 520, 'recipients_delivered' => 518, 'send_date' => '2024-12-20 18:00', 'sender_id' => 'VIPClub', 'rcs_agent' => 'RetailBot', 'tags' => ['VIP', 'Exclusive'], 'template' => 'VIP Invitation', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_010', 'name' => 'Store Opening Hours', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 3400, 'recipients_delivered' => 3389, 'send_date' => '2024-12-20 08:00', 'sender_id' => 'StoreInfo', 'rcs_agent' => null, 'tags' => ['Info'], 'template' => null, 'has_tracking' => false, 'has_optout' => false],
+            ['id' => 'camp_011', 'name' => 'Flash Sale Alert', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 6100, 'recipients_delivered' => 6042, 'send_date' => '2024-12-19 12:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => null, 'tags' => ['Flash', 'Sale'], 'template' => 'Flash Deal', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_012', 'name' => 'Customer Survey', 'channel' => 'basic_rcs', 'status' => 'complete', 'recipients_total' => 1200, 'recipients_delivered' => 1145, 'send_date' => '2024-12-18 10:30', 'sender_id' => 'Feedback', 'rcs_agent' => 'SurveyBot', 'tags' => ['Survey', 'Feedback'], 'template' => 'Survey Request', 'has_tracking' => false, 'has_optout' => true],
+            ['id' => 'camp_013', 'name' => 'Order Confirmation Batch', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 450, 'recipients_delivered' => 450, 'send_date' => '2024-12-17 15:20', 'sender_id' => 'Orders', 'rcs_agent' => null, 'tags' => ['Transactional'], 'template' => 'Order Confirm', 'has_tracking' => true, 'has_optout' => false],
+            ['id' => 'camp_014', 'name' => 'Appointment Reminders', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 780, 'recipients_delivered' => 776, 'send_date' => '2024-12-16 09:00', 'sender_id' => 'Bookings', 'rcs_agent' => null, 'tags' => ['Reminder', 'Appointments'], 'template' => 'Appointment', 'has_tracking' => false, 'has_optout' => true],
+            ['id' => 'camp_015', 'name' => 'Product Launch Teaser', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 2500, 'recipients_delivered' => 2467, 'send_date' => '2024-12-15 11:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['Launch', 'Product'], 'template' => 'Product Launch', 'has_tracking' => true, 'has_optout' => true],
+        ];
 
         return view('quicksms.messages.campaign-history', [
             'page_title' => 'Campaign History',
@@ -1581,7 +1492,6 @@ class QuickSMSController extends Controller
         $totalContacts = Contact::count();
         $availableTags = Tag::orderBy('name')->pluck('name')->toArray();
         $availableLists = ContactList::orderBy('name')->pluck('name')->toArray();
-        $optOutLists = OptOutList::orderBy('name')->get()->map(fn($l) => ['id' => $l->id, 'name' => $l->name])->toArray();
 
         return view('quicksms.contacts.all-contacts', [
             'page_title' => 'All Contacts',
@@ -1589,7 +1499,6 @@ class QuickSMSController extends Controller
             'total_contacts' => $totalContacts,
             'available_tags' => $availableTags,
             'available_lists' => $availableLists,
-            'opt_out_lists' => $optOutLists,
         ]);
     }
 
@@ -1757,21 +1666,8 @@ class QuickSMSController extends Controller
 
     public function purchaseNumbers()
     {
-        $tenantId = session('customer_tenant_id');
-        $accountBalance = 0;
-
-        if ($tenantId) {
-            try {
-                $balance = app(\App\Services\Billing\BalanceService::class)->getBalance($tenantId);
-                $accountBalance = (float) $balance->effective_available;
-            } catch (\Exception $e) {
-                $accountBalance = 0;
-            }
-        }
-
         return view('quicksms.purchase.numbers', [
-            'page_title' => 'Purchase Numbers',
-            'accountBalance' => $accountBalance,
+            'page_title' => 'Purchase Numbers'
         ]);
     }
 
@@ -1898,11 +1794,25 @@ class QuickSMSController extends Controller
             ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
         ];
 
+        // TODO: Replace with database query - GET /api/virtual-numbers
+        $virtual_numbers = [
+            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main Number'],
+            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
+        ];
+
+        // TODO: Replace with database query - GET /api/optout-domains
+        $optout_domains = [
+            ['id' => 1, 'domain' => 'qsms.uk', 'is_default' => true],
+            ['id' => 2, 'domain' => 'optout.quicksms.com', 'is_default' => false],
+        ];
+
         return view('quicksms.management.templates', [
             'page_title' => 'Message Templates',
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
             'opt_out_lists' => $opt_out_lists,
+            'virtual_numbers' => $virtual_numbers,
+            'optout_domains' => $optout_domains
         ]);
     }
 
@@ -1931,6 +1841,18 @@ class QuickSMSController extends Controller
             ['id' => 2, 'name' => 'Transactional Opt-outs', 'count' => 89],
         ];
 
+        // TODO: Replace with API call - numbersService.getVirtualNumbers()
+        $virtual_numbers = [
+            ['id' => 1, 'number' => '+447700900200', 'label' => 'Customer Support'],
+            ['id' => 2, 'number' => '+447700900201', 'label' => 'Sales'],
+        ];
+
+        // TODO: Replace with API call - optOutService.getDomains()
+        $optout_domains = [
+            ['id' => 1, 'domain' => 'optout.quicksms.co.uk', 'is_default' => true],
+            ['id' => 2, 'domain' => 'stop.quicksms.co.uk', 'is_default' => false],
+        ];
+
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Create Template - Content',
             'isEditMode' => false,
@@ -1939,6 +1861,8 @@ class QuickSMSController extends Controller
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
             'opt_out_lists' => $opt_out_lists,
+            'virtual_numbers' => $virtual_numbers,
+            'optout_domains' => $optout_domains
         ]);
     }
 
@@ -1991,6 +1915,18 @@ class QuickSMSController extends Controller
             ['id' => 2, 'name' => 'Transactional Opt-outs', 'count' => 89],
         ];
 
+        // TODO: Replace with API call - numbersService.getVirtualNumbers()
+        $virtual_numbers = [
+            ['id' => 1, 'number' => '+447700900200', 'label' => 'Customer Support'],
+            ['id' => 2, 'number' => '+447700900201', 'label' => 'Sales'],
+        ];
+
+        // TODO: Replace with API call - optOutService.getDomains()
+        $optout_domains = [
+            ['id' => 1, 'domain' => 'optout.quicksms.co.uk', 'is_default' => true],
+            ['id' => 2, 'domain' => 'stop.quicksms.co.uk', 'is_default' => false],
+        ];
+
         // TODO: Replace with API call - templatesService.getTemplate(templateId)
         $template = $this->getMockTemplate($templateId);
 
@@ -2003,6 +1939,8 @@ class QuickSMSController extends Controller
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
             'opt_out_lists' => $opt_out_lists,
+            'virtual_numbers' => $virtual_numbers,
+            'optout_domains' => $optout_domains
         ]);
     }
 
@@ -2310,29 +2248,19 @@ class QuickSMSController extends Controller
 
     public function numbers()
     {
-        $tenantId = session('customer_tenant_id');
-        $subAccounts = $tenantId
-            ? \App\Models\SubAccount::where('account_id', $tenantId)->get(['id', 'name'])->toArray()
-            : [];
-
         return view('quicksms.management.numbers', [
-            'page_title' => 'Numbers',
-            'subAccounts' => $subAccounts,
+            'page_title' => 'Numbers'
         ]);
     }
 
     public function numbersConfigure(Request $request)
     {
+        // Get selected number IDs from query string
         $selectedIds = $request->query('ids', '');
-        $tenantId = session('customer_tenant_id');
-        $subAccounts = $tenantId
-            ? \App\Models\SubAccount::where('account_id', $tenantId)->get(['id', 'name'])->toArray()
-            : [];
-
+        
         return view('quicksms.management.numbers-configure', [
             'page_title' => 'Configure Numbers',
-            'selectedIds' => $selectedIds,
-            'subAccounts' => $subAccounts,
+            'selectedIds' => $selectedIds
         ]);
     }
 

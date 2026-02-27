@@ -1,72 +1,134 @@
-# QuickSMS — Replit Agent Instructions
+# QuickSMS — Replit Agent Guide
 
 ## Overview
 
-QuickSMS is a multi-tenant Laravel SMS platform designed for robust and scalable SMS communication. It provides features such as contact management, list segmentation, and comprehensive reporting, with a strong emphasis on tenant isolation and a standardized architecture for consistency and maintainability. The platform integrates a comprehensive billing backend, including ledger, pricing, invoicing, and payment processing, and supports RCS agent management for both customer and administrative interfaces.
+QuickSMS is a UK enterprise multi-tenant SaaS platform for business messaging (SMS, RCS, WhatsApp Business). It is built on **Laravel 10** (PHP 8.1+) with a **PostgreSQL** backend, and targets compliance with ISO27001, Cyber Essentials Plus, and NHS DSP Toolkit.
+
+The platform has two primary surfaces:
+1. **Customer Portal** — multi-tenant self-service for business customers to send messages, manage contacts, view reports, and configure API connections.
+2. **Admin Console** — internal control plane for managing all customer accounts, routing rules, supplier rate cards, sender ID approvals, and platform-wide reporting.
+
+Core capabilities include:
+- Campaign & single-message sending (SMS, Basic RCS, Rich RCS with SMS fallback)
+- Contact Book with custom fields, tags, lists, and opt-out management
+- Inbox / two-way messaging
+- Reporting & finance data with drill-down
+- API connections (bulk, campaign, integration types)
+- Supplier rate cards, gateway routing rules, and VMN/shortcode number management
+- Template management (shared `SendMessageBuilder` component across campaign/inbox/template modes)
+
+---
 
 ## User Preferences
 
-- **CRITICAL:** Read this entire file before making any changes.
-- Do NOT deviate from existing patterns.
-- Do NOT "improve" or "simplify" existing patterns.
-- Do NOT introduce new patterns. Follow what exists.
-- NEVER reintroduce mock data.
-- NEVER bypass tenant isolation.
-- NEVER use MySQL syntax; the database is PostgreSQL.
-- NEVER create SQLite or MySQL migrations.
-- NEVER change the frontend framework (Blade + jQuery + Bootstrap 5).
-- NEVER modify existing migrations; create new ones only.
-- NEVER delete or rename existing model files, controllers, or routes unless explicitly asked.
-- NEVER commit `.env` files, credentials, or secrets.
+Preferred communication style: Simple, everyday language.
+
+---
 
 ## System Architecture
 
-The QuickSMS platform is built on PHP 8.3 and Laravel 10, using PostgreSQL 16. The UI uses Blade templates, jQuery, and Bootstrap 5 (Fillow SaaS Admin Template) with MetisMenu for navigation.
+### Backend — Laravel 10 (PHP 8.1+)
 
-**Key Architectural Decisions:**
+- **Framework:** Laravel 10 with Eloquent ORM, Laravel Sanctum for API token auth, and artisan migrations.
+- **Database:** PostgreSQL 15+ (migrated from MySQL/MariaDB). Native UUID (`gen_random_uuid()`), ENUM types, JSONB, and INET types are used throughout. Do **not** use MySQL-style `BINARY(16)` UUID patterns.
+- **Multi-tenancy:** Row Level Security (RLS) enforced at the database level on all tenant-scoped tables. The `SetTenantContext` middleware sets `app.current_tenant_id` as a PostgreSQL session variable before every query. This middleware **must** remain registered in `Kernel.php` and must not be removed or reordered.
+- **Authentication flow:**
+  - Account creation → always via `sp_create_account()` stored procedure, never `Account::create()` directly.
+  - Login → always via `sp_authenticate_user()` stored procedure.
+  - Password hashed **once** in the controller with `Hash::make()`. The `User` model must **not** re-hash.
+  - UUID mutators (`getIdAttribute`, `setIdAttribute`, etc.) must **not** exist in models — PostgreSQL returns native 36-char UUID strings.
+- **Database roles:** Four roles are defined — `portal_ro`, `portal_rw`, `svc_red`, `ops_admin`. The application connects as `portal_rw` for customer-facing operations; `svc_red` bypasses RLS for admin operations.
+- **Stored procedures:** Five core PL/pgSQL procedures (`sp_create_account`, `sp_authenticate_user`, `sp_create_api_token`, `sp_update_user_profile`, plus password change). These use `SECURITY DEFINER` — be aware this runs as the function owner and bypasses RLS unless carefully controlled.
+- **Audit trail:** All sensitive actions (login, signup, token creation, admin overrides) are logged to `auth_audit_log`. This table is insert-only via grants.
 
-*   **Multi-tenancy:** Implemented via Laravel Global Scopes, PostgreSQL Session Variables (`app.current_tenant_id`), and PostgreSQL Row Level Security (RLS) for fail-closed data isolation.
-*   **Primary Keys:** All primary keys are UUIDs (`gen_random_uuid()`), requiring specific `$keyType` and `$incrementing` model configurations.
-*   **Migrations:** Utilize raw PostgreSQL `DB::statement()` and `DB::unprepared()` for enums, triggers, RLS, and functions, following a strict creation order.
-*   **Model Pattern:** Models adhere to a strict pattern including UUID PKs, global tenant scopes, and `toPortalArray()` for view/JSON serialization. JSONB columns are cast to `array`.
-*   **Controller Patterns:**
-    *   **Blade Page Controllers:** Query data with Eloquent, pass `toPortalArray()` data to views, protected by `customer.auth` middleware.
-    *   **API Controllers:** Return JSON, use `$request->validate()`, set `account_id` from `auth()->user()->tenant_id`, and follow standard HTTP status codes.
-*   **Route Structure:** Web routes for customer portal, sender ID API, and admin panel; API routes for contact book and other endpoints with session-based authentication.
-*   **JavaScript Service Pattern:** Services use `fetch()` for API calls (`useMockData: false`), handle CSRF, and include UI rendering helpers.
-*   **UI/UX Conventions:** Uses Bootstrap 5 (Fillow template) with a pastel color scheme. Dates are DD-MM-YYYY in UI, ISO 8601 in API. DataTables are used for client-side table functionality. Bootstrap modals for forms. Mobile numbers are masked in UI. Status badges use `badge-pastel-*` classes, and icons are Font Awesome 5.
-*   **Billing Backend:** Includes 19 database tables and 20 Eloquent models for ledger, test credits, pricing, invoices, payments, and billing operations. It features 9 services (e.g., LedgerService, PricingEngine, InvoiceService, XeroService) and 12 controllers for customer, admin, and webhook endpoints.
-*   **Performance Patterns:**
-    *   **Batch UPDATE FROM VALUES:** Content resolution and cost calculation use PostgreSQL `UPDATE FROM VALUES` pattern for ~60x faster bulk updates (500 rows per SQL statement instead of individual UPDATEs).
-    *   **Streaming Chunk Pipeline:** `RecipientResolverService` uses cursor-based pagination (2K rows at a time) with inline dedup/validate/opt-out/persist per chunk. Only one chunk in memory at a time (~50MB constant regardless of campaign size).
-    *   **Per-Segment Cost Estimation:** When content is resolved, `estimateCost()` groups recipients by `(country_iso, segments)` for accurate pricing with variable-length merge fields.
-*   **Admin UI for Billing & RCS:**
-    *   **Account Billing:** Admin endpoints for viewing/updating account billing mode, balance, credit limit.
-    *   **Pricing Management:** A 4-tab interface for managing pricing grids, events, service catalogue, and history, with dedicated API endpoints.
-    *   **RCS Agent Approval:** List and detail views for administrative approval of RCS agents, with AJAX data loading, status filtering, and action buttons. Full 11-status workflow: draft → submitted → in_review → sent_to_supplier → supplier_approved → approved (Live), with pending_info/info_provided loop, rejected, suspended, revoked branches. Admin endpoints for each transition at `/admin/api/rcs-agents/{uuid}/{action}`.
-    *   **Edit Pricing Modal:** Allows administrators to override bespoke pricing for specific accounts, converting the account to a 'bespoke' product tier upon changes. Supports per-submitted/per-delivered billing type selection for SMS and RCS services, and expandable per-country pricing for International SMS. Uses `billing_type` column (enum: `per_submitted`, `per_delivered`) on `customer_prices` and `product_tier_prices` tables.
-*   **Customer UI for Billing & RCS:**
-    *   **RCS Agent Library:** Customer-facing page loads agents from the database via API, supporting dynamic tables and API-driven actions (resubmit, delete).
-    *   **Account Pricing Tab:** Dynamically fetches and displays pricing based on the account's product tier (Starter, Enterprise, Bespoke).
-    *   **Purchase Page:** Uses database-driven pricing from `product_tier_prices` for product selection and payment.
-*   **Campaign Opt-out System:** Full opt-out system implemented. Two mechanisms (mutually exclusive in UI): reply-to-opt-out (keyword on VMN/shortcode) and click-to-opt-out (unique 5-char per-recipient URL via qout.uk). Backend: `campaign_opt_out_urls` table (RLS, 30-day TTL), `OptOutService`, `CampaignOptOutUrl` model, `OptOutLandingController` (public routes `/o/{token}` + `/o/{token}/confirm`), 3 public landing views. API: 4 endpoints on `/api/campaigns/` (`opt-out-numbers`, `validate-opt-out-keyword`, `suggest-opt-out-text`, `opt-out-keywords/{numberId}`). UI: Send Message opt-out card — **Screening Lists** (multi-select checkbox list, auto-activates, pill display, stored as JSONB array `opt_out_screening_list_ids`), **Reply opt-out** (number + keyword + auto-suggested text, "Add opt-outs to list" with existing/new list options), **Click opt-out** (URL text, "Add opt-outs to list"). Methods are mutually exclusive (enabling one disables the other). Default reply text: `"OptOut, {KEYWORD} to {NUMBER}"`. Default URL text: `"OptOut, {{unique_url}}"`. Validation: if no screening list AND no method selected → error. New list creation handled client-side via `/api/opt-out-lists` POST before campaign save. Campaign fields: `opt_out_enabled`, `opt_out_method` (reply|url), `opt_out_number_id`, `opt_out_keyword`, `opt_out_text`, `opt_out_list_id` (storage), `opt_out_screening_list_ids` (JSONB array, screening), `opt_out_url_enabled`.
-*   **Numbers Module:** All three views (Purchase > Numbers, Management > Numbers Library, Management > Numbers Configure) are wired to real backend APIs. No mock data.
-    *   `AccountBalance::lockForAccount()` auto-initialises a zero-balance record if none exists (prevents `ModelNotFoundException` on accounts provisioned without a balance row).
-    *   `purchase_audit_logs.user_id` is `varchar(36)` (UUID); `sub_account_id` is nullable (main-account users have no sub-account).
-    *   Nested `DB::transaction()` inside outer transactions creates PostgreSQL savepoints — used in `autoCreateSenderId` to make sender-ID creation optional.
-    *   Shared shortcode number is `60866`. Keyword pricing slugs: `shortcode_keyword_setup`, `shortcode_keyword_monthly`. Dedicated shortcode slugs: `shortcode_setup`, `shortcode_monthly`.
-    *   Ledger entry types for numbers: `number_setup_prepay`, `number_setup_postpay`, `number_setup_refund`. Billable product type: `shortcode_keyword_monthly`.
-    *   **VAT on number purchases:** `NumberBillingService::getVatRate()` returns 20% for GB accounts, 0% otherwise. `calculateVmnPricing()` and `calculateKeywordPricing()` return `vat_rate`, `*_vat`, and `*_inc_vat` fields. `debitSetupFee()` accepts an optional `vatAmount` parameter and debits the VAT-inclusive total from the balance, with a `VAT_OUTPUT` ledger line added when VAT > 0. The purchase UI (`purchase/numbers.blade.php`) shows ex-VAT, VAT, and inc-VAT breakdowns in both the selection summary bar and the confirmation modals; balance sufficiency checks use the inc-VAT total.
-    *   **Shared shortcode in Numbers Library:** `GET /api/numbers` appends platform shortcodes (60866) that the tenant has active keywords on using a single `whereIn` query — no N+1. `GET /api/numbers/{id}` falls back to `withoutGlobalScopes()` when the tenant has keywords on a platform shortcode. Numbers Library UI shows keyword badges in the capabilities column for `shared_shortcode` rows and suppresses Configure/Suspend/Reactivate actions.
+### RED / GREEN Trust Boundary
+
+```
+GREEN (Customer-Facing)         RED (Internal/Admin)
+portal_rw DB role               svc_red DB role
+RLS enforced                    RLS bypassed
+toPortalArray() responses       Full model data allowed
+auth:sanctum middleware         Admin-only middleware
+```
+
+- Portal API responses must **always** use `toPortalArray()` — never return raw model or sensitive fields (password hash, MFA secret, token hash) to customers.
+- `tenant_id` is **never** derived from user input — only from the authenticated user record server-side.
+
+### Frontend
+
+- **Templating:** Laravel Blade views. The design system is called **Fillow** — all UI must reuse existing Fillow components (buttons, modals, pills, tables, filters, dropdowns). Do not introduce new layouts, colours, or component variants.
+- **Asset pipeline:** Vite 4 with `laravel-vite-plugin`. Entry points: `resources/css/app.css`, `resources/js/app.js`, `resources/js/rcs/preview-controller.ts` (TypeScript supported).
+- **Key UI rules:**
+  - The `SendMessageBuilder` is a **shared component** used across campaign, inbox, and template modes via a `mode` flag. Never duplicate or fork it — only hide/show sections via the flag.
+  - Filters across the platform follow a consistent pattern: search bar on the LEFT, filter button on the RIGHT. "Clear All" resets state but does **not** auto-apply — user must press "Apply Filters".
+  - All table/modal/pill/dropdown styles must match existing Message Logs and API Connections pages as the reference standard.
+  - Admin pages use a standardised breadcrumb + page header pattern (reference: Global Templates Library page).
+
+### Key Modules & Data Models
+
+| Module | Key Tables |
+|---|---|
+| Auth & Accounts | `accounts`, `users`, `auth_audit_log` |
+| Contact Book | `contacts`, `tags`, `contact_lists`, `opt_out_lists`, `opt_out_records`, `contact_timeline_events` |
+| Messaging | Campaign, inbox, send message (shared builder) |
+| API Connections | `api_connections`, `api_connection_audit_events` |
+| Numbers | `vmn_pool`, `purchased_numbers`, `shortcode_keywords`, `number_assignments`, `number_auto_reply_rules` |
+| Routing Rules | `routing_rules`, `routing_gateway_weights`, `routing_customer_overrides`, `routing_audit_log` |
+| Supplier Rate Cards | `suppliers`, `gateways`, `mcc_mnc_master`, `rate_cards`, `fx_rates`, `rate_card_audit_log` |
+| Reporting | Finance data with drill-down (Month → user-chosen dimension) |
+| RCS Media Assets | `rcs_assets` — tenant-scoped via `account_id`, draft lifecycle, daily cleanup |
+
+### RCS Rich Messaging Backend
+
+- **`rcs_assets` table** — stores uploaded/URL-imported media with edit params (crop/zoom/orientation). Tenant-scoped via `account_id`. Draft assets are cleaned up daily by `php artisan rcs:cleanup-drafts`. Composite index on `(account_id, is_draft, created_at)`.
+- **`RcsAssetService`** — full image processing pipeline: URL import with SSRF protection, file upload, crop/zoom/resize edits via Intervention Image, original image stored for lossless re-cropping. Returns `uuid` + `public_url` to the frontend.
+- **`RcsContentValidator`** — validates card count (1 for single, 2–10 for carousel), button count (max 4 per card), button label length (max 25 chars), text body length (max 2000 chars), shared orientations, and asset finalization before send. Used by `CampaignService` on create/update/validateForSend.
+- **`Campaign::TYPE_RCS_CAROUSEL`** constant added. `CampaignApiController` now accepts `rcs_carousel` as a valid campaign type alongside `sms`, `rcs_basic`, `rcs_single`.
+- **`POST /messages/confirm-send`** — web route that creates a real Campaign record from session data and triggers send or schedule via `CampaignService`. Clears the `campaign_config` session key on success.
+- **`rcs:cleanup-drafts` artisan command** — scheduled daily at 03:00 UTC. Deletes `rcs_assets` rows where `is_draft = true` and `created_at` is older than the configured threshold (default 24 hours), and removes the associated stored files.
+
+### Security Rules (Non-Negotiable)
+
+1. `tenant_id` always from authenticated session, never from request input.
+2. Account creation always via `sp_create_account()`.
+3. Login always via `sp_authenticate_user()`.
+4. Password hashed once in controller only.
+5. `SetTenantContext` middleware must remain in `Kernel.php`.
+6. All portal API responses use `toPortalArray()`.
+7. CSRF tokens included in all form submissions.
+8. All admin actions logged to `auth_audit_log`.
+9. `FORCE ROW LEVEL SECURITY` active on all 7+ tenant tables.
+10. The `accounts_isolation` RLS policy must **not** include a NULL-context bypass (`OR current_setting(...) IS NULL`).
+
+---
 
 ## External Dependencies
 
-*   PHP 8.3 / Laravel 10
-*   PostgreSQL 16
-*   Fillow SaaS Admin Template (Bootstrap 5)
-*   MetisMenu
-*   Stripe PHP SDK
-*   HubSpot Products API
-*   HubSpot Invoices API
-*   Intervention Image v3
-*   Xero API v2
+### PHP Packages (composer.json)
+| Package | Purpose |
+|---|---|
+| `laravel/framework` ^10.10 | Core framework |
+| `laravel/sanctum` ^3.2 | API token authentication |
+| `laravel/tinker` ^2.8 | REPL / debugging |
+| `guzzlehttp/guzzle` ^7.2 | HTTP client for outbound API calls |
+| `intervention/image` ^3.0 | Image processing (RCS rich content) |
+| `phpoffice/phpspreadsheet` ^5.4 | CSV/Excel file upload processing |
+| `stripe/stripe-php` ^19.1 | Payment/billing integration |
+
+### Node / Frontend (package.json)
+| Package | Purpose |
+|---|---|
+| `vite` ^4.0.0 | Asset bundler |
+| `laravel-vite-plugin` ^0.8.0 | Laravel + Vite integration |
+| `axios` ^1.1.2 | HTTP client for frontend API calls |
+| `typescript` ^5.9.3 | TypeScript support (RCS preview controller) |
+
+### Database
+- **PostgreSQL 15+** (Replit managed). Must use `pgsql` driver in `.env` (`DB_CONNECTION=pgsql`, `DB_PORT=5432`).
+- Four database roles must be provisioned: `portal_ro`, `portal_rw`, `svc_red`, `ops_admin` — created via `package/database/setup/01_create_roles_and_grants.sql`.
+
+### External Services
+- **Stripe** — billing and payment processing (`stripe/stripe-php`).
+- **SMS/RCS gateways** — routed via the routing rules module; specific gateway providers configured per supplier rate cards.
+- **Webhook endpoints** — outbound DLR and inbound SMS webhooks configured per API connection and VMN number.
+- **FX rate sources** — external FX rate feeds stored in `fx_rates` table for multi-currency rate card calculations.

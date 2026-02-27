@@ -115,6 +115,14 @@ class BillingPreflightService
      * Instead of assuming every recipient has the same segment count,
      * this method accepts rows grouped by (country_iso, segments) and
      * prices each group independently.
+     *
+     * Example: 3,000 GB recipients at 1 segment + 200 GB recipients at 2 segments
+     * produces a different total than 3,200 GB recipients at 1.06 avg segments.
+     *
+     * @param Account $account
+     * @param string $productType sms, rcs_basic, or rcs_single
+     * @param \Illuminate\Support\Collection $breakdown Rows with country_iso, segments, recipient_count
+     * @return CostEstimate
      */
     public function estimateCostPerSegmentGroup(
         Account $account,
@@ -184,10 +192,12 @@ class BillingPreflightService
             }
         }
 
+        // Calculate effective cost_per_message as weighted average per country
         foreach ($perCountryCosts as $key => &$country) {
             $country['cost_per_message'] = $country['recipient_count'] > 0
                 ? bcdiv($country['total_cost'], (string) $country['recipient_count'], 6)
                 : '0';
+            // segments field is null because it varies per recipient
             $country['segments'] = null;
         }
         unset($country);
@@ -237,9 +247,20 @@ class BillingPreflightService
             throw new PreflightFailedException('No sendable recipients found for this campaign.');
         }
 
-        // Step 2: Estimate cost
-        $segmentsPerMessage = $campaign->segment_count ?: 1;
-        $estimate = $this->estimateCost($account, $campaign->type, $countryBreakdown, $segmentsPerMessage);
+        // Step 2: Estimate cost — use per-recipient segments if content is resolved
+        if ($campaign->content_resolved_at) {
+            $segmentBreakdown = DB::table('campaign_recipients')
+                ->where('campaign_id', $campaign->id)
+                ->where('status', 'pending')
+                ->select('country_iso', 'segments', DB::raw('COUNT(*) as recipient_count'))
+                ->groupBy('country_iso', 'segments')
+                ->get();
+
+            $estimate = $this->estimateCostPerSegmentGroup($account, $campaign->type, $segmentBreakdown);
+        } else {
+            $segmentsPerMessage = $campaign->segment_count ?: 1;
+            $estimate = $this->estimateCost($account, $campaign->type, $countryBreakdown, $segmentsPerMessage);
+        }
 
         // Step 3: Check for pricing errors (destinations with no pricing)
         if (!empty($estimate->errors)) {

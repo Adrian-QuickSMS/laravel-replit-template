@@ -9,6 +9,11 @@ use Illuminate\Support\Str;
 /**
  * CampaignOptOutUrl — unique opt-out URL per MSISDN per campaign.
  *
+ * Each recipient in a campaign with URL opt-out enabled gets a unique
+ * token that maps to https://qout.uk/{token}. When the subscriber
+ * clicks the link, they see a landing page with an unsubscribe button.
+ * The first confirmed click creates an OptOutRecord.
+ *
  * Token: 8 chars base62 → 218 trillion combinations
  * URL:   https://qout.uk/Ab3Kf9xZ (25 chars fixed)
  * TTL:   30 days from campaign send
@@ -64,6 +69,10 @@ class CampaignOptOutUrl extends Model
         });
     }
 
+    // =====================================================
+    // RELATIONSHIPS
+    // =====================================================
+
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class, 'campaign_id');
@@ -74,6 +83,13 @@ class CampaignOptOutUrl extends Model
         return $this->belongsTo(Account::class, 'account_id');
     }
 
+    // =====================================================
+    // TOKEN GENERATION
+    // =====================================================
+
+    /**
+     * Generate a unique 8-character base62 token.
+     */
     public static function generateToken(): string
     {
         do {
@@ -86,20 +102,34 @@ class CampaignOptOutUrl extends Model
         return $token;
     }
 
+    /**
+     * Get the full opt-out URL for this record.
+     */
     public function getUrl(): string
     {
         return self::BASE_URL . $this->token;
     }
 
+    /**
+     * Get the fixed-length URL string for segment calculation.
+     * Always 25 characters: https://qout.uk/ (18) + 8 char token
+     */
     public static function getFixedLengthUrl(): string
     {
         return self::BASE_URL . str_repeat('X', self::TOKEN_LENGTH);
     }
 
+    /**
+     * Get the exact character count of the opt-out URL.
+     */
     public static function getUrlCharCount(): int
     {
         return strlen(self::BASE_URL) + self::TOKEN_LENGTH;
     }
+
+    // =====================================================
+    // STATUS
+    // =====================================================
 
     public function isExpired(): bool
     {
@@ -111,14 +141,24 @@ class CampaignOptOutUrl extends Model
         return $this->unsubscribed;
     }
 
+    /**
+     * Record the first click (landing page visit).
+     */
     public function recordClick(string $ip): void
     {
         if ($this->clicked_at) {
-            return;
+            return; // First click only
         }
-        $this->update(['clicked_at' => now(), 'click_ip' => $ip]);
+
+        $this->update([
+            'clicked_at' => now(),
+            'click_ip' => $ip,
+        ]);
     }
 
+    /**
+     * Confirm the unsubscribe (button click on landing page).
+     */
     public function confirmUnsubscribe(string $ip): void
     {
         $this->update([

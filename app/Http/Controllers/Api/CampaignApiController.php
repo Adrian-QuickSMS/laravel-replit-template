@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessCampaignBatch;
 use App\Models\Campaign;
+use App\Models\CampaignOptOutUrl;
 use App\Models\CampaignRecipient;
-use App\Models\User;
 use App\Services\Campaign\CampaignService;
 use App\Services\OptOutService;
 use Illuminate\Http\JsonResponse;
@@ -103,7 +103,7 @@ class CampaignApiController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'type' => 'required|string|in:sms,rcs_basic,rcs_single',
+            'type' => 'required|string|in:sms,rcs_basic,rcs_single,rcs_carousel',
             'message_template_id' => 'nullable|uuid',
             'message_content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
@@ -112,7 +112,6 @@ class CampaignApiController extends Controller
             'recipient_sources' => 'nullable|array|max:50',
             'recipient_sources.*.type' => 'required_with:recipient_sources|string|in:list,tag,individual,manual,csv',
             'recipient_sources.*.id' => 'nullable|uuid',
-            'recipient_sources.*.name' => 'nullable|string',
             'recipient_sources.*.contact_ids' => 'nullable|array|max:100000',
             'recipient_sources.*.contact_ids.*' => 'uuid',
             'recipient_sources.*.numbers' => 'nullable|array|max:100000',
@@ -123,23 +122,32 @@ class CampaignApiController extends Controller
             'recipient_sources.*.data.*.mobile' => 'nullable|string|max:30',
             'scheduled_at' => 'nullable|date|after:now',
             'timezone' => 'nullable|string|max:50',
-            'validity_period' => 'nullable|integer|min:1|max:72',
-            'sending_window_start' => 'nullable|date_format:H:i',
-            'sending_window_end' => 'nullable|date_format:H:i',
             'send_rate' => 'nullable|integer|min:0|max:500',
             'batch_size' => 'nullable|integer|min:100|max:10000',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:100',
+            // Opt-out configuration
             'opt_out_enabled' => 'nullable|boolean',
             'opt_out_method' => 'nullable|string|in:reply,url,both',
             'opt_out_number_id' => 'nullable|uuid',
-            'opt_out_keyword' => 'nullable|string|max:10',
+            'opt_out_keyword' => 'nullable|string|min:4|max:10|regex:/^[A-Za-z0-9]+$/',
             'opt_out_text' => 'nullable|string|max:500',
             'opt_out_list_id' => 'nullable|uuid',
-            'opt_out_screening_list_ids' => 'nullable|array',
-            'opt_out_screening_list_ids.*' => 'uuid',
             'opt_out_url_enabled' => 'nullable|boolean',
         ]);
+
+        // Validate opt-out keyword if provided
+        if (!empty($validated['opt_out_keyword']) && !empty($validated['opt_out_number_id'])) {
+            try {
+                $this->optOutService->validateOptOutKeyword(
+                    $validated['opt_out_keyword'],
+                    $validated['opt_out_number_id'],
+                    $this->tenantId()
+                );
+            } catch (\RuntimeException $e) {
+                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            }
+        }
 
         $validated['created_by'] = session('customer_email', session('customer_user_id'));
 
@@ -169,7 +177,7 @@ class CampaignApiController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'type' => 'sometimes|string|in:sms,rcs_basic,rcs_single',
+            'type' => 'sometimes|string|in:sms,rcs_basic,rcs_single,rcs_carousel',
             'message_template_id' => 'nullable|uuid',
             'message_content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
@@ -178,33 +186,40 @@ class CampaignApiController extends Controller
             'recipient_sources' => 'nullable|array|max:50',
             'recipient_sources.*.type' => 'required_with:recipient_sources|string|in:list,tag,individual,manual,csv',
             'recipient_sources.*.id' => 'nullable|uuid',
-            'recipient_sources.*.name' => 'nullable|string',
             'recipient_sources.*.contact_ids' => 'nullable|array|max:100000',
             'recipient_sources.*.contact_ids.*' => 'uuid',
             'recipient_sources.*.numbers' => 'nullable|array|max:100000',
             'recipient_sources.*.numbers.*' => 'string|max:30',
-            'recipient_sources.*.data' => 'nullable|array|max:1000000',
-            'recipient_sources.*.data.*.mobile_number' => 'nullable|string|max:30',
-            'recipient_sources.*.data.*.phone' => 'nullable|string|max:30',
-            'recipient_sources.*.data.*.mobile' => 'nullable|string|max:30',
             'scheduled_at' => 'nullable|date|after:now',
             'timezone' => 'nullable|string|max:50',
-            'validity_period' => 'nullable|integer|min:1|max:72',
-            'sending_window_start' => 'nullable|date_format:H:i',
-            'sending_window_end' => 'nullable|date_format:H:i',
             'send_rate' => 'nullable|integer|min:0|max:500',
             'batch_size' => 'nullable|integer|min:100|max:10000',
             'tags' => 'nullable|array',
+            // Opt-out configuration
             'opt_out_enabled' => 'nullable|boolean',
             'opt_out_method' => 'nullable|string|in:reply,url,both',
             'opt_out_number_id' => 'nullable|uuid',
-            'opt_out_keyword' => 'nullable|string|max:10',
+            'opt_out_keyword' => 'nullable|string|min:4|max:10|regex:/^[A-Za-z0-9]+$/',
             'opt_out_text' => 'nullable|string|max:500',
             'opt_out_list_id' => 'nullable|uuid',
-            'opt_out_screening_list_ids' => 'nullable|array',
-            'opt_out_screening_list_ids.*' => 'uuid',
             'opt_out_url_enabled' => 'nullable|boolean',
         ]);
+
+        // Validate opt-out keyword if provided
+        $keyword = $validated['opt_out_keyword'] ?? $campaign->opt_out_keyword;
+        $numberId = $validated['opt_out_number_id'] ?? $campaign->opt_out_number_id;
+        if ($keyword && $numberId) {
+            try {
+                $this->optOutService->validateOptOutKeyword(
+                    $keyword,
+                    $numberId,
+                    $this->tenantId(),
+                    $campaign->id
+                );
+            } catch (\RuntimeException $e) {
+                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            }
+        }
 
         $validated['updated_by'] = session('customer_email', session('customer_user_id'));
 
@@ -329,6 +344,13 @@ class CampaignApiController extends Controller
     // CAMPAIGN PREPARATION (resolve recipients + content + segments)
     // =====================================================
 
+    /**
+     * Prepare a campaign for the confirm page.
+     *
+     * Resolves recipients synchronously, then dispatches an async job
+     * to resolve merge fields and calculate per-recipient segments.
+     * Frontend should poll preparationStatus() until ready.
+     */
     public function prepare(string $id): JsonResponse
     {
         $campaign = Campaign::find($id);
@@ -353,6 +375,12 @@ class CampaignApiController extends Controller
         }
     }
 
+    /**
+     * Poll campaign preparation status.
+     *
+     * Returns progress percentage while preparing. Once ready, includes
+     * the accurate cost estimate and segment distribution statistics.
+     */
     public function preparationStatus(string $id): JsonResponse
     {
         $campaign = Campaign::find($id);
@@ -363,6 +391,7 @@ class CampaignApiController extends Controller
 
         $result = $this->campaignService->getPreparationStatus($campaign);
 
+        // Include cost estimate once preparation is complete
         if ($campaign->preparation_status === 'ready') {
             $estimate = $this->campaignService->estimateCost($campaign);
             $result['cost_estimate'] = $estimate->toArray();
@@ -371,6 +400,13 @@ class CampaignApiController extends Controller
         return response()->json(['data' => $result]);
     }
 
+    /**
+     * Get field length statistics from the contact database.
+     *
+     * Used on the send-message form for live segment range estimates
+     * before full recipient resolution. Returns average and max character
+     * lengths per merge field, optionally scoped to selected sources.
+     */
     public function fieldStatistics(Request $request): JsonResponse
     {
         $accountId = $this->tenantId();
@@ -383,6 +419,7 @@ class CampaignApiController extends Controller
             ->where('account_id', $accountId)
             ->whereNull('deleted_at');
 
+        // Scope to selected sources if provided
         if (!empty($listIds) || !empty($tagIds) || !empty($contactIds)) {
             $query->where(function ($q) use ($listIds, $tagIds, $contactIds) {
                 if (!empty($listIds)) {
@@ -631,6 +668,101 @@ class CampaignApiController extends Controller
     }
 
     // =====================================================
+    // OPT-OUT ENDPOINTS
+    // =====================================================
+
+    /**
+     * Get available numbers for opt-out reply selector (Red Circle).
+     * Returns VMNs, shortcodes, and keywords usable by the current user.
+     */
+    public function optOutNumbers(): JsonResponse
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        $numbers = $this->optOutService->getAvailableOptOutNumbers($this->tenantId(), $user);
+
+        return response()->json(['data' => $numbers]);
+    }
+
+    /**
+     * Validate an opt-out keyword for a specific number.
+     * Returns whether the keyword is available for use.
+     */
+    public function validateOptOutKeyword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'keyword' => 'required|string|min:4|max:10|regex:/^[A-Za-z0-9]+$/',
+            'number_id' => 'required|uuid',
+            'campaign_id' => 'nullable|uuid',
+        ]);
+
+        try {
+            $this->optOutService->validateOptOutKeyword(
+                $request->input('keyword'),
+                $request->input('number_id'),
+                $this->tenantId(),
+                $request->input('campaign_id')
+            );
+
+            return response()->json([
+                'valid' => true,
+                'keyword' => strtoupper($request->input('keyword')),
+            ]);
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'valid' => false,
+                'error' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Get available keywords for a shared shortcode.
+     * Returns purchased keywords not in use by in-flight campaigns.
+     */
+    public function availableKeywords(string $numberId): JsonResponse
+    {
+        $keywords = $this->optOutService->getAvailableKeywords(
+            $numberId,
+            $this->tenantId()
+        );
+
+        return response()->json(['data' => $keywords]);
+    }
+
+    /**
+     * Generate suggested opt-out text for a keyword + number combination.
+     */
+    public function suggestOptOutText(Request $request): JsonResponse
+    {
+        $request->validate([
+            'keyword' => 'required|string|min:4|max:10',
+            'number_id' => 'required|uuid',
+        ]);
+
+        $number = \App\Models\PurchasedNumber::findOrFail($request->input('number_id'));
+
+        $text = $this->optOutService->generateOptOutText(
+            strtoupper($request->input('keyword')),
+            $number->number
+        );
+
+        // Calculate character impact (for segment estimation)
+        $charCount = strlen($text);
+        $optOutUrlCharCount = CampaignOptOutUrl::getUrlCharCount();
+
+        return response()->json([
+            'text' => $text,
+            'char_count' => $charCount,
+            'opt_out_url_char_count' => $optOutUrlCharCount,
+            'opt_out_url_preview' => CampaignOptOutUrl::getFixedLengthUrl(),
+        ]);
+    }
+
+    // =====================================================
     // HELPERS
     // =====================================================
 
@@ -655,81 +787,5 @@ class CampaignApiController extends Controller
             'campaign_id' => $campaign->id,
             'total_batches' => $maxBatch + 1,
         ]);
-    }
-
-    // =====================================================
-    // OPT-OUT HELPERS
-    // =====================================================
-
-    /**
-     * GET /api/campaigns/opt-out-numbers
-     * Returns VMNs and shortcodes available for opt-out reply, scoped to the current user.
-     */
-    public function optOutNumbers(Request $request): JsonResponse
-    {
-        $user = User::find(session('customer_user_id'));
-
-        if (!$user) {
-            return response()->json(['data' => ['vmns' => [], 'shortcodes' => []]]);
-        }
-
-        $data = $this->optOutService->getAvailableOptOutNumbers($this->tenantId(), $user);
-
-        return response()->json(['data' => $data]);
-    }
-
-    /**
-     * POST /api/campaigns/validate-opt-out-keyword
-     * Validates an opt-out keyword for a given number.
-     */
-    public function validateOptOutKeyword(Request $request): JsonResponse
-    {
-        $request->validate([
-            'keyword' => 'required|string|max:10',
-            'number_id' => 'required|uuid',
-            'exclude_campaign_id' => 'nullable|uuid',
-        ]);
-
-        try {
-            $this->optOutService->validateOptOutKeyword(
-                $request->input('keyword'),
-                $request->input('number_id'),
-                $this->tenantId(),
-                $request->input('exclude_campaign_id')
-            );
-            return response()->json(['valid' => true]);
-        } catch (\RuntimeException $e) {
-            return response()->json(['valid' => false, 'message' => $e->getMessage()], 422);
-        }
-    }
-
-    /**
-     * POST /api/campaigns/suggest-opt-out-text
-     * Returns suggested opt-out text for a keyword + number combination.
-     */
-    public function suggestOptOutText(Request $request): JsonResponse
-    {
-        $request->validate([
-            'keyword' => 'required|string|max:10',
-            'number' => 'required|string|max:30',
-        ]);
-
-        $text = $this->optOutService->generateOptOutText(
-            strtoupper(trim($request->input('keyword'))),
-            $request->input('number')
-        );
-
-        return response()->json(['text' => $text]);
-    }
-
-    /**
-     * GET /api/campaigns/opt-out-keywords/{numberId}
-     * Returns available (purchased and not in-flight) keywords for a shared shortcode.
-     */
-    public function availableKeywords(Request $request, string $numberId): JsonResponse
-    {
-        $keywords = $this->optOutService->getAvailableKeywords($numberId, $this->tenantId());
-
-        return response()->json(['data' => $keywords]);
     }
 }

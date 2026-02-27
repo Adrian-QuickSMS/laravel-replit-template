@@ -74,11 +74,13 @@ class Campaign extends Model
     const TYPE_SMS = 'sms';
     const TYPE_RCS_BASIC = 'rcs_basic';
     const TYPE_RCS_SINGLE = 'rcs_single';
+    const TYPE_RCS_CAROUSEL = 'rcs_carousel';
 
     const TYPES = [
         self::TYPE_SMS,
         self::TYPE_RCS_BASIC,
         self::TYPE_RCS_SINGLE,
+        self::TYPE_RCS_CAROUSEL,
     ];
 
     // =====================================================
@@ -123,20 +125,17 @@ class Campaign extends Model
         'preparation_status',
         'preparation_progress',
         'preparation_error',
-        'validity_period',
-        'sending_window_start',
-        'sending_window_end',
         'tags',
         'metadata',
         'created_by',
         'updated_by',
+        // Opt-out configuration
         'opt_out_enabled',
         'opt_out_method',
         'opt_out_number_id',
         'opt_out_keyword',
         'opt_out_text',
         'opt_out_list_id',
-        'opt_out_screening_list_ids',
         'opt_out_url_enabled',
     ];
 
@@ -166,7 +165,10 @@ class Campaign extends Model
         'actual_cost' => 'decimal:4',
         'content_resolved_at' => 'datetime',
         'preparation_progress' => 'integer',
-        'validity_period' => 'integer',
+        'opt_out_enabled' => 'boolean',
+        'opt_out_url_enabled' => 'boolean',
+        'opt_out_number_id' => 'string',
+        'opt_out_list_id' => 'string',
         'scheduled_at' => 'datetime',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',
@@ -175,9 +177,6 @@ class Campaign extends Model
         'failed_at' => 'datetime',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'opt_out_enabled' => 'boolean',
-        'opt_out_screening_list_ids' => 'array',
-        'opt_out_url_enabled' => 'boolean',
     ];
 
     protected $attributes = [
@@ -193,12 +192,6 @@ class Campaign extends Model
     protected static function boot()
     {
         parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->id)) {
-                $model->id = (string) \Illuminate\Support\Str::uuid();
-            }
-        });
 
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = auth()->check() && auth()->user()->tenant_id
@@ -253,12 +246,12 @@ class Campaign extends Model
 
     public function optOutNumber(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\PurchasedNumber::class, 'opt_out_number_id');
+        return $this->belongsTo(PurchasedNumber::class, 'opt_out_number_id');
     }
 
     public function optOutList(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\OptOutList::class, 'opt_out_list_id');
+        return $this->belongsTo(OptOutList::class, 'opt_out_list_id');
     }
 
     // =====================================================
@@ -404,7 +397,7 @@ class Campaign extends Model
 
     public function isRcs(): bool
     {
-        return in_array($this->type, [self::TYPE_RCS_BASIC, self::TYPE_RCS_SINGLE]);
+        return in_array($this->type, [self::TYPE_RCS_BASIC, self::TYPE_RCS_SINGLE, self::TYPE_RCS_CAROUSEL]);
     }
 
     // =====================================================
@@ -416,11 +409,11 @@ class Campaign extends Model
      */
     public function getProgressPercentage(): float
     {
-        if (empty($this->total_unique_recipients)) {
+        if ($this->total_unique_recipients === 0) {
             return 0;
         }
 
-        $processed = ($this->sent_count ?? 0) + ($this->delivered_count ?? 0) + ($this->failed_count ?? 0);
+        $processed = $this->sent_count + $this->delivered_count + $this->failed_count;
         return round(($processed / $this->total_unique_recipients) * 100, 1);
     }
 
@@ -429,20 +422,16 @@ class Campaign extends Model
      */
     public function getDeliveryRate(): float
     {
-        $sent = $this->sent_count ?? 0;
-        $delivered = $this->delivered_count ?? 0;
-        $failed = $this->failed_count ?? 0;
-
-        if ($sent === 0 && $delivered === 0) {
+        if ($this->sent_count === 0 && $this->delivered_count === 0) {
             return 0;
         }
 
-        $totalAttempted = $sent + $delivered + $failed;
+        $totalAttempted = $this->sent_count + $this->delivered_count + $this->failed_count;
         if ($totalAttempted === 0) {
             return 0;
         }
 
-        return round(($delivered / $totalAttempted) * 100, 1);
+        return round(($this->delivered_count / $totalAttempted) * 100, 1);
     }
 
     /**
@@ -536,9 +525,6 @@ class Campaign extends Model
             'total_invalid' => $this->total_invalid,
             'scheduled_at' => $this->scheduled_at?->toIso8601String(),
             'timezone' => $this->timezone,
-            'validity_period' => $this->validity_period,
-            'sending_window_start' => $this->sending_window_start,
-            'sending_window_end' => $this->sending_window_end,
             'send_rate' => $this->send_rate,
             'started_at' => $this->started_at?->toIso8601String(),
             'completed_at' => $this->completed_at?->toIso8601String(),
@@ -557,18 +543,18 @@ class Campaign extends Model
             'progress_percentage' => $this->getProgressPercentage(),
             'delivery_rate' => $this->getDeliveryRate(),
             'tags' => $this->tags,
+            'opt_out_enabled' => $this->opt_out_enabled,
+            'opt_out_method' => $this->opt_out_method,
+            'opt_out_number_id' => $this->opt_out_number_id,
+            'opt_out_number' => $this->optOutNumber?->number,
+            'opt_out_keyword' => $this->opt_out_keyword,
+            'opt_out_text' => $this->opt_out_text,
+            'opt_out_list_id' => $this->opt_out_list_id,
+            'opt_out_url_enabled' => $this->opt_out_url_enabled,
             'is_editable' => $this->isEditable(),
             'can_pause' => $this->canPause(),
             'can_resume' => $this->canResume(),
             'can_cancel' => $this->canCancel(),
-            'opt_out_enabled' => (bool) $this->opt_out_enabled,
-            'opt_out_method' => $this->opt_out_method,
-            'opt_out_number_id' => $this->opt_out_number_id,
-            'opt_out_keyword' => $this->opt_out_keyword,
-            'opt_out_text' => $this->opt_out_text,
-            'opt_out_list_id' => $this->opt_out_list_id,
-            'opt_out_screening_list_ids' => $this->opt_out_screening_list_ids ?? [],
-            'opt_out_url_enabled' => (bool) $this->opt_out_url_enabled,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

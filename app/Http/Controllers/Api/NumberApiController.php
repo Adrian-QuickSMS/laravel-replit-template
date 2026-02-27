@@ -83,40 +83,13 @@ class NumberApiController extends Controller
         $perPage = min((int) $request->input('per_page', 25), 100);
         $paginated = $query->paginate($perPage);
 
-        $data = collect($paginated->items())->map->toPortalArray();
-
-        // Augment with shared shortcodes the tenant has keywords on (but doesn't own outright)
-        $tenantId = session('customer_tenant_id');
-        $extraCount = 0;
-        if ($tenantId) {
-            $existingIds = collect($paginated->items())->pluck('id')->toArray();
-
-            $keywordShortcodeIds = ShortcodeKeyword::where('account_id', $tenantId)
-                ->whereNull('deleted_at')
-                ->distinct()
-                ->pluck('purchased_number_id')
-                ->reject(fn ($id) => in_array($id, $existingIds))
-                ->values();
-
-            if ($keywordShortcodeIds->isNotEmpty()) {
-                $extraNumbers = PurchasedNumber::withoutGlobalScopes()
-                    ->with(['keywords' => fn ($q) => $q->where('account_id', $tenantId)->whereNull('deleted_at')])
-                    ->whereIn('id', $keywordShortcodeIds)
-                    ->get();
-
-                $extraItems = $extraNumbers->map->toPortalArray();
-                $extraCount = $extraItems->count();
-                $data = $data->concat($extraItems);
-            }
-        }
-
         return response()->json([
-            'data' => $data,
+            'data' => collect($paginated->items())->map->toPortalArray(),
             'meta' => [
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),
                 'per_page' => $paginated->perPage(),
-                'total' => $paginated->total() + $extraCount,
+                'total' => $paginated->total(),
             ],
             'summary' => [
                 'total_active' => PurchasedNumber::active()->count(),
@@ -133,31 +106,9 @@ class NumberApiController extends Controller
 
     public function show(string $id): JsonResponse
     {
-        try {
-            $number = PurchasedNumber::with(['assignments', 'keywords', 'autoReplyRules'])
-                ->withCount(['assignments', 'autoReplyRules'])
-                ->findOrFail($id);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            // Fall back: check if this is a platform shortcode the tenant has keywords on
-            $tenantId = session('customer_tenant_id');
-            $hasKeywords = $tenantId && ShortcodeKeyword::where('account_id', $tenantId)
-                ->where('purchased_number_id', $id)
-                ->whereNull('deleted_at')
-                ->exists();
-
-            if (!$hasKeywords) {
-                throw $e;
-            }
-
-            $number = PurchasedNumber::withoutGlobalScopes()
-                ->with([
-                    'assignments',
-                    'keywords' => fn ($q) => $q->where('account_id', $tenantId)->whereNull('deleted_at'),
-                    'autoReplyRules',
-                ])
-                ->withCount(['assignments', 'autoReplyRules'])
-                ->findOrFail($id);
-        }
+        $number = PurchasedNumber::with(['assignments', 'keywords', 'autoReplyRules'])
+            ->withCount(['assignments', 'autoReplyRules'])
+            ->findOrFail($id);
 
         return response()->json([
             'data' => $number->toPortalArray(),
@@ -629,14 +580,8 @@ class NumberApiController extends Controller
         }
 
         $account = \App\Models\Account::findOrFail($accountId);
-        $vatRate = $this->billingService->getVatRate($account);
 
-        // Helper: calculate VAT on a net amount string
-        $withVat = function (string $net) use ($vatRate): array {
-            $vat = bcmul(bcdiv($net, '100', 8), $vatRate, 4);
-            return ['net' => $net, 'vat' => $vat, 'inc_vat' => bcadd($net, $vat, 4)];
-        };
-
+        // Get sample VMN pricing (use a dummy pool entry)
         try {
             $vmnSetupPrice = app(\App\Services\Billing\PricingEngine::class)
                 ->resolvePrice($account, 'virtual_number_setup', 'GB');
@@ -647,145 +592,23 @@ class NumberApiController extends Controller
             $vmnMonthlyPrice = null;
         }
 
-        $vmnSetupNet = $vmnSetupPrice?->unitPrice ?? '10.0000';
-        $vmnMonthlyNet = $vmnMonthlyPrice?->unitPrice ?? '8.0000';
-        $vmnSetupVat = $withVat($vmnSetupNet);
-        $vmnMonthlyVat = $withVat($vmnMonthlyNet);
-
         try {
             $keywordPricing = $this->billingService->calculateKeywordPricing($account);
         } catch (\Exception $e) {
             $keywordPricing = null;
         }
 
-        try {
-            $dedicatedSetupPrice = app(\App\Services\Billing\PricingEngine::class)
-                ->resolvePrice($account, 'shortcode_setup', null);
-            $dedicatedMonthlyPrice = app(\App\Services\Billing\PricingEngine::class)
-                ->resolvePrice($account, 'shortcode_monthly', null);
-        } catch (\Exception $e) {
-            $dedicatedSetupPrice = null;
-            $dedicatedMonthlyPrice = null;
-        }
-
-        // Find platform shared shortcodes from purchased_numbers (the ID is used by purchaseKeyword)
-        $sharedShortcodes = PurchasedNumber::withoutGlobalScopes()
-            ->where('number_type', PurchasedNumber::TYPE_SHARED_SHORTCODE)
-            ->where('status', 'active')
-            ->get(['id', 'number', 'country_iso'])
-            ->map(fn($sc) => [
-                'id' => $sc->id,
-                'shortcode' => $sc->number,
-                'display_name' => $sc->number . ' (' . $sc->country_iso . ')',
-            ])->values();
-
-        $dsSetupNet = $dedicatedSetupPrice?->unitPrice;
-        $dsMonthlyNet = $dedicatedMonthlyPrice?->unitPrice ?? '0.0000';
-
         return response()->json([
-            'vat_rate' => $vatRate,
             'vmn' => [
-                'setup_fee' => $vmnSetupNet,
-                'setup_vat' => $vmnSetupVat['vat'],
-                'setup_inc_vat' => $vmnSetupVat['inc_vat'],
-                'monthly_fee' => $vmnMonthlyNet,
-                'monthly_vat' => $vmnMonthlyVat['vat'],
-                'monthly_inc_vat' => $vmnMonthlyVat['inc_vat'],
+                'setup_fee' => $vmnSetupPrice?->unitPrice ?? '10.0000',
+                'monthly_fee' => $vmnMonthlyPrice?->unitPrice ?? '8.0000',
                 'currency' => $account->currency ?? 'GBP',
             ],
             'keyword' => $keywordPricing ?? [
                 'setup_fee' => '25.0000',
-                'setup_vat' => $withVat('25.0000')['vat'],
-                'setup_inc_vat' => $withVat('25.0000')['inc_vat'],
-                'monthly_fee' => '2.0000',
-                'monthly_vat' => $withVat('2.0000')['vat'],
-                'monthly_inc_vat' => $withVat('2.0000')['inc_vat'],
-                'vat_rate' => $vatRate,
+                'monthly_fee' => '50.0000',
                 'currency' => $account->currency ?? 'GBP',
             ],
-            'dedicated_shortcode' => $dsSetupNet ? [
-                'setup_fee' => $dsSetupNet,
-                'setup_vat' => $withVat($dsSetupNet)['vat'],
-                'setup_inc_vat' => $withVat($dsSetupNet)['inc_vat'],
-                'monthly_fee' => $dsMonthlyNet,
-                'monthly_vat' => $withVat($dsMonthlyNet)['vat'],
-                'monthly_inc_vat' => $withVat($dsMonthlyNet)['inc_vat'],
-                'currency' => $account->currency ?? 'GBP',
-            ] : null,
-            'shared_shortcodes' => $sharedShortcodes,
-        ]);
-    }
-
-    // =====================================================
-    // 18. SUSPEND NUMBER
-    // =====================================================
-
-    public function suspend(string $id): JsonResponse
-    {
-        $number = PurchasedNumber::findOrFail($id);
-
-        if (!$number->isActive()) {
-            return response()->json(['error' => 'Only active numbers can be suspended.'], 422);
-        }
-
-        try {
-            $this->numberService->suspendNumber($number, 'Suspended by user');
-
-            return response()->json([
-                'success' => true,
-                'message' => "Number {$number->number} has been suspended.",
-            ]);
-        } catch (\RuntimeException $e) {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
-    }
-
-    // =====================================================
-    // 19. REACTIVATE NUMBER
-    // =====================================================
-
-    public function reactivate(string $id): JsonResponse
-    {
-        $number = PurchasedNumber::findOrFail($id);
-
-        if (!$number->isSuspended()) {
-            return response()->json(['error' => 'Only suspended numbers can be reactivated.'], 422);
-        }
-
-        try {
-            $this->numberService->reactivateNumber($number);
-
-            return response()->json([
-                'success' => true,
-                'message' => "Number {$number->number} has been reactivated.",
-            ]);
-        } catch (\RuntimeException $e) {
-            return response()->json(['error' => $e->getMessage()], 422);
-        }
-    }
-
-    // =====================================================
-    // 20. TAKEN KEYWORDS
-    // =====================================================
-
-    public function takenKeywords(Request $request): JsonResponse
-    {
-        $shortcode = $request->input('shortcode', '82228');
-
-        // Find taken keywords on the shared shortcode (cross-tenant query — no tenant scope)
-        $taken = \DB::table('shortcode_keywords as sk')
-            ->join('purchased_numbers as pn', 'sk.purchased_number_id', '=', 'pn.id')
-            ->where('pn.number', $shortcode)
-            ->where('sk.status', '!=', 'released')
-            ->pluck('sk.keyword')
-            ->map(fn($kw) => strtoupper($kw))
-            ->sort()
-            ->values()
-            ->toArray();
-
-        return response()->json([
-            'data' => $taken,
-            'shortcode' => $shortcode,
         ]);
     }
 
@@ -795,11 +618,7 @@ class NumberApiController extends Controller
 
     private function getAuthenticatedUser(): User
     {
-        $userId = session('customer_user_id');
-        if (!$userId) {
-            abort(401, 'Unauthenticated');
-        }
-        $user = User::find($userId);
+        $user = auth()->user();
         if (!$user) {
             abort(401, 'Unauthenticated');
         }
