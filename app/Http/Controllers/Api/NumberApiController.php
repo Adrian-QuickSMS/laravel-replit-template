@@ -83,8 +83,19 @@ class NumberApiController extends Controller
         $perPage = min((int) $request->input('per_page', 25), 100);
         $paginated = $query->paginate($perPage);
 
+        $currentPricing = $this->getCurrentNumberPricing();
+
         return response()->json([
-            'data' => collect($paginated->items())->map->toPortalArray(),
+            'data' => collect($paginated->items())->map(function ($number) use ($currentPricing) {
+                $data = $number->toPortalArray();
+                $priceKey = $number->number_type === 'vmn'
+                    ? 'virtual_number_monthly'
+                    : ($number->number_type === 'shared_shortcode' ? 'shortcode_keyword_monthly' : 'shortcode_monthly');
+                if (isset($currentPricing[$priceKey])) {
+                    $data['monthly_fee'] = $currentPricing[$priceKey];
+                }
+                return $data;
+            }),
             'meta' => [
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),
@@ -110,8 +121,17 @@ class NumberApiController extends Controller
             ->withCount(['assignments', 'autoReplyRules'])
             ->findOrFail($id);
 
+        $data = $number->toPortalArray();
+        $currentPricing = $this->getCurrentNumberPricing();
+        $priceKey = $number->number_type === 'vmn'
+            ? 'virtual_number_monthly'
+            : ($number->number_type === 'shared_shortcode' ? 'shortcode_keyword_monthly' : 'shortcode_monthly');
+        if (isset($currentPricing[$priceKey])) {
+            $data['monthly_fee'] = $currentPricing[$priceKey];
+        }
+
         return response()->json([
-            'data' => $number->toPortalArray(),
+            'data' => $data,
             'assignments' => $number->assignments->map(function ($a) {
                 return [
                     'id' => $a->id,
@@ -646,5 +666,38 @@ class NumberApiController extends Controller
             abort(401, 'Unauthenticated');
         }
         return $user;
+    }
+
+    private function getCurrentNumberPricing(): array
+    {
+        try {
+            $tenantId = session('customer_tenant_id');
+            if (!$tenantId) {
+                return [];
+            }
+
+            $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+            $tier = $account?->product_tier ?? 'starter';
+
+            return \DB::table('product_tier_prices')
+                ->where('active', true)
+                ->whereRaw('valid_from <= CURRENT_DATE')
+                ->where(function ($q) {
+                    $q->whereNull('valid_to')->orWhereRaw('valid_to >= CURRENT_DATE');
+                })
+                ->where('product_tier', $tier)
+                ->whereNull('country_iso')
+                ->whereIn('product_type', [
+                    'virtual_number_monthly',
+                    'shortcode_monthly',
+                    'shortcode_keyword_monthly',
+                ])
+                ->pluck('unit_price', 'product_type')
+                ->map(fn ($v) => (string) $v)
+                ->toArray();
+        } catch (\Throwable $e) {
+            Log::warning('Failed to load current number pricing', ['error' => $e->getMessage()]);
+            return [];
+        }
     }
 }
