@@ -1851,8 +1851,18 @@ class QuickSMSController extends Controller
 
     public function purchaseNumbers()
     {
+        $accountBalance = 0;
+        $tenantId = session('customer_tenant_id');
+        if ($tenantId) {
+            $bal = \DB::table('account_balances')
+                ->where('account_id', $tenantId)
+                ->value('effective_available');
+            $accountBalance = (float) ($bal ?? 0);
+        }
+
         return view('quicksms.purchase.numbers', [
-            'page_title' => 'Purchase Numbers'
+            'page_title' => 'Purchase Numbers',
+            'accountBalance' => $accountBalance,
         ]);
     }
 
