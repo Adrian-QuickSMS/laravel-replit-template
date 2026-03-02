@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Billing\CampaignEstimateSnapshot;
 use App\Models\Billing\CampaignReservation;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -249,6 +251,11 @@ class Campaign extends Model
     public function recipients(): HasMany
     {
         return $this->hasMany(CampaignRecipient::class, 'campaign_id');
+    }
+
+    public function estimateSnapshot(): HasOne
+    {
+        return $this->hasOne(CampaignEstimateSnapshot::class, 'campaign_id');
     }
 
     public function optOutNumber(): BelongsTo
@@ -540,6 +547,9 @@ class Campaign extends Model
             'estimated_cost' => $this->estimated_cost,
             'actual_cost' => $this->actual_cost,
             'currency' => $this->currency,
+            'estimate_snapshot' => $this->relationLoaded('estimateSnapshot')
+                ? $this->estimateSnapshot?->toPortalArray()
+                : null,
             'content_resolved_at' => $this->content_resolved_at?->toIso8601String(),
             'preparation_status' => $this->preparation_status,
             'preparation_progress' => $this->preparation_progress,

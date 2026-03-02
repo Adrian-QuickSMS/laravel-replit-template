@@ -14,6 +14,7 @@ use App\Models\MessageLog;
 use App\Models\RoutingRule;
 use App\Services\Billing\BalanceService;
 use App\Services\Billing\PricingEngine;
+use App\Models\Billing\CampaignEstimateSnapshot;
 use App\Services\Numbers\NumberService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -346,9 +347,11 @@ class DeliveryService
         CampaignRecipient $recipient
     ): string {
         try {
+            $billableProductType = CampaignEstimateSnapshot::resolveBillableProductType($campaign->type);
+
             $calculation = $this->pricingEngine->calculateMessageCost(
                 $account,
-                $campaign->type,
+                $billableProductType,
                 $recipient->country_iso,
                 $recipient->segments ?: 1
             );

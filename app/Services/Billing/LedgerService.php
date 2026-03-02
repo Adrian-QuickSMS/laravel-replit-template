@@ -367,7 +367,7 @@ class LedgerService
     {
         return match ($productType) {
             'sms' => LedgerAccount::REVENUE_SMS,
-            'rcs_basic', 'rcs_single' => LedgerAccount::REVENUE_RCS,
+            'rcs_basic', 'rcs_single', 'rcs_carousel' => LedgerAccount::REVENUE_RCS,
             'ai_query' => LedgerAccount::REVENUE_AI,
             'virtual_number_monthly', 'shortcode_monthly', 'support', 'inbound_sms' => LedgerAccount::REVENUE_RECURRING,
             default => LedgerAccount::REVENUE_SMS,

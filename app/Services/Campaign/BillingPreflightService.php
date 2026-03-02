@@ -10,6 +10,7 @@ use App\Services\Billing\PricingEngine;
 use App\Services\Billing\CostCalculation;
 use App\Exceptions\Billing\InsufficientBalanceException;
 use App\Exceptions\Billing\PriceNotFoundException;
+use App\Models\Billing\CampaignEstimateSnapshot;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -51,20 +52,21 @@ class BillingPreflightService
         array $countryBreakdown,
         int $segmentsPerMessage = 1
     ): CostEstimate {
+        $billableProductType = CampaignEstimateSnapshot::resolveBillableProductType($productType);
+
         $totalCost = '0';
         $perCountryCosts = [];
         $errors = [];
 
         foreach ($countryBreakdown as $countryIso => $recipientCount) {
             if ($countryIso === 'unknown' || $countryIso === null) {
-                // For numbers with undetected country, use default (null country) pricing
                 $countryIso = null;
             }
 
             try {
                 $calculation = $this->pricingEngine->calculateMessageCost(
                     $account,
-                    $productType,
+                    $billableProductType,
                     $countryIso,
                     $segmentsPerMessage
                 );
@@ -85,7 +87,7 @@ class BillingPreflightService
             } catch (PriceNotFoundException $e) {
                 Log::warning('[BillingPreflight] No price found for country', [
                     'account_id' => $account->id,
-                    'product_type' => $productType,
+                    'product_type' => $billableProductType,
                     'country_iso' => $countryIso,
                 ]);
                 $errors[] = [
@@ -129,6 +131,8 @@ class BillingPreflightService
         string $productType,
         $breakdown
     ): CostEstimate {
+        $billableProductType = CampaignEstimateSnapshot::resolveBillableProductType($productType);
+
         $totalCost = '0';
         $perCountryCosts = [];
         $errors = [];
@@ -145,7 +149,7 @@ class BillingPreflightService
             try {
                 $calculation = $this->pricingEngine->calculateMessageCost(
                     $account,
-                    $productType,
+                    $billableProductType,
                     $countryIso,
                     $segments
                 );
@@ -180,7 +184,7 @@ class BillingPreflightService
             } catch (PriceNotFoundException $e) {
                 Log::warning('[BillingPreflight] No price found for country (segment group)', [
                     'account_id' => $account->id,
-                    'product_type' => $productType,
+                    'product_type' => $billableProductType,
                     'country_iso' => $countryIso,
                     'segments' => $segments,
                 ]);
@@ -227,11 +231,13 @@ class BillingPreflightService
     public function runPreflight(Campaign $campaign): PreflightResult
     {
         $account = Account::findOrFail($campaign->account_id);
+        $billableProductType = CampaignEstimateSnapshot::resolveBillableProductType($campaign->type);
 
         Log::info('[BillingPreflight] Running preflight', [
             'campaign_id' => $campaign->id,
             'account_id' => $account->id,
             'type' => $campaign->type,
+            'billable_product_type' => $billableProductType,
         ]);
 
         // Step 1: Build country breakdown from resolved recipients
@@ -297,11 +303,18 @@ class BillingPreflightService
             'reservation_id' => $reservation->id,
         ]);
 
+        // Step 7: Create immutable CampaignEstimateSnapshot
+        $snapshot = $this->createEstimateSnapshot(
+            $campaign, $account, $estimate, $reservation->id, $billableProductType
+        );
+
         Log::info('[BillingPreflight] Preflight complete', [
             'campaign_id' => $campaign->id,
             'estimated_cost' => $estimate->totalCost,
+            'estimated_cost_inc_vat' => $snapshot->estimated_cost_inc_vat,
             'currency' => $estimate->currency,
             'reservation_id' => $reservation->id,
+            'snapshot_id' => $snapshot->id,
         ]);
 
         return new PreflightResult(
@@ -310,7 +323,83 @@ class BillingPreflightService
             currency: $estimate->currency,
             reservationId: $reservation->id,
             costEstimate: $estimate,
+            snapshot: $snapshot,
         );
+    }
+
+    private function createEstimateSnapshot(
+        Campaign $campaign,
+        Account $account,
+        CostEstimate $estimate,
+        string $reservationId,
+        string $billableProductType,
+    ): CampaignEstimateSnapshot {
+        $pricingSnapshot = $this->buildPricingSnapshot($account, $billableProductType, $estimate->perCountryCosts);
+
+        $vatRate = ($account->vat_registered && !$account->vat_reverse_charges) ? '20.00' : '0.00';
+        $vatAmount = bcmul($estimate->totalCost, bcdiv($vatRate, '100', 6), 4);
+        $costIncVat = bcadd($estimate->totalCost, $vatAmount, 4);
+
+        $totalRecipients = 0;
+        foreach ($estimate->perCountryCosts as $country) {
+            $totalRecipients += $country['recipient_count'];
+        }
+
+        return CampaignEstimateSnapshot::create([
+            'campaign_id' => $campaign->id,
+            'account_id' => $account->id,
+            'product_type' => $billableProductType,
+            'campaign_type' => $campaign->type,
+            'currency' => $estimate->currency,
+            'total_recipients' => $totalRecipients,
+            'estimated_cost' => $estimate->totalCost,
+            'vat_rate' => $vatRate,
+            'vat_amount' => $vatAmount,
+            'estimated_cost_inc_vat' => $costIncVat,
+            'reserved_amount' => $estimate->totalCost,
+            'available_balance_at_send' => $estimate->availableBalance,
+            'is_postpay' => $estimate->isPostpay,
+            'product_tier' => $account->product_tier,
+            'country_breakdown' => $estimate->perCountryCosts,
+            'pricing_snapshot' => $pricingSnapshot,
+            'estimation_errors' => !empty($estimate->errors) ? $estimate->errors : null,
+            'reservation_id' => $reservationId,
+            'created_by' => $campaign->created_by,
+            'snapshot_at' => now(),
+        ]);
+    }
+
+    private function buildPricingSnapshot(Account $account, string $billableProductType, array $perCountryCosts): array
+    {
+        $snapshot = [];
+
+        foreach ($perCountryCosts as $countryKey => $data) {
+            $countryIso = $data['country_iso'] ?? null;
+
+            try {
+                $price = $this->pricingEngine->resolvePrice($account, $billableProductType, $countryIso);
+
+                $snapshot[] = [
+                    'product_type' => $billableProductType,
+                    'country_iso' => $countryIso,
+                    'unit_price' => $price->unitPrice,
+                    'currency' => $price->currency,
+                    'source' => $price->source,
+                    'price_id' => $price->priceId,
+                ];
+            } catch (\App\Exceptions\Billing\PriceNotFoundException $e) {
+                $snapshot[] = [
+                    'product_type' => $billableProductType,
+                    'country_iso' => $countryIso,
+                    'unit_price' => null,
+                    'currency' => $account->currency ?? 'GBP',
+                    'source' => 'not_found',
+                    'price_id' => null,
+                ];
+            }
+        }
+
+        return $snapshot;
     }
 
     /**
@@ -374,6 +463,7 @@ class PreflightResult
         public readonly string $currency,
         public readonly ?string $reservationId,
         public readonly CostEstimate $costEstimate,
+        public readonly ?CampaignEstimateSnapshot $snapshot = null,
     ) {}
 
     public function toArray(): array
@@ -384,6 +474,7 @@ class PreflightResult
             'currency' => $this->currency,
             'reservation_id' => $this->reservationId,
             'cost_estimate' => $this->costEstimate->toArray(),
+            'snapshot' => $this->snapshot?->toPortalArray(),
         ];
     }
 }

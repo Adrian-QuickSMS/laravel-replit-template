@@ -77,6 +77,7 @@ auth:sanctum middleware         Admin-only middleware
 | Supplier Rate Cards | `suppliers`, `gateways`, `mcc_mnc_master`, `rate_cards`, `fx_rates`, `rate_card_audit_log` |
 | Reporting | Finance data with drill-down (Month → user-chosen dimension) |
 | RCS Media Assets | `rcs_assets` — tenant-scoped via `account_id`, draft lifecycle, daily cleanup |
+| Billing Snapshots | `campaign_estimate_snapshots` — immutable pricing record frozen at campaign send time |
 
 ### RCS Rich Messaging Backend
 
