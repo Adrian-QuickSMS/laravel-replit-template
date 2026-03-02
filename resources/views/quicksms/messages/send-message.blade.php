@@ -2707,17 +2707,28 @@ function loadOptOutNumbers() {
             var grp2 = document.createElement('optgroup');
             grp2.label = 'Shortcodes';
             shortcodes.forEach(function(n) {
-                var opt = document.createElement('option');
-                opt.value = n.id;
-                if (n.type === 'shared_shortcode' && n.keyword) {
-                    opt.text = n.number + ' (' + n.keyword + ') [shared]';
+                var keywords = (n.keywords || []).map(function(k) { return k.keyword; });
+                var keywordStr = keywords.join(', ');
+
+                if (n.type === 'shared_shortcode' && keywords.length > 0) {
+                    keywords.forEach(function(kw) {
+                        var opt = document.createElement('option');
+                        opt.value = n.id;
+                        opt.text = n.number + ' (' + kw + ')';
+                        opt.dataset.type = n.type;
+                        opt.dataset.number = n.number;
+                        opt.dataset.keyword = kw;
+                        grp2.appendChild(opt);
+                    });
                 } else {
+                    var opt = document.createElement('option');
+                    opt.value = n.id;
                     opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '');
+                    opt.dataset.type = n.type;
+                    opt.dataset.number = n.number;
+                    opt.dataset.keyword = keywordStr;
+                    grp2.appendChild(opt);
                 }
-                opt.dataset.type = n.type;
-                opt.dataset.number = n.number;
-                opt.dataset.keyword = n.keyword || '';
-                grp2.appendChild(opt);
             });
             select.appendChild(grp2);
         }
