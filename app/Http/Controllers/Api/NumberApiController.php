@@ -570,6 +570,34 @@ class NumberApiController extends Controller
     }
 
     // =====================================================
+    // 15b. TAKEN KEYWORDS
+    // =====================================================
+
+    public function takenKeywords(Request $request): JsonResponse
+    {
+        $shortcode = $request->input('shortcode', '60866');
+
+        $purchasedNumberIds = PurchasedNumber::withoutGlobalScope('tenant')
+            ->where('number', $shortcode)
+            ->where('number_type', 'shared_shortcode')
+            ->where('status', 'active')
+            ->pluck('id');
+
+        $keywords = \App\Models\ShortcodeKeyword::withoutGlobalScope('tenant')
+            ->whereIn('purchased_number_id', $purchasedNumberIds)
+            ->where('status', 'active')
+            ->pluck('keyword')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'data' => $keywords,
+        ]);
+    }
+
+    // =====================================================
     // 16. EXPORT CSV
     // =====================================================
 
@@ -633,6 +661,8 @@ class NumberApiController extends Controller
             ->get()
             ->toArray();
 
+        $vatRate = ($account->vat_registered && !$account->vat_reverse_charges) ? 20 : 0;
+
         return response()->json([
             'vmn' => [
                 'setup_fee' => $vmnSetupPrice?->unitPrice ?? '2.0000',
@@ -650,7 +680,7 @@ class NumberApiController extends Controller
                 'currency' => $currency,
             ],
             'shared_shortcodes' => $sharedShortcodes,
-            'vat_rate' => 20,
+            'vat_rate' => $vatRate,
         ]);
     }
 

@@ -571,6 +571,35 @@ class QuickSMSController extends Controller
         }
     }
 
+    private function getAccountVatStatus(): array
+    {
+        $defaults = ['vat_applicable' => false, 'vat_rate' => 0];
+
+        try {
+            $tenantId = session('customer_tenant_id');
+            if (!$tenantId) {
+                return $defaults;
+            }
+
+            $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+            if (!$account) {
+                return $defaults;
+            }
+
+            if ($account->vat_reverse_charges) {
+                return ['vat_applicable' => false, 'vat_rate' => 0];
+            }
+
+            if ($account->vat_registered) {
+                return ['vat_applicable' => true, 'vat_rate' => 20];
+            }
+
+            return ['vat_applicable' => true, 'vat_rate' => 20];
+        } catch (\Throwable $e) {
+            return $defaults;
+        }
+    }
+
     public function confirmCampaign(Request $request)
     {
         $sessionData = $request->session()->get('campaign_config', []);
@@ -627,12 +656,13 @@ class QuickSMSController extends Controller
         }
 
         $accountPricing = $this->getAccountPricingForView();
+        $accountVat = $this->getAccountVatStatus();
         $pricing = [
             'sms_unit_price' => $accountPricing['sms'] ?? 0.0395,
             'rcs_basic_price' => $accountPricing['rcs_basic'] ?? 0.0395,
             'rcs_single_price' => $accountPricing['rcs_single'] ?? 0.0600,
-            'vat_applicable' => true,
-            'vat_rate' => 20,
+            'vat_applicable' => $accountVat['vat_applicable'],
+            'vat_rate' => $accountVat['vat_rate'],
         ];
 
         $segmentBreakdown = [];

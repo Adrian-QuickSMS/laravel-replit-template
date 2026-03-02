@@ -1050,7 +1050,8 @@ function loadVmnPool(countryIso) {
 }
 
 function loadTakenKeywords() {
-    fetch('/api/numbers/keywords/taken?shortcode=60866', { headers: { 'Accept': 'application/json' } })
+    var sc = sharedShortcodes.length > 0 ? sharedShortcodes[0].number : '60866';
+    fetch('/api/numbers/keywords/taken?shortcode=' + encodeURIComponent(sc), { headers: { 'Accept': 'application/json' } })
         .then(function(r) { return r.json(); })
         .then(function(data) {
             takenKeywords = data.data || [];

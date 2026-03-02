@@ -54,11 +54,14 @@ class TopUpApiController extends Controller
             'account_id' => $accountId,
         ]);
 
+        $account = \App\Models\Account::withoutGlobalScope('tenant')->find($accountId);
+        $vatRate = ($account && $account->vat_registered && !$account->vat_reverse_charges) ? 0.20 : 0;
+
         $result = $this->stripeService->createTopUpSession([
             'tier' => $tier,
             'amount' => $amount,
             'currency' => $currency,
-            'vatRate' => 0.20,
+            'vatRate' => $vatRate,
             'effectiveRate' => $effectiveRate,
             'accountId' => $accountId,
         ]);
@@ -80,8 +83,9 @@ class TopUpApiController extends Controller
             'tier' => $tier,
             'amount' => $amount,
             'currency' => $currency,
-            'vat_amount' => $amount * 0.20,
-            'total_payable' => $amount * 1.20,
+            'vat_rate' => $vatRate,
+            'vat_amount' => $amount * $vatRate,
+            'total_payable' => $amount * (1 + $vatRate),
             'account_id' => $accountId,
             'session_id' => $result['sessionId'] ?? null,
             'is_mock' => $result['isMock'] ?? false,
