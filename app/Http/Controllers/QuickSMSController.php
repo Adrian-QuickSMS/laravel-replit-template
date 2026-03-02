@@ -359,10 +359,10 @@ class QuickSMSController extends Controller
         $user = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
         $rcs_agents = $user
             ? \App\Models\RcsAgent::usableByUser($user)
-                ->select('uuid', 'name', 'description', 'brand_color', 'logo_url')
+                ->select('id', 'uuid', 'name', 'description', 'brand_color', 'logo_url')
                 ->get()
                 ->map(fn($a) => [
-                    'id'          => $a->uuid,
+                    'id'          => $a->id,
                     'name'        => $a->name,
                     'logo'        => $a->logo_url ?: null,
                     'tagline'     => $a->description ?? '',
@@ -423,10 +423,10 @@ class QuickSMSController extends Controller
             return [];
         }
         return \App\Models\RcsAgent::usableByUser($user)
-            ->select('uuid', 'name', 'description', 'brand_color', 'logo_url')
+            ->select('id', 'uuid', 'name', 'description', 'brand_color', 'logo_url')
             ->get()
             ->map(fn($a) => [
-                'id'          => $a->uuid,
+                'id'          => $a->id,
                 'name'        => $a->name,
                 'logo'        => $a->logo_url ?: null,
                 'tagline'     => $a->description ?? '',
