@@ -580,13 +580,12 @@ class NumberApiController extends Controller
         }
 
         $account = \App\Models\Account::findOrFail($accountId);
+        $pricingEngine = app(\App\Services\Billing\PricingEngine::class);
+        $currency = $account->currency ?? 'GBP';
 
-        // Get sample VMN pricing (use a dummy pool entry)
         try {
-            $vmnSetupPrice = app(\App\Services\Billing\PricingEngine::class)
-                ->resolvePrice($account, 'virtual_number_setup', 'GB');
-            $vmnMonthlyPrice = app(\App\Services\Billing\PricingEngine::class)
-                ->resolvePrice($account, 'virtual_number_monthly', 'GB');
+            $vmnSetupPrice = $pricingEngine->resolvePrice($account, 'virtual_number_setup', 'GB');
+            $vmnMonthlyPrice = $pricingEngine->resolvePrice($account, 'virtual_number_monthly', 'GB');
         } catch (\Exception $e) {
             $vmnSetupPrice = null;
             $vmnMonthlyPrice = null;
@@ -598,17 +597,40 @@ class NumberApiController extends Controller
             $keywordPricing = null;
         }
 
+        try {
+            $dsSetupPrice = $pricingEngine->resolvePrice($account, 'shortcode_setup', null);
+            $dsMonthlyPrice = $pricingEngine->resolvePrice($account, 'shortcode_monthly', null);
+        } catch (\Exception $e) {
+            $dsSetupPrice = null;
+            $dsMonthlyPrice = null;
+        }
+
+        $sharedShortcodes = \App\Models\PurchasedNumber::withoutGlobalScope('tenant')
+            ->where('account_id', $accountId)
+            ->where('number_type', 'shared_shortcode')
+            ->where('status', 'active')
+            ->select('id', 'number', 'friendly_name')
+            ->get()
+            ->toArray();
+
         return response()->json([
             'vmn' => [
-                'setup_fee' => $vmnSetupPrice?->unitPrice ?? '10.0000',
-                'monthly_fee' => $vmnMonthlyPrice?->unitPrice ?? '8.0000',
-                'currency' => $account->currency ?? 'GBP',
+                'setup_fee' => $vmnSetupPrice?->unitPrice ?? '2.0000',
+                'monthly_fee' => $vmnMonthlyPrice?->unitPrice ?? '2.0000',
+                'currency' => $currency,
             ],
             'keyword' => $keywordPricing ?? [
-                'setup_fee' => '25.0000',
-                'monthly_fee' => '50.0000',
-                'currency' => $account->currency ?? 'GBP',
+                'setup_fee' => '2.0000',
+                'monthly_fee' => '2.0000',
+                'currency' => $currency,
             ],
+            'dedicated_shortcode' => [
+                'setup_fee' => $dsSetupPrice?->unitPrice ?? '1200.0000',
+                'monthly_fee' => $dsMonthlyPrice?->unitPrice ?? '1200.0000',
+                'currency' => $currency,
+            ],
+            'shared_shortcodes' => $sharedShortcodes,
+            'vat_rate' => 20,
         ]);
     }
 

@@ -917,6 +917,7 @@ var keywordMonthlyFee = 0;
 var vmnSetupFee = 0;
 var vmnMonthlyFee = 0;
 var vatRate = 0;
+var _pricingLoaded = false;
 
 var countryNames = {
     'GB': 'United Kingdom', 'US': 'United States', 'AU': 'Australia',
@@ -976,8 +977,9 @@ function loadPricing() {
             }
             sharedShortcodes = data.shared_shortcodes || [];
             sharedShortcodeId = sharedShortcodes.length > 0 ? sharedShortcodes[0].id : null;
+            _pricingLoaded = true;
         })
-        .catch(function(err) { console.error('Pricing load error', err); });
+        .catch(function(err) { console.error('Pricing load error', err); _pricingLoaded = true; });
 }
 
 function setupEventListeners() {
@@ -1005,8 +1007,17 @@ function selectProduct(product) {
         if (vmnPoolData.length === 0) loadVmnPool(null);
     } else if (product === 'shared') {
         loadTakenKeywords();
-        if (sharedShortcodeId === null) {
-            setTimeout(function() { if (sharedShortcodeId === null) disableKeywordPurchase(); }, 1500);
+        if (sharedShortcodeId !== null) {
+            enableKeywordPurchase();
+        } else if (_pricingLoaded) {
+            disableKeywordPurchase();
+        } else {
+            var checkInterval = setInterval(function() {
+                if (_pricingLoaded) {
+                    clearInterval(checkInterval);
+                    if (sharedShortcodeId !== null) { enableKeywordPurchase(); } else { disableKeywordPurchase(); }
+                }
+            }, 200);
         }
     }
 }
@@ -1058,6 +1069,14 @@ function disableKeywordPurchase() {
     if (purchaseBtn) purchaseBtn.disabled = true;
     var feedback = document.getElementById('keywordValidationFeedback');
     if (feedback) { feedback.className = 'keyword-validation-feedback invalid'; feedback.innerHTML = '<i class="fas fa-info-circle me-1"></i>Contact support to enable shared shortcode access'; }
+}
+
+function enableKeywordPurchase() {
+    var keywordInput = document.getElementById('keywordInput');
+    var addBtn = document.getElementById('addKeywordBtn');
+    if (keywordInput) { keywordInput.disabled = false; keywordInput.placeholder = 'Enter keyword (e.g. INFO, HELP)'; }
+    var feedback = document.getElementById('keywordValidationFeedback');
+    if (feedback) { feedback.className = 'keyword-validation-feedback'; feedback.innerHTML = ''; }
 }
 
 function renderVmnTable() {

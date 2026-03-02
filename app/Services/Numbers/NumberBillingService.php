@@ -110,14 +110,14 @@ class NumberBillingService
             $setupPrice = $this->pricingEngine->resolvePrice($account, 'shortcode_keyword_setup', null);
             $setupFee = $setupPrice->unitPrice;
         } catch (\Exception $e) {
-            $setupFee = '25.0000';
+            $setupFee = '2.0000';
         }
 
         try {
-            $monthlyPrice = $this->pricingEngine->resolvePrice($account, 'shortcode_monthly', null);
+            $monthlyPrice = $this->pricingEngine->resolvePrice($account, 'shortcode_keyword_monthly', null);
             $monthlyFee = $monthlyPrice->unitPrice;
         } catch (\Exception $e) {
-            $monthlyFee = '50.0000';
+            $monthlyFee = '2.0000';
         }
 
         return [
