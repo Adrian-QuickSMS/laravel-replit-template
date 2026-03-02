@@ -12,6 +12,7 @@ use App\Models\CampaignRecipient;
 use App\Models\Gateway;
 use App\Models\MessageLog;
 use App\Models\RoutingRule;
+use App\Models\Billing\CampaignEstimateSnapshot;
 use App\Services\Billing\BalanceService;
 use App\Services\Billing\PricingEngine;
 use App\Services\Numbers\NumberService;
@@ -346,9 +347,12 @@ class DeliveryService
         CampaignRecipient $recipient
     ): string {
         try {
+            // Carousel is charged as RCS Single Message
+            $billableProductType = CampaignEstimateSnapshot::resolveBillableProductType($campaign->type);
+
             $calculation = $this->pricingEngine->calculateMessageCost(
                 $account,
-                $campaign->type,
+                $billableProductType,
                 $recipient->country_iso,
                 $recipient->segments ?: 1
             );
