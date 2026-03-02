@@ -2389,8 +2389,20 @@ class QuickSMSController extends Controller
 
     public function numbers()
     {
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            $subAccounts = \DB::table('sub_accounts')
+                ->where('account_id', $tenantId)
+                ->select('id', 'name')
+                ->orderBy('name')
+                ->get()
+                ->toArray();
+        }
+
         return view('quicksms.management.numbers', [
-            'page_title' => 'Numbers'
+            'page_title' => 'Numbers',
+            'subAccounts' => $subAccounts,
         ]);
     }
 
