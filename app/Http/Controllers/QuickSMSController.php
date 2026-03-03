@@ -398,7 +398,12 @@ class QuickSMSController extends Controller
         $virtual_numbers = [];
         $optout_domains = [];
 
-        $editConfig = session('campaign_config', null);
+        $editConfig = null;
+        if (request()->has('campaign_id')) {
+            $editConfig = session('campaign_config', null);
+        } else {
+            session()->forget('campaign_config');
+        }
 
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
