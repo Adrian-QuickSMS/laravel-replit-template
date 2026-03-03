@@ -402,13 +402,27 @@ $permissions = [
                                     data-status="{{ $campaign['status'] }}"
                                     data-recipients-total="{{ $campaign['recipients_total'] }}"
                                     data-recipients-delivered="{{ $campaign['recipients_delivered'] ?? '' }}"
+                                    data-recipients-failed="{{ $campaign['recipients_failed'] ?? 0 }}"
                                     data-send-date="{{ $campaign['send_date'] }}"
                                     data-sender-id="{{ $campaign['sender_id'] }}"
                                     data-rcs-agent="{{ $campaign['rcs_agent'] ?? '' }}"
                                     data-tags="{{ implode(',', $campaign['tags'] ?? []) }}"
                                     data-template="{{ $campaign['template'] ?? '' }}"
                                     data-has-tracking="{{ $campaign['has_tracking'] ? 'yes' : 'no' }}"
-                                    data-has-optout="{{ $campaign['has_optout'] ? 'yes' : 'no' }}">
+                                    data-has-optout="{{ $campaign['has_optout'] ? 'yes' : 'no' }}"
+                                    data-message-content="{{ $campaign['message_content'] ?? '' }}"
+                                    data-rcs-content="{{ isset($campaign['rcs_content']) ? htmlspecialchars(json_encode($campaign['rcs_content']), ENT_QUOTES) : '' }}"
+                                    data-estimated-cost="{{ $campaign['estimated_cost'] ?? '' }}"
+                                    data-actual-cost="{{ $campaign['actual_cost'] ?? '' }}"
+                                    data-currency="{{ $campaign['currency'] ?? 'GBP' }}"
+                                    data-segment-count="{{ $campaign['segment_count'] ?? 1 }}"
+                                    data-total-recipients-raw="{{ $campaign['total_recipients_raw'] ?? 0 }}"
+                                    data-total-opted-out="{{ $campaign['total_opted_out'] ?? 0 }}"
+                                    data-total-invalid="{{ $campaign['total_invalid'] ?? 0 }}"
+                                    data-recipient-sources="{{ isset($campaign['recipient_sources']) ? htmlspecialchars(json_encode($campaign['recipient_sources']), ENT_QUOTES) : '' }}"
+                                    data-fallback-sms-count="{{ $campaign['fallback_sms_count'] ?? 0 }}"
+                                    data-sent-count="{{ $campaign['sent_count'] ?? 0 }}"
+                                    data-pending-count="{{ $campaign['pending_count'] ?? 0 }}">
                                     <td class="py-2">
                                         <h6 class="mb-0 fs-6">{{ $campaign['name'] }}</h6>
                                     </td>
@@ -1447,7 +1461,9 @@ function openCampaignDrawer(campaignId) {
 
     var sendTimeLabel = document.getElementById('drawerSendTimeLabel');
     var sendTime = document.getElementById('drawerSendTime');
-    if (status === 'scheduled') {
+    if (status === 'draft') {
+        sendTimeLabel.textContent = 'Created:';
+    } else if (status === 'scheduled') {
         sendTimeLabel.textContent = 'Scheduled:';
     } else {
         sendTimeLabel.textContent = 'Sent:';
@@ -1492,7 +1508,15 @@ function openCampaignDrawer(campaignId) {
 
     var statusBadge = document.getElementById('drawerStatusBadge');
     statusBadge.className = 'badge';
-    if (status === 'scheduled') {
+    if (status === 'draft') {
+        statusBadge.style.background = '#e9ecef';
+        statusBadge.style.color = '#495057';
+        statusBadge.textContent = 'Draft';
+    } else if (status === 'pending') {
+        statusBadge.style.background = '#fff3cd';
+        statusBadge.style.color = '#856404';
+        statusBadge.textContent = 'Pending';
+    } else if (status === 'scheduled') {
         statusBadge.style.background = '#fff3cd';
         statusBadge.style.color = '#856404';
         statusBadge.textContent = 'Scheduled';
@@ -1500,48 +1524,38 @@ function openCampaignDrawer(campaignId) {
         statusBadge.style.background = '#e0cffc';
         statusBadge.style.color = '#6f42c1';
         statusBadge.textContent = 'Sending';
+    } else if (status === 'cancelled') {
+        statusBadge.style.background = '#e9ecef';
+        statusBadge.style.color = '#6c757d';
+        statusBadge.textContent = 'Cancelled';
     } else {
         statusBadge.style.background = '#d1f2eb';
         statusBadge.style.color = '#0d6e5a';
         statusBadge.textContent = 'Complete';
     }
 
-    // TODO: Replace with backend validity_window field
     var liveStateBadge = document.getElementById('drawerLiveStateBadge');
-    var campaignDate = new Date(sendDate);
-    var now = new Date();
-    var validityHours = 24;
-    var expiryDate = new Date(campaignDate.getTime() + (validityHours * 60 * 60 * 1000));
-    
     liveStateBadge.className = 'badge';
-    if (status === 'scheduled') {
+    if (status === 'draft') {
+        liveStateBadge.style.background = '#e9ecef';
+        liveStateBadge.style.color = '#6c757d';
+        liveStateBadge.textContent = 'Not Sent';
+    } else if (status === 'scheduled' || status === 'pending') {
         liveStateBadge.style.background = '#e9ecef';
         liveStateBadge.style.color = '#6c757d';
         liveStateBadge.textContent = 'Pending';
+    } else if (status === 'cancelled') {
+        liveStateBadge.style.background = '#e9ecef';
+        liveStateBadge.style.color = '#6c757d';
+        liveStateBadge.textContent = 'Cancelled';
     } else if (status === 'sending') {
-        if (now < expiryDate) {
-            liveStateBadge.style.background = '#d1f2eb';
-            liveStateBadge.style.color = '#0d6e5a';
-            liveStateBadge.textContent = 'Live';
-        } else {
-            liveStateBadge.style.background = '#e9ecef';
-            liveStateBadge.style.color = '#6c757d';
-            liveStateBadge.textContent = 'Expired';
-        }
+        liveStateBadge.style.background = '#d1f2eb';
+        liveStateBadge.style.color = '#0d6e5a';
+        liveStateBadge.textContent = 'Live';
     } else {
-        if (recipientsDelivered !== null && recipientsDelivered >= recipientsTotal) {
-            liveStateBadge.style.background = '#d1f2eb';
-            liveStateBadge.style.color = '#0d6e5a';
-            liveStateBadge.textContent = 'Complete';
-        } else if (now > expiryDate) {
-            liveStateBadge.style.background = '#e9ecef';
-            liveStateBadge.style.color = '#6c757d';
-            liveStateBadge.textContent = 'Expired';
-        } else {
-            liveStateBadge.style.background = '#d1f2eb';
-            liveStateBadge.style.color = '#0d6e5a';
-            liveStateBadge.textContent = 'Complete';
-        }
+        liveStateBadge.style.background = '#d1f2eb';
+        liveStateBadge.style.color = '#0d6e5a';
+        liveStateBadge.textContent = 'Complete';
     }
 
     var failed = 0;
@@ -1564,16 +1578,39 @@ function openCampaignDrawer(campaignId) {
         rateDisplay.className = 'fs-4 fw-bold text-muted';
     }
 
-    updateDeliveryOutcomes(status, recipientsTotal, recipientsDelivered);
-    updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered);
+    var recipientsFailed = parseInt(row.dataset.recipientsFailed) || 0;
+    var estimatedCost = row.dataset.estimatedCost ? parseFloat(row.dataset.estimatedCost) : null;
+    var actualCost = row.dataset.actualCost ? parseFloat(row.dataset.actualCost) : null;
+    var currency = row.dataset.currency || 'GBP';
+    var messageContent = row.dataset.messageContent || '';
+    var rcsContentRaw = row.dataset.rcsContent || '';
+    var rcsContent = null;
+    if (rcsContentRaw) {
+        try { rcsContent = JSON.parse(rcsContentRaw); } catch(e) { rcsContent = null; }
+    }
+    var segmentCount = parseInt(row.dataset.segmentCount) || 1;
+    var totalRecipientsRaw = parseInt(row.dataset.totalRecipientsRaw) || 0;
+    var totalOptedOut = parseInt(row.dataset.totalOptedOut) || 0;
+    var totalInvalid = parseInt(row.dataset.totalInvalid) || 0;
+    var recipientSourcesRaw = row.dataset.recipientSources || '';
+    var recipientSources = null;
+    if (recipientSourcesRaw) {
+        try { recipientSources = JSON.parse(recipientSourcesRaw); } catch(e) { recipientSources = null; }
+    }
+    var fallbackSmsCount = parseInt(row.dataset.fallbackSmsCount) || 0;
+    var sentCount = parseInt(row.dataset.sentCount) || 0;
+    var pendingCount = parseInt(row.dataset.pendingCount) || 0;
+
+    updateDeliveryOutcomes(status, recipientsTotal, recipientsDelivered, recipientsFailed, pendingCount);
+    updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered, fallbackSmsCount);
     
     var hasTracking = row.dataset.hasTracking === 'yes';
     var hasOptout = row.dataset.hasOptout === 'yes';
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, hasTracking);
-    updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
+    updateCostSummary(channel, status, recipientsTotal, recipientsDelivered, estimatedCost, actualCost, currency, segmentCount, fallbackSmsCount);
     updateOptoutSummary(status, recipientsTotal, recipientsDelivered, hasOptout);
-    updateMessagePreview(channel, senderId, rcsAgent, template);
-    updateRecipientBreakdown(recipientsTotal, recipientsDelivered);
+    updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent);
+    updateRecipientBreakdown(recipientsTotal, recipientsDelivered, totalRecipientsRaw, totalOptedOut, totalInvalid, recipientSources);
     updateStatusActions(status, row.dataset.id, name, sendDate);
     
     document.getElementById('recipientBreakdownBody').style.display = 'none';
@@ -1582,27 +1619,18 @@ function openCampaignDrawer(campaignId) {
     campaignDrawer.show();
 }
 
-function updateDeliveryOutcomes(status, total, delivered) {
+function updateDeliveryOutcomes(status, total, delivered, failed, pendingCount) {
     var outcomesCard = document.getElementById('deliveryOutcomesCard');
     
-    if (status === 'scheduled' || total === 0) {
+    if (status === 'draft' || status === 'scheduled' || status === 'pending' || total === 0) {
         outcomesCard.style.display = 'none';
         return;
     }
     outcomesCard.style.display = '';
     
-    // TODO: Replace with real pending/undeliverable data from backend
     var deliveredCount = delivered !== null ? delivered : 0;
-    var pending = 0;
-    var undeliverable = 0;
-    
-    if (status === 'sending') {
-        pending = Math.floor((total - deliveredCount) * 0.7);
-        undeliverable = Math.floor((total - deliveredCount) * 0.3);
-    } else {
-        pending = 0;
-        undeliverable = total - deliveredCount;
-    }
+    var pending = pendingCount || 0;
+    var undeliverable = failed || (total - deliveredCount - pending);
     
     var deliveredPct = total > 0 ? (deliveredCount / total * 100) : 0;
     var pendingPct = total > 0 ? (pending / total * 100) : 0;
@@ -1622,10 +1650,10 @@ function updateDeliveryOutcomes(status, total, delivered) {
     document.getElementById('outcomeUndeliverablePct').textContent = undeliverablePct.toFixed(1) + '%';
 }
 
-function updateChannelSplit(channel, status, total, delivered) {
+function updateChannelSplit(channel, status, total, delivered, fallbackSmsCount) {
     var channelCard = document.getElementById('channelSplitCard');
     
-    if (status === 'scheduled' || total === 0) {
+    if (status === 'draft' || status === 'scheduled' || status === 'pending' || total === 0) {
         channelCard.style.display = 'none';
         return;
     }
@@ -1635,14 +1663,13 @@ function updateChannelSplit(channel, status, total, delivered) {
     var rcsCount = 0;
     var deliveredCount = delivered !== null ? delivered : total;
     
-    // TODO: Replace with real channel split data from backend
     if (channel === 'sms_only') {
         smsCount = deliveredCount;
         rcsCount = 0;
     } else if (channel === 'basic_rcs' || channel === 'rich_rcs') {
-        // Mock: RCS campaigns typically have ~85% RCS success, 15% SMS fallback
-        rcsCount = Math.floor(deliveredCount * 0.85);
-        smsCount = deliveredCount - rcsCount;
+        smsCount = fallbackSmsCount || 0;
+        rcsCount = deliveredCount - smsCount;
+        if (rcsCount < 0) rcsCount = 0;
     }
     
     var smsPct = deliveredCount > 0 ? (smsCount / deliveredCount * 100) : 0;
@@ -1705,22 +1732,8 @@ function updateEngagementMetrics(channel, status, total, delivered, hasTracking)
     }
 }
 
-function updateCostSummary(channel, status, total, delivered) {
+function updateCostSummary(channel, status, total, delivered, estimatedCost, actualCost, currency, segmentCount, fallbackSmsCount) {
     var costCard = document.getElementById('costSummaryCard');
-    
-    if (status === 'scheduled') {
-        costCard.style.display = 'none';
-        return;
-    }
-    costCard.style.display = '';
-    
-    var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
-    var isComplete = status === 'complete';
-    var deliveredCount = delivered !== null ? delivered : total;
-    
-    // TODO: Replace with real pricing from backend
-    var smsUnitPrice = 0.038;
-    var rcsUnitPrice = 0.025;
     
     var costLabel = document.getElementById('costLabel');
     var costStatusBadge = document.getElementById('costStatusBadge');
@@ -1729,8 +1742,34 @@ function updateCostSummary(channel, status, total, delivered) {
     var costDisclaimerText = document.getElementById('costDisclaimerText');
     var smsCostSection = document.getElementById('smsCostSection');
     var rcsCostSection = document.getElementById('rcsCostSection');
+    var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
+    var isComplete = status === 'complete';
+    var currencySymbol = currency === 'GBP' ? '£' : (currency === 'USD' ? '$' : (currency === 'EUR' ? '€' : currency + ' '));
+
+    if (status === 'draft' || status === 'scheduled' || status === 'pending') {
+        if (estimatedCost !== null && estimatedCost > 0) {
+            costCard.style.display = '';
+            costLabel.textContent = 'Estimated Cost';
+            costStatusBadge.className = 'badge';
+            costStatusBadge.style.cssText = 'background-color: #fff3cd; color: #856404;';
+            costStatusBadge.textContent = 'Estimated';
+            costTotalLabel.textContent = 'Est. Total';
+            costDisclaimer.style.display = '';
+            costDisclaimerText.textContent = 'Estimate based on campaign configuration. Final cost may vary.';
+            smsCostSection.style.display = 'none';
+            rcsCostSection.style.display = 'none';
+            document.getElementById('costTotal').textContent = currencySymbol + estimatedCost.toFixed(2);
+        } else {
+            costCard.style.display = 'none';
+        }
+        return;
+    }
     
-    if (isComplete) {
+    costCard.style.display = '';
+    var deliveredCount = delivered !== null ? delivered : total;
+    var displayCost = isComplete && actualCost !== null ? actualCost : (estimatedCost !== null ? estimatedCost : 0);
+    
+    if (isComplete && actualCost !== null) {
         costLabel.textContent = 'Final Cost';
         costStatusBadge.className = 'badge';
         costStatusBadge.style.cssText = 'background-color: #d4edda; color: #155724;';
@@ -1747,36 +1786,24 @@ function updateCostSummary(channel, status, total, delivered) {
         costDisclaimerText.textContent = 'Final cost will be calculated when delivery completes.';
     }
     
-    var totalCost = 0;
-    
     if (!isRcs) {
         smsCostSection.style.display = '';
         rcsCostSection.style.display = 'none';
-        
         document.getElementById('smsCostCount').textContent = deliveredCount.toLocaleString() + ' msgs';
-        document.getElementById('smsCostUnit').textContent = '£' + smsUnitPrice.toFixed(3);
-        
-        totalCost = deliveredCount * smsUnitPrice;
+        document.getElementById('smsCostUnit').textContent = '';
     } else {
         smsCostSection.style.display = 'none';
         rcsCostSection.style.display = '';
-        
-        // Mock: 15% SMS fallback, 85% RCS
-        var smsFallbackCount = Math.floor(deliveredCount * 0.15);
-        var rcsCount = deliveredCount - smsFallbackCount;
-        
-        var smsFallbackCost = smsFallbackCount * smsUnitPrice;
-        var rcsCost = rcsCount * rcsUnitPrice;
-        totalCost = smsFallbackCost + rcsCost;
-        
-        document.getElementById('rcsFallbackCount').textContent = smsFallbackCount.toLocaleString() + ' msgs';
-        document.getElementById('rcsFallbackCost').textContent = '£' + smsFallbackCost.toFixed(2);
-        
+        var smsFallback = fallbackSmsCount || 0;
+        var rcsCount = deliveredCount - smsFallback;
+        if (rcsCount < 0) rcsCount = 0;
+        document.getElementById('rcsFallbackCount').textContent = smsFallback.toLocaleString() + ' msgs';
+        document.getElementById('rcsFallbackCost').textContent = '';
         document.getElementById('rcsMessageCount').textContent = rcsCount.toLocaleString() + ' msgs';
-        document.getElementById('rcsMessageCost').textContent = '£' + rcsCost.toFixed(2);
+        document.getElementById('rcsMessageCost').textContent = '';
     }
     
-    document.getElementById('costTotal').textContent = '£' + totalCost.toFixed(2);
+    document.getElementById('costTotal').textContent = currencySymbol + displayCost.toFixed(2);
 }
 
 function updateOptoutSummary(status, total, delivered, hasOptout) {
@@ -1812,6 +1839,8 @@ var currentCampaignChannel = 'sms_only';
 var currentCampaignSenderId = '';
 var currentCampaignRcsAgent = '';
 var currentCampaignTemplate = '';
+var currentCampaignMessageContent = '';
+var currentCampaignRcsContent = null;
 
 function toggleCampaignPreview(mode) {
     campaignPreviewMode = mode;
@@ -1835,10 +1864,10 @@ function toggleCampaignPreview(mode) {
         rcsBtn.style.color = '#886CC0';
     }
     
-    updateMessagePreview(currentCampaignChannel, currentCampaignSenderId, currentCampaignRcsAgent, currentCampaignTemplate);
+    updateMessagePreview(currentCampaignChannel, currentCampaignSenderId, currentCampaignRcsAgent, currentCampaignTemplate, currentCampaignMessageContent, currentCampaignRcsContent);
 }
 
-function updateMessagePreview(channel, senderId, rcsAgent, template) {
+function updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent) {
     var container = document.getElementById('campaignPreviewContainer');
     var toggleContainer = document.getElementById('campaignPreviewToggle');
     
@@ -1847,41 +1876,21 @@ function updateMessagePreview(channel, senderId, rcsAgent, template) {
         return;
     }
     
-    // Store current campaign params for toggle use
     currentCampaignChannel = channel;
     currentCampaignSenderId = senderId;
     currentCampaignRcsAgent = rcsAgent;
     currentCampaignTemplate = template;
+    currentCampaignMessageContent = messageContent;
+    currentCampaignRcsContent = rcsContent;
     
-    // Show/hide toggle based on channel (RCS channels have SMS fallback)
     if (channel === 'basic_rcs' || channel === 'rich_rcs') {
         toggleContainer.classList.remove('d-none');
     } else {
         toggleContainer.classList.add('d-none');
-        campaignPreviewMode = 'rcs'; // Reset to RCS mode for non-RCS campaigns
+        campaignPreviewMode = 'rcs';
     }
     
-    // TODO: Replace with actual message content from backend (with placeholders, never real data)
-    var mockMessages = {
-        'Sale Announcement': { type: 'rich_card', title: 'Flash Sale!', description: 'Hi @{{firstName}}, enjoy 30% off today!', buttons: [{label: 'Shop Now', action: {type: 'url'}}, {label: 'View Details', action: {type: 'url'}}] },
-        'Flash Deal': { type: 'rich_card', title: 'Limited Offer', description: '@{{firstName}}, this deal expires soon!', buttons: [{label: 'Grab It', action: {type: 'url'}}] },
-        'Reminder': { type: 'text', body: 'Hi @{{firstName}}, reminder: your appointment is tomorrow at @{{time}}. Reply STOP to opt out.' },
-        'Product Showcase': { type: 'carousel', cards: [
-            { title: 'New Arrivals', description: 'Check out our latest @{{category}} collection!', buttons: [{label: 'Browse', action: {type: 'url'}}] },
-            { title: 'Featured Items', description: 'Handpicked just for you!', buttons: [{label: 'View', action: {type: 'url'}}] },
-            { title: 'Best Sellers', description: 'Our most popular products', buttons: [{label: 'Shop', action: {type: 'url'}}] }
-        ]},
-        'Weekend Deal': { type: 'text', body: '@{{firstName}}, weekend special: use code SAVE20 for 20% off! Shop now: @{{link}}' },
-        'VIP Invitation': { type: 'rich_card', title: 'VIP Access', description: 'Exclusive early access for you, @{{firstName}}!', buttons: [{label: 'Access Now', action: {type: 'url'}}] },
-        'Shipping Update': { type: 'text', body: 'Your order #@{{orderNumber}} has shipped! Track: @{{trackingLink}}' },
-        'Survey Request': { type: 'text', body: 'Hi @{{firstName}}, we value your feedback! Take our quick survey: @{{surveyLink}}' },
-        'Order Confirm': { type: 'text', body: 'Order confirmed! #@{{orderNumber}} - Total: @{{amount}}. Thank you for shopping!' },
-        'Appointment': { type: 'text', body: 'Reminder: @{{firstName}}, your appointment is on @{{date}} at @{{time}}.' },
-        'Product Launch': { type: 'rich_card', title: 'Introducing @{{productName}}', description: 'Be the first to experience our newest innovation!', buttons: [{label: 'Pre-order', action: {type: 'url'}}, {label: 'Learn More', action: {type: 'url'}}] }
-    };
-    
-    var defaultSms = 'Hi @{{firstName}}, thank you for being a valued customer! @{{message}} Reply STOP to opt out.';
-    var defaultBasic = 'Hi @{{firstName}}, @{{message}} Tap to learn more: @{{link}}';
+    var noContentMsg = 'No message content available.';
     
     var previewConfig = {
         senderId: senderId || 'QuickSMS',
@@ -1893,55 +1902,38 @@ function updateMessagePreview(channel, senderId, rcsAgent, template) {
         }
     };
     
-    var msgData = mockMessages[template];
-    
     if (channel === 'sms_only') {
         previewConfig.channel = 'sms';
         previewConfig.message = {
             type: 'text',
-            body: (msgData && msgData.type === 'text') ? msgData.body : defaultSms
+            body: messageContent || noContentMsg
         };
     } else if (channel === 'basic_rcs') {
-        // Check if user toggled to SMS fallback view
         if (campaignPreviewMode === 'sms') {
             previewConfig.channel = 'sms';
-            previewConfig.message = {
-                type: 'text',
-                body: (msgData && msgData.type === 'text') ? msgData.body : defaultSms
-            };
+            previewConfig.message = { type: 'text', body: messageContent || noContentMsg };
         } else {
             previewConfig.channel = 'basic_rcs';
-            previewConfig.message = {
-                type: 'text',
-                body: (msgData && msgData.type === 'text') ? msgData.body : defaultBasic
-            };
+            previewConfig.message = { type: 'text', body: messageContent || noContentMsg };
         }
     } else {
-        // Rich RCS - check if user toggled to SMS fallback view
         if (campaignPreviewMode === 'sms') {
             previewConfig.channel = 'sms';
-            previewConfig.message = {
-                type: 'text',
-                body: defaultSms
-            };
+            previewConfig.message = { type: 'text', body: messageContent || noContentMsg };
         } else {
             previewConfig.channel = 'rich_rcs';
-            if (msgData) {
-                previewConfig.message = msgData;
+            if (rcsContent && typeof rcsContent === 'object') {
+                previewConfig.message = rcsContent;
+            } else if (messageContent) {
+                previewConfig.message = { type: 'text', body: messageContent };
             } else {
-                previewConfig.message = {
-                    type: 'rich_card',
-                    title: 'Special Offer',
-                    description: 'Hi @{{firstName}}, check out this exclusive offer!',
-                    buttons: [{label: 'Learn More', action: {type: 'url'}}]
-                };
+                previewConfig.message = { type: 'text', body: noContentMsg };
             }
         }
     }
     
     container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
     
-    // Initialize carousel behavior if present
     if (previewConfig.message && previewConfig.message.type === 'carousel') {
         RcsPreviewRenderer.initCarouselBehavior('#campaignPreviewContainer');
     }
@@ -1960,23 +1952,18 @@ function toggleRecipientBreakdown() {
     }
 }
 
-function updateRecipientBreakdown(total, delivered) {
+function updateRecipientBreakdown(total, delivered, totalRaw, totalOptedOut, totalInvalid, recipientSources) {
     var container = document.getElementById('recipientSourcesContainer');
     
-    // TODO: Replace with actual recipient source data from backend
-    var allSources = [
-        { id: 'manual', label: 'Manual Entry', icon: 'fa-keyboard', color: 'primary' },
-        { id: 'upload', label: 'CSV Upload', icon: 'fa-file-upload', color: 'info' },
-        { id: 'contacts', label: 'Contacts', icon: 'fa-address-book', color: 'success' },
-        { id: 'lists', label: 'Lists', icon: 'fa-list', color: 'warning' },
-        { id: 'dynamic', label: 'Dynamic Lists', icon: 'fa-magic', color: 'purple' },
-        { id: 'tags', label: 'Tags', icon: 'fa-tags', color: 'danger' }
-    ];
-    
-    // Mock: randomly select 1-3 sources for this campaign
-    var numSources = 1 + Math.floor(Math.random() * 3);
-    var shuffled = allSources.sort(function() { return 0.5 - Math.random(); });
-    var usedSources = shuffled.slice(0, numSources);
+    var sourceIcons = {
+        'manual': { label: 'Manual Entry', icon: 'fa-keyboard', color: 'primary' },
+        'upload': { label: 'CSV Upload', icon: 'fa-file-upload', color: 'info' },
+        'csv': { label: 'CSV Upload', icon: 'fa-file-upload', color: 'info' },
+        'contacts': { label: 'Contacts', icon: 'fa-address-book', color: 'success' },
+        'lists': { label: 'Lists', icon: 'fa-list', color: 'warning' },
+        'contact_lists': { label: 'Contact Lists', icon: 'fa-list', color: 'warning' },
+        'tags': { label: 'Tags', icon: 'fa-tags', color: 'danger' }
+    };
     
     var pastelColors = {
         'primary': { bg: '#cfe2ff', text: '#084298' },
@@ -1987,21 +1974,32 @@ function updateRecipientBreakdown(total, delivered) {
         'danger': { bg: '#f8d7da', text: '#842029' }
     };
     
-    var sourcesHtml = usedSources.map(function(src) {
-        var colors = pastelColors[src.color] || pastelColors['primary'];
-        return '<span class="badge" style="background-color: ' + colors.bg + '; color: ' + colors.text + ';">' +
-               '<i class="fas ' + src.icon + ' me-1"></i>' + src.label + '</span>';
-    }).join('');
+    var sourcesHtml = '';
+    if (recipientSources && Array.isArray(recipientSources)) {
+        sourcesHtml = recipientSources.map(function(src) {
+            var sourceType = typeof src === 'string' ? src : (src.type || src.source || 'manual');
+            var sourceInfo = sourceIcons[sourceType] || { label: sourceType, icon: 'fa-users', color: 'primary' };
+            var colors = pastelColors[sourceInfo.color] || pastelColors['primary'];
+            return '<span class="badge me-1" style="background-color: ' + colors.bg + '; color: ' + colors.text + ';">' +
+                   '<i class="fas ' + sourceInfo.icon + ' me-1"></i>' + sourceInfo.label + '</span>';
+        }).join('');
+    } else if (recipientSources && typeof recipientSources === 'object') {
+        Object.keys(recipientSources).forEach(function(key) {
+            var sourceInfo = sourceIcons[key] || { label: key, icon: 'fa-users', color: 'primary' };
+            var colors = pastelColors[sourceInfo.color] || pastelColors['primary'];
+            sourcesHtml += '<span class="badge me-1" style="background-color: ' + colors.bg + '; color: ' + colors.text + ';">' +
+                   '<i class="fas ' + sourceInfo.icon + ' me-1"></i>' + sourceInfo.label + '</span>';
+        });
+    }
     
+    if (!sourcesHtml) {
+        sourcesHtml = '<span class="text-muted small">No source data available</span>';
+    }
     container.innerHTML = sourcesHtml;
     
-    // De-dup calculation (mock data)
-    var totalSelected = total + Math.floor(total * 0.15);
-    var invalidRate = 0.02 + (Math.random() * 0.03);
-    var optoutRate = 0.03 + (Math.random() * 0.04);
-    
-    var excludedInvalid = Math.floor(totalSelected * invalidRate);
-    var excludedOptout = Math.floor(totalSelected * optoutRate);
+    var totalSelected = totalRaw || total;
+    var excludedInvalid = totalInvalid || 0;
+    var excludedOptout = totalOptedOut || 0;
     var uniqueSent = total;
     
     document.getElementById('dedupTotalSelected').textContent = totalSelected.toLocaleString();
