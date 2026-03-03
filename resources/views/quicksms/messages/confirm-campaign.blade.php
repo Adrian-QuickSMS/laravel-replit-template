@@ -79,7 +79,15 @@
                         <div class="col-sm-4 text-muted">RCS Agent</div>
                         <div class="col-sm-8">
                             <div class="d-flex align-items-center">
-                                <img src="{{ $channel['rcs_agent']['logo'] }}" alt="{{ $channel['rcs_agent']['name'] }}" class="rounded me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                @if($channel['rcs_agent']['logo'])
+                                    <img src="{{ $channel['rcs_agent']['logo'] }}" alt="{{ $channel['rcs_agent']['name'] }}" class="rounded me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                @else
+                                    @php
+                                        $initials = collect(explode(' ', $channel['rcs_agent']['name']))->map(fn($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
+                                        $brandColor = $channel['rcs_agent']['brand_color'] ?? '#886CC0';
+                                    @endphp
+                                    <div class="rounded me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: {{ $brandColor }}; color: #fff; font-weight: 600; font-size: 0.75rem;">{{ $initials }}</div>
+                                @endif
                                 <span class="fw-medium">{{ $channel['rcs_agent']['name'] }}</span>
                                 <i class="fas fa-check-circle text-primary ms-2" title="Verified"></i>
                             </div>
@@ -325,38 +333,36 @@
                         <p class="text-muted small mb-3">SMS fallback messages will be charged at your agreed SMS rate. RCS messages are billed based on actual delivery.</p>
 
                         <div class="row g-3 mb-3">
-                            <div class="{{ $hasMixedSegments ? 'col-6 col-md-3' : 'col-4' }}">
+                            <div class="{{ $hasMixedSegments && $isBasicRcs ? 'col-6 col-md-3' : 'col-4' }}">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">SMS Rate</div>
+                                    <div class="small text-dark">SMS Rate</div>
                                     <div class="fw-bold text-dark">&pound;{{ number_format($smsPrice, 4) }}</div>
                                 </div>
                             </div>
                             @if($hasMixedSegments && $isBasicRcs)
                             <div class="col-6 col-md-3">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">RCS Basic Rate</div>
+                                    <div class="small text-dark">RCS Basic Rate</div>
                                     <div class="fw-bold text-dark">&pound;{{ number_format($rcsBasicPrice, 4) }}</div>
-                                    <div class="text-muted" style="font-size: 0.7rem;">1-part messages</div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">RCS Single Rate</div>
+                                    <div class="small text-dark">RCS Single Rate</div>
                                     <div class="fw-bold text-dark">&pound;{{ number_format($rcsSinglePrice, 4) }}</div>
-                                    <div class="text-muted" style="font-size: 0.7rem;">2+ part messages</div>
                                 </div>
                             </div>
                             @else
-                            <div class="{{ $hasMixedSegments ? 'col-6 col-md-3' : 'col-4' }}">
+                            <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">{{ $isBasicRcs ? 'RCS Basic' : 'RCS Single' }} Rate</div>
+                                    <div class="small text-dark">{{ $isBasicRcs ? 'RCS Basic' : 'RCS Single' }} Rate</div>
                                     <div class="fw-bold text-dark">&pound;{{ number_format($isBasicRcs ? $rcsBasicPrice : $rcsSinglePrice, 4) }}</div>
                                 </div>
                             </div>
                             @endif
-                            <div class="{{ $hasMixedSegments ? 'col-6 col-md-3' : 'col-4' }}">
+                            <div class="{{ $hasMixedSegments && $isBasicRcs ? 'col-6 col-md-3' : 'col-4' }}">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">RCS Penetration</div>
+                                    <div class="small text-dark">RCS Penetration</div>
                                     <div class="fw-bold text-dark">{{ number_format($penetration * 100, 0) }}%</div>
                                 </div>
                             </div>
@@ -364,7 +370,7 @@
 
                         @if($hasMixedSegments)
                         <div class="mb-3 p-3 rounded" style="background-color: #f8f9fa;">
-                            <p class="small fw-bold mb-2" style="color: #495057;">Per-recipient segment breakdown</p>
+                            <p class="small fw-bold mb-2 text-dark">Per-recipient segment breakdown</p>
                             @foreach($segment_breakdown as $grp)
                             <div class="d-flex justify-content-between small py-1 ps-2">
                                 <span class="text-muted">{{ number_format($grp->recipient_count) }} recipients &times; {{ $grp->segments }} {{ $grp->segments === 1 ? 'segment' : 'segments' }}
@@ -384,27 +390,30 @@
 
                         <div class="row g-3">
                             <div class="col-6">
-                                <div class="p-3 rounded" style="background-color: #f0ebf8;">
-                                    <div class="small fw-bold mb-2" style="color: #6b5b95;">Estimated Cost</div>
+                                <div class="p-3 rounded" style="background-color: #e9ecef;">
+                                    <div class="small fw-bold mb-2 text-dark">
+                                        Estimated Cost
+                                        <i class="fas fa-info-circle ms-1 text-muted" style="cursor: pointer;" data-bs-toggle="tooltip" data-bs-placement="top" title="Based on {{ number_format($penetration * 100, 0) }}% of recipients receiving RCS and the rest receiving SMS fallback, using per-recipient segment counts."></i>
+                                    </div>
                                     @if($estRcsBasicCount > 0)
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">RCS Basic: {{ number_format($estRcsBasicCount) }} &times; &pound;{{ number_format($rcsBasicPrice, 4) }}</span>
+                                        <span>RCS Basic: {{ number_format($estRcsBasicCount) }} &times; &pound;{{ number_format($rcsBasicPrice, 4) }}</span>
                                         <span>&pound;{{ number_format($estRcsBasicCost, 2) }}</span>
                                     </div>
                                     @endif
                                     @if($estRcsSingleCount > 0)
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">RCS Single: {{ number_format($estRcsSingleCount) }} &times; &pound;{{ number_format($rcsSinglePrice, 4) }}</span>
+                                        <span>RCS Single: {{ number_format($estRcsSingleCount) }} &times; &pound;{{ number_format($rcsSinglePrice, 4) }}</span>
                                         <span>&pound;{{ number_format($estRcsSingleCost, 2) }}</span>
                                     </div>
                                     @endif
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">SMS fallback: {{ number_format($totalEstSmsParts) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
+                                        <span>SMS fallback: {{ number_format($totalEstSmsParts) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
                                         <span>&pound;{{ number_format($estSmsCostTotal, 2) }}</span>
                                     </div>
                                     @if($pricing['vat_applicable'])
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">VAT ({{ $vatRate }}%)</span>
+                                        <span>VAT ({{ $vatRate }}%)</span>
                                         <span>&pound;{{ number_format($estVat, 2) }}</span>
                                     </div>
                                     @endif
@@ -417,18 +426,24 @@
                             </div>
                             <div class="col-6">
                                 <div class="p-3 rounded" style="background-color: #e9ecef;">
-                                    <div class="small fw-bold mb-2" style="color: #495057;">Maximum Cost</div>
+                                    <div class="small fw-bold mb-2 text-dark">
+                                        Maximum Cost
+                                        <i class="fas fa-info-circle ms-1 text-muted" style="cursor: pointer;" data-bs-toggle="tooltip" data-bs-placement="top" title="The highest possible cost if all recipients are charged via the most expensive channel ({{ $maxSmsCost >= $maxRcsCost ? 'SMS' : 'RCS' }})."></i>
+                                    </div>
+                                    @if($maxSmsCost >= $maxRcsCost)
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">All SMS: {{ number_format($maxSmsPartsTotal) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
+                                        <span>All SMS: {{ number_format($maxSmsPartsTotal) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
                                         <span>&pound;{{ number_format($maxSmsCost, 2) }}</span>
                                     </div>
+                                    @else
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">All RCS: {{ number_format($validRecipients) }} msgs</span>
+                                        <span>All RCS: {{ number_format($validRecipients) }} msgs</span>
                                         <span>&pound;{{ number_format($maxRcsCost, 2) }}</span>
                                     </div>
+                                    @endif
                                     @if($pricing['vat_applicable'])
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">VAT ({{ $vatRate }}%)</span>
+                                        <span>VAT ({{ $vatRate }}%)</span>
                                         <span>&pound;{{ number_format($maxVat, 2) }}</span>
                                     </div>
                                     @endif
@@ -437,7 +452,6 @@
                                         <span>Total</span>
                                         <span>&pound;{{ number_format($maxTotal + $maxVat, 2) }}</span>
                                     </div>
-                                    <p class="text-muted small mb-0 mt-1">Whichever channel costs more</p>
                                 </div>
                             </div>
                         </div>
@@ -533,5 +547,12 @@ function confirmSend() {
         alert('Network error. Please try again.');
     });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(function(el) {
+        new bootstrap.Tooltip(el);
+    });
+});
 </script>
 @endpush
