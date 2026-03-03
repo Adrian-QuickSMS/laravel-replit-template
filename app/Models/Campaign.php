@@ -139,6 +139,7 @@ class Campaign extends Model
         'opt_out_keyword',
         'opt_out_text',
         'opt_out_list_id',
+        'opt_out_screening_list_ids',
         'opt_out_url_enabled',
     ];
 
@@ -172,6 +173,7 @@ class Campaign extends Model
         'opt_out_url_enabled' => 'boolean',
         'opt_out_number_id' => 'string',
         'opt_out_list_id' => 'string',
+        'opt_out_screening_list_ids' => 'array',
         'scheduled_at' => 'datetime',
         'started_at' => 'datetime',
         'completed_at' => 'datetime',

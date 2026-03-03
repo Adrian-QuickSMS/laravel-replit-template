@@ -57,8 +57,8 @@ class RecipientResolverService
             'source_count' => count($sources),
         ]);
 
-        // Pre-load the opt-out set for this account (phone numbers only, ~20 bytes each)
-        $optedOutSet = $this->loadOptedOutSet($accountId);
+        $screeningListIds = $campaign->opt_out_screening_list_ids ?? [];
+        $optedOutSet = $this->loadOptedOutSet($accountId, $screeningListIds);
 
         // Dedup tracker: normalised number -> true (holds only the key string, not full row)
         $seenNumbers = [];
@@ -496,19 +496,29 @@ class RecipientResolverService
      * massive query, but the resulting set must fit in memory. At ~20 bytes
      * per E.164 number, 1M opt-out records ≈ 20MB which is acceptable.
      */
-    private function loadOptedOutSet(string $accountId): array
+    private function loadOptedOutSet(string $accountId, array $screeningListIds = []): array
     {
         $set = [];
 
-        DB::table('opt_out_records')
+        $query = DB::table('opt_out_records')
             ->where('account_id', $accountId)
             ->select('mobile_number')
-            ->orderBy('id')
-            ->chunk(self::CHUNK_SIZE, function ($rows) use (&$set) {
-                foreach ($rows as $row) {
-                    $set[$row->mobile_number] = true;
+            ->orderBy('id');
+
+        if (!empty($screeningListIds)) {
+            $query->whereIn('opt_out_list_id', $screeningListIds);
+        }
+
+        $query->chunk(self::CHUNK_SIZE, function ($rows) use (&$set) {
+            foreach ($rows as $row) {
+                $raw = $row->mobile_number;
+                $set[$raw] = true;
+                $result = PhoneNumberUtils::normalise($raw);
+                if ($result['valid'] && $result['number'] !== $raw) {
+                    $set[$result['number']] = true;
                 }
-            });
+            }
+        });
 
         return $set;
     }

@@ -159,6 +159,8 @@ class CampaignApiController extends Controller
             'opt_out_keyword' => 'nullable|string|min:4|max:10|regex:/^[A-Za-z0-9]+$/',
             'opt_out_text' => 'nullable|string|max:500',
             'opt_out_list_id' => 'nullable|uuid',
+            'opt_out_screening_list_ids' => 'nullable|array|max:50',
+            'opt_out_screening_list_ids.*' => 'uuid',
             'opt_out_url_enabled' => 'nullable|boolean',
         ]);
 
@@ -172,6 +174,16 @@ class CampaignApiController extends Controller
                 );
             } catch (\RuntimeException $e) {
                 return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            }
+        }
+
+        if (!empty($validated['opt_out_screening_list_ids'])) {
+            $ownedCount = \DB::table('opt_out_lists')
+                ->where('account_id', $this->tenantId())
+                ->whereIn('id', $validated['opt_out_screening_list_ids'])
+                ->count();
+            if ($ownedCount !== count($validated['opt_out_screening_list_ids'])) {
+                return response()->json(['status' => 'error', 'message' => 'One or more screening lists not found.'], 422);
             }
         }
 
@@ -228,6 +240,8 @@ class CampaignApiController extends Controller
             'opt_out_keyword' => 'nullable|string|min:4|max:10|regex:/^[A-Za-z0-9]+$/',
             'opt_out_text' => 'nullable|string|max:500',
             'opt_out_list_id' => 'nullable|uuid',
+            'opt_out_screening_list_ids' => 'nullable|array|max:50',
+            'opt_out_screening_list_ids.*' => 'uuid',
             'opt_out_url_enabled' => 'nullable|boolean',
         ]);
 
@@ -244,6 +258,16 @@ class CampaignApiController extends Controller
                 );
             } catch (\RuntimeException $e) {
                 return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            }
+        }
+
+        if (!empty($validated['opt_out_screening_list_ids'])) {
+            $ownedCount = \DB::table('opt_out_lists')
+                ->where('account_id', $this->tenantId())
+                ->whereIn('id', $validated['opt_out_screening_list_ids'])
+                ->count();
+            if ($ownedCount !== count($validated['opt_out_screening_list_ids'])) {
+                return response()->json(['status' => 'error', 'message' => 'One or more screening lists not found.'], 422);
             }
         }
 
