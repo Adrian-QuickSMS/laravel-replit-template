@@ -235,58 +235,87 @@
                             $penetration = (float) ($pricing['rcs_penetration'] ?? 0.65);
                             $smsPrice = (float) ($pricing['sms_unit_price'] ?? 0);
                             $isBasicRcs = ($channel['type'] === 'basic_rcs');
-                            $rcsPrice = $isBasicRcs
-                                ? (float) ($pricing['rcs_basic_price'] ?? 0)
-                                : (float) ($pricing['rcs_single_price'] ?? 0);
-
-                            $estRcsCount = (int) round($validRecipients * $penetration);
-                            $estSmsCount = $validRecipients - $estRcsCount;
+                            $rcsBasicPrice = (float) ($pricing['rcs_basic_price'] ?? 0);
+                            $rcsSinglePrice = (float) ($pricing['rcs_single_price'] ?? 0);
 
                             $hasSegBreakdown = !empty($segment_breakdown ?? []) && count($segment_breakdown) > 0;
-                            $avgSegments = 1;
-                            if ($hasSegBreakdown) {
-                                $totalParts = 0;
-                                $totalRecips = 0;
-                                foreach ($segment_breakdown as $grp) {
-                                    $totalParts += $grp->segments * $grp->recipient_count;
-                                    $totalRecips += $grp->recipient_count;
-                                }
-                                $avgSegments = $totalRecips > 0 ? $totalParts / $totalRecips : 1;
-                            }
+                            $hasMixedSegments = $hasSegBreakdown && count($segment_breakdown) > 1;
 
-                            $estRcsCost = $estRcsCount * $rcsPrice;
-                            $estSmsCost = $estSmsCount * $smsPrice * $avgSegments;
-                            $estTotal = $estRcsCost + $estSmsCost;
-
-                            $estSmsParts = (int) round($estSmsCount * $avgSegments);
-
-                            $maxSmsParts = $hasSegBreakdown
-                                ? (int) round($validRecipients * $avgSegments)
-                                : $validRecipients;
                             $maxSmsPartsTotal = $hasSegBreakdown
                                 ? array_reduce($segment_breakdown, fn($c, $g) => $c + $g->segments * $g->recipient_count, 0)
                                 : $validRecipients;
+
+                            $estRcsBasicCount = 0;
+                            $estRcsSingleCount = 0;
+                            $estSmsLines = [];
+                            $estSmsCostTotal = 0;
+
+                            if ($hasSegBreakdown) {
+                                foreach ($segment_breakdown as $grp) {
+                                    $grpRcsCount = (int) round($grp->recipient_count * $penetration);
+                                    $grpSmsCount = $grp->recipient_count - $grpRcsCount;
+
+                                    if ($isBasicRcs && $grp->segments <= 1) {
+                                        $estRcsBasicCount += $grpRcsCount;
+                                    } else {
+                                        $estRcsSingleCount += $grpRcsCount;
+                                    }
+
+                                    $grpSmsParts = $grpSmsCount * $grp->segments;
+                                    $grpSmsCost = $grpSmsParts * $smsPrice;
+                                    $estSmsCostTotal += $grpSmsCost;
+
+                                    $estSmsLines[] = (object) [
+                                        'segments' => $grp->segments,
+                                        'recipient_count' => $grp->recipient_count,
+                                        'sms_count' => $grpSmsCount,
+                                        'sms_parts' => $grpSmsParts,
+                                        'sms_cost' => $grpSmsCost,
+                                        'rcs_count' => $grpRcsCount,
+                                    ];
+                                }
+                            } else {
+                                $estRcsCount = (int) round($validRecipients * $penetration);
+                                $estSmsCount = $validRecipients - $estRcsCount;
+                                if ($isBasicRcs) {
+                                    $estRcsBasicCount = $estRcsCount;
+                                } else {
+                                    $estRcsSingleCount = $estRcsCount;
+                                }
+                                $estSmsCostTotal = $estSmsCount * $smsPrice;
+                                $estSmsLines[] = (object) [
+                                    'segments' => 1,
+                                    'recipient_count' => $validRecipients,
+                                    'sms_count' => $estSmsCount,
+                                    'sms_parts' => $estSmsCount,
+                                    'sms_cost' => $estSmsCostTotal,
+                                    'rcs_count' => $estRcsCount,
+                                ];
+                            }
+
+                            $estRcsBasicCost = $estRcsBasicCount * $rcsBasicPrice;
+                            $estRcsSingleCost = $estRcsSingleCount * $rcsSinglePrice;
+                            $estTotal = $estRcsBasicCost + $estRcsSingleCost + $estSmsCostTotal;
+
+                            $totalEstSmsParts = array_reduce($estSmsLines, fn($c, $l) => $c + $l->sms_parts, 0);
+
                             $maxSmsCost = $maxSmsPartsTotal * $smsPrice;
-                            $maxRcsCost = $validRecipients * $rcsPrice;
+
+                            $maxRcsCost = 0;
+                            if ($isBasicRcs && $hasMixedSegments) {
+                                foreach ($segment_breakdown as $grp) {
+                                    $grpRcsRate = $grp->segments <= 1 ? $rcsBasicPrice : $rcsSinglePrice;
+                                    $maxRcsCost += $grp->recipient_count * $grpRcsRate;
+                                }
+                            } else {
+                                $rcsRate = $isBasicRcs ? $rcsBasicPrice : $rcsSinglePrice;
+                                $maxRcsCost = $validRecipients * $rcsRate;
+                            }
                             $maxTotal = max($maxSmsCost, $maxRcsCost);
 
                             $vatRate = (float) ($pricing['vat_rate'] ?? 0);
                             $estVat = $pricing['vat_applicable'] ? $estTotal * ($vatRate / 100) : 0;
                             $maxVat = $pricing['vat_applicable'] ? $maxTotal * ($vatRate / 100) : 0;
-
-                            $segBreakdownLines = [];
-                            if ($hasSegBreakdown && count($segment_breakdown) > 1) {
-                                foreach ($segment_breakdown as $grp) {
-                                    $grpSmsCount = (int) round(($validRecipients - $estRcsCount) * ($grp->recipient_count / max($validRecipients, 1)));
-                                    $grpRcsCount = (int) round($estRcsCount * ($grp->recipient_count / max($validRecipients, 1)));
-                                    $segBreakdownLines[] = (object) [
-                                        'segments' => $grp->segments,
-                                        'recipient_count' => $grp->recipient_count,
-                                        'sms_count' => $grpSmsCount,
-                                        'rcs_count' => $grpRcsCount,
-                                    ];
-                                }
-                            }
                         @endphp
 
                         <div class="py-3 mb-3 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
@@ -296,19 +325,36 @@
                         <p class="text-muted small mb-3">SMS fallback messages will be charged at your agreed SMS rate. RCS messages are billed based on actual delivery.</p>
 
                         <div class="row g-3 mb-3">
-                            <div class="col-4">
+                            <div class="{{ $hasMixedSegments ? 'col-6 col-md-3' : 'col-4' }}">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
                                     <div class="small" style="color: #495057;">SMS Rate</div>
                                     <div class="fw-bold text-dark">&pound;{{ number_format($smsPrice, 4) }}</div>
                                 </div>
                             </div>
-                            <div class="col-4">
+                            @if($hasMixedSegments && $isBasicRcs)
+                            <div class="col-6 col-md-3">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">{{ $isBasicRcs ? 'RCS Basic' : 'RCS Single' }} Rate</div>
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($rcsPrice, 4) }}</div>
+                                    <div class="small" style="color: #495057;">RCS Basic Rate</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($rcsBasicPrice, 4) }}</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">1-part messages</div>
                                 </div>
                             </div>
-                            <div class="col-4">
+                            <div class="col-6 col-md-3">
+                                <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
+                                    <div class="small" style="color: #495057;">RCS Single Rate</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($rcsSinglePrice, 4) }}</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">2+ part messages</div>
+                                </div>
+                            </div>
+                            @else
+                            <div class="{{ $hasMixedSegments ? 'col-6 col-md-3' : 'col-4' }}">
+                                <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
+                                    <div class="small" style="color: #495057;">{{ $isBasicRcs ? 'RCS Basic' : 'RCS Single' }} Rate</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($isBasicRcs ? $rcsBasicPrice : $rcsSinglePrice, 4) }}</div>
+                                </div>
+                            </div>
+                            @endif
+                            <div class="{{ $hasMixedSegments ? 'col-6 col-md-3' : 'col-4' }}">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
                                     <div class="small" style="color: #495057;">RCS Penetration</div>
                                     <div class="fw-bold text-dark">{{ number_format($penetration * 100, 0) }}%</div>
@@ -316,13 +362,17 @@
                             </div>
                         </div>
 
-                        @if($hasSegBreakdown && count($segment_breakdown) > 1)
+                        @if($hasMixedSegments)
                         <div class="mb-3 p-3 rounded" style="background-color: #f8f9fa;">
                             <p class="small fw-bold mb-2" style="color: #495057;">Per-recipient segment breakdown</p>
                             @foreach($segment_breakdown as $grp)
                             <div class="d-flex justify-content-between small py-1 ps-2">
-                                <span class="text-muted">{{ number_format($grp->recipient_count) }} recipients &times; {{ $grp->segments }} {{ $grp->segments === 1 ? 'segment' : 'segments' }}</span>
-                                <span>{{ number_format($grp->recipient_count * $grp->segments) }} parts</span>
+                                <span class="text-muted">{{ number_format($grp->recipient_count) }} recipients &times; {{ $grp->segments }} {{ $grp->segments === 1 ? 'segment' : 'segments' }}
+                                    @if($isBasicRcs)
+                                    &rarr; {{ $grp->segments <= 1 ? 'RCS Basic' : 'RCS Single' }}
+                                    @endif
+                                </span>
+                                <span>{{ number_format($grp->recipient_count * $grp->segments) }} SMS parts</span>
                             </div>
                             @endforeach
                             <div class="d-flex justify-content-between small pt-1 ps-2 fw-bold border-top mt-1">
@@ -336,13 +386,21 @@
                             <div class="col-6">
                                 <div class="p-3 rounded" style="background-color: #f0ebf8;">
                                     <div class="small fw-bold mb-2" style="color: #6b5b95;">Estimated Cost</div>
+                                    @if($estRcsBasicCount > 0)
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">{{ $isBasicRcs ? 'RCS Basic' : 'RCS Single' }}: {{ number_format($estRcsCount) }} &times; &pound;{{ number_format($rcsPrice, 4) }}</span>
-                                        <span>&pound;{{ number_format($estRcsCost, 2) }}</span>
+                                        <span class="text-muted">RCS Basic: {{ number_format($estRcsBasicCount) }} &times; &pound;{{ number_format($rcsBasicPrice, 4) }}</span>
+                                        <span>&pound;{{ number_format($estRcsBasicCost, 2) }}</span>
                                     </div>
+                                    @endif
+                                    @if($estRcsSingleCount > 0)
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">SMS fallback: {{ number_format($estSmsParts) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
-                                        <span>&pound;{{ number_format($estSmsCost, 2) }}</span>
+                                        <span class="text-muted">RCS Single: {{ number_format($estRcsSingleCount) }} &times; &pound;{{ number_format($rcsSinglePrice, 4) }}</span>
+                                        <span>&pound;{{ number_format($estRcsSingleCost, 2) }}</span>
+                                    </div>
+                                    @endif
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">SMS fallback: {{ number_format($totalEstSmsParts) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
+                                        <span>&pound;{{ number_format($estSmsCostTotal, 2) }}</span>
                                     </div>
                                     @if($pricing['vat_applicable'])
                                     <div class="d-flex justify-content-between small mb-1">
@@ -365,7 +423,7 @@
                                         <span>&pound;{{ number_format($maxSmsCost, 2) }}</span>
                                     </div>
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">All RCS: {{ number_format($validRecipients) }} &times; &pound;{{ number_format($rcsPrice, 4) }}</span>
+                                        <span class="text-muted">All RCS: {{ number_format($validRecipients) }} msgs</span>
                                         <span>&pound;{{ number_format($maxRcsCost, 2) }}</span>
                                     </div>
                                     @if($pricing['vat_applicable'])
