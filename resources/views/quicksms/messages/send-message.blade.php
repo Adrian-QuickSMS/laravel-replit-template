@@ -3443,6 +3443,7 @@ function continueToConfirmation() {
             channel: sessionChannelValue,
             sender_id: senderIdText,
             rcs_agent: rcsAgentName,
+            rcs_agent_id: rcsAgentId,
             message_content: smsContent,
             recipient_count: recipientCount,
             valid_count: recipientCount,
