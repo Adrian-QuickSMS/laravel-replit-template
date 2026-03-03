@@ -817,7 +817,9 @@ class CampaignApiController extends Controller
             'number_id' => 'required|uuid',
         ]);
 
-        $number = \App\Models\PurchasedNumber::findOrFail($request->input('number_id'));
+        $number = \App\Models\PurchasedNumber::withoutGlobalScope('tenant')
+            ->where('account_id', $this->tenantId())
+            ->findOrFail($request->input('number_id'));
 
         $text = $this->optOutService->generateOptOutText(
             strtoupper($request->input('keyword')),

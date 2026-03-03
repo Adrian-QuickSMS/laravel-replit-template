@@ -2886,7 +2886,7 @@ function refreshOptOutText() {
             'Accept': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({ keyword: keyword, number: numberVal })
+        body: JSON.stringify({ keyword: keyword, number_id: numberId })
     })
     .then(function(r) { return r.json(); })
     .then(function(res) {
