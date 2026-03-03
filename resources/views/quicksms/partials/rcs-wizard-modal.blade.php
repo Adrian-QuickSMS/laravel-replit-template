@@ -19,10 +19,15 @@
     }
     #rcsWizardModal .modal-footer {
         flex-shrink: 0 !important;
-        position: sticky !important;
-        bottom: 0 !important;
-        z-index: 10 !important;
+        position: relative !important;
+        z-index: 100 !important;
         background: #fff !important;
+        pointer-events: auto !important;
+    }
+    #rcsWizardModal .modal-footer .btn {
+        pointer-events: auto !important;
+        position: relative !important;
+        z-index: 101 !important;
     }
     #rcsWizardBody {
         flex: 1 1 0% !important;
@@ -300,7 +305,7 @@
             </div>
             <div class="modal-footer py-2 border-top" style="background: #fff;">
                 <button type="button" class="btn btn-secondary" id="rcsWizardCancelBtn">Cancel</button>
-                <button type="button" class="btn btn-primary" id="rcsApplyContentBtn">
+                <button type="button" class="btn btn-primary" id="rcsApplyContentBtn" onclick="if(typeof handleRcsApplyContent==='function')handleRcsApplyContent();">
                     <i class="fas fa-check me-1"></i>Apply RCS Content
                 </button>
             </div>
