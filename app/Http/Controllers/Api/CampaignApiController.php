@@ -47,7 +47,7 @@ class CampaignApiController extends Controller
      */
     private function findCampaignOrFail(string $id): ?Campaign
     {
-        $campaign = $this->findCampaignOrFail($id);
+        $campaign = Campaign::withoutGlobalScope('tenant')->find($id);
 
         if (!$campaign) {
             return null;
@@ -60,7 +60,7 @@ class CampaignApiController extends Controller
                 'campaign_account' => $campaign->account_id,
                 'request_tenant' => $this->tenantId(),
             ]);
-            return null; // Return null (same as not found) to avoid leaking existence
+            return null;
         }
 
         return $campaign;

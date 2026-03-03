@@ -597,6 +597,22 @@ class QuickSMSController extends Controller
         }
     }
 
+    private function calculateSmsSegments(string $content): int
+    {
+        if (empty($content)) {
+            return 1;
+        }
+
+        $hasUnicode = preg_match('/[^\x20-\x7E£¥èéùìòÇØøÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !"#¤%&\'()*+,\-.\/:;<=>?¡ÄÖÑÜ§¿äöñüà@{}\[\]~\^|€\r\n\\\\]/', $content);
+        $len = mb_strlen($content);
+
+        if ($hasUnicode) {
+            return $len <= 70 ? 1 : (int) ceil($len / 67);
+        }
+
+        return $len <= 160 ? 1 : (int) ceil($len / 153);
+    }
+
     public function confirmCampaign(Request $request)
     {
         $sessionData = $request->session()->get('campaign_config', []);
@@ -712,6 +728,13 @@ class QuickSMSController extends Controller
                     $totalSmsParts = array_reduce($segmentBreakdown, function ($carry, $group) {
                         return $carry + ($group->recipient_count * $group->segments);
                     }, 0);
+
+                    if ($totalSmsParts === 0 && $validCount > 0) {
+                        $campaignRecord = \DB::table('campaigns')->where('id', $campaignId)->first(['segment_count']);
+                        $baseSegments = $campaignRecord->segment_count ?? 1;
+                        $totalSmsParts = $validCount * $baseSegments;
+                        $segmentBreakdown = [(object) ['segments' => $baseSegments, 'recipient_count' => $validCount]];
+                    }
                 } else {
                     $campaignId = null;
                 }
@@ -720,6 +743,13 @@ class QuickSMSController extends Controller
                     'error' => $e->getMessage(),
                 ]);
             }
+        }
+
+        if ($totalSmsParts === 0 && $validCount > 0 && $channelType === 'sms') {
+            $msgContent = $sessionData['message_content'] ?? '';
+            $baseSegments = $this->calculateSmsSegments($msgContent);
+            $totalSmsParts = $validCount * $baseSegments;
+            $segmentBreakdown = [(object) ['segments' => $baseSegments, 'recipient_count' => $validCount]];
         }
 
 
