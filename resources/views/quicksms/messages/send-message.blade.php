@@ -1639,7 +1639,86 @@ function restoreCampaignFromConfirm() {
         if (optoutCheckbox) {
             optoutCheckbox.checked = true;
             if (typeof toggleOptoutManagement === 'function') toggleOptoutManagement();
-            window._restoredOptoutConfig = config.optout_config;
+
+            if (config.optout_config.opt_out_screening_list_ids && config.optout_config.opt_out_screening_list_ids.length > 0) {
+                config.optout_config.opt_out_screening_list_ids.forEach(function(listId) {
+                    var cb = document.getElementById('screening_' + listId);
+                    if (cb) {
+                        cb.checked = true;
+                    }
+                });
+                if (typeof onScreeningListChange === 'function') onScreeningListChange();
+            }
+
+            if (config.optout_config.opt_out_method === 'reply') {
+                var replyToggle = document.getElementById('enableReplyOptout');
+                if (replyToggle) {
+                    replyToggle.checked = true;
+                    var replyConfigDiv = document.getElementById('replyOptoutConfig');
+                    if (replyConfigDiv) replyConfigDiv.classList.remove('d-none');
+                }
+
+                loadOptOutNumbers(function() {
+                    if (config.optout_config.opt_out_number_id) {
+                        var numSelect = document.getElementById('optOutNumberId');
+                        if (numSelect) {
+                            numSelect.value = config.optout_config.opt_out_number_id;
+                            if (typeof onOptOutNumberChange === 'function') onOptOutNumberChange();
+                        }
+                    }
+                    if (config.optout_config.opt_out_keyword) {
+                        var kwInput = document.getElementById('optOutKeywordInput');
+                        if (kwInput) kwInput.value = config.optout_config.opt_out_keyword;
+                    }
+                    if (config.optout_config.opt_out_text) {
+                        var replyText = document.getElementById('replyOptoutText');
+                        if (replyText) replyText.value = config.optout_config.opt_out_text;
+                    }
+                    if (config.optout_config.opt_out_list_id) {
+                        var existingRadio = document.querySelector('input[name="replyListTarget"][value="existing"]');
+                        if (existingRadio) existingRadio.checked = true;
+                        var listSelect = document.getElementById('replyOptOutListId');
+                        if (listSelect) listSelect.value = config.optout_config.opt_out_list_id;
+                    }
+                    if (config.optout_config.new_list_name) {
+                        var newRadio = document.querySelector('input[name="replyListTarget"][value="new"]');
+                        if (newRadio) {
+                            newRadio.checked = true;
+                            if (typeof toggleReplyListTarget === 'function') toggleReplyListTarget();
+                            var newNameInput = document.getElementById('replyNewListName');
+                            if (newNameInput) newNameInput.value = config.optout_config.new_list_name;
+                        }
+                    }
+                    validateOptoutConfig();
+                });
+            } else if (config.optout_config.opt_out_method === 'url' || config.optout_config.opt_out_url_enabled) {
+                var urlToggle = document.getElementById('enableUrlOptout');
+                if (urlToggle) {
+                    urlToggle.checked = true;
+                    if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
+                }
+                if (config.optout_config.opt_out_text) {
+                    var urlText = document.getElementById('urlOptoutText');
+                    if (urlText) urlText.value = config.optout_config.opt_out_text;
+                }
+                if (config.optout_config.opt_out_list_id) {
+                    var urlExistingRadio = document.querySelector('input[name="urlListTarget"][value="existing"]');
+                    if (urlExistingRadio) urlExistingRadio.checked = true;
+                    if (typeof toggleUrlListTarget === 'function') toggleUrlListTarget();
+                    var urlListSelect = document.getElementById('urlOptOutListId');
+                    if (urlListSelect) urlListSelect.value = config.optout_config.opt_out_list_id;
+                }
+                if (config.optout_config.new_list_name) {
+                    var urlNewRadio = document.querySelector('input[name="urlListTarget"][value="new"]');
+                    if (urlNewRadio) {
+                        urlNewRadio.checked = true;
+                        if (typeof toggleUrlListTarget === 'function') toggleUrlListTarget();
+                        var urlNewNameInput = document.getElementById('urlNewListName');
+                        if (urlNewNameInput) urlNewNameInput.value = config.optout_config.new_list_name;
+                    }
+                }
+                validateOptoutConfig();
+            }
         }
     }
 
@@ -2846,7 +2925,7 @@ function toggleUrlStorageList() {
     validateOptoutConfig();
 }
 
-function loadOptOutNumbers() {
+function loadOptOutNumbers(onComplete) {
     var select = document.getElementById('optOutNumberId');
     if (!select) return;
     select.innerHTML = '<option value="">-- Loading... --</option>';
@@ -2909,6 +2988,7 @@ function loadOptOutNumbers() {
         if (vmns.length === 0 && shortcodes.length === 0) {
             select.innerHTML = '<option value="">No numbers available</option>';
         }
+        if (typeof onComplete === 'function') onComplete();
     })
     .catch(function() {
         select.innerHTML = '<option value="">Failed to load numbers</option>';
