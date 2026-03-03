@@ -428,7 +428,7 @@ class QuickSMSController extends Controller
             ->map(fn($a) => [
                 'id'          => $a->id,
                 'name'        => $a->name,
-                'logo'        => $a->logo_url ?: null,
+                'logo'        => $a->logo_url ?: asset('images/rcs-agents/quicksms-brand.svg'),
                 'tagline'     => $a->description ?? '',
                 'brand_color' => $a->brand_color ?? '#886CC0',
                 'status'      => 'approved',
@@ -548,7 +548,7 @@ class QuickSMSController extends Controller
                 })
                 ->where('product_tier', $tier)
                 ->whereNull('country_iso')
-                ->whereIn('product_type', ['sms', 'rcs_basic', 'rcs_single', 'rcs_carousel'])
+                ->whereIn('product_type', ['sms', 'rcs_basic', 'rcs_single'])
                 ->pluck('unit_price', 'product_type');
 
             $pricing = $defaults;
@@ -556,10 +556,7 @@ class QuickSMSController extends Controller
                 $pricing[$type] = (float) $price;
             }
 
-            // rcs_carousel inherits rcs_single price if not separately priced
-            if (!isset($rows['rcs_carousel']) && isset($rows['rcs_single'])) {
-                $pricing['rcs_carousel'] = (float) $rows['rcs_single'];
-            }
+            $pricing['rcs_carousel'] = $pricing['rcs_single'];
 
             // rcs_rich maps to rcs_single pricing; currency from account record
             $pricing['rcs_rich'] = $pricing['rcs_single'];
