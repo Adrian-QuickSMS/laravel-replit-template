@@ -3695,6 +3695,7 @@ function continueToConfirmation() {
 
     var campaignPromise = newListPromise.then(function(resolvedListId) {
         var campaignData = buildCampaignData(resolvedListId);
+        console.log('[Campaign] Sending campaign data:', JSON.stringify(campaignData));
         if (existingCampaignId) {
             return CampaignService.update(existingCampaignId, campaignData).then(function(result) {
                 return { data: { id: existingCampaignId } };
@@ -3799,9 +3800,10 @@ function continueToConfirmation() {
             continueBtn.disabled = false;
             continueBtn.innerHTML = '<i class="fas fa-arrow-right me-1"></i> Continue';
         }
-        if (error.validationErrors) {
+        var validationKeys = error.validationErrors ? Object.keys(error.validationErrors) : [];
+        if (validationKeys.length > 0) {
             var errorList = [];
-            Object.keys(error.validationErrors).forEach(function(field) {
+            validationKeys.forEach(function(field) {
                 var msg = error.validationErrors[field][0] || ('Field "' + field + '" is invalid');
                 errorList.push({ fieldId: null, message: msg });
             });
