@@ -384,39 +384,22 @@ class BillingPreflightService
     }
 
     /**
-     * Build a snapshot of the exact prices resolved for each country in the estimate.
-     *
-     * Each entry records the unit price, source, and price ID so we can prove
-     * exactly which rate was applied at the time of estimation.
+     * Build a snapshot from the already-resolved pricing in the cost estimate.
+     * Avoids redundant PricingEngine lookups.
      */
     private function buildPricingSnapshot(Account $account, string $billableProductType, array $perCountryCosts): array
     {
         $snapshot = [];
 
         foreach ($perCountryCosts as $countryKey => $data) {
-            $countryIso = $data['country_iso'] ?? null;
-
-            try {
-                $price = $this->pricingEngine->resolvePrice($account, $billableProductType, $countryIso);
-
-                $snapshot[] = [
-                    'product_type' => $billableProductType,
-                    'country_iso' => $countryIso,
-                    'unit_price' => $price->unitPrice,
-                    'currency' => $price->currency,
-                    'source' => $price->source,
-                    'price_id' => $price->priceId,
-                ];
-            } catch (PriceNotFoundException $e) {
-                $snapshot[] = [
-                    'product_type' => $billableProductType,
-                    'country_iso' => $countryIso,
-                    'unit_price' => null,
-                    'currency' => $account->currency ?? 'GBP',
-                    'source' => 'not_found',
-                    'price_id' => null,
-                ];
-            }
+            $snapshot[] = [
+                'product_type' => $billableProductType,
+                'country_iso' => $data['country_iso'] ?? null,
+                'unit_price' => $data['unit_price'] ?? null,
+                'currency' => $data['currency'] ?? ($account->currency ?? 'GBP'),
+                'source' => $data['price_source'] ?? 'estimate',
+                'price_id' => null,
+            ];
         }
 
         return $snapshot;

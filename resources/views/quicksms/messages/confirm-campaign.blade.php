@@ -175,35 +175,59 @@
                 </div>
                 <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
-                        @php
-                            $messageCount = $recipients['valid'];
-                            $subtotal = $messageCount * $pricing['sms_unit_price'];
-                            $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($pricing['vat_rate'] / 100) : 0;
-                            $total = $subtotal + $vatAmount;
-                        @endphp
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">Messages</div>
-                            <div class="col-6 text-end">{{ number_format($messageCount) }}</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">Price per SMS</div>
-                            <div class="col-6 text-end">&pound;{{ number_format($pricing['sms_unit_price'], 3) }}</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">Subtotal (ex VAT)</div>
-                            <div class="col-6 text-end">&pound;{{ number_format($subtotal, 2) }}</div>
-                        </div>
-                        @if($pricing['vat_applicable'])
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">VAT ({{ $pricing['vat_rate'] }}%)</div>
-                            <div class="col-6 text-end">&pound;{{ number_format($vatAmount, 2) }}</div>
-                        </div>
+                        @if(!empty($realEstimate))
+                            {{-- Real estimate from backend billing engine --}}
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Messages</div>
+                                <div class="col-6 text-end">{{ number_format($recipients['valid']) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Estimated Cost (ex VAT)</div>
+                                <div class="col-6 text-end">&pound;{{ number_format((float) $realEstimate['total_cost'], 2) }}</div>
+                            </div>
+                            @if(!$realEstimate['has_sufficient_balance'])
+                            <div class="alert alert-warning py-2 px-3 mt-2" style="font-size: 13px;">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Insufficient balance. Available: &pound;{{ number_format((float) $realEstimate['available_balance'], 2) }}
+                            </div>
+                            @endif
+                            <hr>
+                            <div class="row">
+                                <div class="col-6 fw-bold">Estimated Total</div>
+                                <div class="col-6 text-end fw-bold h5 mb-0">&pound;{{ number_format((float) $realEstimate['total_cost'], 2) }}</div>
+                            </div>
+                        @else
+                            {{-- Fallback: simple estimate from session data --}}
+                            @php
+                                $messageCount = $recipients['valid'];
+                                $subtotal = $messageCount * $pricing['sms_unit_price'];
+                                $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($pricing['vat_rate'] / 100) : 0;
+                                $total = $subtotal + $vatAmount;
+                            @endphp
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Messages</div>
+                                <div class="col-6 text-end">{{ number_format($messageCount) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Price per SMS</div>
+                                <div class="col-6 text-end">&pound;{{ number_format($pricing['sms_unit_price'], 3) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Subtotal (ex VAT)</div>
+                                <div class="col-6 text-end">&pound;{{ number_format($subtotal, 2) }}</div>
+                            </div>
+                            @if($pricing['vat_applicable'])
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">VAT ({{ $pricing['vat_rate'] }}%)</div>
+                                <div class="col-6 text-end">&pound;{{ number_format($vatAmount, 2) }}</div>
+                            </div>
+                            @endif
+                            <hr>
+                            <div class="row">
+                                <div class="col-6 fw-bold">Total</div>
+                                <div class="col-6 text-end fw-bold h5 mb-0">&pound;{{ number_format($total, 2) }}</div>
+                            </div>
                         @endif
-                        <hr>
-                        <div class="row">
-                            <div class="col-6 fw-bold">Total</div>
-                            <div class="col-6 text-end fw-bold h5 mb-0">&pound;{{ number_format($total, 2) }}</div>
-                        </div>
                     @else
                         <div class="py-3 mb-3 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                             <i class="fas fa-info-circle me-2"></i>

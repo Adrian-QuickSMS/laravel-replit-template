@@ -487,14 +487,56 @@ class QuickSMSController extends Controller
             $recipients['sources']['manual_input'] = $recipientCount;
         }
 
-        // Pricing data - use account pricing or defaults
+        // Pricing data — resolve from account's actual pricing
+        $accountId = session('customer_tenant_id');
+        $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
+
         $pricing = [
-            'sms_unit_price' => 0.023,
+            'sms_unit_price' => 0.023,   // Fallback defaults
             'rcs_basic_price' => 0.035,
             'rcs_single_price' => 0.045,
-            'vat_applicable' => true,
-            'vat_rate' => 20,
+            'vat_applicable' => (bool) ($account->vat_registered ?? true),
+            'vat_rate' => ($account->vat_registered ?? true) ? 20 : 0,
         ];
+
+        if ($accountId && $account) {
+            $productTypes = ['sms', 'rcs_basic', 'rcs_single'];
+            $priceMap = ['sms' => 'sms_unit_price', 'rcs_basic' => 'rcs_basic_price', 'rcs_single' => 'rcs_single_price'];
+
+            // Check customer-specific prices first
+            $customerPrices = \App\Models\Billing\CustomerPrice::where('account_id', $accountId)
+                ->whereIn('product_type', $productTypes)
+                ->whereNull('country_iso')
+                ->active()
+                ->validAt()
+                ->get()
+                ->keyBy('product_type');
+
+            foreach ($productTypes as $type) {
+                if ($customerPrices->has($type)) {
+                    $pricing[$priceMap[$type]] = (float) $customerPrices[$type]->unit_price;
+                }
+            }
+
+            // Fall back to tier pricing for any not found
+            $missingTypes = array_filter($productTypes, fn($t) => !$customerPrices->has($t));
+            if (!empty($missingTypes)) {
+                $tier = $account->product_tier ?? 'starter';
+                $tierPrices = \App\Models\Billing\ProductTierPrice::where('product_tier', $tier)
+                    ->whereIn('product_type', $missingTypes)
+                    ->whereNull('country_iso')
+                    ->active()
+                    ->validAt()
+                    ->get()
+                    ->keyBy('product_type');
+
+                foreach ($missingTypes as $type) {
+                    if ($tierPrices->has($type)) {
+                        $pricing[$priceMap[$type]] = (float) $tierPrices[$type]->unit_price;
+                    }
+                }
+            }
+        }
 
         // Message content from session
         $message = [
@@ -503,6 +545,21 @@ class QuickSMSController extends Controller
             'rcs_content' => $sessionData['rcs_content'] ?? null,
         ];
 
+        // Get real cost estimate from backend if campaign has been prepared
+        $realEstimate = null;
+        if (!empty($sessionData['campaign_id'])) {
+            $campaign_record = \App\Models\Campaign::find($sessionData['campaign_id']);
+            if ($campaign_record && $campaign_record->preparation_status === 'ready') {
+                try {
+                    $campaignService = app(\App\Services\Campaign\CampaignService::class);
+                    $costEstimate = $campaignService->estimateCost($campaign_record);
+                    $realEstimate = $costEstimate->toArray();
+                } catch (\Exception $e) {
+                    // Fall back to session-based estimate
+                }
+            }
+        }
+
         return view('quicksms.messages.confirm-campaign', [
             'page_title' => 'Confirm & Send Campaign',
             'campaign' => $campaign,
@@ -510,21 +567,36 @@ class QuickSMSController extends Controller
             'recipients' => $recipients,
             'pricing' => $pricing,
             'message' => $message,
+            'realEstimate' => $realEstimate,
         ]);
     }
 
     public function storeCampaignConfig(Request $request)
     {
-        $allowed = [
-            'campaign_name', 'channel', 'sender_id', 'sender_id_id',
-            'rcs_agent', 'rcs_agent_id', 'campaign_type',
-            'message_content', 'rcs_content', 'recipient_sources',
-            'scheduled_time', 'message_expiry', 'sending_window',
-            'recipient_count', 'valid_count', 'invalid_count',
-            'opted_out_count', 'sources', 'optout_config',
-        ];
-        $request->session()->put('campaign_config', $request->only($allowed));
-        
+        $validated = $request->validate([
+            'campaign_name' => 'nullable|string|max:255',
+            'channel' => 'nullable|string|in:sms_only,basic_rcs,rich_rcs',
+            'sender_id' => 'nullable|string|max:50',
+            'sender_id_id' => 'nullable',
+            'rcs_agent' => 'nullable|string|max:100',
+            'rcs_agent_id' => 'nullable',
+            'campaign_type' => 'nullable|string|in:sms,rcs_basic,rcs_single,rcs_carousel',
+            'message_content' => 'nullable|string|max:10000',
+            'rcs_content' => 'nullable|array',
+            'recipient_sources' => 'nullable|array|max:50',
+            'scheduled_time' => 'nullable|string|max:50',
+            'message_expiry' => 'nullable|string|max:10',
+            'sending_window' => 'nullable|string|max:50',
+            'recipient_count' => 'nullable|integer|min:0|max:10000000',
+            'valid_count' => 'nullable|integer|min:0|max:10000000',
+            'invalid_count' => 'nullable|integer|min:0|max:10000000',
+            'opted_out_count' => 'nullable|integer|min:0|max:10000000',
+            'sources' => 'nullable|array',
+            'optout_config' => 'nullable|array',
+        ]);
+
+        $request->session()->put('campaign_config', $validated);
+
         return response()->json(['success' => true]);
     }
 
@@ -608,12 +680,14 @@ class QuickSMSController extends Controller
         } catch (\Exception $e) {
             \Log::error('Campaign confirmAndSend failed', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'account_id' => $accountId,
+                'session_data_keys' => array_keys($sessionData),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to send campaign: ' . $e->getMessage(),
+                'message' => 'An error occurred while sending your campaign. Please try again or contact support.',
             ], 500);
         }
     }
