@@ -248,7 +248,10 @@ class CampaignService
         // Prevent concurrent preparation: atomically check-and-set preparation_status
         $updated = DB::table('campaigns')
             ->where('id', $campaign->id)
-            ->whereIn('preparation_status', [null, 'ready', 'failed'])
+            ->where(function ($q) {
+                $q->whereNull('preparation_status')
+                  ->orWhereIn('preparation_status', ['ready', 'failed']);
+            })
             ->update([
                 'preparation_status' => 'preparing',
                 'preparation_progress' => 0,
