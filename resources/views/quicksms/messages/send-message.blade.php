@@ -3126,6 +3126,13 @@ function validateOptoutConfig() {
                 errorDiv.classList.remove('d-none');
                 return false;
             }
+        } else if (replyTarget && replyTarget.value === 'existing') {
+            var replyListSelect = document.getElementById('replyOptOutListId');
+            if (!replyListSelect || !replyListSelect.value) {
+                errorMsg.textContent = 'Select an existing opt-out list to store replies.';
+                errorDiv.classList.remove('d-none');
+                return false;
+            }
         }
     }
 
@@ -3142,6 +3149,13 @@ function validateOptoutConfig() {
             var urlNewName = document.getElementById('urlNewListName');
             if (!urlNewName || !urlNewName.value.trim()) {
                 errorMsg.textContent = 'Enter a name for the new opt-out list.';
+                errorDiv.classList.remove('d-none');
+                return false;
+            }
+        } else if (urlTarget && urlTarget.value === 'existing') {
+            var urlListSelect = document.getElementById('urlOptOutListId');
+            if (!urlListSelect || !urlListSelect.value) {
+                errorMsg.textContent = 'Select an existing opt-out list to store opt-outs.';
                 errorDiv.classList.remove('d-none');
                 return false;
             }
@@ -3431,7 +3445,9 @@ function continueToConfirmation() {
     
     var optoutEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
     if (optoutEnabled && !validateOptoutConfig()) {
-        errors.push({ fieldId: null, message: 'Opt-out configuration has errors that must be fixed' });
+        var optoutMsg = document.getElementById('optoutValidationMessage');
+        var errorText = optoutMsg ? optoutMsg.textContent : 'Opt-out configuration has errors that must be fixed';
+        errors.push({ fieldId: null, message: errorText });
     }
     
     if (errors.length > 0) {
