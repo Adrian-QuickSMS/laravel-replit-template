@@ -138,14 +138,15 @@ class OptOutService
             }
         }
 
-        // In-flight uniqueness: check no other active campaign uses this keyword on this number
+        // In-flight uniqueness: check no other actively-sending campaign uses this keyword on this number
         $conflictQuery = Campaign::withoutGlobalScopes()
             ->where('opt_out_number_id', $numberId)
             ->where('opt_out_keyword', $keyword)
-            ->whereNotIn('status', [
-                Campaign::STATUS_COMPLETED,
-                Campaign::STATUS_CANCELLED,
-                Campaign::STATUS_FAILED,
+            ->whereIn('status', [
+                Campaign::STATUS_QUEUED,
+                Campaign::STATUS_SENDING,
+                Campaign::STATUS_SCHEDULED,
+                Campaign::STATUS_PAUSED,
             ]);
 
         if ($excludeCampaignId) {
