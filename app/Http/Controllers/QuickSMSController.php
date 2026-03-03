@@ -641,9 +641,14 @@ class QuickSMSController extends Controller
         $agentId = $sessionData['rcs_agent_id'] ?? null;
         if ($agentId) {
             $userId = session('customer_user_id');
+            $accountId = session('customer_tenant_id');
             $user = $userId ? \App\Models\User::withoutGlobalScope('tenant')->find($userId) : null;
             if ($user) {
-                $agentRecord = \App\Models\RcsAgent::usableByUser($user)->find($agentId);
+                $agentRecord = \App\Models\RcsAgent::withoutGlobalScope('tenant')
+                    ->where('account_id', $accountId)
+                    ->where('id', $agentId)
+                    ->whereNull('deleted_at')
+                    ->first();
                 if ($agentRecord) {
                     $agentName = $agentRecord->name;
                     $agentLogo = $agentRecord->logo_url;
