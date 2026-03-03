@@ -189,7 +189,21 @@ class CampaignApiController extends Controller
 
         $validated['created_by'] = session('customer_email', session('customer_user_id'));
 
-        $campaign = $this->campaignService->create($this->tenantId(), $validated);
+        try {
+            $campaign = $this->campaignService->create($this->tenantId(), $validated);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (str_contains($e->getMessage(), 'idx_campaign_opt_out_keyword_inflight')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Keyword '{$validated['opt_out_keyword']}' is already in use by an active campaign on this number.",
+                ], 422);
+            }
+            \Log::error('Campaign creation failed: ' . $e->getMessage());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create campaign. Please try again.',
+            ], 500);
+        }
 
         return response()->json(['data' => $campaign->toPortalArray()], 201);
     }
