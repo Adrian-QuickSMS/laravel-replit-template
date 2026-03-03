@@ -47,7 +47,7 @@ class CampaignApiController extends Controller
      */
     private function findCampaignOrFail(string $id): ?Campaign
     {
-        $campaign = $this->findCampaignOrFail($id);
+        $campaign = Campaign::find($id);
 
         if (!$campaign) {
             return null;
@@ -72,6 +72,9 @@ class CampaignApiController extends Controller
 
     /**
      * List campaigns with filtering and pagination.
+     *
+     * Filters: status, type, search, date_from, date_to, created_by,
+     *          sender_id_id, rcs_agent_id
      */
     public function index(Request $request): JsonResponse
     {
@@ -85,6 +88,18 @@ class CampaignApiController extends Controller
         }
         if ($request->filled('search')) {
             $query->search($request->input('search'));
+        }
+        if ($request->filled('date_from') || $request->filled('date_to')) {
+            $query->dateRange($request->input('date_from'), $request->input('date_to'));
+        }
+        if ($request->filled('created_by')) {
+            $query->createdBy($request->input('created_by'));
+        }
+        if ($request->filled('sender_id_id')) {
+            $query->forSenderId($request->input('sender_id_id'));
+        }
+        if ($request->filled('rcs_agent_id')) {
+            $query->forRcsAgent($request->input('rcs_agent_id'));
         }
 
         $perPage = min((int) $request->input('per_page', 25), 100);
@@ -354,7 +369,7 @@ class CampaignApiController extends Controller
             $query->ofStatus($request->input('status'));
         }
 
-        $perPage = min((int) $request->input('per_page', 50), 200);
+        $perPage = min((int) $request->input('per_page', 25), 200);
         $recipients = $query->orderBy('batch_number')->orderBy('id')->paginate($perPage);
 
         return response()->json([

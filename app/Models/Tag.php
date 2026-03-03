@@ -48,6 +48,9 @@ class Tag extends Model
                 : session('customer_tenant_id');
             if ($tenantId) {
                 $builder->where('tags.account_id', $tenantId);
+            } else {
+                // Fail-closed: return zero rows when no tenant context
+                $builder->whereRaw('1 = 0');
             }
         });
     }
@@ -66,6 +69,18 @@ class Tag extends Model
     public function refreshContactCount(): void
     {
         $this->update(['contact_count' => $this->contacts()->count()]);
+    }
+
+    // =====================================================
+    // SCOPES
+    // =====================================================
+
+    public function scopeSearch($query, ?string $search)
+    {
+        if (!$search) {
+            return $query;
+        }
+        return $query->where('name', 'ilike', "%{$search}%");
     }
 
     public function toPortalArray(): array

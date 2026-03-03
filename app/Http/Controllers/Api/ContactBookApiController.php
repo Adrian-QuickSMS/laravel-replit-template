@@ -44,6 +44,12 @@ class ContactBookApiController extends Controller
     // CONTACTS
     // =====================================================
 
+    /**
+     * List contacts with filtering and pagination.
+     *
+     * Filters: search, status, source, sub_account_id, tag (name), list (name),
+     *          tag_id, list_id, country, date_from, date_to
+     */
     public function contactsIndex(Request $request): JsonResponse
     {
         $query = Contact::with(['tags', 'lists']);
@@ -65,6 +71,18 @@ class ContactBookApiController extends Controller
         }
         if ($request->filled('list')) {
             $query->whereHas('lists', fn($q) => $q->where('name', $request->input('list')));
+        }
+        if ($request->filled('tag_id')) {
+            $query->forTag($request->input('tag_id'));
+        }
+        if ($request->filled('list_id')) {
+            $query->forList($request->input('list_id'));
+        }
+        if ($request->filled('country')) {
+            $query->forCountry($request->input('country'));
+        }
+        if ($request->filled('date_from') || $request->filled('date_to')) {
+            $query->dateRange($request->input('date_from'), $request->input('date_to'));
         }
 
         $perPage = min((int) $request->input('per_page', 25), 100);
@@ -354,9 +372,15 @@ class ContactBookApiController extends Controller
     // TAGS
     // =====================================================
 
-    public function tagsIndex(): JsonResponse
+    public function tagsIndex(Request $request): JsonResponse
     {
-        $tags = Tag::orderBy('name')->get();
+        $query = Tag::query();
+
+        if ($request->filled('search')) {
+            $query->search($request->input('search'));
+        }
+
+        $tags = $query->orderBy('name')->get();
         return response()->json(['data' => $tags->map(fn($t) => $t->toPortalArray())]);
     }
 
@@ -411,9 +435,18 @@ class ContactBookApiController extends Controller
     // LISTS
     // =====================================================
 
-    public function listsIndex(): JsonResponse
+    public function listsIndex(Request $request): JsonResponse
     {
-        $lists = ContactList::orderBy('name')->get();
+        $query = ContactList::query();
+
+        if ($request->filled('search')) {
+            $query->search($request->input('search'));
+        }
+        if ($request->filled('type')) {
+            $query->ofType($request->input('type'));
+        }
+
+        $lists = $query->orderBy('name')->get();
         return response()->json(['data' => $lists->map(fn($l) => $l->toPortalArray())]);
     }
 
@@ -566,9 +599,15 @@ class ContactBookApiController extends Controller
     // OPT-OUT LISTS
     // =====================================================
 
-    public function optOutListsIndex(): JsonResponse
+    public function optOutListsIndex(Request $request): JsonResponse
     {
-        $lists = OptOutList::orderByDesc('is_master')->orderBy('name')->get();
+        $query = OptOutList::query();
+
+        if ($request->filled('search')) {
+            $query->search($request->input('search'));
+        }
+
+        $lists = $query->orderByDesc('is_master')->orderBy('name')->get();
         return response()->json(['data' => $lists->map(fn($l) => $l->toPortalArray())]);
     }
 
@@ -632,10 +671,20 @@ class ContactBookApiController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Opt-out list not found'], 404);
         }
 
+        $query = OptOutRecord::where('opt_out_list_id', $listId);
+
+        if ($request->filled('search')) {
+            $query->search($request->input('search'));
+        }
+        if ($request->filled('source')) {
+            $query->ofSource($request->input('source'));
+        }
+        if ($request->filled('date_from') || $request->filled('date_to')) {
+            $query->dateRange($request->input('date_from'), $request->input('date_to'));
+        }
+
         $perPage = min((int) $request->input('per_page', 25), 100);
-        $records = OptOutRecord::where('opt_out_list_id', $listId)
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+        $records = $query->orderByDesc('created_at')->paginate($perPage);
 
         return response()->json([
             'data' => $records->getCollection()->map(fn($r) => [
@@ -647,6 +696,9 @@ class ContactBookApiController extends Controller
                 'created_at' => $r->created_at,
             ]),
             'total' => $records->total(),
+            'per_page' => $records->perPage(),
+            'current_page' => $records->currentPage(),
+            'last_page' => $records->lastPage(),
         ]);
     }
 

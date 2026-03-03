@@ -49,6 +49,9 @@ class OptOutRecord extends Model
                 : session('customer_tenant_id');
             if ($tenantId) {
                 $builder->where('opt_out_records.account_id', $tenantId);
+            } else {
+                // Fail-closed: return zero rows when no tenant context
+                $builder->whereRaw('1 = 0');
             }
         });
     }
@@ -61,6 +64,34 @@ class OptOutRecord extends Model
     public function optOutList(): BelongsTo
     {
         return $this->belongsTo(OptOutList::class, 'opt_out_list_id');
+    }
+
+    // =====================================================
+    // SCOPES
+    // =====================================================
+
+    public function scopeSearch($query, ?string $search)
+    {
+        if (!$search) {
+            return $query;
+        }
+        return $query->where('mobile_number', 'ilike', "%{$search}%");
+    }
+
+    public function scopeOfSource($query, string $source)
+    {
+        return $query->whereRaw("source = ?", [$source]);
+    }
+
+    public function scopeDateRange($query, ?string $from, ?string $to)
+    {
+        if ($from) {
+            $query->where('created_at', '>=', $from);
+        }
+        if ($to) {
+            $query->where('created_at', '<=', $to);
+        }
+        return $query;
     }
 
     public function toPortalArray(): array

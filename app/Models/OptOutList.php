@@ -48,6 +48,9 @@ class OptOutList extends Model
                 : session('customer_tenant_id');
             if ($tenantId) {
                 $builder->where('opt_out_lists.account_id', $tenantId);
+            } else {
+                // Fail-closed: return zero rows when no tenant context
+                $builder->whereRaw('1 = 0');
             }
         });
     }
@@ -65,6 +68,21 @@ class OptOutList extends Model
     public function refreshCount(): void
     {
         $this->update(['count' => $this->records()->count()]);
+    }
+
+    // =====================================================
+    // SCOPES
+    // =====================================================
+
+    public function scopeSearch($query, ?string $search)
+    {
+        if (!$search) {
+            return $query;
+        }
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'ilike', "%{$search}%")
+              ->orWhere('description', 'ilike', "%{$search}%");
+        });
     }
 
     public function toPortalArray(): array

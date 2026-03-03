@@ -141,6 +141,44 @@ class Contact extends Model
         });
     }
 
+    /**
+     * Filter by date range on created_at.
+     */
+    public function scopeDateRange($query, ?string $from, ?string $to)
+    {
+        if ($from) {
+            $query->where('contacts.created_at', '>=', $from);
+        }
+        if ($to) {
+            $query->where('contacts.created_at', '<=', $to);
+        }
+        return $query;
+    }
+
+    /**
+     * Filter by country ISO code.
+     */
+    public function scopeForCountry($query, string $country)
+    {
+        return $query->where('country', $country);
+    }
+
+    /**
+     * Filter contacts that belong to a specific tag by ID.
+     */
+    public function scopeForTag($query, string $tagId)
+    {
+        return $query->whereHas('tags', fn($q) => $q->where('tags.id', $tagId));
+    }
+
+    /**
+     * Filter contacts that belong to a specific list by ID.
+     */
+    public function scopeForList($query, string $listId)
+    {
+        return $query->whereHas('lists', fn($q) => $q->where('contact_lists.id', $listId));
+    }
+
     // =====================================================
     // HELPERS
     // =====================================================

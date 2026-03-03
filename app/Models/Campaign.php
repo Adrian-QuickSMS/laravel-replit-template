@@ -510,6 +510,44 @@ class Campaign extends Model
         });
     }
 
+    /**
+     * Filter by date range on created_at.
+     */
+    public function scopeDateRange($query, ?string $from, ?string $to)
+    {
+        if ($from) {
+            $query->where('created_at', '>=', $from);
+        }
+        if ($to) {
+            $query->where('created_at', '<=', $to);
+        }
+        return $query;
+    }
+
+    /**
+     * Filter by the user who created the campaign.
+     */
+    public function scopeCreatedBy($query, string $createdBy)
+    {
+        return $query->where('created_by', $createdBy);
+    }
+
+    /**
+     * Filter by sender ID (for SMS campaigns).
+     */
+    public function scopeForSenderId($query, string $senderIdId)
+    {
+        return $query->where('sender_id_id', $senderIdId);
+    }
+
+    /**
+     * Filter by RCS agent (for RCS campaigns).
+     */
+    public function scopeForRcsAgent($query, string $rcsAgentId)
+    {
+        return $query->where('rcs_agent_id', $rcsAgentId);
+    }
+
     // =====================================================
     // PORTAL METHODS
     // =====================================================
