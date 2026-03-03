@@ -44,6 +44,7 @@ class CleanupDraftRcsAssets extends Command
                     continue;
                 }
 
+                // Delete stored files
                 if ($asset->storage_path && Storage::disk('rcs-assets')->exists($asset->storage_path)) {
                     Storage::disk('rcs-assets')->delete($asset->storage_path);
                     $filesDeleted++;

@@ -3327,6 +3327,7 @@ function continueToConfirmation() {
         if (expiryVal) messageExpiry = expiryVal.textContent;
     }
 
+
     var recipientSources = [];
     if (recipientState.manual.valid.length > 0) {
         recipientSources.push({ type: 'manual', numbers: recipientState.manual.valid });

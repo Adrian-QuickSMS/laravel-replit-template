@@ -60,10 +60,18 @@ class RcsAsset extends Model
         });
     }
 
+    // =====================================================
+    // RELATIONSHIPS
+    // =====================================================
+
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class, 'account_id');
     }
+
+    // =====================================================
+    // SCOPES
+    // =====================================================
 
     public function scopeDrafts($query)
     {

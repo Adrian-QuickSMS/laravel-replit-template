@@ -25,15 +25,35 @@
             text-align: center;
         }
         .checkmark {
-            width: 56px; height: 56px;
+            width: 56px;
+            height: 56px;
             background: #28a745;
             border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin: 0 auto 20px;
         }
-        .checkmark svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
-        .card h1 { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
-        .card p { font-size: 14px; color: #666; line-height: 1.5; }
+        .checkmark svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: #fff;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .card h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .card p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>

@@ -41,6 +41,31 @@ class CampaignApiController extends Controller
         return session('customer_tenant_id');
     }
 
+    /**
+     * Find a campaign by ID with explicit tenant ownership check.
+     * Defence-in-depth: does not rely solely on global scope for isolation.
+     */
+    private function findCampaignOrFail(string $id): ?Campaign
+    {
+        $campaign = $this->findCampaignOrFail($id);
+
+        if (!$campaign) {
+            return null;
+        }
+
+        // Explicit tenant ownership check — defence-in-depth
+        if ($campaign->account_id !== $this->tenantId()) {
+            Log::warning('[CampaignApi] Tenant mismatch on campaign access', [
+                'campaign_id' => $id,
+                'campaign_account' => $campaign->account_id,
+                'request_tenant' => $this->tenantId(),
+            ]);
+            return null; // Return null (same as not found) to avoid leaking existence
+        }
+
+        return $campaign;
+    }
+
     // =====================================================
     // CAMPAIGN CRUD
     // =====================================================
@@ -79,12 +104,13 @@ class CampaignApiController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $campaign = Campaign::with(['messageTemplate', 'senderId', 'rcsAgent'])->find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
         }
 
+        $campaign->load(['messageTemplate', 'senderId', 'rcsAgent']);
         $data = $campaign->toPortalArray();
 
         // Include template info if linked
@@ -107,8 +133,8 @@ class CampaignApiController extends Controller
             'message_template_id' => 'nullable|uuid',
             'message_content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
-            'sender_id_id' => 'nullable|numeric',
-            'rcs_agent_id' => 'nullable|numeric',
+            'sender_id_id' => 'nullable|uuid',
+            'rcs_agent_id' => 'nullable|uuid',
             'recipient_sources' => 'nullable|array|max:50',
             'recipient_sources.*.type' => 'required_with:recipient_sources|string|in:list,tag,individual,manual,csv',
             'recipient_sources.*.id' => 'nullable|uuid',
@@ -116,7 +142,7 @@ class CampaignApiController extends Controller
             'recipient_sources.*.contact_ids.*' => 'uuid',
             'recipient_sources.*.numbers' => 'nullable|array|max:100000',
             'recipient_sources.*.numbers.*' => 'string|max:30',
-            'recipient_sources.*.data' => 'nullable|array|max:1000000',
+            'recipient_sources.*.data' => 'nullable|array|max:100000',
             'recipient_sources.*.data.*.mobile_number' => 'nullable|string|max:30',
             'recipient_sources.*.data.*.phone' => 'nullable|string|max:30',
             'recipient_sources.*.data.*.mobile' => 'nullable|string|max:30',
@@ -161,7 +187,7 @@ class CampaignApiController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -181,8 +207,8 @@ class CampaignApiController extends Controller
             'message_template_id' => 'nullable|uuid',
             'message_content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
-            'sender_id_id' => 'nullable|numeric',
-            'rcs_agent_id' => 'nullable|numeric',
+            'sender_id_id' => 'nullable|uuid',
+            'rcs_agent_id' => 'nullable|uuid',
             'recipient_sources' => 'nullable|array|max:50',
             'recipient_sources.*.type' => 'required_with:recipient_sources|string|in:list,tag,individual,manual,csv',
             'recipient_sources.*.id' => 'nullable|uuid',
@@ -233,7 +259,7 @@ class CampaignApiController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -256,7 +282,7 @@ class CampaignApiController extends Controller
      */
     public function applyTemplate(Request $request, string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -281,7 +307,7 @@ class CampaignApiController extends Controller
      */
     public function previewRecipients(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -297,7 +323,7 @@ class CampaignApiController extends Controller
      */
     public function resolveRecipients(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -316,7 +342,7 @@ class CampaignApiController extends Controller
      */
     public function recipients(Request $request, string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -353,7 +379,7 @@ class CampaignApiController extends Controller
      */
     public function prepare(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -383,7 +409,7 @@ class CampaignApiController extends Controller
      */
     public function preparationStatus(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -468,7 +494,7 @@ class CampaignApiController extends Controller
      */
     public function estimateCost(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -488,7 +514,7 @@ class CampaignApiController extends Controller
      */
     public function validate_(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -511,7 +537,7 @@ class CampaignApiController extends Controller
      */
     public function sendNow(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -520,8 +546,20 @@ class CampaignApiController extends Controller
         try {
             $result = $this->campaignService->sendNow($campaign);
 
-            // Dispatch batch jobs
-            $this->dispatchBatchJobs($campaign);
+            // Dispatch batch jobs — if this fails, mark campaign as failed
+            try {
+                $this->dispatchBatchJobs($campaign);
+            } catch (\Exception $e) {
+                Log::error('[CampaignApi] Failed to dispatch batch jobs', [
+                    'campaign_id' => $campaign->id,
+                    'error' => $e->getMessage(),
+                ]);
+                $this->campaignService->fail($campaign, 'Failed to dispatch delivery jobs: ' . $e->getMessage());
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Campaign was created but could not be queued for delivery. Please try again.',
+                ], 500);
+            }
 
             return response()->json([
                 'success' => true,
@@ -544,7 +582,7 @@ class CampaignApiController extends Controller
      */
     public function schedule(Request $request, string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -583,7 +621,7 @@ class CampaignApiController extends Controller
      */
     public function pause(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -602,7 +640,7 @@ class CampaignApiController extends Controller
      */
     public function resume(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -612,7 +650,19 @@ class CampaignApiController extends Controller
             $this->campaignService->resume($campaign);
 
             // Re-dispatch batch jobs for remaining recipients
-            $this->dispatchBatchJobs($campaign);
+            try {
+                $this->dispatchBatchJobs($campaign);
+            } catch (\Exception $e) {
+                Log::error('[CampaignApi] Failed to dispatch batch jobs on resume', [
+                    'campaign_id' => $campaign->id,
+                    'error' => $e->getMessage(),
+                ]);
+                // Don't fail the campaign on resume — it can be retried
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Campaign resumed but batch dispatch failed. Please try resuming again.',
+                ], 500);
+            }
 
             return response()->json(['success' => true, 'message' => 'Campaign resumed']);
         } catch (\InvalidArgumentException $e) {
@@ -625,7 +675,7 @@ class CampaignApiController extends Controller
      */
     public function cancel(string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -648,7 +698,7 @@ class CampaignApiController extends Controller
      */
     public function clone(Request $request, string $id): JsonResponse
     {
-        $campaign = Campaign::find($id);
+        $campaign = $this->findCampaignOrFail($id);
 
         if (!$campaign) {
             return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
@@ -677,8 +727,7 @@ class CampaignApiController extends Controller
      */
     public function optOutNumbers(): JsonResponse
     {
-        $userId = session('customer_user_id');
-        $user = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
+        $user = auth()->user();
         if (!$user) {
             return response()->json(['error' => 'Unauthenticated'], 401);
         }

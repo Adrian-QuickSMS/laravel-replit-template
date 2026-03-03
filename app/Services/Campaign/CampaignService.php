@@ -245,18 +245,26 @@ class CampaignService
             throw new \RuntimeException("Campaign must be in draft status to prepare.");
         }
 
+        // Prevent concurrent preparation: atomically check-and-set preparation_status
+        $updated = DB::table('campaigns')
+            ->where('id', $campaign->id)
+            ->whereIn('preparation_status', [null, 'ready', 'failed'])
+            ->update([
+                'preparation_status' => 'preparing',
+                'preparation_progress' => 0,
+                'preparation_error' => null,
+                'content_resolved_at' => null,
+            ]);
+
+        if ($updated === 0) {
+            // Another request is already preparing this campaign
+            throw new \RuntimeException("Campaign is already being prepared.");
+        }
+
         // Clear any existing recipients (supports re-preparation after message edits)
         DB::table('campaign_recipients')
             ->where('campaign_id', $campaign->id)
             ->delete();
-
-        // Reset preparation state
-        $campaign->update([
-            'content_resolved_at' => null,
-            'preparation_status' => 'preparing',
-            'preparation_progress' => 0,
-            'preparation_error' => null,
-        ]);
 
         // Step 1: Resolve recipients synchronously
         // (expands lists/tags, deduplicates, filters opt-outs, inserts campaign_recipients)
@@ -510,33 +518,34 @@ class CampaignService
      */
     public function sendNow(Campaign $campaign): PreflightResult
     {
-        // Must be draft
         if (!$campaign->isDraft()) {
             throw new \RuntimeException("Campaign must be in draft status to send. Current: {$campaign->status}");
         }
 
-        // Validate
+        // Validate before entering the transaction
         $errors = $this->validateForSend($campaign);
         if (!empty($errors)) {
             throw ValidationException::withMessages(['campaign' => $errors]);
         }
 
-        // Billing preflight (estimate, balance check, reserve funds)
-        $preflightResult = $this->billingPreflight->runPreflight($campaign);
+        return DB::transaction(function () use ($campaign) {
+            // Billing preflight (estimate, balance check, reserve funds)
+            $preflightResult = $this->billingPreflight->runPreflight($campaign);
 
-        // Resolve per-recipient content (merge fields)
-        $this->resolveRecipientContent($campaign);
+            // Resolve per-recipient content (merge fields)
+            $this->resolveRecipientContent($campaign);
 
-        // Transition to queued (ready for queue workers to pick up)
-        $campaign->transitionTo(Campaign::STATUS_QUEUED);
+            // Transition to queued (ready for queue workers to pick up)
+            $campaign->transitionTo(Campaign::STATUS_QUEUED);
 
-        Log::info('[CampaignService] Campaign queued for immediate send', [
-            'campaign_id' => $campaign->id,
-            'estimated_cost' => $preflightResult->estimatedCost,
-            'reservation_id' => $preflightResult->reservationId,
-        ]);
+            Log::info('[CampaignService] Campaign queued for immediate send', [
+                'campaign_id' => $campaign->id,
+                'estimated_cost' => $preflightResult->estimatedCost,
+                'reservation_id' => $preflightResult->reservationId,
+            ]);
 
-        return $preflightResult;
+            return $preflightResult;
+        });
     }
 
     /**
@@ -583,23 +592,25 @@ class CampaignService
             throw new \RuntimeException("Campaign is not in scheduled status.");
         }
 
-        // Force re-resolution — contact data may have changed since scheduling
-        $campaign->update(['content_resolved_at' => null]);
+        return DB::transaction(function () use ($campaign) {
+            // Force re-resolution — contact data may have changed since scheduling
+            $campaign->update(['content_resolved_at' => null]);
 
-        // Billing preflight
-        $preflightResult = $this->billingPreflight->runPreflight($campaign);
+            // Billing preflight
+            $preflightResult = $this->billingPreflight->runPreflight($campaign);
 
-        // Resolve per-recipient content (re-runs because content_resolved_at was cleared)
-        $this->resolveRecipientContent($campaign);
+            // Resolve per-recipient content
+            $this->resolveRecipientContent($campaign);
 
-        // Transition to queued
-        $campaign->transitionTo(Campaign::STATUS_QUEUED);
+            // Transition to queued
+            $campaign->transitionTo(Campaign::STATUS_QUEUED);
 
-        Log::info('[CampaignService] Scheduled campaign queued for send', [
-            'campaign_id' => $campaign->id,
-        ]);
+            Log::info('[CampaignService] Scheduled campaign queued for send', [
+                'campaign_id' => $campaign->id,
+            ]);
 
-        return $preflightResult;
+            return $preflightResult;
+        });
     }
 
     /**
@@ -838,9 +849,9 @@ class CampaignService
                 $pendingUpdates = [];
 
                 foreach ($recipients as $row) {
-                    $recipient = new CampaignRecipient();
-                    $recipient->setRawAttributes((array) $row, true);
+                    $recipient = new CampaignRecipient((array) $row);
                     $recipient->exists = true;
+                    $recipient->id = $row->id;
 
                     $resolvedContent = $campaign->message_content
                         ? $recipient->resolveContent($campaign->message_content)

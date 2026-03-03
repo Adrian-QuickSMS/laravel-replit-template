@@ -5,12 +5,12 @@ namespace App\Services\Campaign;
 use App\Models\Account;
 use App\Models\Campaign;
 use App\Models\Billing\AccountBalance;
+use App\Models\Billing\CampaignEstimateSnapshot;
 use App\Services\Billing\BalanceService;
 use App\Services\Billing\PricingEngine;
 use App\Services\Billing\CostCalculation;
 use App\Exceptions\Billing\InsufficientBalanceException;
 use App\Exceptions\Billing\PriceNotFoundException;
-use App\Models\Billing\CampaignEstimateSnapshot;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -41,7 +41,7 @@ class BillingPreflightService
      * Used by the UI to show "Estimated cost: X" before the user confirms send.
      *
      * @param Account $account The account sending the campaign
-     * @param string $productType sms, rcs_basic, or rcs_single
+     * @param string $productType sms, rcs_basic, rcs_single, or rcs_carousel (mapped to rcs_single for billing)
      * @param array $countryBreakdown ['GB' => 500, 'US' => 200, ...]
      * @param int $segmentsPerMessage Average segments per SMS (1 for RCS)
      * @return CostEstimate
@@ -52,6 +52,7 @@ class BillingPreflightService
         array $countryBreakdown,
         int $segmentsPerMessage = 1
     ): CostEstimate {
+        // Carousel is charged as RCS Single Message
         $billableProductType = CampaignEstimateSnapshot::resolveBillableProductType($productType);
 
         $totalCost = '0';
@@ -60,6 +61,7 @@ class BillingPreflightService
 
         foreach ($countryBreakdown as $countryIso => $recipientCount) {
             if ($countryIso === 'unknown' || $countryIso === null) {
+                // For numbers with undetected country, use default (null country) pricing
                 $countryIso = null;
             }
 
@@ -131,6 +133,7 @@ class BillingPreflightService
         string $productType,
         $breakdown
     ): CostEstimate {
+        // Carousel is charged as RCS Single Message
         $billableProductType = CampaignEstimateSnapshot::resolveBillableProductType($productType);
 
         $totalCost = '0';
@@ -223,7 +226,8 @@ class BillingPreflightService
      * Run full billing preflight checks for a campaign.
      *
      * This is called before a campaign transitions to sending.
-     * Validates balance, reserves funds, and updates the campaign.
+     * Validates balance, reserves funds, creates an immutable estimate
+     * snapshot, and updates the campaign.
      *
      * @throws InsufficientBalanceException
      * @throws PreflightFailedException
@@ -327,6 +331,13 @@ class BillingPreflightService
         );
     }
 
+    /**
+     * Create an immutable estimate snapshot at the moment of campaign send.
+     *
+     * This is the "frozen screenshot" of the pricing calculation. Even if
+     * prices, penetration rates, or tariffs change later, this record proves
+     * what was estimated, what was shown to the customer, and what was reserved.
+     */
     private function createEstimateSnapshot(
         Campaign $campaign,
         Account $account,
@@ -334,12 +345,15 @@ class BillingPreflightService
         string $reservationId,
         string $billableProductType,
     ): CampaignEstimateSnapshot {
+        // Build pricing snapshot: exact prices used per product/country
         $pricingSnapshot = $this->buildPricingSnapshot($account, $billableProductType, $estimate->perCountryCosts);
 
-        $vatRate = ($account->vat_registered && !$account->vat_reverse_charges) ? '20.00' : '0.00';
+        // Calculate VAT
+        $vatRate = $account->vat_registered ? '20.00' : '0.00';
         $vatAmount = bcmul($estimate->totalCost, bcdiv($vatRate, '100', 6), 4);
         $costIncVat = bcadd($estimate->totalCost, $vatAmount, 4);
 
+        // Total recipients across all countries
         $totalRecipients = 0;
         foreach ($estimate->perCountryCosts as $country) {
             $totalRecipients += $country['recipient_count'];
@@ -369,34 +383,23 @@ class BillingPreflightService
         ]);
     }
 
+    /**
+     * Build a snapshot from the already-resolved pricing in the cost estimate.
+     * Avoids redundant PricingEngine lookups.
+     */
     private function buildPricingSnapshot(Account $account, string $billableProductType, array $perCountryCosts): array
     {
         $snapshot = [];
 
         foreach ($perCountryCosts as $countryKey => $data) {
-            $countryIso = $data['country_iso'] ?? null;
-
-            try {
-                $price = $this->pricingEngine->resolvePrice($account, $billableProductType, $countryIso);
-
-                $snapshot[] = [
-                    'product_type' => $billableProductType,
-                    'country_iso' => $countryIso,
-                    'unit_price' => $price->unitPrice,
-                    'currency' => $price->currency,
-                    'source' => $price->source,
-                    'price_id' => $price->priceId,
-                ];
-            } catch (\App\Exceptions\Billing\PriceNotFoundException $e) {
-                $snapshot[] = [
-                    'product_type' => $billableProductType,
-                    'country_iso' => $countryIso,
-                    'unit_price' => null,
-                    'currency' => $account->currency ?? 'GBP',
-                    'source' => 'not_found',
-                    'price_id' => null,
-                ];
-            }
+            $snapshot[] = [
+                'product_type' => $billableProductType,
+                'country_iso' => $data['country_iso'] ?? null,
+                'unit_price' => $data['unit_price'] ?? null,
+                'currency' => $data['currency'] ?? ($account->currency ?? 'GBP'),
+                'source' => $data['price_source'] ?? 'estimate',
+                'price_id' => null,
+            ];
         }
 
         return $snapshot;

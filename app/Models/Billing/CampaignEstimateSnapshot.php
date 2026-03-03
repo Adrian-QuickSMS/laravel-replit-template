@@ -8,6 +8,22 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * CampaignEstimateSnapshot — immutable pricing record frozen at send time.
+ *
+ * DATA CLASSIFICATION: Financial — Audit Evidence
+ * RETENTION: 7 years (HMRC requirement)
+ *
+ * Captures the exact pricing calculation shown to the customer when they
+ * pressed SEND. Even if prices, penetration rates, or tariffs change later,
+ * this record proves what was estimated and what was reserved.
+ *
+ * Use cases:
+ *   - Invoice dispute resolution ("your estimate was wrong")
+ *   - NHS / enterprise audit trail
+ *   - ISO27001 evidence
+ *   - Finance reconciliation
+ */
 class CampaignEstimateSnapshot extends Model
 {
     use HasUuids;
@@ -58,6 +74,10 @@ class CampaignEstimateSnapshot extends Model
         'snapshot_at' => 'datetime',
     ];
 
+    // =====================================================
+    // RELATIONSHIPS
+    // =====================================================
+
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class, 'campaign_id');
@@ -68,6 +88,16 @@ class CampaignEstimateSnapshot extends Model
         return $this->belongsTo(Account::class, 'account_id');
     }
 
+    // =====================================================
+    // BILLABLE PRODUCT TYPE MAPPING
+    // =====================================================
+
+    /**
+     * Resolve the billable product type for pricing purposes.
+     *
+     * RCS Carousel is charged as RCS Single Message — the carousel layout
+     * is a presentation concern, not a separate billing product.
+     */
     public static function resolveBillableProductType(string $campaignType): string
     {
         return match ($campaignType) {
@@ -76,6 +106,13 @@ class CampaignEstimateSnapshot extends Model
         };
     }
 
+    // =====================================================
+    // PORTAL METHODS
+    // =====================================================
+
+    /**
+     * Serialise for portal/API consumption.
+     */
     public function toPortalArray(): array
     {
         return [
@@ -102,6 +139,9 @@ class CampaignEstimateSnapshot extends Model
         ];
     }
 
+    /**
+     * Compact summary for campaign list views.
+     */
     public function toSummaryArray(): array
     {
         return [

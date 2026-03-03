@@ -202,6 +202,7 @@ class Campaign extends Model
             }
         });
 
+
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = auth()->check() && auth()->user()->tenant_id
                 ? auth()->user()->tenant_id

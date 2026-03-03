@@ -229,11 +229,6 @@
                             <div class="col-6 text-end">&pound;{{ number_format($vatAmount, 2) }}</div>
                         </div>
                         @endif
-                        <hr>
-                        <div class="row">
-                            <div class="col-6 fw-bold">Total</div>
-                            <div class="col-6 text-end fw-bold h5 mb-0">&pound;{{ number_format($total, 2) }}</div>
-                        </div>
                     @else
                         @php
                             $validRecipients = $recipients['valid'] ?? 0;
@@ -400,21 +395,28 @@ function confirmSend() {
         },
         body: JSON.stringify({ campaign_id: '{{ $campaign_id ?? '' }}' })
     })
-    .then(function(resp) { return resp.json(); })
-    .then(function(data) {
+    .then(function(response) { return response.json().then(function(data) { return { ok: response.ok, data: data }; }); })
+    .then(function(result) {
         sendingModal.hide();
-        if (data.success) {
+
+        if (result.ok && result.data.success) {
             var successModal = new bootstrap.Modal(document.getElementById('successModal'));
             successModal.show();
         } else {
             btn.disabled = false;
-            alert(data.message || 'Failed to send campaign. Please try again.');
+            var msg = result.data.message || 'Failed to send campaign.';
+            if (result.data.errors) {
+                var errorList = Object.values(result.data.errors).flat().join('\n');
+                msg += '\n\n' + errorList;
+            }
+            alert(msg);
         }
     })
-    .catch(function(err) {
+    .catch(function(error) {
         sendingModal.hide();
         btn.disabled = false;
-        alert('An error occurred. Please try again.');
+        console.error('Error:', error);
+        alert('Network error. Please try again.');
     });
 }
 </script>

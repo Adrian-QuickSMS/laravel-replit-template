@@ -125,33 +125,26 @@ class RcsContentValidator
         }
         $uniqueOrientations = array_unique($orientations);
         if (count($uniqueOrientations) > 1) {
-            $errors[] = 'All carousel cards must use the same media orientation. Found: ' . implode(', ', $uniqueOrientations) . '.';
+            $errors[] = 'All carousel cards must use the same image orientation. Found: ' . implode(', ', $uniqueOrientations) . '.';
         }
 
         return $errors;
     }
 
     /**
-     * Validate a single card's fields.
+     * Validate a single card's content.
      */
     private function validateCard(array $card, int $cardNum): array
     {
         $errors = [];
 
+        // Text body length
         $textBody = $card['textBody'] ?? '';
         if (mb_strlen($textBody) > self::MAX_TEXT_BODY_LENGTH) {
-            $errors[] = "Card {$cardNum}: Text body exceeds " . self::MAX_TEXT_BODY_LENGTH . " character limit (" . mb_strlen($textBody) . " chars).";
+            $errors[] = "Card {$cardNum}: Text body exceeds " . self::MAX_TEXT_BODY_LENGTH . " character limit.";
         }
 
-        $buttons = $card['buttons'] ?? [];
-        if (count($buttons) > self::MAX_BUTTONS_PER_CARD) {
-            $errors[] = "Card {$cardNum}: Too many buttons (" . count($buttons) . "). Maximum is " . self::MAX_BUTTONS_PER_CARD . ".";
-        }
-
-        foreach ($buttons as $btnIndex => $button) {
-            $errors = array_merge($errors, $this->validateButton($button, $cardNum, $btnIndex + 1));
-        }
-
+        // Media validation
         $media = $card['media'] ?? null;
         if ($media) {
             $orientation = $media['orientation'] ?? null;
@@ -160,16 +153,28 @@ class RcsContentValidator
             }
         }
 
+        // Button validation
+        $buttons = $card['buttons'] ?? [];
+        if (count($buttons) > self::MAX_BUTTONS_PER_CARD) {
+            $errors[] = "Card {$cardNum}: Maximum " . self::MAX_BUTTONS_PER_CARD . " buttons allowed per card.";
+        }
+
+        foreach ($buttons as $btnIndex => $button) {
+            $btnNum = $btnIndex + 1;
+            $errors = array_merge($errors, $this->validateButton($button, $cardNum, $btnNum));
+        }
+
         return $errors;
     }
 
     /**
-     * Validate a single button.
+     * Validate a button's structure.
      */
     private function validateButton(array $button, int $cardNum, int $btnNum): array
     {
         $errors = [];
 
+        // Label required and length check
         $label = $button['label'] ?? '';
         if (empty($label)) {
             $errors[] = "Card {$cardNum}, Button {$btnNum}: Label is required.";
@@ -177,27 +182,24 @@ class RcsContentValidator
             $errors[] = "Card {$cardNum}, Button {$btnNum}: Label exceeds " . self::MAX_BUTTON_LABEL_LENGTH . " character limit.";
         }
 
+        // Type validation
         $type = $button['type'] ?? null;
         if (!$type || !in_array($type, self::VALID_BUTTON_TYPES)) {
             $errors[] = "Card {$cardNum}, Button {$btnNum}: Invalid button type '{$type}'.";
             return $errors;
         }
 
+        // Action field validation per type
         $action = $button['action'] ?? [];
-
         switch ($type) {
             case 'url':
-                $url = $action['url'] ?? '';
-                if (empty($url)) {
+                if (empty($action['url'])) {
                     $errors[] = "Card {$cardNum}, Button {$btnNum}: URL is required for URL buttons.";
-                } elseif (!filter_var($url, FILTER_VALIDATE_URL)) {
-                    $errors[] = "Card {$cardNum}, Button {$btnNum}: Invalid URL '{$url}'.";
                 }
                 break;
             case 'phone':
-                $phone = $action['phoneNumber'] ?? '';
-                if (empty($phone)) {
-                    $errors[] = "Card {$cardNum}, Button {$btnNum}: Phone number is required for call buttons.";
+                if (empty($action['phoneNumber'])) {
+                    $errors[] = "Card {$cardNum}, Button {$btnNum}: Phone number is required for phone buttons.";
                 }
                 break;
             case 'calendar':
@@ -212,6 +214,7 @@ class RcsContentValidator
                 }
                 break;
             case 'postback':
+                // Postback callback_data is optional but has length limit
                 $callbackData = $button['tracking']['callback_data'] ?? '';
                 if (mb_strlen($callbackData) > self::MAX_CALLBACK_DATA_LENGTH) {
                     $errors[] = "Card {$cardNum}, Button {$btnNum}: Callback data exceeds " . self::MAX_CALLBACK_DATA_LENGTH . " character limit.";

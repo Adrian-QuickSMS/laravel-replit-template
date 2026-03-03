@@ -8,7 +8,10 @@ use App\Http\Controllers\Api\InvoiceApiController;
 use App\Http\Controllers\RcsAgentController;
 use App\Http\Controllers\Api\PurchaseApiController;
 
+// =====================================================
 // Public opt-out landing page (no authentication required)
+// URL format: https://qout.uk/{8-char-token}
+// =====================================================
 Route::prefix('o')->controller(\App\Http\Controllers\OptOutLandingController::class)->group(function () {
     Route::get('/{token}', 'show')->name('optout.show')->where('token', '[A-Za-z0-9]{8}');
     Route::post('/{token}/confirm', 'confirm')->name('optout.confirm')->where('token', '[A-Za-z0-9]{8}');
@@ -236,6 +239,43 @@ Route::middleware('customer.auth')->prefix('api/purchase')->group(function () {
 });
 
 // =====================================================
+// Numbers Module API (session-based auth)
+// =====================================================
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/numbers')
+    ->controller(\App\Http\Controllers\Api\NumberApiController::class)->group(function () {
+    // Numbers Library
+    Route::get('/', 'index')->name('api.numbers.index');
+    Route::get('/pool', 'pool')->name('api.numbers.pool');
+    Route::get('/pricing', 'pricing')->name('api.numbers.pricing');
+    Route::get('/export', 'export')->name('api.numbers.export');
+
+    // Purchase
+    Route::post('/purchase-vmn', 'purchaseVmn')->name('api.numbers.purchase-vmn');
+    Route::post('/purchase-keyword', 'purchaseKeyword')->name('api.numbers.purchase-keyword');
+
+    // Bulk operations
+    Route::post('/bulk-assign', 'bulkAssign')->name('api.numbers.bulk-assign');
+    Route::post('/bulk-release', 'bulkRelease')->name('api.numbers.bulk-release');
+
+    // Assignment management
+    Route::delete('/assignments/{assignmentId}', 'unassign')->name('api.numbers.unassign');
+
+    // Auto-reply rule management (non-nested)
+    Route::put('/auto-reply-rules/{ruleId}', 'updateAutoReplyRule')->name('api.numbers.auto-reply-rules.update');
+    Route::delete('/auto-reply-rules/{ruleId}', 'deleteAutoReplyRule')->name('api.numbers.auto-reply-rules.destroy');
+
+    // Single number operations
+    Route::get('/{id}', 'show')->name('api.numbers.show');
+    Route::delete('/{id}', 'release')->name('api.numbers.release');
+    Route::put('/{id}/configure', 'configure')->name('api.numbers.configure');
+    Route::post('/{id}/assign', 'assign')->name('api.numbers.assign');
+
+    // Number auto-reply rules (nested)
+    Route::get('/{id}/auto-reply-rules', 'autoReplyRules')->name('api.numbers.auto-reply-rules.index');
+    Route::post('/{id}/auto-reply-rules', 'createAutoReplyRule')->name('api.numbers.auto-reply-rules.store');
+});
+
+// =====================================================
 // Campaign / Send Message API (session-based auth)
 // =====================================================
 Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
@@ -243,18 +283,20 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
     Route::get('/', 'index')->name('api.campaigns.index');
     Route::post('/', 'store')->name('api.campaigns.store');
 
+    // Field statistics for early cost estimates — must be before /{id} routes
     Route::post('/field-statistics', 'fieldStatistics')->name('api.campaigns.field-statistics');
 
-    // Opt-out helpers
+    // Opt-out configuration — must be before /{id} routes
     Route::get('/opt-out-numbers', 'optOutNumbers')->name('api.campaigns.opt-out-numbers');
     Route::post('/validate-opt-out-keyword', 'validateOptOutKeyword')->name('api.campaigns.validate-opt-out-keyword');
     Route::post('/suggest-opt-out-text', 'suggestOptOutText')->name('api.campaigns.suggest-opt-out-text');
     Route::get('/opt-out-keywords/{numberId}', 'availableKeywords')->name('api.campaigns.available-keywords');
 
-    Route::get('/{id}', 'show')->name('api.campaigns.show')->where('id', '[0-9a-f\-]{36}');
-    Route::put('/{id}', 'update')->name('api.campaigns.update')->where('id', '[0-9a-f\-]{36}');
-    Route::delete('/{id}', 'destroy')->name('api.campaigns.destroy')->where('id', '[0-9a-f\-]{36}');
+    Route::get('/{id}', 'show')->name('api.campaigns.show');
+    Route::put('/{id}', 'update')->name('api.campaigns.update');
+    Route::delete('/{id}', 'destroy')->name('api.campaigns.destroy');
 
+    // Campaign preparation (content resolution + per-recipient segment calculation)
     Route::post('/{id}/prepare', 'prepare')->name('api.campaigns.prepare');
     Route::get('/{id}/preparation-status', 'preparationStatus')->name('api.campaigns.preparation-status');
 
@@ -281,6 +323,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
 
     // Clone
     Route::post('/{id}/clone', 'clone')->name('api.campaigns.clone');
+
 });
 
 // Message Template API (session-based auth)
@@ -297,31 +340,6 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/message-templ
 
     // Content analysis (stateless utility)
     Route::post('/analyse-content', 'analyseContent')->name('api.message-templates.analyse-content');
-});
-
-// Numbers Module API (session-based auth)
-Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/numbers')
-    ->controller(\App\Http\Controllers\Api\NumberApiController::class)->group(function () {
-    Route::get('/', 'index')->name('api.numbers.index');
-    Route::get('/pool', 'pool')->name('api.numbers.pool');
-    Route::get('/pricing', 'pricing')->name('api.numbers.pricing');
-    Route::get('/export', 'export')->name('api.numbers.export');
-    Route::post('/purchase-vmn', 'purchaseVmn')->name('api.numbers.purchase-vmn');
-    Route::post('/purchase-keyword', 'purchaseKeyword')->name('api.numbers.purchase-keyword');
-    Route::post('/bulk-assign', 'bulkAssign')->name('api.numbers.bulk-assign');
-    Route::post('/bulk-release', 'bulkRelease')->name('api.numbers.bulk-release');
-    Route::delete('/assignments/{assignmentId}', 'unassign')->name('api.numbers.unassign');
-    Route::put('/auto-reply-rules/{ruleId}', 'updateAutoReplyRule')->name('api.numbers.auto-reply-rules.update');
-    Route::delete('/auto-reply-rules/{ruleId}', 'deleteAutoReplyRule')->name('api.numbers.auto-reply-rules.destroy');
-    Route::get('/keywords/taken', 'takenKeywords')->name('api.numbers.keywords.taken');
-    Route::post('/{id}/suspend', 'suspend')->name('api.numbers.suspend');
-    Route::post('/{id}/reactivate', 'reactivate')->name('api.numbers.reactivate');
-    Route::get('/{id}', 'show')->name('api.numbers.show');
-    Route::delete('/{id}', 'release')->name('api.numbers.release');
-    Route::put('/{id}/configure', 'configure')->name('api.numbers.configure');
-    Route::post('/{id}/assign', 'assign')->name('api.numbers.assign');
-    Route::get('/{id}/auto-reply-rules', 'autoReplyRules')->name('api.numbers.auto-reply-rules.index');
-    Route::post('/{id}/auto-reply-rules', 'createAutoReplyRule')->name('api.numbers.auto-reply-rules.store');
 });
 
 Route::prefix('admin')->group(function () {
@@ -568,26 +586,6 @@ Route::prefix('admin')->group(function () {
             Route::post('/system/routing/remove-gateway', 'routingRemoveGateway')->name('admin.routing.remove-gateway');
             Route::post('/system/routing/create-override', 'routingCreateOverride')->name('admin.routing.create-override');
             Route::post('/system/routing/cancel-override', 'routingCancelOverride')->name('admin.routing.cancel-override');
-
-            // Numbers — global cross-tenant management
-            Route::prefix('api/numbers')->controller(\App\Http\Controllers\Admin\AdminNumbersApiController::class)->group(function () {
-                Route::get('/', 'index')->name('admin.api.numbers.index');
-                Route::post('/bulk/reassign', 'bulkReassign')->name('admin.api.numbers.bulk.reassign');
-                Route::put('/bulk/mode', 'bulkMode')->name('admin.api.numbers.bulk.mode');
-                Route::put('/bulk/capabilities', 'bulkCapabilities')->name('admin.api.numbers.bulk.capabilities');
-                Route::post('/bulk/return-to-pool', 'bulkReturnToPool')->name('admin.api.numbers.bulk.return-to-pool');
-                Route::get('/{id}', 'show')->name('admin.api.numbers.show');
-                Route::post('/{id}/suspend', 'suspend')->name('admin.api.numbers.suspend');
-                Route::post('/{id}/reactivate', 'reactivate')->name('admin.api.numbers.reactivate');
-                Route::post('/{id}/reassign', 'reassign')->name('admin.api.numbers.reassign');
-                Route::put('/{id}/mode', 'updateMode')->name('admin.api.numbers.mode');
-                Route::put('/{id}/capabilities', 'updateCapabilities')->name('admin.api.numbers.capabilities');
-                Route::put('/{id}/webhook', 'updateWebhook')->name('admin.api.numbers.webhook');
-                Route::post('/{id}/disable-keyword', 'disableKeyword')->name('admin.api.numbers.disable-keyword');
-                Route::post('/{id}/return-to-pool', 'returnToPool')->name('admin.api.numbers.return-to-pool');
-                Route::put('/{id}/optout-routing', 'updateOptoutRouting')->name('admin.api.numbers.optout-routing');
-                Route::get('/{id}/audit', 'audit')->name('admin.api.numbers.audit');
-            });
 
             // API Connections — admin cross-tenant management
             Route::prefix('api/api-connections')->controller(\App\Http\Controllers\Admin\AdminApiConnectionController::class)->group(function () {

@@ -24,8 +24,17 @@
             width: 100%;
             text-align: center;
         }
-        .card h1 { font-size: 20px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px; }
-        .card p { font-size: 14px; color: #666; line-height: 1.5; }
+        .card h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .card p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>

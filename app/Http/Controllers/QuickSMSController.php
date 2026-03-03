@@ -722,11 +722,27 @@ class QuickSMSController extends Controller
             }
         }
 
+
         $message = [
             'type' => $channelType,
             'sms_content' => $sessionData['message_content'] ?? '',
             'rcs_content' => $sessionData['rcs_content'] ?? null,
         ];
+
+        // Get real cost estimate from backend if campaign has been prepared
+        $realEstimate = null;
+        if (!empty($sessionData['campaign_id'])) {
+            $campaign_record = \App\Models\Campaign::find($sessionData['campaign_id']);
+            if ($campaign_record && $campaign_record->preparation_status === 'ready') {
+                try {
+                    $campaignService = app(\App\Services\Campaign\CampaignService::class);
+                    $costEstimate = $campaignService->estimateCost($campaign_record);
+                    $realEstimate = $costEstimate->toArray();
+                } catch (\Exception $e) {
+                    // Fall back to session-based estimate
+                }
+            }
+        }
 
         return view('quicksms.messages.confirm-campaign', [
             'page_title' => 'Confirm & Send Campaign',
@@ -743,17 +759,32 @@ class QuickSMSController extends Controller
 
     public function storeCampaignConfig(Request $request)
     {
-        $allowed = [
-            'campaign_id',
-            'campaign_name', 'channel', 'sender_id', 'sender_id_id',
-            'rcs_agent', 'rcs_agent_id', 'campaign_type',
-            'message_content', 'rcs_content', 'recipient_sources',
-            'scheduled_time', 'message_expiry', 'sending_window',
-            'recipient_count', 'valid_count', 'invalid_count',
-            'opted_out_count', 'sources', 'optout_config',
-        ];
-        $request->session()->put('campaign_config', $request->only($allowed));
-        
+        $validated = $request->validate([
+            'campaign_id' => 'nullable|string|uuid',
+            'campaign_name' => 'nullable|string|max:255',
+            'channel' => 'nullable|string|in:sms_only,basic_rcs,rich_rcs',
+            'sender_id' => 'nullable|string|max:50',
+            'sender_id_id' => 'nullable',
+            'rcs_agent' => 'nullable|string|max:100',
+            'rcs_agent_id' => 'nullable',
+            'campaign_type' => 'nullable|string|in:sms,rcs_basic,rcs_single,rcs_carousel',
+            'message_content' => 'nullable|string|max:10000',
+            'rcs_content' => 'nullable|array',
+            'recipient_sources' => 'nullable|array|max:50',
+            'scheduled_time' => 'nullable|string|max:50',
+            'message_expiry' => 'nullable|string|max:10',
+            'sending_window' => 'nullable|string|max:50',
+            'recipient_count' => 'nullable|integer|min:0|max:10000000',
+            'valid_count' => 'nullable|integer|min:0|max:10000000',
+            'invalid_count' => 'nullable|integer|min:0|max:10000000',
+            'opted_out_count' => 'nullable|integer|min:0|max:10000000',
+            'sources' => 'nullable|array',
+            'optout_config' => 'nullable|array',
+        ]);
+
+        $request->session()->put('campaign_config', $validated);
+
+
         return response()->json(['success' => true]);
     }
 
@@ -845,12 +876,14 @@ class QuickSMSController extends Controller
         } catch (\Exception $e) {
             \Log::error('Campaign confirmAndSend failed', [
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
                 'account_id' => $accountId,
+                'session_data_keys' => array_keys($sessionData),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to send campaign: ' . $e->getMessage(),
+                'message' => 'An error occurred while sending your campaign. Please try again or contact support.',
             ], 500);
         }
     }
