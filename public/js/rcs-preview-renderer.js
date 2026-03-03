@@ -350,24 +350,25 @@ var RcsPreviewRenderer = (function() {
         if (payload.cards.length === 1 || payload.type === 'single') {
             var card = payload.cards[0];
             var heightClass = getHeightClass(card.media?.orientation);
+            var singleMediaUrl = card.media?.hostedUrl || card.media?.savedDataUrl || card.media?.url || null;
             var cardSchema = {
                 title: card.description || '',
                 description: card.textBody || '',
-                media: card.media?.hostedUrl || card.media?.savedDataUrl || card.media?.url,
+                media: singleMediaUrl ? { url: singleMediaUrl, height: heightClass } : null,
                 buttons: (card.buttons || []).map(function(btn) {
                     return { label: btn.label, type: btn.type, action: btn.action };
                 })
             };
             messageHtml = '<div class="rcs-message">' + renderRichCard(cardSchema, { heightOverride: heightClass }) + '</div>';
         } else {
-            // Carousel - pass proper structure to renderCarousel
             var firstCard = payload.cards[0];
             var mediaHeight = getHeightClass(firstCard.media?.orientation);
             var carouselCards = payload.cards.map(function(card) {
+                var carouselMediaUrl = card.media?.hostedUrl || card.media?.savedDataUrl || card.media?.url || null;
                 return {
                     title: card.description || '',
                     description: card.textBody || '',
-                    media: card.media?.hostedUrl || card.media?.savedDataUrl || card.media?.url,
+                    media: carouselMediaUrl ? { url: carouselMediaUrl, height: mediaHeight } : null,
                     buttons: (card.buttons || []).map(function(btn) {
                         return { label: btn.label, type: btn.type, action: btn.action };
                     })
