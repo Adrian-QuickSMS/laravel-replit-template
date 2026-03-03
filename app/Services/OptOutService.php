@@ -40,7 +40,8 @@ class OptOutService
     public function getAvailableOptOutNumbers(string $accountId, $user): array
     {
         // VMNs usable by this user
-        $vmns = PurchasedNumber::usableByUser($user)
+        $vmns = PurchasedNumber::withoutGlobalScope('tenant')
+            ->usableByUser($user)
             ->vmns()
             ->active()
             ->select('id', 'number', 'friendly_name', 'country_iso')
@@ -57,10 +58,11 @@ class OptOutService
             ->toArray();
 
         // Shortcodes usable by this user
-        $shortcodes = PurchasedNumber::usableByUser($user)
+        $shortcodes = PurchasedNumber::withoutGlobalScope('tenant')
+            ->usableByUser($user)
             ->shortcodes()
             ->active()
-            ->with('keywords')
+            ->with(['keywords' => fn($q) => $q->withoutGlobalScope('tenant')])
             ->select('id', 'number', 'friendly_name', 'number_type', 'country_iso')
             ->orderBy('number')
             ->get()

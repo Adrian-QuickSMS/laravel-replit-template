@@ -727,7 +727,7 @@ class CampaignApiController extends Controller
      */
     public function optOutNumbers(): JsonResponse
     {
-        $user = auth()->user();
+        $user = \App\Models\User::withoutGlobalScope('tenant')->find(session('customer_user_id'));
         if (!$user) {
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
