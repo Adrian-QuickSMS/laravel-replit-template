@@ -1501,7 +1501,9 @@ function saveRcsImageEditsAndContinue() {
 
         showRcsHostedUrl(data.asset.public_url);
         updateRcsImageInfo();
+        var savedPending = rcsImageDirtyState.pendingNavigation;
         clearRcsImageDirtyState();
+        rcsImageDirtyState.pendingNavigation = savedPending;
         initRcsImageBaseline();
         saveCurrentCardData();
         updateRcsWizardPreview();
@@ -1609,6 +1611,12 @@ function handleRcsWizardClose() {
 }
 
 function closeRcsWizardModal() {
+    var unsavedEl = document.getElementById('rcsUnsavedChangesModal');
+    var unsavedInstance = unsavedEl ? bootstrap.Modal.getInstance(unsavedEl) : null;
+    if (unsavedInstance) {
+        unsavedInstance.hide();
+    }
+
     var modalEl = document.getElementById('rcsWizardModal');
     if (!modalEl) {
         console.error('[RCS Wizard] Modal element not found');
@@ -1618,19 +1626,14 @@ function closeRcsWizardModal() {
     if (modalInstance) {
         modalInstance.hide();
     } else {
-        console.warn('[RCS Wizard] Modal instance not found, trying to create one');
-        try {
-            var newModal = new bootstrap.Modal(modalEl);
-            newModal.hide();
-        } catch (e) {
-            console.error('[RCS Wizard] Failed to close modal:', e);
-            modalEl.classList.remove('show');
-            modalEl.style.display = 'none';
-            document.body.classList.remove('modal-open');
-            var backdrop = document.querySelector('.modal-backdrop');
-            if (backdrop) backdrop.remove();
-        }
+        modalEl.classList.remove('show');
+        modalEl.style.display = 'none';
     }
+
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+    document.querySelectorAll('.modal-backdrop').forEach(function(b) { b.remove(); });
 }
 
 function handleRcsApplyContent() {
