@@ -79,15 +79,7 @@
                         <div class="col-sm-4 text-muted">RCS Agent</div>
                         <div class="col-sm-8">
                             <div class="d-flex align-items-center">
-                                @if($channel['rcs_agent']['logo'])
-                                    <img src="{{ $channel['rcs_agent']['logo'] }}" alt="{{ $channel['rcs_agent']['name'] }}" class="rounded me-2" style="width: 32px; height: 32px; object-fit: cover;">
-                                @else
-                                    @php
-                                        $initials = collect(explode(' ', $channel['rcs_agent']['name']))->map(fn($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
-                                        $brandColor = $channel['rcs_agent']['brand_color'] ?? '#886CC0';
-                                    @endphp
-                                    <div class="rounded me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: {{ $brandColor }}; color: #fff; font-weight: 600; font-size: 0.75rem;">{{ $initials }}</div>
-                                @endif
+                                <img src="{{ $channel['rcs_agent']['logo'] }}" alt="{{ $channel['rcs_agent']['name'] }}" class="rounded me-2" style="width: 32px; height: 32px; object-fit: cover;">
                                 <span class="fw-medium">{{ $channel['rcs_agent']['name'] }}</span>
                                 <i class="fas fa-check-circle text-primary ms-2" title="Verified"></i>
                             </div>

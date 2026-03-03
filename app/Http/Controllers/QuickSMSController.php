@@ -638,7 +638,6 @@ class QuickSMSController extends Controller
 
         $agentName = $sessionData['rcs_agent'] ?? 'Not selected';
         $agentLogo = null;
-        $agentBrandColor = '#886CC0';
         $agentId = $sessionData['rcs_agent_id'] ?? null;
         if ($agentId) {
             $userId = session('customer_user_id');
@@ -648,7 +647,6 @@ class QuickSMSController extends Controller
                 if ($agentRecord) {
                     $agentName = $agentRecord->name;
                     $agentLogo = $agentRecord->logo_url;
-                    $agentBrandColor = $agentRecord->brand_color ?? '#886CC0';
                 }
             }
         }
@@ -658,8 +656,7 @@ class QuickSMSController extends Controller
             'sms_sender_id' => $sessionData['sender_id'] ?? 'Not selected',
             'rcs_agent' => [
                 'name' => $agentName,
-                'logo' => $agentLogo,
-                'brand_color' => $agentBrandColor,
+                'logo' => $agentLogo ?: asset('images/rcs-agents/quicksms-brand.svg'),
             ],
         ];
 
