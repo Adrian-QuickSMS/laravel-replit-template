@@ -310,13 +310,13 @@
             </div>
             <div class="modal-body">
                 <p>You have made changes to how the image is presented. Do you want to save?</p>
-                <div class="small mb-3 p-3 rounded" style="background: rgba(136, 108, 192, 0.15); color: #6c5b9e;">
+                <div class="small mb-3 p-3 rounded" id="rcsSaveInfoBox" style="background: rgba(136, 108, 192, 0.15); color: #6c5b9e;">
                     <i class="fas fa-info-circle me-1"></i>
-                    <strong>If you save:</strong> QuickSMS will create a unique URL on a quicksms.com domain to replace the URL you provided.
+                    <span id="rcsSaveInfoText"><strong>If you save:</strong> QuickSMS will save your cropping and zoom adjustments to the uploaded image.</span>
                 </div>
-                <div class="alert alert-secondary small mb-0">
+                <div class="alert alert-secondary small mb-0" id="rcsNoSaveInfoBox">
                     <i class="fas fa-undo me-1"></i>
-                    <strong>If you don't save:</strong> The image will render using the default (original URL and default presentation).
+                    <span id="rcsNoSaveInfoText"><strong>If you don't save:</strong> The image will render using its original presentation.</span>
                 </div>
             </div>
             <div class="modal-footer">

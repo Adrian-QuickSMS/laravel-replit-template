@@ -1157,6 +1157,21 @@ function isRcsImageDirty() {
 
 function showRcsUnsavedChangesModal(pendingAction) {
     rcsImageDirtyState.pendingNavigation = pendingAction;
+
+    var isUpload = rcsMediaData && (rcsMediaData.source === 'upload' || rcsMediaData.source === 'file');
+    var saveText = document.getElementById('rcsSaveInfoText');
+    var noSaveText = document.getElementById('rcsNoSaveInfoText');
+    if (saveText) {
+        saveText.innerHTML = isUpload
+            ? '<strong>If you save:</strong> QuickSMS will save your cropping and zoom adjustments to the uploaded image.'
+            : '<strong>If you save:</strong> QuickSMS will create a unique URL on a quicksms.com domain to replace the URL you provided.';
+    }
+    if (noSaveText) {
+        noSaveText.innerHTML = isUpload
+            ? '<strong>If you don\'t save:</strong> The image will render using its original uploaded presentation.'
+            : '<strong>If you don\'t save:</strong> The image will render using the default (original URL and default presentation).';
+    }
+
     var modal = new bootstrap.Modal(document.getElementById('rcsUnsavedChangesModal'));
     modal.show();
 }
