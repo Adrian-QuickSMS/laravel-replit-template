@@ -3473,15 +3473,24 @@ function showValidationErrors(errors) {
     list.innerHTML = '';
     
     errors.forEach(function(error) {
+        var msg = (error.message || '').trim();
+        if (!msg) return;
         var li = document.createElement('li');
         li.className = 'd-flex align-items-center mb-2';
-        li.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i><span>' + error.message + '</span>';
+        li.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i><span class="text-dark">' + msg + '</span>';
         list.appendChild(li);
         
         if (error.fieldId) {
             markFieldAsError(error.fieldId);
         }
     });
+
+    if (list.children.length === 0) {
+        var li = document.createElement('li');
+        li.className = 'd-flex align-items-center mb-2';
+        li.innerHTML = '<i class="fas fa-times-circle text-danger me-2"></i><span class="text-dark">Please check all required fields are filled in correctly.</span>';
+        list.appendChild(li);
+    }
     
     var modal = new bootstrap.Modal(document.getElementById('validationErrorsModal'));
     modal.show();
@@ -3526,11 +3535,13 @@ function continueToConfirmation() {
     var optoutEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
     if (optoutEnabled && !validateOptoutConfig()) {
         var optoutMsg = document.getElementById('optoutValidationMessage');
-        var errorText = optoutMsg ? optoutMsg.textContent : 'Opt-out configuration has errors that must be fixed';
+        var errorText = (optoutMsg ? optoutMsg.textContent : '').trim();
+        if (!errorText) errorText = 'Opt-out configuration has errors that must be fixed';
         errors.push({ fieldId: null, message: errorText });
     }
     
     if (errors.length > 0) {
+        console.log('[Validation] Errors found:', JSON.stringify(errors));
         showValidationErrors(errors);
         return;
     }
@@ -3783,6 +3794,7 @@ function continueToConfirmation() {
             window.location.href = '{{ route("messages.confirm") }}?campaign_id=' + campaignId;
         });
     }).catch(function(error) {
+        console.log('[Campaign] Error creating campaign:', error);
         if (continueBtn) {
             continueBtn.disabled = false;
             continueBtn.innerHTML = '<i class="fas fa-arrow-right me-1"></i> Continue';
@@ -3790,7 +3802,8 @@ function continueToConfirmation() {
         if (error.validationErrors) {
             var errorList = [];
             Object.keys(error.validationErrors).forEach(function(field) {
-                errorList.push({ fieldId: null, message: error.validationErrors[field][0] });
+                var msg = error.validationErrors[field][0] || ('Field "' + field + '" is invalid');
+                errorList.push({ fieldId: null, message: msg });
             });
             showValidationErrors(errorList);
         } else {
