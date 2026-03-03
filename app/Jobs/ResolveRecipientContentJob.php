@@ -158,9 +158,9 @@ class ResolveRecipientContentJob implements ShouldQueue
                 }
 
                 foreach ($recipients as $row) {
-                    $recipient = new CampaignRecipient((array) $row);
+                    $recipient = new CampaignRecipient();
+                    $recipient->setRawAttributes((array) $row, true);
                     $recipient->exists = true;
-                    $recipient->id = $row->id;
 
                     // Resolve merge fields if placeholders exist
                     $resolvedContent = !empty($placeholders)

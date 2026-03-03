@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 /**
  * GREEN SIDE: Campaign (Send Message campaigns)
@@ -194,6 +195,13 @@ class Campaign extends Model
     protected static function boot()
     {
         parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) Str::uuid();
+            }
+        });
+
 
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = auth()->check() && auth()->user()->tenant_id
@@ -416,7 +424,7 @@ class Campaign extends Model
      */
     public function getProgressPercentage(): float
     {
-        if ($this->total_unique_recipients === 0) {
+        if (empty($this->total_unique_recipients)) {
             return 0;
         }
 
@@ -429,16 +437,12 @@ class Campaign extends Model
      */
     public function getDeliveryRate(): float
     {
-        if ($this->sent_count === 0 && $this->delivered_count === 0) {
-            return 0;
-        }
-
-        $totalAttempted = $this->sent_count + $this->delivered_count + $this->failed_count;
+        $totalAttempted = ($this->sent_count ?? 0) + ($this->delivered_count ?? 0) + ($this->failed_count ?? 0);
         if ($totalAttempted === 0) {
             return 0;
         }
 
-        return round(($this->delivered_count / $totalAttempted) * 100, 1);
+        return round((($this->delivered_count ?? 0) / $totalAttempted) * 100, 1);
     }
 
     /**

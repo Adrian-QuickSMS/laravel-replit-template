@@ -1,0 +1,174 @@
+FIX BUGS — CUSTOMER PORTAL
+Module: Messages → Send Message → Opt-Out Management
+
+IMPORTANT GLOBAL RULES
+- Do NOT redesign UI.
+- Use existing Fillow components and existing Opt-Out logic.
+- Do NOT introduce new data models.
+- Restore and correct behaviour using existing shared logic.
+- This module must behave consistently with historical working behaviour.
+
+------------------------------------------------
+1. SCREENING LIST — LOGIC & UI FIX
+------------------------------------------------
+
+Current behaviour is incorrect.
+
+Required behaviour:
+
+1. Screening must NOT sit behind a toggle.
+
+Correct logic:
+
+IF no opt-out list is selected:
+    → screening is OFF
+
+IF one or more opt-out lists are selected:
+    → screening is ON automatically
+
+Remove:
+- Screening toggle
+- Radio buttons:
+    ❌ “Existing list”
+    ❌ “Create new list”
+
+Replace with:
+
+✅ Single MULTI-SELECT dropdown:
+Label: Screening Lists
+
+Requirements:
+- Multi-select enabled
+- Users can select multiple lists
+- Selected lists remain visible as pills/tags
+- Dropdown must load existing opt-out lists correctly
+- Must link to opt-out methods below (currently broken)
+
+BUG FIX REQUIRED:
+Screening previously worked — now messages are not screened.
+Investigate and restore backend linkage between:
+Send Message → selected lists → screening engine.
+
+------------------------------------------------
+2. OPTOUT METHOD SELECTION RULES
+------------------------------------------------
+
+Opt-out Management enabled BUT no list selected:
+
+User MUST choose ONE opt-out method:
+
+- Reply-to-Opt-Out
+OR
+- Click-to-Opt-Out
+
+Rules:
+- Only ONE method active at a time.
+- Enabling one automatically disables the other.
+- Containers cannot be expanded simultaneously.
+
+Implementation:
+Use mutually exclusive toggle logic.
+
+------------------------------------------------
+3. REPLY-TO-OPTOUT — IMPROVEMENTS
+------------------------------------------------
+
+Inside Reply-to-Opt-Out container add:
+
+Section:
+"Add opt-outs to list"
+
+Options:
+- Select existing list (dropdown)
+- Create new list
+
+Must reuse existing Contact List creation logic.
+Do NOT create new workflows.
+
+Update default opt-out text template to:
+
+OptOut, {KEYWORD} to {VMN/SHORTCODE}
+
+Shorter and cleaner.
+
+------------------------------------------------
+4. CLICK-TO-OPTOUT — UI + LOGIC FIXES
+------------------------------------------------
+
+Visual fixes:
+- Remove red highlighting from URL and placeholders.
+- Use neutral grey helper text styling.
+- Remove visible "https://" prefix.
+
+Identifier rules:
+- Unique identifier length = 5 characters
+- Allowed characters:
+  - A–Z
+  - a–z
+  - 0–9
+
+Update default opt-out text:
+
+OptOut, {URL}
+
+------------------------------------------------
+5. CLICK-TO-OPTOUT LIST DESTINATION
+------------------------------------------------
+
+Inside Click-to-Opt-Out container add:
+
+Section:
+"Add opt-outs to list"
+
+Options:
+- Select existing list
+- Create new list
+
+Must reuse SAME shared logic as Reply-to-Opt-Out.
+
+------------------------------------------------
+6. DATA & BEHAVIOUR REQUIREMENTS
+------------------------------------------------
+
+Both opt-out methods must:
+
+- Write opt-outs into selected lists
+- Use existing suppression logic
+- Update screening behaviour automatically
+- Not duplicate suppression records
+
+------------------------------------------------
+7. VALIDATION RULES
+------------------------------------------------
+
+When Opt-Out Management = enabled:
+
+IF no screening list selected:
+    user MUST select ONE opt-out method
+
+IF neither method selected:
+    show validation error:
+    "Select an opt-out method or choose a screening list."
+
+------------------------------------------------
+8. DO NOT CHANGE
+------------------------------------------------
+
+- Message sending logic
+- Existing opt-out backend models
+- List storage schema
+- Shared opt-out processing engine
+
+Only repair UI logic + reconnect broken bindings.
+
+------------------------------------------------
+SUCCESS CRITERIA
+------------------------------------------------
+
+✅ Screening activates automatically when lists selected  
+✅ Screening works again (regression fixed)  
+✅ Only one opt-out method active  
+✅ Lists selectable via multi-select dropdown  
+✅ Reply & Click opt-outs can assign lists  
+✅ Cleaner opt-out messaging text  
+✅ No redesign introduced

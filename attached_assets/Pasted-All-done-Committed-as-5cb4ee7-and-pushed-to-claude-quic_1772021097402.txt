@@ -1,0 +1,46 @@
+All done. Committed as `5cb4ee7` and pushed to `claude/quicksms-security-performance-dr8sw`. Here's a summary of everything built:
+
+---
+
+## Numbers Module Backend — Complete Implementation
+
+### Database (1 migration, 5 tables)
+| Table | Purpose |
+|-------|---------|
+| `vmn_pool` | Admin-seeded available numbers with E.164 format, reservation locking, per-number price overrides |
+| `purchased_numbers` | Tenant-owned VMNs/shortcodes with RLS, JSONB configuration, SenderId linkage, `last_used_at` |
+| `shortcode_keywords` | Keyword reservations with cross-tenant uniqueness check, case-insensitive storage |
+| `number_assignments` | Polymorphic to SubAccount/User (mirrors `SenderIdAssignment`) |
+| `number_auto_reply_rules` | Priority-ordered keyword matching (exact/starts_with/contains/catch-all), charge flag |
+
+### Models (5 models)
+- **VmnPoolNumber** — pool management, reservation/release, availability checks
+- **PurchasedNumber** — tenant-scoped, `toPortalArray`/`toAdminArray`, `scopeUsableByUser()`, configuration helpers
+- **ShortcodeKeyword** — `isKeywordTaken()` cross-tenant check
+- **NumberAssignment** — polymorphic pattern, duplicate prevention
+- **NumberAutoReplyRule** — `findMatchingRule()` static method for inbound processing
+
+### Services
+- **NumberService** — VMN purchase (pool claim → debit → create record → mark sold → auto-create SenderId → recurring charge), keyword purchase, release (return to pool + cancel charge + revoke SenderId), suspend/reactivate, configure (HTTPS webhook validation with reachability ping), auto-reply CRUD, bulk assign/release, CSV export, pool seeding
+- **NumberBillingService** — PricingEngine waterfall for pricing, immediate debit (per your Option 2 choice), refund on failure, recurring charge creation/cancellation, monthly renewal processor (insufficient balance → immediate suspension per your answer)
+
+### Controller (17 API endpoints)
+All under `/api/numbers` with `customer.auth` middleware:
+- `GET /` — paginated library with filters, sorting, summary stats
+- `GET /{id}` — detail with assignments + auto-reply rules
+- `GET /pool` — browse available VMNs with pricing preview
+- `POST /purchase-vmn` — purchase up to 100 VMNs at once
+- `POST /purchase-keyword` — purchase a keyword (regex-validated alphanumeric)
+- `DELETE /{id}` — release number
+- `PUT /{id}/configure` — forwarding URL/email, auth headers, retry policy
+- `POST /{id}/assign` / `DELETE /assignments/{id}` — assignment management
+- Auto-reply CRUD (GET/POST/PUT/DELETE)
+- `POST /bulk-assign` / `POST /bulk-release` — up to 500/100 at a time
+- `GET /export` — CSV download
+- `GET /pricing` — pricing info for UI
+
+### Integration Hooks
+- **Outbound**: `DeliveryService.sendRecipient()` Step 9 — updates `last_used_at` when sender is a numeric VMN
+- **Inbound**: New `HandleInboundSms` job — updates `last_used_at`, matches auto-reply rules, forwards to webhook with auth headers + retry, email forwarding stub
+- **Billing**: New `ProcessNumberRecurringCharges` job — daily renewal, instant suspension on non-payment
+- **SenderId**: Purchased VMNs auto-create approved NUMERIC SenderId records (appear in sender dropdown)

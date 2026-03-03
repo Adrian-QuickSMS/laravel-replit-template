@@ -387,6 +387,12 @@
                                 <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #6b5b95; color: #6b5b95;" onmouseover="this.style.backgroundColor='#e8e0f0'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkRemoveTags()">
                                     <i class="fas fa-times me-1"></i> Remove Tags
                                 </button>
+                                <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #dc3545; color: #dc3545;" onmouseover="this.style.backgroundColor='#f8d7da'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkAddToOptOut()">
+                                    <i class="fas fa-ban me-1"></i> Add to Opt-Out List
+                                </button>
+                                <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #28a745; color: #28a745;" onmouseover="this.style.backgroundColor='#d4edda'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkRemoveFromOptOut()">
+                                    <i class="fas fa-check-circle me-1"></i> Remove from Opt-Out List
+                                </button>
                                 <button type="button" class="btn btn-sm" style="background-color: #fff; border: 1px solid #6b5b95; color: #6b5b95;" onmouseover="this.style.backgroundColor='#e8e0f0'" onmouseout="this.style.backgroundColor='#fff'" onclick="bulkSendMessage()">
                                     <i class="fas fa-paper-plane me-1"></i> Send Message
                                 </button>
@@ -512,6 +518,13 @@
                                                     </a>
                                                     <a class="dropdown-item" href="#!" onclick="viewTimeline({{ Js::from($contact['id']) }}); return false;">
                                                         <i class="fas fa-history me-2 text-dark"></i> Activity Timeline
+                                                    </a>
+                                                    <div class="dropdown-divider"></div>
+                                                    <a class="dropdown-item text-danger" href="#!" onclick="addContactToOptOut({{ Js::from($contact['id']) }}); return false;">
+                                                        <i class="fas fa-ban me-2"></i> Add to Opt-Out List
+                                                    </a>
+                                                    <a class="dropdown-item text-success" href="#!" onclick="removeContactFromOptOut({{ Js::from($contact['id']) }}); return false;">
+                                                        <i class="fas fa-check-circle me-2"></i> Remove from Opt-Out List
                                                     </a>
                                                     <div class="dropdown-divider"></div>
                                                     <a class="dropdown-item text-danger" href="#!" onclick="deleteContact({{ Js::from($contact['id']) }}); return false;">
@@ -1206,6 +1219,13 @@ function renderContactsTable(contacts) {
                                 <i class="fas fa-history me-2 text-dark"></i> Activity Timeline
                             </a>
                             <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="#!" onclick="addContactToOptOut('${contact.id}'); return false;">
+                                <i class="fas fa-ban me-2"></i> Add to Opt-Out List
+                            </a>
+                            <a class="dropdown-item text-success" href="#!" onclick="removeContactFromOptOut('${contact.id}'); return false;">
+                                <i class="fas fa-check-circle me-2"></i> Remove from Opt-Out List
+                            </a>
+                            <div class="dropdown-divider"></div>
                             <a class="dropdown-item text-danger" href="#!" onclick="deleteContact('${contact.id}'); return false;">
                                 <i class="fas fa-trash me-2"></i> Delete
                             </a>
@@ -1648,6 +1668,197 @@ function confirmBulkRemoveFromList() {
     } else {
         executeAction();
     }
+}
+
+function bulkAddToOptOut() {
+    var ids = getSelectedContactIds();
+    document.getElementById('bulkAddToOptOutCount').textContent = ids.length;
+    document.getElementById('bulkOptOutListSelect').value = '';
+    var modal = new bootstrap.Modal(document.getElementById('bulkAddToOptOutModal'));
+    modal.show();
+}
+
+function confirmBulkAddToOptOut() {
+    var ids = getSelectedContactIds();
+    var count = ids.length;
+    var listSelect = document.getElementById('bulkOptOutListSelect');
+    var selectedListId = listSelect ? listSelect.value : null;
+    var selectedListName = listSelect ? listSelect.options[listSelect.selectedIndex].text : '';
+
+    if (!selectedListId) {
+        showValidationError('Please select an opt-out list.');
+        return;
+    }
+
+    var modalEl = document.getElementById('bulkAddToOptOutModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+
+    modalEl.addEventListener('hidden.bs.modal', function onHidden() {
+        modalEl.removeEventListener('hidden.bs.modal', onHidden);
+        showProcessingModal('Adding contacts to opt-out list...');
+
+        ContactsService.bulkAddToOptOut(ids, selectedListId).then(function(result) {
+            var processingEl = document.getElementById('processingModal');
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
+
+            processingEl.addEventListener('hidden.bs.modal', function onProcessingHidden() {
+                processingEl.removeEventListener('hidden.bs.modal', onProcessingHidden);
+                if (result.success) {
+                    clearBulkSelection();
+                    reloadContactsFromServer();
+                    showSuccessModal('Contacts Opted Out', (result.affectedCount || count) + ' contact(s) have been added to opt-out list "' + selectedListName + '".');
+                } else {
+                    showErrorModal('Action Failed', result.message || 'Failed to add contacts to opt-out list.');
+                }
+            }, { once: true });
+
+            if (processingModal) processingModal.hide();
+        }).catch(function(error) {
+            var processingEl = document.getElementById('processingModal');
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
+            processingEl.addEventListener('hidden.bs.modal', function() {
+                showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+            }, { once: true });
+            if (processingModal) processingModal.hide();
+        });
+    }, { once: true });
+
+    if (modal) modal.hide();
+}
+
+function bulkRemoveFromOptOut() {
+    var ids = getSelectedContactIds();
+    document.getElementById('bulkRemoveFromOptOutCount').textContent = ids.length;
+    document.getElementById('bulkRemoveOptOutListSelect').value = '';
+    var modal = new bootstrap.Modal(document.getElementById('bulkRemoveFromOptOutModal'));
+    modal.show();
+}
+
+function confirmBulkRemoveFromOptOut() {
+    var ids = getSelectedContactIds();
+    var count = ids.length;
+    var listSelect = document.getElementById('bulkRemoveOptOutListSelect');
+    var selectedListId = listSelect ? listSelect.value : null;
+    var selectedListName = listSelect ? listSelect.options[listSelect.selectedIndex].text : '';
+
+    if (!selectedListId) {
+        showValidationError('Please select an opt-out list.');
+        return;
+    }
+
+    var modalEl = document.getElementById('bulkRemoveFromOptOutModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+
+    modalEl.addEventListener('hidden.bs.modal', function onHidden() {
+        modalEl.removeEventListener('hidden.bs.modal', onHidden);
+        showProcessingModal('Removing contacts from opt-out list...');
+
+        ContactsService.bulkRemoveFromOptOut(ids, selectedListId).then(function(result) {
+            var processingEl = document.getElementById('processingModal');
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
+
+            processingEl.addEventListener('hidden.bs.modal', function onProcessingHidden() {
+                processingEl.removeEventListener('hidden.bs.modal', onProcessingHidden);
+                if (result.success) {
+                    clearBulkSelection();
+                    reloadContactsFromServer();
+                    showSuccessModal('Contacts Removed', (result.affectedCount || count) + ' contact(s) have been removed from opt-out list "' + selectedListName + '".');
+                } else {
+                    showErrorModal('Action Failed', result.message || 'Failed to remove contacts from opt-out list.');
+                }
+            }, { once: true });
+
+            if (processingModal) processingModal.hide();
+        }).catch(function(error) {
+            var processingEl = document.getElementById('processingModal');
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
+            processingEl.addEventListener('hidden.bs.modal', function() {
+                showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+            }, { once: true });
+            if (processingModal) processingModal.hide();
+        });
+    }, { once: true });
+
+    if (modal) modal.hide();
+}
+
+function addContactToOptOut(contactId) {
+    document.getElementById('singleOptOutContactId').value = contactId;
+    document.getElementById('singleOptOutAction').value = 'add';
+    document.getElementById('singleOptOutModalTitle').innerHTML = '<i class="fas fa-ban me-2 text-danger"></i>Add to Opt-Out List';
+    document.getElementById('singleOptOutModalDesc').textContent = 'Add this contact to an opt-out list:';
+    document.getElementById('singleOptOutConfirmBtn').className = 'btn btn-danger btn-sm';
+    document.getElementById('singleOptOutConfirmBtn').textContent = 'Add to Opt-Out List';
+    document.getElementById('singleOptOutListSelect').value = '';
+    var modal = new bootstrap.Modal(document.getElementById('singleOptOutModal'));
+    modal.show();
+}
+
+function removeContactFromOptOut(contactId) {
+    document.getElementById('singleOptOutContactId').value = contactId;
+    document.getElementById('singleOptOutAction').value = 'remove';
+    document.getElementById('singleOptOutModalTitle').innerHTML = '<i class="fas fa-check-circle me-2 text-success"></i>Remove from Opt-Out List';
+    document.getElementById('singleOptOutModalDesc').textContent = 'Remove this contact from an opt-out list:';
+    document.getElementById('singleOptOutConfirmBtn').className = 'btn btn-success btn-sm';
+    document.getElementById('singleOptOutConfirmBtn').textContent = 'Remove from Opt-Out List';
+    document.getElementById('singleOptOutListSelect').value = '';
+    var modal = new bootstrap.Modal(document.getElementById('singleOptOutModal'));
+    modal.show();
+}
+
+function confirmSingleOptOutAction() {
+    var contactId = document.getElementById('singleOptOutContactId').value;
+    var action = document.getElementById('singleOptOutAction').value;
+    var listSelect = document.getElementById('singleOptOutListSelect');
+    var selectedListId = listSelect ? listSelect.value : null;
+    var selectedListName = listSelect ? listSelect.options[listSelect.selectedIndex].text : '';
+
+    if (!selectedListId) {
+        showValidationError('Please select an opt-out list.');
+        return;
+    }
+
+    var modalEl = document.getElementById('singleOptOutModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+
+    modalEl.addEventListener('hidden.bs.modal', function onHidden() {
+        modalEl.removeEventListener('hidden.bs.modal', onHidden);
+        showProcessingModal(action === 'add' ? 'Adding to opt-out list...' : 'Removing from opt-out list...');
+
+        var promise = action === 'add'
+            ? ContactsService.bulkAddToOptOut([contactId], selectedListId)
+            : ContactsService.bulkRemoveFromOptOut([contactId], selectedListId);
+
+        promise.then(function(result) {
+            var processingEl = document.getElementById('processingModal');
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
+
+            processingEl.addEventListener('hidden.bs.modal', function onProcessingHidden() {
+                processingEl.removeEventListener('hidden.bs.modal', onProcessingHidden);
+                if (result.success) {
+                    reloadContactsFromServer();
+                    if (action === 'add') {
+                        showSuccessModal('Contact Opted Out', 'Contact has been added to opt-out list "' + selectedListName + '".');
+                    } else {
+                        showSuccessModal('Contact Removed', 'Contact has been removed from opt-out list "' + selectedListName + '".');
+                    }
+                } else {
+                    showErrorModal('Action Failed', result.message || 'Failed to update opt-out list.');
+                }
+            }, { once: true });
+
+            if (processingModal) processingModal.hide();
+        }).catch(function(error) {
+            var processingEl = document.getElementById('processingModal');
+            var processingModal = bootstrap.Modal.getInstance(processingEl);
+            processingEl.addEventListener('hidden.bs.modal', function() {
+                showErrorModal('Error', 'An unexpected error occurred. Please try again.');
+            }, { once: true });
+            if (processingModal) processingModal.hide();
+        });
+    }, { once: true });
+
+    if (modal) modal.hide();
 }
 
 function bulkAddTags() {
@@ -2863,6 +3074,80 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary btn-sm" onclick="confirmBulkRemoveFromList()">Remove from List</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkAddToOptOutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-ban me-2 text-danger"></i>Add to Opt-Out List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Add <strong id="bulkAddToOptOutCount">0</strong> contact(s) to opt-out list:</p>
+                <select class="form-select" id="bulkOptOutListSelect">
+                    <option value="">Select an opt-out list...</option>
+                    @foreach($opt_out_lists as $optList)
+                    <option value="{{ $optList['id'] }}">{{ $optList['name'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="confirmBulkAddToOptOut()">Add to Opt-Out List</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkRemoveFromOptOutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-check-circle me-2 text-success"></i>Remove from Opt-Out List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Remove <strong id="bulkRemoveFromOptOutCount">0</strong> contact(s) from opt-out list:</p>
+                <select class="form-select" id="bulkRemoveOptOutListSelect">
+                    <option value="">Select an opt-out list...</option>
+                    @foreach($opt_out_lists as $optList)
+                    <option value="{{ $optList['id'] }}">{{ $optList['name'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success btn-sm" onclick="confirmBulkRemoveFromOptOut()">Remove from Opt-Out List</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="singleOptOutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="singleOptOutModalTitle"><i class="fas fa-ban me-2 text-danger"></i>Add to Opt-Out List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="singleOptOutModalDesc">Add contact to opt-out list:</p>
+                <select class="form-select" id="singleOptOutListSelect">
+                    <option value="">Select an opt-out list...</option>
+                    @foreach($opt_out_lists as $optList)
+                    <option value="{{ $optList['id'] }}">{{ $optList['name'] }}</option>
+                    @endforeach
+                </select>
+                <input type="hidden" id="singleOptOutContactId" value="">
+                <input type="hidden" id="singleOptOutAction" value="add">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" id="singleOptOutConfirmBtn" onclick="confirmSingleOptOutAction()">Add to Opt-Out List</button>
             </div>
         </div>
     </div>

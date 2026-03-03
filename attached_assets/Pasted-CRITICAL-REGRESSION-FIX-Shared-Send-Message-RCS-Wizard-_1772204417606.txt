@@ -1,0 +1,67 @@
+CRITICAL REGRESSION FIX — Shared Send Message / RCS Wizard wiring
+
+We have multiple regressions across modules after pulling “RCS creation wizard backend” back into UI.
+This is NOT a set of isolated bugs — it’s a shared module integration regression.
+
+GOAL
+Restore the Customer Portal > Messages > Send Message flow to its previously working behaviour by:
+- removing mock data fallbacks,
+- re-wiring shared wizard components to real APIs,
+- ensuring all dependent integrations (numbers, contact book lists, RCS agent assets) use the same shared source.
+
+NON-NEGOTIABLE RULES
+- Do NOT redesign.
+- Do NOT create new wizard implementations.
+- The shared wizard must be the single source used by Send Message, Template Create/Edit, Inbox.
+- Use Fillow components (customer portal = purple; admin portal = blue).
+- No module may replace real API data with mock arrays.
+
+STEP 1 — Identify the root cause
+1) Locate the last commit where Send Message worked fully:
+   - Opt-out management shows BOTH VMNs and Shortcodes correctly
+   - Opt-out screening lists are real contact-book lists (not mock)
+   - RCS agent logo renders correctly (circle crop / correct aspect, not oval)
+2) Produce a diff list of files changed since that commit for:
+   - shared wizard components
+   - service/api adapters
+   - preview renderer (RCS logo + hero)
+   - opt-out management
+3) Search repository for mock sources used by these screens:
+   keywords: mock, fixture, demoData, sampleData, USE_MOCK, isMock, fallbackData
+   Remove/disable mock fallbacks from production flows.
+
+STEP 2 — Fix Numbers availability regression (VMN present, Shortcode missing)
+- Find the “numbers available for opt-out” data source.
+- Ensure the UI merges ALL valid number types:
+  - VMN/Longcode
+  - Dedicated Shortcode
+  - Shared Shortcode keywords (where relevant)
+- Confirm backend endpoint returns all types OR call the correct endpoints and merge results.
+- Add a clear error if shortcodes endpoint fails (do not fallback to mock).
+
+STEP 3 — Fix Opt-out screening list regression (mock lists + screening not working)
+- Remove mock list injection.
+- Reconnect screening list dropdown to real Contact Book lists:
+  - must pull from the same source used elsewhere (Contact Book module)
+- Ensure selection writes the correct list IDs into message send payload.
+- Confirm screening is enforced at send time (block recipients who are opted out).
+
+STEP 4 — Fix RCS Agent logo rendering regression (oval logo)
+- Ensure Send Message uses the shared preview component (same as before).
+- Find where CSS changed:
+  - restore correct container sizing and object-fit behaviour
+  - restore correct circle crop preview logic (or whatever the prior “fixed” behaviour was)
+- Ensure this fix applies everywhere the shared preview is used.
+
+STEP 5 — Prevent future regressions
+- Add a lightweight integration check:
+  - Numbers API returns both VMN and Shortcode types
+  - Contact lists API returns real lists
+  - RCS agent assets render with correct aspect/crop
+- If API fails, show Fillow error banner, not mock data.
+
+OUTPUT REQUIRED
+- List of files changed
+- Summary of root cause (1-2 paragraphs)
+- Exact fixes applied per issue
+- Confirmation that Send Message, Template wizard, Inbox now all use the same shared wizard + preview.

@@ -3,7 +3,7 @@
 @section('title', 'Send Message')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
+<link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}?v=20260227b">
 <style>
 /* Page-specific validation styles */
 .validation-error-field {
@@ -162,6 +162,7 @@
                         </div>
                     </div>
                     
+                    <div id="recipientSummaryText" class="alert mb-3" style="display: none; background-color: #f0ebf8; color: #6b5b95; border: 1px solid #d4c8e8;"></div>
                     <label class="form-label mb-2">Enter mobile numbers</label>
                     <textarea class="form-control mb-3" id="manualNumbers" rows="4" placeholder="Paste or type numbers separated by commas, spaces, or new lines" onblur="validateManualNumbers()"></textarea>
                     
@@ -172,24 +173,19 @@
                     </div>
                     
                     <div class="d-flex gap-2 mb-4">
-                        <button type="button" class="btn btn-outline-primary" onclick="triggerFileUpload()">
-                            <i class="fas fa-upload me-1"></i>Upload CSV
+                        <button type="button" class="btn btn-outline-primary" id="uploadCsvBtn" onclick="triggerFileUpload()">
+                            <i class="fas fa-upload me-1"></i>Upload File
                         </button>
                         <button type="button" class="btn btn-outline-primary" onclick="openContactBookModal()">
                             <i class="fas fa-users me-1"></i>Select from Contact Book
                         </button>
-                        <input type="file" class="d-none" id="recipientFile" accept=".csv,.xlsx,.xls" onchange="handleFileSelect()">
+                        
                     </div>
                     
-                    <div class="d-none mb-3" id="uploadProgress">
-                        <div class="progress mb-2" style="height: 6px;"><div class="progress-bar" id="uploadProgressBar" style="width: 0%;"></div></div>
-                        <span id="uploadStatus" class="text-muted">Processing...</span>
-                    </div>
-                    <div class="d-none mb-3" id="uploadResult">
-                        <span class="badge bg-light text-dark me-2"><i class="fas fa-file-csv me-1"></i>File uploaded</span>
-                        <span class="text-success"><i class="fas fa-check-circle me-1"></i><span id="uploadValid">0</span> valid</span>
-                        <span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i><span id="uploadInvalid">0</span> invalid</span>
-                        <a href="#" class="ms-2 d-none" id="uploadInvalidLink" onclick="showInvalidNumbers('upload')">View</a>
+                    <div id="uploadedFilesContainer" class="mb-3"></div>
+                    <div class="d-none mb-3" id="fileProcessingIndicator">
+                        <div class="progress mb-2" style="height: 6px;"><div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%; background-color: #886CC0;"></div></div>
+                        <span class="text-muted">Processing file...</span>
                     </div>
                     
                     <div class="d-none mb-3" id="contactBookSelection">
@@ -322,115 +318,140 @@
                             <label class="form-check-label" for="enableOptoutManagement">Enable</label>
                         </div>
                     </div>
-                    
+
                     <div class="d-none" id="optoutManagementSection">
-                        <div class="mb-3">
-                            <label class="form-label">Opt-out list <span class="text-muted">(optional)</span></label>
-                            <select class="form-select" id="optoutListSelect">
-                                <option value="" selected>No list selected</option>
-                                @foreach($opt_out_lists as $list)
-                                <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">Select a list to exclude numbers. If no list is selected, you must enable an opt-out method below.</small>
-                        </div>
-                        
-                        <div class="border-top pt-3 mb-3">
-                            <h6 class="mb-3">Opt-out Options</h6>
-                            
-                            @if(count($virtual_numbers) > 0)
-                            <div class="mb-3 p-3 border rounded">
-                                <div class="form-check form-switch mb-2">
-                                    <input class="form-check-input" type="checkbox" id="enableReplyOptout" onchange="toggleReplyOptout()">
-                                    <label class="form-check-label fw-medium" for="enableReplyOptout">Enable reply-to-opt-out</label>
+
+                        {{-- Screening Lists (automatic — no toggle) --}}
+                        <div class="mb-3 p-3 border rounded" id="optOutListSection">
+                            <label class="form-label fw-medium mb-1">Screening Lists</label>
+                            <small class="text-muted d-block mb-2">Recipients already on any selected list will be excluded before sending. Screening activates automatically when lists are selected.</small>
+                            <div id="screeningPills" class="d-flex flex-wrap gap-1 mb-2"></div>
+                            <div class="border rounded p-2" style="max-height:130px;overflow-y:auto;" id="screeningCheckboxList">
+                                @forelse($opt_out_lists as $list)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="optOutScreeningLists[]"
+                                        id="screening_{{ $list['id'] }}" value="{{ $list['id'] }}"
+                                        onchange="onScreeningListChange()">
+                                    <label class="form-check-label" for="screening_{{ $list['id'] }}">{{ $list['name'] }} <span class="text-muted">({{ number_format($list['count']) }})</span></label>
                                 </div>
-                                <div class="d-none ps-3" id="replyOptoutConfig">
-                                    <div class="mb-2">
-                                        <label class="form-label">Virtual Number</label>
-                                        <select class="form-select form-select-sm" id="replyVirtualNumber">
-                                            <option value="">-- Select virtual number --</option>
-                                            @foreach($virtual_numbers as $vn)
-                                            <option value="{{ $vn['id'] }}" data-number="{{ $vn['number'] }}">{{ $vn['number'] }} ({{ $vn['label'] }})</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Opt-out Text</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" id="replyOptoutText" value="Opt-out: Reply STOP to @{{number}}" placeholder="e.g. Reply STOP to @{{number}}">
-                                            <button type="button" class="btn btn-outline-primary" onclick="addOptoutToMessage('reply')" title="Append to message">Add to message content</button>
-                                        </div>
-                                        <small class="text-muted">Use @{{number}} to insert the virtual number.</small>
-                                    </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Store opt-outs in</label>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="replyOptoutTarget" id="replyOptoutExisting" value="existing" checked>
-                                            <label class="form-check-label" for="replyOptoutExisting">Existing opt-out list</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="replyOptoutTarget" id="replyOptoutNew" value="new">
-                                            <label class="form-check-label" for="replyOptoutNew">Create new opt-out list</label>
-                                        </div>
-                                        <div class="d-none mt-2" id="replyNewListFields">
-                                            <input type="text" class="form-control form-control-sm mb-1" id="replyNewListName" placeholder="List name (required)">
-                                            <input type="text" class="form-control form-control-sm" id="replyNewListDesc" placeholder="Description (optional)">
-                                        </div>
-                                    </div>
-                                </div>
+                                @empty
+                                <small class="text-muted">No opt-out lists available.</small>
+                                @endforelse
                             </div>
-                            @endif
-                            
-                            <div class="mb-3 p-3 border rounded">
-                                <div class="form-check form-switch mb-2">
-                                    <input class="form-check-input" type="checkbox" id="enableUrlOptout" onchange="toggleUrlOptout()">
-                                    <label class="form-check-label fw-medium" for="enableUrlOptout">Enable click-to-opt-out</label>
+                        </div>
+
+                        {{-- Reply opt-out --}}
+                        <div class="mb-3 p-3 border rounded">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableReplyOptout" onchange="toggleReplyOptout()">
+                                <label class="form-check-label fw-medium" for="enableReplyOptout">Enable reply-to-opt-out</label>
+                            </div>
+                            <div class="d-none ps-2" id="replyOptoutConfig">
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm">Number to receive replies</label>
+                                    <select class="form-select form-select-sm" id="optOutNumberId" onchange="onOptOutNumberChange()">
+                                        <option value="">-- Loading numbers... --</option>
+                                    </select>
                                 </div>
-                                <div class="d-none ps-3" id="urlOptoutConfig">
-                                    <div class="mb-2">
-                                        <label class="form-label">URL Domain</label>
-                                        <select class="form-select form-select-sm" id="urlOptoutDomain">
-                                            @foreach($optout_domains as $domain)
-                                            <option value="{{ $domain['id'] }}" {{ $domain['is_default'] ? 'selected' : '' }}>{{ $domain['domain'] }}{{ $domain['is_default'] ? ' (default)' : '' }}</option>
-                                            @endforeach
-                                        </select>
-                                        <small class="text-muted">A unique URL will be generated per message.</small>
+                                <div class="mb-2" id="keywordArea">
+                                    <label class="form-label form-label-sm">
+                                        Opt-out keyword
+                                        <span id="keywordValidationIcon" class="ms-1"></span>
+                                    </label>
+                                    {{-- For VMN / dedicated shortcode --}}
+                                    <input type="text" class="form-control form-control-sm" id="optOutKeywordInput"
+                                        placeholder="e.g. STOP, QUIT (4-10 chars)"
+                                        maxlength="10"
+                                        oninput="scheduleKeywordValidation()"
+                                        style="text-transform:uppercase">
+                                    {{-- For shared shortcode (hidden by default) --}}
+                                    <select class="form-select form-select-sm d-none" id="optOutKeywordSelect" onchange="onKeywordSelectChange()">
+                                        <option value="">-- Select keyword --</option>
+                                    </select>
+                                    <div class="invalid-feedback d-block d-none" id="keywordError"></div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="replyOptoutText" placeholder="Auto-generated when number + keyword are set" readonly>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('replyOptoutText')">Insert</button>
                                     </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Opt-out Text</label>
-                                        <div class="input-group input-group-sm">
-                                            <input type="text" class="form-control" id="urlOptoutText" value="Opt-out: Click @{{unique_url}}" placeholder="e.g. Click @{{unique_url}}">
-                                            <button type="button" class="btn btn-outline-primary" onclick="addOptoutToMessage('url')" title="Append to message">Add to message content</button>
+                                </div>
+                                {{-- Reply storage list --}}
+                                <div class="pt-2 border-top">
+                                    <label class="form-label form-label-sm">Add opt-outs to list</label>
+                                    <div class="mb-1">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="replyListTarget" id="replyListExisting" value="existing" checked onchange="toggleReplyStorageList()">
+                                            <label class="form-check-label" for="replyListExisting">Existing list</label>
                                         </div>
-                                        <small class="text-muted">Use @{{unique_url}} to insert the tracking URL.</small>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="replyListTarget" id="replyListNew" value="new" onchange="toggleReplyStorageList()">
+                                            <label class="form-check-label" for="replyListNew">Create new list</label>
+                                        </div>
                                     </div>
-                                    <div class="mb-2">
-                                        <label class="form-label">Store opt-outs in</label>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="urlOptoutTarget" id="urlOptoutExisting" value="existing" checked>
-                                            <label class="form-check-label" for="urlOptoutExisting">Existing opt-out list</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input" type="radio" name="urlOptoutTarget" id="urlOptoutNew" value="new">
-                                            <label class="form-check-label" for="urlOptoutNew">Create new opt-out list</label>
-                                        </div>
-                                        <div class="d-none mt-2" id="urlNewListFields">
-                                            <input type="text" class="form-control form-control-sm mb-1" id="urlNewListName" placeholder="List name (required)">
-                                            <input type="text" class="form-control form-control-sm" id="urlNewListDesc" placeholder="Description (optional)">
-                                        </div>
+                                    <select class="form-select form-select-sm" id="replyOptOutListId">
+                                        <option value="">-- Select an opt-out list --</option>
+                                        @foreach($opt_out_lists as $list)
+                                        <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="d-none mt-1" id="replyNewListFields">
+                                        <input type="text" class="form-control form-control-sm" id="replyNewListName" placeholder="New list name (required)">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
+
+                        {{-- URL opt-out --}}
+                        <div class="mb-3 p-3 border rounded">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" id="enableUrlOptout" onchange="toggleUrlOptout()">
+                                <label class="form-check-label fw-medium" for="enableUrlOptout">Enable click-to-opt-out</label>
+                            </div>
+                            <div class="d-none ps-2" id="urlOptoutConfig">
+                                <p class="text-muted mb-2 small">A unique 5-character link per recipient (e.g. qout.uk/Ab3K9) is inserted via &#123;&#123;unique_url&#125;&#125;.</p>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" class="form-control" id="urlOptoutText" value="OptOut, &#123;&#123;unique_url&#125;&#125;">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
+                                    </div>
+                                </div>
+                                {{-- URL storage list --}}
+                                <div class="pt-2 border-top">
+                                    <label class="form-label form-label-sm">Add opt-outs to list</label>
+                                    <div class="mb-1">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="urlListTarget" id="urlListExisting" value="existing" checked onchange="toggleUrlStorageList()">
+                                            <label class="form-check-label" for="urlListExisting">Existing list</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="urlListTarget" id="urlListNew" value="new" onchange="toggleUrlStorageList()">
+                                            <label class="form-check-label" for="urlListNew">Create new list</label>
+                                        </div>
+                                    </div>
+                                    <select class="form-select form-select-sm" id="urlOptOutListId">
+                                        <option value="">-- Select an opt-out list --</option>
+                                        @foreach($opt_out_lists as $list)
+                                        <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="d-none mt-1" id="urlNewListFields">
+                                        <input type="text" class="form-control form-control-sm" id="urlNewListName" placeholder="New list name (required)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-none" id="optoutValidationError">
-                            <div class="alert alert-danger py-2 mb-0">
-                                <i class="fas fa-exclamation-circle me-1"></i>
-                                <span id="optoutValidationMessage">At least one opt-out mechanism must be configured.</span>
+                            <div class="alert alert-pastel-primary py-2 mb-0">
+                                <i class="fas fa-info-circle me-1 text-primary"></i>
+                                <span id="optoutValidationMessage">Please complete the opt-out configuration.</span>
                             </div>
                         </div>
                     </div>
-                    
+
                     <div id="optoutDisabledMessage">
                         <p class="text-muted mb-0"><small>No opt-out logic will be applied. Enable to configure opt-out options.</small></p>
                     </div>
@@ -474,7 +495,7 @@
                         <div class="row text-center">
                             <div class="col-4"><small class="text-muted d-block mb-1">Channel</small><strong id="previewChannel" class="small">SMS</strong></div>
                             <div class="col-4"><small class="text-muted d-block mb-1">Recipients</small><strong id="previewRecipients" class="small">0</strong></div>
-                            <div class="col-4"><small class="text-muted d-block mb-1">Cost</small><strong id="previewCost" class="small">0 cr</strong></div>
+                            <div class="col-4"><small class="text-muted d-block mb-1">Cost</small><strong id="previewCost" class="small">&pound;0.00</strong></div>
                         </div>
                     </div>
                 </div>
@@ -486,171 +507,342 @@
 
 <div class="modal fade" id="contactBookModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h5 class="modal-title"><i class="fas fa-address-book me-2"></i>Select from Contact Book</h5>
+        <div class="modal-content" style="border-radius: 0.75rem; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+            <div class="modal-header py-3 px-4" style="border-bottom: 1px solid #f0ebf8;">
+                <h5 class="modal-title" style="font-weight: 600; color: #2c2c2c;"><i class="fas fa-address-book me-2" style="color: #886CC0;"></i>Select from Contact Book</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-2">
-                <ul class="nav nav-tabs mb-2" style="font-size: 12px;">
-                    <li class="nav-item"><button class="nav-link active py-1 px-3" data-bs-toggle="tab" data-bs-target="#cbContacts">Contacts</button></li>
-                    <li class="nav-item"><button class="nav-link py-1 px-3" data-bs-toggle="tab" data-bs-target="#cbLists">Lists</button></li>
-                    <li class="nav-item"><button class="nav-link py-1 px-3" data-bs-toggle="tab" data-bs-target="#cbDynamicLists">Dynamic Lists</button></li>
-                    <li class="nav-item"><button class="nav-link py-1 px-3" data-bs-toggle="tab" data-bs-target="#cbTags">Tags</button></li>
+            <div class="modal-body p-0">
+                <ul class="nav nav-tabs px-4 pt-3 mb-0" style="border-bottom: none;">
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#cbContacts" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Contacts</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#cbLists" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Lists</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#cbDynamicLists" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Dynamic Lists</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#cbTags" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Tags</button></li>
                 </ul>
-                <div class="tab-content">
+                <div class="tab-content px-4 pt-3">
                     <div class="tab-pane fade show active" id="cbContacts">
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control" id="cbContactSearch" placeholder="Search names, numbers, tags, custom fields..." oninput="filterContacts()">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control" id="cbContactSearch" placeholder="Search names, numbers, tags, custom fields..." oninput="filterContacts()" style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="d-flex gap-2 align-items-center" style="font-size: 11px;">
-                                    <select class="form-select form-select-sm" id="cbContactSort" onchange="sortContacts()">
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" id="cbContactSort" onchange="sortContacts()" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
                                         <option value="recent">Most recently contacted</option>
                                         <option value="added">Most recently added</option>
                                         <option value="name_asc">Name A-Z</option>
                                         <option value="name_desc">Name Z-A</option>
                                     </select>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleContactFilters()"><i class="fas fa-filter"></i></button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="toggleContactFilters()" style="border-color: #e6e6e6; border-radius: 0.625rem; color: #886CC0;"><i class="fas fa-filter"></i></button>
                                 </div>
                             </div>
                         </div>
-                        <div class="d-none mb-2 p-2 bg-light rounded" id="cbContactFilters" style="font-size: 11px;">
+                        <div class="d-none mb-3 p-3 rounded" id="cbContactFilters" style="font-size: 13px; background: #f8f7fc;">
                             <div class="row">
-                                <div class="col-md-3"><label class="form-label mb-1">Tags</label><select class="form-select form-select-sm" id="cbFilterTags"><option value="">All tags</option></select></div>
-                                <div class="col-md-3"><label class="form-label mb-1">Has Mobile</label><select class="form-select form-select-sm" id="cbFilterMobile"><option value="">Any</option><option value="yes">Yes</option><option value="no">No</option></select></div>
-                                <div class="col-md-3"><label class="form-label mb-1">Opt-out Status</label><select class="form-select form-select-sm" id="cbFilterOptout"><option value="exclude">Exclude opted-out</option><option value="include">Include all</option></select></div>
-                                <div class="col-md-3 d-flex align-items-end"><button class="btn btn-link btn-sm" onclick="clearContactFilters()">Clear filters</button></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Tags</label><select class="form-select form-select-sm" id="cbFilterTags" style="border-radius: 0.625rem;"><option value="">All tags</option></select></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Has Mobile</label><select class="form-select form-select-sm" id="cbFilterMobile" style="border-radius: 0.625rem;"><option value="">Any</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Opt-out Status</label><select class="form-select form-select-sm" id="cbFilterOptout" style="border-radius: 0.625rem;"><option value="exclude">Exclude opted-out</option><option value="include">Include all</option></select></div>
+                                <div class="col-md-3 d-flex align-items-end"><button class="btn btn-link btn-sm" onclick="clearContactFilters()" style="color: #886CC0;">Clear filters</button></div>
                             </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 11px;">
-                                <thead class="table-light sticky-top">
-                                    <tr>
-                                        <th style="width: 30px;"><input type="checkbox" class="form-check-input" id="cbSelectAllContacts" onchange="toggleAllContacts()"></th>
-                                        <th>Name</th>
-                                        <th>Mobile</th>
-                                        <th>Tags</th>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"><input type="checkbox" class="form-check-input" id="cbSelectAllContacts" onchange="toggleAllContacts()"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Mobile</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tags</th>
                                     </tr>
                                 </thead>
                                 <tbody id="cbContactsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="1"></td><td>John Smith</td><td>+44 7700***123</td><td><span class="badge bg-info">VIP</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="2"></td><td>Jane Doe</td><td>+44 7700***456</td><td><span class="badge bg-success">Asthma</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="3"></td><td>Robert Brown</td><td>+44 7700***789</td><td></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="4"></td><td>Sarah Wilson</td><td>+44 7700***012</td><td><span class="badge bg-warning">Diabetes</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="5"></td><td>Michael Johnson</td><td>+44 7700***345</td><td><span class="badge bg-info">VIP</span></td></tr>
+                                    <tr><td colspan="4" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading contacts...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="cbLists">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" placeholder="Search lists...">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control" id="cbListSearch" placeholder="Search lists..." oninput="filterLists()" style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" id="cbListSort" onchange="sortLists()" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                        <option value="updated">Recently updated</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 300px;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 11px;">
-                                <thead class="table-light">
-                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Contacts</th><th>Last Updated</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">List Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Last Updated</th>
+                                    </tr>
                                 </thead>
-                                <tbody>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="1"></td><td>VIP Patients</td><td>1,234</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="2"></td><td>Newsletter Subscribers</td><td>5,678</td><td>21-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="3"></td><td>Flu Campaign 2025</td><td>3,456</td><td>20-Dec-2025</td></tr>
+                                <tbody id="cbListsTable">
+                                    <tr><td colspan="4" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading lists...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="cbDynamicLists">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" placeholder="Search dynamic lists...">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control" id="cbDynamicSearch" placeholder="Search dynamic lists..." oninput="filterDynamicLists()" style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" id="cbDynamicSort" onchange="sortDynamicLists()" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 300px;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 11px;">
-                                <thead class="table-light">
-                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Rules</th><th>Contacts</th><th>Last Evaluated</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">List Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Rules</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Last Evaluated</th>
+                                    </tr>
                                 </thead>
-                                <tbody>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="1"></td><td>Over 65s</td><td>Age > 65</td><td>2,345</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="2"></td><td>Local Postcodes</td><td>Postcode starts with SW</td><td>1,890</td><td>22-Dec-2025</td></tr>
+                                <tbody id="cbDynamicListsTable">
+                                    <tr><td colspan="5" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading dynamic lists...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     <div class="tab-pane fade" id="cbTags">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" placeholder="Search tags...">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control" id="cbTagSearch" placeholder="Search tags..." oninput="filterTagsList()" style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" id="cbTagSort" onchange="sortTagsList()" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 300px;">
-                            <table class="table table-sm table-hover mb-0" style="font-size: 11px;">
-                                <thead class="table-light">
-                                    <tr><th style="width: 30px;"></th><th>Tag</th><th>Contacts</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tag</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                    </tr>
                                 </thead>
-                                <tbody>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="1"></td><td><span class="badge" style="background-color: #0d6efd;">VIP</span></td><td>456</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="2"></td><td><span class="badge" style="background-color: #198754;">Asthma</span></td><td>1,234</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="3"></td><td><span class="badge" style="background-color: #ffc107;">Diabetes</span></td><td>890</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="4"></td><td><span class="badge" style="background-color: #dc3545;">Hypertension</span></td><td>567</td></tr>
+                                <tbody id="cbTagsTable">
+                                    <tr><td colspan="3" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin me-2"></i>Loading tags...</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                <div class="border-top mt-2 pt-2" style="font-size: 11px;">
-                    <strong>Selected:</strong> <span id="cbSelectionSummary">0 contacts, 0 lists, 0 dynamic lists, 0 tags</span>
+                <div class="px-4 py-2 mt-2" style="font-size: 13px; border-top: 1px solid #f0ebf8; background: #faf9fd;">
+                    <strong style="color: #6b5b95;">Selected:</strong> <span id="cbSelectionSummary" style="color: #555;">0 contacts, 0 lists, 0 dynamic lists, 0 tags</span>
                 </div>
             </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="confirmContactBookSelection()"><i class="fas fa-plus me-1"></i>Add to Campaign</button>
+            <div class="modal-footer py-3 px-4" style="border-top: 1px solid #f0ebf8;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 0.625rem;">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmContactBookSelection()" style="border-radius: 0.625rem; background-color: #886CC0; border-color: #886CC0;"><i class="fas fa-plus me-1"></i>Add to Campaign</button>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="columnMappingModal" tabindex="-1">
+<div class="modal fade" id="csvUploadModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header py-2">
-                <h5 class="modal-title"><i class="fas fa-columns me-2"></i>Map Columns</h5>
+        <div class="modal-content" style="border-radius: 0.75rem; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+            <div class="modal-header py-3 px-4" style="border-bottom: 1px solid #f0ebf8;">
+                <h5 class="modal-title" style="font-weight: 600; color: #2c2c2c;"><i class="fas fa-file-import me-2" style="color: #886CC0;"></i>Upload Recipients</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <div class="py-2 rounded" style="font-size: 12px; background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
-                    <i class="fas fa-info-circle me-1"></i>Map your file columns to the required fields. Mobile Number is required.
-                </div>
-                <div class="mb-3">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="hasHeaders" checked>
-                        <label class="form-check-label" for="hasHeaders">First row contains column headings</label>
+            <div class="modal-body px-4">
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #886CC0; color: #fff;" id="csvStepCircle1">1</div>
+                            <div class="small mt-1">Upload</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #fff; color: #886CC0; border: 2px solid #886CC0;" id="csvStepCircle2">2</div>
+                            <div class="small mt-1">Map Columns</div>
+                        </div>
+                        <div class="text-center flex-fill">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: #fff; color: #886CC0; border: 2px solid #886CC0;" id="csvStepCircle3">3</div>
+                            <div class="small mt-1">Review</div>
+                        </div>
                     </div>
                 </div>
-                <table class="table table-sm" style="font-size: 12px;">
-                    <thead><tr><th>Detected Column</th><th>Map to Field</th><th>Sample Data</th></tr></thead>
-                    <tbody id="columnMappingTable">
-                        <tr><td>Column A</td><td><select class="form-select form-select-sm"><option value="">-- Skip --</option><option value="mobile" selected>Mobile Number *</option><option value="firstname">First Name</option><option value="lastname">Last Name</option><option value="email">Email</option></select></td><td class="text-muted">07700900123</td></tr>
-                        <tr><td>Column B</td><td><select class="form-select form-select-sm"><option value="">-- Skip --</option><option value="mobile">Mobile Number *</option><option value="firstname" selected>First Name</option><option value="lastname">Last Name</option><option value="email">Email</option></select></td><td class="text-muted">John</td></tr>
-                        <tr><td>Column C</td><td><select class="form-select form-select-sm"><option value="">-- Skip --</option><option value="mobile">Mobile Number *</option><option value="firstname">First Name</option><option value="lastname" selected>Last Name</option><option value="email">Email</option></select></td><td class="text-muted">Smith</td></tr>
-                    </tbody>
-                </table>
-                <div class="py-2 d-none rounded" id="excelZeroWarning" style="font-size: 12px; background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    <strong>Excel formatting detected:</strong> Numbers starting with '7' may have had leading zeros removed. 
-                    <div class="form-check mt-1">
-                        <input class="form-check-input" type="checkbox" id="fixExcelZeros" checked>
-                        <label class="form-check-label" for="fixExcelZeros">Convert to UK format (+447...)</label>
+
+                <div id="csvStep1">
+                    <h6 class="mb-3">Step 1: Upload File</h6>
+                    <div class="border rounded p-4 text-center" id="csvDropZone" style="border-style: dashed !important; background-color: #f0ebf8; border-color: #886CC0 !important; cursor: pointer;">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #886CC0;"></i>
+                        <p class="mb-2">Drag and drop your file here, or click to browse</p>
+                        <input type="file" class="d-none" id="csvFileInput" accept=".csv,.xlsx,.xls">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="document.getElementById('csvFileInput').click()" style="border-color: #886CC0; color: #886CC0;">
+                            <i class="fas fa-folder-open me-1"></i> Browse Files
+                        </button>
+                        <p class="text-muted small mt-2 mb-0">Accepted formats: CSV, Excel (.xlsx)</p>
+                    </div>
+                    <div id="csvSelectedFileInfo" class="d-none mt-3">
+                        <div class="d-flex align-items-center p-3 rounded" style="background-color: #f0ebf8;">
+                            <i class="fas fa-file-alt fa-2x me-3" style="color: #886CC0;"></i>
+                            <div>
+                                <strong id="csvSelectedFileName" style="color: #2c2c2c;">filename.csv</strong>
+                                <div class="small text-muted" id="csvSelectedFileSize">123 KB</div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="csvClearFile()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="csvHasHeaders" checked>
+                            <label class="form-check-label" for="csvHasHeaders">First row contains column headings</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="csvStep2" class="d-none">
+                    <h6 class="mb-3">Step 2: Map Columns</h6>
+                    <div class="small p-3 rounded" style="background-color: #f0ebf8; color: #6c5ce7;">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Map your file columns to the required fields. <strong style="color: #886CC0;">Mobile Number</strong> <span class="text-dark">is required.</span>
+                    </div>
+                    <div class="table-responsive mt-3">
+                        <table class="table table-sm table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Detected Column</th>
+                                    <th>Map To Field</th>
+                                    <th>Sample Data</th>
+                                </tr>
+                            </thead>
+                            <tbody id="csvColumnMappingBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <input type="hidden" id="csvExcelCorrectionApplied" value="">
+                    <div id="csvNormalisationWarning" class="d-none p-3 rounded mt-2" style="background-color: #f0ebf8;">
+                        <div id="csvNormalisationContent">
+                            <i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>
+                            <strong style="color: #886CC0;">UK Number Normalisation</strong>
+                            <p class="mb-2 mt-2 text-dark" id="csvNormalisationDetail">We've detected mixed mobile number formats in your file.</p>
+                            <p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)?</p>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="csvSetNormalisation(true)">
+                                    <i class="fas fa-check me-1"></i> Yes, normalise to UK format
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="csvSetNormalisation(false)">
+                                    <i class="fas fa-times me-1"></i> No, leave as-is
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="csvStep3" class="d-none">
+                    <h6 class="mb-3">Step 3: Review & Validate</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-dark" id="csvStatTotalRows">0</div>
+                                    <div class="small text-dark">Total Rows</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-dark" id="csvStatUniqueNumbers">0</div>
+                                    <div class="small text-dark">Unique Numbers</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-dark" id="csvStatValidNumbers">0</div>
+                                    <div class="small text-dark">Valid Numbers</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-0" style="background-color: #f0ebf8;">
+                                <div class="card-body text-center py-3">
+                                    <div class="h3 mb-0 text-dark" id="csvStatInvalidNumbers">0</div>
+                                    <div class="small text-dark">Invalid Numbers</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="csvImportIndicators" class="mb-3"></div>
+                    <div id="csvInvalidRowsSection" class="d-none">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0"><i class="fas fa-exclamation-circle text-danger me-2"></i>Invalid Rows</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="csvDownloadInvalidRows()">
+                                <i class="fas fa-download me-1"></i> Download
+                            </button>
+                        </div>
+                        <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr><th>Row</th><th>Original Value</th><th>Reason</th></tr>
+                                </thead>
+                                <tbody id="csvInvalidRowsBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary btn-sm" onclick="confirmColumnMapping()"><i class="fas fa-check me-1"></i>Confirm & Import</button>
+            <div class="modal-footer py-3 px-4" style="border-top: 1px solid #f0ebf8;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="csvCancelBtn" style="border-radius: 0.625rem;">Cancel</button>
+                <button type="button" class="btn btn-outline-primary d-none" id="csvBackBtn" onclick="csvPrevStep()" style="border-radius: 0.625rem; border-color: #886CC0; color: #886CC0;">
+                    <i class="fas fa-arrow-left me-1"></i> Back
+                </button>
+                <button type="button" class="btn btn-primary" id="csvNextBtn" onclick="csvNextStep()" disabled style="border-radius: 0.625rem; background-color: #886CC0; border-color: #886CC0;">
+                    Next <i class="fas fa-arrow-right ms-1"></i>
+                </button>
+                <button type="button" class="btn btn-success d-none" id="csvConfirmBtn" onclick="csvConfirmImport()" style="border-radius: 0.625rem;">
+                    <i class="fas fa-check me-1"></i> Confirm & Import
+                </button>
             </div>
         </div>
     </div>
@@ -725,25 +917,20 @@
                 <div class="mb-3">
                     <h6 class="text-muted mb-2">Contact Book Fields</h6>
                     <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('firstName')">@{{firstName}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('lastName')">@{{lastName}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('fullName')">@{{fullName}}</button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('mobile')">@{{mobile}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('first_name')">@{{first_name}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('last_name')">@{{last_name}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('full_name')">@{{full_name}}</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('mobile_number')">@{{mobile_number}}</button>
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPlaceholder('email')">@{{email}}</button>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <h6 class="text-muted mb-2">Custom Fields</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('appointmentDate')">@{{appointmentDate}}</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('appointmentTime')">@{{appointmentTime}}</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('clinicName')">@{{clinicName}}</button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="insertPlaceholder('customField_1')">@{{customField_1}}</button>
-                    </div>
-                </div>
                 <div class="mb-3" id="csvFieldsSection" style="display: none;">
-                    <h6 class="text-muted mb-2">CSV/Excel Columns</h6>
+                    <h6 class="text-muted mb-2">File Upload Fields</h6>
                     <div class="d-flex flex-wrap gap-2" id="csvFieldButtons"></div>
+                </div>
+                <div id="noCustomFieldsHint">
+                    <h6 class="text-muted mb-2">Custom Fields</h6>
+                    <p class="text-muted small mb-0">Upload a CSV/Excel file with extra columns to see custom field placeholders here.</p>
                 </div>
             </div>
             <div class="modal-footer py-2">
@@ -994,6 +1181,23 @@
     </div>
 </div>
 
+<div class="modal fade" id="csvAlertModal" tabindex="-1" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title" style="color: #886CC0;"><i class="fas fa-info-circle me-2"></i>Attention</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-0" id="csvAlertMessage"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="aiAssistantModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -1145,8 +1349,9 @@
 
 @include('quicksms.partials.rcs-wizard-modal')
 
-<script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260106b"></script>
-<script src="{{ asset('js/rcs-wizard.js') }}?v=20260210d"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="{{ asset('js/rcs-preview-renderer.js') }}?v=20260227a"></script>
+<script src="{{ asset('js/rcs-wizard.js') }}?v=20260227b"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -1169,6 +1374,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     populateTemplateSelector();
     checkForDuplicatePrefill();
+    restoreCampaignFromConfirm();
     updatePreview();
     loadPreselectedContacts();
 });
@@ -1211,6 +1417,61 @@ function checkForDuplicatePrefill() {
             }
         }
     }
+}
+
+function restoreCampaignFromConfirm() {
+    @if(!empty($edit_campaign_config))
+    var config = @json($edit_campaign_config);
+    console.log('[Restore] Restoring campaign from confirm page', config);
+
+    var nameInput = document.getElementById('campaignName');
+    if (nameInput && config.campaign_name) nameInput.value = config.campaign_name;
+
+    if (config.channel) {
+        var channelMap = { 'sms_only': 'sms_only', 'basic_rcs': 'basic_rcs', 'rich_rcs': 'rich_rcs' };
+        var radioVal = channelMap[config.channel] || config.channel;
+        var radio = document.querySelector('input[name="channel"][value="' + radioVal + '"]');
+        if (radio) {
+            radio.checked = true;
+            selectChannel(radioVal);
+        }
+    }
+
+    if (config.sender_id) {
+        var senderSelect = document.getElementById('senderIdSelect');
+        if (senderSelect) {
+            for (var i = 0; i < senderSelect.options.length; i++) {
+                if (senderSelect.options[i].value == config.sender_id) {
+                    senderSelect.value = config.sender_id;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (config.message_content) {
+        var msgInput = document.getElementById('smsContent');
+        if (msgInput) {
+            msgInput.value = config.message_content;
+            updateCharCount();
+            updatePreview();
+        }
+    }
+
+    if (config.recipient_count && config.recipient_count > 0) {
+        var summaryEl = document.getElementById('recipientSummaryText');
+        if (summaryEl) {
+            summaryEl.innerHTML = '<i class="fas fa-info-circle me-1" style="color: #886CC0;"></i> ' +
+                '<strong>' + config.recipient_count + '</strong> recipients loaded from previous session. ' +
+                'Click <strong>Continue</strong> to proceed or modify your selections.';
+            summaryEl.style.display = '';
+        }
+    }
+
+    if (config.campaign_id) {
+        window._restoredCampaignId = config.campaign_id;
+    }
+    @endif
 }
 
 function loadDraftForEditing(draftId) {
@@ -1461,7 +1722,7 @@ function updatePreview() {
             var selectedOption = rcsAgentSelect?.selectedOptions[0];
             previewConfig.agent = {
                 name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
-                logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                logo: selectedOption?.dataset?.logo || null,
                 verified: true,
                 tagline: selectedOption?.dataset?.tagline || 'Business messaging'
             };
@@ -1474,7 +1735,7 @@ function updatePreview() {
             var selectedOption = rcsAgentSelect?.selectedOptions[0];
             var agent = {
                 name: selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand',
-                logo: selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+                logo: selectedOption?.dataset?.logo || null,
                 verified: true,
                 tagline: selectedOption?.dataset?.tagline || 'Business messaging'
             };
@@ -1507,31 +1768,46 @@ function isGSM7(text) {
 }
 
 function handleContentChange() {
-    var content = document.getElementById('smsContent').value;
+    var rawContent = document.getElementById('smsContent').value;
+    // unique_url placeholder always renders as qout.uk/XXXXX (13 chars) — substitute before counting
+    var content = rawContent.replace(/\{\{\s*unique_url\s*\}\}/g, 'qout.uk/XXXXX');
     var charCount = content.length;
     var isGsm = isGSM7(content);
     var channel = document.querySelector('input[name="channel"]:checked').value;
-    
-    document.getElementById('charCount').textContent = charCount;
-    document.getElementById('encodingType').textContent = isGsm ? 'GSM-7' : 'Unicode';
-    document.getElementById('unicodeWarning').classList.toggle('d-none', isGsm);
-    
-    var segmentDisplay = document.getElementById('segmentDisplay');
-    if (channel === 'rcs_basic' && charCount > 160) {
-        segmentDisplay.innerHTML = '<em class="text-success">Single RCS message</em>';
-        document.getElementById('rcsTextHelper').classList.remove('d-none');
-        document.getElementById('rcsHelperText').textContent = 'This message will be delivered as a single RCS text message.';
-    } else {
-        var singleLimit = isGsm ? 160 : 70;
-        var concatLimit = isGsm ? 153 : 67;
-        var parts = charCount <= singleLimit ? 1 : Math.ceil(charCount / concatLimit);
-        segmentDisplay.innerHTML = 'Segments: <strong id="smsPartCount">' + parts + '</strong>';
+    var hasPlaceholders = /\{\{\s*[^}]+?\s*\}\}/.test(content);
+
+    if (hasPlaceholders && content.length > 0) {
+        document.getElementById('charCount').textContent = 'N/A';
+        document.getElementById('encodingType').textContent = 'N/A';
+        document.getElementById('unicodeWarning').classList.add('d-none');
+        var segmentDisplay = document.getElementById('segmentDisplay');
+        segmentDisplay.innerHTML = 'Segments: <strong id="smsPartCount">N/A</strong>';
         if (channel !== 'rcs_basic') {
             document.getElementById('rcsTextHelper').classList.add('d-none');
+        }
+    } else {
+        document.getElementById('charCount').textContent = charCount;
+        document.getElementById('encodingType').textContent = isGsm ? 'GSM-7' : 'Unicode';
+        document.getElementById('unicodeWarning').classList.toggle('d-none', isGsm);
+
+        var segmentDisplay = document.getElementById('segmentDisplay');
+        if (channel === 'rcs_basic' && charCount > 160) {
+            segmentDisplay.innerHTML = '<em class="text-success">Single RCS message</em>';
+            document.getElementById('rcsTextHelper').classList.remove('d-none');
+            document.getElementById('rcsHelperText').textContent = 'This message will be delivered as a single RCS text message.';
+        } else {
+            var singleLimit = isGsm ? 160 : 70;
+            var concatLimit = isGsm ? 153 : 67;
+            var parts = charCount <= singleLimit ? 1 : Math.ceil(charCount / concatLimit);
+            segmentDisplay.innerHTML = 'Segments: <strong id="smsPartCount">' + parts + '</strong>';
+            if (channel !== 'rcs_basic') {
+                document.getElementById('rcsTextHelper').classList.add('d-none');
+            }
         }
     }
     
     updatePreview();
+    updatePreviewCost();
 }
 
 function updateCharCount() {
@@ -2285,7 +2561,7 @@ function updateRcsWizardPreviewInMain() {
     var rcsAgentSelect = document.getElementById('rcsAgent');
     var selectedOption = rcsAgentSelect?.selectedOptions[0];
     var agentName = selectedOption?.dataset?.name || selectedOption?.text || 'QuickSMS Brand';
-    var agentLogo = selectedOption?.dataset?.logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}';
+    var agentLogo = selectedOption?.dataset?.logo || null;
     var agentTagline = selectedOption?.dataset?.tagline || 'Business messaging';
     
     var isCarousel = document.querySelector('input[name="rcsMessageType"]:checked')?.value === 'carousel';
@@ -2307,6 +2583,14 @@ function updateRcsWizardPreviewInMain() {
     RcsPreviewRenderer.initCarouselBehavior('#mainPreviewContainer');
 }
 
+// =====================================================
+// OPT-OUT MANAGEMENT
+// =====================================================
+
+var _optOutNumbers = { vmns: [], shortcodes: [] };
+var _keywordValidationTimer = null;
+var _currentNumberType = null;
+
 function toggleOptoutManagement() {
     var isEnabled = document.getElementById('enableOptoutManagement').checked;
     document.getElementById('optoutManagementSection').classList.toggle('d-none', !isEnabled);
@@ -2314,32 +2598,43 @@ function toggleOptoutManagement() {
     if (!isEnabled) {
         document.getElementById('optoutValidationError').classList.add('d-none');
     } else {
+        loadOptOutNumbers();
         validateOptoutConfig();
     }
+}
+
+function onScreeningListChange() {
+    var checkboxes = document.querySelectorAll('input[name="optOutScreeningLists[]"]:checked');
+    var pillsContainer = document.getElementById('screeningPills');
+    var pills = Array.from(checkboxes).map(function(cb) {
+        var label = document.querySelector('label[for="' + cb.id + '"]');
+        var name = label ? label.childNodes[0].textContent.trim() : cb.value;
+        return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle d-inline-flex align-items-center gap-1 px-2 py-1">'
+            + name
+            + '<button type="button" class="btn-close btn-close" style="font-size:0.5rem;" onclick="deselectScreening(\'' + cb.id + '\')"></button>'
+            + '</span>';
+    }).join('');
+    pillsContainer.innerHTML = pills;
+    validateOptoutConfig();
+}
+
+function deselectScreening(cbId) {
+    var cb = document.getElementById(cbId);
+    if (cb) { cb.checked = false; onScreeningListChange(); }
+}
+
+function getScreeningListIds() {
+    return Array.from(document.querySelectorAll('input[name="optOutScreeningLists[]"]:checked')).map(function(cb) { return cb.value; });
 }
 
 function toggleReplyOptout() {
     var isEnabled = document.getElementById('enableReplyOptout').checked;
     document.getElementById('replyOptoutConfig').classList.toggle('d-none', !isEnabled);
-    
-    var urlOptoutCheckbox = document.getElementById('enableUrlOptout');
-    var urlOptoutContainer = urlOptoutCheckbox ? urlOptoutCheckbox.closest('.p-3.border.rounded') : null;
-    
     if (isEnabled) {
-        if (urlOptoutCheckbox) {
-            urlOptoutCheckbox.checked = false;
-            urlOptoutCheckbox.disabled = true;
+        var urlCb = document.getElementById('enableUrlOptout');
+        if (urlCb && urlCb.checked) {
+            urlCb.checked = false;
             document.getElementById('urlOptoutConfig').classList.add('d-none');
-        }
-        if (urlOptoutContainer) {
-            urlOptoutContainer.classList.add('opacity-50');
-        }
-    } else {
-        if (urlOptoutCheckbox) {
-            urlOptoutCheckbox.disabled = false;
-        }
-        if (urlOptoutContainer) {
-            urlOptoutContainer.classList.remove('opacity-50');
         }
     }
     validateOptoutConfig();
@@ -2348,220 +2643,389 @@ function toggleReplyOptout() {
 function toggleUrlOptout() {
     var isEnabled = document.getElementById('enableUrlOptout').checked;
     document.getElementById('urlOptoutConfig').classList.toggle('d-none', !isEnabled);
-    
-    var replyOptoutCheckbox = document.getElementById('enableReplyOptout');
-    var replyOptoutContainer = replyOptoutCheckbox ? replyOptoutCheckbox.closest('.p-3.border.rounded') : null;
-    
     if (isEnabled) {
-        if (replyOptoutCheckbox) {
-            replyOptoutCheckbox.checked = false;
-            replyOptoutCheckbox.disabled = true;
+        var replyCb = document.getElementById('enableReplyOptout');
+        if (replyCb && replyCb.checked) {
+            replyCb.checked = false;
             document.getElementById('replyOptoutConfig').classList.add('d-none');
-        }
-        if (replyOptoutContainer) {
-            replyOptoutContainer.classList.add('opacity-50');
-        }
-    } else {
-        if (replyOptoutCheckbox) {
-            replyOptoutCheckbox.disabled = false;
-        }
-        if (replyOptoutContainer) {
-            replyOptoutContainer.classList.remove('opacity-50');
         }
     }
     validateOptoutConfig();
 }
 
-var optoutAddedToMessage = { reply: false, url: false };
+function toggleReplyStorageList() {
+    var target = document.querySelector('input[name="replyListTarget"]:checked');
+    var isNew = target && target.value === 'new';
+    var newFields = document.getElementById('replyNewListFields');
+    var listSelect = document.getElementById('replyOptOutListId');
+    if (newFields) newFields.classList.toggle('d-none', !isNew);
+    if (listSelect) listSelect.disabled = isNew;
+    validateOptoutConfig();
+}
 
-function addOptoutToMessage(type) {
-    var textInput = type === 'reply' ? document.getElementById('replyOptoutText') : document.getElementById('urlOptoutText');
+function toggleUrlStorageList() {
+    var target = document.querySelector('input[name="urlListTarget"]:checked');
+    var isNew = target && target.value === 'new';
+    var newFields = document.getElementById('urlNewListFields');
+    var listSelect = document.getElementById('urlOptOutListId');
+    if (newFields) newFields.classList.toggle('d-none', !isNew);
+    if (listSelect) listSelect.disabled = isNew;
+    validateOptoutConfig();
+}
+
+function loadOptOutNumbers() {
+    var select = document.getElementById('optOutNumberId');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Loading... --</option>';
+
+    fetch('/api/campaigns/opt-out-numbers', {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        _optOutNumbers = res.data || { vmns: [], shortcodes: [] };
+        select.innerHTML = '<option value="">-- Select number --</option>';
+
+        var vmns = _optOutNumbers.vmns || [];
+        var shortcodes = _optOutNumbers.shortcodes || [];
+
+        if (vmns.length > 0) {
+            var grp = document.createElement('optgroup');
+            grp.label = 'Virtual Mobile Numbers';
+            vmns.forEach(function(n) {
+                var opt = document.createElement('option');
+                opt.value = n.id;
+                opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '');
+                opt.dataset.type = 'vmn';
+                opt.dataset.number = n.number;
+                grp.appendChild(opt);
+            });
+            select.appendChild(grp);
+        }
+
+        if (shortcodes.length > 0) {
+            var grp2 = document.createElement('optgroup');
+            grp2.label = 'Shortcodes';
+            shortcodes.forEach(function(n) {
+                var keywords = (n.keywords || []).map(function(k) { return k.keyword; });
+                var keywordStr = keywords.join(', ');
+
+                if (n.type === 'shared_shortcode' && keywords.length > 0) {
+                    keywords.forEach(function(kw) {
+                        var opt = document.createElement('option');
+                        opt.value = n.id;
+                        opt.text = n.number + ' (' + kw + ')';
+                        opt.dataset.type = n.type;
+                        opt.dataset.number = n.number;
+                        opt.dataset.keyword = kw;
+                        grp2.appendChild(opt);
+                    });
+                } else {
+                    var opt = document.createElement('option');
+                    opt.value = n.id;
+                    opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '');
+                    opt.dataset.type = n.type;
+                    opt.dataset.number = n.number;
+                    opt.dataset.keyword = keywordStr;
+                    grp2.appendChild(opt);
+                }
+            });
+            select.appendChild(grp2);
+        }
+
+        if (vmns.length === 0 && shortcodes.length === 0) {
+            select.innerHTML = '<option value="">No numbers available</option>';
+        }
+    })
+    .catch(function() {
+        select.innerHTML = '<option value="">Failed to load numbers</option>';
+    });
+}
+
+function onOptOutNumberChange() {
+    var select = document.getElementById('optOutNumberId');
+    var selectedOpt = select.options[select.selectedIndex];
+    var numberType = selectedOpt ? selectedOpt.dataset.type : null;
+    _currentNumberType = numberType;
+
+    var keywordInput = document.getElementById('optOutKeywordInput');
+    var keywordSelect = document.getElementById('optOutKeywordSelect');
+
+    if (numberType === 'shared_shortcode') {
+        var presetKeyword = selectedOpt ? selectedOpt.dataset.keyword : '';
+        keywordInput.classList.remove('d-none');
+        keywordInput.value = presetKeyword;
+        keywordInput.readOnly = true;
+        keywordInput.style.backgroundColor = '#f8f9fa';
+        keywordSelect.classList.add('d-none');
+        refreshOptOutText();
+    } else {
+        keywordInput.classList.remove('d-none');
+        keywordInput.value = '';
+        keywordInput.readOnly = false;
+        keywordInput.style.backgroundColor = '';
+        keywordSelect.classList.add('d-none');
+    }
+
+    clearKeywordValidation();
+    if (numberType !== 'shared_shortcode') {
+        document.getElementById('replyOptoutText').value = '';
+    }
+    validateOptoutConfig();
+}
+
+function loadAvailableKeywords(numberId) {
+    var sel = document.getElementById('optOutKeywordSelect');
+    sel.innerHTML = '<option value="">-- Loading keywords... --</option>';
+
+    fetch('/api/campaigns/opt-out-keywords/' + numberId, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        var keywords = res.data || [];
+        sel.innerHTML = '<option value="">-- Select keyword --</option>';
+        keywords.forEach(function(kw) {
+            var opt = document.createElement('option');
+            opt.value = kw;
+            opt.text = kw;
+            sel.appendChild(opt);
+        });
+        if (keywords.length === 0) {
+            sel.innerHTML = '<option value="">No keywords available</option>';
+        }
+    })
+    .catch(function() {
+        sel.innerHTML = '<option value="">Failed to load keywords</option>';
+    });
+}
+
+function onKeywordSelectChange() {
+    clearKeywordValidation();
+    refreshOptOutText();
+    validateOptoutConfig();
+}
+
+function scheduleKeywordValidation() {
+    if (_keywordValidationTimer) clearTimeout(_keywordValidationTimer);
+    _keywordValidationTimer = setTimeout(function() {
+        validateOptOutKeyword();
+    }, 600);
+}
+
+function clearKeywordValidation() {
+    document.getElementById('keywordValidationIcon').innerHTML = '';
+    var errDiv = document.getElementById('keywordError');
+    errDiv.textContent = '';
+    errDiv.classList.add('d-none');
+}
+
+function validateOptOutKeyword() {
+    var numberId = document.getElementById('optOutNumberId').value;
+    var keyword = document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+
+    if (!numberId || !keyword || keyword.length < 4) {
+        clearKeywordValidation();
+        return;
+    }
+
+    if (_currentNumberType === 'shared_shortcode') {
+        document.getElementById('keywordValidationIcon').innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+        return;
+    }
+
+    var icon = document.getElementById('keywordValidationIcon');
+    icon.innerHTML = '<i class="fas fa-spinner fa-spin text-muted"></i>';
+
+    fetch('/api/campaigns/validate-opt-out-keyword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ keyword: keyword, number_id: numberId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        var errDiv = document.getElementById('keywordError');
+        if (res.valid) {
+            icon.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+            errDiv.textContent = '';
+            errDiv.classList.add('d-none');
+            refreshOptOutText();
+        } else {
+            icon.innerHTML = '<i class="fas fa-times-circle text-danger"></i>';
+            errDiv.textContent = res.message || 'Invalid keyword.';
+            errDiv.classList.remove('d-none');
+        }
+        validateOptoutConfig();
+    })
+    .catch(function() {
+        clearKeywordValidation();
+    });
+}
+
+function refreshOptOutText() {
+    var numberId = document.getElementById('optOutNumberId').value;
+    var numberOpt = document.getElementById('optOutNumberId').options[document.getElementById('optOutNumberId').selectedIndex];
+    var numberVal = numberOpt ? numberOpt.dataset.number : '';
+    var keyword = document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+
+    var textField = document.getElementById('replyOptoutText');
+
+    if (!numberId || !keyword || !numberVal) {
+        textField.value = '';
+        return;
+    }
+
+    fetch('/api/campaigns/suggest-opt-out-text', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ keyword: keyword, number: numberVal })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.text) textField.value = res.text;
+    })
+    .catch(function() {});
+}
+
+function insertOptOutTextToMessage(fieldId) {
+    var textField = document.getElementById(fieldId);
     var messageArea = document.getElementById('smsContent');
-    
-    if (!textInput || !messageArea) return;
-    
-    if (optoutAddedToMessage[type]) {
-        alert('Opt-out text has already been added to the message.');
+    if (!textField || !messageArea) return;
+
+    var text = textField.value.trim();
+    if (!text) {
+        alert('Opt-out text is empty. Please configure opt-out settings first.');
         return;
     }
-    
-    var optoutText = textInput.value.trim();
-    if (!optoutText) {
-        alert('Please enter opt-out text first.');
-        return;
-    }
-    
-    var currentContent = messageArea.value;
-    var separator = currentContent.trim() ? '\n\n' : '';
-    messageArea.value = currentContent + separator + optoutText;
-    
-    optoutAddedToMessage[type] = true;
-    
+
+    var current = messageArea.value;
+    var separator = current.trim() ? '\n\n' : '';
+    messageArea.value = current + separator + text;
     updateCharCount();
     updatePreview();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    var replyTargetRadios = document.querySelectorAll('input[name="replyOptoutTarget"]');
-    replyTargetRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            var replyNewFields = document.getElementById('replyNewListFields');
-            if (replyNewFields) {
-                replyNewFields.classList.toggle('d-none', this.value !== 'new');
-            }
-            validateOptoutConfig();
-        });
-    });
-    
-    var urlTargetRadios = document.querySelectorAll('input[name="urlOptoutTarget"]');
-    urlTargetRadios.forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            var urlNewFields = document.getElementById('urlNewListFields');
-            if (urlNewFields) {
-                urlNewFields.classList.toggle('d-none', this.value !== 'new');
-            }
-            validateOptoutConfig();
-        });
-    });
-    
-    var replyNewListName = document.getElementById('replyNewListName');
-    if (replyNewListName) {
-        replyNewListName.addEventListener('input', validateOptoutConfig);
-    }
-    
-    var urlNewListName = document.getElementById('urlNewListName');
-    if (urlNewListName) {
-        urlNewListName.addEventListener('input', validateOptoutConfig);
-    }
-    
-    var replyVirtualNumber = document.getElementById('replyVirtualNumber');
-    if (replyVirtualNumber) {
-        replyVirtualNumber.addEventListener('change', validateOptoutConfig);
-    }
-    
-    var replyOptoutText = document.getElementById('replyOptoutText');
-    if (replyOptoutText) {
-        replyOptoutText.addEventListener('input', validateOptoutConfig);
-    }
-    
-    var urlOptoutText = document.getElementById('urlOptoutText');
-    if (urlOptoutText) {
-        urlOptoutText.addEventListener('input', validateOptoutConfig);
-    }
-    
-    var optoutListSelect = document.getElementById('optoutListSelect');
-    if (optoutListSelect) {
-        optoutListSelect.addEventListener('change', validateOptoutConfig);
-    }
-});
-
 function validateOptoutConfig() {
-    var isEnabled = document.getElementById('enableOptoutManagement').checked;
+    var isEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
     if (!isEnabled) {
         document.getElementById('optoutValidationError').classList.add('d-none');
         return true;
     }
-    
-    var optoutListValue = document.getElementById('optoutListSelect').value;
-    var hasListSelected = optoutListValue !== '';
-    var replyEnabled = document.getElementById('enableReplyOptout') ? document.getElementById('enableReplyOptout').checked : false;
+
+    var screeningIds = getScreeningListIds();
+    var replyEnabled = document.getElementById('enableReplyOptout').checked;
     var urlEnabled = document.getElementById('enableUrlOptout').checked;
     var errorDiv = document.getElementById('optoutValidationError');
     var errorMsg = document.getElementById('optoutValidationMessage');
-    
-    if (!hasListSelected && !replyEnabled && !urlEnabled) {
-        errorMsg.textContent = 'When no opt-out list is selected, you must enable an opt-out method (Reply-based or Click-to-opt-out).';
+
+    if (screeningIds.length === 0 && !replyEnabled && !urlEnabled) {
+        errorMsg.textContent = 'Select an opt-out method or choose a screening list.';
         errorDiv.classList.remove('d-none');
         return false;
     }
-    
+
     if (replyEnabled) {
-        var virtualNumber = document.getElementById('replyVirtualNumber').value;
-        var replyText = document.getElementById('replyOptoutText').value.trim();
-        
-        if (!virtualNumber) {
-            errorMsg.textContent = 'Please select a virtual number for reply-based opt-out.';
+        var numId = document.getElementById('optOutNumberId').value;
+        var kw = document.getElementById('optOutKeywordInput').value.trim();
+        if (!numId) {
+            errorMsg.textContent = 'Select a number for reply opt-out.';
             errorDiv.classList.remove('d-none');
             return false;
         }
-        
-        if (!replyText) {
-            errorMsg.textContent = 'Opt-out text cannot be empty for reply-based opt-out.';
+        if (!kw) {
+            errorMsg.textContent = 'Enter or select an opt-out keyword.';
             errorDiv.classList.remove('d-none');
             return false;
         }
-        
-        var replyTarget = document.querySelector('input[name="replyOptoutTarget"]:checked');
+        var replyTarget = document.querySelector('input[name="replyListTarget"]:checked');
         if (replyTarget && replyTarget.value === 'new') {
             var replyNewName = document.getElementById('replyNewListName');
-            if (replyNewName && !replyNewName.value.trim()) {
-                errorMsg.textContent = 'Please enter a name for the new opt-out list (reply-based).';
+            if (!replyNewName || !replyNewName.value.trim()) {
+                errorMsg.textContent = 'Enter a name for the new opt-out list.';
                 errorDiv.classList.remove('d-none');
                 return false;
             }
         }
     }
-    
+
     if (urlEnabled) {
         var urlText = document.getElementById('urlOptoutText').value.trim();
-        
-        if (!urlText.includes('{' + '{unique_url}' + '}')) {
-            errorMsg.textContent = 'URL opt-out text must include the {' + '{unique_url}' + '} token.';
+        var urlPlaceholder = '{' + '{unique_url}' + '}';
+        if (!urlText.includes(urlPlaceholder)) {
+            errorMsg.textContent = 'URL opt-out text must include ' + urlPlaceholder + '.';
             errorDiv.classList.remove('d-none');
             return false;
         }
-        
-        var urlTarget = document.querySelector('input[name="urlOptoutTarget"]:checked');
+        var urlTarget = document.querySelector('input[name="urlListTarget"]:checked');
         if (urlTarget && urlTarget.value === 'new') {
             var urlNewName = document.getElementById('urlNewListName');
-            if (urlNewName && !urlNewName.value.trim()) {
-                errorMsg.textContent = 'Please enter a name for the new opt-out list (URL-based).';
+            if (!urlNewName || !urlNewName.value.trim()) {
+                errorMsg.textContent = 'Enter a name for the new opt-out list.';
                 errorDiv.classList.remove('d-none');
                 return false;
             }
         }
     }
-    
+
     errorDiv.classList.add('d-none');
     return true;
 }
 
 function getOptoutConfiguration() {
-    var isEnabled = document.getElementById('enableOptoutManagement').checked;
-    if (!isEnabled) {
-        return null;
-    }
-    
-    var config = {
-        enabled: true,
-        optout_list_id: document.getElementById('optoutListSelect').value,
-        reply_optout: null,
-        url_optout: null
-    };
-    
-    var replyEnabled = document.getElementById('enableReplyOptout') ? document.getElementById('enableReplyOptout').checked : false;
-    if (replyEnabled) {
-        config.reply_optout = {
-            virtual_number_id: document.getElementById('replyVirtualNumber').value,
-            text: document.getElementById('replyOptoutText').value,
-            target: document.querySelector('input[name="replyOptoutTarget"]:checked').value,
-            new_list_name: document.getElementById('replyNewListName') ? document.getElementById('replyNewListName').value : null,
-            new_list_desc: document.getElementById('replyNewListDesc') ? document.getElementById('replyNewListDesc').value : null
-        };
-    }
-    
+    var isEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
+    if (!isEnabled) return null;
+
+    var screeningIds = getScreeningListIds();
+    var replyEnabled = document.getElementById('enableReplyOptout').checked;
     var urlEnabled = document.getElementById('enableUrlOptout').checked;
-    if (urlEnabled) {
-        config.url_optout = {
-            domain_id: document.getElementById('urlOptoutDomain').value,
-            text: document.getElementById('urlOptoutText').value,
-            target: document.querySelector('input[name="urlOptoutTarget"]:checked').value,
-            new_list_name: document.getElementById('urlNewListName').value,
-            new_list_desc: document.getElementById('urlNewListDesc').value
-        };
+
+    var method = replyEnabled ? 'reply' : (urlEnabled ? 'url' : null);
+    var numberId = replyEnabled ? document.getElementById('optOutNumberId').value : null;
+    var keyword = replyEnabled ? document.getElementById('optOutKeywordInput').value.trim().toUpperCase() : null;
+    var replyText = replyEnabled ? document.getElementById('replyOptoutText').value : null;
+    var urlText = urlEnabled ? document.getElementById('urlOptoutText').value : null;
+
+    var storageListId = null;
+    var newListName = null;
+
+    if (replyEnabled) {
+        var replyTarget = document.querySelector('input[name="replyListTarget"]:checked');
+        if (replyTarget && replyTarget.value === 'new') {
+            var rn = document.getElementById('replyNewListName');
+            newListName = rn ? rn.value.trim() : null;
+        } else {
+            storageListId = document.getElementById('replyOptOutListId').value || null;
+        }
+    } else if (urlEnabled) {
+        var urlTarget = document.querySelector('input[name="urlListTarget"]:checked');
+        if (urlTarget && urlTarget.value === 'new') {
+            var un = document.getElementById('urlNewListName');
+            newListName = un ? un.value.trim() : null;
+        } else {
+            storageListId = document.getElementById('urlOptOutListId').value || null;
+        }
     }
-    
-    return config;
+
+    return {
+        enabled: true,
+        opt_out_enabled: !!(method),
+        opt_out_method: method,
+        opt_out_number_id: numberId,
+        opt_out_keyword: keyword,
+        opt_out_text: replyText || urlText,
+        opt_out_list_id: storageListId,
+        opt_out_screening_list_ids: screeningIds,
+        opt_out_url_enabled: urlEnabled,
+        new_list_name: newListName,
+    };
 }
 
 function collectCampaignConfig() {
@@ -2597,16 +3061,15 @@ function collectCampaignConfig() {
     if (recipientState && recipientState.manual && recipientState.manual.valid) {
         recipientsList = recipientsList.concat(recipientState.manual.valid);
     }
-    if (recipientState && recipientState.upload && recipientState.upload.valid) {
-        recipientsList = recipientsList.concat(recipientState.upload.valid);
-    }
+    recipientState.files.forEach(function(f) {
+        recipientsList = recipientsList.concat(f.valid);
+    });
     if (recipientState && recipientState.contacts && recipientState.contacts.valid) {
         recipientsList = recipientsList.concat(recipientState.contacts.valid);
     }
     
-    // Calculate recipient counts from all sources
     var manualCount = recipientState.manual.valid.length;
-    var uploadCount = recipientState.upload.valid.length;
+    var uploadCount = recipientState.files.reduce(function(acc, f) { return acc + f.valid.length; }, 0);
     var contactsCount = recipientState.contactBook.contacts.reduce(function(acc, c) { return acc + (c.count || 1); }, 0);
     var listsCount = recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
     var dynamicListsCount = recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
@@ -2624,7 +3087,7 @@ function collectCampaignConfig() {
         recipients: recipientsList,
         recipient_count: totalRecipientCount,
         valid_count: totalRecipientCount,
-        invalid_count: recipientState.manual.invalid.length + recipientState.upload.invalid.length,
+        invalid_count: recipientState.manual.invalid.length + recipientState.files.reduce(function(acc, f) { return acc + f.invalid.length; }, 0),
         sources: {
             manual_input: manualCount,
             file_upload: uploadCount,
@@ -2781,7 +3244,7 @@ function continueToConfirmation() {
     var manualNumbers = document.getElementById('manualNumbers').value.trim();
     var hasRecipients = manualNumbers.length > 0 || 
         (recipientState && recipientState.manual && recipientState.manual.valid && recipientState.manual.valid.length > 0) ||
-        (recipientState && recipientState.upload && recipientState.upload.valid && recipientState.upload.valid.length > 0) ||
+        (recipientState && recipientState.files && recipientState.files.reduce(function(acc, f) { return acc + f.valid.length; }, 0) > 0) ||
         (recipientState && recipientState.contactBook && (
             recipientState.contactBook.contacts.length > 0 ||
             recipientState.contactBook.lists.length > 0 ||
@@ -2803,148 +3266,253 @@ function continueToConfirmation() {
         return;
     }
     
-    var optoutConfig = getOptoutConfiguration();
-    
     var channel = document.querySelector('input[name="channel"]:checked');
     var channelValue = channel ? channel.value : 'sms';
     
-    // Map frontend channel values to backend expected values
-    var channelMap = {
+    var apiChannelMap = {
+        'sms': 'sms',
+        'rcs_basic': 'rcs_basic',
+        'rcs_rich': 'rcs_single'
+    };
+    var apiChannelValue = apiChannelMap[channelValue] || 'sms';
+
+    var sessionChannelMap = {
         'sms': 'sms_only',
         'rcs_basic': 'basic_rcs',
         'rcs_rich': 'rich_rcs'
     };
-    channelValue = channelMap[channelValue] || 'sms_only';
+    var sessionChannelValue = sessionChannelMap[channelValue] || 'sms_only';
     
     var senderIdSelect = document.getElementById('senderId');
     var senderIdText = senderIdSelect && senderIdSelect.selectedIndex > 0 ? senderIdSelect.options[senderIdSelect.selectedIndex].text : senderId;
     
     var rcsAgentSelect = document.getElementById('rcsAgent');
     var rcsAgentName = rcsAgentSelect && rcsAgentSelect.selectedIndex > 0 ? rcsAgentSelect.options[rcsAgentSelect.selectedIndex].text : null;
+    var rcsAgentId = rcsAgentSelect ? rcsAgentSelect.value : null;
     
-    var recipientCount = 0;
     var manualCount = recipientState.manual.valid.length;
-    var uploadCount = recipientState.upload.valid.length;
+    var uploadCount = recipientState.files.reduce(function(acc, f) { return acc + f.valid.length; }, 0);
     var contactsCount = recipientState.contactBook.contacts.length;
     var listsCount = recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
     var dynamicListsCount = recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0);
     var tagsCount = recipientState.contactBook.tags.reduce(function(acc, t) { return acc + (t.count || 0); }, 0);
-    
-    recipientCount = manualCount + uploadCount + contactsCount + listsCount + dynamicListsCount + tagsCount;
-    
-    var invalidCount = recipientState.manual.invalid.length + recipientState.upload.invalid.length;
+    var recipientCount = manualCount + uploadCount + contactsCount + listsCount + dynamicListsCount + tagsCount;
+    var invalidCount = recipientState.manual.invalid.length + recipientState.files.reduce(function(acc, f) { return acc + f.invalid.length; }, 0);
     
     var scheduledTimeValue = 'now';
-    var scheduledRadio = document.querySelector('input[name="scheduling"]:checked');
-    if (scheduledRadio && scheduledRadio.value === 'scheduled') {
-        var dateInput = document.getElementById('scheduledDate');
-        var timeInput = document.getElementById('scheduledTime');
+    var scheduledAt = null;
+    var scheduleToggle = document.getElementById('scheduleToggle');
+    if (scheduleToggle && scheduleToggle.checked) {
+        var dateInput = document.getElementById('scheduleDate');
+        var timeInput = document.getElementById('scheduleTime');
         if (dateInput && timeInput && dateInput.value && timeInput.value) {
             scheduledTimeValue = dateInput.value + ' ' + timeInput.value;
+            scheduledAt = dateInput.value + 'T' + timeInput.value + ':00';
         }
     }
-    
+
+    var sendingWindowValue = null;
+    var unsociableToggle = document.getElementById('unsociableToggle');
+    if (unsociableToggle && unsociableToggle.checked) {
+        var fromVal = document.getElementById('unsociableFrom');
+        var toVal = document.getElementById('unsociableTo');
+        if (fromVal && toVal && fromVal.value && toVal.value) {
+            sendingWindowValue = 'Quiet hours: ' + fromVal.value + ' - ' + toVal.value;
+        }
+    }
+
     var messageExpiry = null;
     if (document.getElementById('messageExpiry') && document.getElementById('messageExpiry').checked) {
         var expiryVal = document.getElementById('messageExpiryValue');
         if (expiryVal) messageExpiry = expiryVal.textContent;
     }
-    
-    // Capture RCS content from the wizard when using rich RCS channel
-    var rcsContent = null;
-    if (channelValue === 'rich_rcs' && typeof getRcsSendPayload === 'function') {
-        rcsContent = getRcsSendPayload();
-    }
 
-    // Capture actual IDs (not just display names) for campaign creation
-    var senderIdValue = senderIdSelect ? senderIdSelect.value : null;
-    var rcsAgentId = rcsAgentSelect ? rcsAgentSelect.value : null;
 
-    // Build recipient sources for the Campaign API
     var recipientSources = [];
     if (recipientState.manual.valid.length > 0) {
         recipientSources.push({ type: 'manual', numbers: recipientState.manual.valid });
     }
-    if (recipientState.upload.valid.length > 0) {
-        recipientSources.push({ type: 'csv', data: recipientState.upload.valid });
-    }
-    if (recipientState.contactBook.lists.length > 0) {
-        recipientState.contactBook.lists.forEach(function(list) {
-            recipientSources.push({ type: 'list', id: list.id || list.uuid });
-        });
-    }
-    if (recipientState.contactBook.dynamicLists.length > 0) {
-        recipientState.contactBook.dynamicLists.forEach(function(list) {
-            recipientSources.push({ type: 'list', id: list.id || list.uuid });
-        });
-    }
-    if (recipientState.contactBook.tags.length > 0) {
-        recipientState.contactBook.tags.forEach(function(tag) {
-            recipientSources.push({ type: 'tag', id: tag.id || tag.uuid });
-        });
-    }
-    if (recipientState.contactBook.contacts.length > 0) {
-        recipientSources.push({
-            type: 'individual',
-            contact_ids: recipientState.contactBook.contacts.map(function(c) { return c.id || c.uuid; })
-        });
-    }
-
-    // Map channel to Campaign API type
-    var campaignTypeMap = {
-        'sms_only': 'sms',
-        'basic_rcs': 'rcs_basic',
-        'rich_rcs': rcsContent && rcsContent.messageType === 'carousel' ? 'rcs_carousel' : 'rcs_single'
-    };
-
-    var campaignConfig = {
-        campaign_name: campaignName,
-        channel: channelValue,
-        sender_id: senderIdText,
-        sender_id_id: senderIdValue,
-        rcs_agent: rcsAgentName,
-        rcs_agent_id: rcsAgentId,
-        message_content: smsContent,
-        rcs_content: rcsContent,
-        campaign_type: campaignTypeMap[channelValue] || 'sms',
-        recipient_sources: recipientSources,
-        recipient_count: recipientCount,
-        valid_count: recipientCount,
-        invalid_count: invalidCount,
-        opted_out_count: 0,
-        sources: {
-            manual_input: manualCount,
-            file_upload: uploadCount,
-            contacts: contactsCount,
-            lists: listsCount,
-            dynamic_lists: dynamicListsCount,
-            tags: tagsCount
-        },
-        scheduled_time: scheduledTimeValue,
-        message_expiry: messageExpiry,
-        sending_window: null,
-        optout_config: optoutConfig
-    };
-    
-    fetch('{{ route("messages.store-campaign-config") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify(campaignConfig)
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-        if (data.success) {
-            window.location.href = '{{ route("messages.confirm") }}';
-        } else {
-            alert('Failed to save campaign configuration. Please try again.');
+    recipientState.files.forEach(function(f) {
+        if (f.data && f.data.length > 0) {
+            recipientSources.push({ type: 'csv', data: f.data });
+        } else if (f.valid.length > 0) {
+            recipientSources.push({ type: 'manual', numbers: f.valid });
         }
-    })
-    .catch(function(error) {
-        console.error('Error:', error);
-        window.location.href = '{{ route("messages.confirm") }}';
+    });
+    recipientState.contactBook.lists.forEach(function(l) {
+        recipientSources.push({ type: 'list', id: l.id, name: l.name });
+    });
+    recipientState.contactBook.tags.forEach(function(t) {
+        recipientSources.push({ type: 'tag', id: t.id, name: t.name });
+    });
+    if (recipientState.contactBook.contacts.length > 0) {
+        recipientSources.push({ type: 'individual', contact_ids: recipientState.contactBook.contacts.map(function(c) { return c.id; }) });
+    }
+
+    var continueBtn = document.getElementById('continueBtn') || document.querySelector('[onclick*="continueToConfirmation"]');
+    if (continueBtn) {
+        continueBtn.disabled = true;
+        continueBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Creating campaign...';
+    }
+
+    var validityPeriod = null;
+    if (messageExpiry) {
+        var match = messageExpiry.match(/(\d+)/);
+        if (match) validityPeriod = parseInt(match[1], 10);
+    }
+
+    var sendingWindowStartVal = null;
+    var sendingWindowEndVal = null;
+    var unsociableToggleEl = document.getElementById('unsociableToggle');
+    if (unsociableToggleEl && unsociableToggleEl.checked) {
+        var fromEl = document.getElementById('unsociableFrom');
+        var toEl = document.getElementById('unsociableTo');
+        if (fromEl && fromEl.value) sendingWindowStartVal = fromEl.value;
+        if (toEl && toEl.value) sendingWindowEndVal = toEl.value;
+    }
+
+    var optoutCfg = getOptoutConfiguration();
+
+    function buildCampaignData(resolvedListId) {
+        return {
+            name: campaignName,
+            type: apiChannelValue,
+            message_content: smsContent,
+            sender_id_id: senderId || null,
+            rcs_agent_id: rcsAgentId || null,
+            recipient_sources: recipientSources,
+            scheduled_at: scheduledAt,
+            validity_period: validityPeriod,
+            sending_window_start: sendingWindowStartVal,
+            sending_window_end: sendingWindowEndVal,
+            opt_out_enabled: optoutCfg ? optoutCfg.opt_out_enabled : false,
+            opt_out_method: optoutCfg ? optoutCfg.opt_out_method : null,
+            opt_out_number_id: optoutCfg ? optoutCfg.opt_out_number_id : null,
+            opt_out_keyword: optoutCfg ? optoutCfg.opt_out_keyword : null,
+            opt_out_text: optoutCfg ? optoutCfg.opt_out_text : null,
+            opt_out_list_id: resolvedListId || (optoutCfg ? optoutCfg.opt_out_list_id : null),
+            opt_out_screening_list_ids: optoutCfg ? optoutCfg.opt_out_screening_list_ids : [],
+            opt_out_url_enabled: optoutCfg ? optoutCfg.opt_out_url_enabled : false,
+        };
+    }
+
+    var existingCampaignId = window._restoredCampaignId || null;
+
+    var newListPromise = Promise.resolve(null);
+    if (optoutCfg && optoutCfg.new_list_name) {
+        newListPromise = fetch('/api/opt-out-lists', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ name: optoutCfg.new_list_name })
+        }).then(function(r) { return r.json(); }).then(function(res) {
+            return res.data ? res.data.id : null;
+        }).catch(function() { return null; });
+    }
+
+    var campaignPromise = newListPromise.then(function(resolvedListId) {
+        var campaignData = buildCampaignData(resolvedListId);
+        if (existingCampaignId) {
+            return CampaignService.update(existingCampaignId, campaignData).then(function(result) {
+                return { data: { id: existingCampaignId } };
+            }).catch(function() {
+                return CampaignService.create(campaignData);
+            });
+        } else {
+            return CampaignService.create(campaignData);
+        }
+    });
+
+    campaignPromise.then(function(result) {
+        var campaignId = result && result.data ? result.data.id : null;
+        if (!campaignId) {
+            if (continueBtn) {
+                continueBtn.disabled = false;
+                continueBtn.innerHTML = '<i class="fas fa-arrow-right me-1"></i> Continue';
+            }
+            showValidationErrors([{ fieldId: null, message: 'Failed to create campaign. Please try again.' }]);
+            return;
+        }
+
+        var sessionConfig = {
+            campaign_id: campaignId,
+            campaign_name: campaignName,
+            channel: sessionChannelValue,
+            sender_id: senderIdText,
+            rcs_agent: rcsAgentName,
+            message_content: smsContent,
+            recipient_count: recipientCount,
+            valid_count: recipientCount,
+            invalid_count: invalidCount,
+            opted_out_count: 0,
+            sources: {
+                manual_input: manualCount,
+                file_upload: uploadCount,
+                contacts: contactsCount,
+                lists: listsCount,
+                dynamic_lists: dynamicListsCount,
+                tags: tagsCount
+            },
+            scheduled_time: scheduledTimeValue,
+            message_expiry: messageExpiry,
+            sending_window: sendingWindowValue,
+            optout_config: optoutCfg
+        };
+
+        if (continueBtn) {
+            continueBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Preparing campaign...';
+        }
+
+        return fetch('/api/campaigns/' + campaignId + '/prepare', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        }).then(function(prepResp) {
+            if (!prepResp.ok) {
+                console.warn('[Campaign] Prepare failed with status ' + prepResp.status + ', continuing with flat estimate');
+                return null;
+            }
+            return prepResp.json();
+        }).then(function(prepResult) {
+            if (prepResult && prepResult.success && prepResult.data && prepResult.data.resolver_result) {
+                var rr = prepResult.data.resolver_result;
+                sessionConfig.recipient_count = rr.total_resolved || recipientCount;
+                sessionConfig.valid_count = rr.total_created || (rr.total_resolved - (rr.total_opted_out || 0) - (rr.total_invalid || 0));
+                sessionConfig.invalid_count = rr.total_invalid || invalidCount;
+                sessionConfig.opted_out_count = rr.total_opted_out || 0;
+            }
+
+            return fetch('{{ route("messages.store-campaign-config") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(sessionConfig)
+            });
+        }).then(function() {
+            window.location.href = '{{ route("messages.confirm") }}?campaign_id=' + campaignId;
+        });
+    }).catch(function(error) {
+        if (continueBtn) {
+            continueBtn.disabled = false;
+            continueBtn.innerHTML = '<i class="fas fa-arrow-right me-1"></i> Continue';
+        }
+        if (error.validationErrors) {
+            var errorList = [];
+            Object.keys(error.validationErrors).forEach(function(field) {
+                errorList.push({ fieldId: null, message: error.validationErrors[field][0] });
+            });
+            showValidationErrors(errorList);
+        } else {
+            showValidationErrors([{ fieldId: null, message: error.message || 'Failed to create campaign. Please try again.' }]);
+        }
     });
 }
 
@@ -2954,7 +3522,7 @@ function updateOptoutCount() {
 
 var recipientState = {
     manual: { valid: [], invalid: [] },
-    upload: { valid: [], invalid: [] },
+    files: [],
     contactBook: { contacts: [], lists: [], dynamicLists: [], tags: [] },
     ukMode: true,
     convert07: true
@@ -2980,7 +3548,7 @@ function loadPreselectedContacts() {
             });
         }
         
-        updateContactBookDisplay();
+        renderContactBookChips();
         updateRecipientSummary();
         
         sessionStorage.removeItem('sendMessageRecipients');
@@ -3088,71 +3656,866 @@ function normalizeNumber(num) {
 
 function revalidateNumbers() {
     validateManualNumbers();
-    if (recipientState.upload.valid.length > 0 || recipientState.upload.invalid.length > 0) {
-        console.log('TODO: Revalidate uploaded numbers');
-    }
+    recipientState.files.forEach(function(file) {
+        var allNumbers = file.valid.concat(file.invalid.map(function(inv) { return inv.original; }));
+        var newValid = [];
+        var newInvalid = [];
+        allNumbers.forEach(function(num, idx) {
+            var cleaned = String(num).replace(/[\s\-\(\)]/g, '').replace(/^\+/, '');
+            if (cleaned.match(/^\d{10,15}$/)) {
+                newValid.push(cleaned);
+            } else {
+                newInvalid.push({ row: idx + 1, original: num, reason: 'Invalid format' });
+            }
+        });
+        file.valid = newValid;
+        file.invalid = newInvalid;
+    });
+    renderUploadedFiles();
+    updateRecipientSummary();
 }
+
+var csvCurrentStep = 1;
+var csvFileData = null;
+var csvValidationResults = null;
+
+var pendingFiles = [];
+var currentProcessingFileIndex = -1;
 
 function triggerFileUpload() {
-    document.getElementById('recipientFile').click();
+    if (recipientState.files.length >= 5) {
+        showCsvAlert('Maximum <strong>5 files</strong> allowed.');
+        return;
+    }
+    csvCurrentStep = 1;
+    csvFileData = null;
+    csvValidationResults = null;
+    csvShowStep(1);
+    document.getElementById('csvSelectedFileInfo').classList.add('d-none');
+    document.getElementById('csvDropZone').classList.remove('d-none');
+    document.getElementById('csvFileInput').value = '';
+    document.getElementById('csvNextBtn').disabled = true;
+    var modal = new bootstrap.Modal(document.getElementById('csvUploadModal'));
+    modal.show();
 }
 
-function handleFileSelect() {
-    var fileInput = document.getElementById('recipientFile');
-    if (fileInput.files.length) {
-        processFileUpload();
+document.addEventListener('DOMContentLoaded', function() {
+    var csvFileInput = document.getElementById('csvFileInput');
+    if (csvFileInput) {
+        csvFileInput.addEventListener('change', function(e) {
+            csvHandleFile(e.target.files[0]);
+        });
+    }
+
+    var csvDZ = document.getElementById('csvDropZone');
+    if (csvDZ) {
+        csvDZ.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+                document.getElementById('csvFileInput').click();
+            }
+        });
+        csvDZ.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#6c5ce7';
+            this.style.backgroundColor = '#e8e0f5';
+        });
+        csvDZ.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#886CC0';
+            this.style.backgroundColor = '#f0ebf8';
+        });
+        csvDZ.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#886CC0';
+            this.style.backgroundColor = '#f0ebf8';
+            if (e.dataTransfer.files.length) {
+                csvHandleFile(e.dataTransfer.files[0]);
+            }
+        });
+    }
+});
+
+function csvHandleFile(file) {
+    if (!file) return;
+    var ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    var validExtensions = ['.csv', '.xlsx', '.xls'];
+    if (!validExtensions.includes(ext)) {
+        showCsvAlert('Please upload a <strong>CSV</strong> or <strong>Excel</strong> file.');
+        return;
+    }
+    csvFileData = {
+        file: file,
+        name: file.name,
+        size: csvFormatFileSize(file.size),
+        type: ext === '.csv' ? 'csv' : 'excel',
+        parsedHeaders: null,
+        parsedRows: null
+    };
+    document.getElementById('csvSelectedFileName').textContent = file.name;
+    document.getElementById('csvSelectedFileSize').textContent = csvFormatFileSize(file.size);
+    document.getElementById('csvSelectedFileInfo').classList.remove('d-none');
+    document.getElementById('csvDropZone').classList.add('d-none');
+    document.getElementById('csvNextBtn').disabled = false;
+}
+
+function csvFormatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function csvClearFile() {
+    csvFileData = null;
+    document.getElementById('csvFileInput').value = '';
+    document.getElementById('csvSelectedFileInfo').classList.add('d-none');
+    document.getElementById('csvDropZone').classList.remove('d-none');
+    document.getElementById('csvNextBtn').disabled = true;
+}
+
+function csvShowStep(step) {
+    csvCurrentStep = step;
+    for (var i = 1; i <= 3; i++) {
+        document.getElementById('csvStep' + i).classList.add('d-none');
+        var circle = document.getElementById('csvStepCircle' + i);
+        circle.style.backgroundColor = '#fff';
+        circle.style.color = '#886CC0';
+        circle.style.border = '2px solid #886CC0';
+    }
+    document.getElementById('csvStep' + step).classList.remove('d-none');
+    for (var i = 1; i <= step; i++) {
+        var circle = document.getElementById('csvStepCircle' + i);
+        circle.style.backgroundColor = '#886CC0';
+        circle.style.color = '#fff';
+        circle.style.border = 'none';
+    }
+    document.getElementById('csvBackBtn').classList.toggle('d-none', step === 1);
+    document.getElementById('csvNextBtn').classList.toggle('d-none', step >= 3);
+    document.getElementById('csvConfirmBtn').classList.toggle('d-none', step !== 3);
+}
+
+function csvNextStep() {
+    if (csvCurrentStep === 1) {
+        csvShowStep(2);
+        csvDetectColumns();
+    } else if (csvCurrentStep === 2) {
+        if (!csvValidateMappings()) return;
+        csvShowStep(3);
+        csvRunValidation();
     }
 }
 
-function processFileUpload() {
-    var fileInput = document.getElementById('recipientFile');
-    if (!fileInput.files.length) return;
-    
-    var file = fileInput.files[0];
-    var isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
-    
-    document.getElementById('uploadProgress').classList.remove('d-none');
-    document.getElementById('uploadResult').classList.add('d-none');
-    
-    setTimeout(function() {
-        document.getElementById('uploadProgressBar').style.width = '50%';
-        document.getElementById('uploadStatus').textContent = 'Detecting columns...';
-        
-        if (isExcel) {
-            document.getElementById('excelZeroWarning').classList.remove('d-none');
-        }
-        
-        setTimeout(function() {
-            document.getElementById('uploadProgressBar').style.width = '100%';
-            var modal = new bootstrap.Modal(document.getElementById('columnMappingModal'));
-            modal.show();
-        }, 500);
-    }, 500);
+function csvPrevStep() {
+    if (csvCurrentStep > 1) {
+        csvShowStep(csvCurrentStep - 1);
+    }
 }
 
-function confirmColumnMapping() {
-    bootstrap.Modal.getInstance(document.getElementById('columnMappingModal')).hide();
-    
-    recipientState.upload.valid = ['+447700900111', '+447700900222', '+447700900333', '+447700900444', '+447700900555'];
-    recipientState.upload.invalid = [
-        { row: 6, original: 'invalid', reason: 'Not a valid number' },
-        { row: 12, original: '123', reason: 'Too short' }
-    ];
-    
-    document.getElementById('uploadProgress').classList.add('d-none');
-    document.getElementById('uploadResult').classList.remove('d-none');
-    document.getElementById('uploadValid').textContent = recipientState.upload.valid.length;
-    document.getElementById('uploadInvalid').textContent = recipientState.upload.invalid.length;
-    document.getElementById('uploadInvalidLink').classList.toggle('d-none', recipientState.upload.invalid.length === 0);
-    
-    updateRecipientSummary();
-    console.log('TODO: API - Process file upload with column mapping');
+function csvParseCSVLine(line) {
+    line = line.trim();
+    if (line.length >= 2 && line[0] === '"' && line[line.length - 1] === '"') {
+        var inner = line.substring(1, line.length - 1);
+        if (inner.indexOf('"') === -1) line = inner;
+    }
+    var result = [];
+    var current = '';
+    var inQuotes = false;
+    for (var i = 0; i < line.length; i++) {
+        var ch = line[i];
+        if (inQuotes) {
+            if (ch === '"' && i + 1 < line.length && line[i + 1] === '"') {
+                current += '"'; i++;
+            } else if (ch === '"') {
+                inQuotes = false;
+            } else {
+                current += ch;
+            }
+        } else {
+            if (ch === '"') { inQuotes = true; }
+            else if (ch === ',') { result.push(current.trim()); current = ''; }
+            else { current += ch; }
+        }
+    }
+    result.push(current.trim());
+    return result;
 }
+
+function csvDetectColumns() {
+    if (!csvFileData || !csvFileData.file) return;
+    var hasHeaders = document.getElementById('csvHasHeaders').checked;
+
+    if (csvFileData.type === 'excel') {
+        if (typeof XLSX === 'undefined') {
+            showCsvAlert('Excel file support is not available. Please upload a <strong>CSV</strong> file instead.');
+            csvPrevStep();
+            return;
+        }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                var data = new Uint8Array(e.target.result);
+                var workbook = XLSX.read(data, { type: 'array' });
+                var sheet = workbook.Sheets[workbook.SheetNames[0]];
+                var jsonRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                jsonRows = jsonRows.filter(function(r) {
+                    return r.some(function(cell) { return cell !== '' && cell !== null && cell !== undefined; });
+                });
+                if (jsonRows.length === 0) { showCsvAlert('The spreadsheet appears to be empty.'); return; }
+                var headerRow = jsonRows[0].map(function(c) { return String(c); });
+                var sampleRow = jsonRows.length > 1 ? jsonRows[1].map(function(c) { return String(c); }) : headerRow;
+                var dataRows = jsonRows.slice(hasHeaders ? 1 : 0).map(function(r) { return r.map(function(c) { return String(c); }); });
+                csvBuildMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
+            } catch (err) {
+                console.error('[CSV Upload] Excel parse error:', err);
+                showCsvAlert('Could not read the Excel file: ' + escapeContactHtml(err.message || 'Unknown error') + '. Please check the format and try again.');
+            }
+        };
+        reader.readAsArrayBuffer(csvFileData.file);
+    } else {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var text = e.target.result;
+            var lines = text.split(/\r?\n/).filter(function(l) { return l.trim().length > 0; });
+            if (lines.length === 0) return;
+            var headerRow = csvParseCSVLine(lines[0]);
+            var sampleRow = lines.length > 1 ? csvParseCSVLine(lines[1]) : headerRow;
+            var dataRows = lines.slice(hasHeaders ? 1 : 0).map(csvParseCSVLine);
+            csvBuildMappingUI(headerRow, sampleRow, dataRows, hasHeaders);
+        };
+        reader.readAsText(csvFileData.file);
+    }
+}
+
+function csvBuildMappingUI(headerRow, sampleRow, allDataRows, hasHeaders) {
+    csvFileData.parsedHeaders = headerRow;
+    csvFileData.parsedRows = allDataRows;
+
+    var columns = hasHeaders
+        ? headerRow
+        : headerRow.map(function(_, i) { return 'Column ' + String.fromCharCode(65 + i); });
+    var samples = hasHeaders ? sampleRow : headerRow;
+
+    var tbody = document.getElementById('csvColumnMappingBody');
+    tbody.innerHTML = '';
+
+    var mappingOptions = '<option value="">-- Do not import --</option>' +
+        '<option value="mobile">Mobile Number *</option>' +
+        '<option value="first_name">First Name</option>' +
+        '<option value="last_name">Last Name</option>' +
+        '<option value="email">Email</option>' +
+        '<option value="custom">Custom Field (keep as-is)</option>';
+
+    columns.forEach(function(col, idx) {
+        var colLower = String(col).toLowerCase().trim();
+        var autoMap = colLower === '' ? '' : 'custom';
+        if (colLower.includes('mobile') || colLower.includes('phone') || colLower.includes('msisdn') || colLower.includes('number')) autoMap = 'mobile';
+        else if (colLower.includes('first')) autoMap = 'first_name';
+        else if (colLower.includes('last') || colLower.includes('surname')) autoMap = 'last_name';
+        else if (colLower.includes('email')) autoMap = 'email';
+
+        var sampleVal = (samples[idx] !== undefined && samples[idx] !== null) ? String(samples[idx]) : '';
+        var row = document.createElement('tr');
+        row.innerHTML = '<td><strong>' + escapeContactHtml(col) + '</strong></td>' +
+            '<td><select class="form-select form-select-sm csv-column-mapping" data-column="' + idx + '">' + mappingOptions + '</select></td>' +
+            '<td class="text-muted small">' + escapeContactHtml(sampleVal) + '</td>';
+        tbody.appendChild(row);
+
+        if (autoMap) {
+            row.querySelector('select').value = autoMap;
+        }
+    });
+
+    var mobileColIdx = -1;
+    columns.forEach(function(col, idx) {
+        var sel = tbody.querySelectorAll('.csv-column-mapping')[idx];
+        if (sel && sel.value === 'mobile') mobileColIdx = idx;
+    });
+
+    var needsNormalisation = false;
+    var issues = [];
+    if (mobileColIdx >= 0) {
+        var checkRows = allDataRows.slice(0, Math.min(20, allDataRows.length));
+        var hasLeading7 = false, hasPlus = false, hasSpaces = false, hasLeading07 = false, hasLeading44 = false;
+        checkRows.forEach(function(row) {
+            var val = String(row[mobileColIdx] || '');
+            if (val.indexOf(' ') !== -1) hasSpaces = true;
+            var cleaned = val.replace(/[\s\-]/g, '');
+            if (cleaned.match(/^\+/)) hasPlus = true;
+            cleaned = cleaned.replace(/^\+/, '');
+            if (cleaned.match(/^07\d{9}$/)) hasLeading07 = true;
+            else if (cleaned.match(/^7\d{9,}$/)) hasLeading7 = true;
+            else if (cleaned.match(/^44\d{10,}$/)) hasLeading44 = true;
+        });
+        if (hasLeading7) issues.push("numbers starting with '7' (missing country code)");
+        if (hasLeading07) issues.push("numbers starting with '07' (local UK format)");
+        if (hasPlus) issues.push("numbers with '+' prefix");
+        if (hasSpaces) issues.push("numbers containing spaces");
+        if (hasLeading44 && (hasLeading7 || hasLeading07)) issues.push("mixed '44...' and shorter formats");
+        needsNormalisation = issues.length > 0;
+    }
+
+    document.getElementById('csvExcelCorrectionApplied').value = '';
+    var normContent = document.getElementById('csvNormalisationContent');
+    normContent.innerHTML =
+        '<i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>' +
+        '<strong style="color: #886CC0;">UK Number Normalisation</strong>' +
+        '<p class="mb-2 mt-2 text-dark" id="csvNormalisationDetail">We\'ve detected mixed mobile number formats in your file.</p>' +
+        '<p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)?</p>' +
+        '<div class="d-flex gap-2">' +
+            '<button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="csvSetNormalisation(true)">' +
+                '<i class="fas fa-check me-1"></i> Yes, normalise to UK format</button>' +
+            '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="csvSetNormalisation(false)">' +
+                '<i class="fas fa-times me-1"></i> No, leave as-is</button>' +
+        '</div>';
+
+    if (needsNormalisation) {
+        document.getElementById('csvNormalisationDetail').textContent =
+            'We\'ve detected mixed mobile number formats: ' + issues.join(', ') + '.';
+        document.getElementById('csvNormalisationWarning').classList.remove('d-none');
+    } else {
+        document.getElementById('csvNormalisationWarning').classList.add('d-none');
+    }
+}
+
+function csvSetNormalisation(apply) {
+    document.getElementById('csvExcelCorrectionApplied').value = apply ? 'yes' : 'no';
+    var content = document.getElementById('csvNormalisationContent');
+    content.innerHTML =
+        '<i class="fas fa-check-circle me-2" style="color: #886CC0;"></i>' +
+        '<strong style="color: #886CC0;">' + (apply ? 'UK number normalisation will be applied' : 'Numbers will be left as-is') + '</strong> ' +
+        '<button type="button" class="btn btn-sm btn-link" style="color: #886CC0;" onclick="csvResetNormalisation()">Change</button>';
+}
+
+function csvResetNormalisation() {
+    document.getElementById('csvExcelCorrectionApplied').value = '';
+    document.getElementById('csvNormalisationContent').innerHTML =
+        '<i class="fas fa-exclamation-triangle me-2" style="color: #886CC0;"></i>' +
+        '<strong style="color: #886CC0;">UK Number Normalisation</strong>' +
+        '<p class="mb-2 mt-2 text-dark" id="csvNormalisationDetail">We\'ve detected mixed mobile number formats in your file.</p>' +
+        '<p class="mb-2 text-dark">Should we normalise all numbers to international format (e.g. <code>447712345678</code>)?</p>' +
+        '<div class="d-flex gap-2">' +
+            '<button type="button" class="btn btn-sm text-white" style="background-color: #886CC0;" onclick="csvSetNormalisation(true)">' +
+                '<i class="fas fa-check me-1"></i> Yes, normalise to UK format</button>' +
+            '<button type="button" class="btn btn-sm btn-outline-secondary" onclick="csvSetNormalisation(false)">' +
+                '<i class="fas fa-times me-1"></i> No, leave as-is</button>' +
+        '</div>';
+}
+
+function csvValidateMappings() {
+    var hasMobile = false;
+    document.querySelectorAll('.csv-column-mapping').forEach(function(select) {
+        if (select.value === 'mobile') hasMobile = true;
+    });
+    if (!hasMobile) {
+        showCsvAlert('Please map at least one column to <strong>Mobile Number</strong>.');
+        return false;
+    }
+    var normWarning = document.getElementById('csvNormalisationWarning');
+    if (!normWarning.classList.contains('d-none') && document.getElementById('csvExcelCorrectionApplied').value === '') {
+        showCsvAlert('Please confirm the <strong>UK number normalisation</strong> option above.');
+        return false;
+    }
+    return true;
+}
+
+function showCsvAlert(message) {
+    document.getElementById('csvAlertMessage').innerHTML = message;
+    var modal = new bootstrap.Modal(document.getElementById('csvAlertModal'));
+    modal.show();
+}
+
+function csvNormaliseMobile(raw, applyUkNormalisation) {
+    var mobile = String(raw).replace(/[\s\-\(\)]/g, '');
+    if (applyUkNormalisation) {
+        mobile = mobile.replace(/^\+/, '');
+        if (mobile.match(/^07\d{9}$/)) {
+            mobile = '44' + mobile.substring(1);
+        } else if (mobile.match(/^7\d{9,}$/)) {
+            mobile = '44' + mobile;
+        }
+    } else {
+        mobile = mobile.replace(/^\+/, '');
+    }
+    return mobile;
+}
+
+function csvRunValidation() {
+    var rows = (csvFileData && csvFileData.parsedRows) ? csvFileData.parsedRows : [];
+    var headers = (csvFileData && csvFileData.parsedHeaders) ? csvFileData.parsedHeaders : [];
+    var hasHeaders = document.getElementById('csvHasHeaders').checked;
+    var mappings = {};
+    var customFieldNames = [];
+    document.querySelectorAll('.csv-column-mapping').forEach(function(sel) {
+        var colIdx = parseInt(sel.dataset.column, 10);
+        if (sel.value === 'custom') {
+            var headerName = hasHeaders ? headers[colIdx] : ('Column ' + String.fromCharCode(65 + colIdx));
+            customFieldNames.push({ index: colIdx, name: headerName.trim() });
+        } else if (sel.value) {
+            mappings[sel.value] = colIdx;
+        }
+    });
+
+    var mobileIdx = typeof mappings.mobile === 'number' ? mappings.mobile : -1;
+    var firstNameIdx = typeof mappings.first_name === 'number' ? mappings.first_name : -1;
+    var lastNameIdx = typeof mappings.last_name === 'number' ? mappings.last_name : -1;
+    var emailIdx = typeof mappings.email === 'number' ? mappings.email : -1;
+    var applyNormalisation = document.getElementById('csvExcelCorrectionApplied').value === 'yes';
+    var seenNumbers = {};
+    var duplicateCount = 0;
+    var invalidCount = 0;
+    var invalidRows = [];
+    var validNumbers = [];
+    var validData = [];
+
+    rows.forEach(function(row, rowIdx) {
+        var rawMobile = (mobileIdx >= 0 && row[mobileIdx]) ? String(row[mobileIdx]) : '';
+        if (!rawMobile.trim()) return;
+
+        var mobile = csvNormaliseMobile(rawMobile, applyNormalisation);
+
+        if (!mobile.match(/^\d{10,15}$/)) {
+            invalidCount++;
+            var reason = 'Invalid format';
+            if (mobile.match(/[a-zA-Z]/)) reason = 'Contains letters';
+            else if (mobile.length < 10) reason = 'Too short';
+            invalidRows.push({ row: rowIdx + 1, value: rawMobile, reason: reason });
+            return;
+        }
+
+        if (seenNumbers[mobile]) {
+            duplicateCount++;
+            return;
+        }
+        seenNumbers[mobile] = true;
+        validNumbers.push(mobile);
+
+        var rowData = { mobile_number: mobile };
+        if (firstNameIdx >= 0) rowData.first_name = (row[firstNameIdx] || '').trim();
+        if (lastNameIdx >= 0) rowData.last_name = (row[lastNameIdx] || '').trim();
+        if (emailIdx >= 0) rowData.email = (row[emailIdx] || '').trim();
+        customFieldNames.forEach(function(cf) {
+            rowData[cf.name] = (row[cf.index] || '').trim();
+        });
+        validData.push(rowData);
+    });
+
+    document.getElementById('csvStatTotalRows').textContent = rows.length;
+    document.getElementById('csvStatUniqueNumbers').textContent = validNumbers.length;
+    document.getElementById('csvStatValidNumbers').textContent = validNumbers.length;
+    document.getElementById('csvStatInvalidNumbers').textContent = invalidCount;
+
+    var indicators = document.getElementById('csvImportIndicators');
+    indicators.innerHTML = '';
+    if (applyNormalisation) {
+        indicators.innerHTML += '<span class="badge me-2" style="background-color: #f0ebf8; color: #886CC0; border: 1px solid #886CC0;"><i class="fas fa-sync-alt me-1"></i> UK normalisation applied</span>';
+    }
+    if (duplicateCount > 0) {
+        indicators.innerHTML += '<span class="badge" style="background-color: #fff3cd; color: #856404; border: 1px solid #ffc107;"><i class="fas fa-copy me-1"></i> ' + duplicateCount + ' duplicates removed</span>';
+    }
+
+    if (invalidRows.length > 0) {
+        document.getElementById('csvInvalidRowsSection').classList.remove('d-none');
+        var tbody = document.getElementById('csvInvalidRowsBody');
+        tbody.innerHTML = '';
+        invalidRows.forEach(function(item) {
+            var row = document.createElement('tr');
+            row.innerHTML = '<td>' + escapeContactHtml(String(item.row)) + '</td>' +
+                '<td class="text-muted">' + escapeContactHtml(item.value) + '</td>' +
+                '<td><span class="badge" style="background-color: #ffe0e0; color: #dc3545;">' + escapeContactHtml(item.reason) + '</span></td>';
+            tbody.appendChild(row);
+        });
+    } else {
+        document.getElementById('csvInvalidRowsSection').classList.add('d-none');
+    }
+
+    csvValidationResults = {
+        validNumbers: validNumbers,
+        validData: validData,
+        invalidRows: invalidRows,
+        totalRows: rows.length,
+        duplicateCount: duplicateCount,
+        mappings: mappings,
+        customFields: customFieldNames.map(function(cf) { return cf.name; }),
+        applyNormalisation: applyNormalisation
+    };
+}
+
+function csvDownloadInvalidRows() {
+    var csvContent = 'Row,Original Value,Reason\n';
+    document.querySelectorAll('#csvInvalidRowsBody tr').forEach(function(row) {
+        var cells = row.querySelectorAll('td');
+        csvContent += '"' + cells[0].textContent + '","' + cells[1].textContent + '","' + cells[2].textContent + '"\n';
+    });
+    var blob = new Blob([csvContent], { type: 'text/csv' });
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'invalid_rows_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function csvConfirmImport() {
+    if (!csvValidationResults || csvValidationResults.validNumbers.length === 0) {
+        showCsvAlert('No valid numbers found to import.');
+        return;
+    }
+
+    var fileEntry = {
+        id: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        name: csvFileData ? csvFileData.name : 'uploaded_file.csv',
+        size: csvFileData ? csvFileData.size : '',
+        valid: csvValidationResults.validNumbers,
+        invalid: csvValidationResults.invalidRows.map(function(item) {
+            return { row: item.row, original: item.value, reason: item.reason };
+        }),
+        data: csvValidationResults.validData || [],
+        columnMapping: csvValidationResults.mappings || {},
+        customFields: csvValidationResults.customFields || []
+    };
+
+    recipientState.files.push(fileEntry);
+    bootstrap.Modal.getInstance(document.getElementById('csvUploadModal')).hide();
+    renderUploadedFiles();
+    updateUploadButtonState();
+    updateRecipientSummary();
+    refreshCsvFieldButtons();
+}
+
+function renderUploadedFiles() {
+    var container = document.getElementById('uploadedFilesContainer');
+    if (recipientState.files.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    var html = '';
+    recipientState.files.forEach(function(file) {
+        html += '<div class="d-flex align-items-center p-2 mb-2 rounded" style="background-color: #f0ebf8; border: 1px solid #e0d8f0;" id="fileCard_' + file.id + '">';
+        html += '<i class="fas fa-file-csv me-2" style="color: #886CC0;"></i>';
+        html += '<div class="flex-grow-1">';
+        html += '<div class="fw-medium" style="font-size: 13px;">' + escapeContactHtml(file.name) + ' <span class="text-muted">(' + escapeContactHtml(file.size) + ')</span></div>';
+        html += '<div style="font-size: 12px;">';
+        html += '<span class="text-success"><i class="fas fa-check-circle me-1"></i>' + file.valid.length + ' valid</span>';
+        if (file.invalid.length > 0) {
+            html += '<span class="text-danger ms-2"><i class="fas fa-times-circle me-1"></i>' + file.invalid.length + ' invalid</span>';
+            html += ' <a href="#" class="ms-1" style="font-size: 11px;" onclick="showFileInvalidNumbers(\'' + file.id + '\'); return false;">View</a>';
+        }
+        html += '</div></div>';
+        html += '<button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeUploadedFile(\'' + file.id + '\')" title="Remove file"><i class="fas fa-times"></i></button>';
+        html += '</div>';
+    });
+    container.innerHTML = html;
+}
+
+function removeUploadedFile(fileId) {
+    recipientState.files = recipientState.files.filter(function(f) { return f.id !== fileId; });
+    renderUploadedFiles();
+    updateUploadButtonState();
+    updateRecipientSummary();
+    refreshCsvFieldButtons();
+}
+
+function showFileInvalidNumbers(fileId) {
+    var file = recipientState.files.find(function(f) { return f.id === fileId; });
+    if (file) {
+        showInvalidNumbersTable(file.invalid);
+    }
+}
+
+function updateUploadButtonState() {
+    var btn = document.getElementById('uploadCsvBtn');
+    if (!btn) return;
+    var count = recipientState.files.length;
+    if (count >= 5) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File <span class="badge ms-1" style="background-color: #e8dff5; color: #886CC0;">5/5</span>';
+    } else if (count > 0) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File <span class="badge ms-1" style="background-color: #e8dff5; color: #886CC0;">' + count + '/5</span>';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-upload me-1"></i>Upload File';
+    }
+}
+
+function refreshCsvFieldButtons() {
+    var csvSection = document.getElementById('csvFieldsSection');
+    var csvBtnContainer = document.getElementById('csvFieldButtons');
+    var hintEl = document.getElementById('noCustomFieldsHint');
+
+    if (recipientState.files.length === 0) {
+        if (csvSection) csvSection.style.display = 'none';
+        if (csvBtnContainer) csvBtnContainer.innerHTML = '';
+        if (hintEl) hintEl.style.display = '';
+        return;
+    }
+
+    var builtInMap = { 'mobile': 'mobile_number', 'first_name': 'first_name', 'last_name': 'last_name', 'email': 'email' };
+    var builtInFields = ['first_name', 'last_name', 'full_name', 'mobile_number', 'email'];
+
+    var allFileFields = [];
+    recipientState.files.forEach(function(file) {
+        var fileFields = [];
+        if (file.columnMapping) {
+            Object.keys(file.columnMapping).forEach(function(key) {
+                var mapped = builtInMap[key];
+                if (mapped && fileFields.indexOf(mapped) === -1) fileFields.push(mapped);
+            });
+            if (fileFields.indexOf('first_name') !== -1 && fileFields.indexOf('last_name') !== -1 && fileFields.indexOf('full_name') === -1) {
+                fileFields.push('full_name');
+            }
+        }
+        if (file.customFields) {
+            file.customFields.forEach(function(cf) {
+                if (fileFields.indexOf(cf) === -1) fileFields.push(cf);
+            });
+        }
+        allFileFields.push(fileFields);
+    });
+
+    var intersection = allFileFields[0] ? allFileFields[0].slice() : [];
+    for (var i = 1; i < allFileFields.length; i++) {
+        intersection = intersection.filter(function(field) {
+            return allFileFields[i].indexOf(field) !== -1;
+        });
+    }
+
+    if (intersection.length === 0) {
+        if (csvSection) csvSection.style.display = 'none';
+        if (csvBtnContainer) csvBtnContainer.innerHTML = '';
+        if (hintEl) hintEl.style.display = '';
+        return;
+    }
+
+    if (csvSection) csvSection.style.display = '';
+    if (hintEl) hintEl.style.display = 'none';
+    var html = '';
+    var lb = String.fromCharCode(123, 123);
+    var rb = String.fromCharCode(125, 125);
+    intersection.forEach(function(fieldName) {
+        var isBuiltIn = builtInFields.indexOf(fieldName) !== -1;
+        var btnClass = isBuiltIn ? 'btn btn-outline-primary btn-sm' : 'btn btn-outline-secondary btn-sm';
+        var escaped = escapeContactHtml(fieldName);
+        var escapedAttr = fieldName.replace(/'/g, "\\'");
+        html += '<button type="button" class="' + btnClass + '" onclick="insertPlaceholder(\'' + escapedAttr + '\')">' + lb + escaped + rb + '</button>';
+    });
+    csvBtnContainer.innerHTML = html;
+}
+
+var cbContactsData = [];
+var cbListsData = [];
+var cbDynamicListsData = [];
+var cbTagsData = [];
+var cbDataLoaded = false;
+var cbSearchTimeout = null;
 
 function openContactBookModal() {
     var modal = new bootstrap.Modal(document.getElementById('contactBookModal'));
     modal.show();
+    if (!cbDataLoaded) {
+        loadContactBookData();
+    }
+    restoreContactBookSelections();
     updateContactBookSummary();
+}
+
+function loadContactBookData() {
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var headers = { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken };
+
+    Promise.all([
+        fetch('/api/contacts?per_page=100', { headers: headers }).then(function(r) { return r.json(); }),
+        fetch('/api/contact-lists', { headers: headers }).then(function(r) { return r.json(); }),
+        fetch('/api/tags', { headers: headers }).then(function(r) { return r.json(); })
+    ]).then(function(results) {
+        cbContactsData = results[0].data || [];
+        var allLists = results[1].data || [];
+        cbListsData = allLists.filter(function(l) { return l.type === 'static'; });
+        cbDynamicListsData = allLists.filter(function(l) { return l.type === 'dynamic'; });
+        cbTagsData = results[2].data || [];
+        cbDataLoaded = true;
+
+        renderCbContacts(cbContactsData);
+        renderCbLists(cbListsData);
+        renderCbDynamicLists(cbDynamicListsData);
+        renderCbTags(cbTagsData);
+        populateTagFilter(cbTagsData);
+        restoreContactBookSelections();
+    }).catch(function(err) {
+        console.error('Failed to load contact book data:', err);
+        document.getElementById('cbContactsTable').innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">Failed to load contacts</td></tr>';
+    });
+}
+
+var cbAvatarColors = [
+    '#6f42c1', '#e83e8c', '#20c997', '#fd7e14', '#0d6efd',
+    '#6610f2', '#d63384', '#198754', '#dc3545', '#0dcaf0'
+];
+
+function cbGetAvatarColor(name) {
+    var hash = 0;
+    for (var i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return cbAvatarColors[Math.abs(hash) % cbAvatarColors.length];
+}
+
+function cbGetInitials(firstName, lastName) {
+    var f = (firstName || '').trim();
+    var l = (lastName || '').trim();
+    if (f && l) return (f.charAt(0) + l.charAt(0)).toUpperCase();
+    if (f) return f.substring(0, 2).toUpperCase();
+    return '?';
+}
+
+function escapeContactHtml(str) {
+    if (!str) return '';
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+function renderCbContacts(contacts) {
+    var tbody = document.getElementById('cbContactsTable');
+    if (!contacts.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No contacts found</td></tr>';
+        return;
+    }
+    var html = '';
+    contacts.forEach(function(c, idx) {
+        var firstName = c.first_name || '';
+        var lastName = c.last_name || '';
+        var name = escapeContactHtml((firstName + ' ' + lastName).trim()) || 'Unnamed';
+        var mobile = escapeContactHtml(c.mobile_masked || 'No mobile');
+        var initials = cbGetInitials(firstName, lastName);
+        var color = cbGetAvatarColor(firstName + lastName);
+        var bgColor = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
+        var tagsHtml = '';
+        if (c.tags && c.tags.length) {
+            c.tags.forEach(function(t) {
+                tagsHtml += '<span class="badge badge-pastel-secondary me-1">' + escapeContactHtml(t) + '</span>';
+            });
+        }
+        html += '<tr style="' + bgColor + ' border-bottom: 1px solid #f5f3fa;">' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="' + c.id + '" data-name="' + escapeContactHtml(name) + '"></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' +
+                '<div class="d-flex align-items-center">' +
+                    '<div class="contact-avatar me-2" style="background-color: ' + color + '20; color: ' + color + '; flex-shrink: 0;">' + escapeContactHtml(initials) + '</div>' +
+                    '<span style="font-weight: 500; color: #2c2c2c;">' + name + '</span>' +
+                '</div>' +
+            '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">' + mobile + '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' + tagsHtml + '</td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function renderCbLists(lists) {
+    var tbody = document.getElementById('cbListsTable');
+    if (!lists.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No lists found</td></tr>';
+        return;
+    }
+    var html = '';
+    lists.forEach(function(l, idx) {
+        var count = l.contact_count || 0;
+        var updated = l.updated_at || '-';
+        var bgColor = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
+        var initials = (l.name || '').substring(0, 2).toUpperCase();
+        html += '<tr style="' + bgColor + ' border-bottom: 1px solid #f5f3fa;">' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-list" value="' + l.id + '" data-name="' + escapeContactHtml(l.name) + '" data-count="' + count + '"></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' +
+                '<div class="d-flex align-items-center">' +
+                    '<div class="list-icon-static me-2" style="flex-shrink: 0;"><i class="fas fa-list" style="font-size: 14px;"></i></div>' +
+                    '<span style="font-weight: 500; color: #2c2c2c;">' + escapeContactHtml(l.name) + '</span>' +
+                '</div>' +
+            '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-pink">' + count.toLocaleString() + '</span></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">' + escapeContactHtml(updated) + '</td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function renderCbDynamicLists(lists) {
+    var tbody = document.getElementById('cbDynamicListsTable');
+    if (!lists.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No dynamic lists found</td></tr>';
+        return;
+    }
+    var html = '';
+    lists.forEach(function(l, idx) {
+        var count = l.contact_count || 0;
+        var rules = l.rules ? JSON.stringify(l.rules).substring(0, 50) : '-';
+        var evaluated = l.last_evaluated || '-';
+        var bgColor = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
+        html += '<tr style="' + bgColor + ' border-bottom: 1px solid #f5f3fa;">' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-dynamic" value="' + l.id + '" data-name="' + escapeContactHtml(l.name) + '" data-count="' + count + '"></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' +
+                '<div class="d-flex align-items-center">' +
+                    '<div class="list-icon-dynamic me-2" style="flex-shrink: 0;"><i class="fas fa-sync-alt" style="font-size: 14px;"></i></div>' +
+                    '<span style="font-weight: 500; color: #2c2c2c;">' + escapeContactHtml(l.name) + '</span>' +
+                '</div>' +
+            '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d; font-size: 12px;">' + escapeContactHtml(rules) + '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-pink">' + count.toLocaleString() + '</span></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">' + escapeContactHtml(evaluated) + '</td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function renderCbTags(tags) {
+    var tbody = document.getElementById('cbTagsTable');
+    if (!tags.length) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">No tags found</td></tr>';
+        return;
+    }
+    var html = '';
+    tags.forEach(function(t, idx) {
+        var count = t.contact_count || 0;
+        var color = t.color || '#6f42c1';
+        var bgColor = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
+        html += '<tr style="' + bgColor + ' border-bottom: 1px solid #f5f3fa;">' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-tag" value="' + t.id + '" data-name="' + escapeContactHtml(t.name) + '" data-count="' + count + '"></td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;">' +
+                '<div class="d-flex align-items-center">' +
+                    '<div class="contact-avatar me-2" style="background-color: ' + escapeContactHtml(color) + '20; color: ' + escapeContactHtml(color) + '; flex-shrink: 0;"><i class="fas fa-tag" style="font-size: 14px;"></i></div>' +
+                    '<span class="badge badge-pastel-secondary" style="font-size: 12px;">' + escapeContactHtml(t.name) + '</span>' +
+                '</div>' +
+            '</td>' +
+            '<td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-info">' + count.toLocaleString() + '</span></td>' +
+            '</tr>';
+    });
+    tbody.innerHTML = html;
+}
+
+function populateTagFilter(tags) {
+    var select = document.getElementById('cbFilterTags');
+    if (!select) return;
+    select.innerHTML = '<option value="">All tags</option>';
+    tags.forEach(function(t) {
+        select.innerHTML += '<option value="' + escapeContactHtml(t.name) + '">' + escapeContactHtml(t.name) + '</option>';
+    });
+}
+
+function restoreContactBookSelections() {
+    recipientState.contactBook.contacts.forEach(function(c) {
+        var cb = document.querySelector('.cb-contact[value="' + c.id + '"]');
+        if (cb) cb.checked = true;
+    });
+    recipientState.contactBook.lists.forEach(function(l) {
+        var cb = document.querySelector('.cb-list[value="' + l.id + '"]');
+        if (cb) cb.checked = true;
+    });
+    recipientState.contactBook.dynamicLists.forEach(function(dl) {
+        var cb = document.querySelector('.cb-dynamic[value="' + dl.id + '"]');
+        if (cb) cb.checked = true;
+    });
+    recipientState.contactBook.tags.forEach(function(t) {
+        var cb = document.querySelector('.cb-tag[value="' + t.id + '"]');
+        if (cb) cb.checked = true;
+    });
 }
 
 function toggleContactFilters() {
@@ -3163,6 +4526,7 @@ function clearContactFilters() {
     document.getElementById('cbFilterTags').value = '';
     document.getElementById('cbFilterMobile').value = '';
     document.getElementById('cbFilterOptout').value = 'exclude';
+    renderCbContacts(cbContactsData);
 }
 
 function toggleAllContacts() {
@@ -3174,11 +4538,104 @@ function toggleAllContacts() {
 }
 
 function filterContacts() {
-    console.log('TODO: Filter contacts based on search');
+    clearTimeout(cbSearchTimeout);
+    cbSearchTimeout = setTimeout(function() {
+        var query = (document.getElementById('cbContactSearch').value || '').toLowerCase();
+        if (!query) {
+            renderCbContacts(cbContactsData);
+            restoreContactBookSelections();
+            return;
+        }
+        var filtered = cbContactsData.filter(function(c) {
+            var name = ((c.first_name || '') + ' ' + (c.last_name || '')).toLowerCase();
+            var mobile = (c.mobile_masked || '').toLowerCase();
+            var tags = (c.tags || []).join(' ').toLowerCase();
+            return name.indexOf(query) !== -1 || mobile.indexOf(query) !== -1 || tags.indexOf(query) !== -1;
+        });
+        renderCbContacts(filtered);
+        restoreContactBookSelections();
+    }, 300);
 }
 
 function sortContacts() {
-    console.log('TODO: Sort contacts based on selection');
+    var sortBy = document.getElementById('cbContactSort').value;
+    var sorted = cbContactsData.slice();
+    if (sortBy === 'name_asc') {
+        sorted.sort(function(a, b) { return ((a.first_name || '') + ' ' + (a.last_name || '')).localeCompare((b.first_name || '') + ' ' + (b.last_name || '')); });
+    } else if (sortBy === 'name_desc') {
+        sorted.sort(function(a, b) { return ((b.first_name || '') + ' ' + (b.last_name || '')).localeCompare((a.first_name || '') + ' ' + (a.last_name || '')); });
+    } else if (sortBy === 'added') {
+        sorted.sort(function(a, b) { return (b.created_at || '').localeCompare(a.created_at || ''); });
+    }
+    renderCbContacts(sorted);
+    restoreContactBookSelections();
+}
+
+function filterLists() {
+    clearTimeout(cbSearchTimeout);
+    cbSearchTimeout = setTimeout(function() {
+        var query = (document.getElementById('cbListSearch').value || '').toLowerCase();
+        if (!query) { renderCbLists(cbListsData); restoreContactBookSelections(); return; }
+        var filtered = cbListsData.filter(function(l) { return (l.name || '').toLowerCase().indexOf(query) !== -1; });
+        renderCbLists(filtered);
+        restoreContactBookSelections();
+    }, 300);
+}
+
+function sortLists() {
+    var sortBy = document.getElementById('cbListSort').value;
+    var sorted = cbListsData.slice();
+    if (sortBy === 'name_asc') sorted.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+    else if (sortBy === 'name_desc') sorted.sort(function(a, b) { return (b.name || '').localeCompare(a.name || ''); });
+    else if (sortBy === 'count_desc') sorted.sort(function(a, b) { return (b.contact_count || 0) - (a.contact_count || 0); });
+    else if (sortBy === 'count_asc') sorted.sort(function(a, b) { return (a.contact_count || 0) - (b.contact_count || 0); });
+    else if (sortBy === 'updated') sorted.sort(function(a, b) { return (b.updated_at || '').localeCompare(a.updated_at || ''); });
+    renderCbLists(sorted);
+    restoreContactBookSelections();
+}
+
+function filterDynamicLists() {
+    clearTimeout(cbSearchTimeout);
+    cbSearchTimeout = setTimeout(function() {
+        var query = (document.getElementById('cbDynamicSearch').value || '').toLowerCase();
+        if (!query) { renderCbDynamicLists(cbDynamicListsData); restoreContactBookSelections(); return; }
+        var filtered = cbDynamicListsData.filter(function(l) { return (l.name || '').toLowerCase().indexOf(query) !== -1; });
+        renderCbDynamicLists(filtered);
+        restoreContactBookSelections();
+    }, 300);
+}
+
+function sortDynamicLists() {
+    var sortBy = document.getElementById('cbDynamicSort').value;
+    var sorted = cbDynamicListsData.slice();
+    if (sortBy === 'name_asc') sorted.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+    else if (sortBy === 'name_desc') sorted.sort(function(a, b) { return (b.name || '').localeCompare(a.name || ''); });
+    else if (sortBy === 'count_desc') sorted.sort(function(a, b) { return (b.contact_count || 0) - (a.contact_count || 0); });
+    else if (sortBy === 'count_asc') sorted.sort(function(a, b) { return (a.contact_count || 0) - (b.contact_count || 0); });
+    renderCbDynamicLists(sorted);
+    restoreContactBookSelections();
+}
+
+function filterTagsList() {
+    clearTimeout(cbSearchTimeout);
+    cbSearchTimeout = setTimeout(function() {
+        var query = (document.getElementById('cbTagSearch').value || '').toLowerCase();
+        if (!query) { renderCbTags(cbTagsData); restoreContactBookSelections(); return; }
+        var filtered = cbTagsData.filter(function(t) { return (t.name || '').toLowerCase().indexOf(query) !== -1; });
+        renderCbTags(filtered);
+        restoreContactBookSelections();
+    }, 300);
+}
+
+function sortTagsList() {
+    var sortBy = document.getElementById('cbTagSort').value;
+    var sorted = cbTagsData.slice();
+    if (sortBy === 'name_asc') sorted.sort(function(a, b) { return (a.name || '').localeCompare(b.name || ''); });
+    else if (sortBy === 'name_desc') sorted.sort(function(a, b) { return (b.name || '').localeCompare(a.name || ''); });
+    else if (sortBy === 'count_desc') sorted.sort(function(a, b) { return (b.contact_count || 0) - (a.contact_count || 0); });
+    else if (sortBy === 'count_asc') sorted.sort(function(a, b) { return (a.contact_count || 0) - (b.contact_count || 0); });
+    renderCbTags(sorted);
+    restoreContactBookSelections();
 }
 
 function updateContactBookSummary() {
@@ -3201,17 +4658,24 @@ document.addEventListener('change', function(e) {
 });
 
 function confirmContactBookSelection() {
-    var contacts = Array.from(document.querySelectorAll('.cb-contact:checked')).map(cb => cb.value);
-    var lists = Array.from(document.querySelectorAll('.cb-list:checked')).map(cb => cb.value);
-    var dynamic = Array.from(document.querySelectorAll('.cb-dynamic:checked')).map(cb => cb.value);
-    var tags = Array.from(document.querySelectorAll('.cb-tag:checked')).map(cb => cb.value);
+    var contacts = Array.from(document.querySelectorAll('.cb-contact:checked')).map(function(cb) {
+        return { id: cb.value, name: cb.dataset.name || 'Contact' };
+    });
+    var lists = Array.from(document.querySelectorAll('.cb-list:checked')).map(function(cb) {
+        return { id: cb.value, name: cb.dataset.name || 'List', count: parseInt(cb.dataset.count) || 0 };
+    });
+    var dynamic = Array.from(document.querySelectorAll('.cb-dynamic:checked')).map(function(cb) {
+        return { id: cb.value, name: cb.dataset.name || 'Dynamic List', count: parseInt(cb.dataset.count) || 0 };
+    });
+    var tags = Array.from(document.querySelectorAll('.cb-tag:checked')).map(function(cb) {
+        return { id: cb.value, name: cb.dataset.name || 'Tag', count: parseInt(cb.dataset.count) || 0 };
+    });
     
     recipientState.contactBook = { contacts: contacts, lists: lists, dynamicLists: dynamic, tags: tags };
     
     bootstrap.Modal.getInstance(document.getElementById('contactBookModal')).hide();
     renderContactBookChips();
     updateRecipientSummary();
-    console.log('TODO: API - Resolve contact book selections to actual numbers');
 }
 
 function removeContactBookItem(type) {
@@ -3240,11 +4704,11 @@ function renderContactBookChips() {
 
 function updateRecipientSummary() {
     var manualValid = recipientState.manual.valid.length;
-    var uploadValid = recipientState.upload.valid.length;
-    var contactBookCount = (recipientState.contactBook.contacts.length * 1) + 
-                          (recipientState.contactBook.lists.length * 1234) + 
-                          (recipientState.contactBook.dynamicLists.length * 2000) + 
-                          (recipientState.contactBook.tags.length * 500);
+    var uploadValid = recipientState.files.reduce(function(acc, f) { return acc + f.valid.length; }, 0);
+    var contactBookCount = recipientState.contactBook.contacts.length +
+                          recipientState.contactBook.lists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0) +
+                          recipientState.contactBook.dynamicLists.reduce(function(acc, l) { return acc + (l.count || 0); }, 0) +
+                          recipientState.contactBook.tags.reduce(function(acc, t) { return acc + (t.count || 0); }, 0);
     
     var totalValid = manualValid + uploadValid + contactBookCount;
     
@@ -3255,12 +4719,18 @@ function updateRecipientSummary() {
 }
 
 function showInvalidNumbers(source) {
-    var invalid = source === 'manual' ? recipientState.manual.invalid : recipientState.upload.invalid;
-    showInvalidNumbersTable(invalid);
+    if (source === 'manual') {
+        showInvalidNumbersTable(recipientState.manual.invalid);
+    } else {
+        var allFileInvalid = [];
+        recipientState.files.forEach(function(f) { allFileInvalid = allFileInvalid.concat(f.invalid); });
+        showInvalidNumbersTable(allFileInvalid);
+    }
 }
 
 function showAllInvalidNumbers() {
-    var all = recipientState.manual.invalid.concat(recipientState.upload.invalid);
+    var all = recipientState.manual.invalid.slice();
+    recipientState.files.forEach(function(f) { all = all.concat(f.invalid); });
     showInvalidNumbersTable(all);
 }
 
@@ -3276,7 +4746,8 @@ function showInvalidNumbersTable(invalid) {
 }
 
 function downloadInvalidNumbers() {
-    var all = recipientState.manual.invalid.concat(recipientState.upload.invalid);
+    var all = recipientState.manual.invalid.slice();
+    recipientState.files.forEach(function(f) { all = all.concat(f.invalid); });
     var csv = 'Row,Original Value,Reason\n';
     all.forEach(function(item) {
         csv += item.row + ',"' + item.original + '","' + item.reason + '"\n';
@@ -3291,17 +4762,35 @@ function downloadInvalidNumbers() {
     console.log('TODO: Log invalid numbers download for audit');
 }
 
+var accountPricing = {!! json_encode($account_pricing) !!};
+
 function updatePreviewCost() {
     var recipientEl = document.getElementById('previewRecipients');
     var recipients = recipientEl ? (parseInt(recipientEl.textContent) || 0) : 0;
     var channelEl = document.querySelector('input[name="channel"]:checked');
     var channel = channelEl ? channelEl.value : 'sms';
-    var costPerMsg = channel === 'sms' ? 0.035 : (channel === 'rcs_basic' ? 0.05 : 0.08);
+    var costPerMsg = accountPricing[channel] || accountPricing['sms'] || 0.035;
     var partsEl = document.getElementById('smsPartCount');
-    var parts = partsEl ? (parseInt(partsEl.textContent) || 1) : 1;
-    var cost = recipients * parts * costPerMsg;
+    var partsText = partsEl ? partsEl.textContent : '1';
     var costEl = document.getElementById('previewCost');
-    if (costEl) costEl.textContent = cost.toFixed(2) + ' cr';
+
+    if (partsText === 'N/A') {
+        if (costEl) costEl.textContent = 'N/A';
+        return;
+    }
+
+    var parts = parseInt(partsText) || 1;
+    var cost = recipients * parts * costPerMsg;
+    if (costEl) {
+        var isTest = (typeof AccountLifecycle !== 'undefined' && AccountLifecycle.isTest && AccountLifecycle.isTest());
+        var formatted = cost.toFixed(4);
+        if (isTest) {
+            costEl.textContent = formatted + ' cr';
+        } else {
+            var symbol = accountPricing.currency === 'GBP' ? '\u00A3' : (accountPricing.currency === 'USD' ? '$' : accountPricing.currency + ' ');
+            costEl.textContent = symbol + formatted;
+        }
+    }
 }
 
 var testMessageModal = null;

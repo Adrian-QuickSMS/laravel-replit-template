@@ -1,0 +1,27 @@
+What Changed
+Problem: Campaign cost estimates used a single flat segment_count from the raw template text (with {{firstName}} counted literally). After merge field resolution, "Jo" = 1 segment but "Christopher" = 2 segments. Non-GSM characters in contact data (emoji, CJK) flip the entire message to UCS-2, halving the character limit. The estimate on the confirm page could be significantly wrong.
+
+Solution: Move content resolution to happen BEFORE the confirm page, calculate per-recipient segments, and aggregate for accurate pricing.
+
+New Files (2)
+database/migrations/2026_02_24_100001_add_campaign_preparation_tracking.php — adds content_resolved_at, preparation_status, preparation_progress, preparation_error to campaigns; adds encoding column + composite cost estimation index to campaign_recipients
+app/Jobs/ResolveRecipientContentJob.php — async queue job that resolves merge fields per-recipient, detects encoding (GSM-7 vs Unicode), calculates segments, and tracks progress (0-100%)
+Modified Files (6)
+CampaignService — prepareCampaign() orchestrates the new flow; estimateCost() branches on content_resolved_at for accurate vs flat; update() invalidates resolved content on message edit; resolveRecipientContent() now stores encoding and has skip-if-resolved guard; processScheduled() forces re-resolution
+BillingPreflightService — estimateCostPerSegmentGroup() prices each (country, segments) group independently; runPreflight() uses per-recipient data when available
+CampaignApiController — 3 new endpoints: prepare(), preparationStatus(), fieldStatistics()
+Campaign model — new fields in fillable/casts/toPortalArray
+CampaignRecipient model — encoding added to fillable
+routes/web.php — 3 new routes registered
+New API Endpoints
+Method	Endpoint	Purpose
+POST	/api/campaigns/{id}/prepare	Resolve recipients + dispatch async content resolution
+GET	/api/campaigns/{id}/preparation-status	Poll progress + get cost estimate when ready
+POST	/api/campaigns/field-statistics	Get avg/max field lengths for early estimates on send form
+New Campaign Flow
+Send form → POST /api/campaigns (create draft)
+         → POST /api/campaigns/{id}/prepare (resolve + async content resolution)
+         → Redirect to confirm page
+         → Poll GET /api/campaigns/{id}/preparation-status (progress bar)
+         → When ready: shows exact cost with segment distribution
+         → POST /api/campaigns/{id}/send

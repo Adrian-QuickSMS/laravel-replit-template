@@ -83,8 +83,19 @@ class NumberApiController extends Controller
         $perPage = min((int) $request->input('per_page', 25), 100);
         $paginated = $query->paginate($perPage);
 
+        $currentPricing = $this->getCurrentNumberPricing();
+
         return response()->json([
-            'data' => collect($paginated->items())->map->toPortalArray(),
+            'data' => collect($paginated->items())->map(function ($number) use ($currentPricing) {
+                $data = $number->toPortalArray();
+                $priceKey = $number->number_type === 'vmn'
+                    ? 'virtual_number_monthly'
+                    : ($number->number_type === 'shared_shortcode' ? 'shortcode_keyword_monthly' : 'shortcode_monthly');
+                if (isset($currentPricing[$priceKey])) {
+                    $data['monthly_fee'] = $currentPricing[$priceKey];
+                }
+                return $data;
+            }),
             'meta' => [
                 'current_page' => $paginated->currentPage(),
                 'last_page' => $paginated->lastPage(),
@@ -110,8 +121,17 @@ class NumberApiController extends Controller
             ->withCount(['assignments', 'autoReplyRules'])
             ->findOrFail($id);
 
+        $data = $number->toPortalArray();
+        $currentPricing = $this->getCurrentNumberPricing();
+        $priceKey = $number->number_type === 'vmn'
+            ? 'virtual_number_monthly'
+            : ($number->number_type === 'shared_shortcode' ? 'shortcode_keyword_monthly' : 'shortcode_monthly');
+        if (isset($currentPricing[$priceKey])) {
+            $data['monthly_fee'] = $currentPricing[$priceKey];
+        }
+
         return response()->json([
-            'data' => $number->toPortalArray(),
+            'data' => $data,
             'assignments' => $number->assignments->map(function ($a) {
                 return [
                     'id' => $a->id,
@@ -550,6 +570,34 @@ class NumberApiController extends Controller
     }
 
     // =====================================================
+    // 15b. TAKEN KEYWORDS
+    // =====================================================
+
+    public function takenKeywords(Request $request): JsonResponse
+    {
+        $shortcode = $request->input('shortcode', '60866');
+
+        $purchasedNumberIds = PurchasedNumber::withoutGlobalScope('tenant')
+            ->where('number', $shortcode)
+            ->where('number_type', 'shared_shortcode')
+            ->where('status', 'active')
+            ->pluck('id');
+
+        $keywords = \App\Models\ShortcodeKeyword::withoutGlobalScope('tenant')
+            ->whereIn('purchased_number_id', $purchasedNumberIds)
+            ->where('status', 'active')
+            ->pluck('keyword')
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'data' => $keywords,
+        ]);
+    }
+
+    // =====================================================
     // 16. EXPORT CSV
     // =====================================================
 
@@ -580,13 +628,12 @@ class NumberApiController extends Controller
         }
 
         $account = \App\Models\Account::findOrFail($accountId);
+        $pricingEngine = app(\App\Services\Billing\PricingEngine::class);
+        $currency = $account->currency ?? 'GBP';
 
-        // Get sample VMN pricing (use a dummy pool entry)
         try {
-            $vmnSetupPrice = app(\App\Services\Billing\PricingEngine::class)
-                ->resolvePrice($account, 'virtual_number_setup', 'GB');
-            $vmnMonthlyPrice = app(\App\Services\Billing\PricingEngine::class)
-                ->resolvePrice($account, 'virtual_number_monthly', 'GB');
+            $vmnSetupPrice = $pricingEngine->resolvePrice($account, 'virtual_number_setup', 'GB');
+            $vmnMonthlyPrice = $pricingEngine->resolvePrice($account, 'virtual_number_monthly', 'GB');
         } catch (\Exception $e) {
             $vmnSetupPrice = null;
             $vmnMonthlyPrice = null;
@@ -598,17 +645,42 @@ class NumberApiController extends Controller
             $keywordPricing = null;
         }
 
+        try {
+            $dsSetupPrice = $pricingEngine->resolvePrice($account, 'shortcode_setup', null);
+            $dsMonthlyPrice = $pricingEngine->resolvePrice($account, 'shortcode_monthly', null);
+        } catch (\Exception $e) {
+            $dsSetupPrice = null;
+            $dsMonthlyPrice = null;
+        }
+
+        $sharedShortcodes = \App\Models\PurchasedNumber::withoutGlobalScope('tenant')
+            ->where('account_id', $accountId)
+            ->where('number_type', 'shared_shortcode')
+            ->where('status', 'active')
+            ->select('id', 'number', 'friendly_name')
+            ->get()
+            ->toArray();
+
+        $vatRate = ($account->vat_registered && !$account->vat_reverse_charges) ? 20 : 0;
+
         return response()->json([
             'vmn' => [
-                'setup_fee' => $vmnSetupPrice?->unitPrice ?? '10.0000',
-                'monthly_fee' => $vmnMonthlyPrice?->unitPrice ?? '8.0000',
-                'currency' => $account->currency ?? 'GBP',
+                'setup_fee' => $vmnSetupPrice?->unitPrice ?? '2.0000',
+                'monthly_fee' => $vmnMonthlyPrice?->unitPrice ?? '2.0000',
+                'currency' => $currency,
             ],
             'keyword' => $keywordPricing ?? [
-                'setup_fee' => '25.0000',
-                'monthly_fee' => '50.0000',
-                'currency' => $account->currency ?? 'GBP',
+                'setup_fee' => '2.0000',
+                'monthly_fee' => '2.0000',
+                'currency' => $currency,
             ],
+            'dedicated_shortcode' => [
+                'setup_fee' => $dsSetupPrice?->unitPrice ?? '1200.0000',
+                'monthly_fee' => $dsMonthlyPrice?->unitPrice ?? '1200.0000',
+                'currency' => $currency,
+            ],
+            'shared_shortcodes' => $sharedShortcodes,
+            'vat_rate' => $vatRate,
         ]);
     }
 
@@ -618,10 +690,44 @@ class NumberApiController extends Controller
 
     private function getAuthenticatedUser(): User
     {
-        $user = auth()->user();
+        $userId = session('customer_user_id');
+        $user = User::withoutGlobalScope('tenant')->find($userId);
         if (!$user) {
             abort(401, 'Unauthenticated');
         }
         return $user;
+    }
+
+    private function getCurrentNumberPricing(): array
+    {
+        try {
+            $tenantId = session('customer_tenant_id');
+            if (!$tenantId) {
+                return [];
+            }
+
+            $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+            $tier = $account?->product_tier ?? 'starter';
+
+            return \DB::table('product_tier_prices')
+                ->where('active', true)
+                ->whereRaw('valid_from <= CURRENT_DATE')
+                ->where(function ($q) {
+                    $q->whereNull('valid_to')->orWhereRaw('valid_to >= CURRENT_DATE');
+                })
+                ->where('product_tier', $tier)
+                ->whereNull('country_iso')
+                ->whereIn('product_type', [
+                    'virtual_number_monthly',
+                    'shortcode_monthly',
+                    'shortcode_keyword_monthly',
+                ])
+                ->pluck('unit_price', 'product_type')
+                ->map(fn ($v) => (string) $v)
+                ->toArray();
+        } catch (\Throwable $e) {
+            Log::warning('Failed to load current number pricing', ['error' => $e->getMessage()]);
+            return [];
+        }
     }
 }

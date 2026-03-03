@@ -355,11 +355,21 @@ class QuickSMSController extends Controller
     {
         $sender_ids = $this->getApprovedSenderIds();
 
-        // TODO: Replace with database query - GET /api/rcs-agents?status=approved
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
+        $userId = session('customer_user_id');
+        $user = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
+        $rcs_agents = $user
+            ? \App\Models\RcsAgent::usableByUser($user)
+                ->select('id', 'uuid', 'name', 'description', 'brand_color', 'logo_url')
+                ->get()
+                ->map(fn($a) => [
+                    'id'          => $a->id,
+                    'name'        => $a->name,
+                    'logo'        => $a->logo_url ?: null,
+                    'tagline'     => $a->description ?? '',
+                    'brand_color' => $a->brand_color ?? '#886CC0',
+                ])
+                ->toArray()
+            : [];
 
         // TODO: Replace with database query - GET /api/templates (excludes API-triggered for portal UI)
         $templates = [
@@ -382,39 +392,11 @@ class QuickSMSController extends Controller
             ['id' => 6, 'name' => 'Archived Welcome', 'content' => 'Old welcome message.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Archived', 'version' => 1],
         ];
 
-        // TODO: Replace with database query - GET /api/lists
-        $lists = [
-            ['id' => 1, 'name' => 'Marketing', 'count' => 1247],
-            ['id' => 2, 'name' => 'Promotions', 'count' => 856],
-            ['id' => 3, 'name' => 'Updates', 'count' => 2103],
-            ['id' => 4, 'name' => 'Newsletter', 'count' => 3421],
-        ];
-
-        // TODO: Replace with database query - GET /api/tags
-        $tags = [
-            ['id' => 1, 'name' => 'VIP', 'color' => '#6f42c1', 'count' => 234],
-            ['id' => 2, 'name' => 'Customer', 'color' => '#198754', 'count' => 1892],
-            ['id' => 3, 'name' => 'Newsletter', 'color' => '#0d6efd', 'count' => 567],
-        ];
-
-        // TODO: Replace with database query - GET /api/opt-out-lists
-        $opt_out_lists = [
-            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847, 'is_default' => true],
-            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245, 'is_default' => false],
-            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
-        ];
-
-        // TODO: Replace with database query - GET /api/virtual-numbers
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main'],
-            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
-        ];
-
-        // TODO: Replace with database query - GET /api/optout-domains
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'stop.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'unsubscribe.quicksms.uk', 'is_default' => false],
-        ];
+        $lists = $this->getContactListsForView();
+        $tags = $this->getTagsForView();
+        $opt_out_lists = $this->getOptOutListsForView();
+        $virtual_numbers = [];
+        $optout_domains = [];
 
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
@@ -426,18 +408,204 @@ class QuickSMSController extends Controller
             'opt_out_lists' => $opt_out_lists,
             'virtual_numbers' => $virtual_numbers,
             'optout_domains' => $optout_domains,
+            'account_pricing' => $this->getAccountPricingForView(),
         ]);
+    }
+
+    /**
+     * Get real approved RCS agents for the current user, mapped for Blade views.
+     */
+    private function getRcsAgentsForView(): array
+    {
+        $userId = session('customer_user_id');
+        $user = \App\Models\User::withoutGlobalScope('tenant')->find($userId);
+        if (!$user) {
+            return [];
+        }
+        return \App\Models\RcsAgent::usableByUser($user)
+            ->select('id', 'uuid', 'name', 'description', 'brand_color', 'logo_url')
+            ->get()
+            ->map(fn($a) => [
+                'id'          => $a->id,
+                'name'        => $a->name,
+                'logo'        => $a->logo_url ?: asset('images/rcs-agents/quicksms-brand.svg'),
+                'tagline'     => $a->description ?? '',
+                'brand_color' => $a->brand_color ?? '#886CC0',
+                'status'      => 'approved',
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Get real opt-out lists for the current tenant, mapped for Blade views.
+     * Creates a default master list if none exist yet.
+     */
+    private function getOptOutListsForView(): array
+    {
+        $tenantId = session('customer_tenant_id', '');
+        if (!$tenantId) {
+            return [];
+        }
+        $lists = \App\Models\OptOutList::where('account_id', $tenantId)
+            ->orderByDesc('is_master')
+            ->orderBy('name')
+            ->get(['id', 'name', 'is_master', 'count']);
+
+        if ($lists->isEmpty()) {
+            try {
+                $master = \App\Models\OptOutList::create([
+                    'account_id'  => $tenantId,
+                    'name'        => 'Master Opt-Out List',
+                    'description' => 'Default opt-out list for this account',
+                    'count'       => 0,
+                ]);
+                \DB::table('opt_out_lists')->where('id', $master->id)->update(['is_master' => true]);
+                $master->refresh();
+                $lists = collect([$master]);
+            } catch (\Throwable $e) {
+                return [];
+            }
+        }
+
+        return $lists->map(fn($l) => [
+            'id'         => $l->id,
+            'name'       => $l->name,
+            'count'      => $l->count ?? 0,
+            'is_default' => (bool) $l->is_master,
+        ])->toArray();
+    }
+
+    /**
+     * Get real contact lists for the current tenant.
+     */
+    private function getContactListsForView(): array
+    {
+        $tenantId = session('customer_tenant_id', '');
+        if (!$tenantId) {
+            return [];
+        }
+        return \App\Models\ContactList::where('account_id', $tenantId)
+            ->orderBy('name')
+            ->get(['id', 'name', 'contact_count'])
+            ->map(fn($l) => [
+                'id'    => $l->id,
+                'name'  => $l->name,
+                'count' => $l->contact_count ?? 0,
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Get real tags for the current tenant.
+     */
+    private function getTagsForView(): array
+    {
+        $tenantId = session('customer_tenant_id', '');
+        if (!$tenantId) {
+            return [];
+        }
+        return \App\Models\Tag::where('account_id', $tenantId)
+            ->orderBy('name')
+            ->get(['id', 'name', 'color', 'contact_count'])
+            ->map(fn($t) => [
+                'id'    => $t->id,
+                'name'  => $t->name,
+                'color' => $t->color ?? '#886CC0',
+                'count' => $t->contact_count ?? 0,
+            ])
+            ->toArray();
+    }
+
+    /**
+     * Build a simple channel → unit_price map for the send-message cost preview.
+     * Reads from the account's product tier pricing; falls back to safe defaults.
+     */
+    private function getAccountPricingForView(): array
+    {
+        $defaults = [
+            'sms'           => 0.0395,
+            'rcs_basic'     => 0.0395,
+            'rcs_single'    => 0.0600,
+            'rcs_carousel'  => 0.0600,
+            'rcs_rich'      => 0.0600,
+            'currency'      => 'GBP',
+        ];
+
+        try {
+            $tenantId = session('customer_tenant_id');
+            if (!$tenantId) {
+                return $defaults;
+            }
+
+            $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+            $tier = $account?->product_tier ?? 'starter';
+
+            $rows = \DB::table('product_tier_prices')
+                ->where('active', true)
+                ->whereRaw('valid_from <= CURRENT_DATE')
+                ->where(function ($q) {
+                    $q->whereNull('valid_to')->orWhereRaw('valid_to >= CURRENT_DATE');
+                })
+                ->where('product_tier', $tier)
+                ->whereNull('country_iso')
+                ->whereIn('product_type', ['sms', 'rcs_basic', 'rcs_single'])
+                ->pluck('unit_price', 'product_type');
+
+            $pricing = $defaults;
+            foreach ($rows as $type => $price) {
+                $pricing[$type] = (float) $price;
+            }
+
+            $pricing['rcs_carousel'] = $pricing['rcs_single'];
+
+            // rcs_rich maps to rcs_single pricing; currency from account record
+            $pricing['rcs_rich'] = $pricing['rcs_single'];
+            $pricing['currency'] = $account->currency ?? 'GBP';
+
+            return $pricing;
+        } catch (\Throwable $e) {
+            return $defaults;
+        }
+    }
+
+    private function getAccountVatStatus(): array
+    {
+        $defaults = ['vat_applicable' => false, 'vat_rate' => 0];
+
+        try {
+            $tenantId = session('customer_tenant_id');
+            if (!$tenantId) {
+                return $defaults;
+            }
+
+            $account = \App\Models\Account::withoutGlobalScope('tenant')->find($tenantId);
+            if (!$account) {
+                return $defaults;
+            }
+
+            if ($account->vat_reverse_charges) {
+                return ['vat_applicable' => false, 'vat_rate' => 0];
+            }
+
+            if ($account->vat_registered) {
+                return ['vat_applicable' => true, 'vat_rate' => 20];
+            }
+
+            return ['vat_applicable' => true, 'vat_rate' => 20];
+        } catch (\Throwable $e) {
+            return $defaults;
+        }
     }
 
     public function confirmCampaign(Request $request)
     {
-        // Get campaign data from session (populated by Send Message Continue button via JavaScript POST)
         $sessionData = $request->session()->get('campaign_config', []);
-        
-        // Campaign summary - use session data with fallbacks
+        $campaignId = $request->query('campaign_id', $sessionData['campaign_id'] ?? null);
+
         $campaign = [
+            'id' => $campaignId,
             'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
-            'created_by' => auth()->check() ? auth()->user()->name ?? 'Current User' : 'Current User',
+            'created_by' => session('customer_name', 'Current User'),
             'created_at' => now()->format('d/m/Y H:i'),
             'scheduled_time' => isset($sessionData['scheduled_time']) && $sessionData['scheduled_time'] !== 'now' 
                 ? $sessionData['scheduled_time'] 
@@ -450,18 +618,34 @@ class QuickSMSController extends Controller
                 : 'No restrictions',
         ];
 
-        // Channel data from session
         $channelType = $sessionData['channel'] ?? 'sms_only';
+
+        $agentName = $sessionData['rcs_agent'] ?? 'Not selected';
+        $agentLogo = asset('images/rcs-agents/quicksms-brand.svg');
+        $agentId = $sessionData['rcs_agent_id'] ?? null;
+        if ($agentId) {
+            $userId = session('customer_user_id');
+            $user = $userId ? \App\Models\User::withoutGlobalScope('tenant')->find($userId) : null;
+            if ($user) {
+                $agentRecord = \App\Models\RcsAgent::usableByUser($user)->find($agentId);
+                if ($agentRecord) {
+                    $agentName = $agentRecord->name;
+                    if ($agentRecord->logo_url) {
+                        $agentLogo = $agentRecord->logo_url;
+                    }
+                }
+            }
+        }
+
         $channel = [
             'type' => $channelType,
             'sms_sender_id' => $sessionData['sender_id'] ?? 'Not selected',
             'rcs_agent' => [
-                'name' => $sessionData['rcs_agent'] ?? 'Not selected',
-                'logo' => asset('images/default-agent-logo.png'),
+                'name' => $agentName,
+                'logo' => $agentLogo,
             ],
         ];
 
-        // Recipients data from session
         $recipientCount = $sessionData['recipient_count'] ?? 0;
         $validCount = $sessionData['valid_count'] ?? $recipientCount;
         $invalidCount = $sessionData['invalid_count'] ?? 0;
@@ -482,63 +666,63 @@ class QuickSMSController extends Controller
             ],
         ];
         
-        // If no sources are set but we have recipients, set manual input
         if ($recipientCount > 0 && array_sum($recipients['sources']) === 0) {
             $recipients['sources']['manual_input'] = $recipientCount;
         }
 
-        // Pricing data — resolve from account's actual pricing
-        $accountId = session('customer_tenant_id');
-        $account = \App\Models\Account::withoutGlobalScopes()->find($accountId);
+        $accountPricing = $this->getAccountPricingForView();
+        $accountVat = $this->getAccountVatStatus();
+
+        $smsRate = (float) ($accountPricing['sms'] ?? 0.0395);
+        $rcsBasicRate = (float) ($accountPricing['rcs_basic'] ?? 0.0395);
+        $rcsSingleRate = (float) ($accountPricing['rcs_single'] ?? 0.0600);
+        $rcsPenetration = 0.65;
 
         $pricing = [
-            'sms_unit_price' => 0.023,   // Fallback defaults
-            'rcs_basic_price' => 0.035,
-            'rcs_single_price' => 0.045,
-            'vat_applicable' => (bool) ($account->vat_registered ?? true),
-            'vat_rate' => ($account->vat_registered ?? true) ? 20 : 0,
+            'sms_unit_price' => $smsRate,
+            'rcs_basic_price' => $rcsBasicRate,
+            'rcs_single_price' => $rcsSingleRate,
+            'vat_applicable' => $accountVat['vat_applicable'],
+            'vat_rate' => $accountVat['vat_rate'],
+            'rcs_penetration' => $rcsPenetration,
         ];
 
-        if ($accountId && $account) {
-            $productTypes = ['sms', 'rcs_basic', 'rcs_single'];
-            $priceMap = ['sms' => 'sms_unit_price', 'rcs_basic' => 'rcs_basic_price', 'rcs_single' => 'rcs_single_price'];
+        $segmentBreakdown = [];
+        $totalSmsParts = 0;
 
-            // Check customer-specific prices first
-            $customerPrices = \App\Models\Billing\CustomerPrice::where('account_id', $accountId)
-                ->whereIn('product_type', $productTypes)
-                ->whereNull('country_iso')
-                ->active()
-                ->validAt()
-                ->get()
-                ->keyBy('product_type');
+        $accountId = session('customer_tenant_id');
 
-            foreach ($productTypes as $type) {
-                if ($customerPrices->has($type)) {
-                    $pricing[$priceMap[$type]] = (float) $customerPrices[$type]->unit_price;
+        if ($campaignId && $accountId) {
+            try {
+                $ownsCampaign = \DB::table('campaigns')
+                    ->where('id', $campaignId)
+                    ->where('account_id', $accountId)
+                    ->exists();
+
+                if ($ownsCampaign) {
+                    $segmentBreakdown = \DB::table('campaign_recipients')
+                        ->where('campaign_id', $campaignId)
+                        ->where('status', 'pending')
+                        ->selectRaw('segments, count(*) as recipient_count')
+                        ->groupBy('segments')
+                        ->orderBy('segments')
+                        ->get()
+                        ->all();
+
+                    $totalSmsParts = array_reduce($segmentBreakdown, function ($carry, $group) {
+                        return $carry + ($group->recipient_count * $group->segments);
+                    }, 0);
+                } else {
+                    $campaignId = null;
                 }
-            }
-
-            // Fall back to tier pricing for any not found
-            $missingTypes = array_filter($productTypes, fn($t) => !$customerPrices->has($t));
-            if (!empty($missingTypes)) {
-                $tier = $account->product_tier ?? 'starter';
-                $tierPrices = \App\Models\Billing\ProductTierPrice::where('product_tier', $tier)
-                    ->whereIn('product_type', $missingTypes)
-                    ->whereNull('country_iso')
-                    ->active()
-                    ->validAt()
-                    ->get()
-                    ->keyBy('product_type');
-
-                foreach ($missingTypes as $type) {
-                    if ($tierPrices->has($type)) {
-                        $pricing[$priceMap[$type]] = (float) $tierPrices[$type]->unit_price;
-                    }
-                }
+            } catch (\Throwable $e) {
+                \Log::warning('[ConfirmCampaign] Failed to load segment breakdown', [
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 
-        // Message content from session
+
         $message = [
             'type' => $channelType,
             'sms_content' => $sessionData['message_content'] ?? '',
@@ -567,13 +751,16 @@ class QuickSMSController extends Controller
             'recipients' => $recipients,
             'pricing' => $pricing,
             'message' => $message,
-            'realEstimate' => $realEstimate,
+            'segment_breakdown' => $segmentBreakdown,
+            'total_sms_parts' => $totalSmsParts,
+            'campaign_id' => $campaignId,
         ]);
     }
 
     public function storeCampaignConfig(Request $request)
     {
         $validated = $request->validate([
+            'campaign_id' => 'nullable|string|uuid',
             'campaign_name' => 'nullable|string|max:255',
             'channel' => 'nullable|string|in:sms_only,basic_rcs,rich_rcs',
             'sender_id' => 'nullable|string|max:50',
@@ -596,6 +783,7 @@ class QuickSMSController extends Controller
         ]);
 
         $request->session()->put('campaign_config', $validated);
+
 
         return response()->json(['success' => true]);
     }
@@ -625,20 +813,28 @@ class QuickSMSController extends Controller
 
         try {
             $campaignService = app(\App\Services\Campaign\CampaignService::class);
+            $campaignId = $sessionData['campaign_id'] ?? $request->input('campaign_id');
+            $campaign = null;
 
-            // Build Campaign API payload from session data
-            $campaignData = [
-                'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
-                'type' => $sessionData['campaign_type'] ?? 'sms',
-                'message_content' => $sessionData['message_content'] ?? null,
-                'rcs_content' => $sessionData['rcs_content'] ?? null,
-                'sender_id_id' => $sessionData['sender_id_id'] ?? null,
-                'rcs_agent_id' => $sessionData['rcs_agent_id'] ?? null,
-                'recipient_sources' => $sessionData['recipient_sources'] ?? [],
-            ];
+            if ($campaignId) {
+                $campaign = \App\Models\Campaign::where('id', $campaignId)
+                    ->where('account_id', $accountId)
+                    ->whereIn('status', ['draft', 'preparing', 'ready'])
+                    ->first();
+            }
 
-            // Create the campaign as draft
-            $campaign = $campaignService->create($accountId, $campaignData);
+            if (!$campaign) {
+                $campaignData = [
+                    'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
+                    'type' => $sessionData['campaign_type'] ?? 'sms',
+                    'message_content' => $sessionData['message_content'] ?? null,
+                    'rcs_content' => $sessionData['rcs_content'] ?? null,
+                    'sender_id_id' => $sessionData['sender_id_id'] ?? null,
+                    'rcs_agent_id' => $sessionData['rcs_agent_id'] ?? null,
+                    'recipient_sources' => $sessionData['recipient_sources'] ?? [],
+                ];
+                $campaign = $campaignService->create($accountId, $campaignData);
+            }
 
             // Handle scheduling vs immediate send
             $scheduledTime = $sessionData['scheduled_time'] ?? 'now';
@@ -1740,8 +1936,18 @@ class QuickSMSController extends Controller
 
     public function purchaseNumbers()
     {
+        $accountBalance = 0;
+        $tenantId = session('customer_tenant_id');
+        if ($tenantId) {
+            $bal = \DB::table('account_balances')
+                ->where('account_id', $tenantId)
+                ->value('effective_available');
+            $accountBalance = (float) ($bal ?? 0);
+        }
+
         return view('quicksms.purchase.numbers', [
-            'page_title' => 'Purchase Numbers'
+            'page_title' => 'Purchase Numbers',
+            'accountBalance' => $accountBalance,
         ]);
     }
 
@@ -1854,31 +2060,10 @@ class QuickSMSController extends Controller
     public function templates()
     {
         $sender_ids = $this->getApprovedSenderIds();
-
-        // TODO: Replace with database query - GET /api/rcs-agents?status=approved
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
-
-        // TODO: Replace with database query - GET /api/opt-out-lists
-        $opt_out_lists = [
-            ['id' => 1, 'name' => 'Master Opt-Out List', 'count' => 2847, 'is_default' => true],
-            ['id' => 2, 'name' => 'Marketing Opt-Outs', 'count' => 1245, 'is_default' => false],
-            ['id' => 3, 'name' => 'Promotions Opt-Outs', 'count' => 892, 'is_default' => false],
-        ];
-
-        // TODO: Replace with database query - GET /api/virtual-numbers
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900100', 'label' => 'Main Number'],
-            ['id' => 2, 'number' => '+447700900200', 'label' => 'Marketing'],
-        ];
-
-        // TODO: Replace with database query - GET /api/optout-domains
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'qsms.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'optout.quicksms.com', 'is_default' => false],
-        ];
+        $rcs_agents = $this->getRcsAgentsForView();
+        $opt_out_lists = $this->getOptOutListsForView();
+        $virtual_numbers = [];
+        $optout_domains = [];
 
         return view('quicksms.management.templates', [
             'page_title' => 'Message Templates',
@@ -1903,29 +2088,10 @@ class QuickSMSController extends Controller
     public function templateCreateStep2()
     {
         $sender_ids = $this->getApprovedSenderIds();
-
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getLists()
-        $opt_out_lists = [
-            ['id' => 1, 'name' => 'Marketing Opt-outs', 'count' => 1250],
-            ['id' => 2, 'name' => 'Transactional Opt-outs', 'count' => 89],
-        ];
-
-        // TODO: Replace with API call - numbersService.getVirtualNumbers()
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900200', 'label' => 'Customer Support'],
-            ['id' => 2, 'number' => '+447700900201', 'label' => 'Sales'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getDomains()
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'optout.quicksms.co.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'stop.quicksms.co.uk', 'is_default' => false],
-        ];
+        $rcs_agents = $this->getRcsAgentsForView();
+        $opt_out_lists = $this->getOptOutListsForView();
+        $virtual_numbers = [];
+        $optout_domains = [];
 
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Create Template - Content',
@@ -1977,29 +2143,10 @@ class QuickSMSController extends Controller
     public function templateEditStep2($templateId)
     {
         $sender_ids = $this->getApprovedSenderIds();
-
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getLists()
-        $opt_out_lists = [
-            ['id' => 1, 'name' => 'Marketing Opt-outs', 'count' => 1250],
-            ['id' => 2, 'name' => 'Transactional Opt-outs', 'count' => 89],
-        ];
-
-        // TODO: Replace with API call - numbersService.getVirtualNumbers()
-        $virtual_numbers = [
-            ['id' => 1, 'number' => '+447700900200', 'label' => 'Customer Support'],
-            ['id' => 2, 'number' => '+447700900201', 'label' => 'Sales'],
-        ];
-
-        // TODO: Replace with API call - optOutService.getDomains()
-        $optout_domains = [
-            ['id' => 1, 'domain' => 'optout.quicksms.co.uk', 'is_default' => true],
-            ['id' => 2, 'domain' => 'stop.quicksms.co.uk', 'is_default' => false],
-        ];
+        $rcs_agents = $this->getRcsAgentsForView();
+        $opt_out_lists = $this->getOptOutListsForView();
+        $virtual_numbers = [];
+        $optout_domains = [];
 
         // TODO: Replace with API call - templatesService.getTemplate(templateId)
         $template = $this->getMockTemplate($templateId);
@@ -2084,19 +2231,24 @@ class QuickSMSController extends Controller
                 'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
             ])->toArray();
 
-        $rcs_agents = [
-            ['id' => 1, 'name' => 'QuickSMS Brand', 'logo' => asset('images/rcs-agents/quicksms-brand.svg'), 'tagline' => 'Fast messaging for everyone', 'brand_color' => '#886CC0', 'status' => 'approved'],
-            ['id' => 2, 'name' => 'Promotions Agent', 'logo' => asset('images/rcs-agents/promotions-agent.svg'), 'tagline' => 'Exclusive deals & offers', 'brand_color' => '#E91E63', 'status' => 'approved'],
-        ];
+        $rcs_agents = \App\Models\RcsAgent::where('account_id', $accountId)
+            ->where('workflow_status', 'approved')
+            ->select('uuid', 'name', 'description', 'brand_color', 'logo_url')
+            ->get()
+            ->map(fn($a) => [
+                'id'          => $a->uuid,
+                'name'        => $a->name,
+                'logo'        => $a->logo_url ?: null,
+                'tagline'     => $a->description ?? '',
+                'brand_color' => $a->brand_color ?? '#886CC0',
+                'status'      => 'approved',
+            ])
+            ->toArray();
 
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
         $template = $this->getMockTemplate($templateId);
-        
-        // TODO: Replace with API call - accountsService.getAccount(accountId)
-        $account = [
-            'id' => $accountId,
-            'name' => 'Acme Corp'
-        ];
+
+        $accountModel = \App\Models\Account::withoutGlobalScope('tenant')->find($accountId);
+        $account = $accountModel ? ['id' => $accountModel->id, 'name' => $accountModel->company_name ?? $accountModel->trading_name ?? 'Unknown'] : ['id' => $accountId, 'name' => 'Unknown'];
 
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Edit Template - Content',
@@ -2322,8 +2474,20 @@ class QuickSMSController extends Controller
 
     public function numbers()
     {
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            $subAccounts = \DB::table('sub_accounts')
+                ->where('account_id', $tenantId)
+                ->select('id', 'name')
+                ->orderBy('name')
+                ->get()
+                ->toArray();
+        }
+
         return view('quicksms.management.numbers', [
-            'page_title' => 'Numbers'
+            'page_title' => 'Numbers',
+            'subAccounts' => $subAccounts,
         ]);
     }
 

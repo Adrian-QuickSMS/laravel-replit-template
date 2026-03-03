@@ -79,9 +79,7 @@
                         <div class="col-sm-4 text-muted">RCS Agent</div>
                         <div class="col-sm-8">
                             <div class="d-flex align-items-center">
-                                <div class="rounded me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: linear-gradient(135deg, #886CC0 0%, #a78bdb 100%);">
-                                    <i class="fas fa-robot text-white" style="font-size: 14px;"></i>
-                                </div>
+                                <img src="{{ $channel['rcs_agent']['logo'] }}" alt="{{ $channel['rcs_agent']['name'] }}" class="rounded me-2" style="width: 32px; height: 32px; object-fit: cover;">
                                 <span class="fw-medium">{{ $channel['rcs_agent']['name'] }}</span>
                                 <i class="fas fa-check-circle text-primary ms-2" title="Verified"></i>
                             </div>
@@ -129,37 +127,37 @@
 
                     <div class="border-top pt-3">
                         <p class="text-muted small mb-2">Source Breakdown</p>
-                        @if($recipients['sources']['manual_input'] > 0)
+                        @if(($recipients['sources']['manual_input'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-keyboard text-muted me-2"></i>Manual input</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['manual_input']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['file_upload'] > 0)
+                        @if(($recipients['sources']['file_upload'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-file-upload text-muted me-2"></i>File upload</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['file_upload']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['contacts'] > 0)
+                        @if(($recipients['sources']['contacts'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-address-book text-muted me-2"></i>Contacts</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['contacts']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['lists'] > 0)
+                        @if(($recipients['sources']['lists'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-list text-muted me-2"></i>Lists</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['lists']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['dynamic_lists'] > 0)
+                        @if(($recipients['sources']['dynamic_lists'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-magic text-muted me-2"></i>Dynamic lists</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['dynamic_lists']) }}</span>
                         </div>
                         @endif
-                        @if($recipients['sources']['tags'] > 0)
+                        @if(($recipients['sources']['tags'] ?? 0) > 0)
                         <div class="d-flex justify-content-between py-1">
                             <span><i class="fas fa-tags text-muted me-2"></i>Tags</span>
                             <span class="fw-medium">{{ number_format($recipients['sources']['tags']) }}</span>
@@ -175,82 +173,157 @@
                 </div>
                 <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
-                        @if(!empty($realEstimate))
-                            {{-- Real estimate from backend billing engine --}}
-                            <div class="row mb-2">
-                                <div class="col-6 text-muted">Messages</div>
-                                <div class="col-6 text-end">{{ number_format($recipients['valid']) }}</div>
+                        @php
+                            $messageCount = $recipients['valid'] ?? 0;
+                            $smsUnitPrice = is_object($pricing['sms_unit_price']) ? (float) $pricing['sms_unit_price']->unitPrice : (float) ($pricing['sms_unit_price'] ?? 0);
+                            $resolvedParts = $total_sms_parts ?? 0;
+                            $subtotal = $resolvedParts * $smsUnitPrice;
+                            $vatRate = (float) ($pricing['vat_rate'] ?? 0);
+                            $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($vatRate / 100) : 0;
+                            $total = $subtotal + $vatAmount;
+                            $hasBreakdown = !empty($segment_breakdown ?? []);
+                        @endphp
+                        <div class="row mb-2">
+                            <div class="col-6 text-muted">Recipients</div>
+                            <div class="col-6 text-end">{{ number_format($messageCount) }}</div>
+                        </div>
+                        @if($hasBreakdown && count($segment_breakdown) > 1)
+                        <div class="mb-2">
+                            <p class="text-muted small mb-1">Segment breakdown (personalised per recipient)</p>
+                            @foreach($segment_breakdown as $group)
+                            <div class="d-flex justify-content-between py-1 ps-3">
+                                <span class="small text-muted">{{ number_format($group->recipient_count) }} recipients &times; {{ $group->segments }} {{ $group->segments === 1 ? 'segment' : 'segments' }}</span>
+                                <span class="small">{{ number_format($group->recipient_count * $group->segments) }} parts</span>
                             </div>
-                            <div class="row mb-2">
-                                <div class="col-6 text-muted">Estimated Cost (ex VAT)</div>
-                                <div class="col-6 text-end">&pound;{{ number_format((float) $realEstimate['total_cost'], 2) }}</div>
-                            </div>
-                            @if(!$realEstimate['has_sufficient_balance'])
-                            <div class="alert alert-warning py-2 px-3 mt-2" style="font-size: 13px;">
-                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                Insufficient balance. Available: &pound;{{ number_format((float) $realEstimate['available_balance'], 2) }}
-                            </div>
-                            @endif
-                            <hr>
-                            <div class="row">
-                                <div class="col-6 fw-bold">Estimated Total</div>
-                                <div class="col-6 text-end fw-bold h5 mb-0">&pound;{{ number_format((float) $realEstimate['total_cost'], 2) }}</div>
-                            </div>
+                            @endforeach
+                        </div>
+                        @elseif($hasBreakdown && count($segment_breakdown) === 1)
+                        <div class="row mb-2">
+                            <div class="col-6 text-muted">Segments per message</div>
+                            <div class="col-6 text-end">{{ $segment_breakdown[0]->segments }}</div>
+                        </div>
                         @else
-                            {{-- Fallback: simple estimate from session data --}}
-                            @php
-                                $messageCount = $recipients['valid'];
-                                $subtotal = $messageCount * $pricing['sms_unit_price'];
-                                $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($pricing['vat_rate'] / 100) : 0;
-                                $total = $subtotal + $vatAmount;
-                            @endphp
+                            @php $segmentCount = $campaign['segment_count'] ?? 1; @endphp
+                            @if($segmentCount > 1)
                             <div class="row mb-2">
-                                <div class="col-6 text-muted">Messages</div>
-                                <div class="col-6 text-end">{{ number_format($messageCount) }}</div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-6 text-muted">Price per SMS</div>
-                                <div class="col-6 text-end">&pound;{{ number_format($pricing['sms_unit_price'], 3) }}</div>
-                            </div>
-                            <div class="row mb-2">
-                                <div class="col-6 text-muted">Subtotal (ex VAT)</div>
-                                <div class="col-6 text-end">&pound;{{ number_format($subtotal, 2) }}</div>
-                            </div>
-                            @if($pricing['vat_applicable'])
-                            <div class="row mb-2">
-                                <div class="col-6 text-muted">VAT ({{ $pricing['vat_rate'] }}%)</div>
-                                <div class="col-6 text-end">&pound;{{ number_format($vatAmount, 2) }}</div>
+                                <div class="col-6 text-muted">Segments per message</div>
+                                <div class="col-6 text-end">{{ $segmentCount }}</div>
                             </div>
                             @endif
-                            <hr>
-                            <div class="row">
-                                <div class="col-6 fw-bold">Total</div>
-                                <div class="col-6 text-end fw-bold h5 mb-0">&pound;{{ number_format($total, 2) }}</div>
-                            </div>
+                        @endif
+                        <div class="row mb-2">
+                            <div class="col-6 text-muted">Total SMS parts</div>
+                            <div class="col-6 text-end">{{ number_format($resolvedParts) }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6 text-muted">Price per SMS part</div>
+                            <div class="col-6 text-end">&pound;{{ number_format($smsUnitPrice, 4) }}</div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-6 text-muted">Subtotal (ex VAT)</div>
+                            <div class="col-6 text-end">&pound;{{ number_format($subtotal, 2) }}</div>
+                        </div>
+                        @if($pricing['vat_applicable'])
+                        <div class="row mb-2">
+                            <div class="col-6 text-muted">VAT ({{ $pricing['vat_rate'] }}%)</div>
+                            <div class="col-6 text-end">&pound;{{ number_format($vatAmount, 2) }}</div>
+                        </div>
                         @endif
                     @else
+                        @php
+                            $validRecipients = $recipients['valid'] ?? 0;
+                            $penetration = (float) ($pricing['rcs_penetration'] ?? 0.65);
+                            $smsPrice = (float) ($pricing['sms_unit_price'] ?? 0);
+                            $isBasicRcs = ($channel['type'] === 'basic_rcs');
+                            $rcsPrice = $isBasicRcs
+                                ? (float) ($pricing['rcs_basic_price'] ?? 0)
+                                : (float) ($pricing['rcs_single_price'] ?? 0);
+
+                            $estRcsCount = (int) round($validRecipients * $penetration);
+                            $estSmsCount = $validRecipients - $estRcsCount;
+                            $estRcsCost = $estRcsCount * $rcsPrice;
+                            $estSmsCost = $estSmsCount * $smsPrice;
+                            $estTotal = $estRcsCost + $estSmsCost;
+
+                            $maxRate = max($smsPrice, $rcsPrice);
+                            $maxTotal = $validRecipients * $maxRate;
+
+                            $vatRate = (float) ($pricing['vat_rate'] ?? 0);
+                            $estVat = $pricing['vat_applicable'] ? $estTotal * ($vatRate / 100) : 0;
+                            $maxVat = $pricing['vat_applicable'] ? $maxTotal * ($vatRate / 100) : 0;
+                        @endphp
+
                         <div class="py-3 mb-3 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Pricing Notice:</strong> This campaign includes RCS delivery. Because RCS availability varies by handset and network, the final cost cannot be calculated in advance.
                         </div>
                         <p class="text-muted small mb-3">SMS fallback messages will be charged at your agreed SMS rate. RCS messages are billed based on actual delivery.</p>
-                        <div class="row g-3">
+
+                        <div class="row g-3 mb-3">
                             <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
                                     <div class="small" style="color: #495057;">SMS Rate</div>
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($pricing['sms_unit_price'], 3) }}</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($smsPrice, 4) }}</div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">RCS Basic</div>
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($pricing['rcs_basic_price'], 3) }}</div>
+                                    <div class="small" style="color: #495057;">{{ $isBasicRcs ? 'RCS Basic' : 'RCS Single' }} Rate</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($rcsPrice, 4) }}</div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">RCS Single</div>
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($pricing['rcs_single_price'], 3) }}</div>
+                                    <div class="small" style="color: #495057;">RCS Penetration</div>
+                                    <div class="fw-bold text-dark">{{ number_format($penetration * 100, 0) }}%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="p-3 rounded" style="background-color: #f0ebf8;">
+                                    <div class="small fw-bold mb-2" style="color: #6b5b95;">Estimated Cost</div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">{{ $isBasicRcs ? 'RCS Basic' : 'RCS Single' }}: {{ number_format($estRcsCount) }} &times; &pound;{{ number_format($rcsPrice, 4) }}</span>
+                                        <span>&pound;{{ number_format($estRcsCost, 2) }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">SMS fallback: {{ number_format($estSmsCount) }} &times; &pound;{{ number_format($smsPrice, 4) }}</span>
+                                        <span>&pound;{{ number_format($estSmsCost, 2) }}</span>
+                                    </div>
+                                    @if($pricing['vat_applicable'])
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">VAT ({{ $vatRate }}%)</span>
+                                        <span>&pound;{{ number_format($estVat, 2) }}</span>
+                                    </div>
+                                    @endif
+                                    <hr class="my-1">
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Total</span>
+                                        <span>&pound;{{ number_format($estTotal + $estVat, 2) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded" style="background-color: #e9ecef;">
+                                    <div class="small fw-bold mb-2" style="color: #495057;">Maximum Cost</div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">{{ number_format($validRecipients) }} &times; &pound;{{ number_format($maxRate, 4) }}</span>
+                                        <span>&pound;{{ number_format($maxTotal, 2) }}</span>
+                                    </div>
+                                    @if($pricing['vat_applicable'])
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">VAT ({{ $vatRate }}%)</span>
+                                        <span>&pound;{{ number_format($maxVat, 2) }}</span>
+                                    </div>
+                                    @endif
+                                    <hr class="my-1">
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Total</span>
+                                        <span>&pound;{{ number_format($maxTotal + $maxVat, 2) }}</span>
+                                    </div>
+                                    <p class="text-muted small mb-0 mt-1">If all recipients received at the higher rate</p>
                                 </div>
                             </div>
                         </div>
@@ -261,7 +334,7 @@
             <div class="card border-0 bg-transparent">
                 <div class="card-body px-0">
                     <div class="d-flex gap-2">
-                        <a href="{{ route('messages.send') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('messages.send') }}{{ !empty($campaign['id']) ? '?campaign_id=' . $campaign['id'] : '' }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Back
                         </a>
                         <button type="button" class="btn btn-primary flex-grow-1" id="sendCampaignBtn" onclick="confirmSend()">
@@ -317,9 +390,10 @@ function confirmSend() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({})
+        body: JSON.stringify({ campaign_id: '{{ $campaign_id ?? '' }}' })
     })
     .then(function(response) { return response.json().then(function(data) { return { ok: response.ok, data: data }; }); })
     .then(function(result) {

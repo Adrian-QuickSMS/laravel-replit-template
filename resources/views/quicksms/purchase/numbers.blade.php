@@ -475,7 +475,7 @@
                             <span class="best-value-badge">Best value</span>
                         </div>
                         <h4>UK Virtual Mobile Number</h4>
-                        <p>Standard UK mobile (07xxx) for two-way SMS and RCS messaging</p>
+                        <p>Standard UK mobile (07xxx) for two-way SMS messaging</p>
                     </div>
                     <div class="product-body">
                         <div class="price-row">
@@ -497,7 +497,7 @@
                 <div class="card product-card tryal-gradient w-100" data-product="shared" onclick="selectProduct('shared')">
                     <div class="product-header">
                         <h4>UK Shared Short Code</h4>
-                        <p>Share shortcode 82228 with custom keywords for inbound messaging</p>
+                        <p>Share shortcode 60866 with custom keywords for inbound messaging</p>
                     </div>
                     <div class="product-body">
                         <div class="price-row">
@@ -524,11 +524,11 @@
                     <div class="product-body">
                         <div class="price-row">
                             <span class="price-label">Setup Cost</span>
-                            <span class="price-value contact-sales">Contact sales (price on request)</span>
+                            <span class="price-value" id="dedicatedSetupPrice">Loading...</span>
                         </div>
                         <div class="price-row">
                             <span class="price-label">Monthly Cost</span>
-                            <span class="price-value contact-sales">Contact sales (price on request)</span>
+                            <span class="price-value" id="dedicatedMonthlyPrice">Loading...</span>
                         </div>
                     </div>
                     <div class="product-footer">
@@ -593,12 +593,28 @@
                 </div>
                 <div class="summary-costs">
                     <div class="cost-item">
-                        <span class="cost-label">Setup Total</span>
+                        <span class="cost-label">Setup (ex VAT)</span>
                         <span class="cost-value">£<span id="vmnSetupTotal">0.00</span></span>
                     </div>
+                    <div class="cost-item" id="vmnSetupVatRow" style="display:none">
+                        <span class="cost-label">VAT (<span id="vmnVatRatePct">20</span>%)</span>
+                        <span class="cost-value">£<span id="vmnSetupVat">0.00</span></span>
+                    </div>
+                    <div class="cost-item" id="vmnSetupIncVatRow" style="display:none">
+                        <span class="cost-label fw-bold">Setup Total inc VAT</span>
+                        <span class="cost-value fw-bold">£<span id="vmnSetupIncVat">0.00</span></span>
+                    </div>
                     <div class="cost-item">
-                        <span class="cost-label">Monthly Total</span>
+                        <span class="cost-label">Monthly (ex VAT)</span>
                         <span class="cost-value">£<span id="vmnMonthlyTotal">0.00</span>/mo</span>
+                    </div>
+                    <div class="cost-item" id="vmnMonthlyVatRow" style="display:none">
+                        <span class="cost-label">Monthly VAT</span>
+                        <span class="cost-value">£<span id="vmnMonthlyVat">0.00</span>/mo</span>
+                    </div>
+                    <div class="cost-item" id="vmnMonthlyIncVatRow" style="display:none">
+                        <span class="cost-label fw-bold">Monthly Total inc VAT</span>
+                        <span class="cost-value fw-bold">£<span id="vmnMonthlyIncVat">0.00</span>/mo</span>
                     </div>
                 </div>
             </div>
@@ -614,7 +630,7 @@
 
             <div class="alert alert-pastel-primary mb-3">
                 <i class="fas fa-info-circle me-2 text-primary"></i>
-                Shared shortcode: <strong>82228</strong> — Add keywords to receive inbound messages on this shared number.
+                Shared shortcode: <strong>60866</strong> — Add keywords to receive inbound messages on this shared number.
             </div>
 
             <div class="keyword-section">
@@ -639,12 +655,28 @@
                 </div>
                 <div class="summary-costs">
                     <div class="cost-item">
-                        <span class="cost-label">Setup Total</span>
+                        <span class="cost-label">Setup (ex VAT)</span>
                         <span class="cost-value">£<span id="keywordSetupTotal">0.00</span></span>
                     </div>
+                    <div class="cost-item" id="kwSetupVatRow" style="display:none">
+                        <span class="cost-label">VAT (<span id="kwVatRatePct">20</span>%)</span>
+                        <span class="cost-value">£<span id="kwSetupVat">0.00</span></span>
+                    </div>
+                    <div class="cost-item" id="kwSetupIncVatRow" style="display:none">
+                        <span class="cost-label fw-bold">Setup Total inc VAT</span>
+                        <span class="cost-value fw-bold">£<span id="kwSetupIncVat">0.00</span></span>
+                    </div>
                     <div class="cost-item">
-                        <span class="cost-label">Monthly Total</span>
+                        <span class="cost-label">Monthly (ex VAT)</span>
                         <span class="cost-value">£<span id="keywordMonthlyTotal">0.00</span>/mo</span>
+                    </div>
+                    <div class="cost-item" id="kwMonthlyVatRow" style="display:none">
+                        <span class="cost-label">Monthly VAT</span>
+                        <span class="cost-value">£<span id="kwMonthlyVat">0.00</span>/mo</span>
+                    </div>
+                    <div class="cost-item" id="kwMonthlyIncVatRow" style="display:none">
+                        <span class="cost-label fw-bold">Monthly Total inc VAT</span>
+                        <span class="cost-value fw-bold">£<span id="kwMonthlyIncVat">0.00</span>/mo</span>
                     </div>
                 </div>
             </div>
@@ -703,20 +735,34 @@
                     <div id="modalVmnList" class="border rounded p-2" style="max-height: 150px; overflow-y: auto;"></div>
                 </div>
                 
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <div class="text-muted small">Setup Cost (due now)</div>
-                            <div class="fs-4 fw-bold text-primary">£<span id="modalVmnSetup">0.00</span></div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <div class="text-muted small">Monthly Cost</div>
-                            <div class="fs-4 fw-bold text-primary">£<span id="modalVmnMonthly">0.00</span>/mo</div>
-                        </div>
-                    </div>
-                </div>
+                <table class="table table-sm mb-3">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Setup fee (ex VAT)</td>
+                            <td class="text-end">£<span id="modalVmnSetup">0.00</span></td>
+                        </tr>
+                        <tr id="modalVmnVatRow">
+                            <td class="text-muted">VAT (<span id="modalVmnVatRate">20</span>%)</td>
+                            <td class="text-end">£<span id="modalVmnSetupVat">0.00</span></td>
+                        </tr>
+                        <tr class="fw-bold border-top">
+                            <td>Total due now (inc VAT)</td>
+                            <td class="text-end text-primary">£<span id="modalVmnSetupTotal">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted pt-2">Monthly fee (ex VAT)</td>
+                            <td class="text-end pt-2">£<span id="modalVmnMonthly">0.00</span>/mo</td>
+                        </tr>
+                        <tr id="modalVmnMonthlyVatRow">
+                            <td class="text-muted">Monthly VAT</td>
+                            <td class="text-end">£<span id="modalVmnMonthlyVat">0.00</span>/mo</td>
+                        </tr>
+                        <tr class="fw-bold border-top">
+                            <td>Monthly total (inc VAT)</td>
+                            <td class="text-end text-primary">£<span id="modalVmnMonthlyTotal">0.00</span>/mo</td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 <div class="alert alert-pastel-primary small mb-0">
                     <i class="fas fa-info-circle me-1 text-primary"></i>
@@ -745,21 +791,35 @@
                     <label class="form-label fw-semibold">Selected Keywords</label>
                     <div id="modalKeywordList" class="border rounded p-2" style="max-height: 150px; overflow-y: auto;"></div>
                 </div>
-                
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <div class="text-muted small">Setup Cost (due now)</div>
-                            <div class="fs-4 fw-bold text-primary">£<span id="modalKeywordSetup">0.00</span></div>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="border rounded p-3 text-center">
-                            <div class="text-muted small">Monthly Cost</div>
-                            <div class="fs-4 fw-bold text-primary">£<span id="modalKeywordMonthly">0.00</span>/mo</div>
-                        </div>
-                    </div>
-                </div>
+
+                <table class="table table-sm mb-3">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Setup fee (ex VAT)</td>
+                            <td class="text-end">£<span id="modalKeywordSetup">0.00</span></td>
+                        </tr>
+                        <tr id="modalKeywordVatRow">
+                            <td class="text-muted">VAT (<span id="modalKeywordVatRate">20</span>%)</td>
+                            <td class="text-end">£<span id="modalKeywordSetupVat">0.00</span></td>
+                        </tr>
+                        <tr class="fw-bold border-top">
+                            <td>Total due now (inc VAT)</td>
+                            <td class="text-end text-primary">£<span id="modalKeywordSetupTotal">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted pt-2">Monthly fee (ex VAT)</td>
+                            <td class="text-end pt-2">£<span id="modalKeywordMonthly">0.00</span>/mo</td>
+                        </tr>
+                        <tr id="modalKeywordMonthlyVatRow">
+                            <td class="text-muted">Monthly VAT</td>
+                            <td class="text-end">£<span id="modalKeywordMonthlyVat">0.00</span>/mo</td>
+                        </tr>
+                        <tr class="fw-bold border-top">
+                            <td>Monthly total (inc VAT)</td>
+                            <td class="text-end text-primary">£<span id="modalKeywordMonthlyTotal">0.00</span>/mo</td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 <div class="alert alert-pastel-primary small mb-0">
                     <i class="fas fa-info-circle me-1 text-primary"></i>
@@ -841,44 +901,85 @@
 
 @push('scripts')
 <script>
-var currentUserRole = 'admin';
-var allowedRoles = ['admin', 'finance', 'messaging_manager'];
-var accountBalance = 45.00;
+var accountBalance = {{ $accountBalance }};
 var selectedProduct = null;
-
-
-var vmnMockData = [
-    { id: 1, number: '+447700900001', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 2, number: '+447700900002', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 3, number: '+447700900004', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 4, number: '+447700900005', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 5, number: '+447700900100', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 6, number: '+447700900101', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 7, number: '+447700900102', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 },
-    { id: 8, number: '+447700900103', country: 'GB', countryName: 'United Kingdom', setupFee: 2.00, monthlyFee: 2.00 }
-];
-
-var takenKeywords = ['SALE', 'FREE', 'VOTE', 'STOP', 'ALERT', 'VIP'];
+var vmnPoolData = [];
+var takenKeywords = [];
+var sharedShortcodes = [];
+var sharedShortcodeId = null;
 var selectedVmnIds = [];
 var selectedKeywords = [];
 var vmnSortColumn = 'number';
 var vmnSortDirection = 'asc';
 var vmnSearchTerm = '';
+var keywordSetupFee = 0;
+var keywordMonthlyFee = 0;
+var vmnSetupFee = 0;
+var vmnMonthlyFee = 0;
+var vatRate = 0;
+var _pricingLoaded = false;
 
-var keywordSetupFee = 2.00;
-var keywordMonthlyFee = 2.00;
+var countryNames = {
+    'GB': 'United Kingdom', 'US': 'United States', 'AU': 'Australia',
+    'DE': 'Germany', 'FR': 'France', 'ES': 'Spain', 'IT': 'Italy', 'NL': 'Netherlands'
+};
+
+function csrfHeaders() {
+    var token = document.querySelector('meta[name=csrf-token]');
+    return {
+        'X-CSRF-TOKEN': token ? token.content : '',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    };
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    checkAccess();
-    renderVmnTable();
-    renderTakenKeywords();
+    document.getElementById('accessDeniedView').style.display = 'none';
+    document.getElementById('purchaseContent').style.display = 'block';
+    loadPricing();
     setupEventListeners();
 });
 
-function checkAccess() {
-    var hasAccess = allowedRoles.includes(currentUserRole);
-    document.getElementById('accessDeniedView').style.display = hasAccess ? 'none' : 'block';
-    document.getElementById('purchaseContent').style.display = hasAccess ? 'block' : 'none';
+function loadPricing() {
+    fetch('/api/numbers/pricing', { headers: { 'Accept': 'application/json' } })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            vatRate = parseFloat(data.vat_rate) || 0;
+            if (data.vmn) {
+                vmnSetupFee = parseFloat(data.vmn.setup_fee) || 0;
+                vmnMonthlyFee = parseFloat(data.vmn.monthly_fee) || 0;
+                var sym = data.vmn.currency === 'GBP' ? '£' : (data.vmn.currency + ' ');
+                var el1 = document.getElementById('vmnSetupPrice');
+                var el2 = document.getElementById('vmnMonthlyPrice');
+                if (el1) el1.textContent = sym + vmnSetupFee.toFixed(2);
+                if (el2) el2.textContent = sym + vmnMonthlyFee.toFixed(2);
+            }
+            if (data.keyword) {
+                keywordSetupFee = parseFloat(data.keyword.setup_fee) || 0;
+                keywordMonthlyFee = parseFloat(data.keyword.monthly_fee) || 0;
+                var sym = data.keyword.currency === 'GBP' ? '£' : (data.keyword.currency + ' ');
+                var el3 = document.getElementById('keywordSetupPrice');
+                var el4 = document.getElementById('keywordMonthlyPrice');
+                if (el3) el3.textContent = sym + keywordSetupFee.toFixed(2);
+                if (el4) el4.textContent = sym + keywordMonthlyFee.toFixed(2);
+            }
+            var el5 = document.getElementById('dedicatedSetupPrice');
+            var el6 = document.getElementById('dedicatedMonthlyPrice');
+            if (data.dedicated_shortcode) {
+                var dsym = data.dedicated_shortcode.currency === 'GBP' ? '£' : (data.dedicated_shortcode.currency + ' ');
+                var dsSetup = parseFloat(data.dedicated_shortcode.setup_fee) || 0;
+                var dsMonthly = parseFloat(data.dedicated_shortcode.monthly_fee) || 0;
+                if (el5) el5.textContent = dsym + dsSetup.toFixed(2);
+                if (el6) el6.textContent = dsym + dsMonthly.toFixed(2);
+            } else {
+                if (el5) { el5.textContent = 'Contact sales'; el5.classList.add('contact-sales'); }
+                if (el6) { el6.textContent = 'Contact sales'; el6.classList.add('contact-sales'); }
+            }
+            sharedShortcodes = data.shared_shortcodes || [];
+            sharedShortcodeId = sharedShortcodes.length > 0 ? sharedShortcodes[0].id : null;
+            _pricingLoaded = true;
+        })
+        .catch(function(err) { console.error('Pricing load error', err); _pricingLoaded = true; });
 }
 
 function setupEventListeners() {
@@ -886,60 +987,122 @@ function setupEventListeners() {
         vmnSearchTerm = e.target.value.toLowerCase();
         renderVmnTable();
     });
-    
+    document.getElementById('vmnCountryFilter').addEventListener('change', function() {
+        loadVmnPool(this.value || null);
+    });
     document.getElementById('keywordInput').addEventListener('input', validateKeywordInput);
     document.getElementById('keywordInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter' && !document.getElementById('addKeywordBtn').disabled) {
-            addKeyword();
-        }
+        if (e.key === 'Enter' && !document.getElementById('addKeywordBtn').disabled) addKeyword();
     });
-    
     document.getElementById('takenKeywordSearch').addEventListener('input', renderTakenKeywords);
 }
 
 function selectProduct(product) {
-    document.querySelectorAll('.product-card').forEach(function(card) {
-        card.classList.remove('selected');
-    });
+    document.querySelectorAll('.product-card').forEach(function(c) { c.classList.remove('selected'); });
     document.querySelector('[data-product="' + product + '"]').classList.add('selected');
-    
-    document.querySelectorAll('.selection-panel').forEach(function(panel) {
-        panel.classList.remove('active');
-    });
-    
+    document.querySelectorAll('.selection-panel').forEach(function(p) { p.classList.remove('active'); });
     selectedProduct = product;
     document.getElementById(product + 'Panel').classList.add('active');
+    if (product === 'vmn') {
+        if (vmnPoolData.length === 0) loadVmnPool(null);
+    } else if (product === 'shared') {
+        loadTakenKeywords();
+        if (sharedShortcodeId !== null) {
+            enableKeywordPurchase();
+        } else if (_pricingLoaded) {
+            disableKeywordPurchase();
+        } else {
+            var checkInterval = setInterval(function() {
+                if (_pricingLoaded) {
+                    clearInterval(checkInterval);
+                    if (sharedShortcodeId !== null) { enableKeywordPurchase(); } else { disableKeywordPurchase(); }
+                }
+            }, 200);
+        }
+    }
+}
+
+function loadVmnPool(countryIso) {
+    var tbody = document.getElementById('vmnTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3"><span class="spinner-border spinner-border-sm me-2"></span>Loading available numbers...</td></tr>';
+    selectedVmnIds = [];
+    var params = new URLSearchParams({ per_page: 100 });
+    if (countryIso) params.set('country_iso', countryIso);
+    fetch('/api/numbers/pool?' + params.toString(), { headers: { 'Accept': 'application/json' } })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            vmnPoolData = (data.data || []).map(function(item) {
+                return {
+                    id: item.id,
+                    number: item.number,
+                    country: item.country_iso,
+                    countryName: countryNames[item.country_iso] || item.country_iso,
+                    setupFee: item.setup_fee != null ? parseFloat(item.setup_fee) : vmnSetupFee,
+                    monthlyFee: item.monthly_fee != null ? parseFloat(item.monthly_fee) : vmnMonthlyFee,
+                };
+            });
+            renderVmnTable();
+        })
+        .catch(function(err) {
+            console.error('Pool load error', err);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3"><i class="fas fa-exclamation-circle me-2"></i>Failed to load numbers. Please refresh and try again.</td></tr>';
+        });
+}
+
+function loadTakenKeywords() {
+    var sc = sharedShortcodes.length > 0 ? sharedShortcodes[0].number : '60866';
+    fetch('/api/numbers/keywords/taken?shortcode=' + encodeURIComponent(sc), { headers: { 'Accept': 'application/json' } })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            takenKeywords = data.data || [];
+            renderTakenKeywords();
+            if (document.getElementById('keywordInput').value.trim()) validateKeywordInput();
+        })
+        .catch(function(err) { console.error('Taken keywords error', err); });
+}
+
+function disableKeywordPurchase() {
+    var keywordInput = document.getElementById('keywordInput');
+    var addBtn = document.getElementById('addKeywordBtn');
+    var purchaseBtn = document.getElementById('keywordPurchaseBtn');
+    if (keywordInput) { keywordInput.disabled = true; keywordInput.placeholder = 'No shared shortcode available'; }
+    if (addBtn) addBtn.disabled = true;
+    if (purchaseBtn) purchaseBtn.disabled = true;
+    var feedback = document.getElementById('keywordValidationFeedback');
+    if (feedback) { feedback.className = 'keyword-validation-feedback invalid'; feedback.innerHTML = '<i class="fas fa-info-circle me-1"></i>Contact support to enable shared shortcode access'; }
+}
+
+function enableKeywordPurchase() {
+    var keywordInput = document.getElementById('keywordInput');
+    var addBtn = document.getElementById('addKeywordBtn');
+    if (keywordInput) { keywordInput.disabled = false; keywordInput.placeholder = 'Enter keyword (e.g. INFO, HELP)'; }
+    var feedback = document.getElementById('keywordValidationFeedback');
+    if (feedback) { feedback.className = 'keyword-validation-feedback'; feedback.innerHTML = ''; }
 }
 
 function renderVmnTable() {
     var tbody = document.getElementById('vmnTableBody');
-    var filtered = vmnMockData.filter(function(vmn) {
-        if (vmnSearchTerm && !vmn.number.toLowerCase().includes(vmnSearchTerm)) {
-            return false;
-        }
-        return true;
+    var filtered = vmnPoolData.filter(function(vmn) {
+        return !vmnSearchTerm || vmn.number.toLowerCase().includes(vmnSearchTerm);
     });
-    
     filtered.sort(function(a, b) {
-        var valA = a[vmnSortColumn];
-        var valB = b[vmnSortColumn];
+        var valA = a[vmnSortColumn]; var valB = b[vmnSortColumn];
         if (typeof valA === 'string') valA = valA.toLowerCase();
         if (typeof valB === 'string') valB = valB.toLowerCase();
         if (valA < valB) return vmnSortDirection === 'asc' ? -1 : 1;
         if (valA > valB) return vmnSortDirection === 'asc' ? 1 : -1;
         return 0;
     });
-    
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-search"></i><h5>No numbers found</h5><p>Try adjusting your search.</p></div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-search"></i><h5>No numbers found</h5><p>Try adjusting your search or filters.</p></div></td></tr>';
+        updateVmnSelection();
         return;
     }
-    
     var html = '';
     filtered.forEach(function(vmn) {
         var isSelected = selectedVmnIds.includes(vmn.id);
         html += '<tr class="' + (isSelected ? 'selected' : '') + '">';
-        html += '<td><input type="checkbox" class="form-check-input" ' + (isSelected ? 'checked' : '') + ' onchange="toggleVmnSelect(' + vmn.id + ')"></td>';
+        html += '<td><input type="checkbox" class="form-check-input" ' + (isSelected ? 'checked' : '') + ' onchange="toggleVmnSelect(\'' + vmn.id + '\')"></td>';
         html += '<td><span class="vmn-number">' + vmn.number + '</span></td>';
         html += '<td>' + vmn.countryName + '</td>';
         html += '<td><span class="fee-cell">£' + vmn.setupFee.toFixed(2) + '</span></td>';
@@ -962,42 +1125,45 @@ function sortVmnTable(column) {
 
 function toggleVmnSelect(id) {
     var idx = selectedVmnIds.indexOf(id);
-    if (idx === -1) {
-        selectedVmnIds.push(id);
-    } else {
-        selectedVmnIds.splice(idx, 1);
-    }
+    if (idx === -1) selectedVmnIds.push(id);
+    else selectedVmnIds.splice(idx, 1);
     renderVmnTable();
 }
 
 function toggleVmnSelectAll() {
     var allChecked = document.getElementById('vmnSelectAll').checked;
-    if (allChecked) {
-        selectedVmnIds = vmnMockData.map(function(v) { return v.id; });
-    } else {
-        selectedVmnIds = [];
-    }
+    selectedVmnIds = allChecked ? vmnPoolData.map(function(v) { return v.id; }) : [];
     renderVmnTable();
 }
 
 function updateVmnSelection() {
     var count = selectedVmnIds.length;
-    var setupTotal = 0;
-    var monthlyTotal = 0;
-    
+    var setupTotal = 0; var monthlyTotal = 0;
     selectedVmnIds.forEach(function(id) {
-        var vmn = vmnMockData.find(function(v) { return v.id === id; });
-        if (vmn) {
-            setupTotal += vmn.setupFee;
-            monthlyTotal += vmn.monthlyFee;
-        }
+        var vmn = vmnPoolData.find(function(v) { return v.id === id; });
+        if (vmn) { setupTotal += vmn.setupFee; monthlyTotal += vmn.monthlyFee; }
     });
-    
+    var setupVat = setupTotal * vatRate / 100;
+    var monthlyVat = monthlyTotal * vatRate / 100;
+    var hasVat = vatRate > 0;
+
     document.getElementById('vmnPurchaseBtn').disabled = count === 0;
     document.getElementById('vmnSelectedCount').textContent = count;
     document.getElementById('vmnSetupTotal').textContent = setupTotal.toFixed(2);
     document.getElementById('vmnMonthlyTotal').textContent = monthlyTotal.toFixed(2);
+    if (hasVat && count > 0) {
+        document.getElementById('vmnVatRatePct').textContent = vatRate.toFixed(0);
+        document.getElementById('vmnSetupVat').textContent = setupVat.toFixed(2);
+        document.getElementById('vmnSetupIncVat').textContent = (setupTotal + setupVat).toFixed(2);
+        document.getElementById('vmnMonthlyVat').textContent = monthlyVat.toFixed(2);
+        document.getElementById('vmnMonthlyIncVat').textContent = (monthlyTotal + monthlyVat).toFixed(2);
+    }
+    document.getElementById('vmnSetupVatRow').style.display = (hasVat && count > 0) ? '' : 'none';
+    document.getElementById('vmnSetupIncVatRow').style.display = (hasVat && count > 0) ? '' : 'none';
+    document.getElementById('vmnMonthlyVatRow').style.display = (hasVat && count > 0) ? '' : 'none';
+    document.getElementById('vmnMonthlyIncVatRow').style.display = (hasVat && count > 0) ? '' : 'none';
     document.getElementById('vmnSelectionSummary').style.display = count > 0 ? 'flex' : 'none';
+    document.getElementById('vmnSelectAll').checked = count > 0 && count === vmnPoolData.length;
 }
 
 function validateKeywordInput() {
@@ -1100,10 +1266,24 @@ function renderSelectedKeywords() {
     var count = selectedKeywords.length;
     var setupTotal = count * keywordSetupFee;
     var monthlyTotal = count * keywordMonthlyFee;
-    
+    var setupVat = setupTotal * vatRate / 100;
+    var monthlyVat = monthlyTotal * vatRate / 100;
+    var hasVat = vatRate > 0;
+
     document.getElementById('keywordSelectedCount').textContent = count;
     document.getElementById('keywordSetupTotal').textContent = setupTotal.toFixed(2);
     document.getElementById('keywordMonthlyTotal').textContent = monthlyTotal.toFixed(2);
+    if (hasVat) {
+        document.getElementById('kwVatRatePct').textContent = vatRate.toFixed(0);
+        document.getElementById('kwSetupVat').textContent = setupVat.toFixed(2);
+        document.getElementById('kwSetupIncVat').textContent = (setupTotal + setupVat).toFixed(2);
+        document.getElementById('kwMonthlyVat').textContent = monthlyVat.toFixed(2);
+        document.getElementById('kwMonthlyIncVat').textContent = (monthlyTotal + monthlyVat).toFixed(2);
+    }
+    document.getElementById('kwSetupVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('kwSetupIncVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('kwMonthlyVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('kwMonthlyIncVatRow').style.display = hasVat ? '' : 'none';
     document.getElementById('keywordSelectionSummary').style.display = 'flex';
     document.getElementById('keywordPurchaseBtn').disabled = false;
 }
@@ -1125,59 +1305,70 @@ function renderTakenKeywords() {
 
 function showVmnPurchaseModal() {
     if (selectedVmnIds.length === 0) return;
-    
     var selectedVmns = selectedVmnIds.map(function(id) {
-        return vmnMockData.find(function(v) { return v.id === id; });
-    });
-    
-    var setupTotal = 0;
-    var monthlyTotal = 0;
-    var listHtml = '';
-    
+        return vmnPoolData.find(function(v) { return v.id === id; });
+    }).filter(Boolean);
+    var setupTotal = 0; var monthlyTotal = 0; var listHtml = '';
     selectedVmns.forEach(function(vmn) {
         setupTotal += vmn.setupFee;
         monthlyTotal += vmn.monthlyFee;
-        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + vmn.number + '</span><span class="text-muted">£' + vmn.setupFee.toFixed(2) + '</span></div>';
+        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + vmn.number + '</span><span class="text-muted">£' + vmn.setupFee.toFixed(2) + ' ex VAT</span></div>';
     });
-    
-    if (setupTotal > accountBalance) {
+    var setupVat = setupTotal * vatRate / 100;
+    var monthlyVat = monthlyTotal * vatRate / 100;
+    var setupIncVat = setupTotal + setupVat;
+    var hasVat = vatRate > 0;
+
+    if (setupIncVat > accountBalance) {
         document.getElementById('insufficientBalance').textContent = accountBalance.toFixed(2);
-        document.getElementById('insufficientRequired').textContent = setupTotal.toFixed(2);
-        document.getElementById('insufficientShortfall').textContent = (setupTotal - accountBalance).toFixed(2);
+        document.getElementById('insufficientRequired').textContent = setupIncVat.toFixed(2);
+        document.getElementById('insufficientShortfall').textContent = (setupIncVat - accountBalance).toFixed(2);
         new bootstrap.Modal(document.getElementById('insufficientBalanceModal')).show();
         return;
     }
-    
     document.getElementById('modalVmnList').innerHTML = listHtml;
     document.getElementById('modalVmnSetup').textContent = setupTotal.toFixed(2);
+    document.getElementById('modalVmnSetupVat').textContent = setupVat.toFixed(2);
+    document.getElementById('modalVmnSetupTotal').textContent = setupIncVat.toFixed(2);
     document.getElementById('modalVmnMonthly').textContent = monthlyTotal.toFixed(2);
-    
+    document.getElementById('modalVmnMonthlyVat').textContent = monthlyVat.toFixed(2);
+    document.getElementById('modalVmnMonthlyTotal').textContent = (monthlyTotal + monthlyVat).toFixed(2);
+    document.getElementById('modalVmnVatRate').textContent = vatRate.toFixed(0);
+    document.getElementById('modalVmnVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('modalVmnMonthlyVatRow').style.display = hasVat ? '' : 'none';
     new bootstrap.Modal(document.getElementById('vmnPurchaseModal')).show();
 }
 
 function showKeywordPurchaseModal() {
     if (selectedKeywords.length === 0) return;
-    
     var setupTotal = selectedKeywords.length * keywordSetupFee;
     var monthlyTotal = selectedKeywords.length * keywordMonthlyFee;
-    
-    if (setupTotal > accountBalance) {
+    var setupVat = setupTotal * vatRate / 100;
+    var monthlyVat = monthlyTotal * vatRate / 100;
+    var setupIncVat = setupTotal + setupVat;
+    var hasVat = vatRate > 0;
+
+    if (setupIncVat > accountBalance) {
         document.getElementById('insufficientBalance').textContent = accountBalance.toFixed(2);
-        document.getElementById('insufficientRequired').textContent = setupTotal.toFixed(2);
-        document.getElementById('insufficientShortfall').textContent = (setupTotal - accountBalance).toFixed(2);
+        document.getElementById('insufficientRequired').textContent = setupIncVat.toFixed(2);
+        document.getElementById('insufficientShortfall').textContent = (setupIncVat - accountBalance).toFixed(2);
         new bootstrap.Modal(document.getElementById('insufficientBalanceModal')).show();
         return;
     }
-    
     var listHtml = '';
     selectedKeywords.forEach(function(kw) {
-        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + kw + '</span><span class="text-muted">£' + keywordSetupFee.toFixed(2) + '</span></div>';
+        listHtml += '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + kw + '</span><span class="text-muted">£' + keywordSetupFee.toFixed(2) + ' ex VAT</span></div>';
     });
-    
     document.getElementById('modalKeywordList').innerHTML = listHtml;
     document.getElementById('modalKeywordSetup').textContent = setupTotal.toFixed(2);
+    document.getElementById('modalKeywordSetupVat').textContent = setupVat.toFixed(2);
+    document.getElementById('modalKeywordSetupTotal').textContent = setupIncVat.toFixed(2);
     document.getElementById('modalKeywordMonthly').textContent = monthlyTotal.toFixed(2);
-    
+    document.getElementById('modalKeywordMonthlyVat').textContent = monthlyVat.toFixed(2);
+    document.getElementById('modalKeywordMonthlyTotal').textContent = (monthlyTotal + monthlyVat).toFixed(2);
+    document.getElementById('modalKeywordVatRate').textContent = vatRate.toFixed(0);
+    document.getElementById('modalKeywordVatRow').style.display = hasVat ? '' : 'none';
+    document.getElementById('modalKeywordMonthlyVatRow').style.display = hasVat ? '' : 'none';
     new bootstrap.Modal(document.getElementById('keywordPurchaseModal')).show();
 }
 
@@ -1187,56 +1378,91 @@ function executeVmnPurchase() {
     var originalText = confirmBtn.innerHTML;
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-    
-    var count = selectedVmnIds.length;
-    
-    setTimeout(function() {
-        modal.hide();
-        
-        selectedVmnIds.forEach(function(id) {
-            var idx = vmnMockData.findIndex(function(v) { return v.id === id; });
-            if (idx !== -1) vmnMockData.splice(idx, 1);
-        });
-        
-        selectedVmnIds = [];
-        renderVmnTable();
-        
+    fetch('/api/numbers/purchase-vmn', {
+        method: 'POST',
+        headers: csrfHeaders(),
+        body: JSON.stringify({ pool_number_ids: selectedVmnIds })
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; }); })
+    .then(function(res) {
         confirmBtn.disabled = false;
         confirmBtn.innerHTML = originalText;
-        
+        if (!res.ok) {
+            var d = res.data;
+            if (d.required != null && d.available != null) {
+                modal.hide();
+                document.getElementById('insufficientBalance').textContent = parseFloat(d.available).toFixed(2);
+                document.getElementById('insufficientRequired').textContent = parseFloat(d.required).toFixed(2);
+                document.getElementById('insufficientShortfall').textContent = (parseFloat(d.required) - parseFloat(d.available)).toFixed(2);
+                new bootstrap.Modal(document.getElementById('insufficientBalanceModal')).show();
+            } else {
+                showErrorToast('Purchase Failed', d.error || d.message || 'An error occurred. Please try again.');
+            }
+            return;
+        }
+        modal.hide();
+        var count = selectedVmnIds.length;
+        selectedVmnIds = [];
+        var countryFilter = document.getElementById('vmnCountryFilter') ? document.getElementById('vmnCountryFilter').value : null;
+        loadVmnPool(countryFilter || null);
         var message = count === 1 ? 'Your number has been purchased successfully.' : 'Your ' + count + ' numbers have been purchased successfully.';
         document.getElementById('successMessage').textContent = message;
         new bootstrap.Modal(document.getElementById('purchaseSuccessModal')).show();
-    }, 1000);
+    })
+    .catch(function(err) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = originalText;
+        showErrorToast('Error', 'Network error. Please try again.');
+    });
 }
 
 function executeKeywordPurchase() {
+    if (!sharedShortcodeId) {
+        showErrorToast('Error', 'No shared shortcode is available. Please contact support.');
+        return;
+    }
     var modal = bootstrap.Modal.getInstance(document.getElementById('keywordPurchaseModal'));
     var confirmBtn = document.querySelector('#keywordPurchaseModal .btn-primary');
     var originalText = confirmBtn.innerHTML;
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-    
-    var count = selectedKeywords.length;
-    
-    setTimeout(function() {
-        modal.hide();
-        
-        selectedKeywords.forEach(function(kw) {
-            takenKeywords.push(kw);
-        });
-        
-        selectedKeywords = [];
-        renderSelectedKeywords();
-        renderTakenKeywords();
-        
-        confirmBtn.disabled = false;
-        confirmBtn.innerHTML = originalText;
-        
-        var message = count === 1 ? 'Your keyword has been purchased successfully.' : 'Your ' + count + ' keywords have been purchased successfully.';
-        document.getElementById('successMessage').textContent = message;
-        new bootstrap.Modal(document.getElementById('purchaseSuccessModal')).show();
-    }, 1000);
+    var keywordsToProcess = selectedKeywords.slice();
+    var purchasedCount = 0;
+    var failedKeywords = [];
+    function purchaseNext(index) {
+        if (index >= keywordsToProcess.length) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = originalText;
+            modal.hide();
+            if (purchasedCount > 0) {
+                keywordsToProcess.slice(0, purchasedCount).forEach(function(kw) { takenKeywords.push(kw); });
+                selectedKeywords = failedKeywords.slice();
+                renderSelectedKeywords();
+                renderTakenKeywords();
+                var message = purchasedCount === 1 ? 'Your keyword has been purchased successfully.' : 'Your ' + purchasedCount + ' keywords have been purchased successfully.';
+                if (failedKeywords.length > 0) message += ' ' + failedKeywords.length + ' keyword(s) could not be purchased.';
+                document.getElementById('successMessage').textContent = message;
+                new bootstrap.Modal(document.getElementById('purchaseSuccessModal')).show();
+            } else {
+                showErrorToast('Purchase Failed', 'No keywords could be purchased. Please try again.');
+            }
+            return;
+        }
+        var keyword = keywordsToProcess[index];
+        fetch('/api/numbers/purchase-keyword', {
+            method: 'POST',
+            headers: csrfHeaders(),
+            body: JSON.stringify({ shortcode_number_id: sharedShortcodeId, keyword: keyword })
+        })
+        .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+        .then(function(res) {
+            if (res.ok && res.data.success !== false) purchasedCount++;
+            else failedKeywords.push(keyword);
+            purchaseNext(index + 1);
+        })
+        .catch(function() { failedKeywords.push(keyword); purchaseNext(index + 1); });
+    }
+    purchaseNext(0);
 }
 
 function showSuccessToast(title, message) {
