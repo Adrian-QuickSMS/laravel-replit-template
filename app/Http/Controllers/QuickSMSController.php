@@ -3,12 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Campaign;
 use App\Models\Contact;
 use App\Models\ContactList;
 use App\Models\OptOutList;
 use App\Models\OptOutRecord;
-use App\Models\RcsAgent;
 use App\Models\Tag;
 use App\Models\Account;
 use App\Models\SenderId;
@@ -1693,81 +1691,25 @@ class QuickSMSController extends Controller
 
     public function campaignHistory()
     {
-        $defaultLogo = asset('images/rcs-agents/quicksms-brand.svg');
-
-        // Map Campaign model type constants to the channel keys the blade template expects
-        $typeToChannel = [
-            Campaign::TYPE_SMS          => 'sms_only',
-            Campaign::TYPE_RCS_BASIC    => 'basic_rcs',
-            Campaign::TYPE_RCS_SINGLE   => 'rich_rcs',
-            Campaign::TYPE_RCS_CAROUSEL => 'rich_rcs',
+        // TODO: Replace with API call to GET /api/campaigns
+        $campaigns = [
+            ['id' => 'camp_000', 'name' => 'Spring Promo Campaign', 'channel' => 'basic_rcs', 'status' => 'pending', 'recipients_total' => 3500, 'recipients_delivered' => null, 'send_date' => '2026-02-01 10:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['Promo', 'Spring'], 'template' => 'Seasonal Offer', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_001', 'name' => 'New Year Flash Sale', 'channel' => 'rich_rcs', 'status' => 'scheduled', 'recipients_total' => 5200, 'recipients_delivered' => null, 'send_date' => '2026-01-25 00:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['VIP', 'Promo'], 'template' => 'Sale Announcement', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_002', 'name' => 'Holiday Greetings', 'channel' => 'sms_only', 'status' => 'sending', 'recipients_total' => 3150, 'recipients_delivered' => 1840, 'send_date' => '2024-12-24 09:00', 'sender_id' => 'Greetings', 'rcs_agent' => null, 'tags' => ['Newsletter'], 'template' => null, 'has_tracking' => false, 'has_optout' => true],
+            ['id' => 'camp_003', 'name' => 'Boxing Day Deals', 'channel' => 'basic_rcs', 'status' => 'scheduled', 'recipients_total' => 2800, 'recipients_delivered' => null, 'send_date' => '2024-12-26 08:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['Promo', 'Sale'], 'template' => 'Flash Deal', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_004', 'name' => 'Christmas Eve Reminder', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 1500, 'recipients_delivered' => 1487, 'send_date' => '2024-12-24 07:00', 'sender_id' => 'Reminders', 'rcs_agent' => null, 'tags' => ['Transactional'], 'template' => 'Reminder', 'has_tracking' => false, 'has_optout' => false],
+            ['id' => 'camp_005', 'name' => 'Winter Clearance', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 4200, 'recipients_delivered' => 4156, 'send_date' => '2024-12-23 14:30', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'RetailBot', 'tags' => ['Clearance', 'VIP'], 'template' => 'Product Showcase', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_006', 'name' => 'Last Minute Gifts', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 890, 'recipients_delivered' => 885, 'send_date' => '2024-12-23 10:00', 'sender_id' => 'GiftShop', 'rcs_agent' => null, 'tags' => ['Promo'], 'template' => null, 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_007', 'name' => 'Delivery Update Batch', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 2340, 'recipients_delivered' => 2338, 'send_date' => '2024-12-22 16:45', 'sender_id' => 'Logistics', 'rcs_agent' => null, 'tags' => ['Transactional', 'Delivery'], 'template' => 'Shipping Update', 'has_tracking' => true, 'has_optout' => false],
+            ['id' => 'camp_008', 'name' => 'Weekend Special Offer', 'channel' => 'basic_rcs', 'status' => 'complete', 'recipients_total' => 1800, 'recipients_delivered' => 1756, 'send_date' => '2024-12-21 09:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['Weekend', 'Promo'], 'template' => 'Weekend Deal', 'has_tracking' => false, 'has_optout' => true],
+            ['id' => 'camp_009', 'name' => 'VIP Early Access', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 520, 'recipients_delivered' => 518, 'send_date' => '2024-12-20 18:00', 'sender_id' => 'VIPClub', 'rcs_agent' => 'RetailBot', 'tags' => ['VIP', 'Exclusive'], 'template' => 'VIP Invitation', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_010', 'name' => 'Store Opening Hours', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 3400, 'recipients_delivered' => 3389, 'send_date' => '2024-12-20 08:00', 'sender_id' => 'StoreInfo', 'rcs_agent' => null, 'tags' => ['Info'], 'template' => null, 'has_tracking' => false, 'has_optout' => false],
+            ['id' => 'camp_011', 'name' => 'Flash Sale Alert', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 6100, 'recipients_delivered' => 6042, 'send_date' => '2024-12-19 12:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => null, 'tags' => ['Flash', 'Sale'], 'template' => 'Flash Deal', 'has_tracking' => true, 'has_optout' => true],
+            ['id' => 'camp_012', 'name' => 'Customer Survey', 'channel' => 'basic_rcs', 'status' => 'complete', 'recipients_total' => 1200, 'recipients_delivered' => 1145, 'send_date' => '2024-12-18 10:30', 'sender_id' => 'Feedback', 'rcs_agent' => 'SurveyBot', 'tags' => ['Survey', 'Feedback'], 'template' => 'Survey Request', 'has_tracking' => false, 'has_optout' => true],
+            ['id' => 'camp_013', 'name' => 'Order Confirmation Batch', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 450, 'recipients_delivered' => 450, 'send_date' => '2024-12-17 15:20', 'sender_id' => 'Orders', 'rcs_agent' => null, 'tags' => ['Transactional'], 'template' => 'Order Confirm', 'has_tracking' => true, 'has_optout' => false],
+            ['id' => 'camp_014', 'name' => 'Appointment Reminders', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 780, 'recipients_delivered' => 776, 'send_date' => '2024-12-16 09:00', 'sender_id' => 'Bookings', 'rcs_agent' => null, 'tags' => ['Reminder', 'Appointments'], 'template' => 'Appointment', 'has_tracking' => false, 'has_optout' => true],
+            ['id' => 'camp_015', 'name' => 'Product Launch Teaser', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 2500, 'recipients_delivered' => 2467, 'send_date' => '2024-12-15 11:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'tags' => ['Launch', 'Product'], 'template' => 'Product Launch', 'has_tracking' => true, 'has_optout' => true],
         ];
-
-        // Map Campaign model status constants to the status keys the blade template expects
-        $statusMap = [
-            Campaign::STATUS_DRAFT     => 'draft',
-            Campaign::STATUS_SCHEDULED => 'scheduled',
-            Campaign::STATUS_QUEUED    => 'pending',
-            Campaign::STATUS_SENDING   => 'sending',
-            Campaign::STATUS_PAUSED    => 'sending',
-            Campaign::STATUS_COMPLETED => 'complete',
-            Campaign::STATUS_CANCELLED => 'complete',
-            Campaign::STATUS_FAILED    => 'complete',
-        ];
-
-        $dbCampaigns = Campaign::with(['rcsAgent', 'senderId', 'messageTemplate'])
-            ->orderByDesc('created_at')
-            ->get();
-
-        if ($dbCampaigns->isNotEmpty()) {
-            $campaigns = $dbCampaigns->map(function ($c) use ($typeToChannel, $statusMap, $defaultLogo) {
-                $agentLogo = $defaultLogo;
-                $agentName = null;
-                if ($c->rcsAgent) {
-                    $agentName = $c->rcsAgent->name;
-                    if ($c->rcsAgent->logo_url) {
-                        $agentLogo = $c->rcsAgent->logo_url;
-                    }
-                }
-
-                return [
-                    'id'                   => $c->id,
-                    'name'                 => $c->name,
-                    'channel'              => $typeToChannel[$c->type] ?? 'sms_only',
-                    'status'               => $statusMap[$c->status] ?? $c->status,
-                    'recipients_total'     => $c->total_unique_recipients ?? $c->total_recipients ?? 0,
-                    'recipients_delivered' => $c->delivered_count,
-                    'send_date'            => ($c->scheduled_at ?? $c->created_at)?->format('Y-m-d H:i'),
-                    'sender_id'            => $c->senderId?->sender_id_value ?? 'QuickSMS',
-                    'rcs_agent'            => $agentName,
-                    'agent_logo'           => $agentLogo,
-                    'tags'                 => $c->tags ?? [],
-                    'template'             => $c->messageTemplate?->name,
-                    'has_tracking'         => !empty($c->metadata['tracking_enabled'] ?? false),
-                    'has_optout'           => (bool) $c->opt_out_enabled,
-                ];
-            })->toArray();
-        } else {
-            // Fallback mock data for development when no campaigns exist in database
-            $campaigns = [
-                ['id' => 'camp_000', 'name' => 'Spring Promo Campaign', 'channel' => 'basic_rcs', 'status' => 'pending', 'recipients_total' => 3500, 'recipients_delivered' => null, 'send_date' => '2026-02-01 10:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'agent_logo' => $defaultLogo, 'tags' => ['Promo', 'Spring'], 'template' => 'Seasonal Offer', 'has_tracking' => true, 'has_optout' => true],
-                ['id' => 'camp_001', 'name' => 'New Year Flash Sale', 'channel' => 'rich_rcs', 'status' => 'scheduled', 'recipients_total' => 5200, 'recipients_delivered' => null, 'send_date' => '2026-01-25 00:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'agent_logo' => $defaultLogo, 'tags' => ['VIP', 'Promo'], 'template' => 'Sale Announcement', 'has_tracking' => true, 'has_optout' => true],
-                ['id' => 'camp_002', 'name' => 'Holiday Greetings', 'channel' => 'sms_only', 'status' => 'sending', 'recipients_total' => 3150, 'recipients_delivered' => 1840, 'send_date' => '2024-12-24 09:00', 'sender_id' => 'Greetings', 'rcs_agent' => null, 'agent_logo' => $defaultLogo, 'tags' => ['Newsletter'], 'template' => null, 'has_tracking' => false, 'has_optout' => true],
-                ['id' => 'camp_003', 'name' => 'Boxing Day Deals', 'channel' => 'basic_rcs', 'status' => 'scheduled', 'recipients_total' => 2800, 'recipients_delivered' => null, 'send_date' => '2024-12-26 08:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'agent_logo' => $defaultLogo, 'tags' => ['Promo', 'Sale'], 'template' => 'Flash Deal', 'has_tracking' => true, 'has_optout' => true],
-                ['id' => 'camp_004', 'name' => 'Christmas Eve Reminder', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 1500, 'recipients_delivered' => 1487, 'send_date' => '2024-12-24 07:00', 'sender_id' => 'Reminders', 'rcs_agent' => null, 'agent_logo' => $defaultLogo, 'tags' => ['Transactional'], 'template' => 'Reminder', 'has_tracking' => false, 'has_optout' => false],
-                ['id' => 'camp_005', 'name' => 'Winter Clearance', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 4200, 'recipients_delivered' => 4156, 'send_date' => '2024-12-23 14:30', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'RetailBot', 'agent_logo' => $defaultLogo, 'tags' => ['Clearance', 'VIP'], 'template' => 'Product Showcase', 'has_tracking' => true, 'has_optout' => true],
-                ['id' => 'camp_006', 'name' => 'Last Minute Gifts', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 890, 'recipients_delivered' => 885, 'send_date' => '2024-12-23 10:00', 'sender_id' => 'GiftShop', 'rcs_agent' => null, 'agent_logo' => $defaultLogo, 'tags' => ['Promo'], 'template' => null, 'has_tracking' => true, 'has_optout' => true],
-                ['id' => 'camp_007', 'name' => 'Delivery Update Batch', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 2340, 'recipients_delivered' => 2338, 'send_date' => '2024-12-22 16:45', 'sender_id' => 'Logistics', 'rcs_agent' => null, 'agent_logo' => $defaultLogo, 'tags' => ['Transactional', 'Delivery'], 'template' => 'Shipping Update', 'has_tracking' => true, 'has_optout' => false],
-                ['id' => 'camp_008', 'name' => 'Weekend Special Offer', 'channel' => 'basic_rcs', 'status' => 'complete', 'recipients_total' => 1800, 'recipients_delivered' => 1756, 'send_date' => '2024-12-21 09:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'agent_logo' => $defaultLogo, 'tags' => ['Weekend', 'Promo'], 'template' => 'Weekend Deal', 'has_tracking' => false, 'has_optout' => true],
-                ['id' => 'camp_009', 'name' => 'VIP Early Access', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 520, 'recipients_delivered' => 518, 'send_date' => '2024-12-20 18:00', 'sender_id' => 'VIPClub', 'rcs_agent' => 'RetailBot', 'agent_logo' => $defaultLogo, 'tags' => ['VIP', 'Exclusive'], 'template' => 'VIP Invitation', 'has_tracking' => true, 'has_optout' => true],
-                ['id' => 'camp_010', 'name' => 'Store Opening Hours', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 3400, 'recipients_delivered' => 3389, 'send_date' => '2024-12-20 08:00', 'sender_id' => 'StoreInfo', 'rcs_agent' => null, 'agent_logo' => $defaultLogo, 'tags' => ['Info'], 'template' => null, 'has_tracking' => false, 'has_optout' => false],
-                ['id' => 'camp_011', 'name' => 'Flash Sale Alert', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 6100, 'recipients_delivered' => 6042, 'send_date' => '2024-12-19 12:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => null, 'agent_logo' => $defaultLogo, 'tags' => ['Flash', 'Sale'], 'template' => 'Flash Deal', 'has_tracking' => true, 'has_optout' => true],
-                ['id' => 'camp_012', 'name' => 'Customer Survey', 'channel' => 'basic_rcs', 'status' => 'complete', 'recipients_total' => 1200, 'recipients_delivered' => 1145, 'send_date' => '2024-12-18 10:30', 'sender_id' => 'Feedback', 'rcs_agent' => 'SurveyBot', 'agent_logo' => $defaultLogo, 'tags' => ['Survey', 'Feedback'], 'template' => 'Survey Request', 'has_tracking' => false, 'has_optout' => true],
-                ['id' => 'camp_013', 'name' => 'Order Confirmation Batch', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 450, 'recipients_delivered' => 450, 'send_date' => '2024-12-17 15:20', 'sender_id' => 'Orders', 'rcs_agent' => null, 'agent_logo' => $defaultLogo, 'tags' => ['Transactional'], 'template' => 'Order Confirm', 'has_tracking' => true, 'has_optout' => false],
-                ['id' => 'camp_014', 'name' => 'Appointment Reminders', 'channel' => 'sms_only', 'status' => 'complete', 'recipients_total' => 780, 'recipients_delivered' => 776, 'send_date' => '2024-12-16 09:00', 'sender_id' => 'Bookings', 'rcs_agent' => null, 'agent_logo' => $defaultLogo, 'tags' => ['Reminder', 'Appointments'], 'template' => 'Appointment', 'has_tracking' => false, 'has_optout' => true],
-                ['id' => 'camp_015', 'name' => 'Product Launch Teaser', 'channel' => 'rich_rcs', 'status' => 'complete', 'recipients_total' => 2500, 'recipients_delivered' => 2467, 'send_date' => '2024-12-15 11:00', 'sender_id' => 'QuickSMS', 'rcs_agent' => 'QuickSMS Brand', 'agent_logo' => $defaultLogo, 'tags' => ['Launch', 'Product'], 'template' => 'Product Launch', 'has_tracking' => true, 'has_optout' => true],
-            ];
-        }
 
         return view('quicksms.messages.campaign-history', [
             'page_title' => 'Campaign History',
