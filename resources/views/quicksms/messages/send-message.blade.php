@@ -1428,7 +1428,7 @@ function restoreCampaignFromConfirm() {
     if (nameInput && config.campaign_name) nameInput.value = config.campaign_name;
 
     if (config.channel) {
-        var channelMap = { 'sms_only': 'sms_only', 'basic_rcs': 'basic_rcs', 'rich_rcs': 'rich_rcs' };
+        var channelMap = { 'sms_only': 'sms', 'sms': 'sms', 'basic_rcs': 'rcs_basic', 'rcs_basic': 'rcs_basic', 'rich_rcs': 'rcs_rich', 'rcs_rich': 'rcs_rich' };
         var radioVal = channelMap[config.channel] || config.channel;
         var radio = document.querySelector('input[name="channel"][value="' + radioVal + '"]');
         if (radio) {
@@ -1438,11 +1438,23 @@ function restoreCampaignFromConfirm() {
     }
 
     if (config.sender_id) {
-        var senderSelect = document.getElementById('senderIdSelect');
+        var senderSelect = document.getElementById('senderId');
         if (senderSelect) {
             for (var i = 0; i < senderSelect.options.length; i++) {
                 if (senderSelect.options[i].value == config.sender_id) {
                     senderSelect.value = config.sender_id;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (config.rcs_agent) {
+        var agentSelect = document.getElementById('rcsAgent');
+        if (agentSelect) {
+            for (var i = 0; i < agentSelect.options.length; i++) {
+                if (agentSelect.options[i].text === config.rcs_agent || agentSelect.options[i].value == config.rcs_agent) {
+                    agentSelect.selectedIndex = i;
                     break;
                 }
             }
@@ -1459,17 +1471,73 @@ function restoreCampaignFromConfirm() {
     }
 
     if (config.recipient_count && config.recipient_count > 0) {
-        var summaryEl = document.getElementById('recipientSummaryText');
-        if (summaryEl) {
-            summaryEl.innerHTML = '<i class="fas fa-info-circle me-1" style="color: #886CC0;"></i> ' +
-                '<strong>' + config.recipient_count + '</strong> recipients loaded from previous session. ' +
-                'Click <strong>Continue</strong> to proceed or modify your selections.';
-            summaryEl.style.display = '';
-        }
+        var recipientCountEl = document.getElementById('totalRecipientCount');
+        if (recipientCountEl) recipientCountEl.textContent = config.recipient_count;
+
+        var totalInput = document.getElementById('recipientTotalInput');
+        if (totalInput) totalInput.value = config.recipient_count;
+    }
+
+    if (config.sources) {
+        var sourceMap = {
+            contacts: 'contactBookPill',
+            lists: 'contactListPill',
+            tags: 'tagsPill',
+            file_upload: 'fileUploadPill',
+            manual: 'manualEntryPill'
+        };
+        Object.keys(sourceMap).forEach(function(key) {
+            if (config.sources[key] && config.sources[key] > 0) {
+                var pill = document.getElementById(sourceMap[key]);
+                if (pill) {
+                    pill.classList.remove('d-none');
+                    var countSpan = pill.querySelector('.recipient-count');
+                    if (countSpan) countSpan.textContent = config.sources[key];
+                }
+            }
+        });
     }
 
     if (config.campaign_id) {
         window._restoredCampaignId = config.campaign_id;
+    }
+
+    if (config.rcs_content) {
+        try {
+            var payload = typeof config.rcs_content === 'string' ? JSON.parse(config.rcs_content) : config.rcs_content;
+            if (payload && payload.cards) {
+                rcsPersistentPayload = payload;
+                sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(payload));
+                var configuredSummary = document.getElementById('rcsConfiguredSummary');
+                if (configuredSummary) configuredSummary.classList.remove('d-none');
+                setTimeout(function() { updatePreview(); }, 200);
+            }
+        } catch(e) {}
+    }
+
+    if (config.scheduled_time && config.scheduled_time !== 'Immediate') {
+        var scheduleCheckbox = document.getElementById('scheduleRules');
+        if (scheduleCheckbox) {
+            scheduleCheckbox.checked = true;
+            var scheduleSummary = document.getElementById('scheduleSummary');
+            if (scheduleSummary) {
+                scheduleSummary.classList.remove('d-none');
+                var summaryText = document.getElementById('scheduleSummaryText');
+                if (summaryText) summaryText.textContent = 'Scheduled for: ' + config.scheduled_time;
+            }
+            scheduleRulesConfirmed = true;
+        }
+    }
+
+    if (config.optout_config) {
+        var optoutCheckbox = document.getElementById('optoutToggle');
+        if (optoutCheckbox && config.optout_config.enabled) {
+            optoutCheckbox.checked = true;
+            var optoutSection = document.getElementById('optOutConfigSection');
+            if (optoutSection) optoutSection.classList.remove('d-none');
+
+            window._restoredOptoutConfig = config.optout_config;
+        }
     }
     @endif
 }

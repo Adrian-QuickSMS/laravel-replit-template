@@ -398,6 +398,8 @@ class QuickSMSController extends Controller
         $virtual_numbers = [];
         $optout_domains = [];
 
+        $editConfig = session('campaign_config', null);
+
         return view('quicksms.messages.send-message', [
             'page_title' => 'Send Message',
             'sender_ids' => $sender_ids,
@@ -409,6 +411,7 @@ class QuickSMSController extends Controller
             'virtual_numbers' => $virtual_numbers,
             'optout_domains' => $optout_domains,
             'account_pricing' => $this->getAccountPricingForView(),
+            'edit_campaign_config' => $editConfig,
         ]);
     }
 
