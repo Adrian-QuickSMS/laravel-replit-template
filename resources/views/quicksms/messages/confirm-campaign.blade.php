@@ -471,6 +471,7 @@
     </div>
 </div>
 
+@php $penetration = $penetration ?? (float) ($pricing['rcs_penetration'] ?? 0.65); @endphp
 <div class="modal fade" id="estimatedCostInfoModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
