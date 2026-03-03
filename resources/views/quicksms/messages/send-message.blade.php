@@ -1437,23 +1437,51 @@ function restoreCampaignFromConfirm() {
         }
     }
 
-    if (config.sender_id) {
+    if (config.sender_id_id) {
         var senderSelect = document.getElementById('senderId');
         if (senderSelect) {
             for (var i = 0; i < senderSelect.options.length; i++) {
-                if (senderSelect.options[i].value == config.sender_id) {
-                    senderSelect.value = config.sender_id;
+                if (senderSelect.options[i].value == config.sender_id_id) {
+                    senderSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            if (senderSelect.selectedIndex <= 0 && config.sender_id) {
+                for (var i = 0; i < senderSelect.options.length; i++) {
+                    if (senderSelect.options[i].text.indexOf(config.sender_id) !== -1) {
+                        senderSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+    } else if (config.sender_id) {
+        var senderSelect = document.getElementById('senderId');
+        if (senderSelect) {
+            for (var i = 0; i < senderSelect.options.length; i++) {
+                if (senderSelect.options[i].text.indexOf(config.sender_id) !== -1 || senderSelect.options[i].value == config.sender_id) {
+                    senderSelect.selectedIndex = i;
                     break;
                 }
             }
         }
     }
 
-    if (config.rcs_agent) {
+    if (config.rcs_agent_id) {
         var agentSelect = document.getElementById('rcsAgent');
         if (agentSelect) {
             for (var i = 0; i < agentSelect.options.length; i++) {
-                if (agentSelect.options[i].text === config.rcs_agent || agentSelect.options[i].value == config.rcs_agent) {
+                if (agentSelect.options[i].value == config.rcs_agent_id) {
+                    agentSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+    } else if (config.rcs_agent) {
+        var agentSelect = document.getElementById('rcsAgent');
+        if (agentSelect) {
+            for (var i = 0; i < agentSelect.options.length; i++) {
+                if (agentSelect.options[i].text === config.rcs_agent) {
                     agentSelect.selectedIndex = i;
                     break;
                 }
@@ -1539,30 +1567,83 @@ function restoreCampaignFromConfirm() {
         } catch(e) {}
     }
 
-    if (config.scheduled_time && config.scheduled_time !== 'Immediate') {
+    if (config.trackable_link) {
+        var trackableToggle = document.getElementById('includeTrackableLink');
+        if (trackableToggle) {
+            trackableToggle.checked = true;
+            trackableLinkConfirmed = true;
+            var trackableSummary = document.getElementById('trackableLinkSummary');
+            if (trackableSummary) trackableSummary.classList.remove('d-none');
+            if (config.trackable_link_domain) {
+                var domainEl = document.getElementById('trackableLinkDomain');
+                if (domainEl) domainEl.textContent = config.trackable_link_domain;
+            }
+        }
+    }
+
+    if (config.message_expiry) {
+        var expiryToggle = document.getElementById('messageExpiry');
+        if (expiryToggle) {
+            expiryToggle.checked = true;
+            messageExpiryConfirmed = true;
+            var expirySummary = document.getElementById('messageExpirySummary');
+            if (expirySummary) expirySummary.classList.remove('d-none');
+            var expiryValueEl = document.getElementById('messageExpiryValue');
+            if (expiryValueEl) expiryValueEl.textContent = config.message_expiry;
+        }
+    }
+
+    if (config.scheduled_time && config.scheduled_time !== 'now' && config.scheduled_time !== 'Immediate') {
         var scheduleCheckbox = document.getElementById('scheduleRules');
         if (scheduleCheckbox) {
             scheduleCheckbox.checked = true;
+            scheduleRulesConfirmed = true;
             var scheduleSummary = document.getElementById('scheduleSummary');
             if (scheduleSummary) {
                 scheduleSummary.classList.remove('d-none');
                 var summaryText = document.getElementById('scheduleSummaryText');
                 if (summaryText) summaryText.textContent = 'Scheduled for: ' + config.scheduled_time;
             }
-            scheduleRulesConfirmed = true;
+            var parts = config.scheduled_time.split(' ');
+            if (parts.length >= 2) {
+                var dateInput = document.getElementById('scheduleDate');
+                var timeInput = document.getElementById('scheduleTime');
+                if (dateInput) dateInput.value = parts[0];
+                if (timeInput) timeInput.value = parts[1];
+                var scheduleToggle = document.getElementById('scheduleToggle');
+                if (scheduleToggle) scheduleToggle.checked = true;
+                var scheduleFields = document.getElementById('scheduleFields');
+                if (scheduleFields) scheduleFields.classList.remove('d-none');
+            }
         }
     }
 
-    if (config.optout_config) {
-        var optoutCheckbox = document.getElementById('optoutToggle');
-        if (optoutCheckbox && config.optout_config.enabled) {
-            optoutCheckbox.checked = true;
-            var optoutSection = document.getElementById('optOutConfigSection');
-            if (optoutSection) optoutSection.classList.remove('d-none');
+    if (config.sending_window) {
+        var match = config.sending_window.match(/(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/);
+        if (match) {
+            var unsociableToggle = document.getElementById('unsociableToggle');
+            if (unsociableToggle) {
+                unsociableToggle.checked = true;
+                var unsociableFields = document.getElementById('unsociableFields');
+                if (unsociableFields) unsociableFields.classList.remove('d-none');
+                var fromEl = document.getElementById('unsociableFrom');
+                var toEl = document.getElementById('unsociableTo');
+                if (fromEl) fromEl.value = match[1];
+                if (toEl) toEl.value = match[2];
+            }
+        }
+    }
 
+    if (config.optout_config && config.optout_config.enabled) {
+        var optoutCheckbox = document.getElementById('enableOptoutManagement');
+        if (optoutCheckbox) {
+            optoutCheckbox.checked = true;
+            if (typeof toggleOptoutManagement === 'function') toggleOptoutManagement();
             window._restoredOptoutConfig = config.optout_config;
         }
     }
+
+    setTimeout(function() { updatePreview(); }, 300);
     @endif
 }
 
@@ -3529,6 +3610,11 @@ function continueToConfirmation() {
             return;
         }
 
+        var trackableLinkToggle = document.getElementById('includeTrackableLink');
+        var trackableLinkOn = trackableLinkToggle ? trackableLinkToggle.checked : false;
+        var trackableDomainEl = document.getElementById('trackableLinkDomain');
+        var trackableDomain = trackableDomainEl ? trackableDomainEl.textContent : 'qsms.uk';
+
         var sessionConfig = {
             campaign_id: campaignId,
             campaign_name: campaignName,
@@ -3558,6 +3644,8 @@ function continueToConfirmation() {
             scheduled_time: scheduledTimeValue,
             message_expiry: messageExpiry,
             sending_window: sendingWindowValue,
+            trackable_link: trackableLinkOn,
+            trackable_link_domain: trackableDomain,
             optout_config: optoutCfg
         };
 
