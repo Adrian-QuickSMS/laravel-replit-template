@@ -405,6 +405,7 @@ $permissions = [
                                     data-send-date="{{ $campaign['send_date'] }}"
                                     data-sender-id="{{ $campaign['sender_id'] }}"
                                     data-rcs-agent="{{ $campaign['rcs_agent'] ?? '' }}"
+                                    data-agent-logo="{{ $campaign['agent_logo'] ?? asset('images/rcs-agents/quicksms-brand.svg') }}"
                                     data-tags="{{ implode(',', $campaign['tags'] ?? []) }}"
                                     data-template="{{ $campaign['template'] ?? '' }}"
                                     data-has-tracking="{{ $campaign['has_tracking'] ? 'yes' : 'no' }}"
@@ -1040,6 +1041,7 @@ function loadDraftsFromStorage() {
         row.setAttribute('data-status', 'draft');
         row.setAttribute('data-sender-id', draft.sender_id || '');
         row.setAttribute('data-rcs-agent', draft.rcs_agent || '');
+        row.setAttribute('data-agent-logo', draft.agent_logo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}');
         row.setAttribute('data-send-date', draft.created_at);
         row.setAttribute('data-recipients-total', draft.recipients);
         row.setAttribute('data-has-tracking', draft.has_tracking);
@@ -1380,6 +1382,7 @@ function openCampaignDrawer(campaignId) {
     var sendDate = row.dataset.sendDate;
     var senderId = row.dataset.senderId || '-';
     var rcsAgent = row.dataset.rcsAgent || '';
+    var agentLogo = row.dataset.agentLogo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}';
     var tags = row.dataset.tags || '';
     var template = row.dataset.template || '';
 
@@ -1515,7 +1518,7 @@ function openCampaignDrawer(campaignId) {
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, hasTracking);
     updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
     updateOptoutSummary(status, recipientsTotal, recipientsDelivered, hasOptout);
-    updateMessagePreview(channel, senderId, rcsAgent, template);
+    updateMessagePreview(channel, senderId, rcsAgent, template, agentLogo);
     updateRecipientBreakdown(recipientsTotal, recipientsDelivered);
     updateStatusActions(status, row.dataset.id, name, sendDate);
     
@@ -1755,6 +1758,7 @@ var currentCampaignChannel = 'sms_only';
 var currentCampaignSenderId = '';
 var currentCampaignRcsAgent = '';
 var currentCampaignTemplate = '';
+var currentCampaignAgentLogo = '{{ asset("images/rcs-agents/quicksms-brand.svg") }}';
 
 function toggleCampaignPreview(mode) {
     campaignPreviewMode = mode;
@@ -1778,10 +1782,10 @@ function toggleCampaignPreview(mode) {
         rcsBtn.style.color = '#886CC0';
     }
     
-    updateMessagePreview(currentCampaignChannel, currentCampaignSenderId, currentCampaignRcsAgent, currentCampaignTemplate);
+    updateMessagePreview(currentCampaignChannel, currentCampaignSenderId, currentCampaignRcsAgent, currentCampaignTemplate, currentCampaignAgentLogo);
 }
 
-function updateMessagePreview(channel, senderId, rcsAgent, template) {
+function updateMessagePreview(channel, senderId, rcsAgent, template, agentLogo) {
     var container = document.getElementById('campaignPreviewContainer');
     var toggleContainer = document.getElementById('campaignPreviewToggle');
     
@@ -1795,6 +1799,7 @@ function updateMessagePreview(channel, senderId, rcsAgent, template) {
     currentCampaignSenderId = senderId;
     currentCampaignRcsAgent = rcsAgent;
     currentCampaignTemplate = template;
+    currentCampaignAgentLogo = agentLogo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}';
     
     // Show/hide toggle based on channel (RCS channels have SMS fallback)
     if (channel === 'basic_rcs' || channel === 'rich_rcs') {
@@ -1830,7 +1835,7 @@ function updateMessagePreview(channel, senderId, rcsAgent, template) {
         senderId: senderId || 'QuickSMS',
         agent: {
             name: rcsAgent || 'QuickSMS Brand',
-            logo: '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+            logo: agentLogo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
             verified: true,
             tagline: 'Business messaging'
         }
