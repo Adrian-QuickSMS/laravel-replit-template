@@ -812,6 +812,7 @@ class QuickSMSController extends Controller
             'message_content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
             'recipient_sources' => 'nullable|array|max:50',
+            'recipient_state' => 'nullable|array',
             'scheduled_time' => 'nullable|string|max:50',
             'message_expiry' => 'nullable|string|max:10',
             'sending_window' => 'nullable|string|max:50',

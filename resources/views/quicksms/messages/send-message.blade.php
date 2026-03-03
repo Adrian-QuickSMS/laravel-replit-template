@@ -1470,12 +1470,35 @@ function restoreCampaignFromConfirm() {
         }
     }
 
+    if (config.recipient_state) {
+        if (config.recipient_state.manual) {
+            recipientState.manual = config.recipient_state.manual;
+            if (recipientState.manual.valid && recipientState.manual.valid.length > 0) {
+                var manualArea = document.getElementById('manualNumbers');
+                if (manualArea) manualArea.value = recipientState.manual.valid.join('\n');
+            }
+        }
+        if (config.recipient_state.contactBook) {
+            recipientState.contactBook = config.recipient_state.contactBook;
+        }
+        setTimeout(function() {
+            if (typeof updateRecipientSummary === 'function') updateRecipientSummary();
+        }, 100);
+    }
+
     if (config.recipient_count && config.recipient_count > 0) {
         var recipientCountEl = document.getElementById('totalRecipientCount');
         if (recipientCountEl) recipientCountEl.textContent = config.recipient_count;
 
         var totalInput = document.getElementById('recipientTotalInput');
         if (totalInput) totalInput.value = config.recipient_count;
+
+        setTimeout(function() {
+            var countEl = document.getElementById('recipientCount');
+            if (countEl) countEl.textContent = config.recipient_count;
+            var previewEl = document.getElementById('previewRecipients');
+            if (previewEl) previewEl.textContent = config.recipient_count;
+        }, 150);
     }
 
     if (config.sources) {
@@ -1484,7 +1507,8 @@ function restoreCampaignFromConfirm() {
             lists: 'contactListPill',
             tags: 'tagsPill',
             file_upload: 'fileUploadPill',
-            manual: 'manualEntryPill'
+            manual: 'manualEntryPill',
+            manual_input: 'manualEntryPill'
         };
         Object.keys(sourceMap).forEach(function(key) {
             if (config.sources[key] && config.sources[key] > 0) {
@@ -3510,12 +3534,19 @@ function continueToConfirmation() {
             campaign_name: campaignName,
             channel: sessionChannelValue,
             sender_id: senderIdText,
+            sender_id_id: senderId || null,
             rcs_agent: rcsAgentName,
+            rcs_agent_id: rcsAgentId || null,
             message_content: smsContent,
             recipient_count: recipientCount,
             valid_count: recipientCount,
             invalid_count: invalidCount,
             opted_out_count: 0,
+            recipient_sources: recipientSources,
+            recipient_state: {
+                manual: recipientState.manual,
+                contactBook: recipientState.contactBook
+            },
             sources: {
                 manual_input: manualCount,
                 file_upload: uploadCount,
