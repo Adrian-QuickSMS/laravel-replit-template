@@ -3174,7 +3174,14 @@ function updateRcsButtonsPreview() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Close button handler - properly manages unsaved changes
+    sessionStorage.removeItem('quicksms_rcs_draft');
+    rcsCardsData = {};
+    rcsPersistentPayload = null;
+    rcsCardCount = 1;
+    rcsCurrentCard = 1;
+    rcsButtons = [];
+    rcsMediaData = { source: null, url: null, file: null, dimensions: null, fileSize: 0, assetUuid: null, hostedUrl: null, originalUrl: null, savedDataUrl: null };
+
     var closeBtn = document.getElementById('rcsWizardCloseBtn');
     if (closeBtn) {
         closeBtn.addEventListener('click', function(e) {
