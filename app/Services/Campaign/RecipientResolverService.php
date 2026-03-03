@@ -500,14 +500,15 @@ class RecipientResolverService
     {
         $set = [];
 
+        if (empty($screeningListIds)) {
+            return $set;
+        }
+
         $query = DB::table('opt_out_records')
             ->where('account_id', $accountId)
+            ->whereIn('opt_out_list_id', $screeningListIds)
             ->select('mobile_number')
             ->orderBy('id');
-
-        if (!empty($screeningListIds)) {
-            $query->whereIn('opt_out_list_id', $screeningListIds);
-        }
 
         $query->chunk(self::CHUNK_SIZE, function ($rows) use (&$set) {
             foreach ($rows as $row) {
