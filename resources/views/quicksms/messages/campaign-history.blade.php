@@ -467,6 +467,20 @@ $permissions = [
                             </button>
                         </div>
                     </div>
+                    @if(isset($paginator) && $paginator->hasPages())
+                    <div class="d-flex justify-content-between align-items-center mt-3 px-2">
+                        <div class="small text-muted">
+                            Showing {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} of {{ $paginator->total() }} campaigns
+                        </div>
+                        <div>
+                            {{ $paginator->onEachSide(1)->links('pagination::bootstrap-5') }}
+                        </div>
+                    </div>
+                    @elseif(isset($paginator))
+                    <div class="small text-muted mt-3 px-2">
+                        {{ $paginator->total() }} {{ Str::plural('campaign', $paginator->total()) }} total
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -1014,7 +1028,68 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     loadDraftsFromStorage();
+    restoreFiltersFromUrl();
 });
+
+function restoreFiltersFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var hasFilters = false;
+
+    var statusParam = params.get('status');
+    if (statusParam) {
+        statusParam.split(',').forEach(function(s) {
+            var cb = document.querySelector('[data-filter="statuses"] input[value="' + s + '"]');
+            if (cb) cb.checked = true;
+        });
+        updateDropdownLabel(document.querySelector('[data-filter="statuses"]'));
+        hasFilters = true;
+    }
+
+    var channelParam = params.get('channel');
+    if (channelParam) {
+        channelParam.split(',').forEach(function(c) {
+            var cb = document.querySelector('[data-filter="channels"] input[value="' + c + '"]');
+            if (cb) cb.checked = true;
+        });
+        updateDropdownLabel(document.querySelector('[data-filter="channels"]'));
+        hasFilters = true;
+    }
+
+    var dateFrom = params.get('date_from');
+    if (dateFrom) {
+        document.getElementById('filterDateFrom').value = dateFrom;
+        hasFilters = true;
+    }
+
+    var dateTo = params.get('date_to');
+    if (dateTo) {
+        document.getElementById('filterDateTo').value = dateTo;
+        hasFilters = true;
+    }
+
+    var searchParam = params.get('search');
+    if (searchParam) {
+        document.getElementById('campaignSearch').value = searchParam;
+    }
+
+    if (hasFilters) {
+        var filtersPanel = document.getElementById('filtersPanel');
+        if (filtersPanel) {
+            new bootstrap.Collapse(filtersPanel, { show: true });
+        }
+        activeFilters = {
+            statuses: statusParam ? statusParam.split(',') : [],
+            channels: channelParam ? channelParam.split(',') : [],
+            senderIds: [],
+            rcsAgents: [],
+            dateFrom: dateFrom || '',
+            dateTo: dateTo || '',
+            tracking: [],
+            optout: []
+        };
+        updateFilterBadge();
+    }
+}
 
 function loadDraftsFromStorage() {
     var drafts = JSON.parse(localStorage.getItem('quicksms_drafts') || '[]');
@@ -1273,44 +1348,26 @@ var activeFilters = {};
 
 window.applyFilters = function() {
     console.log('[CampaignHistory] Apply Filters clicked');
-    activeFilters = {
-        statuses: getCheckedValues('[data-filter="statuses"]'),
-        channels: getCheckedValues('[data-filter="channels"]'),
-        senderIds: getCheckedValues('[data-filter="senderIds"]'),
-        rcsAgents: getCheckedValues('[data-filter="rcsAgents"]'),
-        dateFrom: document.getElementById('filterDateFrom').value,
-        dateTo: document.getElementById('filterDateTo').value,
-        tracking: getCheckedValues('[data-filter="tracking"]'),
-        optout: getCheckedValues('[data-filter="optout"]')
-    };
-    console.log('[CampaignHistory] Active Filters:', activeFilters);
-    
-    updateFilterBadge();
-    filterCampaigns();
+    var statuses = getCheckedValues('[data-filter="statuses"]');
+    var channels = getCheckedValues('[data-filter="channels"]');
+    var dateFrom = document.getElementById('filterDateFrom').value;
+    var dateTo = document.getElementById('filterDateTo').value;
+    var searchVal = document.getElementById('campaignSearch').value.trim();
+
+    var params = new URLSearchParams();
+    if (statuses.length > 0) params.set('status', statuses.join(','));
+    if (channels.length > 0) params.set('channel', channels.join(','));
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+    if (searchVal) params.set('search', searchVal);
+
+    var qs = params.toString();
+    window.location.href = '{{ route("messages.campaign-history") }}' + (qs ? '?' + qs : '');
 };
 
 window.resetFilters = function() {
     console.log('[CampaignHistory] Reset Filters clicked');
-    document.querySelectorAll('.multiselect-dropdown input[type="checkbox"]').forEach(function(cb) {
-        cb.checked = false;
-    });
-    
-    document.querySelectorAll('.multiselect-dropdown .dropdown-label').forEach(function(label) {
-        var dropdown = label.closest('.multiselect-dropdown');
-        var filter = dropdown ? dropdown.dataset.filter : '';
-        if (filter === 'statuses') label.textContent = 'All Statuses';
-        else if (filter === 'channels') label.textContent = 'All Channels';
-        else if (filter === 'senderIds') label.textContent = 'All Sender IDs';
-        else if (filter === 'rcsAgents') label.textContent = 'All Agents';
-        else label.textContent = 'Any';
-    });
-    
-    document.getElementById('filterDateFrom').value = '';
-    document.getElementById('filterDateTo').value = '';
-    
-    activeFilters = {};
-    updateFilterBadge();
-    filterCampaigns();
+    window.location.href = '{{ route("messages.campaign-history") }}';
 }
 
 function updateFilterBadge() {
