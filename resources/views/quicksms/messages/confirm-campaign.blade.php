@@ -79,9 +79,7 @@
                         <div class="col-sm-4 text-muted">RCS Agent</div>
                         <div class="col-sm-8">
                             <div class="d-flex align-items-center">
-                                <div class="rounded me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background: linear-gradient(135deg, #886CC0 0%, #a78bdb 100%);">
-                                    <i class="fas fa-robot text-white" style="font-size: 14px;"></i>
-                                </div>
+                                <img src="{{ $channel['rcs_agent']['logo'] }}" alt="{{ $channel['rcs_agent']['name'] }}" class="rounded me-2" style="width: 32px; height: 32px; object-fit: cover;">
                                 <span class="fw-medium">{{ $channel['rcs_agent']['name'] }}</span>
                                 <i class="fas fa-check-circle text-primary ms-2" title="Verified"></i>
                             </div>
@@ -237,31 +235,100 @@
                             <div class="col-6 text-end fw-bold h5 mb-0">&pound;{{ number_format($total, 2) }}</div>
                         </div>
                     @else
+                        @php
+                            $validRecipients = $recipients['valid'] ?? 0;
+                            $penetration = (float) ($pricing['rcs_penetration'] ?? 0.65);
+                            $smsPrice = (float) ($pricing['sms_unit_price'] ?? 0);
+                            $isBasicRcs = ($channel['type'] === 'basic_rcs');
+                            $rcsPrice = $isBasicRcs
+                                ? (float) ($pricing['rcs_basic_price'] ?? 0)
+                                : (float) ($pricing['rcs_single_price'] ?? 0);
+
+                            $estRcsCount = (int) round($validRecipients * $penetration);
+                            $estSmsCount = $validRecipients - $estRcsCount;
+                            $estRcsCost = $estRcsCount * $rcsPrice;
+                            $estSmsCost = $estSmsCount * $smsPrice;
+                            $estTotal = $estRcsCost + $estSmsCost;
+
+                            $maxRate = max($smsPrice, $rcsPrice);
+                            $maxTotal = $validRecipients * $maxRate;
+
+                            $vatRate = (float) ($pricing['vat_rate'] ?? 0);
+                            $estVat = $pricing['vat_applicable'] ? $estTotal * ($vatRate / 100) : 0;
+                            $maxVat = $pricing['vat_applicable'] ? $maxTotal * ($vatRate / 100) : 0;
+                        @endphp
+
                         <div class="py-3 mb-3 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Pricing Notice:</strong> This campaign includes RCS delivery. Because RCS availability varies by handset and network, the final cost cannot be calculated in advance.
                         </div>
                         <p class="text-muted small mb-3">SMS fallback messages will be charged at your agreed SMS rate. RCS messages are billed based on actual delivery.</p>
-                        <div class="row g-3">
+
+                        <div class="row g-3 mb-3">
                             <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
                                     <div class="small" style="color: #495057;">SMS Rate</div>
-                                    @php $displaySmsPrice = is_object($pricing['sms_unit_price'] ?? null) ? (float)$pricing['sms_unit_price']->unitPrice : (float)($pricing['sms_unit_price'] ?? 0); @endphp
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($displaySmsPrice, 3) }}</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($smsPrice, 4) }}</div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">RCS Basic</div>
-                                    @php $displayRcsBasic = is_object($pricing['rcs_basic_price'] ?? null) ? (float)$pricing['rcs_basic_price']->unitPrice : (float)($pricing['rcs_basic_price'] ?? 0); @endphp
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($displayRcsBasic, 3) }}</div>
+                                    <div class="small" style="color: #495057;">{{ $isBasicRcs ? 'RCS Basic' : 'RCS Single' }} Rate</div>
+                                    <div class="fw-bold text-dark">&pound;{{ number_format($rcsPrice, 4) }}</div>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-3 rounded text-center" style="background-color: #e9ecef;">
-                                    <div class="small" style="color: #495057;">RCS Single</div>
-                                    @php $displayRcsSingle = is_object($pricing['rcs_single_price'] ?? null) ? (float)$pricing['rcs_single_price']->unitPrice : (float)($pricing['rcs_single_price'] ?? 0); @endphp
-                                    <div class="fw-bold text-dark">&pound;{{ number_format($displayRcsSingle, 3) }}</div>
+                                    <div class="small" style="color: #495057;">RCS Penetration</div>
+                                    <div class="fw-bold text-dark">{{ number_format($penetration * 100, 0) }}%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="p-3 rounded" style="background-color: #f0ebf8;">
+                                    <div class="small fw-bold mb-2" style="color: #6b5b95;">Estimated Cost</div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">{{ $isBasicRcs ? 'RCS Basic' : 'RCS Single' }}: {{ number_format($estRcsCount) }} &times; &pound;{{ number_format($rcsPrice, 4) }}</span>
+                                        <span>&pound;{{ number_format($estRcsCost, 2) }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">SMS fallback: {{ number_format($estSmsCount) }} &times; &pound;{{ number_format($smsPrice, 4) }}</span>
+                                        <span>&pound;{{ number_format($estSmsCost, 2) }}</span>
+                                    </div>
+                                    @if($pricing['vat_applicable'])
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">VAT ({{ $vatRate }}%)</span>
+                                        <span>&pound;{{ number_format($estVat, 2) }}</span>
+                                    </div>
+                                    @endif
+                                    <hr class="my-1">
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Total</span>
+                                        <span>&pound;{{ number_format($estTotal + $estVat, 2) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 rounded" style="background-color: #e9ecef;">
+                                    <div class="small fw-bold mb-2" style="color: #495057;">Maximum Cost</div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">{{ number_format($validRecipients) }} &times; &pound;{{ number_format($maxRate, 4) }}</span>
+                                        <span>&pound;{{ number_format($maxTotal, 2) }}</span>
+                                    </div>
+                                    @if($pricing['vat_applicable'])
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">VAT ({{ $vatRate }}%)</span>
+                                        <span>&pound;{{ number_format($maxVat, 2) }}</span>
+                                    </div>
+                                    @endif
+                                    <hr class="my-1">
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Total</span>
+                                        <span>&pound;{{ number_format($maxTotal + $maxVat, 2) }}</span>
+                                    </div>
+                                    <p class="text-muted small mb-0 mt-1">If all recipients received at the higher rate</p>
                                 </div>
                             </div>
                         </div>

@@ -619,12 +619,30 @@ class QuickSMSController extends Controller
         ];
 
         $channelType = $sessionData['channel'] ?? 'sms_only';
+
+        $agentName = $sessionData['rcs_agent'] ?? 'Not selected';
+        $agentLogo = asset('images/rcs-agents/quicksms-brand.svg');
+        $agentId = $sessionData['rcs_agent_id'] ?? null;
+        if ($agentId) {
+            $userId = session('customer_user_id');
+            $user = $userId ? \App\Models\User::withoutGlobalScope('tenant')->find($userId) : null;
+            if ($user) {
+                $agentRecord = \App\Models\RcsAgent::usableByUser($user)->find($agentId);
+                if ($agentRecord) {
+                    $agentName = $agentRecord->name;
+                    if ($agentRecord->logo_url) {
+                        $agentLogo = $agentRecord->logo_url;
+                    }
+                }
+            }
+        }
+
         $channel = [
             'type' => $channelType,
             'sms_sender_id' => $sessionData['sender_id'] ?? 'Not selected',
             'rcs_agent' => [
-                'name' => $sessionData['rcs_agent'] ?? 'Not selected',
-                'logo' => asset('images/default-agent-logo.png'),
+                'name' => $agentName,
+                'logo' => $agentLogo,
             ],
         ];
 
@@ -654,12 +672,19 @@ class QuickSMSController extends Controller
 
         $accountPricing = $this->getAccountPricingForView();
         $accountVat = $this->getAccountVatStatus();
+
+        $smsRate = (float) ($accountPricing['sms'] ?? 0.0395);
+        $rcsBasicRate = (float) ($accountPricing['rcs_basic'] ?? 0.0395);
+        $rcsSingleRate = (float) ($accountPricing['rcs_single'] ?? 0.0600);
+        $rcsPenetration = 0.65;
+
         $pricing = [
-            'sms_unit_price' => $accountPricing['sms'] ?? 0.0395,
-            'rcs_basic_price' => $accountPricing['rcs_basic'] ?? 0.0395,
-            'rcs_single_price' => $accountPricing['rcs_single'] ?? 0.0600,
+            'sms_unit_price' => $smsRate,
+            'rcs_basic_price' => $rcsBasicRate,
+            'rcs_single_price' => $rcsSingleRate,
             'vat_applicable' => $accountVat['vat_applicable'],
             'vat_rate' => $accountVat['vat_rate'],
+            'rcs_penetration' => $rcsPenetration,
         ];
 
         $segmentBreakdown = [];
