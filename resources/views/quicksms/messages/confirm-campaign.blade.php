@@ -241,16 +241,52 @@
 
                             $estRcsCount = (int) round($validRecipients * $penetration);
                             $estSmsCount = $validRecipients - $estRcsCount;
+
+                            $hasSegBreakdown = !empty($segment_breakdown ?? []) && count($segment_breakdown) > 0;
+                            $avgSegments = 1;
+                            if ($hasSegBreakdown) {
+                                $totalParts = 0;
+                                $totalRecips = 0;
+                                foreach ($segment_breakdown as $grp) {
+                                    $totalParts += $grp->segments * $grp->recipient_count;
+                                    $totalRecips += $grp->recipient_count;
+                                }
+                                $avgSegments = $totalRecips > 0 ? $totalParts / $totalRecips : 1;
+                            }
+
                             $estRcsCost = $estRcsCount * $rcsPrice;
-                            $estSmsCost = $estSmsCount * $smsPrice;
+                            $estSmsCost = $estSmsCount * $smsPrice * $avgSegments;
                             $estTotal = $estRcsCost + $estSmsCost;
 
-                            $maxRate = max($smsPrice, $rcsPrice);
-                            $maxTotal = $validRecipients * $maxRate;
+                            $estSmsParts = (int) round($estSmsCount * $avgSegments);
+
+                            $maxSmsParts = $hasSegBreakdown
+                                ? (int) round($validRecipients * $avgSegments)
+                                : $validRecipients;
+                            $maxSmsPartsTotal = $hasSegBreakdown
+                                ? array_reduce($segment_breakdown, fn($c, $g) => $c + $g->segments * $g->recipient_count, 0)
+                                : $validRecipients;
+                            $maxSmsCost = $maxSmsPartsTotal * $smsPrice;
+                            $maxRcsCost = $validRecipients * $rcsPrice;
+                            $maxTotal = max($maxSmsCost, $maxRcsCost);
 
                             $vatRate = (float) ($pricing['vat_rate'] ?? 0);
                             $estVat = $pricing['vat_applicable'] ? $estTotal * ($vatRate / 100) : 0;
                             $maxVat = $pricing['vat_applicable'] ? $maxTotal * ($vatRate / 100) : 0;
+
+                            $segBreakdownLines = [];
+                            if ($hasSegBreakdown && count($segment_breakdown) > 1) {
+                                foreach ($segment_breakdown as $grp) {
+                                    $grpSmsCount = (int) round(($validRecipients - $estRcsCount) * ($grp->recipient_count / max($validRecipients, 1)));
+                                    $grpRcsCount = (int) round($estRcsCount * ($grp->recipient_count / max($validRecipients, 1)));
+                                    $segBreakdownLines[] = (object) [
+                                        'segments' => $grp->segments,
+                                        'recipient_count' => $grp->recipient_count,
+                                        'sms_count' => $grpSmsCount,
+                                        'rcs_count' => $grpRcsCount,
+                                    ];
+                                }
+                            }
                         @endphp
 
                         <div class="py-3 mb-3 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
@@ -280,6 +316,22 @@
                             </div>
                         </div>
 
+                        @if($hasSegBreakdown && count($segment_breakdown) > 1)
+                        <div class="mb-3 p-3 rounded" style="background-color: #f8f9fa;">
+                            <p class="small fw-bold mb-2" style="color: #495057;">Per-recipient segment breakdown</p>
+                            @foreach($segment_breakdown as $grp)
+                            <div class="d-flex justify-content-between small py-1 ps-2">
+                                <span class="text-muted">{{ number_format($grp->recipient_count) }} recipients &times; {{ $grp->segments }} {{ $grp->segments === 1 ? 'segment' : 'segments' }}</span>
+                                <span>{{ number_format($grp->recipient_count * $grp->segments) }} parts</span>
+                            </div>
+                            @endforeach
+                            <div class="d-flex justify-content-between small pt-1 ps-2 fw-bold border-top mt-1">
+                                <span>Total SMS parts (if all via SMS)</span>
+                                <span>{{ number_format($maxSmsPartsTotal) }}</span>
+                            </div>
+                        </div>
+                        @endif
+
                         <div class="row g-3">
                             <div class="col-6">
                                 <div class="p-3 rounded" style="background-color: #f0ebf8;">
@@ -289,7 +341,7 @@
                                         <span>&pound;{{ number_format($estRcsCost, 2) }}</span>
                                     </div>
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">SMS fallback: {{ number_format($estSmsCount) }} &times; &pound;{{ number_format($smsPrice, 4) }}</span>
+                                        <span class="text-muted">SMS fallback: {{ number_format($estSmsParts) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
                                         <span>&pound;{{ number_format($estSmsCost, 2) }}</span>
                                     </div>
                                     @if($pricing['vat_applicable'])
@@ -309,8 +361,12 @@
                                 <div class="p-3 rounded" style="background-color: #e9ecef;">
                                     <div class="small fw-bold mb-2" style="color: #495057;">Maximum Cost</div>
                                     <div class="d-flex justify-content-between small mb-1">
-                                        <span class="text-muted">{{ number_format($validRecipients) }} &times; &pound;{{ number_format($maxRate, 4) }}</span>
-                                        <span>&pound;{{ number_format($maxTotal, 2) }}</span>
+                                        <span class="text-muted">All SMS: {{ number_format($maxSmsPartsTotal) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
+                                        <span>&pound;{{ number_format($maxSmsCost, 2) }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">All RCS: {{ number_format($validRecipients) }} &times; &pound;{{ number_format($rcsPrice, 4) }}</span>
+                                        <span>&pound;{{ number_format($maxRcsCost, 2) }}</span>
                                     </div>
                                     @if($pricing['vat_applicable'])
                                     <div class="d-flex justify-content-between small mb-1">
@@ -323,7 +379,7 @@
                                         <span>Total</span>
                                         <span>&pound;{{ number_format($maxTotal + $maxVat, 2) }}</span>
                                     </div>
-                                    <p class="text-muted small mb-0 mt-1">If all recipients received at the higher rate</p>
+                                    <p class="text-muted small mb-0 mt-1">Whichever channel costs more</p>
                                 </div>
                             </div>
                         </div>
