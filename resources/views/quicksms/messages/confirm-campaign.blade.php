@@ -385,7 +385,7 @@
                                 <div class="p-3 rounded d-flex flex-column w-100" style="background-color: #f0ebf8;">
                                     <div class="small fw-bold mb-2 text-dark">
                                         Estimated Cost
-                                        <i class="fas fa-info-circle ms-1" style="cursor: pointer; color: #886CC0;" data-bs-toggle="tooltip" data-bs-placement="top" title="Based on {{ number_format($penetration * 100, 0) }}% of recipients receiving RCS and the rest receiving SMS fallback, using per-recipient segment counts."></i>
+                                        <i class="fas fa-info-circle ms-1" style="cursor: pointer; color: #886CC0;" data-bs-toggle="modal" data-bs-target="#estimatedCostInfoModal"></i>
                                     </div>
                                     @if($estRcsBasicCount > 0)
                                     <div class="d-flex justify-content-between small mb-1 text-dark">
@@ -422,7 +422,7 @@
                                 <div class="p-3 rounded d-flex flex-column w-100" style="background-color: #e9ecef;">
                                     <div class="small fw-bold mb-2 text-dark">
                                         Maximum Cost
-                                        <i class="fas fa-info-circle ms-1" style="cursor: pointer; color: #6c757d;" data-bs-toggle="tooltip" data-bs-placement="top" title="The highest possible cost if all recipients are charged via the most expensive channel ({{ $maxSmsCost >= $maxRcsCost ? 'SMS' : 'RCS' }})."></i>
+                                        <i class="fas fa-info-circle ms-1" style="cursor: pointer; color: #6c757d;" data-bs-toggle="modal" data-bs-target="#maximumCostInfoModal"></i>
                                     </div>
                                     @if($maxSmsCost >= $maxRcsCost)
                                     <div class="d-flex justify-content-between small mb-1 text-dark">
@@ -466,6 +466,44 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="estimatedCostInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title"><i class="fas fa-info-circle me-2" style="color: #886CC0;"></i>Estimated Cost</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">This estimate is based on <strong>{{ number_format($penetration * 100, 0) }}%</strong> of recipients receiving RCS and the remaining <strong>{{ number_format((1 - $penetration) * 100, 0) }}%</strong> receiving SMS fallback.</p>
+                <hr>
+                <p class="mb-0">Costs are calculated using per-recipient segment counts, so recipients with longer personalised messages are costed at the correct multi-segment rate.</p>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="maximumCostInfoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title"><i class="fas fa-info-circle me-2" style="color: #6c757d;"></i>Maximum Cost</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">This shows the highest possible cost if every recipient were charged via the most expensive channel (<strong>{{ $maxSmsCost >= $maxRcsCost ? 'SMS' : 'RCS' }}</strong>).</p>
+                <hr>
+                <p class="mb-0">Your actual cost will always be equal to or lower than this amount. It provides a worst-case ceiling for budgeting purposes.</p>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -544,11 +582,5 @@ function confirmSend() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.forEach(function(el) {
-        new bootstrap.Tooltip(el);
-    });
-});
 </script>
 @endpush
