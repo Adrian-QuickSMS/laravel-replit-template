@@ -380,69 +380,73 @@
                         </div>
                         @endif
 
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <div class="p-3 rounded" style="background-color: #e9ecef;">
+                        <div class="row g-3" style="align-items: stretch;">
+                            <div class="col-6 d-flex">
+                                <div class="p-3 rounded d-flex flex-column w-100" style="background-color: #f0ebf8;">
                                     <div class="small fw-bold mb-2 text-dark">
                                         Estimated Cost
-                                        <i class="fas fa-info-circle ms-1 text-muted" style="cursor: pointer;" data-bs-toggle="tooltip" data-bs-placement="top" title="Based on {{ number_format($penetration * 100, 0) }}% of recipients receiving RCS and the rest receiving SMS fallback, using per-recipient segment counts."></i>
+                                        <i class="fas fa-info-circle ms-1" style="cursor: pointer; color: #886CC0;" data-bs-toggle="tooltip" data-bs-placement="top" title="Based on {{ number_format($penetration * 100, 0) }}% of recipients receiving RCS and the rest receiving SMS fallback, using per-recipient segment counts."></i>
                                     </div>
                                     @if($estRcsBasicCount > 0)
-                                    <div class="d-flex justify-content-between small mb-1">
+                                    <div class="d-flex justify-content-between small mb-1 text-dark">
                                         <span>RCS Basic: {{ number_format($estRcsBasicCount) }} &times; &pound;{{ number_format($rcsBasicPrice, 4) }}</span>
                                         <span>&pound;{{ number_format($estRcsBasicCost, 2) }}</span>
                                     </div>
                                     @endif
                                     @if($estRcsSingleCount > 0)
-                                    <div class="d-flex justify-content-between small mb-1">
+                                    <div class="d-flex justify-content-between small mb-1 text-dark">
                                         <span>RCS Single: {{ number_format($estRcsSingleCount) }} &times; &pound;{{ number_format($rcsSinglePrice, 4) }}</span>
                                         <span>&pound;{{ number_format($estRcsSingleCost, 2) }}</span>
                                     </div>
                                     @endif
-                                    <div class="d-flex justify-content-between small mb-1">
+                                    <div class="d-flex justify-content-between small mb-1 text-dark">
                                         <span>SMS fallback: {{ number_format($totalEstSmsParts) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
                                         <span>&pound;{{ number_format($estSmsCostTotal, 2) }}</span>
                                     </div>
                                     @if($pricing['vat_applicable'])
-                                    <div class="d-flex justify-content-between small mb-1">
+                                    <div class="d-flex justify-content-between small mb-1 text-dark">
                                         <span>VAT ({{ $vatRate }}%)</span>
                                         <span>&pound;{{ number_format($estVat, 2) }}</span>
                                     </div>
                                     @endif
-                                    <hr class="my-1">
-                                    <div class="d-flex justify-content-between fw-bold">
-                                        <span>Total</span>
-                                        <span>&pound;{{ number_format($estTotal + $estVat, 2) }}</span>
+                                    <div class="mt-auto">
+                                        <hr class="my-1">
+                                        <div class="d-flex justify-content-between fw-bold text-dark">
+                                            <span>Total</span>
+                                            <span>&pound;{{ number_format($estTotal + $estVat, 2) }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <div class="p-3 rounded" style="background-color: #e9ecef;">
+                            <div class="col-6 d-flex">
+                                <div class="p-3 rounded d-flex flex-column w-100" style="background-color: #e9ecef;">
                                     <div class="small fw-bold mb-2 text-dark">
                                         Maximum Cost
-                                        <i class="fas fa-info-circle ms-1 text-muted" style="cursor: pointer;" data-bs-toggle="tooltip" data-bs-placement="top" title="The highest possible cost if all recipients are charged via the most expensive channel ({{ $maxSmsCost >= $maxRcsCost ? 'SMS' : 'RCS' }})."></i>
+                                        <i class="fas fa-info-circle ms-1" style="cursor: pointer; color: #6c757d;" data-bs-toggle="tooltip" data-bs-placement="top" title="The highest possible cost if all recipients are charged via the most expensive channel ({{ $maxSmsCost >= $maxRcsCost ? 'SMS' : 'RCS' }})."></i>
                                     </div>
                                     @if($maxSmsCost >= $maxRcsCost)
-                                    <div class="d-flex justify-content-between small mb-1">
+                                    <div class="d-flex justify-content-between small mb-1 text-dark">
                                         <span>All SMS: {{ number_format($maxSmsPartsTotal) }} parts &times; &pound;{{ number_format($smsPrice, 4) }}</span>
                                         <span>&pound;{{ number_format($maxSmsCost, 2) }}</span>
                                     </div>
                                     @else
-                                    <div class="d-flex justify-content-between small mb-1">
+                                    <div class="d-flex justify-content-between small mb-1 text-dark">
                                         <span>All RCS: {{ number_format($validRecipients) }} msgs</span>
                                         <span>&pound;{{ number_format($maxRcsCost, 2) }}</span>
                                     </div>
                                     @endif
                                     @if($pricing['vat_applicable'])
-                                    <div class="d-flex justify-content-between small mb-1">
+                                    <div class="d-flex justify-content-between small mb-1 text-dark">
                                         <span>VAT ({{ $vatRate }}%)</span>
                                         <span>&pound;{{ number_format($maxVat, 2) }}</span>
                                     </div>
                                     @endif
-                                    <hr class="my-1">
-                                    <div class="d-flex justify-content-between fw-bold">
-                                        <span>Total</span>
-                                        <span>&pound;{{ number_format($maxTotal + $maxVat, 2) }}</span>
+                                    <div class="mt-auto">
+                                        <hr class="my-1">
+                                        <div class="d-flex justify-content-between fw-bold text-dark">
+                                            <span>Total</span>
+                                            <span>&pound;{{ number_format($maxTotal + $maxVat, 2) }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
