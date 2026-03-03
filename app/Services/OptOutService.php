@@ -196,7 +196,7 @@ class OptOutService
      */
     public function generateOptOutText(string $keyword, string $number): string
     {
-        return "Reply {$keyword} to {$number} to opt out";
+        return "OptOut, {$keyword} to {$number}";
     }
 
     // =====================================================
