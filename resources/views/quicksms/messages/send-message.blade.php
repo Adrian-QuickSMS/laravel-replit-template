@@ -1916,6 +1916,7 @@ function loadDbCampaignForEditing(campaignId) {
         if (!c) return;
 
         window._editingDbCampaignId = c.id;
+        window._restoredCampaignId = c.id;
 
         var campaignNameInput = document.getElementById('campaignName');
         if (campaignNameInput && c.name) campaignNameInput.value = c.name;
@@ -1978,14 +1979,49 @@ function loadDbCampaignForEditing(campaignId) {
                         validateManualNumbers();
                     }
                 }
+                if (src.type === 'list' && src.list_id) {
+                    if (typeof recipientState !== 'undefined') {
+                        recipientState.contactBook.lists.push({ id: src.list_id, name: src.name || 'List', count: src.count || 0 });
+                    }
+                }
+                if (src.type === 'tag' && src.tag_id) {
+                    if (typeof recipientState !== 'undefined') {
+                        recipientState.contactBook.tags.push({ id: src.tag_id, name: src.name || 'Tag', count: src.count || 0 });
+                    }
+                }
+                if (src.type === 'dynamic_list' && src.list_id) {
+                    if (typeof recipientState !== 'undefined') {
+                        recipientState.contactBook.dynamicLists.push({ id: src.list_id, name: src.name || 'Dynamic List', count: src.count || 0 });
+                    }
+                }
             });
         }
 
-        if (c.opt_out_enabled) {
-            var enableToggle = document.getElementById('enableOptoutManagement');
-            if (enableToggle) {
-                enableToggle.checked = true;
-                if (typeof toggleOptoutManagement === 'function') toggleOptoutManagement();
+        if (c.message_content && c.message_content.match(/https?:\/\/qsms\.uk\/|https?:\/\/\S+\.co\.uk\/|https?:\/\/\S+\.com\//)) {
+            var trackableToggle = document.getElementById('includeTrackableLink');
+            if (trackableToggle) {
+                trackableToggle.checked = true;
+                trackableLinkConfirmed = true;
+                var trackableSummary = document.getElementById('trackableLinkSummary');
+                if (trackableSummary) trackableSummary.classList.remove('d-none');
+            }
+        }
+
+        if (c.validity_period) {
+            var expiryCheckbox = document.getElementById('messageExpiry');
+            if (expiryCheckbox) {
+                expiryCheckbox.checked = true;
+                messageExpiryConfirmed = true;
+                var validityToggle = document.getElementById('validityToggle');
+                if (validityToggle) validityToggle.checked = true;
+                var validityDuration = document.getElementById('validityDuration');
+                if (validityDuration) validityDuration.value = c.validity_period;
+                var expirySummary = document.getElementById('messageExpirySummary');
+                if (expirySummary) {
+                    expirySummary.classList.remove('d-none');
+                    var expiryValueEl = document.getElementById('messageExpiryValue');
+                    if (expiryValueEl) expiryValueEl.textContent = c.validity_period + ' Hours';
+                }
             }
         }
 
@@ -2015,15 +2051,125 @@ function loadDbCampaignForEditing(campaignId) {
             }
         }
 
+        if (c.sending_window_start && c.sending_window_end) {
+            var unsociableToggle = document.getElementById('unsociableToggle');
+            if (unsociableToggle) {
+                unsociableToggle.checked = true;
+                var unsociableFields = document.getElementById('unsociableFields');
+                if (unsociableFields) unsociableFields.classList.remove('d-none');
+                var fromEl = document.getElementById('unsociableFrom');
+                if (fromEl) fromEl.value = c.sending_window_start.substring(0, 5);
+                var toEl = document.getElementById('unsociableTo');
+                if (toEl) toEl.value = c.sending_window_end.substring(0, 5);
+            }
+            if (!c.scheduled_at) {
+                var scheduleCheckbox2 = document.getElementById('scheduleRules');
+                if (scheduleCheckbox2) {
+                    scheduleCheckbox2.checked = true;
+                    scheduleRulesConfirmed = true;
+                }
+                var scheduleSummary2 = document.getElementById('scheduleSummary');
+                if (scheduleSummary2) {
+                    scheduleSummary2.classList.remove('d-none');
+                    var summaryText2 = document.getElementById('scheduleSummaryText');
+                    if (summaryText2) summaryText2.textContent = 'Unsociable hours: ' + c.sending_window_start.substring(0, 5) + ' - ' + c.sending_window_end.substring(0, 5);
+                }
+            }
+        }
+
         if (c.send_rate) {
             var sendRateSelect = document.getElementById('sendRate');
             if (sendRateSelect) sendRateSelect.value = c.send_rate;
         }
 
+        if (c.opt_out_enabled || (c.opt_out_screening_list_ids && c.opt_out_screening_list_ids.length > 0)) {
+            var enableToggle = document.getElementById('enableOptoutManagement');
+            if (enableToggle) {
+                enableToggle.checked = true;
+                document.getElementById('optoutManagementSection').classList.remove('d-none');
+                document.getElementById('optoutDisabledMessage').classList.add('d-none');
+            }
+
+            if (c.opt_out_screening_list_ids && c.opt_out_screening_list_ids.length > 0) {
+                c.opt_out_screening_list_ids.forEach(function(listId) {
+                    var checkbox = document.querySelector('input[name="optOutScreeningLists[]"][value="' + listId + '"]');
+                    if (checkbox) checkbox.checked = true;
+                });
+                if (typeof onScreeningListChange === 'function') onScreeningListChange();
+            }
+
+            loadOptOutNumbers(function() {
+                if (c.opt_out_method === 'reply' || c.opt_out_method === 'both') {
+                    var replyToggle = document.getElementById('enableReplyOptout');
+                    if (replyToggle) {
+                        replyToggle.checked = true;
+                        if (typeof toggleReplyOptout === 'function') toggleReplyOptout();
+                    }
+
+                    if (c.opt_out_number_id) {
+                        var numberSelect = document.getElementById('optOutNumberId');
+                        if (numberSelect) {
+                            for (var i = 0; i < numberSelect.options.length; i++) {
+                                if (numberSelect.options[i].value == c.opt_out_number_id) {
+                                    numberSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                            numberSelect.dispatchEvent(new Event('change'));
+                        }
+                    }
+                    if (c.opt_out_keyword) {
+                        var keywordInput = document.getElementById('optOutKeywordInput');
+                        if (keywordInput) keywordInput.value = c.opt_out_keyword;
+                    }
+                    if (c.opt_out_text) {
+                        var replyText = document.getElementById('replyOptoutText');
+                        if (replyText) replyText.value = c.opt_out_text;
+                    }
+                    if (c.opt_out_list_id) {
+                        var listSelect = document.getElementById('replyOptOutListId');
+                        if (listSelect) {
+                            for (var i = 0; i < listSelect.options.length; i++) {
+                                if (listSelect.options[i].value == c.opt_out_list_id) {
+                                    listSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (c.opt_out_url_enabled || c.opt_out_method === 'url') {
+                    var urlToggle = document.getElementById('enableUrlOptout');
+                    if (urlToggle) {
+                        urlToggle.checked = true;
+                        if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
+                    }
+                    if (c.opt_out_text && (c.opt_out_method === 'url')) {
+                        var urlText = document.getElementById('urlOptoutText');
+                        if (urlText) urlText.value = c.opt_out_text;
+                    }
+                    if (c.opt_out_list_id && (c.opt_out_method === 'url')) {
+                        var urlListSelect = document.getElementById('urlOptOutListId');
+                        if (urlListSelect) {
+                            for (var i = 0; i < urlListSelect.options.length; i++) {
+                                if (urlListSelect.options[i].value == c.opt_out_list_id) {
+                                    urlListSelect.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (typeof validateOptoutConfig === 'function') validateOptoutConfig();
+            });
+        }
+
         setTimeout(function() {
             if (typeof updatePreview === 'function') updatePreview();
             if (typeof updateRecipientSummary === 'function') updateRecipientSummary();
-        }, 300);
+        }, 500);
 
         showDraftLoadedNotification(c.name);
         window.history.replaceState({}, document.title, window.location.pathname);
