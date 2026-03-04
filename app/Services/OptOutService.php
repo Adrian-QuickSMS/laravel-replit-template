@@ -62,7 +62,7 @@ class OptOutService
             ->usableByUser($user)
             ->shortcodes()
             ->active()
-            ->with(['keywords' => fn($q) => $q->withoutGlobalScope('tenant')])
+            ->with(['keywords' => fn($q) => $q->withoutGlobalScope('tenant')->where('account_id', $accountId)])
             ->select('id', 'number', 'friendly_name', 'number_type', 'country_iso')
             ->orderBy('number')
             ->get()

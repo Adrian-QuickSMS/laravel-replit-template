@@ -1131,10 +1131,10 @@ function loadDraftsFromStorage() {
         row.setAttribute('data-channel', draft.channel);
         row.setAttribute('data-status', 'draft');
         row.setAttribute('data-sender-id', draft.sender_id || '');
-        row.setAttribute('data-rcs-agent', draft.rcs_agent || '');
-        row.setAttribute('data-rcs-agent-logo', draft.rcs_agent_logo || '');
-        row.setAttribute('data-rcs-agent-tagline', draft.rcs_agent_tagline || '');
-        row.setAttribute('data-rcs-agent-brand-color', draft.rcs_agent_brand_color || '#886CC0');
+        row.setAttribute('data-rcs-agent', draft.rcs_agent || (draft.config ? draft.config.rcs_agent_display_name || '' : ''));
+        row.setAttribute('data-rcs-agent-logo', draft.rcs_agent_logo || (draft.config ? draft.config.rcs_agent_logo || '' : ''));
+        row.setAttribute('data-rcs-agent-tagline', draft.rcs_agent_tagline || (draft.config ? draft.config.rcs_agent_tagline || '' : ''));
+        row.setAttribute('data-rcs-agent-brand-color', draft.rcs_agent_brand_color || (draft.config ? draft.config.rcs_agent_brand_color || '' : ''));
         row.setAttribute('data-send-date', draft.created_at);
         row.setAttribute('data-recipients-total', draft.recipients);
         row.setAttribute('data-recipients-delivered', '');
