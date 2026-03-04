@@ -754,6 +754,7 @@ class QuickSMSController extends Controller
             'segment_breakdown' => $segmentBreakdown,
             'total_sms_parts' => $totalSmsParts,
             'campaign_id' => $campaignId,
+            'realEstimate' => $realEstimate,
         ]);
     }
 

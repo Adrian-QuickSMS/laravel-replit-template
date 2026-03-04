@@ -173,61 +173,85 @@
                 </div>
                 <div class="card-body p-4">
                     @if($channel['type'] === 'sms_only')
-                        @php
-                            $messageCount = $recipients['valid'] ?? 0;
-                            $smsUnitPrice = is_object($pricing['sms_unit_price']) ? (float) $pricing['sms_unit_price']->unitPrice : (float) ($pricing['sms_unit_price'] ?? 0);
-                            $resolvedParts = $total_sms_parts ?? 0;
-                            $subtotal = $resolvedParts * $smsUnitPrice;
-                            $vatRate = (float) ($pricing['vat_rate'] ?? 0);
-                            $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($vatRate / 100) : 0;
-                            $total = $subtotal + $vatAmount;
-                            $hasBreakdown = !empty($segment_breakdown ?? []);
-                        @endphp
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">Recipients</div>
-                            <div class="col-6 text-end">{{ number_format($messageCount) }}</div>
-                        </div>
-                        @if($hasBreakdown && count($segment_breakdown) > 1)
-                        <div class="mb-2">
-                            <p class="text-muted small mb-1">Segment breakdown (personalised per recipient)</p>
-                            @foreach($segment_breakdown as $group)
-                            <div class="d-flex justify-content-between py-1 ps-3">
-                                <span class="small text-muted">{{ number_format($group->recipient_count) }} recipients &times; {{ $group->segments }} {{ $group->segments === 1 ? 'segment' : 'segments' }}</span>
-                                <span class="small">{{ number_format($group->recipient_count * $group->segments) }} parts</span>
-                            </div>
-                            @endforeach
-                        </div>
-                        @elseif($hasBreakdown && count($segment_breakdown) === 1)
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">Segments per message</div>
-                            <div class="col-6 text-end">{{ $segment_breakdown[0]->segments }}</div>
-                        </div>
-                        @else
-                            @php $segmentCount = $campaign['segment_count'] ?? 1; @endphp
-                            @if($segmentCount > 1)
+                        @if(!empty($realEstimate))
+                            {{-- Real estimate from backend billing engine --}}
                             <div class="row mb-2">
-                                <div class="col-6 text-muted">Segments per message</div>
-                                <div class="col-6 text-end">{{ $segmentCount }}</div>
+                                <div class="col-6 text-muted">Messages</div>
+                                <div class="col-6 text-end">{{ number_format($recipients['valid']) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Estimated Cost (ex VAT)</div>
+                                <div class="col-6 text-end">&pound;{{ number_format((float) $realEstimate['total_cost'], 2) }}</div>
+                            </div>
+                            @if(!$realEstimate['has_sufficient_balance'])
+                            <div class="alert alert-warning py-2 px-3 mt-2" style="font-size: 13px;">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Insufficient balance. Available: &pound;{{ number_format((float) $realEstimate['available_balance'], 2) }}
                             </div>
                             @endif
-                        @endif
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">Total SMS parts</div>
-                            <div class="col-6 text-end">{{ number_format($resolvedParts) }}</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">Price per SMS part</div>
-                            <div class="col-6 text-end">&pound;{{ number_format($smsUnitPrice, 4) }}</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">Subtotal (ex VAT)</div>
-                            <div class="col-6 text-end">&pound;{{ number_format($subtotal, 2) }}</div>
-                        </div>
-                        @if($pricing['vat_applicable'])
-                        <div class="row mb-2">
-                            <div class="col-6 text-muted">VAT ({{ $pricing['vat_rate'] }}%)</div>
-                            <div class="col-6 text-end">&pound;{{ number_format($vatAmount, 2) }}</div>
-                        </div>
+                            <hr>
+                            <div class="row">
+                                <div class="col-6 fw-bold">Estimated Total</div>
+                                <div class="col-6 text-end fw-bold h5 mb-0">&pound;{{ number_format((float) $realEstimate['total_cost'], 2) }}</div>
+                            </div>
+                        @else
+                            {{-- Fallback: simple estimate from session data --}}
+                            @php
+                                $messageCount = $recipients['valid'] ?? 0;
+                                $smsUnitPrice = is_object($pricing['sms_unit_price']) ? (float) $pricing['sms_unit_price']->unitPrice : (float) ($pricing['sms_unit_price'] ?? 0);
+                                $resolvedParts = $total_sms_parts ?? 0;
+                                $subtotal = $resolvedParts * $smsUnitPrice;
+                                $vatRate = (float) ($pricing['vat_rate'] ?? 0);
+                                $vatAmount = $pricing['vat_applicable'] ? $subtotal * ($vatRate / 100) : 0;
+                                $total = $subtotal + $vatAmount;
+                                $hasBreakdown = !empty($segment_breakdown ?? []);
+                            @endphp
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Recipients</div>
+                                <div class="col-6 text-end">{{ number_format($messageCount) }}</div>
+                            </div>
+                            @if($hasBreakdown && count($segment_breakdown) > 1)
+                            <div class="mb-2">
+                                <p class="text-muted small mb-1">Segment breakdown (personalised per recipient)</p>
+                                @foreach($segment_breakdown as $group)
+                                <div class="d-flex justify-content-between py-1 ps-3">
+                                    <span class="small text-muted">{{ number_format($group->recipient_count) }} recipients &times; {{ $group->segments }} {{ $group->segments === 1 ? 'segment' : 'segments' }}</span>
+                                    <span class="small">{{ number_format($group->recipient_count * $group->segments) }} parts</span>
+                                </div>
+                                @endforeach
+                            </div>
+                            @elseif($hasBreakdown && count($segment_breakdown) === 1)
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Segments per message</div>
+                                <div class="col-6 text-end">{{ $segment_breakdown[0]->segments }}</div>
+                            </div>
+                            @else
+                                @php $segmentCount = $campaign['segment_count'] ?? 1; @endphp
+                                @if($segmentCount > 1)
+                                <div class="row mb-2">
+                                    <div class="col-6 text-muted">Segments per message</div>
+                                    <div class="col-6 text-end">{{ $segmentCount }}</div>
+                                </div>
+                                @endif
+                            @endif
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Total SMS parts</div>
+                                <div class="col-6 text-end">{{ number_format($resolvedParts) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Price per SMS part</div>
+                                <div class="col-6 text-end">&pound;{{ number_format($smsUnitPrice, 4) }}</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">Subtotal (ex VAT)</div>
+                                <div class="col-6 text-end">&pound;{{ number_format($subtotal, 2) }}</div>
+                            </div>
+                            @if($pricing['vat_applicable'])
+                            <div class="row mb-2">
+                                <div class="col-6 text-muted">VAT ({{ $pricing['vat_rate'] }}%)</div>
+                                <div class="col-6 text-end">&pound;{{ number_format($vatAmount, 2) }}</div>
+                            </div>
+                            @endif
                         @endif
                     @else
                         @php
