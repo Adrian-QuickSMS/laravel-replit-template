@@ -418,6 +418,9 @@ class AdminController extends Controller
                 'status' => $statusMap[$c->status] ?? $c->status,
                 'sender_id' => $c->getSenderDisplayName() ?? '-',
                 'rcs_agent' => $c->rcsAgent?->name ?? '',
+                'rcs_agent_logo' => $c->rcsAgent?->logo_url ?? '',
+                'rcs_agent_tagline' => $c->rcsAgent?->tagline ?? '',
+                'rcs_agent_brand_color' => $c->rcsAgent?->brand_color ?? '',
                 'send_date' => $sendDate ? $sendDate->toIso8601String() : now()->toIso8601String(),
                 'recipients_total' => $c->total_unique_recipients ?? $c->total_recipients ?? 0,
                 'recipients_delivered' => $c->delivered_count,
@@ -425,6 +428,8 @@ class AdminController extends Controller
                 'has_optout' => $c->opt_out_enabled ? 'yes' : 'no',
                 'tags' => $tags,
                 'template' => $c->messageTemplate?->name ?? '',
+                'message_content' => $c->message_content ?? '',
+                'rcs_content' => $c->rcs_content,
             ];
         })->toArray();
 

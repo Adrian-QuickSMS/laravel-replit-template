@@ -779,6 +779,11 @@ $accounts = $accounts ?? [];
                             data-has-optout="{{ $campaign['has_optout'] ?? 'no' }}"
                             data-tags="{{ $campaign['tags'] ?? '' }}"
                             data-template="{{ $campaign['template'] ?? '' }}"
+                            data-message-content="{{ $campaign['message_content'] ?? '' }}"
+                            data-rcs-content="{{ isset($campaign['rcs_content']) ? json_encode($campaign['rcs_content']) : '' }}"
+                            data-rcs-agent-logo="{{ $campaign['rcs_agent_logo'] ?? '' }}"
+                            data-rcs-agent-tagline="{{ $campaign['rcs_agent_tagline'] ?? '' }}"
+                            data-rcs-agent-brand-color="{{ $campaign['rcs_agent_brand_color'] ?? '' }}"
                             onclick="openCampaignDrawer('{{ $campaign['id'] }}')">
                             <td>
                                 <a href="{{ route('admin.accounts.details', ['accountId' => $campaign['account_id']]) }}" 
@@ -1463,8 +1468,17 @@ function openCampaignDrawer(campaignId) {
     var sendDate = row.dataset.sendDate;
     var senderId = row.dataset.senderId || '-';
     var rcsAgent = row.dataset.rcsAgent || '';
+    var rcsAgentLogo = row.dataset.rcsAgentLogo || '';
+    var rcsAgentTagline = row.dataset.rcsAgentTagline || '';
+    var rcsAgentBrandColor = row.dataset.rcsAgentBrandColor || '';
     var tags = row.dataset.tags || '';
     var template = row.dataset.template || '';
+    var messageContent = row.dataset.messageContent || '';
+    var rcsContentRaw = row.dataset.rcsContent || '';
+    var rcsContent = null;
+    if (rcsContentRaw) {
+        try { rcsContent = JSON.parse(rcsContentRaw); } catch(e) { rcsContent = null; }
+    }
 
     document.getElementById('drawerCampaignName').textContent = name.charAt(0).toUpperCase() + name.slice(1);
     document.getElementById('drawerCampaignId').textContent = campaignId;
@@ -1550,7 +1564,7 @@ function openCampaignDrawer(campaignId) {
     updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered);
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, row.dataset.hasTracking === 'yes');
     updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
-    updateMessagePreview(channel, senderId, rcsAgent, template);
+    updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent, rcsAgentLogo, rcsAgentTagline, rcsAgentBrandColor);
     updateStatusActions(status);
 
     campaignDrawer.show();
@@ -1657,11 +1671,8 @@ function updateCostSummary(channel, status, total, delivered) {
     document.getElementById('costTotal').textContent = '£' + totalCost.toFixed(2);
 }
 
-var campaignPreviewMode = 'rcs';
-var currentCampaignChannel = 'sms_only';
-
 function toggleCampaignPreview(mode) {
-    campaignPreviewMode = mode;
+    currentAdminPreviewMode = mode;
     var rcsBtn = document.getElementById('campaignPreviewRCSBtn');
     var smsBtn = document.getElementById('campaignPreviewSMSBtn');
     if (mode === 'rcs') {
@@ -1671,29 +1682,87 @@ function toggleCampaignPreview(mode) {
         smsBtn.style.cssText = 'background: #1e3a5f; color: white; border: 1px solid #1e3a5f;';
         rcsBtn.style.cssText = 'background: white; color: #1e3a5f; border: 1px solid #1e3a5f;';
     }
+    var d = currentAdminCampaignData;
+    if (d.channel) {
+        updateMessagePreview(d.channel, d.senderId, d.rcsAgent, '', d.messageContent, d.rcsContent, d.agentLogo, d.agentTagline, d.agentBrandColor);
+    }
 }
 
-function updateMessagePreview(channel, senderId, rcsAgent, template) {
+var currentAdminPreviewMode = 'rcs';
+var currentAdminCampaignData = {};
+
+function updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent, agentLogo, agentTagline, agentBrandColor) {
     var container = document.getElementById('campaignPreviewContainer');
     var toggleContainer = document.getElementById('campaignPreviewToggle');
-    
+
+    currentAdminCampaignData = {
+        channel: channel,
+        senderId: senderId,
+        rcsAgent: rcsAgent,
+        messageContent: messageContent,
+        rcsContent: rcsContent,
+        agentLogo: agentLogo || '',
+        agentTagline: agentTagline || '',
+        agentBrandColor: agentBrandColor || '#886CC0'
+    };
+
+    if (!container || typeof RcsPreviewRenderer === 'undefined') {
+        if (container) container.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-mobile-alt fa-2x mb-2"></i><p class="small mb-0">Preview not available</p></div>';
+        return;
+    }
+
     if (channel === 'basic_rcs' || channel === 'rich_rcs') {
         toggleContainer.classList.remove('d-none');
     } else {
         toggleContainer.classList.add('d-none');
+        currentAdminPreviewMode = 'rcs';
     }
-    
-    if (typeof RcsPreviewRenderer !== 'undefined') {
-        var previewConfig = {
-            senderId: senderId || 'QuickSMS',
-            channel: channel === 'sms_only' ? 'sms' : channel,
-            agent: { name: rcsAgent || 'QuickSMS Brand', verified: true },
-            message: { type: 'text', body: 'Hi @{{firstName}}, thank you for being a valued customer! Reply STOP to opt out.' }
-        };
-        container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
+
+    var noContentMsg = 'No message content available.';
+
+    var previewConfig = {
+        senderId: senderId || 'QuickSMS',
+        agent: {
+            name: rcsAgent || senderId || 'QuickSMS',
+            logo: agentLogo || '',
+            verified: true,
+            tagline: agentTagline || 'Business messaging',
+            brand_color: agentBrandColor || '#886CC0'
+        }
+    };
+
+    if (channel === 'sms_only') {
+        previewConfig.channel = 'sms';
+        previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
+    } else if (channel === 'basic_rcs') {
+        if (currentAdminPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
+        } else {
+            previewConfig.channel = 'basic_rcs';
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
+        }
     } else {
-        container.innerHTML = '<div class="text-center text-muted py-4"><i class="fas fa-mobile-alt fa-2x mb-2"></i><p class="small mb-0">Preview will appear here</p></div>';
+        if (currentAdminPreviewMode === 'sms') {
+            previewConfig.channel = 'sms';
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
+        } else {
+            previewConfig.channel = 'rich_rcs';
+            if (rcsContent && typeof rcsContent === 'object' && rcsContent.cards) {
+                container.innerHTML = RcsPreviewRenderer.renderRichRcsPreview(rcsContent, previewConfig.agent);
+                if (rcsContent.type === 'carousel' || (rcsContent.cards && rcsContent.cards.length > 1)) {
+                    RcsPreviewRenderer.initCarouselBehavior('#campaignPreviewContainer');
+                }
+                return;
+            } else if (messageContent) {
+                previewConfig.message = { type: 'text', content: { body: messageContent } };
+            } else {
+                previewConfig.message = { type: 'text', content: { body: noContentMsg } };
+            }
+        }
     }
+
+    container.innerHTML = RcsPreviewRenderer.renderPreview(previewConfig);
 }
 
 function updateStatusActions(status) {
