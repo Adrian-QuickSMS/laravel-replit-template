@@ -432,7 +432,7 @@ class CampaignService
                 $errors[] = 'An approved Sender ID is required for SMS campaigns.';
             } else {
                 $sender = SenderId::withoutGlobalScope('tenant')->find($campaign->sender_id_id);
-                if (!$sender || $sender->status !== 'approved') {
+                if (!$sender || $sender->workflow_status !== 'approved') {
                     $errors[] = 'The selected Sender ID is not approved.';
                 }
                 if ($sender && $sender->account_id !== $campaign->account_id) {
@@ -445,7 +445,7 @@ class CampaignService
                 $errors[] = 'An approved RCS Agent is required for RCS campaigns.';
             } else {
                 $agent = RcsAgent::withoutGlobalScope('tenant')->find($campaign->rcs_agent_id);
-                if (!$agent || $agent->status !== 'approved') {
+                if (!$agent || $agent->workflow_status !== 'approved') {
                     $errors[] = 'The selected RCS Agent is not approved.';
                 }
                 if ($agent && $agent->account_id !== $campaign->account_id) {
