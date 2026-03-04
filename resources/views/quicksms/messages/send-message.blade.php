@@ -2699,27 +2699,84 @@ function refreshTemplateList() {
     }, 300);
 }
 
+function resetTemplateDrivenState() {
+    var senderSelect = document.getElementById('senderId');
+    if (senderSelect) { senderSelect.selectedIndex = 0; senderSelect.dispatchEvent(new Event('change')); }
+
+    var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+    if (rcsAgentSelect) { rcsAgentSelect.selectedIndex = 0; }
+
+    var trackableToggle = document.getElementById('includeTrackableLink');
+    if (trackableToggle) {
+        trackableToggle.checked = false;
+        trackableLinkConfirmed = false;
+        var ts = document.getElementById('trackableLinkSummary');
+        if (ts) ts.classList.add('d-none');
+        var domainEl = document.getElementById('trackableLinkDomain');
+        if (domainEl) domainEl.textContent = 'qsms.uk';
+    }
+
+    var expiryToggle = document.getElementById('messageExpiry');
+    if (expiryToggle) {
+        expiryToggle.checked = false;
+        messageExpiryConfirmed = false;
+        var es = document.getElementById('messageExpirySummary');
+        if (es) es.classList.add('d-none');
+    }
+
+    var enableToggle = document.getElementById('enableOptoutManagement');
+    if (enableToggle) {
+        enableToggle.checked = false;
+        var mgmtSection = document.getElementById('optoutManagementSection');
+        if (mgmtSection) mgmtSection.classList.add('d-none');
+        var disabledMsg = document.getElementById('optoutDisabledMessage');
+        if (disabledMsg) disabledMsg.classList.remove('d-none');
+    }
+    var replyToggle = document.getElementById('enableReplyOptout');
+    if (replyToggle) { replyToggle.checked = false; if (typeof toggleReplyOptout === 'function') toggleReplyOptout(); }
+    var urlToggle = document.getElementById('enableUrlOptout');
+    if (urlToggle) { urlToggle.checked = false; if (typeof toggleUrlOptout === 'function') toggleUrlOptout(); }
+
+    document.querySelectorAll('input[name="optOutScreeningLists[]"]').forEach(function(cb) { cb.checked = false; });
+    if (typeof onScreeningListChange === 'function') onScreeningListChange();
+
+    var keywordInput = document.getElementById('optOutKeywordInput');
+    if (keywordInput) keywordInput.value = '';
+    var replyText = document.getElementById('replyOptoutText');
+    if (replyText) replyText.value = '';
+    var urlText = document.getElementById('urlOptoutText');
+    if (urlText) urlText.value = '';
+    var numberSelect = document.getElementById('optOutNumberId');
+    if (numberSelect) numberSelect.selectedIndex = 0;
+    var replyListSelect = document.getElementById('replyOptOutListId');
+    if (replyListSelect) replyListSelect.selectedIndex = 0;
+    var urlListSelect = document.getElementById('urlOptOutListId');
+    if (urlListSelect) urlListSelect.selectedIndex = 0;
+}
+
 function applySelectedTemplate() {
     var selector = document.getElementById('templateSelector');
     var selectedOption = selector.options[selector.selectedIndex];
-    
+
     if (!selectedOption.value) {
+        resetTemplateDrivenState();
         document.getElementById('smsContent').value = '';
         handleContentChange();
         return;
     }
-    
-    var channel = selectedOption.getAttribute('data-channel') || 'SMS';
-    var content = selectedOption.getAttribute('data-content') || '';
-    var rcsPayloadStr = selectedOption.getAttribute('data-rcs-payload');
-    
-    content = content.replace(/\\'/g, "'");
-    
-    if (channel === 'Rich RCS + SMS' && rcsPayloadStr) {
+
+    var tpl = portalTemplates.find(function(t) { return String(t.id) === String(selectedOption.value); });
+    if (!tpl) return;
+
+    resetTemplateDrivenState();
+
+    var channel = tpl.channel || 'SMS';
+    var content = tpl.content || '';
+
+    if (channel === 'Rich RCS + SMS' && tpl.rcs_payload) {
         try {
-            var payload = JSON.parse(rcsPayloadStr);
+            var payload = typeof tpl.rcs_payload === 'string' ? JSON.parse(tpl.rcs_payload) : tpl.rcs_payload;
             document.querySelector('#channelRCSRich').click();
-            
             setTimeout(function() {
                 if (typeof openRcsWizard === 'function') {
                     openRcsWizard();
@@ -2741,6 +2798,170 @@ function applySelectedTemplate() {
         document.getElementById('smsContent').value = content;
         handleContentChange();
     }
+
+    if (tpl.sender_id_id) {
+        var senderSelect = document.getElementById('senderId');
+        if (senderSelect) {
+            for (var i = 0; i < senderSelect.options.length; i++) {
+                if (senderSelect.options[i].value == tpl.sender_id_id) {
+                    senderSelect.selectedIndex = i;
+                    senderSelect.dispatchEvent(new Event('change'));
+                    break;
+                }
+            }
+        }
+    }
+
+    if (tpl.rcs_agent_id && (channel === 'Basic RCS + SMS' || channel === 'Rich RCS + SMS')) {
+        var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+        if (rcsAgentSelect) {
+            for (var i = 0; i < rcsAgentSelect.options.length; i++) {
+                if (rcsAgentSelect.options[i].value == tpl.rcs_agent_id) {
+                    rcsAgentSelect.selectedIndex = i;
+                    rcsAgentSelect.dispatchEvent(new Event('change'));
+                    break;
+                }
+            }
+        }
+    }
+
+    if (tpl.trackable_link_enabled) {
+        var trackableToggle = document.getElementById('includeTrackableLink');
+        if (trackableToggle) {
+            trackableToggle.checked = true;
+            trackableLinkConfirmed = true;
+            var trackableSummary = document.getElementById('trackableLinkSummary');
+            if (trackableSummary) trackableSummary.classList.remove('d-none');
+            if (tpl.trackable_link_domain) {
+                var domainEl = document.getElementById('trackableLinkDomain');
+                if (domainEl) domainEl.textContent = tpl.trackable_link_domain;
+            }
+        }
+    } else {
+        var trackableToggle = document.getElementById('includeTrackableLink');
+        if (trackableToggle) {
+            trackableToggle.checked = false;
+            trackableLinkConfirmed = false;
+            var trackableSummary = document.getElementById('trackableLinkSummary');
+            if (trackableSummary) trackableSummary.classList.add('d-none');
+        }
+    }
+
+    if (tpl.message_expiry_enabled && tpl.message_expiry_value) {
+        var expiryToggle = document.getElementById('messageExpiry');
+        if (expiryToggle) {
+            expiryToggle.checked = true;
+            messageExpiryConfirmed = true;
+            var expirySummary = document.getElementById('messageExpirySummary');
+            if (expirySummary) expirySummary.classList.remove('d-none');
+            var expiryValueEl = document.getElementById('messageExpiryValue');
+            if (expiryValueEl) expiryValueEl.textContent = tpl.message_expiry_value;
+        }
+    } else {
+        var expiryToggle = document.getElementById('messageExpiry');
+        if (expiryToggle) {
+            expiryToggle.checked = false;
+            messageExpiryConfirmed = false;
+            var expirySummary = document.getElementById('messageExpirySummary');
+            if (expirySummary) expirySummary.classList.add('d-none');
+        }
+    }
+
+    if (tpl.opt_out_enabled) {
+        var enableToggle = document.getElementById('enableOptoutManagement');
+        if (enableToggle) {
+            enableToggle.checked = true;
+            document.getElementById('optoutManagementSection').classList.remove('d-none');
+            document.getElementById('optoutDisabledMessage').classList.add('d-none');
+        }
+
+        if (tpl.opt_out_screening_list_ids && tpl.opt_out_screening_list_ids.length > 0) {
+            tpl.opt_out_screening_list_ids.forEach(function(listId) {
+                var checkbox = document.querySelector('input[name="optOutScreeningLists[]"][value="' + listId + '"]');
+                if (checkbox) checkbox.checked = true;
+            });
+            if (typeof onScreeningListChange === 'function') onScreeningListChange();
+        }
+
+        loadOptOutNumbers(function() {
+            if (tpl.opt_out_method === 'reply' || tpl.opt_out_method === 'both') {
+                var replyToggle = document.getElementById('enableReplyOptout');
+                if (replyToggle) {
+                    replyToggle.checked = true;
+                    if (typeof toggleReplyOptout === 'function') toggleReplyOptout();
+                }
+                if (tpl.opt_out_number_id) {
+                    var numberSelect = document.getElementById('optOutNumberId');
+                    if (numberSelect) {
+                        for (var i = 0; i < numberSelect.options.length; i++) {
+                            if (numberSelect.options[i].value == tpl.opt_out_number_id) {
+                                numberSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                        numberSelect.dispatchEvent(new Event('change'));
+                    }
+                }
+                if (tpl.opt_out_keyword) {
+                    var keywordInput = document.getElementById('optOutKeywordInput');
+                    if (keywordInput) keywordInput.value = tpl.opt_out_keyword;
+                }
+                if (tpl.opt_out_text) {
+                    var replyText = document.getElementById('replyOptoutText');
+                    if (replyText) replyText.value = tpl.opt_out_text;
+                }
+                if (tpl.opt_out_list_id) {
+                    var listSelect = document.getElementById('replyOptOutListId');
+                    if (listSelect) {
+                        for (var i = 0; i < listSelect.options.length; i++) {
+                            if (listSelect.options[i].value == tpl.opt_out_list_id) {
+                                listSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (tpl.opt_out_url_enabled || tpl.opt_out_method === 'url' || tpl.opt_out_method === 'both') {
+                var urlToggle = document.getElementById('enableUrlOptout');
+                if (urlToggle) {
+                    urlToggle.checked = true;
+                    if (typeof toggleUrlOptout === 'function') toggleUrlOptout();
+                }
+                if (tpl.opt_out_text && (tpl.opt_out_method === 'url' || tpl.opt_out_method === 'both')) {
+                    var urlText = document.getElementById('urlOptoutText');
+                    if (urlText) urlText.value = tpl.opt_out_text;
+                }
+                if (tpl.opt_out_list_id && (tpl.opt_out_method === 'url' || tpl.opt_out_method === 'both')) {
+                    var urlListSelect = document.getElementById('urlOptOutListId');
+                    if (urlListSelect) {
+                        for (var i = 0; i < urlListSelect.options.length; i++) {
+                            if (urlListSelect.options[i].value == tpl.opt_out_list_id) {
+                                urlListSelect.selectedIndex = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (typeof validateOptoutConfig === 'function') validateOptoutConfig();
+        });
+    } else {
+        var enableToggle = document.getElementById('enableOptoutManagement');
+        if (enableToggle) {
+            enableToggle.checked = false;
+            var mgmtSection = document.getElementById('optoutManagementSection');
+            if (mgmtSection) mgmtSection.classList.add('d-none');
+            var disabledMsg = document.getElementById('optoutDisabledMessage');
+            if (disabledMsg) disabledMsg.classList.remove('d-none');
+        }
+    }
+
+    setTimeout(function() {
+        if (typeof updatePreview === 'function') updatePreview();
+    }, 300);
 }
 
 function toggleScheduleFields() {

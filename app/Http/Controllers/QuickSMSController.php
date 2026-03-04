@@ -371,26 +371,7 @@ class QuickSMSController extends Controller
                 ->toArray()
             : [];
 
-        $typeToChannel = [
-            'sms' => 'SMS',
-            'rcs_basic' => 'Basic RCS + SMS',
-            'rcs_single' => 'Rich RCS + SMS',
-            'rcs_carousel' => 'Rich RCS + SMS',
-        ];
-        $templates = \App\Models\MessageTemplate::whereIn('status', ['active', 'draft'])
-            ->orderByDesc('updated_at')
-            ->get()
-            ->map(fn($t) => [
-                'id' => $t->id,
-                'name' => $t->name,
-                'content' => $t->content ?? '',
-                'trigger' => 'Portal',
-                'channel' => $typeToChannel[$t->type] ?? 'SMS',
-                'status' => $t->status === 'active' ? 'Live' : ucfirst($t->status),
-                'version' => 1,
-                'rcs_payload' => $t->rcs_content,
-            ])
-            ->toArray();
+        $templates = $this->getTemplatesForView();
 
         $lists = $this->getContactListsForView();
         $tags = $this->getTagsForView();
@@ -423,6 +404,44 @@ class QuickSMSController extends Controller
     /**
      * Get real approved RCS agents for the current user, mapped for Blade views.
      */
+    private function getTemplatesForView(): array
+    {
+        $typeToChannel = [
+            'sms' => 'SMS',
+            'rcs_basic' => 'Basic RCS + SMS',
+            'rcs_single' => 'Rich RCS + SMS',
+            'rcs_carousel' => 'Rich RCS + SMS',
+        ];
+        return \App\Models\MessageTemplate::whereIn('status', ['active', 'draft'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'content' => $t->content ?? '',
+                'trigger' => 'Portal',
+                'channel' => $typeToChannel[$t->type] ?? 'SMS',
+                'status' => $t->status === 'active' ? 'Live' : ucfirst($t->status),
+                'version' => 1,
+                'rcs_payload' => $t->rcs_content,
+                'sender_id_id' => $t->sender_id_id,
+                'rcs_agent_id' => $t->rcs_agent_id,
+                'opt_out_enabled' => (bool) $t->opt_out_enabled,
+                'opt_out_method' => $t->opt_out_method,
+                'opt_out_number_id' => $t->opt_out_number_id,
+                'opt_out_keyword' => $t->opt_out_keyword,
+                'opt_out_text' => $t->opt_out_text,
+                'opt_out_list_id' => $t->opt_out_list_id,
+                'opt_out_url_enabled' => (bool) $t->opt_out_url_enabled,
+                'opt_out_screening_list_ids' => $t->opt_out_screening_list_ids ?? [],
+                'trackable_link_enabled' => (bool) $t->trackable_link_enabled,
+                'trackable_link_domain' => $t->trackable_link_domain,
+                'message_expiry_enabled' => (bool) $t->message_expiry_enabled,
+                'message_expiry_value' => $t->message_expiry_value,
+            ])
+            ->toArray();
+    }
+
     private function getRcsAgentsForView(): array
     {
         $userId = session('customer_user_id');
@@ -947,26 +966,7 @@ class QuickSMSController extends Controller
             ['id' => 'agent_2', 'name' => 'RetailBot', 'status' => 'approved'],
         ];
 
-        $typeToChannel = [
-            'sms' => 'SMS',
-            'rcs_basic' => 'Basic RCS + SMS',
-            'rcs_single' => 'Rich RCS + SMS',
-            'rcs_carousel' => 'Rich RCS + SMS',
-        ];
-        $templates = \App\Models\MessageTemplate::whereIn('status', ['active', 'draft'])
-            ->orderByDesc('updated_at')
-            ->get()
-            ->map(fn($t) => [
-                'id' => $t->id,
-                'name' => $t->name,
-                'content' => $t->content ?? '',
-                'trigger' => 'Portal',
-                'channel' => $typeToChannel[$t->type] ?? 'SMS',
-                'status' => $t->status === 'active' ? 'Live' : ucfirst($t->status),
-                'version' => 1,
-                'rcs_payload' => $t->rcs_content,
-            ])
-            ->toArray();
+        $templates = $this->getTemplatesForView();
 
         // Extended mock conversations dataset for filter/sort testing
         // TODO: Replace with API call to GET /api/conversations
