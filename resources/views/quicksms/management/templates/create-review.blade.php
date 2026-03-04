@@ -379,55 +379,129 @@ document.addEventListener('DOMContentLoaded', function() {
         return id;
     }
     
+    function collectPayload(status) {
+        var data1 = step1 ? JSON.parse(step1) : {};
+        var data2 = step2 ? JSON.parse(step2) : {};
+        var data3 = step3 ? JSON.parse(step3) : {};
+
+        var channelToType = { 'sms': 'sms', 'rcs_basic': 'rcs_basic', 'rcs_rich': 'rcs_single' };
+        var templateType = channelToType[data2.channel] || 'sms';
+
+        var payload = {
+            name: data1.name || 'Untitled Template',
+            description: data1.description || null,
+            type: templateType,
+            content: data2.smsText || null,
+            category: data1.category || null,
+            status: status || 'active'
+        };
+
+        if (data2.senderId) payload.sender_id_id = data2.senderId;
+        if (data2.rcsAgent) payload.rcs_agent_id = data2.rcsAgent;
+        if (data2.rcsContentData) payload.rcs_content = data2.rcsContentData;
+
+        if (data2.optOut) {
+            var opt = data2.optOut;
+            payload.opt_out_enabled = opt.enabled || false;
+            if (opt.enabled) {
+                if (opt.method) payload.opt_out_method = opt.method;
+                if (opt.numberId) payload.opt_out_number_id = opt.numberId;
+                if (opt.keyword) payload.opt_out_keyword = opt.keyword;
+                if (opt.text) payload.opt_out_text = opt.text;
+                if (opt.listId) payload.opt_out_list_id = opt.listId;
+                if (opt.urlEnabled) payload.opt_out_url_enabled = opt.urlEnabled;
+                if (opt.screeningListIds && opt.screeningListIds.length > 0) {
+                    payload.opt_out_screening_list_ids = opt.screeningListIds;
+                }
+            }
+        }
+
+        var trackableEnabled = data2.trackableLink && data2.trackableLink.enabled;
+        if (trackableEnabled) {
+            payload.trackable_link_enabled = true;
+            if (data2.trackableLink.domain) payload.trackable_link_domain = data2.trackableLink.domain;
+        }
+
+        var expiryEnabled = data2.messageExpiry && data2.messageExpiry.enabled;
+        if (expiryEnabled) {
+            payload.message_expiry_enabled = true;
+            if (data2.messageExpiry.value) payload.message_expiry_value = data2.messageExpiry.value;
+        }
+
+        return payload;
+    }
+
+    function submitTemplate(status) {
+        var btn = status === 'draft' ? document.getElementById('saveDraftBtn') : document.getElementById('createTemplateBtn');
+        var originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>' + (status === 'draft' ? 'Saving...' : 'Creating...');
+
+        var payload = collectPayload(status);
+
+        fetch('{{ route("api.message-templates.store") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(function(response) {
+            return response.json().then(function(data) {
+                return { ok: response.ok, status: response.status, data: data };
+            });
+        })
+        .then(function(result) {
+            if (result.ok) {
+                sessionStorage.removeItem('templateWizardStep1');
+                sessionStorage.removeItem('templateWizardStep2');
+                sessionStorage.removeItem('templateWizardStep3');
+                sessionStorage.removeItem('templateWizardChannel');
+
+                var triggerType = 'portal';
+                if (step1) {
+                    try { triggerType = JSON.parse(step1).trigger || 'portal'; } catch(e) {}
+                }
+
+                var apiDetails = document.getElementById('apiTemplateDetails');
+                var portalDetails = document.getElementById('portalTemplateDetails');
+
+                if (triggerType === 'api' && result.data.data && result.data.data.id) {
+                    apiDetails.style.display = 'block';
+                    portalDetails.style.display = 'none';
+                    document.getElementById('generatedTemplateId').value = result.data.data.id;
+                    document.getElementById('templateIdExample').textContent = result.data.data.id;
+                } else {
+                    apiDetails.style.display = 'none';
+                    portalDetails.style.display = 'block';
+                }
+
+                var successModal = new bootstrap.Modal(document.getElementById('templateSuccessModal'));
+                successModal.show();
+            } else {
+                var msg = result.data.message || 'Failed to create template.';
+                if (result.data.errors) {
+                    var errs = Object.values(result.data.errors).flat();
+                    msg = errs.join('\n');
+                }
+                alert(msg);
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        })
+        .catch(function(err) {
+            alert('Network error: ' + err.message);
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+    }
+
     document.getElementById('createTemplateBtn').addEventListener('click', function() {
-        // Get trigger type from step 1 data
-        var step1Data = sessionStorage.getItem('templateWizardStep1');
-        var triggerType = 'portal'; // default
-        
-        @if(isset($isEditMode) && $isEditMode && isset($template))
-        // In edit mode, get trigger from template data
-        triggerType = '{{ $template["trigger"] ?? "portal" }}';
-        @else
-        // In create mode, get from sessionStorage
-        if (step1Data) {
-            try {
-                var parsed = JSON.parse(step1Data);
-                triggerType = parsed.trigger || 'portal';
-            } catch (e) {}
-        }
-        @endif
-        
-        // Generate template ID
-        var templateId = generateTemplateId();
-        
-        // Clear session storage
-        sessionStorage.removeItem('templateWizardStep1');
-        sessionStorage.removeItem('templateWizardStep2');
-        sessionStorage.removeItem('templateWizardStep3');
-        sessionStorage.removeItem('templateWizardChannel');
-        
-        // Show appropriate section based on trigger type
-        var apiDetails = document.getElementById('apiTemplateDetails');
-        var portalDetails = document.getElementById('portalTemplateDetails');
-        
-        if (triggerType === 'api') {
-            // Show API template details
-            apiDetails.style.display = 'block';
-            portalDetails.style.display = 'none';
-            document.getElementById('generatedTemplateId').value = templateId;
-            document.getElementById('templateIdExample').textContent = templateId;
-        } else {
-            // Show portal template details
-            apiDetails.style.display = 'none';
-            portalDetails.style.display = 'block';
-        }
-        
-        // Show the success modal
-        var successModal = new bootstrap.Modal(document.getElementById('templateSuccessModal'));
-        successModal.show();
+        submitTemplate('active');
     });
-    
-    // Copy template ID to clipboard
+
     document.getElementById('copyTemplateIdBtn').addEventListener('click', function() {
         var templateIdInput = document.getElementById('generatedTemplateId');
         templateIdInput.select();
@@ -445,15 +519,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
         });
     });
-    
-    // Create another template
+
     document.getElementById('createAnotherBtn').addEventListener('click', function() {
         window.location.href = '{{ route("management.templates.create.step1") }}';
     });
-    
+
     document.getElementById('saveDraftBtn').addEventListener('click', function() {
-        alert('Template saved as draft.');
-        window.location.href = '{{ route("management.templates") }}';
+        submitTemplate('draft');
     });
 });
 </script>
