@@ -384,12 +384,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (data2.trackableLink && data2.trackableLink.enabled) {
             var tEl = document.getElementById('reviewTrackableLink');
-            if (tEl) tEl.innerHTML = '<span class="badge bg-success">Enabled</span> ' + (data2.trackableLink.domain || 'qsms.uk');
+            if (tEl) tEl.innerHTML = '<span class="badge" style="background:#e6f4ea;color:#1e7e34;">Enabled</span> ' + (data2.trackableLink.domain || 'qsms.uk');
         }
 
         if (data2.messageExpiry && data2.messageExpiry.enabled) {
             var eEl = document.getElementById('reviewMessageExpiry');
-            if (eEl) eEl.innerHTML = '<span class="badge bg-success">Enabled</span> ' + (data2.messageExpiry.value || '');
+            if (eEl) eEl.innerHTML = '<span class="badge" style="background:#e6f4ea;color:#1e7e34;">Enabled</span> ' + (data2.messageExpiry.value || '');
         }
 
         if (data2.optOut && data2.optOut.enabled) {
@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data2.optOut.screeningListIds && data2.optOut.screeningListIds.length > 0) {
                 parts.push(data2.optOut.screeningListIds.length + ' screening list(s)');
             }
-            if (oEl) oEl.innerHTML = '<span class="badge bg-success">Enabled</span> ' + (parts.join(', ') || 'Configured');
+            if (oEl) oEl.innerHTML = '<span class="badge" style="background:#e6f4ea;color:#1e7e34;">Enabled</span> ' + (parts.join(', ') || 'Configured');
         }
     }
     
