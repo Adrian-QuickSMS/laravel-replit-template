@@ -1968,6 +1968,7 @@ function loadDbCampaignForEditing(campaignId) {
                 sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(c.rcs_content));
                 var configuredSummary = document.getElementById('rcsConfiguredSummary');
                 if (configuredSummary) configuredSummary.classList.remove('d-none');
+                setTimeout(function() { updatePreview(); }, 200);
             } catch(e) {}
         }
 
@@ -4136,6 +4137,20 @@ function continueToConfirmation() {
             rcs_agent: rcsAgentName,
             rcs_agent_id: rcsAgentId || null,
             message_content: smsContent,
+            rcs_content: (function() {
+                if (!rcsPayloadForApi) return null;
+                try {
+                    var clean = JSON.parse(JSON.stringify(rcsPayloadForApi));
+                    if (clean.cards) {
+                        clean.cards.forEach(function(card) {
+                            if (card.media && card.media.hostedUrl) {
+                                card.media.url = card.media.hostedUrl;
+                            }
+                        });
+                    }
+                    return clean;
+                } catch(e) { return rcsPayloadForApi; }
+            })(),
             recipient_count: recipientCount,
             valid_count: recipientCount,
             invalid_count: invalidCount,
