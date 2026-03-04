@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\MessageTemplate;
+use App\Services\OptOutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Message Template API Controller
@@ -15,11 +17,16 @@ use Illuminate\Http\Request;
  * - Encoding/segment calculation
  * - Merge field extraction
  * - Favourites management
+ * - Opt-out configuration with keyword validation
  *
  * SECURITY: Tenant isolation via MessageTemplate global scope.
  */
 class MessageTemplateApiController extends Controller
 {
+    public function __construct(
+        private OptOutService $optOutService,
+    ) {}
+
     private function tenantId(): string
     {
         return session('customer_tenant_id');
@@ -82,14 +89,46 @@ class MessageTemplateApiController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'type' => 'required|string|in:sms,rcs_basic,rcs_single',
+            'type' => 'required|string|in:sms,rcs_basic,rcs_single,rcs_carousel',
             'content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
             'category' => 'nullable|string|max:100',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:100',
             'status' => 'nullable|string|in:draft,active',
+            // Sender / RCS Agent
+            'sender_id_id' => 'nullable|uuid',
+            'rcs_agent_id' => 'nullable|uuid',
+            // Opt-out configuration
+            'opt_out_enabled' => 'nullable|boolean',
+            'opt_out_method' => 'nullable|string|in:reply,url,both',
+            'opt_out_number_id' => 'nullable|uuid',
+            'opt_out_keyword' => 'nullable|string|min:4|max:10|regex:/^[A-Za-z0-9]+$/',
+            'opt_out_text' => 'nullable|string|max:500',
+            'opt_out_list_id' => 'nullable|uuid',
+            'opt_out_url_enabled' => 'nullable|boolean',
+            'opt_out_screening_list_ids' => 'nullable|array',
+            'opt_out_screening_list_ids.*' => 'uuid',
+            // Trackable link
+            'trackable_link_enabled' => 'nullable|boolean',
+            'trackable_link_domain' => 'nullable|string|max:255',
+            // Message expiry
+            'message_expiry_enabled' => 'nullable|boolean',
+            'message_expiry_value' => 'nullable|string|max:10',
         ]);
+
+        // Validate opt-out keyword if provided
+        if (!empty($validated['opt_out_keyword']) && !empty($validated['opt_out_number_id'])) {
+            try {
+                $this->optOutService->validateOptOutKeyword(
+                    $validated['opt_out_keyword'],
+                    $validated['opt_out_number_id'],
+                    $this->tenantId()
+                );
+            } catch (\RuntimeException $e) {
+                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            }
+        }
 
         $validated['account_id'] = $this->tenantId();
         $validated['status'] = $validated['status'] ?? 'draft';
@@ -118,13 +157,49 @@ class MessageTemplateApiController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string|max:2000',
-            'type' => 'sometimes|string|in:sms,rcs_basic,rcs_single',
+            'type' => 'sometimes|string|in:sms,rcs_basic,rcs_single,rcs_carousel',
             'content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
             'category' => 'nullable|string|max:100',
             'tags' => 'nullable|array',
             'status' => 'nullable|string|in:draft,active,archived',
+            // Sender / RCS Agent
+            'sender_id_id' => 'nullable|uuid',
+            'rcs_agent_id' => 'nullable|uuid',
+            // Opt-out configuration
+            'opt_out_enabled' => 'nullable|boolean',
+            'opt_out_method' => 'nullable|string|in:reply,url,both',
+            'opt_out_number_id' => 'nullable|uuid',
+            'opt_out_keyword' => 'nullable|string|min:4|max:10|regex:/^[A-Za-z0-9]+$/',
+            'opt_out_text' => 'nullable|string|max:500',
+            'opt_out_list_id' => 'nullable|uuid',
+            'opt_out_url_enabled' => 'nullable|boolean',
+            'opt_out_screening_list_ids' => 'nullable|array',
+            'opt_out_screening_list_ids.*' => 'uuid',
+            // Trackable link
+            'trackable_link_enabled' => 'nullable|boolean',
+            'trackable_link_domain' => 'nullable|string|max:255',
+            // Message expiry
+            'message_expiry_enabled' => 'nullable|boolean',
+            'message_expiry_value' => 'nullable|string|max:10',
         ]);
+
+        // Validate opt-out keyword if changed
+        $keyword = $validated['opt_out_keyword'] ?? $template->opt_out_keyword;
+        $numberId = $validated['opt_out_number_id'] ?? $template->opt_out_number_id;
+        if ($keyword && $numberId && (
+            isset($validated['opt_out_keyword']) || isset($validated['opt_out_number_id'])
+        )) {
+            try {
+                $this->optOutService->validateOptOutKeyword(
+                    $keyword,
+                    $numberId,
+                    $this->tenantId()
+                );
+            } catch (\RuntimeException $e) {
+                return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+            }
+        }
 
         $validated['updated_by'] = session('customer_email', session('customer_user_id'));
 
