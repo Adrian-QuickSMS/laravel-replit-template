@@ -450,6 +450,15 @@ class CampaignApiController extends Controller
      */
     public function fieldStatistics(Request $request): JsonResponse
     {
+        $request->validate([
+            'list_ids' => 'nullable|array|max:100',
+            'list_ids.*' => 'uuid',
+            'tag_ids' => 'nullable|array|max:100',
+            'tag_ids.*' => 'uuid',
+            'contact_ids' => 'nullable|array|max:10000',
+            'contact_ids.*' => 'uuid',
+        ]);
+
         $accountId = $this->tenantId();
 
         $listIds = $request->input('list_ids', []);
@@ -808,7 +817,12 @@ class CampaignApiController extends Controller
             'number_id' => 'required|uuid',
         ]);
 
-        $number = \App\Models\PurchasedNumber::findOrFail($request->input('number_id'));
+        $number = \App\Models\PurchasedNumber::find($request->input('number_id'));
+
+        // Defence-in-depth: explicit tenant check beyond global scope
+        if (!$number || $number->account_id !== $this->tenantId()) {
+            return response()->json(['status' => 'error', 'message' => 'Number not found'], 404);
+        }
 
         $text = $this->optOutService->generateOptOutText(
             strtoupper($request->input('keyword')),

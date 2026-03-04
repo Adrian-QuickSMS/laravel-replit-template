@@ -37,6 +37,10 @@ use Illuminate\Support\Facades\Log;
  * 15. POST   /api/numbers/bulk-release             — bulk release numbers
  * 16. GET    /api/numbers/export                   — export to CSV
  * 17. GET    /api/numbers/pricing                  — get pricing for VMNs and keywords
+ *
+ * SECURITY: All mutating methods include explicit tenant ownership checks
+ * (defence-in-depth) in addition to global scopes. Routes must be under
+ * customer.auth middleware.
  */
 class NumberApiController extends Controller
 {
@@ -44,6 +48,58 @@ class NumberApiController extends Controller
         private NumberService $numberService,
         private NumberBillingService $billingService,
     ) {}
+
+    private function tenantId(): ?string
+    {
+        return session('customer_tenant_id');
+    }
+
+    /**
+     * Find a PurchasedNumber by ID with explicit tenant ownership check.
+     * Defence-in-depth: does not rely solely on global scope.
+     */
+    private function findNumberOrFail(string $id): ?PurchasedNumber
+    {
+        $number = PurchasedNumber::find($id);
+
+        if (!$number) {
+            return null;
+        }
+
+        if ($number->account_id !== $this->tenantId()) {
+            Log::warning('[NumberApi] Tenant mismatch on number access', [
+                'number_id' => $id,
+                'number_account' => $number->account_id,
+                'request_tenant' => $this->tenantId(),
+            ]);
+            return null;
+        }
+
+        return $number;
+    }
+
+    /**
+     * Find a NumberAutoReplyRule by ID with explicit tenant ownership check.
+     */
+    private function findAutoReplyRuleOrFail(string $id): ?NumberAutoReplyRule
+    {
+        $rule = NumberAutoReplyRule::find($id);
+
+        if (!$rule) {
+            return null;
+        }
+
+        if ($rule->account_id !== $this->tenantId()) {
+            Log::warning('[NumberApi] Tenant mismatch on auto-reply rule access', [
+                'rule_id' => $id,
+                'rule_account' => $rule->account_id,
+                'request_tenant' => $this->tenantId(),
+            ]);
+            return null;
+        }
+
+        return $rule;
+    }
 
     // =====================================================
     // 1. LIST — Numbers Library
@@ -304,7 +360,11 @@ class NumberApiController extends Controller
 
     public function release(string $id): JsonResponse
     {
-        $number = PurchasedNumber::findOrFail($id);
+        $number = $this->findNumberOrFail($id);
+
+        if (!$number) {
+            return response()->json(['error' => 'Number not found.'], 404);
+        }
 
         if (!$number->isActive() && !$number->isSuspended()) {
             return response()->json([
@@ -343,7 +403,11 @@ class NumberApiController extends Controller
             'friendly_name' => 'nullable|string|max:255',
         ]);
 
-        $number = PurchasedNumber::findOrFail($id);
+        $number = $this->findNumberOrFail($id);
+
+        if (!$number) {
+            return response()->json(['error' => 'Number not found.'], 404);
+        }
 
         if (!$number->isActive()) {
             return response()->json(['error' => 'Cannot configure a number that is not active.'], 422);
@@ -385,7 +449,12 @@ class NumberApiController extends Controller
             'assignable_id' => 'required|uuid',
         ]);
 
-        $number = PurchasedNumber::findOrFail($id);
+        $number = $this->findNumberOrFail($id);
+
+        if (!$number) {
+            return response()->json(['error' => 'Number not found.'], 404);
+        }
+
         $user = $this->getAuthenticatedUser();
 
         $assignableType = $request->input('assignable_type') === 'sub_account'
@@ -420,6 +489,23 @@ class NumberApiController extends Controller
 
     public function unassign(string $assignmentId): JsonResponse
     {
+        // NumberAssignment has no tenant global scope, so we must verify
+        // ownership through the parent PurchasedNumber relationship.
+        $assignment = NumberAssignment::with('purchasedNumber')->find($assignmentId);
+
+        if (!$assignment) {
+            return response()->json(['error' => 'Assignment not found.'], 404);
+        }
+
+        if (!$assignment->purchasedNumber || $assignment->purchasedNumber->account_id !== $this->tenantId()) {
+            Log::warning('[NumberApi] Tenant mismatch on unassign', [
+                'assignment_id' => $assignmentId,
+                'number_account' => $assignment->purchasedNumber?->account_id,
+                'request_tenant' => $this->tenantId(),
+            ]);
+            return response()->json(['error' => 'Assignment not found.'], 404);
+        }
+
         try {
             $this->numberService->unassignNumber($assignmentId);
             return response()->json(['success' => true]);
@@ -434,7 +520,11 @@ class NumberApiController extends Controller
 
     public function autoReplyRules(string $numberId): JsonResponse
     {
-        $number = PurchasedNumber::findOrFail($numberId);
+        $number = $this->findNumberOrFail($numberId);
+
+        if (!$number) {
+            return response()->json(['error' => 'Number not found.'], 404);
+        }
 
         $rules = NumberAutoReplyRule::where('purchased_number_id', $numberId)
             ->orderBy('priority', 'desc')
@@ -459,7 +549,11 @@ class NumberApiController extends Controller
             'charge_for_reply' => 'nullable|boolean',
         ]);
 
-        $number = PurchasedNumber::findOrFail($numberId);
+        $number = $this->findNumberOrFail($numberId);
+
+        if (!$number) {
+            return response()->json(['error' => 'Number not found.'], 404);
+        }
 
         if (!$number->isActive()) {
             return response()->json(['error' => 'Cannot add rules to an inactive number.'], 422);
@@ -495,7 +589,11 @@ class NumberApiController extends Controller
             'charge_for_reply' => 'nullable|boolean',
         ]);
 
-        $rule = NumberAutoReplyRule::findOrFail($ruleId);
+        $rule = $this->findAutoReplyRuleOrFail($ruleId);
+
+        if (!$rule) {
+            return response()->json(['error' => 'Auto-reply rule not found.'], 404);
+        }
 
         $rule = $this->numberService->updateAutoReplyRule($rule, $request->all());
 
@@ -511,7 +609,12 @@ class NumberApiController extends Controller
 
     public function deleteAutoReplyRule(string $ruleId): JsonResponse
     {
-        $rule = NumberAutoReplyRule::findOrFail($ruleId);
+        $rule = $this->findAutoReplyRuleOrFail($ruleId);
+
+        if (!$rule) {
+            return response()->json(['error' => 'Auto-reply rule not found.'], 404);
+        }
+
         $this->numberService->deleteAutoReplyRule($rule);
 
         return response()->json(['success' => true]);
@@ -575,15 +678,38 @@ class NumberApiController extends Controller
 
     public function takenKeywords(Request $request): JsonResponse
     {
-        $shortcode = $request->input('shortcode', '60866');
+        $request->validate([
+            'shortcode' => 'nullable|string|regex:/^\d{4,10}$/',
+        ]);
 
+        $shortcode = $request->input('shortcode', '60866');
+        $tenantId = $this->tenantId();
+
+        if (!$tenantId) {
+            return response()->json(['error' => 'No account context'], 403);
+        }
+
+        // Verify the current tenant actually has an active shared shortcode
+        // for the requested number — prevents arbitrary shortcode enumeration.
+        $tenantHasShortcode = PurchasedNumber::where('number', $shortcode)
+            ->where('number_type', 'shared_shortcode')
+            ->where('status', 'active')
+            ->exists();
+
+        if (!$tenantHasShortcode) {
+            return response()->json(['data' => []]);
+        }
+
+        // Cross-tenant query is intentional: keywords are globally unique per
+        // shortcode, so we need all taken keywords to prevent collisions.
+        // Only keyword names are returned — no tenant-identifying data.
         $purchasedNumberIds = PurchasedNumber::withoutGlobalScope('tenant')
             ->where('number', $shortcode)
             ->where('number_type', 'shared_shortcode')
             ->where('status', 'active')
             ->pluck('id');
 
-        $keywords = \App\Models\ShortcodeKeyword::withoutGlobalScope('tenant')
+        $keywords = ShortcodeKeyword::withoutGlobalScope('tenant')
             ->whereIn('purchased_number_id', $purchasedNumberIds)
             ->where('status', 'active')
             ->pluck('keyword')
