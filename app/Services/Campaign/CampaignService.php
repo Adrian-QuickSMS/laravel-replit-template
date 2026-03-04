@@ -528,13 +528,13 @@ class CampaignService
             throw new \RuntimeException("Campaign must be in draft status to send. Current: {$campaign->status}");
         }
 
+        $this->autoFinalizeRcsAssets($campaign);
+
         // Validate before entering the transaction
         $errors = $this->validateForSend($campaign);
         if (!empty($errors)) {
             throw ValidationException::withMessages(['campaign' => $errors]);
         }
-
-        $this->autoFinalizeRcsAssets($campaign);
 
         return DB::transaction(function () use ($campaign) {
             // Billing preflight (estimate, balance check, reserve funds)
@@ -565,13 +565,13 @@ class CampaignService
             throw new \RuntimeException("Campaign must be in draft status to schedule.");
         }
 
+        $this->autoFinalizeRcsAssets($campaign);
+
         // Validate
         $errors = $this->validateForSend($campaign);
         if (!empty($errors)) {
             throw ValidationException::withMessages(['campaign' => $errors]);
         }
-
-        $this->autoFinalizeRcsAssets($campaign);
 
         $campaign->update([
             'scheduled_at' => $scheduledAt,
