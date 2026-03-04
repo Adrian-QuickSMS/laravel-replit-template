@@ -15,8 +15,8 @@ const NumbersAdminService = (function() {
     'use strict';
 
     const config = {
-        useMockData: true,
-        apiBaseUrl: '/api/admin/numbers',
+        useMockData: false,
+        apiBaseUrl: '/admin/api/numbers',
         defaultDelay: { min: 200, max: 600 },
         pageSize: 20
     };
@@ -95,6 +95,11 @@ const NumbersAdminService = (function() {
             name: 'Admin User',
             role: 'super_admin'
         };
+    }
+
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
     }
 
     function simulateDelay() {
@@ -231,7 +236,8 @@ const NumbersAdminService = (function() {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ reason })
@@ -276,7 +282,8 @@ const NumbersAdminService = (function() {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ reason })
@@ -321,7 +328,8 @@ const NumbersAdminService = (function() {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ accountId, subAccountId, reason })
@@ -390,7 +398,8 @@ const NumbersAdminService = (function() {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ mode: newMode, reason })
@@ -444,7 +453,8 @@ const NumbersAdminService = (function() {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ capabilities, reason })
@@ -503,7 +513,8 @@ const NumbersAdminService = (function() {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ webhookUrl, reason })
@@ -553,7 +564,8 @@ const NumbersAdminService = (function() {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ reason })
@@ -599,7 +611,8 @@ const NumbersAdminService = (function() {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ reason })
@@ -649,7 +662,8 @@ const NumbersAdminService = (function() {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ routingConfig, reason })
@@ -796,7 +810,8 @@ const NumbersAdminService = (function() {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ ids, reason })
@@ -831,7 +846,8 @@ const NumbersAdminService = (function() {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ ids, reason })
@@ -866,7 +882,8 @@ const NumbersAdminService = (function() {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ ids, accountId, subAccountId, reason })
@@ -901,7 +918,8 @@ const NumbersAdminService = (function() {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ ids, mode, reason })
@@ -936,7 +954,8 @@ const NumbersAdminService = (function() {
                 method: 'PUT',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ ids, capabilities, reason })
@@ -1004,7 +1023,8 @@ const NumbersAdminService = (function() {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ ids, reason })
