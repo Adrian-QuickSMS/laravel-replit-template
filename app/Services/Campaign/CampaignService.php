@@ -423,7 +423,6 @@ class CampaignService
             if (empty($campaign->rcs_content)) {
                 $errors[] = 'RCS rich content is required.';
             } else {
-                // Full structural validation including asset finalization checks
                 $rcsErrors = $this->rcsValidator->validateForSend($campaign->rcs_content, $campaign->type);
                 $errors = array_merge($errors, $rcsErrors);
             }
@@ -535,6 +534,8 @@ class CampaignService
             throw ValidationException::withMessages(['campaign' => $errors]);
         }
 
+        $this->autoFinalizeRcsAssets($campaign);
+
         return DB::transaction(function () use ($campaign) {
             // Billing preflight (estimate, balance check, reserve funds)
             $preflightResult = $this->billingPreflight->runPreflight($campaign);
@@ -569,6 +570,8 @@ class CampaignService
         if (!empty($errors)) {
             throw ValidationException::withMessages(['campaign' => $errors]);
         }
+
+        $this->autoFinalizeRcsAssets($campaign);
 
         $campaign->update([
             'scheduled_at' => $scheduledAt,
@@ -1017,6 +1020,29 @@ class CampaignService
                 'pending_count' => $counts->pending_count,
                 'actual_cost' => $counts->actual_cost,
             ]);
+        }
+    }
+
+    private function autoFinalizeRcsAssets(Campaign $campaign): void
+    {
+        if (!$campaign->rcs_content || !in_array($campaign->type, [Campaign::TYPE_RCS_SINGLE, Campaign::TYPE_RCS_CAROUSEL])) {
+            return;
+        }
+
+        $cards = $campaign->rcs_content['cards'] ?? [];
+        foreach ($cards as $card) {
+            $assetUuid = $card['media']['assetUuid'] ?? null;
+            if (!$assetUuid) continue;
+
+            $asset = \App\Models\RcsAsset::withoutGlobalScope('tenant')
+                ->where('uuid', $assetUuid)
+                ->where('account_id', $campaign->account_id)
+                ->where('is_draft', true)
+                ->first();
+
+            if ($asset) {
+                $asset->update(['is_draft' => false, 'draft_session' => null]);
+            }
         }
     }
 }
