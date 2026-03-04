@@ -79,6 +79,9 @@ class CampaignService
             'opt_out_list_id' => $data['opt_out_list_id'] ?? null,
             'opt_out_screening_list_ids' => !empty($data['opt_out_screening_list_ids']) ? $data['opt_out_screening_list_ids'] : [],
             'opt_out_url_enabled' => $data['opt_out_url_enabled'] ?? false,
+            'validity_period' => $data['validity_period'] ?? null,
+            'sending_window_start' => $data['sending_window_start'] ?? null,
+            'sending_window_end' => $data['sending_window_end'] ?? null,
         ]);
 
         // Auto-calculate encoding/segments if SMS content provided

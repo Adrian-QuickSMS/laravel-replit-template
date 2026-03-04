@@ -150,6 +150,9 @@ class CampaignApiController extends Controller
             'timezone' => 'nullable|string|max:50',
             'send_rate' => 'nullable|integer|min:0|max:500',
             'batch_size' => 'nullable|integer|min:100|max:10000',
+            'validity_period' => 'nullable|integer|min:1|max:10080',
+            'sending_window_start' => 'nullable|date_format:H:i',
+            'sending_window_end' => 'nullable|date_format:H:i',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:100',
             // Opt-out configuration
@@ -246,6 +249,9 @@ class CampaignApiController extends Controller
             'timezone' => 'nullable|string|max:50',
             'send_rate' => 'nullable|integer|min:0|max:500',
             'batch_size' => 'nullable|integer|min:100|max:10000',
+            'validity_period' => 'nullable|integer|min:1|max:10080',
+            'sending_window_start' => 'nullable|date_format:H:i',
+            'sending_window_end' => 'nullable|date_format:H:i',
             'tags' => 'nullable|array',
             // Opt-out configuration
             'opt_out_enabled' => 'nullable|boolean',

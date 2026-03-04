@@ -785,8 +785,10 @@ class QuickSMSController extends Controller
             }
         }
 
+        $isEditingExisting = !empty($sessionData['is_editing_existing']);
+
         return view('quicksms.messages.confirm-campaign', [
-            'page_title' => 'Confirm & Send Campaign',
+            'page_title' => $isEditingExisting ? 'Update & Send Campaign' : 'Confirm & Send Campaign',
             'campaign' => $campaign,
             'channel' => $channel,
             'recipients' => $recipients,
@@ -795,6 +797,7 @@ class QuickSMSController extends Controller
             'segment_breakdown' => $segmentBreakdown,
             'total_sms_parts' => $totalSmsParts,
             'campaign_id' => $campaignId,
+            'is_editing_existing' => $isEditingExisting,
         ]);
     }
 
@@ -824,6 +827,7 @@ class QuickSMSController extends Controller
             'opted_out_count' => 'nullable|integer|min:0|max:10000000',
             'sources' => 'nullable|array',
             'optout_config' => 'nullable|array',
+            'is_editing_existing' => 'nullable|boolean',
         ]);
 
         $request->session()->put('campaign_config', $validated);
@@ -863,7 +867,7 @@ class QuickSMSController extends Controller
             if ($campaignId) {
                 $campaign = \App\Models\Campaign::where('id', $campaignId)
                     ->where('account_id', $accountId)
-                    ->whereIn('status', ['draft', 'preparing', 'ready'])
+                    ->whereIn('status', ['draft', 'scheduled'])
                     ->first();
             }
 

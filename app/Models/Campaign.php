@@ -141,6 +141,9 @@ class Campaign extends Model
         'opt_out_list_id',
         'opt_out_screening_list_ids',
         'opt_out_url_enabled',
+        'validity_period',
+        'sending_window_start',
+        'sending_window_end',
     ];
 
     protected $casts = [
@@ -389,7 +392,7 @@ class Campaign extends Model
 
     public function isEditable(): bool
     {
-        return $this->status === self::STATUS_DRAFT;
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_SCHEDULED]);
     }
 
     public function canPause(): bool

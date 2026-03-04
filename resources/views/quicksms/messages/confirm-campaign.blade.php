@@ -9,7 +9,7 @@
             <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Home</a></li>
             <li class="breadcrumb-item"><a href="{{ route('messages') }}">Messages</a></li>
             <li class="breadcrumb-item"><a href="{{ route('messages.send') }}">Send Message</a></li>
-            <li class="breadcrumb-item active">Confirm & Send</li>
+            <li class="breadcrumb-item active">{{ !empty($is_editing_existing) ? 'Update & Send' : 'Confirm & Send' }}</li>
         </ol>
     </div>
 
@@ -462,7 +462,7 @@
                             <i class="fas fa-arrow-left me-2"></i>Back
                         </a>
                         <button type="button" class="btn btn-primary flex-grow-1" id="sendCampaignBtn" onclick="confirmSend()">
-                            <i class="fas fa-paper-plane me-2"></i>Confirm & Send
+                            <i class="fas fa-paper-plane me-2"></i>{{ !empty($is_editing_existing) ? 'Update & Send' : 'Confirm & Send' }}
                         </button>
                     </div>
                 </div>

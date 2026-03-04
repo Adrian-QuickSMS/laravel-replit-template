@@ -4143,7 +4143,8 @@ function continueToConfirmation() {
             sending_window: sendingWindowValue,
             trackable_link: trackableLinkOn,
             trackable_link_domain: trackableDomain,
-            optout_config: optoutCfg
+            optout_config: optoutCfg,
+            is_editing_existing: !!existingCampaignId
         };
 
         if (continueBtn) {
