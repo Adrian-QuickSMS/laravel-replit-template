@@ -57,7 +57,6 @@ $permissions = [
     background: #fff;
     border-radius: 0.75rem;
     border: 1px solid #ced4da;
-    overflow: hidden;
 }
 .table-container .card-header {
     background: #fff;
@@ -341,7 +340,7 @@ $permissions = [
                         </div>
                     </div>
 
-                    <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: hidden;">
+                    <div class="table-responsive" style="border: 1px solid #e9ecef; border-radius: 0.75rem; overflow: visible;">
                         <table class="table table-hover mb-0" id="campaignsTable">
                             <thead>
                                 <tr>
@@ -474,6 +473,8 @@ $permissions = [
                                                 @elseif($campaign['status'] === 'scheduled')
                                                     <li><a class="dropdown-item" href="/messages/send?edit={{ $campaign['id'] }}&source=db" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>
                                                     <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-warning" href="#" onclick="event.stopPropagation(); confirmCancelFromTable('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-times-circle me-2"></i>Cancel</a></li>
+                                                @elseif($campaign['status'] === 'pending' || $campaign['status'] === 'sending')
                                                     <li><a class="dropdown-item text-warning" href="#" onclick="event.stopPropagation(); confirmCancelFromTable('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-times-circle me-2"></i>Cancel</a></li>
                                                 @elseif($campaign['status'] === 'cancelled')
                                                     <li><a class="dropdown-item" href="/messages/send?edit={{ $campaign['id'] }}&source=db" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>
