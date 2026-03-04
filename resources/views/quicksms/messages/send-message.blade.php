@@ -4043,11 +4043,17 @@ function continueToConfirmation() {
 
     var optoutCfg = getOptoutConfiguration();
 
+    var rcsPayloadForApi = null;
+    if ((apiChannelValue === 'rcs_single' || apiChannelValue === 'rcs_carousel') && typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+        rcsPayloadForApi = rcsPersistentPayload;
+    }
+
     function buildCampaignData(resolvedListId) {
         return {
             name: campaignName,
             type: apiChannelValue,
             message_content: smsContent,
+            rcs_content: rcsPayloadForApi,
             sender_id_id: senderId || null,
             rcs_agent_id: rcsAgentId || null,
             recipient_sources: recipientSources,
