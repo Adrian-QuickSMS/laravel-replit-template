@@ -1054,6 +1054,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (drawerEl) {
         campaignDrawer = new bootstrap.Offcanvas(drawerEl);
     }
+
+    var campaignTable = document.getElementById('campaignsTable');
+    if (campaignTable) {
+        campaignTable.addEventListener('show.bs.dropdown', function(e) {
+            var openToggles = campaignTable.querySelectorAll('[data-bs-toggle="dropdown"][aria-expanded="true"]');
+            openToggles.forEach(function(toggle) {
+                if (toggle !== e.relatedTarget) {
+                    var instance = bootstrap.Dropdown.getInstance(toggle);
+                    if (instance) instance.hide();
+                }
+            });
+        });
+    }
     
     var searchInput = document.getElementById('campaignSearch');
     if (searchInput) {
