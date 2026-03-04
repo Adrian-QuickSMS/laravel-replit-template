@@ -1057,15 +1057,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var campaignTable = document.getElementById('campaignsTable');
     if (campaignTable) {
-        campaignTable.addEventListener('show.bs.dropdown', function(e) {
-            var openToggles = campaignTable.querySelectorAll('[data-bs-toggle="dropdown"][aria-expanded="true"]');
-            openToggles.forEach(function(toggle) {
-                if (toggle !== e.relatedTarget) {
+        campaignTable.addEventListener('click', function(e) {
+            var clickedToggle = e.target.closest('[data-bs-toggle="dropdown"]');
+            if (!clickedToggle) return;
+            var allToggles = campaignTable.querySelectorAll('[data-bs-toggle="dropdown"]');
+            allToggles.forEach(function(toggle) {
+                if (toggle !== clickedToggle) {
                     var instance = bootstrap.Dropdown.getInstance(toggle);
                     if (instance) instance.hide();
                 }
             });
-        });
+        }, true);
     }
     
     var searchInput = document.getElementById('campaignSearch');
@@ -1248,14 +1250,16 @@ function loadDraftsFromStorage() {
             '<td class="py-2"><span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-file-alt me-1"></i>Draft</span></td>' +
             '<td class="py-2">' + draft.recipients + '</td>' +
             '<td class="py-2">' + formattedDate + '<br><small class="text-muted">' + formattedTime + '</small></td>' +
-            '<td class="py-2 text-end">' +
-            '<div class="d-flex gap-1 justify-content-end flex-nowrap">' +
-            '<a href="/messages/send?edit=' + draft.id + '" class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();" title="Edit Draft">' +
-            '<i class="fas fa-edit"></i>' +
-            '</a>' +
-            '<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); showDeleteDraftModal(\'' + draft.id + '\', \'' + escapeHtml(draft.name) + '\');" title="Delete Draft">' +
-            '<i class="fas fa-trash"></i>' +
+            '<td class="py-2 text-end" style="white-space: nowrap;">' +
+            '<div class="dropdown">' +
+            '<button class="btn btn-sm btn-link text-muted p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation();" style="font-size: 1.1rem; line-height: 1;">' +
+            '<i class="fas fa-ellipsis-v"></i>' +
             '</button>' +
+            '<ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width: 140px;">' +
+            '<li><a class="dropdown-item" href="/messages/send?edit=' + draft.id + '" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>' +
+            '<li><hr class="dropdown-divider"></li>' +
+            '<li><a class="dropdown-item text-danger" href="#" onclick="event.stopPropagation(); showDeleteDraftModal(\'' + draft.id + '\', \'' + escapeHtml(draft.name).replace(/'/g, "\\'") + '\');"><i class="fas fa-trash me-2"></i>Delete</a></li>' +
+            '</ul>' +
             '</div>' +
             '</td>';
         
