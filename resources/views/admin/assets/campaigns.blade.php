@@ -784,6 +784,7 @@ $accounts = $accounts ?? [];
                             data-rcs-agent-logo="{{ $campaign['rcs_agent_logo'] ?? '' }}"
                             data-rcs-agent-tagline="{{ $campaign['rcs_agent_tagline'] ?? '' }}"
                             data-rcs-agent-brand-color="{{ $campaign['rcs_agent_brand_color'] ?? '' }}"
+                            data-cost-data="{{ isset($campaign['cost_data']) && $campaign['cost_data'] ? json_encode($campaign['cost_data']) : '' }}"
                             onclick="openCampaignDrawer('{{ $campaign['id'] }}')">
                             <td>
                                 <a href="{{ route('admin.accounts.details', ['accountId' => $campaign['account_id']]) }}" 
@@ -1479,6 +1480,11 @@ function openCampaignDrawer(campaignId) {
     if (rcsContentRaw) {
         try { rcsContent = JSON.parse(rcsContentRaw); } catch(e) { rcsContent = null; }
     }
+    var costDataRaw = row.dataset.costData || '';
+    var costData = null;
+    if (costDataRaw) {
+        try { costData = JSON.parse(costDataRaw); } catch(e) { costData = null; }
+    }
 
     document.getElementById('drawerCampaignName').textContent = name.charAt(0).toUpperCase() + name.slice(1);
     document.getElementById('drawerCampaignId').textContent = campaignId;
@@ -1563,7 +1569,7 @@ function openCampaignDrawer(campaignId) {
     updateDeliveryOutcomes(status, recipientsTotal, recipientsDelivered);
     updateChannelSplit(channel, status, recipientsTotal, recipientsDelivered);
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, row.dataset.hasTracking === 'yes');
-    updateCostSummary(channel, status, recipientsTotal, recipientsDelivered);
+    updateCostSummary(channel, status, recipientsTotal, recipientsDelivered, costData);
     updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent, rcsAgentLogo, rcsAgentTagline, rcsAgentBrandColor);
     updateStatusActions(status);
 
@@ -1633,42 +1639,72 @@ function updateEngagementMetrics(channel, status, total, delivered, hasTracking)
     }
 }
 
-function updateCostSummary(channel, status, total, delivered) {
+function updateCostSummary(channel, status, total, delivered, costData) {
     var card = document.getElementById('costSummaryCard');
-    if (status === 'scheduled') { card.style.display = 'none'; return; }
+    if (status === 'scheduled' && !costData) { card.style.display = 'none'; return; }
     card.style.display = '';
-    
+
     var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
     var isComplete = status === 'complete';
-    var deliveredCount = delivered !== null ? delivered : total;
-    var smsUnitPrice = 0.038, rcsUnitPrice = 0.025;
-    
+
     document.getElementById('costLabel').textContent = isComplete ? 'Final Cost' : 'Estimated Cost';
     document.getElementById('costStatusBadge').style.cssText = isComplete ? 'background-color: #d4edda; color: #155724;' : 'background-color: #fff3cd; color: #856404;';
     document.getElementById('costStatusBadge').textContent = isComplete ? 'Final' : 'Estimated';
     document.getElementById('costTotalLabel').textContent = isComplete ? 'Total' : 'Est. Total';
     document.getElementById('costDisclaimer').style.display = isComplete ? 'none' : '';
     document.getElementById('costDisclaimerText').textContent = 'Final cost will be calculated when delivery completes.';
-    
-    var totalCost = 0;
-    if (!isRcs) {
+
+    if (costData) {
+        var currency = costData.currency === 'GBP' ? '£' : costData.currency + ' ';
+        var breakdown = costData.country_breakdown || {};
+        var countries = Object.keys(breakdown);
+
+        if (!isRcs) {
+            document.getElementById('smsCostSection').style.display = '';
+            document.getElementById('rcsCostSection').style.display = 'none';
+
+            if (countries.length > 0) {
+                var firstCountry = breakdown[countries[0]];
+                var unitPrice = parseFloat(firstCountry.unit_price || firstCountry.cost_per_message || 0);
+                var recipientCount = firstCountry.recipient_count || total;
+                document.getElementById('smsCostCount').textContent = recipientCount.toLocaleString() + ' msgs';
+                document.getElementById('smsCostUnit').textContent = currency + unitPrice.toFixed(4);
+            } else {
+                document.getElementById('smsCostCount').textContent = total.toLocaleString() + ' msgs';
+                document.getElementById('smsCostUnit').textContent = '—';
+            }
+        } else {
+            document.getElementById('smsCostSection').style.display = 'none';
+            document.getElementById('rcsCostSection').style.display = '';
+
+            var rcsCount = costData.expected_rcs_count || total;
+            var smsFallbackCount = costData.expected_sms_fallback_count || 0;
+
+            if (countries.length > 0) {
+                var firstCountry = breakdown[countries[0]];
+                var smsUnitPrice = parseFloat(firstCountry.sms_unit_price || firstCountry.unit_price || 0);
+                var rcsUnitPrice = parseFloat(firstCountry.rcs_unit_price || firstCountry.unit_price || 0);
+
+                document.getElementById('rcsFallbackCount').textContent = smsFallbackCount.toLocaleString() + ' msgs';
+                document.getElementById('rcsFallbackCost').textContent = currency + (smsFallbackCount * smsUnitPrice).toFixed(2);
+                document.getElementById('rcsMessageCount').textContent = rcsCount.toLocaleString() + ' msgs';
+                document.getElementById('rcsMessageCost').textContent = currency + (rcsCount * rcsUnitPrice).toFixed(2);
+            } else {
+                document.getElementById('rcsFallbackCount').textContent = smsFallbackCount.toLocaleString() + ' msgs';
+                document.getElementById('rcsFallbackCost').textContent = '—';
+                document.getElementById('rcsMessageCount').textContent = rcsCount.toLocaleString() + ' msgs';
+                document.getElementById('rcsMessageCost').textContent = '—';
+            }
+        }
+
+        document.getElementById('costTotal').textContent = currency + parseFloat(costData.estimated_cost).toFixed(2);
+    } else {
         document.getElementById('smsCostSection').style.display = '';
         document.getElementById('rcsCostSection').style.display = 'none';
-        document.getElementById('smsCostCount').textContent = deliveredCount.toLocaleString() + ' msgs';
-        document.getElementById('smsCostUnit').textContent = '£' + smsUnitPrice.toFixed(3);
-        totalCost = deliveredCount * smsUnitPrice;
-    } else {
-        document.getElementById('smsCostSection').style.display = 'none';
-        document.getElementById('rcsCostSection').style.display = '';
-        var smsFallbackCount = Math.floor(deliveredCount * 0.15);
-        var rcsCount = deliveredCount - smsFallbackCount;
-        document.getElementById('rcsFallbackCount').textContent = smsFallbackCount.toLocaleString() + ' msgs';
-        document.getElementById('rcsFallbackCost').textContent = '£' + (smsFallbackCount * smsUnitPrice).toFixed(2);
-        document.getElementById('rcsMessageCount').textContent = rcsCount.toLocaleString() + ' msgs';
-        document.getElementById('rcsMessageCost').textContent = '£' + (rcsCount * rcsUnitPrice).toFixed(2);
-        totalCost = (smsFallbackCount * smsUnitPrice) + (rcsCount * rcsUnitPrice);
+        document.getElementById('smsCostCount').textContent = '—';
+        document.getElementById('smsCostUnit').textContent = '—';
+        document.getElementById('costTotal').textContent = 'No estimate available';
     }
-    document.getElementById('costTotal').textContent = '£' + totalCost.toFixed(2);
 }
 
 function toggleCampaignPreview(mode) {

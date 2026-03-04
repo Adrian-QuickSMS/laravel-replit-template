@@ -400,7 +400,7 @@ class AdminController extends Controller
         ];
 
         $query = \App\Models\Campaign::withoutGlobalScope('tenant')
-            ->with(['account', 'senderId', 'rcsAgent', 'messageTemplate']);
+            ->with(['account', 'senderId', 'rcsAgent', 'messageTemplate', 'estimateSnapshot']);
 
         $paginated = $query->orderByDesc('created_at')->paginate(50)->withQueryString();
 
@@ -430,6 +430,18 @@ class AdminController extends Controller
                 'template' => $c->messageTemplate?->name ?? '',
                 'message_content' => $c->message_content ?? '',
                 'rcs_content' => $c->rcs_content,
+                'cost_data' => $c->estimateSnapshot ? [
+                    'estimated_cost' => (float) $c->estimateSnapshot->estimated_cost,
+                    'vat_amount' => (float) $c->estimateSnapshot->vat_amount,
+                    'estimated_cost_inc_vat' => (float) $c->estimateSnapshot->estimated_cost_inc_vat,
+                    'currency' => $c->estimateSnapshot->currency ?? 'GBP',
+                    'total_recipients' => $c->estimateSnapshot->total_recipients,
+                    'country_breakdown' => $c->estimateSnapshot->country_breakdown,
+                    'product_type' => $c->estimateSnapshot->product_type,
+                    'rcs_penetration_rate' => $c->estimateSnapshot->rcs_penetration_rate,
+                    'expected_rcs_count' => $c->estimateSnapshot->expected_rcs_count,
+                    'expected_sms_fallback_count' => $c->estimateSnapshot->expected_sms_fallback_count,
+                ] : null,
             ];
         })->toArray();
 
