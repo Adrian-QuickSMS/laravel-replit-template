@@ -1358,17 +1358,11 @@ function saveRcsImageEdits() {
     if (!rcsMediaData.url && !rcsMediaData.originalUrl) return;
 
     showRcsProcessingIndicator();
-    var editParams = getCurrentEditParams();
 
     generateCroppedImageDataUrl().then(function(croppedDataUrl) {
         var blob = dataUrlToBlob(croppedDataUrl);
         var formData = new FormData();
         formData.append('file', blob, 'rcs-image.jpg');
-        formData.append('edit_params[zoom]', editParams.zoom || 100);
-        formData.append('edit_params[crop_position]', editParams.crop_position || 'center');
-        if (editParams.orientation) {
-            formData.append('edit_params[orientation]', editParams.orientation);
-        }
         if (rcsDraftSession) {
             formData.append('draft_session', rcsDraftSession);
         }
@@ -1462,17 +1456,11 @@ function saveRcsImageEditsAndContinue() {
     }
     
     showRcsProcessingIndicator();
-    var editParams = getCurrentEditParams();
     
     generateCroppedImageDataUrl().then(function(croppedDataUrl) {
         var blob = dataUrlToBlob(croppedDataUrl);
         var formData = new FormData();
         formData.append('file', blob, 'rcs-image.jpg');
-        formData.append('edit_params[zoom]', editParams.zoom || 100);
-        formData.append('edit_params[crop_position]', editParams.crop_position || 'center');
-        if (editParams.orientation) {
-            formData.append('edit_params[orientation]', editParams.orientation);
-        }
         if (rcsDraftSession) {
             formData.append('draft_session', rcsDraftSession);
         }

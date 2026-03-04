@@ -1998,11 +1998,13 @@ function loadDbCampaignForEditing(campaignId) {
             });
         }
 
-        if (c.message_content && c.message_content.match(/https?:\/\/qsms\.uk\/|https?:\/\/\S+\.co\.uk\/|https?:\/\/\S+\.com\//)) {
+        if (c.message_content && (c.message_content.indexOf('{{trackingUrl}}') !== -1 || c.message_content.match(/https?:\/\/qsms\.uk\/|https?:\/\/\S+\.co\.uk\/|https?:\/\/\S+\.com\//))) {
             var trackableToggle = document.getElementById('includeTrackableLink');
             if (trackableToggle) {
                 trackableToggle.checked = true;
                 trackableLinkConfirmed = true;
+                var trackableSection = document.getElementById('trackableLinkSection');
+                if (trackableSection) trackableSection.classList.remove('d-none');
                 var trackableSummary = document.getElementById('trackableLinkSummary');
                 if (trackableSummary) trackableSummary.classList.remove('d-none');
             }
@@ -2063,6 +2065,7 @@ function loadDbCampaignForEditing(campaignId) {
                 var toEl = document.getElementById('unsociableTo');
                 if (toEl) toEl.value = c.sending_window_end.substring(0, 5);
             }
+            var windowText = 'Quiet hours: ' + c.sending_window_start.substring(0, 5) + ' - ' + c.sending_window_end.substring(0, 5);
             if (!c.scheduled_at) {
                 var scheduleCheckbox2 = document.getElementById('scheduleRules');
                 if (scheduleCheckbox2) {
@@ -2073,7 +2076,12 @@ function loadDbCampaignForEditing(campaignId) {
                 if (scheduleSummary2) {
                     scheduleSummary2.classList.remove('d-none');
                     var summaryText2 = document.getElementById('scheduleSummaryText');
-                    if (summaryText2) summaryText2.textContent = 'Unsociable hours: ' + c.sending_window_start.substring(0, 5) + ' - ' + c.sending_window_end.substring(0, 5);
+                    if (summaryText2) summaryText2.textContent = windowText;
+                }
+            } else {
+                var existingSummary = document.getElementById('scheduleSummaryText');
+                if (existingSummary && existingSummary.textContent.indexOf('Quiet hours') === -1) {
+                    existingSummary.textContent = existingSummary.textContent + ' | ' + windowText;
                 }
             }
         }
