@@ -371,26 +371,26 @@ class QuickSMSController extends Controller
                 ->toArray()
             : [];
 
-        // TODO: Replace with database query - GET /api/templates (excludes API-triggered for portal UI)
-        $templates = [
-            ['id' => 1, 'name' => 'Welcome Message', 'content' => 'Welcome to QuickSMS! Reply STOP to opt out.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 1],
-            ['id' => 2, 'name' => 'Appointment Reminder', 'content' => 'Reminder: Your appointment is on {date} at {time}.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 2],
-            ['id' => 3, 'name' => 'Promotional Offer', 'content' => 'Special offer! Get 20% off with code {code}. T&Cs apply.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 1],
-            ['id' => 4, 'name' => 'RCS Welcome', 'content' => 'Welcome to our RCS experience! Enjoy rich messaging.', 'trigger' => 'Portal', 'channel' => 'Basic RCS + SMS', 'status' => 'Live', 'version' => 1],
-            ['id' => 5, 'name' => 'Product Showcase', 'content' => '', 'trigger' => 'Portal', 'channel' => 'Rich RCS + SMS', 'status' => 'Live', 'version' => 1, 'rcs_payload' => [
-                'type' => 'standalone',
-                'card' => [
-                    'media' => ['url' => '', 'height' => 'MEDIUM'],
-                    'title' => 'New Product Launch',
-                    'description' => 'Check out our latest product offering!',
-                    'suggestions' => [
-                        ['type' => 'url', 'text' => 'Learn More', 'url' => 'https://example.com']
-                    ]
-                ],
-                'fallback' => 'New Product Launch! Check out our latest offering at https://example.com'
-            ]],
-            ['id' => 6, 'name' => 'Archived Welcome', 'content' => 'Old welcome message.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Archived', 'version' => 1],
+        $typeToChannel = [
+            'sms' => 'SMS',
+            'rcs_basic' => 'Basic RCS + SMS',
+            'rcs_single' => 'Rich RCS + SMS',
+            'rcs_carousel' => 'Rich RCS + SMS',
         ];
+        $templates = \App\Models\MessageTemplate::whereIn('status', ['active', 'draft'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'content' => $t->content ?? '',
+                'trigger' => 'Portal',
+                'channel' => $typeToChannel[$t->type] ?? 'SMS',
+                'status' => $t->status === 'active' ? 'Live' : ucfirst($t->status),
+                'version' => 1,
+                'rcs_payload' => $t->rcs_content,
+            ])
+            ->toArray();
 
         $lists = $this->getContactListsForView();
         $tags = $this->getTagsForView();
@@ -947,25 +947,26 @@ class QuickSMSController extends Controller
             ['id' => 'agent_2', 'name' => 'RetailBot', 'status' => 'approved'],
         ];
 
-        // TODO: Replace with database query - GET /api/templates (excludes API-triggered for portal UI)
-        $templates = [
-            ['id' => 'tpl_1', 'name' => 'Quick Reply', 'content' => 'Thank you for your message. We will get back to you shortly.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 1],
-            ['id' => 'tpl_2', 'name' => 'Order Update', 'content' => 'Hi {{firstName}}, your order #{{orderNumber}} is on its way!', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 2],
-            ['id' => 'tpl_3', 'name' => 'Appointment Confirm', 'content' => 'Your appointment is confirmed for {{date}} at {{time}}. Reply YES to confirm or NO to cancel.', 'trigger' => 'Portal', 'channel' => 'SMS', 'status' => 'Live', 'version' => 1],
-            ['id' => 'tpl_4', 'name' => 'RCS Thank You', 'content' => 'Thanks for reaching out! Our team will respond shortly.', 'trigger' => 'Portal', 'channel' => 'Basic RCS + SMS', 'status' => 'Live', 'version' => 1],
-            ['id' => 'tpl_5', 'name' => 'Rich Promo Card', 'content' => '', 'trigger' => 'Portal', 'channel' => 'Rich RCS + SMS', 'status' => 'Live', 'version' => 1, 'rcs_payload' => [
-                'type' => 'standalone',
-                'card' => [
-                    'media' => ['url' => '', 'height' => 'MEDIUM'],
-                    'title' => 'Special Offer',
-                    'description' => 'Exclusive discount just for you!',
-                    'suggestions' => [
-                        ['type' => 'url', 'text' => 'Shop Now', 'url' => 'https://example.com/shop']
-                    ]
-                ],
-                'fallback' => 'Special Offer! Exclusive discount at https://example.com/shop'
-            ]],
+        $typeToChannel = [
+            'sms' => 'SMS',
+            'rcs_basic' => 'Basic RCS + SMS',
+            'rcs_single' => 'Rich RCS + SMS',
+            'rcs_carousel' => 'Rich RCS + SMS',
         ];
+        $templates = \App\Models\MessageTemplate::whereIn('status', ['active', 'draft'])
+            ->orderByDesc('updated_at')
+            ->get()
+            ->map(fn($t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'content' => $t->content ?? '',
+                'trigger' => 'Portal',
+                'channel' => $typeToChannel[$t->type] ?? 'SMS',
+                'status' => $t->status === 'active' ? 'Live' : ucfirst($t->status),
+                'version' => 1,
+                'rcs_payload' => $t->rcs_content,
+            ])
+            ->toArray();
 
         // Extended mock conversations dataset for filter/sort testing
         // TODO: Replace with API call to GET /api/conversations
