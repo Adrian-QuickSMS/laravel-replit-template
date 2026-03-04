@@ -23,35 +23,15 @@
 }
 
 /* =========================================
-   Table Container - Trust Global Layout
+   Table Layout
    ========================================= */
-.table-container,
-#campaignsTableContainer {
-    background: #fff;
-    border-radius: 12px;
-    border: 1px solid #dde4ea;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    margin-top: 0.5rem;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    overflow: hidden;
-}
-
-.table-container .dropdown-menu {
+#campaignsTableContainer .dropdown-menu {
     z-index: 1050;
     position: absolute !important;
 }
 
-.table-container .dropdown {
+#campaignsTableContainer .dropdown {
     position: static;
-}
-
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
 }
 
 .api-table {
@@ -594,6 +574,7 @@ $accounts = $accounts ?? [];
 @endphp
 
 @section('content')
+<div class="container-fluid">
 <div class="page-titles">
     <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Admin</a></li>
@@ -746,7 +727,8 @@ $accounts = $accounts ?? [];
     </div>
 
     <!-- Campaigns Table -->
-    <div class="table-container" id="campaignsTableContainer">
+    <div class="card" id="campaignsTableContainer" style="border-radius: 12px; border: 1px solid #dde4ea; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden;">
+        <div class="card-body p-0">
         <div class="table-responsive" id="campaignsTable">
                 <table class="table api-table mb-0">
                 <thead>
@@ -884,7 +866,8 @@ $accounts = $accounts ?? [];
                     </tbody>
                 </table>
         </div>
-    </div>
+        </div>{{-- end card-body --}}
+    </div>{{-- end card --}}
         
     <!-- No Results State -->
         <div id="noResultsState" class="d-none text-center py-5">
@@ -1198,6 +1181,7 @@ $accounts = $accounts ?? [];
         </div>
     </div>
 </div>
+</div>{{-- end container-fluid --}}
 @endsection
 
 @push('scripts')
