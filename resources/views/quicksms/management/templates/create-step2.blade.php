@@ -265,6 +265,121 @@
 @include('quicksms.partials.rcs-wizard-modal')
 @include('quicksms.partials.rcs-button-config-modal')
 
+<div class="modal fade" id="trackableLinkModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-link me-2"></i>Trackable Link Settings</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">A unique shortened URL will be generated for each recipient to track clicks.</p>
+                <div class="mb-3">
+                    <label class="form-label">Short URL Domain</label>
+                    <select class="form-select" id="shortUrlDomain">
+                        <option value="qsms.uk" selected>qsms.uk (default)</option>
+                        <option value="custom1.co.uk">custom1.co.uk</option>
+                        <option value="custom2.com">custom2.com</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Destination URL</label>
+                    <input type="url" class="form-control" id="destinationUrl" placeholder="https://example.com/landing-page" oninput="this.classList.remove('is-invalid');">
+                    <div class="invalid-feedback" id="destinationUrlError">Please enter a destination URL</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Insert Link As</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="linkInsertMethod" id="linkAtCursor" value="cursor" checked>
+                        <label class="form-check-label" for="linkAtCursor">Insert at cursor position</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="linkInsertMethod" id="linkAsPlaceholder" value="placeholder">
+                        <label class="form-check-label" for="linkAsPlaceholder">Use placeholder @{{trackingUrl}}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmTrackableLink()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="messageExpiryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-hourglass-half me-2"></i>Message Expiry</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Define how long the platform should attempt delivery before expiring a message.</p>
+                <div class="mb-3">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="validityToggle" onchange="toggleValidityFields()" checked>
+                        <label class="form-check-label fw-medium" for="validityToggle">Set message validity period</label>
+                    </div>
+                    <div class="ps-4" id="validityFields">
+                        <p class="text-muted small mb-3">If a message cannot be delivered within this period, it will expire and no further attempts will be made.</p>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Validity Duration</label>
+                                <input type="number" class="form-control" id="validityDuration" value="24" min="1">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Unit</label>
+                                <select class="form-select" id="validityUnit">
+                                    <option value="minutes">Minutes</option>
+                                    <option value="hours" selected>Hours</option>
+                                    <option value="days">Days</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="py-2 mb-0 rounded" style="background-color: #f0ebf8; color: #6b5b95; padding: 12px;">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <small>When off, operator/platform defaults apply (typically 24-72 hours for SMS, configurable for RCS).</small>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmMessageExpiry()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="socialHoursModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header py-3">
+                <h5 class="modal-title"><i class="fas fa-moon me-2"></i>Social Hours</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Messages will not be sent outside these hours. They will be queued and sent at the next allowable time.</p>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Do not send before</label>
+                        <input type="time" class="form-control" id="socialHoursFrom" value="08:00">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Do not send after</label>
+                        <input type="time" class="form-control" id="socialHoursTo" value="20:00">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmSocialHours()">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="aiAssistantModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -945,25 +1060,156 @@ function validateOptoutConfig() {
     return true;
 }
 
+var trackableLinkConfirmed = false;
+var messageExpiryConfirmed = false;
+var socialHoursConfirmed = false;
+
 function toggleTrackableLinkModal() {
-    var enabled = document.getElementById('includeTrackableLink').checked;
-    var summary = document.getElementById('trackableLinkSummary');
-    if (summary) summary.classList.toggle('d-none', !enabled);
+    var isChecked = document.getElementById('includeTrackableLink').checked;
+    if (isChecked) {
+        trackableLinkConfirmed = false;
+        var modalEl = document.getElementById('trackableLinkModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', onTrackableLinkModalHidden, { once: true });
+        modal.show();
+    } else {
+        document.getElementById('trackableLinkSummary').classList.add('d-none');
+    }
+}
+
+function onTrackableLinkModalHidden() {
+    if (!trackableLinkConfirmed) {
+        var hasUrl = document.getElementById('destinationUrl').value.trim() !== '';
+        if (!hasUrl) {
+            document.getElementById('includeTrackableLink').checked = false;
+            document.getElementById('trackableLinkSummary').classList.add('d-none');
+        }
+    }
+}
+
+function openTrackableLinkModal() {
+    var modal = new bootstrap.Modal(document.getElementById('trackableLinkModal'));
+    modal.show();
+}
+
+function confirmTrackableLink() {
+    var domain = document.getElementById('shortUrlDomain').value;
+    var url = document.getElementById('destinationUrl').value.trim();
+    var method = document.querySelector('input[name="linkInsertMethod"]:checked').value;
+
+    if (!url) {
+        document.getElementById('destinationUrl').classList.add('is-invalid');
+        return;
+    }
+
+    trackableLinkConfirmed = true;
+    document.getElementById('trackableLinkDomain').textContent = domain;
+    document.getElementById('trackableLinkSummary').classList.remove('d-none');
+
+    if (method === 'cursor') {
+        var textarea = document.getElementById('smsContent');
+        var start = textarea.selectionStart;
+        var text = textarea.value;
+        var shortUrl = 'https://' + domain + '/abc123';
+        textarea.value = text.substring(0, start) + shortUrl + text.substring(start);
+        handleContentChange();
+    } else {
+        insertPlaceholderDirect('trackingUrl');
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('trackableLinkModal')).hide();
+}
+
+function insertPlaceholderDirect(field) {
+    var textarea = document.getElementById('smsContent');
+    var start = textarea.selectionStart;
+    var text = textarea.value;
+    var placeholder = '{' + '{' + field + '}' + '}';
+    textarea.value = text.substring(0, start) + placeholder + text.substring(start);
+    handleContentChange();
 }
 
 function toggleMessageExpiryModal() {
-    var enabled = document.getElementById('messageExpiry').checked;
-    var summary = document.getElementById('messageExpirySummary');
-    if (summary) summary.classList.toggle('d-none', !enabled);
+    var isChecked = document.getElementById('messageExpiry').checked;
+    if (isChecked) {
+        messageExpiryConfirmed = false;
+        var modalEl = document.getElementById('messageExpiryModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', onMessageExpiryModalHidden, { once: true });
+        modal.show();
+    } else {
+        document.getElementById('messageExpirySummary').classList.add('d-none');
+    }
+}
+
+function onMessageExpiryModalHidden() {
+    if (!messageExpiryConfirmed) {
+        document.getElementById('messageExpiry').checked = false;
+        document.getElementById('messageExpirySummary').classList.add('d-none');
+    }
+}
+
+function openMessageExpiryModal() {
+    var modal = new bootstrap.Modal(document.getElementById('messageExpiryModal'));
+    modal.show();
+}
+
+function confirmMessageExpiry() {
+    var isEnabled = document.getElementById('validityToggle').checked;
+    if (isEnabled) {
+        var duration = document.getElementById('validityDuration').value;
+        var unit = document.getElementById('validityUnit').value;
+        var unitLabel = unit.charAt(0).toUpperCase() + unit.slice(1);
+        document.getElementById('messageExpiryValue').textContent = duration + ' ' + unitLabel;
+        document.getElementById('messageExpirySummary').classList.remove('d-none');
+        messageExpiryConfirmed = true;
+    } else {
+        document.getElementById('messageExpiry').checked = false;
+        document.getElementById('messageExpirySummary').classList.add('d-none');
+        messageExpiryConfirmed = true;
+    }
+    var modal = bootstrap.Modal.getInstance(document.getElementById('messageExpiryModal'));
+    if (modal) modal.hide();
+}
+
+function toggleValidityFields() {
+    var isChecked = document.getElementById('validityToggle').checked;
+    document.getElementById('validityFields').classList.toggle('d-none', !isChecked);
 }
 
 function toggleSocialHoursFields() {
     var isChecked = document.getElementById('socialHoursToggle').checked;
-    var fields = document.getElementById('socialHoursFields');
-    var summary = document.getElementById('socialHoursSummary');
-    if (fields) fields.classList.toggle('d-none', !isChecked);
-    if (summary && !isChecked) summary.classList.add('d-none');
-    if (summary && isChecked) updateSocialHoursSummary();
+    if (isChecked) {
+        socialHoursConfirmed = false;
+        var modalEl = document.getElementById('socialHoursModal');
+        var modal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', onSocialHoursModalHidden, { once: true });
+        modal.show();
+    } else {
+        document.getElementById('socialHoursSummary').classList.add('d-none');
+    }
+}
+
+function onSocialHoursModalHidden() {
+    if (!socialHoursConfirmed) {
+        document.getElementById('socialHoursToggle').checked = false;
+        document.getElementById('socialHoursSummary').classList.add('d-none');
+    }
+}
+
+function openSocialHoursModal() {
+    var modal = new bootstrap.Modal(document.getElementById('socialHoursModal'));
+    modal.show();
+}
+
+function confirmSocialHours() {
+    var from = document.getElementById('socialHoursFrom').value || '08:00';
+    var to = document.getElementById('socialHoursTo').value || '20:00';
+    document.getElementById('socialHoursValue').textContent = from + ' - ' + to;
+    document.getElementById('socialHoursSummary').classList.remove('d-none');
+    socialHoursConfirmed = true;
+    var modal = bootstrap.Modal.getInstance(document.getElementById('socialHoursModal'));
+    if (modal) modal.hide();
 }
 
 function updateSocialHoursSummary() {

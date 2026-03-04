@@ -213,23 +213,7 @@
         <div class="d-none mb-2" id="socialHoursSummary">
             <div class="alert alert-secondary py-2 mb-0">
                 <i class="fas fa-moon me-2"></i>Social hours: <strong id="socialHoursValue">08:00 - 20:00</strong>
-                <a href="#" class="ms-2" onclick="document.getElementById('socialHoursToggle').checked = true; toggleSocialHoursFields(); return false;">Edit</a>
-            </div>
-        </div>
-
-        <div class="d-none mb-3" id="socialHoursFields">
-            <div class="border rounded p-3">
-                <p class="text-muted small mb-3">Messages will not be sent outside these hours. They will be queued and sent at the next allowable time.</p>
-                <div class="row">
-                    <div class="col-md-6 mb-2">
-                        <label class="form-label form-label-sm">Do not send before</label>
-                        <input type="time" class="form-control form-control-sm" id="socialHoursFrom" value="08:00" onchange="updateSocialHoursSummary()">
-                    </div>
-                    <div class="col-md-6 mb-2">
-                        <label class="form-label form-label-sm">Do not send after</label>
-                        <input type="time" class="form-control form-control-sm" id="socialHoursTo" value="20:00" onchange="updateSocialHoursSummary()">
-                    </div>
-                </div>
+                <a href="#" class="ms-2" onclick="openSocialHoursModal(); return false;">Edit</a>
             </div>
         </div>
         @endif
