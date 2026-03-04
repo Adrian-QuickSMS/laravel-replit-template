@@ -269,6 +269,16 @@ class Campaign extends Model
         return $this->belongsTo(OptOutList::class, 'opt_out_list_id');
     }
 
+    public function createdByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
     // =====================================================
     // STATE MACHINE
     // =====================================================
