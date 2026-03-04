@@ -406,6 +406,9 @@ $permissions = [
                                     data-send-date="{{ $campaign['send_date'] }}"
                                     data-sender-id="{{ $campaign['sender_id'] }}"
                                     data-rcs-agent="{{ $campaign['rcs_agent'] ?? '' }}"
+                                    data-rcs-agent-logo="{{ $campaign['rcs_agent_logo'] ?? '' }}"
+                                    data-rcs-agent-tagline="{{ $campaign['rcs_agent_tagline'] ?? '' }}"
+                                    data-rcs-agent-brand-color="{{ $campaign['rcs_agent_brand_color'] ?? '#886CC0' }}"
                                     data-tags="{{ implode(',', $campaign['tags'] ?? []) }}"
                                     data-template="{{ $campaign['template'] ?? '' }}"
                                     data-has-tracking="{{ $campaign['has_tracking'] ? 'yes' : 'no' }}"
@@ -1129,6 +1132,9 @@ function loadDraftsFromStorage() {
         row.setAttribute('data-status', 'draft');
         row.setAttribute('data-sender-id', draft.sender_id || '');
         row.setAttribute('data-rcs-agent', draft.rcs_agent || '');
+        row.setAttribute('data-rcs-agent-logo', draft.rcs_agent_logo || '');
+        row.setAttribute('data-rcs-agent-tagline', draft.rcs_agent_tagline || '');
+        row.setAttribute('data-rcs-agent-brand-color', draft.rcs_agent_brand_color || '#886CC0');
         row.setAttribute('data-send-date', draft.created_at);
         row.setAttribute('data-recipients-total', draft.recipients);
         row.setAttribute('data-recipients-delivered', '');
@@ -1464,8 +1470,12 @@ function openCampaignDrawer(campaignId) {
     var recipientsTotal = parseInt(row.dataset.recipientsTotal) || 0;
     var recipientsDelivered = row.dataset.recipientsDelivered ? parseInt(row.dataset.recipientsDelivered) : null;
     var sendDate = row.dataset.sendDate;
-    var senderId = row.dataset.senderId || '-';
+    var senderIdRaw = row.dataset.senderId || '-';
+    var senderId = senderIdRaw.replace(/\s*\((?:alphanumeric|numeric|shortcode)\)\s*$/i, '');
     var rcsAgent = row.dataset.rcsAgent || '';
+    var rcsAgentLogo = row.dataset.rcsAgentLogo || '';
+    var rcsAgentTagline = row.dataset.rcsAgentTagline || '';
+    var rcsAgentBrandColor = row.dataset.rcsAgentBrandColor || '#886CC0';
     var tags = row.dataset.tags || '';
     var template = row.dataset.template || '';
 
@@ -1624,7 +1634,7 @@ function openCampaignDrawer(campaignId) {
     updateEngagementMetrics(channel, status, recipientsTotal, recipientsDelivered, hasTracking);
     updateCostSummary(channel, status, recipientsTotal, recipientsDelivered, estimatedCost, actualCost, currency, segmentCount, fallbackSmsCount);
     updateOptoutSummary(status, recipientsTotal, recipientsDelivered, hasOptout);
-    updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent);
+    updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent, rcsAgentLogo, rcsAgentTagline, rcsAgentBrandColor);
     updateRecipientBreakdown(recipientsTotal, recipientsDelivered, totalRecipientsRaw, totalOptedOut, totalInvalid, recipientSources);
     updateStatusActions(status, row.dataset.id, name, sendDate);
     
@@ -1856,6 +1866,9 @@ var currentCampaignRcsAgent = '';
 var currentCampaignTemplate = '';
 var currentCampaignMessageContent = '';
 var currentCampaignRcsContent = null;
+var currentCampaignRcsAgentLogo = '';
+var currentCampaignRcsAgentTagline = '';
+var currentCampaignRcsAgentBrandColor = '#886CC0';
 
 function toggleCampaignPreview(mode) {
     campaignPreviewMode = mode;
@@ -1879,10 +1892,10 @@ function toggleCampaignPreview(mode) {
         rcsBtn.style.color = '#886CC0';
     }
     
-    updateMessagePreview(currentCampaignChannel, currentCampaignSenderId, currentCampaignRcsAgent, currentCampaignTemplate, currentCampaignMessageContent, currentCampaignRcsContent);
+    updateMessagePreview(currentCampaignChannel, currentCampaignSenderId, currentCampaignRcsAgent, currentCampaignTemplate, currentCampaignMessageContent, currentCampaignRcsContent, currentCampaignRcsAgentLogo, currentCampaignRcsAgentTagline, currentCampaignRcsAgentBrandColor);
 }
 
-function updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent) {
+function updateMessagePreview(channel, senderId, rcsAgent, template, messageContent, rcsContent, agentLogo, agentTagline, agentBrandColor) {
     var container = document.getElementById('campaignPreviewContainer');
     var toggleContainer = document.getElementById('campaignPreviewToggle');
     
@@ -1897,6 +1910,9 @@ function updateMessagePreview(channel, senderId, rcsAgent, template, messageCont
     currentCampaignTemplate = template;
     currentCampaignMessageContent = messageContent;
     currentCampaignRcsContent = rcsContent;
+    currentCampaignRcsAgentLogo = agentLogo || '';
+    currentCampaignRcsAgentTagline = agentTagline || '';
+    currentCampaignRcsAgentBrandColor = agentBrandColor || '#886CC0';
     
     if (channel === 'basic_rcs' || channel === 'rich_rcs') {
         toggleContainer.classList.remove('d-none');
@@ -1911,9 +1927,10 @@ function updateMessagePreview(channel, senderId, rcsAgent, template, messageCont
         senderId: senderId || 'QuickSMS',
         agent: {
             name: rcsAgent || senderId || 'QuickSMS',
-            logo: '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
+            logo: agentLogo || '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
             verified: true,
-            tagline: 'Business messaging'
+            tagline: agentTagline || 'Business messaging',
+            brand_color: agentBrandColor || '#886CC0'
         }
     };
     

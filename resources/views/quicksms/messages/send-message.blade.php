@@ -3352,11 +3352,16 @@ function collectCampaignConfig() {
     
     var senderSelect = document.getElementById('senderId');
     var senderId = senderSelect ? senderSelect.value : '';
-    var senderDisplayName = (senderSelect && senderSelect.selectedIndex > 0) ? senderSelect.options[senderSelect.selectedIndex].text : senderId;
+    var senderOptionText = (senderSelect && senderSelect.selectedIndex > 0) ? senderSelect.options[senderSelect.selectedIndex].text : senderId;
+    var senderDisplayName = senderOptionText.replace(/\s*\((?:alphanumeric|numeric|shortcode)\)\s*$/i, '');
     
     var rcsAgentSelect = document.getElementById('rcsAgent');
     var rcsAgent = (rcsAgentSelect && rcsAgentSelect.value) ? rcsAgentSelect.value : null;
-    var rcsAgentDisplayName = (rcsAgentSelect && rcsAgentSelect.selectedIndex > 0) ? rcsAgentSelect.options[rcsAgentSelect.selectedIndex].text : rcsAgent;
+    var rcsAgentOption = (rcsAgentSelect && rcsAgentSelect.selectedIndex > 0) ? rcsAgentSelect.options[rcsAgentSelect.selectedIndex] : null;
+    var rcsAgentDisplayName = rcsAgentOption ? (rcsAgentOption.getAttribute('data-name') || rcsAgentOption.text) : rcsAgent;
+    var rcsAgentLogo = rcsAgentOption ? (rcsAgentOption.getAttribute('data-logo') || '') : '';
+    var rcsAgentTagline = rcsAgentOption ? (rcsAgentOption.getAttribute('data-tagline') || '') : '';
+    var rcsAgentBrandColor = rcsAgentOption ? (rcsAgentOption.getAttribute('data-brand-color') || '#886CC0') : '#886CC0';
     
     var smsContent = document.getElementById('smsContent').value.trim();
     
@@ -3394,6 +3399,9 @@ function collectCampaignConfig() {
         sender_display_name: senderDisplayName,
         rcs_agent: rcsAgent,
         rcs_agent_display_name: rcsAgentDisplayName,
+        rcs_agent_logo: rcsAgentLogo,
+        rcs_agent_tagline: rcsAgentTagline,
+        rcs_agent_brand_color: rcsAgentBrandColor,
         message_content: smsContent,
         template: templateName,
         trackable_link: trackableLinkEnabled,
@@ -3477,6 +3485,9 @@ function confirmSaveDraft() {
         channel: config.channel,
         sender_id: config.sender_display_name || config.sender_id || 'Not set',
         rcs_agent: config.rcs_agent_display_name || config.rcs_agent || null,
+        rcs_agent_logo: config.rcs_agent_logo || '',
+        rcs_agent_tagline: config.rcs_agent_tagline || '',
+        rcs_agent_brand_color: config.rcs_agent_brand_color || '#886CC0',
         status: 'draft',
         send_date: null,
         recipients: config.recipients ? config.recipients.length : 0,
