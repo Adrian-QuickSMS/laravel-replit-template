@@ -407,32 +407,19 @@ function autoSelectFirstAgent() {
     }
 }
 
-function openRcsWizard() {
-    if (typeof initRcsWizard === 'function') {
-        var selectedAgent = document.getElementById('rcsAgent');
-        var agentData = null;
-        
-        if (selectedAgent && selectedAgent.selectedIndex > 0) {
-            var option = selectedAgent.options[selectedAgent.selectedIndex];
-            agentData = {
-                name: option.dataset.name || 'QuickSMS Brand',
-                logo: option.dataset.logo || '',
-                tagline: option.dataset.tagline || '',
-                brandColor: option.dataset.brandColor || '#886CC0'
-            };
-        }
-        
-        rcsWizardCallback = function(data) {
-            rcsContentData = data;
-            updateRcsContentPreview();
+function updateRcsWizardPreviewInMain() {
+    if (typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+        rcsContentData = {
+            messageType: rcsPersistentPayload.type || 'single',
+            cardCount: rcsPersistentPayload.cardCount || 1,
+            title: (rcsPersistentPayload.cards && rcsPersistentPayload.cards[0]) ? rcsPersistentPayload.cards[0].title : '',
+            buttonCount: rcsPersistentPayload.cards ? rcsPersistentPayload.cards.reduce(function(sum, c) { return sum + c.buttons.length; }, 0) : 0,
+            cards: rcsPersistentPayload.cards || [],
+            orientation: rcsPersistentPayload.orientation || {}
         };
-        
-        initRcsWizard(agentData, rcsContentData);
-        var modal = new bootstrap.Modal(document.getElementById('rcsWizardModal'));
-        modal.show();
-    } else {
-        alert('RCS Wizard is loading. Please wait...');
+        updateRcsContentPreview();
     }
+    updatePreview();
 }
 
 function updateRcsContentPreview() {
