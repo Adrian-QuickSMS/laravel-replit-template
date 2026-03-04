@@ -1998,7 +1998,7 @@ function loadDbCampaignForEditing(campaignId) {
             });
         }
 
-        if (c.message_content && (c.message_content.indexOf('{{trackingUrl}}') !== -1 || c.message_content.match(/https?:\/\/qsms\.uk\/|https?:\/\/\S+\.co\.uk\/|https?:\/\/\S+\.com\//))) {
+        if (c.message_content && (c.message_content.indexOf('@{{trackingUrl}}') !== -1 || c.message_content.match(/\{\{trackingUrl\}\}|https?:\/\/qsms\.uk\/|https?:\/\/\S+\.co\.uk\/|https?:\/\/\S+\.com\//))) {
             var trackableToggle = document.getElementById('includeTrackableLink');
             if (trackableToggle) {
                 trackableToggle.checked = true;
