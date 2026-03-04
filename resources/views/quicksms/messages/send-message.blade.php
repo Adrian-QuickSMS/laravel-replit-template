@@ -1384,9 +1384,14 @@ function checkForDuplicatePrefill() {
     var duplicateId = urlParams.get('duplicate');
     var editId = urlParams.get('edit');
     
-    // Handle edit draft
+    // Handle edit draft or DB campaign
     if (editId) {
-        loadDraftForEditing(editId);
+        var editSource = urlParams.get('source');
+        if (editSource === 'db') {
+            loadDbCampaignForEditing(editId);
+        } else {
+            loadDraftForEditing(editId);
+        }
         return;
     }
     
@@ -1893,6 +1898,123 @@ function loadDraftForEditing(draftId) {
     
     // Clear URL parameter
     window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+function loadDbCampaignForEditing(campaignId) {
+    fetch('/api/campaigns/' + campaignId, {
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Failed to load campaign');
+        return r.json();
+    })
+    .then(function(res) {
+        var c = res.data;
+        if (!c) return;
+
+        window._editingDbCampaignId = c.id;
+
+        var campaignNameInput = document.getElementById('campaignName');
+        if (campaignNameInput && c.name) campaignNameInput.value = c.name;
+
+        var typeToChannel = { 'sms': 'sms', 'rcs_basic': 'rcs_basic', 'rcs_single': 'rcs_rich', 'rcs_carousel': 'rcs_rich' };
+        var channelValue = typeToChannel[c.type] || 'sms';
+        var channelRadio = document.querySelector('input[name="channel"][value="' + channelValue + '"]');
+        if (channelRadio) {
+            channelRadio.checked = true;
+            selectChannel(channelValue);
+        }
+
+        if (c.sender_id_id) {
+            var senderSelect = document.getElementById('senderId');
+            if (senderSelect) {
+                for (var i = 0; i < senderSelect.options.length; i++) {
+                    if (senderSelect.options[i].value == c.sender_id_id) {
+                        senderSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (c.rcs_agent_id) {
+            var rcsAgentSelect = document.getElementById('rcsAgent');
+            if (rcsAgentSelect) {
+                for (var i = 0; i < rcsAgentSelect.options.length; i++) {
+                    if (rcsAgentSelect.options[i].value == c.rcs_agent_id) {
+                        rcsAgentSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (c.message_content) {
+            var smsContent = document.getElementById('smsContent');
+            if (smsContent) {
+                smsContent.value = c.message_content;
+                if (typeof updateCharCount === 'function') updateCharCount();
+            }
+        }
+
+        if (c.rcs_content && c.rcs_content.cards) {
+            try {
+                rcsPersistentPayload = c.rcs_content;
+                sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(c.rcs_content));
+                var configuredSummary = document.getElementById('rcsConfiguredSummary');
+                if (configuredSummary) configuredSummary.classList.remove('d-none');
+            } catch(e) {}
+        }
+
+        if (c.recipient_sources && c.recipient_sources.length > 0) {
+            c.recipient_sources.forEach(function(src) {
+                if (src.type === 'manual' && src.numbers && src.numbers.length > 0) {
+                    var manualNumbers = document.getElementById('manualNumbers');
+                    if (manualNumbers) {
+                        manualNumbers.value = src.numbers.join('\n');
+                        validateManualNumbers();
+                    }
+                }
+            });
+        }
+
+        if (c.opt_out_enabled) {
+            var enableToggle = document.getElementById('enableOptoutManagement');
+            if (enableToggle) {
+                enableToggle.checked = true;
+                if (typeof toggleOptoutManagement === 'function') toggleOptoutManagement();
+            }
+        }
+
+        if (c.scheduled_at) {
+            var scheduleInfo = document.createElement('div');
+            scheduleInfo.className = 'alert alert-info py-2 mt-2';
+            scheduleInfo.innerHTML = '<i class="fas fa-clock me-1"></i>Originally scheduled for: <strong>' + new Date(c.scheduled_at).toLocaleString() + '</strong>';
+            var contentSection = document.querySelector('.card-body');
+            if (contentSection) contentSection.insertAdjacentElement('afterbegin', scheduleInfo);
+        }
+
+        setTimeout(function() {
+            if (typeof updatePreview === 'function') updatePreview();
+            if (typeof updateRecipientSummary === 'function') updateRecipientSummary();
+        }, 300);
+
+        showDraftLoadedNotification(c.name);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    })
+    .catch(function(err) {
+        console.error('Failed to load campaign for editing:', err);
+        var alertHtml = '<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">' +
+            '<i class="fas fa-exclamation-triangle me-2"></i>' +
+            'Failed to load campaign data. Please try again.' +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+            '</div>';
+        var cardBody = document.querySelector('.card-body');
+        if (cardBody) cardBody.insertAdjacentHTML('afterbegin', alertHtml);
+    });
 }
 
 function showDraftLoadedNotification(draftName) {
