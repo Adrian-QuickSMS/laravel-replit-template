@@ -461,7 +461,16 @@ $permissions = [
                                         @endif
                                     </td>
                                     <td class="py-2">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('d/m/Y H:i') }}</td>
-                                    <td class="py-2"></td>
+                                    <td class="py-2 text-end" style="white-space: nowrap;">
+                                        @if($campaign['status'] === 'draft' || $campaign['status'] === 'scheduled')
+                                            <a href="/messages/send?edit={{ $campaign['id'] }}&source=db" class="btn btn-sm btn-outline-primary me-1" onclick="event.stopPropagation();" title="Edit Campaign">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); confirmDeleteDbCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')" title="Delete Campaign">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endif
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr id="emptyStateRow">
@@ -940,8 +949,8 @@ $permissions = [
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="confirmDeleteDraft()">
-                    <i class="fas fa-trash me-1"></i>Delete Draft
+                <button type="button" class="btn btn-danger" onclick="pendingDeleteDbCampaignId ? executeDeleteDbCampaign() : confirmDeleteDraft()">
+                    <i class="fas fa-trash me-1"></i>Delete
                 </button>
             </div>
         </div>
@@ -1228,6 +1237,45 @@ function confirmDeleteDraft() {
         visibleCountEl.textContent = totalRows;
         totalCountEl.textContent = totalRows;
     }
+}
+
+var pendingDeleteDbCampaignId = null;
+var pendingDeleteDbCampaignName = '';
+
+function confirmDeleteDbCampaign(campaignId, campaignName) {
+    pendingDeleteDbCampaignId = campaignId;
+    pendingDeleteDbCampaignName = campaignName;
+    document.getElementById('deleteDraftName').textContent = campaignName || 'this campaign';
+    var modal = new bootstrap.Modal(document.getElementById('deleteDraftModal'));
+    modal.show();
+}
+
+function executeDeleteDbCampaign() {
+    if (!pendingDeleteDbCampaignId) return;
+
+    fetch('/api/campaigns/' + pendingDeleteDbCampaignId, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Delete failed');
+        return r.json();
+    })
+    .then(function() {
+        var row = document.querySelector('tr[data-id="' + pendingDeleteDbCampaignId + '"]');
+        if (row) row.remove();
+        bootstrap.Modal.getInstance(document.getElementById('deleteDraftModal')).hide();
+        pendingDeleteDbCampaignId = null;
+        showToast('Campaign deleted', 'success');
+    })
+    .catch(function(err) {
+        bootstrap.Modal.getInstance(document.getElementById('deleteDraftModal')).hide();
+        pendingDeleteDbCampaignId = null;
+        showToast('Failed to delete campaign', 'error');
+    });
 }
 
 function updateDropdownLabel(dropdown) {
