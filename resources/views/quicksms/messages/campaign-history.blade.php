@@ -1706,7 +1706,7 @@ function updateEngagementMetrics(channel, status, total, delivered, hasTracking)
     var rcsSeenMetrics = document.getElementById('rcsSeenMetrics');
     
     var isRcs = channel === 'basic_rcs' || channel === 'rich_rcs';
-    var showSection = (hasTracking || isRcs) && status !== 'scheduled';
+    var showSection = (hasTracking || isRcs) && status !== 'scheduled' && status !== 'draft' && status !== 'pending';
     
     if (!showSection) {
         engagementCard.style.display = 'none';
@@ -1910,7 +1910,7 @@ function updateMessagePreview(channel, senderId, rcsAgent, template, messageCont
     var previewConfig = {
         senderId: senderId || 'QuickSMS',
         agent: {
-            name: rcsAgent || 'QuickSMS Brand',
+            name: rcsAgent || senderId || 'QuickSMS',
             logo: '{{ asset("images/rcs-agents/quicksms-brand.svg") }}',
             verified: true,
             tagline: 'Business messaging'
@@ -1921,28 +1921,28 @@ function updateMessagePreview(channel, senderId, rcsAgent, template, messageCont
         previewConfig.channel = 'sms';
         previewConfig.message = {
             type: 'text',
-            body: messageContent || noContentMsg
+            content: { body: messageContent || noContentMsg }
         };
     } else if (channel === 'basic_rcs') {
         if (campaignPreviewMode === 'sms') {
             previewConfig.channel = 'sms';
-            previewConfig.message = { type: 'text', body: messageContent || noContentMsg };
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
         } else {
             previewConfig.channel = 'basic_rcs';
-            previewConfig.message = { type: 'text', body: messageContent || noContentMsg };
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
         }
     } else {
         if (campaignPreviewMode === 'sms') {
             previewConfig.channel = 'sms';
-            previewConfig.message = { type: 'text', body: messageContent || noContentMsg };
+            previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
         } else {
             previewConfig.channel = 'rich_rcs';
             if (rcsContent && typeof rcsContent === 'object') {
                 previewConfig.message = rcsContent;
             } else if (messageContent) {
-                previewConfig.message = { type: 'text', body: messageContent };
+                previewConfig.message = { type: 'text', content: { body: messageContent } };
             } else {
-                previewConfig.message = { type: 'text', body: noContentMsg };
+                previewConfig.message = { type: 'text', content: { body: noContentMsg } };
             }
         }
     }
