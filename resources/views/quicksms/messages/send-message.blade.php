@@ -1763,7 +1763,7 @@ function loadDraftForEditing(draftId) {
     
     // Set sender ID
     if (draft.config && draft.config.sender_id) {
-        var senderSelect = document.getElementById('senderIdSelect');
+        var senderSelect = document.getElementById('senderId');
         if (senderSelect) {
             for (var i = 0; i < senderSelect.options.length; i++) {
                 if (senderSelect.options[i].value === draft.config.sender_id || 
@@ -1777,7 +1777,7 @@ function loadDraftForEditing(draftId) {
     
     // Set RCS agent
     if (draft.config && draft.config.rcs_agent) {
-        var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+        var rcsAgentSelect = document.getElementById('rcsAgent');
         if (rcsAgentSelect) {
             for (var i = 0; i < rcsAgentSelect.options.length; i++) {
                 if (rcsAgentSelect.options[i].value === draft.config.rcs_agent || 
@@ -1794,18 +1794,61 @@ function loadDraftForEditing(draftId) {
         var smsContent = document.getElementById('smsContent');
         if (smsContent) {
             smsContent.value = draft.config.message_content;
-            updateCharacterCount();
-            updatePreview();
+            if (typeof updateCharCount === 'function') updateCharCount();
+            if (typeof updatePreview === 'function') updatePreview();
         }
     }
     
-    // Set recipients
+    // Set recipients — restore manual numbers
     if (draft.config && draft.config.recipients && draft.config.recipients.length > 0) {
         var manualNumbers = document.getElementById('manualNumbers');
         if (manualNumbers) {
             manualNumbers.value = draft.config.recipients.join('\n');
             validateManualNumbers();
         }
+    }
+
+    // Restore contact book selections (lists, contacts, tags)
+    if (draft.contactBook) {
+        if (draft.contactBook.contacts && draft.contactBook.contacts.length > 0) {
+            recipientState.contactBook.contacts = draft.contactBook.contacts;
+        }
+        if (draft.contactBook.lists && draft.contactBook.lists.length > 0) {
+            recipientState.contactBook.lists = draft.contactBook.lists;
+        }
+        if (draft.contactBook.dynamicLists && draft.contactBook.dynamicLists.length > 0) {
+            recipientState.contactBook.dynamicLists = draft.contactBook.dynamicLists;
+        }
+        if (draft.contactBook.tags && draft.contactBook.tags.length > 0) {
+            recipientState.contactBook.tags = draft.contactBook.tags;
+        }
+        if (typeof renderContactBookChips === 'function') {
+            renderContactBookChips();
+        }
+    }
+
+    // Restore file upload recipients as virtual entries
+    if (draft.fileRecipients && draft.fileRecipients.length > 0) {
+        draft.fileRecipients.forEach(function(f) {
+            recipientState.files.push({
+                id: 'restored_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                name: f.name,
+                size: 0,
+                valid: f.valid || [],
+                invalid: f.invalid || [],
+                mapping: {}
+            });
+        });
+        if (typeof renderUploadedFiles === 'function') {
+            renderUploadedFiles();
+        }
+        if (typeof updateUploadButtonState === 'function') {
+            updateUploadButtonState();
+        }
+    }
+
+    if (typeof updateRecipientSummary === 'function') {
+        updateRecipientSummary();
     }
     
     // Set trackable link
@@ -3307,11 +3350,13 @@ function collectCampaignConfig() {
     };
     var mappedChannel = channelMap[channelValue] || 'sms_only';
     
-    var senderSelect = document.getElementById('senderIdSelect');
+    var senderSelect = document.getElementById('senderId');
     var senderId = senderSelect ? senderSelect.value : '';
+    var senderDisplayName = (senderSelect && senderSelect.selectedIndex > 0) ? senderSelect.options[senderSelect.selectedIndex].text : senderId;
     
-    var rcsAgentSelect = document.getElementById('rcsAgentSelect');
+    var rcsAgentSelect = document.getElementById('rcsAgent');
     var rcsAgent = (rcsAgentSelect && rcsAgentSelect.value) ? rcsAgentSelect.value : null;
+    var rcsAgentDisplayName = (rcsAgentSelect && rcsAgentSelect.selectedIndex > 0) ? rcsAgentSelect.options[rcsAgentSelect.selectedIndex].text : rcsAgent;
     
     var smsContent = document.getElementById('smsContent').value.trim();
     
@@ -3346,7 +3391,9 @@ function collectCampaignConfig() {
     return {
         channel: mappedChannel,
         sender_id: senderId,
+        sender_display_name: senderDisplayName,
         rcs_agent: rcsAgent,
+        rcs_agent_display_name: rcsAgentDisplayName,
         message_content: smsContent,
         template: templateName,
         trackable_link: trackableLinkEnabled,
@@ -3413,12 +3460,23 @@ function confirmSaveDraft() {
     
     var config = collectCampaignConfig();
     
+    var contactBookState = {
+        contacts: recipientState.contactBook.contacts.slice(),
+        lists: recipientState.contactBook.lists.slice(),
+        dynamicLists: recipientState.contactBook.dynamicLists.slice(),
+        tags: recipientState.contactBook.tags.slice()
+    };
+
+    var fileRecipients = recipientState.files.map(function(f) {
+        return { name: f.name, valid: f.valid.slice(), invalid: f.invalid.slice() };
+    });
+
     var draftData = {
         id: 'draft_' + Date.now(),
         name: draftName,
         channel: config.channel,
-        sender_id: config.sender_id || 'Not set',
-        rcs_agent: config.rcs_agent || null,
+        sender_id: config.sender_display_name || config.sender_id || 'Not set',
+        rcs_agent: config.rcs_agent_display_name || config.rcs_agent || null,
         status: 'draft',
         send_date: null,
         recipients: config.recipients ? config.recipients.length : 0,
@@ -3430,7 +3488,9 @@ function confirmSaveDraft() {
         has_tracking: config.trackable_link ? 'yes' : 'no',
         has_optout: config.optout_enabled ? 'yes' : 'no',
         created_at: new Date().toISOString(),
-        config: config
+        config: config,
+        contactBook: contactBookState,
+        fileRecipients: fileRecipients
     };
     
     var drafts = JSON.parse(localStorage.getItem('quicksms_drafts') || '[]');
