@@ -33,8 +33,9 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     margin-top: 0.5rem;
     width: 100%;
+    max-width: 100%;
     min-width: 0;
-    overflow-x: auto;
+    overflow: hidden;
 }
 
 .table-container .dropdown-menu {
@@ -55,22 +56,20 @@
 
 .api-table {
     width: 100%;
-    min-width: 700px;
+    table-layout: fixed;
     margin: 0;
 }
 
-/* Flexible column widths that total 100% */
-.api-table th:nth-child(1) { width: 13%; min-width: 90px; }
-.api-table th:nth-child(2) { width: 25%; min-width: 150px; }
-.api-table th:nth-child(3) { width: 11%; min-width: 80px; }
-.api-table th:nth-child(4) { width: 12%; min-width: 90px; }
-.api-table th:nth-child(5) { width: 14%; min-width: 100px; }
-.api-table th:nth-child(6) { width: 15%; min-width: 110px; }
-.api-table th:nth-child(7) { width: 10%; min-width: 70px; }
+.api-table th:nth-child(1) { width: 14%; }
+.api-table th:nth-child(2) { width: 28%; }
+.api-table th:nth-child(3) { width: 10%; }
+.api-table th:nth-child(4) { width: 12%; }
+.api-table th:nth-child(5) { width: 10%; }
+.api-table th:nth-child(6) { width: 14%; }
+.api-table th:nth-child(7) { width: 12%; }
 
 .api-table thead th:last-child { 
     text-align: center; 
-    width: 70px; 
 }
 
 .api-table td,
