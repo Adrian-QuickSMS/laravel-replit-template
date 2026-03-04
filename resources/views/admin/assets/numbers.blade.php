@@ -331,6 +331,15 @@
 .badge-admin-suspended { background: rgba(220, 53, 69, 0.15); color: #dc3545; }
 .badge-admin-pending { background: rgba(74, 144, 217, 0.15); color: var(--admin-accent); }
 .badge-admin-portal { background: rgba(74, 144, 217, 0.15); color: var(--admin-accent); }
+.badge-pastel-secondary {
+    background: rgba(30, 58, 95, 0.12);
+    color: #1e3a5f;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2em 0.55em;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+}
 .badge-admin-api { background: rgba(30, 58, 95, 0.15); color: var(--admin-primary); }
 
 .type-vmn { color: var(--admin-primary); font-weight: 500; }
