@@ -300,6 +300,80 @@
                                     </div>
                                 </div>
                                 <input type="hidden" id="selectedChannel" value="sms">
+
+                                <hr class="my-4">
+                                <h6 class="mb-3">Sender & Agent</h6>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Sender ID</label>
+                                        <input type="text" class="form-control" id="templateSenderId" placeholder="e.g. QuickSMS, BrandName">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">RCS Agent</label>
+                                        <input type="text" class="form-control" id="templateRcsAgent" placeholder="e.g. Brand Agent Name">
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+                                <h6 class="mb-3">Opt-out Configuration</h6>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="optOutEnabled" onchange="toggleOptOutSection()">
+                                    <label class="form-check-label" for="optOutEnabled">Enable opt-out</label>
+                                </div>
+                                <div class="d-none" id="optOutSection">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Method</label>
+                                            <select class="form-select" id="optOutMethod">
+                                                <option value="reply">Reply keyword</option>
+                                                <option value="url">Click URL</option>
+                                                <option value="both">Reply + URL</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Keyword</label>
+                                            <input type="text" class="form-control" id="optOutKeyword" value="STOP" placeholder="e.g. STOP" maxlength="10">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Opt-out Text</label>
+                                            <input type="text" class="form-control" id="optOutText" placeholder="e.g. Reply STOP to opt out">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr class="my-4">
+                                <h6 class="mb-3">Additional Features</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="trackableLinkEnabled" onchange="toggleTrackableLinkSection()">
+                                            <label class="form-check-label" for="trackableLinkEnabled">Enable trackable link</label>
+                                        </div>
+                                        <div class="d-none mb-3" id="trackableLinkSection">
+                                            <label class="form-label">Link Domain</label>
+                                            <input type="text" class="form-control form-control-sm" id="trackableLinkDomain" value="qsms.uk" placeholder="e.g. qsms.uk">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch mb-2">
+                                            <input class="form-check-input" type="checkbox" id="messageExpiryEnabled" onchange="toggleMessageExpirySection()">
+                                            <label class="form-check-label" for="messageExpiryEnabled">Enable message expiry</label>
+                                        </div>
+                                        <div class="d-none mb-3" id="messageExpirySection">
+                                            <label class="form-label">Expiry Duration</label>
+                                            <select class="form-select form-select-sm" id="messageExpiryValue">
+                                                <option value="10 Minutes">10 Minutes</option>
+                                                <option value="30 Minutes">30 Minutes</option>
+                                                <option value="1 Hour">1 Hour</option>
+                                                <option value="4 Hours">4 Hours</option>
+                                                <option value="12 Hours">12 Hours</option>
+                                                <option value="24 Hours" selected>24 Hours</option>
+                                                <option value="48 Hours">48 Hours</option>
+                                                <option value="72 Hours">72 Hours</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <div id="step2Content" class="wizard-step-content">
@@ -363,15 +437,42 @@
                                                         <td class="text-muted">Account:</td>
                                                         <td id="reviewAccount">-</td>
                                                     </tr>
+                                                    <tr>
+                                                        <td class="text-muted">Sender ID:</td>
+                                                        <td id="reviewSenderId">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">RCS Agent:</td>
+                                                        <td id="reviewRcsAgent">-</td>
+                                                    </tr>
                                                 </table>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="card bg-light border-0">
+                                        <div class="card bg-light border-0 mb-3">
                                             <div class="card-body">
                                                 <h6 class="text-muted mb-3">Message Content</h6>
                                                 <div id="reviewContent" class="p-2 bg-white rounded border">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="card bg-light border-0">
+                                            <div class="card-body">
+                                                <h6 class="text-muted mb-3">Features</h6>
+                                                <table class="table table-sm table-borderless mb-0">
+                                                    <tr>
+                                                        <td class="text-muted" style="width: 120px;">Opt-out:</td>
+                                                        <td id="reviewOptOut">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">Trackable Link:</td>
+                                                        <td id="reviewTrackableLink">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">Message Expiry:</td>
+                                                        <td id="reviewMessageExpiry">-</td>
+                                                    </tr>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
@@ -437,18 +538,18 @@ var templateData = null;
 var isReadOnly = false;
 
 var mockTemplates = {
-    'TPL-12345678': { templateId: 'TPL-12345678', name: 'Welcome Message', accountId: 'ACC-1234', accountName: 'Acme Corporation', channel: 'sms', trigger: 'portal', content: 'Hi {FirstName}, welcome to Acme Corporation! Your account is now active.', status: 'live' },
-    'TPL-23456789': { templateId: 'TPL-23456789', name: 'Order Confirmation', accountId: 'ACC-1234', accountName: 'Acme Corporation', channel: 'basic_rcs', trigger: 'api', content: 'Thank you for your order #{OrderID}. Your items will be shipped within 2-3 business days.', status: 'live' },
-    'TPL-34567890': { templateId: 'TPL-34567890', name: 'Appointment Reminder', accountId: 'ACC-5678', accountName: 'TechStart Ltd', channel: 'sms', trigger: 'api', content: 'Reminder: Your appointment is scheduled for {Date} at {Time}. Reply YES to confirm.', status: 'live' },
-    'TPL-45678901': { templateId: 'TPL-45678901', name: 'Product Launch', accountId: 'ACC-5678', accountName: 'TechStart Ltd', channel: 'rich_rcs', trigger: 'portal', content: '', status: 'draft' },
-    'TPL-56789012': { templateId: 'TPL-56789012', name: 'Course Enrollment', accountId: 'ACC-9012', accountName: 'EduLearn Academy', channel: 'sms', trigger: 'email-to-sms', content: 'Welcome to {CourseName}! Your enrollment is confirmed. Class starts {StartDate}.', status: 'live' },
-    'TPL-67890123': { templateId: 'TPL-67890123', name: 'Prescription Ready', accountId: 'ACC-3456', accountName: 'HealthCare Plus', channel: 'sms', trigger: 'api', content: 'Your prescription is ready for pickup at {PharmacyName}. Ref: {RxNumber}', status: 'live' },
-    'TPL-78901234': { templateId: 'TPL-78901234', name: 'Health Tips', accountId: 'ACC-3456', accountName: 'HealthCare Plus', channel: 'basic_rcs', trigger: 'portal', content: 'Weekly Health Tip: {TipContent}. Stay healthy with HealthCare Plus!', status: 'draft' },
-    'TPL-89012345': { templateId: 'TPL-89012345', name: 'Flash Sale Alert', accountId: 'ACC-7890', accountName: 'RetailMax Group', channel: 'rich_rcs', trigger: 'portal', content: '', status: 'suspended' },
-    'TPL-90123456': { templateId: 'TPL-90123456', name: 'Account Statement', accountId: 'ACC-2345', accountName: 'FinServe Solutions', channel: 'sms', trigger: 'api', content: 'Your {Month} statement is ready. Balance: {Balance}. View at {PortalURL}', status: 'live' },
-    'TPL-01234567': { templateId: 'TPL-01234567', name: 'Campaign Update', accountId: 'ACC-6789', accountName: 'MediaFlow Digital', channel: 'basic_rcs', trigger: 'api', content: 'Campaign "{CampaignName}" performance update: {Impressions} impressions, {Clicks} clicks.', status: 'live' },
-    'TPL-11223344': { templateId: 'TPL-11223344', name: 'Delivery Update', accountId: 'ACC-1234', accountName: 'Acme Corporation', channel: 'sms', trigger: 'api', content: 'Your order {OrderID} is now {Status}. Track at: {TrackingURL}', status: 'live' },
-    'TPL-22334455': { templateId: 'TPL-22334455', name: 'Safety Alert', accountId: 'ACC-0123', accountName: 'BuildRight Construction', channel: 'sms', trigger: 'portal', content: 'SAFETY NOTICE: {AlertType} alert for site {SiteName}. Please follow safety procedures.', status: 'live' }
+    'TPL-12345678': { templateId: 'TPL-12345678', name: 'Welcome Message', accountId: 'ACC-1234', accountName: 'Acme Corporation', channel: 'sms', trigger: 'portal', content: 'Hi {FirstName}, welcome to Acme Corporation! Your account is now active. Reply STOP to opt out.', status: 'live', senderId: 'QuickSMS', rcsAgent: null, optOutEnabled: true, optOutMethod: 'reply', optOutKeyword: 'STOP', optOutText: 'Reply STOP to opt out', trackableLinkEnabled: false, trackableLinkDomain: null, messageExpiryEnabled: false, messageExpiryValue: null },
+    'TPL-23456789': { templateId: 'TPL-23456789', name: 'Order Confirmation', accountId: 'ACC-1234', accountName: 'Acme Corporation', channel: 'basic_rcs', trigger: 'api', content: 'Thank you for your order #{OrderID}. Your items will be shipped within 2-3 business days.', status: 'live', senderId: 'AcmeCorp', rcsAgent: 'Acme Appointments', optOutEnabled: true, optOutMethod: 'url', optOutKeyword: null, optOutText: 'Opt-out: Click {unique_url}', trackableLinkEnabled: true, trackableLinkDomain: 'qsms.uk', messageExpiryEnabled: true, messageExpiryValue: '24 Hours' },
+    'TPL-34567890': { templateId: 'TPL-34567890', name: 'Appointment Reminder', accountId: 'ACC-5678', accountName: 'TechStart Ltd', channel: 'sms', trigger: 'api', content: 'Reminder: Your appointment is scheduled for {Date} at {Time}. Reply YES to confirm.', status: 'live', senderId: 'TechStart', rcsAgent: null, optOutEnabled: false, optOutMethod: null, optOutKeyword: null, optOutText: null, trackableLinkEnabled: false, trackableLinkDomain: null, messageExpiryEnabled: false, messageExpiryValue: null },
+    'TPL-45678901': { templateId: 'TPL-45678901', name: 'Product Launch', accountId: 'ACC-5678', accountName: 'TechStart Ltd', channel: 'rich_rcs', trigger: 'portal', content: '', status: 'draft', senderId: null, rcsAgent: 'TechStart Brand', optOutEnabled: false, optOutMethod: null, optOutKeyword: null, optOutText: null, trackableLinkEnabled: true, trackableLinkDomain: 'tst.link', messageExpiryEnabled: false, messageExpiryValue: null },
+    'TPL-56789012': { templateId: 'TPL-56789012', name: 'Course Enrollment', accountId: 'ACC-9012', accountName: 'EduLearn Academy', channel: 'sms', trigger: 'email-to-sms', content: 'Welcome to {CourseName}! Your enrollment is confirmed. Class starts {StartDate}.', status: 'live', senderId: 'EduLearn', rcsAgent: null, optOutEnabled: false, optOutMethod: null, optOutKeyword: null, optOutText: null, trackableLinkEnabled: true, trackableLinkDomain: 'qsms.uk', messageExpiryEnabled: false, messageExpiryValue: null },
+    'TPL-67890123': { templateId: 'TPL-67890123', name: 'Prescription Ready', accountId: 'ACC-3456', accountName: 'HealthCare Plus', channel: 'sms', trigger: 'api', content: 'Your prescription is ready for pickup at {PharmacyName}. Ref: {RxNumber}', status: 'live', senderId: 'HC-Verify', rcsAgent: null, optOutEnabled: false, optOutMethod: null, optOutKeyword: null, optOutText: null, trackableLinkEnabled: false, trackableLinkDomain: null, messageExpiryEnabled: true, messageExpiryValue: '10 Minutes' },
+    'TPL-78901234': { templateId: 'TPL-78901234', name: 'Health Tips', accountId: 'ACC-3456', accountName: 'HealthCare Plus', channel: 'basic_rcs', trigger: 'portal', content: 'Weekly Health Tip: {TipContent}. Stay healthy with HealthCare Plus!', status: 'draft', senderId: 'HC-Deals', rcsAgent: 'HealthCare Deals', optOutEnabled: true, optOutMethod: 'both', optOutKeyword: 'STOP', optOutText: 'Reply STOP or click {unique_url}', trackableLinkEnabled: true, trackableLinkDomain: 'hcp.link', messageExpiryEnabled: true, messageExpiryValue: '24 Hours' },
+    'TPL-89012345': { templateId: 'TPL-89012345', name: 'Flash Sale Alert', accountId: 'ACC-7890', accountName: 'RetailMax Group', channel: 'rich_rcs', trigger: 'portal', content: '', status: 'suspended', senderId: null, rcsAgent: 'RetailMax Support', optOutEnabled: true, optOutMethod: 'url', optOutKeyword: null, optOutText: 'Unsubscribe: {unique_url}', trackableLinkEnabled: false, trackableLinkDomain: null, messageExpiryEnabled: false, messageExpiryValue: null },
+    'TPL-90123456': { templateId: 'TPL-90123456', name: 'Account Statement', accountId: 'ACC-2345', accountName: 'FinServe Solutions', channel: 'sms', trigger: 'api', content: 'Your {Month} statement is ready. Balance: {Balance}. View at {PortalURL}', status: 'live', senderId: 'FinServe', rcsAgent: null, optOutEnabled: true, optOutMethod: 'reply', optOutKeyword: 'STOP', optOutText: 'Reply STOP to unsubscribe', trackableLinkEnabled: false, trackableLinkDomain: null, messageExpiryEnabled: false, messageExpiryValue: null },
+    'TPL-01234567': { templateId: 'TPL-01234567', name: 'Campaign Update', accountId: 'ACC-6789', accountName: 'MediaFlow Digital', channel: 'basic_rcs', trigger: 'api', content: 'Campaign "{CampaignName}" performance update: {Impressions} impressions, {Clicks} clicks.', status: 'live', senderId: null, rcsAgent: 'MediaFlow Events', optOutEnabled: false, optOutMethod: null, optOutKeyword: null, optOutText: null, trackableLinkEnabled: true, trackableLinkDomain: 'mf.link', messageExpiryEnabled: true, messageExpiryValue: '72 Hours' },
+    'TPL-11223344': { templateId: 'TPL-11223344', name: 'Delivery Update', accountId: 'ACC-1234', accountName: 'Acme Corporation', channel: 'sms', trigger: 'api', content: 'Your order {OrderID} is now {Status}. Track at: {TrackingURL}', status: 'live', senderId: 'AcmeDlvry', rcsAgent: null, optOutEnabled: true, optOutMethod: 'reply', optOutKeyword: 'STOP', optOutText: 'Reply STOP to opt out', trackableLinkEnabled: true, trackableLinkDomain: 'qsms.uk', messageExpiryEnabled: true, messageExpiryValue: '4 Hours' },
+    'TPL-22334455': { templateId: 'TPL-22334455', name: 'Safety Alert', accountId: 'ACC-0123', accountName: 'BuildRight Construction', channel: 'sms', trigger: 'portal', content: 'SAFETY NOTICE: {AlertType} alert for site {SiteName}. Please follow safety procedures.', status: 'live', senderId: 'BR-Safety', rcsAgent: null, optOutEnabled: false, optOutMethod: null, optOutKeyword: null, optOutText: null, trackableLinkEnabled: false, trackableLinkDomain: null, messageExpiryEnabled: false, messageExpiryValue: null }
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -504,7 +605,31 @@ async function loadTemplate() {
     
     selectChannel(templateData.channel);
     updateCharCount();
-    
+
+    // Populate new fields from template data
+    if (templateData.senderId) document.getElementById('templateSenderId').value = templateData.senderId;
+    if (templateData.rcsAgent) document.getElementById('templateRcsAgent').value = templateData.rcsAgent;
+
+    if (templateData.optOutEnabled) {
+        document.getElementById('optOutEnabled').checked = true;
+        toggleOptOutSection();
+        if (templateData.optOutMethod) document.getElementById('optOutMethod').value = templateData.optOutMethod;
+        if (templateData.optOutKeyword) document.getElementById('optOutKeyword').value = templateData.optOutKeyword;
+        if (templateData.optOutText) document.getElementById('optOutText').value = templateData.optOutText;
+    }
+
+    if (templateData.trackableLinkEnabled) {
+        document.getElementById('trackableLinkEnabled').checked = true;
+        toggleTrackableLinkSection();
+        if (templateData.trackableLinkDomain) document.getElementById('trackableLinkDomain').value = templateData.trackableLinkDomain;
+    }
+
+    if (templateData.messageExpiryEnabled) {
+        document.getElementById('messageExpiryEnabled').checked = true;
+        toggleMessageExpirySection();
+        if (templateData.messageExpiryValue) document.getElementById('messageExpiryValue').value = templateData.messageExpiryValue;
+    }
+
     loadingOverlay.classList.add('d-none');
     wizardContent.classList.remove('d-none');
     
@@ -523,14 +648,29 @@ function selectChannel(channel) {
     document.querySelectorAll('.channel-tile').forEach(function(tile) {
         tile.classList.remove('selected');
     });
-    
+
     if (channel === 'sms') {
         document.getElementById('channelSms').classList.add('selected');
     } else if (channel === 'basic_rcs') {
         document.getElementById('channelBasicRcs').classList.add('selected');
     }
-    
+
     document.getElementById('selectedChannel').value = channel;
+}
+
+function toggleOptOutSection() {
+    var section = document.getElementById('optOutSection');
+    section.classList.toggle('d-none', !document.getElementById('optOutEnabled').checked);
+}
+
+function toggleTrackableLinkSection() {
+    var section = document.getElementById('trackableLinkSection');
+    section.classList.toggle('d-none', !document.getElementById('trackableLinkEnabled').checked);
+}
+
+function toggleMessageExpirySection() {
+    var section = document.getElementById('messageExpirySection');
+    section.classList.toggle('d-none', !document.getElementById('messageExpiryEnabled').checked);
 }
 
 function goToStep(step) {
@@ -614,10 +754,35 @@ function populateReview() {
     document.getElementById('reviewTrigger').textContent = triggerLabel;
     
     document.getElementById('reviewAccount').textContent = templateData.accountName + ' (' + templateData.accountId + ')';
-    
+    document.getElementById('reviewSenderId').textContent = document.getElementById('templateSenderId').value || '-';
+    document.getElementById('reviewRcsAgent').textContent = document.getElementById('templateRcsAgent').value || '-';
+
     var content = document.getElementById('templateContent').value;
     var highlightedContent = content.replace(/\{(\w+)\}/g, '<span class="badge bg-info text-dark">{$1}</span>');
     document.getElementById('reviewContent').innerHTML = highlightedContent || '-';
+
+    // Populate features review
+    if (document.getElementById('optOutEnabled').checked) {
+        var method = document.getElementById('optOutMethod').value;
+        var keyword = document.getElementById('optOutKeyword').value;
+        document.getElementById('reviewOptOut').innerHTML = '<span class="badge bg-success">Enabled</span> <small class="text-muted">(' + method + (keyword ? ', ' + keyword : '') + ')</small>';
+    } else {
+        document.getElementById('reviewOptOut').innerHTML = '<span class="badge bg-secondary">Disabled</span>';
+    }
+
+    if (document.getElementById('trackableLinkEnabled').checked) {
+        var domain = document.getElementById('trackableLinkDomain').value || 'qsms.uk';
+        document.getElementById('reviewTrackableLink').innerHTML = '<span class="badge bg-success">Enabled</span> <small class="text-muted">(' + domain + ')</small>';
+    } else {
+        document.getElementById('reviewTrackableLink').innerHTML = '<span class="badge bg-secondary">Disabled</span>';
+    }
+
+    if (document.getElementById('messageExpiryEnabled').checked) {
+        var expiry = document.getElementById('messageExpiryValue').value;
+        document.getElementById('reviewMessageExpiry').innerHTML = '<span class="badge bg-success">Enabled</span> <small class="text-muted">(' + expiry + ')</small>';
+    } else {
+        document.getElementById('reviewMessageExpiry').innerHTML = '<span class="badge bg-secondary">Disabled</span>';
+    }
 }
 
 function updateCharCount() {
@@ -669,7 +834,17 @@ async function saveTemplate() {
         channel: document.getElementById('selectedChannel').value,
         content: document.getElementById('templateContent').value,
         changeNote: document.getElementById('changeNote').value.trim() || 'Updated by Admin',
-        setLive: document.getElementById('setLive').checked
+        setLive: document.getElementById('setLive').checked,
+        senderId: document.getElementById('templateSenderId').value.trim() || null,
+        rcsAgent: document.getElementById('templateRcsAgent').value.trim() || null,
+        optOutEnabled: document.getElementById('optOutEnabled').checked,
+        optOutMethod: document.getElementById('optOutEnabled').checked ? document.getElementById('optOutMethod').value : null,
+        optOutKeyword: document.getElementById('optOutEnabled').checked ? document.getElementById('optOutKeyword').value.trim() : null,
+        optOutText: document.getElementById('optOutEnabled').checked ? document.getElementById('optOutText').value.trim() : null,
+        trackableLinkEnabled: document.getElementById('trackableLinkEnabled').checked,
+        trackableLinkDomain: document.getElementById('trackableLinkEnabled').checked ? document.getElementById('trackableLinkDomain').value.trim() : null,
+        messageExpiryEnabled: document.getElementById('messageExpiryEnabled').checked,
+        messageExpiryValue: document.getElementById('messageExpiryEnabled').checked ? document.getElementById('messageExpiryValue').value : null
     };
     
     if (typeof AdminControlPlane !== 'undefined') {
