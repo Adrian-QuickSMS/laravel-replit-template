@@ -42,7 +42,7 @@ const AdminTemplatesService = (function() {
             name: 'Welcome Message',
             channel: 'sms',
             trigger: 'portal',
-            content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active. Reply HELP for support or STOP to opt out.',
+            content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active. Reply STOP to opt out.',
             contentType: 'text',
             accessScope: 'All Sub-accounts',
             subAccounts: ['all'],
@@ -50,7 +50,17 @@ const AdminTemplatesService = (function() {
             version: 3,
             lastUpdated: '2026-01-05',
             createdBy: 'John Smith',
-            createdAt: '2026-01-01'
+            createdAt: '2026-01-01',
+            senderId: 'QuickSMS',
+            rcsAgent: null,
+            optOutEnabled: true,
+            optOutMethod: 'reply',
+            optOutKeyword: 'STOP',
+            optOutText: 'Reply STOP to opt out',
+            trackableLinkEnabled: false,
+            trackableLinkDomain: null,
+            messageExpiryEnabled: false,
+            messageExpiryValue: null
         },
         {
             id: 2,
@@ -68,7 +78,17 @@ const AdminTemplatesService = (function() {
             version: 2,
             lastUpdated: '2026-01-04',
             createdBy: 'Mike Wilson',
-            createdAt: '2026-01-02'
+            createdAt: '2026-01-02',
+            senderId: 'AcmeCorp',
+            rcsAgent: 'Acme Appointments',
+            optOutEnabled: true,
+            optOutMethod: 'url',
+            optOutKeyword: null,
+            optOutText: 'Opt-out: Click {unique_url}',
+            trackableLinkEnabled: true,
+            trackableLinkDomain: 'qsms.uk',
+            messageExpiryEnabled: true,
+            messageExpiryValue: '24 Hours'
         },
         {
             id: 3,
@@ -86,7 +106,17 @@ const AdminTemplatesService = (function() {
             version: 1,
             lastUpdated: '2026-01-06',
             createdBy: 'Sarah Jones',
-            createdAt: '2026-01-06'
+            createdAt: '2026-01-06',
+            senderId: null,
+            rcsAgent: 'TechStart Brand',
+            optOutEnabled: false,
+            optOutMethod: null,
+            optOutKeyword: null,
+            optOutText: null,
+            trackableLinkEnabled: true,
+            trackableLinkDomain: 'tst.link',
+            messageExpiryEnabled: false,
+            messageExpiryValue: null
         },
         {
             id: 4,
@@ -104,7 +134,17 @@ const AdminTemplatesService = (function() {
             version: 4,
             lastUpdated: '2025-12-20',
             createdBy: 'Lisa Chen',
-            createdAt: '2025-12-01'
+            createdAt: '2025-12-01',
+            senderId: null,
+            rcsAgent: 'TechStart Promos',
+            optOutEnabled: true,
+            optOutMethod: 'url',
+            optOutKeyword: null,
+            optOutText: 'Unsubscribe: {unique_url}',
+            trackableLinkEnabled: true,
+            trackableLinkDomain: 'tst.link',
+            messageExpiryEnabled: true,
+            messageExpiryValue: '48 Hours'
         },
         {
             id: 5,
@@ -122,7 +162,17 @@ const AdminTemplatesService = (function() {
             version: 1,
             lastUpdated: '2026-01-03',
             createdBy: 'Admin User',
-            createdAt: '2026-01-03'
+            createdAt: '2026-01-03',
+            senderId: 'EduLearn',
+            rcsAgent: null,
+            optOutEnabled: false,
+            optOutMethod: null,
+            optOutKeyword: null,
+            optOutText: null,
+            trackableLinkEnabled: true,
+            trackableLinkDomain: 'qsms.uk',
+            messageExpiryEnabled: false,
+            messageExpiryValue: null
         },
         {
             id: 6,
@@ -140,7 +190,17 @@ const AdminTemplatesService = (function() {
             version: 5,
             lastUpdated: '2025-11-15',
             createdBy: 'Emily Brown',
-            createdAt: '2025-07-15'
+            createdAt: '2025-07-15',
+            senderId: 'HC-Verify',
+            rcsAgent: null,
+            optOutEnabled: false,
+            optOutMethod: null,
+            optOutKeyword: null,
+            optOutText: null,
+            trackableLinkEnabled: false,
+            trackableLinkDomain: null,
+            messageExpiryEnabled: true,
+            messageExpiryValue: '10 Minutes'
         },
         {
             id: 7,
@@ -158,7 +218,17 @@ const AdminTemplatesService = (function() {
             version: 1,
             lastUpdated: '2026-01-07',
             createdBy: 'David Lee',
-            createdAt: '2026-01-07'
+            createdAt: '2026-01-07',
+            senderId: 'HC-Deals',
+            rcsAgent: 'HealthCare Deals',
+            optOutEnabled: true,
+            optOutMethod: 'both',
+            optOutKeyword: 'STOP',
+            optOutText: 'Reply STOP or click {unique_url}',
+            trackableLinkEnabled: true,
+            trackableLinkDomain: 'hcp.link',
+            messageExpiryEnabled: true,
+            messageExpiryValue: '24 Hours'
         },
         {
             id: 8,
@@ -176,7 +246,17 @@ const AdminTemplatesService = (function() {
             version: 2,
             lastUpdated: '2026-01-02',
             createdBy: 'Sarah Jones',
-            createdAt: '2025-12-28'
+            createdAt: '2025-12-28',
+            senderId: null,
+            rcsAgent: 'RetailMax Support',
+            optOutEnabled: true,
+            optOutMethod: 'url',
+            optOutKeyword: null,
+            optOutText: 'Unsubscribe: {unique_url}',
+            trackableLinkEnabled: false,
+            trackableLinkDomain: null,
+            messageExpiryEnabled: false,
+            messageExpiryValue: null
         },
         {
             id: 9,
@@ -194,7 +274,17 @@ const AdminTemplatesService = (function() {
             version: 1,
             lastUpdated: '2026-01-08',
             createdBy: 'Finance Admin',
-            createdAt: '2026-01-08'
+            createdAt: '2026-01-08',
+            senderId: 'FinServe',
+            rcsAgent: null,
+            optOutEnabled: true,
+            optOutMethod: 'reply',
+            optOutKeyword: 'STOP',
+            optOutText: 'Reply STOP to unsubscribe',
+            trackableLinkEnabled: false,
+            trackableLinkDomain: null,
+            messageExpiryEnabled: false,
+            messageExpiryValue: null
         },
         {
             id: 10,
@@ -212,7 +302,17 @@ const AdminTemplatesService = (function() {
             version: 2,
             lastUpdated: '2026-01-01',
             createdBy: 'Marketing Lead',
-            createdAt: '2025-12-15'
+            createdAt: '2025-12-15',
+            senderId: null,
+            rcsAgent: 'MediaFlow Events',
+            optOutEnabled: false,
+            optOutMethod: null,
+            optOutKeyword: null,
+            optOutText: null,
+            trackableLinkEnabled: true,
+            trackableLinkDomain: 'mf.link',
+            messageExpiryEnabled: true,
+            messageExpiryValue: '72 Hours'
         },
         {
             id: 11,
@@ -230,7 +330,17 @@ const AdminTemplatesService = (function() {
             version: 3,
             lastUpdated: '2026-01-09',
             createdBy: 'Ops Manager',
-            createdAt: '2025-11-01'
+            createdAt: '2025-11-01',
+            senderId: 'AcmeDlvry',
+            rcsAgent: null,
+            optOutEnabled: true,
+            optOutMethod: 'reply',
+            optOutKeyword: 'STOP',
+            optOutText: 'Reply STOP to opt out',
+            trackableLinkEnabled: true,
+            trackableLinkDomain: 'qsms.uk',
+            messageExpiryEnabled: true,
+            messageExpiryValue: '4 Hours'
         },
         {
             id: 12,
@@ -248,7 +358,17 @@ const AdminTemplatesService = (function() {
             version: 1,
             lastUpdated: '2026-01-10',
             createdBy: 'Safety Officer',
-            createdAt: '2026-01-10'
+            createdAt: '2026-01-10',
+            senderId: 'BR-Safety',
+            rcsAgent: null,
+            optOutEnabled: false,
+            optOutMethod: null,
+            optOutKeyword: null,
+            optOutText: null,
+            trackableLinkEnabled: false,
+            trackableLinkDomain: null,
+            messageExpiryEnabled: false,
+            messageExpiryValue: null
         }
     ];
 

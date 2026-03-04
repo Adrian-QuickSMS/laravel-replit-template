@@ -77,6 +77,7 @@ auth:sanctum middleware         Admin-only middleware
 | Supplier Rate Cards | `suppliers`, `gateways`, `mcc_mnc_master`, `rate_cards`, `fx_rates`, `rate_card_audit_log` |
 | Reporting | Finance data with drill-down (Month → user-chosen dimension) |
 | RCS Media Assets | `rcs_assets` — tenant-scoped via `account_id`, draft lifecycle, daily cleanup |
+| Message Templates | `message_templates` — reusable SMS/RCS templates with sender ID, opt-out config, trackable links, message expiry. 33 fillable fields including `sender_id_id`, `rcs_agent_id`, opt-out fields, `trackable_link_*`, `message_expiry_*`. Customer CRUD at `/api/message-templates`. Admin list at `/admin/management/templates` (currently mock data via `admin-templates-service.js`). |
 | Billing Snapshots | `campaign_estimate_snapshots` — immutable pricing record frozen at campaign send time |
 
 ### RCS Rich Messaging Backend

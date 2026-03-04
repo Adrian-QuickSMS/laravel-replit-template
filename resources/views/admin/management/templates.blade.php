@@ -288,6 +288,11 @@
     text-overflow: ellipsis;
     display: block;
 }
+.api-table td.features-cell {
+    white-space: normal !important;
+    max-width: none;
+    overflow: visible;
+}
 .channel-text {
     font-size: 0.85rem;
     color: #495057;
@@ -665,7 +670,9 @@
                                 <th data-sort="version">Ver <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="channel">Channel <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="trigger">Trigger <i class="fas fa-sort sort-icon"></i></th>
+                                <th data-sort="senderId">Sender / Agent <i class="fas fa-sort sort-icon"></i></th>
                                 <th>Preview</th>
+                                <th>Features</th>
                                 <th data-sort="accessScope">Scope <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="status">Status <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="lastUpdated">Updated <i class="fas fa-sort sort-icon"></i></th>
@@ -734,9 +741,33 @@
                         <div id="viewStatus">-</div>
                     </div>
                 </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">Sender ID</label>
+                        <div class="fw-medium" id="viewSenderId">-</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small mb-1">RCS Agent</label>
+                        <div class="fw-medium" id="viewRcsAgent">-</div>
+                    </div>
+                </div>
                 <div class="mb-3">
                     <label class="form-label text-muted small mb-1">Content</label>
                     <div class="border rounded p-3 bg-light" id="viewContent">-</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Opt-out</label>
+                        <div id="viewOptOut">-</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Trackable Link</label>
+                        <div id="viewTrackableLink">-</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small mb-1">Message Expiry</label>
+                        <div id="viewMessageExpiry">-</div>
+                    </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
@@ -1223,7 +1254,9 @@ function renderTemplates(templates) {
         html += '<td><span class="version-text">v' + template.version + '</span></td>';
         html += '<td><span class="channel-text">' + getChannelLabel(template.channel) + '</span></td>';
         html += '<td>' + getTriggerLabel(template.trigger) + '</td>';
+        html += '<td>' + getSenderAgentLabel(template) + '</td>';
         html += '<td><span class="content-preview">' + getContentPreviewText(template) + '</span></td>';
+        html += '<td class="features-cell">' + getFeaturesIcons(template) + '</td>';
         html += '<td><span class="access-scope">' + template.accessScope + '</span></td>';
         html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span></td>';
         html += '<td>' + template.lastUpdated + '</td>';
@@ -1274,7 +1307,7 @@ function renderTemplates(templates) {
         html += '</tr>';
     });
     
-    tbody.innerHTML = html || '<tr><td colspan="11" class="text-center text-muted py-4">No templates match your filters</td></tr>';
+    tbody.innerHTML = html || '<tr><td colspan="13" class="text-center text-muted py-4">No templates match your filters</td></tr>';
     
     // Initialize Bootstrap dropdowns for dynamically added content with proper Popper config
     var dropdownElements = tbody.querySelectorAll('[data-bs-toggle="dropdown"]');
@@ -1426,6 +1459,31 @@ function getStatusBadgeClass(status) {
     }
 }
 
+function getSenderAgentLabel(template) {
+    var parts = [];
+    if (template.senderId) {
+        parts.push('<span class="d-block" style="font-size:0.8rem;"><i class="fas fa-id-badge me-1 text-muted"></i>' + template.senderId + '</span>');
+    }
+    if (template.rcsAgent) {
+        parts.push('<span class="d-block" style="font-size:0.8rem;"><i class="fas fa-robot me-1 text-muted"></i>' + template.rcsAgent + '</span>');
+    }
+    return parts.length > 0 ? parts.join('') : '<span class="text-muted" style="font-size:0.8rem;">-</span>';
+}
+
+function getFeaturesIcons(template) {
+    var icons = [];
+    if (template.optOutEnabled) {
+        icons.push('<span class="badge rounded-pill bg-success me-1" style="font-size:0.65rem;" title="Opt-out: ' + (template.optOutMethod || 'enabled') + '"><i class="fas fa-hand-paper me-1"></i>Opt-out</span>');
+    }
+    if (template.trackableLinkEnabled) {
+        icons.push('<span class="badge rounded-pill bg-info text-dark me-1" style="font-size:0.65rem;" title="Trackable link: ' + (template.trackableLinkDomain || 'qsms.uk') + '"><i class="fas fa-link me-1"></i>Link</span>');
+    }
+    if (template.messageExpiryEnabled) {
+        icons.push('<span class="badge rounded-pill bg-warning text-dark me-1" style="font-size:0.65rem;" title="Expiry: ' + (template.messageExpiryValue || '-') + '"><i class="fas fa-hourglass-half me-1"></i>Expiry</span>');
+    }
+    return icons.length > 0 ? icons.join('') : '<span class="text-muted" style="font-size:0.75rem;">-</span>';
+}
+
 function getContentPreviewText(template) {
     if (template.contentType === 'rich_card') {
         return 'Rich Card';
@@ -1462,6 +1520,32 @@ async function viewTemplate(accountId, templateId) {
         document.getElementById('viewTrigger').textContent = getTriggerLabel(template.trigger);
         document.getElementById('viewStatus').innerHTML = '<span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span>';
         document.getElementById('viewContent').textContent = template.content || (template.contentType === 'rich_card' ? 'Rich RCS Card' : 'Carousel');
+        document.getElementById('viewSenderId').textContent = template.senderId || '-';
+        document.getElementById('viewRcsAgent').textContent = template.rcsAgent || '-';
+
+        if (template.optOutEnabled) {
+            var optOutHtml = '<span class="badge bg-success">Enabled</span>';
+            optOutHtml += '<small class="d-block text-muted mt-1">';
+            optOutHtml += 'Method: ' + (template.optOutMethod === 'reply' ? 'Reply' : template.optOutMethod === 'url' ? 'URL' : template.optOutMethod === 'both' ? 'Reply + URL' : template.optOutMethod || '-');
+            if (template.optOutKeyword) optOutHtml += ' | Keyword: ' + template.optOutKeyword;
+            optOutHtml += '</small>';
+            document.getElementById('viewOptOut').innerHTML = optOutHtml;
+        } else {
+            document.getElementById('viewOptOut').innerHTML = '<span class="badge bg-secondary">Disabled</span>';
+        }
+
+        if (template.trackableLinkEnabled) {
+            document.getElementById('viewTrackableLink').innerHTML = '<span class="badge bg-success">Enabled</span><small class="d-block text-muted mt-1">' + (template.trackableLinkDomain || 'qsms.uk') + '</small>';
+        } else {
+            document.getElementById('viewTrackableLink').innerHTML = '<span class="badge bg-secondary">Disabled</span>';
+        }
+
+        if (template.messageExpiryEnabled) {
+            document.getElementById('viewMessageExpiry').innerHTML = '<span class="badge bg-success">Enabled</span><small class="d-block text-muted mt-1">' + (template.messageExpiryValue || '-') + '</small>';
+        } else {
+            document.getElementById('viewMessageExpiry').innerHTML = '<span class="badge bg-secondary">Disabled</span>';
+        }
+
         document.getElementById('viewScope').textContent = template.accessScope;
         document.getElementById('viewLastUpdated').textContent = template.lastUpdated;
         

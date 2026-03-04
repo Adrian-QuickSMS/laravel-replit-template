@@ -85,6 +85,20 @@ class MessageTemplate extends Model
         'encoding',
         'character_count',
         'segment_count',
+        'sender_id_id',
+        'rcs_agent_id',
+        'opt_out_enabled',
+        'opt_out_method',
+        'opt_out_number_id',
+        'opt_out_keyword',
+        'opt_out_text',
+        'opt_out_list_id',
+        'opt_out_url_enabled',
+        'opt_out_screening_list_ids',
+        'trackable_link_enabled',
+        'trackable_link_domain',
+        'message_expiry_enabled',
+        'message_expiry_value',
         'status',
         'is_favourite',
         'category',
@@ -97,12 +111,21 @@ class MessageTemplate extends Model
         'id' => 'string',
         'account_id' => 'string',
         'sub_account_id' => 'string',
+        'sender_id_id' => 'string',
+        'rcs_agent_id' => 'string',
         'rcs_content' => 'array',
         'placeholders' => 'array',
         'tags' => 'array',
+        'opt_out_screening_list_ids' => 'array',
         'character_count' => 'integer',
         'segment_count' => 'integer',
         'is_favourite' => 'boolean',
+        'opt_out_enabled' => 'boolean',
+        'opt_out_url_enabled' => 'boolean',
+        'opt_out_number_id' => 'string',
+        'opt_out_list_id' => 'string',
+        'trackable_link_enabled' => 'boolean',
+        'message_expiry_enabled' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -151,6 +174,26 @@ class MessageTemplate extends Model
         return $this->hasMany(Campaign::class, 'message_template_id');
     }
 
+    public function senderId(): BelongsTo
+    {
+        return $this->belongsTo(SenderId::class, 'sender_id_id');
+    }
+
+    public function rcsAgent(): BelongsTo
+    {
+        return $this->belongsTo(RcsAgent::class, 'rcs_agent_id');
+    }
+
+    public function optOutNumber(): BelongsTo
+    {
+        return $this->belongsTo(PurchasedNumber::class, 'opt_out_number_id');
+    }
+
+    public function optOutList(): BelongsTo
+    {
+        return $this->belongsTo(OptOutList::class, 'opt_out_list_id');
+    }
+
     // =====================================================
     // SCOPES
     // =====================================================
@@ -172,7 +215,7 @@ class MessageTemplate extends Model
 
     public function scopeRcs($query)
     {
-        return $query->whereIn('type', [self::TYPE_RCS_BASIC, self::TYPE_RCS_SINGLE]);
+        return $query->whereIn('type', [self::TYPE_RCS_BASIC, self::TYPE_RCS_SINGLE, self::TYPE_RCS_CAROUSEL]);
     }
 
     public function scopeFavourites($query)
@@ -284,6 +327,21 @@ class MessageTemplate extends Model
             'encoding' => $this->encoding,
             'character_count' => $this->character_count,
             'segment_count' => $this->segment_count,
+            'sender_id_id' => $this->sender_id_id,
+            'rcs_agent_id' => $this->rcs_agent_id,
+            'opt_out_enabled' => $this->opt_out_enabled,
+            'opt_out_method' => $this->opt_out_method,
+            'opt_out_number_id' => $this->opt_out_number_id,
+            'opt_out_number' => $this->optOutNumber?->number,
+            'opt_out_keyword' => $this->opt_out_keyword,
+            'opt_out_text' => $this->opt_out_text,
+            'opt_out_list_id' => $this->opt_out_list_id,
+            'opt_out_url_enabled' => $this->opt_out_url_enabled,
+            'opt_out_screening_list_ids' => $this->opt_out_screening_list_ids,
+            'trackable_link_enabled' => $this->trackable_link_enabled,
+            'trackable_link_domain' => $this->trackable_link_domain,
+            'message_expiry_enabled' => $this->message_expiry_enabled,
+            'message_expiry_value' => $this->message_expiry_value,
             'status' => $this->status,
             'is_favourite' => $this->is_favourite,
             'category' => $this->category,

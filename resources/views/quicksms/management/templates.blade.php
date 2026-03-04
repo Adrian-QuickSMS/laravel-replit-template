@@ -1229,6 +1229,11 @@
                                                         </select>
                                                     </div>
                                                     <div class="mb-2">
+                                                        <label class="form-label">Opt-out Keyword</label>
+                                                        <input type="text" class="form-control form-control-sm" id="tplReplyOptoutKeyword" value="STOP" placeholder="e.g. STOP" maxlength="10" onblur="validateTplOptOutKeyword()">
+                                                        <small class="text-muted">4-10 alphanumeric characters. Validated against existing keywords on this number.</small>
+                                                    </div>
+                                                    <div class="mb-2">
                                                         <label class="form-label">Opt-out Text</label>
                                                         <input type="text" class="form-control form-control-sm" id="tplReplyOptoutText" value="Reply STOP to @{{number}}" placeholder="e.g. Reply STOP to @{{number}}">
                                                         <small class="text-muted">Use @{{number}} to insert the virtual number.</small>
@@ -3253,44 +3258,161 @@ function updateCharCount() {
     document.getElementById('charCount').textContent = content.length;
 }
 
-function saveTemplateAsDraft() {
+/**
+ * Map UI channel names to API type values.
+ */
+function mapChannelToApiType(channel) {
+    var map = { 'sms': 'sms', 'basic_rcs': 'rcs_basic', 'rich_rcs': 'rcs_single' };
+    return map[channel] || 'sms';
+}
+
+/**
+ * Collect opt-out configuration from the wizard UI.
+ */
+function collectOptOutConfig() {
+    var config = {};
+    var enabled = document.getElementById('tplEnableOptout') && document.getElementById('tplEnableOptout').checked;
+    config.opt_out_enabled = !!enabled;
+
+    if (!enabled) return config;
+
+    var listEl = document.getElementById('tplOptoutList');
+    if (listEl && listEl.value) {
+        config.opt_out_list_id = listEl.value;
+    }
+
+    var replyEnabled = document.getElementById('tplEnableReplyOptout') && document.getElementById('tplEnableReplyOptout').checked;
+    var urlEnabled = document.getElementById('tplEnableUrlOptout') && document.getElementById('tplEnableUrlOptout').checked;
+
+    if (replyEnabled && urlEnabled) {
+        config.opt_out_method = 'both';
+    } else if (replyEnabled) {
+        config.opt_out_method = 'reply';
+    } else if (urlEnabled) {
+        config.opt_out_method = 'url';
+    }
+
+    if (replyEnabled) {
+        var vnEl = document.getElementById('tplReplyVirtualNumber');
+        if (vnEl && vnEl.value) {
+            config.opt_out_number_id = vnEl.value;
+        }
+        var textEl = document.getElementById('tplReplyOptoutText');
+        if (textEl && textEl.value) {
+            config.opt_out_text = textEl.value;
+        }
+    }
+
+    if (urlEnabled) {
+        config.opt_out_url_enabled = true;
+    }
+
+    return config;
+}
+
+/**
+ * Build the API payload from current wizard state.
+ */
+function buildTemplatePayload(status) {
     var name = wizardData.name || document.getElementById('templateName').value.trim();
     var content = document.getElementById('templateContent').value.trim();
     var channel = document.querySelector('input[name="templateChannel"]:checked').value;
-    var trigger = wizardData.trigger || 'portal';
-    
+
+    var payload = {
+        name: name,
+        type: mapChannelToApiType(channel),
+        content: content,
+        status: status
+    };
+
+    if (templateRcsPayload) {
+        payload.rcs_content = templateRcsPayload;
+    }
+
+    // Sender ID / RCS Agent from wizardData (set by channel selection UI)
+    if (wizardData.senderIdId) payload.sender_id_id = wizardData.senderIdId;
+    if (wizardData.rcsAgentId) payload.rcs_agent_id = wizardData.rcsAgentId;
+
+    // Opt-out config
+    var optOut = collectOptOutConfig();
+    Object.assign(payload, optOut);
+
+    // Trackable link
+    if (wizardData.trackableLink && wizardData.trackableLink.enabled) {
+        payload.trackable_link_enabled = true;
+        if (wizardData.trackableLink.domain) {
+            payload.trackable_link_domain = wizardData.trackableLink.domain;
+        }
+    }
+
+    // Message expiry
+    if (wizardData.messageExpiry && wizardData.messageExpiry.enabled) {
+        payload.message_expiry_enabled = true;
+        if (wizardData.messageExpiry.value) {
+            payload.message_expiry_value = wizardData.messageExpiry.value;
+        }
+    }
+
+    return payload;
+}
+
+function saveTemplateAsDraft() {
+    var name = wizardData.name || document.getElementById('templateName').value.trim();
+
     if (!name) {
         showToast('Please enter a template name.', 'error');
         return;
     }
-    
-    var accessScope = wizardData.accessMode === 'all' ? 'All Sub-accounts' : getAccessScopeLabel();
-    
-    var template = {
-        id: Date.now(),
-        templateId: wizardData.templateId,
-        name: name,
-        channel: channel,
-        trigger: trigger,
-        content: content,
-        contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
-        accessScope: accessScope,
-        subAccounts: wizardData.subAccounts,
-        roles: wizardData.roles,
-        users: wizardData.users,
-        status: 'draft',
-        version: 1,
-        lastUpdated: new Date().toISOString().split('T')[0]
-    };
-    
-    if (templateRcsPayload) {
-        template.rcsPayload = templateRcsPayload;
-    }
-    
-    mockTemplates.unshift(template);
-    bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
-    renderTemplates();
-    showToast('Template "' + name + '" saved as Draft (v1)', 'success');
+
+    var payload = buildTemplatePayload('draft');
+    var isEdit = !!wizardData.apiTemplateId;
+    var url = isEdit
+        ? '/api/message-templates/' + wizardData.apiTemplateId
+        : '/api/message-templates';
+    var method = isEdit ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(function(response) { return response.json().then(function(data) { return { ok: response.ok, data: data }; }); })
+    .then(function(result) {
+        if (result.ok && result.data.data) {
+            wizardData.apiTemplateId = result.data.data.id;
+
+            // Also add to mock list for immediate UI update
+            var channel = document.querySelector('input[name="templateChannel"]:checked').value;
+            var content = document.getElementById('templateContent').value.trim();
+            var template = {
+                id: result.data.data.id,
+                templateId: wizardData.templateId,
+                name: name,
+                channel: channel,
+                content: content,
+                contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
+                status: 'draft',
+                version: 1,
+                lastUpdated: new Date().toISOString().split('T')[0]
+            };
+            mockTemplates.unshift(template);
+
+            bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
+            renderTemplates();
+            showToast('Template "' + name + '" saved as Draft', 'success');
+        } else {
+            var msg = result.data.message || 'Failed to save template.';
+            showToast(msg, 'error');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error saving template:', error);
+        showToast('Network error. Please try again.', 'error');
+    });
 }
 
 function getAccessScopeLabel() {
@@ -3365,51 +3487,69 @@ function confirmLaunchTemplate() {
 
 function launchTemplate() {
     var name = wizardData.name || document.getElementById('templateName').value.trim();
-    var content = document.getElementById('templateContent').value.trim();
-    var channel = document.querySelector('input[name="templateChannel"]:checked').value;
-    var trigger = wizardData.trigger || 'portal';
-    
-    var accessScope = wizardData.accessMode === 'all' ? 'All Sub-accounts' : getAccessScopeLabel();
-    
-    var existingLiveIndex = mockTemplates.findIndex(function(t) {
-        return t.templateId === wizardData.templateId && t.status === 'live';
+
+    var payload = buildTemplatePayload('active');
+    var isEdit = !!wizardData.apiTemplateId;
+    var url = isEdit
+        ? '/api/message-templates/' + wizardData.apiTemplateId
+        : '/api/message-templates';
+    var method = isEdit ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(function(response) { return response.json().then(function(data) { return { ok: response.ok, data: data }; }); })
+    .then(function(result) {
+        if (result.ok && result.data.data) {
+            wizardData.apiTemplateId = result.data.data.id;
+
+            var channel = document.querySelector('input[name="templateChannel"]:checked').value;
+            var content = document.getElementById('templateContent').value.trim();
+
+            // Archive any existing live version in mock list
+            var existingLiveIndex = mockTemplates.findIndex(function(t) {
+                return t.templateId === wizardData.templateId && t.status === 'live';
+            });
+            var newVersion = 1;
+            if (existingLiveIndex !== -1) {
+                newVersion = mockTemplates[existingLiveIndex].version + 1;
+                mockTemplates[existingLiveIndex].status = 'archived';
+            }
+
+            var template = {
+                id: result.data.data.id,
+                templateId: wizardData.templateId,
+                name: name,
+                channel: channel,
+                content: content,
+                contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
+                status: 'live',
+                version: newVersion,
+                lastUpdated: new Date().toISOString().split('T')[0]
+            };
+            mockTemplates.unshift(template);
+
+            bootstrap.Modal.getInstance(document.getElementById('launchConfirmModal')).hide();
+            document.getElementById('launchConfirmModal').remove();
+            bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
+
+            renderTemplates();
+            showToast('Template "' + name + '" launched as Live (v' + newVersion + ')', 'success');
+        } else {
+            var msg = result.data.message || 'Failed to launch template.';
+            showToast(msg, 'error');
+        }
+    })
+    .catch(function(error) {
+        console.error('Error launching template:', error);
+        showToast('Network error. Please try again.', 'error');
     });
-    
-    var newVersion = 1;
-    if (existingLiveIndex !== -1) {
-        newVersion = mockTemplates[existingLiveIndex].version + 1;
-        mockTemplates[existingLiveIndex].status = 'archived';
-    }
-    
-    var template = {
-        id: Date.now(),
-        templateId: wizardData.templateId,
-        name: name,
-        channel: channel,
-        trigger: trigger,
-        content: content,
-        contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
-        accessScope: accessScope,
-        subAccounts: wizardData.subAccounts,
-        roles: wizardData.roles,
-        users: wizardData.users,
-        status: 'live',
-        version: newVersion,
-        lastUpdated: new Date().toISOString().split('T')[0]
-    };
-    
-    if (templateRcsPayload) {
-        template.rcsPayload = templateRcsPayload;
-    }
-    
-    mockTemplates.unshift(template);
-    
-    bootstrap.Modal.getInstance(document.getElementById('launchConfirmModal')).hide();
-    document.getElementById('launchConfirmModal').remove();
-    bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
-    
-    renderTemplates();
-    showToast('Template "' + name + '" launched as Live (v' + newVersion + ')', 'success');
 }
 
 function sortTable(column) {
@@ -4405,20 +4545,59 @@ function onTplMessageExpiryModalHidden() {
 function toggleTplOptoutManagement() {
     var isChecked = document.getElementById('tplEnableOptout').checked;
     var section = document.getElementById('tplOptoutSection');
-    
+
     if (isChecked) {
         section.classList.remove('d-none');
         wizardData.optout = { enabled: true };
+        // Load opt-out numbers from API if not already loaded
+        loadTplOptOutNumbers();
     } else {
         section.classList.add('d-none');
         wizardData.optout = { enabled: false };
     }
 }
 
+/**
+ * Load available opt-out numbers from the campaigns API.
+ * Populates the virtual number dropdown dynamically.
+ */
+function loadTplOptOutNumbers() {
+    var vnSelect = document.getElementById('tplReplyVirtualNumber');
+    if (!vnSelect || vnSelect.dataset.loaded === 'true') return;
+
+    fetch('/api/campaigns/opt-out-numbers', {
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        if (result.data && result.data.length > 0) {
+            vnSelect.innerHTML = '<option value="">-- Select virtual number --</option>';
+            result.data.forEach(function(num) {
+                var option = document.createElement('option');
+                option.value = num.id;
+                option.dataset.number = num.number;
+                option.textContent = num.number + (num.label ? ' (' + num.label + ')' : '');
+                vnSelect.appendChild(option);
+            });
+            vnSelect.dataset.loaded = 'true';
+
+            // Show the reply opt-out section if it was hidden due to empty numbers
+            var replySection = vnSelect.closest('.mb-3.p-3.border.rounded');
+            if (replySection) replySection.classList.remove('d-none');
+        }
+    })
+    .catch(function(err) {
+        console.warn('Failed to load opt-out numbers:', err);
+    });
+}
+
 function toggleTplReplyOptout() {
     var isChecked = document.getElementById('tplEnableReplyOptout').checked;
     var config = document.getElementById('tplReplyOptoutConfig');
-    
+
     if (isChecked) {
         config.classList.remove('d-none');
     } else {
@@ -4426,10 +4605,48 @@ function toggleTplReplyOptout() {
     }
 }
 
+/**
+ * Validate opt-out keyword against the campaigns API.
+ * Called when the keyword input loses focus.
+ */
+function validateTplOptOutKeyword() {
+    var keywordEl = document.getElementById('tplReplyOptoutKeyword');
+    var numberEl = document.getElementById('tplReplyVirtualNumber');
+    if (!keywordEl || !numberEl) return;
+
+    var keyword = (keywordEl.value || '').trim();
+    var numberId = numberEl.value;
+    if (!keyword || keyword.length < 4 || !numberId) return;
+
+    fetch('/api/campaigns/validate-opt-out-keyword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ keyword: keyword, number_id: numberId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        if (result.valid) {
+            keywordEl.classList.remove('is-invalid');
+            keywordEl.classList.add('is-valid');
+        } else {
+            keywordEl.classList.remove('is-valid');
+            keywordEl.classList.add('is-invalid');
+            showToast(result.error || 'Keyword is not available.', 'error');
+        }
+    })
+    .catch(function() {
+        // Silently ignore validation errors
+    });
+}
+
 function toggleTplUrlOptout() {
     var isChecked = document.getElementById('tplEnableUrlOptout').checked;
     var config = document.getElementById('tplUrlOptoutConfig');
-    
+
     if (isChecked) {
         config.classList.remove('d-none');
     } else {
