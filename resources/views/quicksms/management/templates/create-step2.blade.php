@@ -636,25 +636,326 @@ function discardAiSuggestion() {
     document.getElementById('aiResultSection').classList.add('d-none');
 }
 
+var _optOutNumbers = null;
+var _currentNumberType = null;
+var _keywordValidationTimer = null;
+
 function toggleOptoutManagement() {
-    var enabled = document.getElementById('enableOptoutManagement').checked;
-    var section = document.getElementById('optoutManagementSection');
-    var disabledMsg = document.getElementById('optoutDisabledMessage');
-    
-    if (section) section.classList.toggle('d-none', !enabled);
-    if (disabledMsg) disabledMsg.classList.toggle('d-none', enabled);
+    var isEnabled = document.getElementById('enableOptoutManagement').checked;
+    document.getElementById('optoutManagementSection').classList.toggle('d-none', !isEnabled);
+    document.getElementById('optoutDisabledMessage').classList.toggle('d-none', isEnabled);
+    if (!isEnabled) {
+        document.getElementById('optoutValidationError').classList.add('d-none');
+    } else {
+        loadOptOutNumbers();
+        validateOptoutConfig();
+    }
+}
+
+function onScreeningListChange() {
+    var checkboxes = document.querySelectorAll('input[name="optOutScreeningLists[]"]:checked');
+    var pillsContainer = document.getElementById('screeningPills');
+    var pills = Array.from(checkboxes).map(function(cb) {
+        var label = document.querySelector('label[for="' + cb.id + '"]');
+        var name = label ? label.childNodes[0].textContent.trim() : cb.value;
+        return '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary-subtle d-inline-flex align-items-center gap-1 px-2 py-1">'
+            + name
+            + '<button type="button" class="btn-close btn-close" style="font-size:0.5rem;" onclick="deselectScreening(\'' + cb.id + '\')"></button>'
+            + '</span>';
+    }).join('');
+    pillsContainer.innerHTML = pills;
+    validateOptoutConfig();
+}
+
+function deselectScreening(cbId) {
+    var cb = document.getElementById(cbId);
+    if (cb) { cb.checked = false; onScreeningListChange(); }
+}
+
+function getScreeningListIds() {
+    return Array.from(document.querySelectorAll('input[name="optOutScreeningLists[]"]:checked')).map(function(cb) { return cb.value; });
 }
 
 function toggleReplyOptout() {
-    var enabled = document.getElementById('enableReplyOptout').checked;
-    var config = document.getElementById('replyOptoutConfig');
-    if (config) config.classList.toggle('d-none', !enabled);
+    var isEnabled = document.getElementById('enableReplyOptout').checked;
+    document.getElementById('replyOptoutConfig').classList.toggle('d-none', !isEnabled);
+    if (isEnabled) {
+        var urlCb = document.getElementById('enableUrlOptout');
+        if (urlCb && urlCb.checked) {
+            urlCb.checked = false;
+            document.getElementById('urlOptoutConfig').classList.add('d-none');
+        }
+        loadOptOutNumbers();
+    }
+    validateOptoutConfig();
 }
 
 function toggleUrlOptout() {
-    var enabled = document.getElementById('enableUrlOptout').checked;
-    var config = document.getElementById('urlOptoutConfig');
-    if (config) config.classList.toggle('d-none', !enabled);
+    var isEnabled = document.getElementById('enableUrlOptout').checked;
+    document.getElementById('urlOptoutConfig').classList.toggle('d-none', !isEnabled);
+    if (isEnabled) {
+        var replyCb = document.getElementById('enableReplyOptout');
+        if (replyCb && replyCb.checked) {
+            replyCb.checked = false;
+            document.getElementById('replyOptoutConfig').classList.add('d-none');
+        }
+    }
+    validateOptoutConfig();
+}
+
+function toggleReplyStorageList() {
+    var target = document.querySelector('input[name="replyListTarget"]:checked');
+    var isNew = target && target.value === 'new';
+    var newFields = document.getElementById('replyNewListFields');
+    var listSelect = document.getElementById('replyOptOutListId');
+    if (newFields) newFields.classList.toggle('d-none', !isNew);
+    if (listSelect) listSelect.disabled = isNew;
+    validateOptoutConfig();
+}
+
+function toggleUrlStorageList() {
+    var target = document.querySelector('input[name="urlListTarget"]:checked');
+    var isNew = target && target.value === 'new';
+    var newFields = document.getElementById('urlNewListFields');
+    var listSelect = document.getElementById('urlOptOutListId');
+    if (newFields) newFields.classList.toggle('d-none', !isNew);
+    if (listSelect) listSelect.disabled = isNew;
+    validateOptoutConfig();
+}
+
+function loadOptOutNumbers(onComplete) {
+    var select = document.getElementById('optOutNumberId');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Loading... --</option>';
+
+    fetch('/api/campaigns/opt-out-numbers', {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        _optOutNumbers = res.data || { vmns: [], shortcodes: [] };
+        select.innerHTML = '<option value="">-- Select number --</option>';
+
+        var vmns = _optOutNumbers.vmns || [];
+        var shortcodes = _optOutNumbers.shortcodes || [];
+
+        if (vmns.length > 0) {
+            var grp = document.createElement('optgroup');
+            grp.label = 'Virtual Mobile Numbers';
+            vmns.forEach(function(n) {
+                var opt = document.createElement('option');
+                opt.value = n.id;
+                opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '');
+                opt.dataset.type = 'vmn';
+                opt.dataset.number = n.number;
+                grp.appendChild(opt);
+            });
+            select.appendChild(grp);
+        }
+
+        if (shortcodes.length > 0) {
+            var grp2 = document.createElement('optgroup');
+            grp2.label = 'Shortcodes';
+            shortcodes.forEach(function(n) {
+                var keywords = (n.keywords || []).map(function(k) { return k.keyword; });
+                if (n.type === 'shared_shortcode' && keywords.length > 0) {
+                    keywords.forEach(function(kw) {
+                        var opt = document.createElement('option');
+                        opt.value = n.id;
+                        opt.text = n.number + ' (' + kw + ')';
+                        opt.dataset.type = n.type;
+                        opt.dataset.number = n.number;
+                        opt.dataset.keyword = kw;
+                        grp2.appendChild(opt);
+                    });
+                } else {
+                    var opt = document.createElement('option');
+                    opt.value = n.id;
+                    opt.text = n.number + (n.friendly_name ? ' (' + n.friendly_name + ')' : '');
+                    opt.dataset.type = n.type;
+                    opt.dataset.number = n.number;
+                    opt.dataset.keyword = keywords.join(', ');
+                    grp2.appendChild(opt);
+                }
+            });
+            select.appendChild(grp2);
+        }
+
+        if (vmns.length === 0 && shortcodes.length === 0) {
+            select.innerHTML = '<option value="">No numbers available</option>';
+        }
+        if (typeof onComplete === 'function') onComplete();
+    })
+    .catch(function() {
+        select.innerHTML = '<option value="">Failed to load numbers</option>';
+    });
+}
+
+function onOptOutNumberChange() {
+    var select = document.getElementById('optOutNumberId');
+    var selectedOpt = select.options[select.selectedIndex];
+    var numberType = selectedOpt ? selectedOpt.dataset.type : null;
+    _currentNumberType = numberType;
+
+    var keywordInput = document.getElementById('optOutKeywordInput');
+    var keywordSelect = document.getElementById('optOutKeywordSelect');
+
+    if (numberType === 'shared_shortcode') {
+        var presetKeyword = selectedOpt ? selectedOpt.dataset.keyword : '';
+        keywordInput.classList.remove('d-none');
+        keywordInput.value = presetKeyword;
+        keywordInput.readOnly = true;
+        keywordInput.style.backgroundColor = '#f8f9fa';
+        keywordSelect.classList.add('d-none');
+        refreshOptOutText();
+    } else {
+        keywordInput.classList.remove('d-none');
+        keywordInput.value = '';
+        keywordInput.readOnly = false;
+        keywordInput.style.backgroundColor = '';
+        keywordSelect.classList.add('d-none');
+    }
+
+    clearKeywordValidation();
+    if (numberType !== 'shared_shortcode') {
+        document.getElementById('replyOptoutText').value = '';
+    }
+    validateOptoutConfig();
+}
+
+function onKeywordSelectChange() {
+    clearKeywordValidation();
+    refreshOptOutText();
+    validateOptoutConfig();
+}
+
+function scheduleKeywordValidation() {
+    if (_keywordValidationTimer) clearTimeout(_keywordValidationTimer);
+    _keywordValidationTimer = setTimeout(function() {
+        validateOptOutKeyword();
+    }, 600);
+}
+
+function clearKeywordValidation() {
+    document.getElementById('keywordValidationIcon').innerHTML = '';
+    var errDiv = document.getElementById('keywordError');
+    errDiv.textContent = '';
+    errDiv.classList.add('d-none');
+}
+
+function validateOptOutKeyword() {
+    var numberId = document.getElementById('optOutNumberId').value;
+    var keyword = document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+
+    if (!numberId || !keyword || keyword.length < 4) {
+        clearKeywordValidation();
+        return;
+    }
+
+    if (_currentNumberType === 'shared_shortcode') {
+        document.getElementById('keywordValidationIcon').innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+        return;
+    }
+
+    var icon = document.getElementById('keywordValidationIcon');
+    icon.innerHTML = '<i class="fas fa-spinner fa-spin text-muted"></i>';
+
+    fetch('/api/campaigns/validate-opt-out-keyword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ keyword: keyword, number_id: numberId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        var errDiv = document.getElementById('keywordError');
+        if (res.valid) {
+            icon.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+            errDiv.textContent = '';
+            errDiv.classList.add('d-none');
+            refreshOptOutText();
+        } else {
+            icon.innerHTML = '<i class="fas fa-times-circle text-danger"></i>';
+            errDiv.textContent = res.message || 'Invalid keyword.';
+            errDiv.classList.remove('d-none');
+        }
+        validateOptoutConfig();
+    })
+    .catch(function() {
+        clearKeywordValidation();
+    });
+}
+
+function refreshOptOutText() {
+    var numberId = document.getElementById('optOutNumberId').value;
+    var numberOpt = document.getElementById('optOutNumberId').options[document.getElementById('optOutNumberId').selectedIndex];
+    var numberVal = numberOpt ? numberOpt.dataset.number : '';
+    var keyword = document.getElementById('optOutKeywordInput').value.trim().toUpperCase();
+
+    var textField = document.getElementById('replyOptoutText');
+
+    if (!numberId || !keyword || !numberVal) {
+        textField.value = '';
+        return;
+    }
+
+    fetch('/api/campaigns/suggest-opt-out-text', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ keyword: keyword, number_id: numberId })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.text) textField.value = res.text;
+    })
+    .catch(function() {});
+}
+
+function insertOptOutTextToMessage(fieldId) {
+    var textField = document.getElementById(fieldId);
+    var messageArea = document.getElementById('smsContent');
+    if (!textField || !messageArea) return;
+
+    var text = textField.value.trim();
+    if (!text) {
+        alert('Opt-out text is empty. Please configure opt-out settings first.');
+        return;
+    }
+
+    var current = messageArea.value;
+    var separator = current.trim() ? '\n\n' : '';
+    messageArea.value = current + separator + text;
+    handleContentChange();
+}
+
+function validateOptoutConfig() {
+    var isEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
+    if (!isEnabled) {
+        document.getElementById('optoutValidationError').classList.add('d-none');
+        return true;
+    }
+
+    var screeningIds = getScreeningListIds();
+    var replyEnabled = document.getElementById('enableReplyOptout').checked;
+    var urlEnabled = document.getElementById('enableUrlOptout').checked;
+    var errorDiv = document.getElementById('optoutValidationError');
+    var errorMsg = document.getElementById('optoutValidationMessage');
+
+    if (screeningIds.length === 0 && !replyEnabled && !urlEnabled) {
+        errorMsg.textContent = 'Select an opt-out method or choose a screening list.';
+        errorDiv.classList.remove('d-none');
+        return false;
+    }
+
+    errorDiv.classList.add('d-none');
+    return true;
 }
 
 function toggleTrackableLinkModal() {
@@ -669,23 +970,20 @@ function toggleMessageExpiryModal() {
     if (summary) summary.classList.toggle('d-none', !enabled);
 }
 
-function addOptoutToMessage(type) {
-    var contentEl = document.getElementById('smsContent');
-    if (!contentEl) return;
-    
-    var text = '';
-    if (type === 'reply') {
-        var vnSelect = document.getElementById('replyVirtualNumber');
-        var number = vnSelect?.selectedOptions[0]?.dataset?.number || '@{' + '{number}}';
-        text = document.getElementById('replyOptoutText')?.value.replace('@{' + '{number}}', number) || '';
-    } else if (type === 'url') {
-        text = document.getElementById('urlOptoutText')?.value || '';
-    }
-    
-    if (text) {
-        contentEl.value = contentEl.value + (contentEl.value ? '\n' : '') + text;
-        handleContentChange();
-    }
+function toggleSocialHoursFields() {
+    var isChecked = document.getElementById('socialHoursToggle').checked;
+    var fields = document.getElementById('socialHoursFields');
+    var summary = document.getElementById('socialHoursSummary');
+    if (fields) fields.classList.toggle('d-none', !isChecked);
+    if (summary && !isChecked) summary.classList.add('d-none');
+    if (summary && isChecked) updateSocialHoursSummary();
+}
+
+function updateSocialHoursSummary() {
+    var from = document.getElementById('socialHoursFrom').value || '08:00';
+    var to = document.getElementById('socialHoursTo').value || '20:00';
+    var valueEl = document.getElementById('socialHoursValue');
+    if (valueEl) valueEl.textContent = from + ' - ' + to;
 }
 
 function loadSavedData() {
@@ -740,6 +1038,12 @@ function loadSavedData() {
                     handleChannelChange(data.channel);
                 }
             }
+            if (data.optOut) {
+                setTimeout(function() { restoreOptOutData(data.optOut); }, 200);
+            }
+            if (data.socialHours) {
+                restoreSocialHoursData(data.socialHours);
+            }
         }
         
         var savedChannel = sessionStorage.getItem('templateWizardChannel');
@@ -754,6 +1058,134 @@ function loadSavedData() {
     }
     
     handleContentChange();
+}
+
+function collectOptOutData() {
+    var optOutEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
+    if (!optOutEnabled) return { enabled: false };
+
+    var data = { enabled: true };
+    data.screeningListIds = getScreeningListIds();
+
+    var replyEnabled = document.getElementById('enableReplyOptout') && document.getElementById('enableReplyOptout').checked;
+    data.replyEnabled = replyEnabled;
+    if (replyEnabled) {
+        var numSelect = document.getElementById('optOutNumberId');
+        var selectedOpt = numSelect ? numSelect.options[numSelect.selectedIndex] : null;
+        data.replyNumberId = numSelect ? numSelect.value : '';
+        data.replyNumberType = selectedOpt ? (selectedOpt.dataset.type || '') : '';
+        data.replyKeyword = (document.getElementById('optOutKeywordInput') || {}).value || '';
+        data.replyOptoutText = (document.getElementById('replyOptoutText') || {}).value || '';
+        var replyTarget = document.querySelector('input[name="replyListTarget"]:checked');
+        data.replyListTarget = replyTarget ? replyTarget.value : 'existing';
+        data.replyOptOutListId = (document.getElementById('replyOptOutListId') || {}).value || '';
+        data.replyNewListName = (document.getElementById('replyNewListName') || {}).value || '';
+    }
+
+    var urlEnabled = document.getElementById('enableUrlOptout') && document.getElementById('enableUrlOptout').checked;
+    data.urlEnabled = urlEnabled;
+    if (urlEnabled) {
+        data.urlOptoutText = (document.getElementById('urlOptoutText') || {}).value || '';
+        var urlTarget = document.querySelector('input[name="urlListTarget"]:checked');
+        data.urlListTarget = urlTarget ? urlTarget.value : 'existing';
+        data.urlOptOutListId = (document.getElementById('urlOptOutListId') || {}).value || '';
+        data.urlNewListName = (document.getElementById('urlNewListName') || {}).value || '';
+    }
+
+    return data;
+}
+
+function collectSocialHoursData() {
+    var toggle = document.getElementById('socialHoursToggle');
+    if (!toggle || !toggle.checked) return { enabled: false };
+    return {
+        enabled: true,
+        from: (document.getElementById('socialHoursFrom') || {}).value || '08:00',
+        to: (document.getElementById('socialHoursTo') || {}).value || '20:00'
+    };
+}
+
+function restoreOptOutData(data) {
+    if (!data || !data.enabled) return;
+
+    var toggle = document.getElementById('enableOptoutManagement');
+    if (toggle) {
+        toggle.checked = true;
+        toggleOptoutManagement();
+    }
+
+    if (data.screeningListIds && data.screeningListIds.length > 0) {
+        data.screeningListIds.forEach(function(id) {
+            var cb = document.getElementById('screening_' + id);
+            if (cb) cb.checked = true;
+        });
+        onScreeningListChange();
+    }
+
+    if (data.replyEnabled) {
+        var replyCb = document.getElementById('enableReplyOptout');
+        if (replyCb) {
+            replyCb.checked = true;
+            document.getElementById('replyOptoutConfig').classList.remove('d-none');
+        }
+        loadOptOutNumbers(function() {
+            if (data.replyNumberId) {
+                var numSelect = document.getElementById('optOutNumberId');
+                if (numSelect) {
+                    numSelect.value = data.replyNumberId;
+                    onOptOutNumberChange();
+                }
+            }
+            if (data.replyKeyword) {
+                var kwInput = document.getElementById('optOutKeywordInput');
+                if (kwInput) kwInput.value = data.replyKeyword;
+            }
+            if (data.replyOptoutText) {
+                var textField = document.getElementById('replyOptoutText');
+                if (textField) textField.value = data.replyOptoutText;
+            }
+            if (data.replyListTarget === 'new') {
+                var newRadio = document.getElementById('replyListNew');
+                if (newRadio) { newRadio.checked = true; toggleReplyStorageList(); }
+                var nameField = document.getElementById('replyNewListName');
+                if (nameField) nameField.value = data.replyNewListName || '';
+            } else if (data.replyOptOutListId) {
+                var listSelect = document.getElementById('replyOptOutListId');
+                if (listSelect) listSelect.value = data.replyOptOutListId;
+            }
+        });
+    } else if (data.urlEnabled) {
+        var urlCb = document.getElementById('enableUrlOptout');
+        if (urlCb) {
+            urlCb.checked = true;
+            document.getElementById('urlOptoutConfig').classList.remove('d-none');
+        }
+        if (data.urlOptoutText) {
+            var tf = document.getElementById('urlOptoutText');
+            if (tf) tf.value = data.urlOptoutText;
+        }
+        if (data.urlListTarget === 'new') {
+            var newRadio = document.getElementById('urlListNew');
+            if (newRadio) { newRadio.checked = true; toggleUrlStorageList(); }
+            var nameField = document.getElementById('urlNewListName');
+            if (nameField) nameField.value = data.urlNewListName || '';
+        } else if (data.urlOptOutListId) {
+            var listSelect = document.getElementById('urlOptOutListId');
+            if (listSelect) listSelect.value = data.urlOptOutListId;
+        }
+    }
+}
+
+function restoreSocialHoursData(data) {
+    if (!data || !data.enabled) return;
+    var toggle = document.getElementById('socialHoursToggle');
+    if (toggle) {
+        toggle.checked = true;
+        toggleSocialHoursFields();
+    }
+    if (data.from) document.getElementById('socialHoursFrom').value = data.from;
+    if (data.to) document.getElementById('socialHoursTo').value = data.to;
+    updateSocialHoursSummary();
 }
 
 document.getElementById('nextBtn').addEventListener('click', function(e) {
@@ -782,13 +1214,21 @@ document.getElementById('nextBtn').addEventListener('click', function(e) {
             return;
         }
     }
+
+    var optOutEnabled = document.getElementById('enableOptoutManagement') && document.getElementById('enableOptoutManagement').checked;
+    if (optOutEnabled && !validateOptoutConfig()) {
+        e.preventDefault();
+        return;
+    }
     
     sessionStorage.setItem('templateWizardStep2', JSON.stringify({
         channel: channel,
         smsText: smsContent.value,
         senderId: document.getElementById('senderId').value,
         rcsAgent: document.getElementById('rcsAgent').value,
-        rcsContentData: rcsContentData
+        rcsContentData: rcsContentData,
+        optOut: collectOptOutData(),
+        socialHours: collectSocialHoursData()
     }));
 });
 

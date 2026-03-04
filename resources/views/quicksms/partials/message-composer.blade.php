@@ -186,6 +186,12 @@
                     <label class="form-check-label" for="scheduleRules">Schedule & sending rules</label>
                 </div>
                 @endif
+                @if($isTemplateMode)
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="socialHoursToggle" onchange="toggleSocialHoursFields()">
+                    <label class="form-check-label" for="socialHoursToggle">Social hours</label>
+                </div>
+                @endif
             </div>
         </div>
         
@@ -202,6 +208,31 @@
                 <a href="#" class="ms-2" onclick="openMessageExpiryModal(); return false;">Edit</a>
             </div>
         </div>
+        
+        @if($isTemplateMode)
+        <div class="d-none mb-2" id="socialHoursSummary">
+            <div class="alert alert-secondary py-2 mb-0">
+                <i class="fas fa-moon me-2"></i>Social hours: <strong id="socialHoursValue">08:00 - 20:00</strong>
+                <a href="#" class="ms-2" onclick="document.getElementById('socialHoursToggle').checked = true; toggleSocialHoursFields(); return false;">Edit</a>
+            </div>
+        </div>
+
+        <div class="d-none mb-3" id="socialHoursFields">
+            <div class="border rounded p-3">
+                <p class="text-muted small mb-3">Messages will not be sent outside these hours. They will be queued and sent at the next allowable time.</p>
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label form-label-sm">Do not send before</label>
+                        <input type="time" class="form-control form-control-sm" id="socialHoursFrom" value="08:00" onchange="updateSocialHoursSummary()">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label form-label-sm">Do not send after</label>
+                        <input type="time" class="form-control form-control-sm" id="socialHoursTo" value="20:00" onchange="updateSocialHoursSummary()">
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
         
         @if(!$isTemplateMode)
         <div class="d-none mb-2" id="scheduleSummary">
@@ -241,115 +272,133 @@
                 <label class="form-check-label" for="enableOptoutManagement">Enable</label>
             </div>
         </div>
-        
+
         <div class="d-none" id="optoutManagementSection">
-            <div class="mb-3">
-                <label class="form-label">Opt-out list <span class="text-muted">(optional)</span></label>
-                <select class="form-select" id="optoutListSelect">
-                    <option value="" selected>No list selected</option>
-                    @foreach($opt_out_lists as $list)
-                    <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
-                    @endforeach
-                </select>
-                <small class="text-muted">Select a list to exclude numbers. If no list is selected, you must enable an opt-out method below.</small>
-            </div>
-            
-            <div class="border-top pt-3 mb-3">
-                <h6 class="mb-3">Opt-out Options</h6>
-                
-                @if(count($virtual_numbers) > 0)
-                <div class="mb-3 p-3 border rounded">
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="enableReplyOptout" onchange="toggleReplyOptout()">
-                        <label class="form-check-label fw-medium" for="enableReplyOptout">Enable reply-to-opt-out</label>
+
+            <div class="mb-3 p-3 border rounded" id="optOutListSection">
+                <label class="form-label fw-medium mb-1">Screening Lists</label>
+                <small class="text-muted d-block mb-2">Recipients already on any selected list will be excluded before sending. Screening activates automatically when lists are selected.</small>
+                <div id="screeningPills" class="d-flex flex-wrap gap-1 mb-2"></div>
+                <div class="border rounded p-2" style="max-height:130px;overflow-y:auto;" id="screeningCheckboxList">
+                    @forelse($opt_out_lists as $list)
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="optOutScreeningLists[]"
+                            id="screening_{{ $list['id'] }}" value="{{ $list['id'] }}"
+                            onchange="onScreeningListChange()">
+                        <label class="form-check-label" for="screening_{{ $list['id'] }}">{{ $list['name'] }} <span class="text-muted">({{ number_format($list['count']) }})</span></label>
                     </div>
-                    <div class="d-none ps-3" id="replyOptoutConfig">
-                        <div class="mb-2">
-                            <label class="form-label">Virtual Number</label>
-                            <select class="form-select form-select-sm" id="replyVirtualNumber">
-                                <option value="">-- Select virtual number --</option>
-                                @foreach($virtual_numbers as $vn)
-                                <option value="{{ $vn['id'] }}" data-number="{{ $vn['number'] }}">{{ $vn['number'] }} ({{ $vn['label'] }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">Opt-out Text</label>
-                            <div class="input-group input-group-sm">
-                                <input type="text" class="form-control" id="replyOptoutText" value="Opt-out: Reply STOP to @{{ '{' }}{{ '{' }}number}}" placeholder="e.g. Reply STOP to @{{ '{' }}{{ '{' }}number}}">
-                                <button type="button" class="btn btn-outline-primary" onclick="addOptoutToMessage('reply')" title="Append to message">Add to message content</button>
-                            </div>
-                            <small class="text-muted">Use @{{ '{' }}{{ '{' }}number}} to insert the virtual number.</small>
-                        </div>
-                        <div class="mb-2">
-                            <label class="form-label">Store opt-outs in</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="replyOptoutTarget" id="replyOptoutExisting" value="existing" checked>
-                                <label class="form-check-label" for="replyOptoutExisting">Existing opt-out list</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="replyOptoutTarget" id="replyOptoutNew" value="new">
-                                <label class="form-check-label" for="replyOptoutNew">Create new opt-out list</label>
-                            </div>
-                            <div class="d-none mt-2" id="replyNewListFields">
-                                <input type="text" class="form-control form-control-sm mb-1" id="replyNewListName" placeholder="List name (required)">
-                                <input type="text" class="form-control form-control-sm" id="replyNewListDesc" placeholder="Description (optional)">
-                            </div>
-                        </div>
-                    </div>
+                    @empty
+                    <small class="text-muted">No opt-out lists available.</small>
+                    @endforelse
                 </div>
-                @endif
-                
-                <div class="mb-3 p-3 border rounded">
-                    <div class="form-check form-switch mb-2">
-                        <input class="form-check-input" type="checkbox" id="enableUrlOptout" onchange="toggleUrlOptout()">
-                        <label class="form-check-label fw-medium" for="enableUrlOptout">Enable click-to-opt-out</label>
+            </div>
+
+            <div class="mb-3 p-3 border rounded">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="enableReplyOptout" onchange="toggleReplyOptout()">
+                    <label class="form-check-label fw-medium" for="enableReplyOptout">Enable reply-to-opt-out</label>
+                </div>
+                <div class="d-none ps-2" id="replyOptoutConfig">
+                    <div class="mb-2">
+                        <label class="form-label form-label-sm">Number to receive replies</label>
+                        <select class="form-select form-select-sm" id="optOutNumberId" onchange="onOptOutNumberChange()">
+                            <option value="">-- Loading numbers... --</option>
+                        </select>
                     </div>
-                    <div class="d-none ps-3" id="urlOptoutConfig">
-                        <div class="mb-2">
-                            <label class="form-label">URL Domain</label>
-                            <select class="form-select form-select-sm" id="urlOptoutDomain">
-                                @foreach($optout_domains as $domain)
-                                <option value="{{ $domain['id'] }}" {{ $domain['is_default'] ? 'selected' : '' }}>{{ $domain['domain'] }}{{ $domain['is_default'] ? ' (default)' : '' }}</option>
-                                @endforeach
-                            </select>
-                            <small class="text-muted">A unique URL will be generated per message.</small>
+                    <div class="mb-2" id="keywordArea">
+                        <label class="form-label form-label-sm">
+                            Opt-out keyword
+                            <span id="keywordValidationIcon" class="ms-1"></span>
+                        </label>
+                        <input type="text" class="form-control form-control-sm" id="optOutKeywordInput"
+                            placeholder="e.g. STOP, QUIT (4-10 chars)"
+                            maxlength="10"
+                            oninput="scheduleKeywordValidation()"
+                            style="text-transform:uppercase">
+                        <select class="form-select form-select-sm d-none" id="optOutKeywordSelect" onchange="onKeywordSelectChange()">
+                            <option value="">-- Select keyword --</option>
+                        </select>
+                        <div class="invalid-feedback d-block d-none" id="keywordError"></div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" id="replyOptoutText" placeholder="Auto-generated when number + keyword are set" readonly>
+                            <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('replyOptoutText')">Insert</button>
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label">Opt-out Text</label>
-                            <div class="input-group input-group-sm">
-                                <input type="text" class="form-control" id="urlOptoutText" value="Opt-out: Click @{{ '{' }}{{ '{' }}unique_url}}" placeholder="e.g. Click @{{ '{' }}{{ '{' }}unique_url}}">
-                                <button type="button" class="btn btn-outline-primary" onclick="addOptoutToMessage('url')" title="Append to message">Add to message content</button>
+                    </div>
+                    <div class="pt-2 border-top">
+                        <label class="form-label form-label-sm">Add opt-outs to list</label>
+                        <div class="mb-1">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="replyListTarget" id="replyListExisting" value="existing" checked onchange="toggleReplyStorageList()">
+                                <label class="form-check-label" for="replyListExisting">Existing list</label>
                             </div>
-                            <small class="text-muted">Use @{{ '{' }}{{ '{' }}unique_url}} to insert the tracking URL.</small>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="replyListTarget" id="replyListNew" value="new" onchange="toggleReplyStorageList()">
+                                <label class="form-check-label" for="replyListNew">Create new list</label>
+                            </div>
                         </div>
-                        <div class="mb-2">
-                            <label class="form-label">Store opt-outs in</label>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="urlOptoutTarget" id="urlOptoutExisting" value="existing" checked>
-                                <label class="form-check-label" for="urlOptoutExisting">Existing opt-out list</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="urlOptoutTarget" id="urlOptoutNew" value="new">
-                                <label class="form-check-label" for="urlOptoutNew">Create new opt-out list</label>
-                            </div>
-                            <div class="d-none mt-2" id="urlNewListFields">
-                                <input type="text" class="form-control form-control-sm mb-1" id="urlNewListName" placeholder="List name (required)">
-                                <input type="text" class="form-control form-control-sm" id="urlNewListDesc" placeholder="Description (optional)">
-                            </div>
+                        <select class="form-select form-select-sm" id="replyOptOutListId">
+                            <option value="">-- Select an opt-out list --</option>
+                            @foreach($opt_out_lists as $list)
+                            <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
+                            @endforeach
+                        </select>
+                        <div class="d-none mt-1" id="replyNewListFields">
+                            <input type="text" class="form-control form-control-sm" id="replyNewListName" placeholder="New list name (required)">
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            <div class="mb-3 p-3 border rounded">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="enableUrlOptout" onchange="toggleUrlOptout()">
+                    <label class="form-check-label fw-medium" for="enableUrlOptout">Enable click-to-opt-out</label>
+                </div>
+                <div class="d-none ps-2" id="urlOptoutConfig">
+                    <p class="text-muted mb-2 small">A unique 5-character link per recipient (e.g. qout.uk/Ab3K9) is inserted via &#123;&#123;unique_url&#125;&#125;.</p>
+                    <div class="mb-2">
+                        <label class="form-label form-label-sm">Opt-out text <span class="text-muted">(appended to message)</span></label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" id="urlOptoutText" value="OptOut, &#123;&#123;unique_url&#125;&#125;">
+                            <button type="button" class="btn btn-outline-secondary" onclick="insertOptOutTextToMessage('urlOptoutText')">Insert</button>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-top">
+                        <label class="form-label form-label-sm">Add opt-outs to list</label>
+                        <div class="mb-1">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="urlListTarget" id="urlListExisting" value="existing" checked onchange="toggleUrlStorageList()">
+                                <label class="form-check-label" for="urlListExisting">Existing list</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="urlListTarget" id="urlListNew" value="new" onchange="toggleUrlStorageList()">
+                                <label class="form-check-label" for="urlListNew">Create new list</label>
+                            </div>
+                        </div>
+                        <select class="form-select form-select-sm" id="urlOptOutListId">
+                            <option value="">-- Select an opt-out list --</option>
+                            @foreach($opt_out_lists as $list)
+                            <option value="{{ $list['id'] }}">{{ $list['name'] }} ({{ number_format($list['count']) }})</option>
+                            @endforeach
+                        </select>
+                        <div class="d-none mt-1" id="urlNewListFields">
+                            <input type="text" class="form-control form-control-sm" id="urlNewListName" placeholder="New list name (required)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-none" id="optoutValidationError">
-                <div class="alert alert-danger py-2 mb-0">
-                    <i class="fas fa-exclamation-circle me-1"></i>
-                    <span id="optoutValidationMessage">At least one opt-out mechanism must be configured.</span>
+                <div class="alert alert-pastel-primary py-2 mb-0">
+                    <i class="fas fa-info-circle me-1 text-primary"></i>
+                    <span id="optoutValidationMessage">Please complete the opt-out configuration.</span>
                 </div>
             </div>
         </div>
-        
+
         <div id="optoutDisabledMessage">
             <p class="text-muted mb-0"><small>No opt-out logic will be applied. Enable to configure opt-out options.</small></p>
         </div>
