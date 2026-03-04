@@ -1040,7 +1040,8 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Destination URL</label>
-                    <input type="url" class="form-control" id="destinationUrl" placeholder="https://example.com/landing-page">
+                    <input type="url" class="form-control" id="destinationUrl" placeholder="https://example.com/landing-page" oninput="this.classList.remove('is-invalid');">
+                    <div class="invalid-feedback" id="destinationUrlError">Please enter a destination URL</div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Insert Link As</label>
@@ -2532,7 +2533,7 @@ function confirmTrackableLink() {
     var method = document.querySelector('input[name="linkInsertMethod"]:checked').value;
     
     if (!url) {
-        alert('Please enter a destination URL');
+        document.getElementById('destinationUrl').classList.add('is-invalid');
         return;
     }
     
