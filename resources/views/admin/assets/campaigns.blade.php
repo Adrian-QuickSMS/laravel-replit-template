@@ -590,22 +590,8 @@ a.text-primary:hover { color: #2d5a87 !important; }
 @endpush
 
 @php
-$campaigns = [
-    ['id' => 'C-2026-001', 'name' => 'Spring Promo Campaign', 'account_id' => 'ACC-001', 'account_name' => 'Acme Corp', 'channel' => 'basic_rcs', 'status' => 'scheduled', 'sender_id' => 'ACME', 'rcs_agent' => 'Acme Business', 'recipients_total' => 3500, 'recipients_delivered' => null, 'send_date' => '2026-01-25 10:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'promo,spring', 'template' => 'Sale Announcement'],
-    ['id' => 'C-2026-002', 'name' => 'New Year Flash Sale', 'account_id' => 'ACC-002', 'account_name' => 'RetailMax', 'channel' => 'rich_rcs', 'status' => 'sending', 'sender_id' => 'RETAILMAX', 'rcs_agent' => 'RetailMax Official', 'recipients_total' => 5200, 'recipients_delivered' => 3100, 'send_date' => '2026-01-22 00:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'flash,sale', 'template' => 'Flash Deal'],
-    ['id' => 'C-2025-003', 'name' => 'Holiday Greetings', 'account_id' => 'ACC-003', 'account_name' => 'ServicePro', 'channel' => 'sms_only', 'status' => 'complete', 'sender_id' => 'SVCPRO', 'rcs_agent' => '', 'recipients_total' => 3150, 'recipients_delivered' => 3102, 'send_date' => '2025-12-24 09:00:00', 'has_tracking' => 'no', 'has_optout' => 'yes', 'tags' => 'holiday', 'template' => 'Reminder'],
-    ['id' => 'C-2024-004', 'name' => 'Boxing Day Deals', 'account_id' => 'ACC-001', 'account_name' => 'Acme Corp', 'channel' => 'basic_rcs', 'status' => 'complete', 'sender_id' => 'ACME', 'rcs_agent' => 'Acme Business', 'recipients_total' => 2800, 'recipients_delivered' => 2756, 'send_date' => '2024-12-26 08:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'boxing,deals', 'template' => 'Product Showcase'],
-    ['id' => 'C-2024-005', 'name' => 'Christmas Eve Reminder', 'account_id' => 'ACC-004', 'account_name' => 'HealthFirst', 'channel' => 'sms_only', 'status' => 'complete', 'sender_id' => 'HEALTH1', 'rcs_agent' => '', 'recipients_total' => 1500, 'recipients_delivered' => 1487, 'send_date' => '2024-12-24 07:00:00', 'has_tracking' => 'no', 'has_optout' => 'yes', 'tags' => 'appointment', 'template' => 'Appointment'],
-    ['id' => 'C-2024-006', 'name' => 'Winter Clearance', 'account_id' => 'ACC-002', 'account_name' => 'RetailMax', 'channel' => 'rich_rcs', 'status' => 'complete', 'sender_id' => 'RETAILMAX', 'rcs_agent' => 'RetailMax Official', 'recipients_total' => 4200, 'recipients_delivered' => 4156, 'send_date' => '2024-12-23 14:30:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'clearance,winter', 'template' => 'VIP Invitation'],
-    ['id' => 'C-2024-007', 'name' => 'Last Minute Gifts', 'account_id' => 'ACC-005', 'account_name' => 'GiftZone', 'channel' => 'sms_only', 'status' => 'complete', 'sender_id' => 'GIFTZONE', 'rcs_agent' => '', 'recipients_total' => 890, 'recipients_delivered' => 885, 'send_date' => '2024-12-23 10:00:00', 'has_tracking' => 'yes', 'has_optout' => 'no', 'tags' => 'gifts', 'template' => 'Weekend Deal'],
-    ['id' => 'C-2024-008', 'name' => 'Flash Sale Alert', 'account_id' => 'ACC-001', 'account_name' => 'Acme Corp', 'channel' => 'sms_only', 'status' => 'cancelled', 'sender_id' => 'ACME', 'rcs_agent' => '', 'recipients_total' => 1200, 'recipients_delivered' => null, 'send_date' => '2024-12-22 15:00:00', 'has_tracking' => 'no', 'has_optout' => 'yes', 'tags' => '', 'template' => ''],
-    ['id' => 'C-2024-009', 'name' => 'Seasonal Offers', 'account_id' => 'ACC-003', 'account_name' => 'ServicePro', 'channel' => 'basic_rcs', 'status' => 'complete', 'sender_id' => 'SVCPRO', 'rcs_agent' => 'ServicePro Connect', 'recipients_total' => 2100, 'recipients_delivered' => 2089, 'send_date' => '2024-12-21 11:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'seasonal', 'template' => 'Product Launch'],
-    ['id' => 'C-2024-010', 'name' => 'Early Bird Special', 'account_id' => 'ACC-004', 'account_name' => 'HealthFirst', 'channel' => 'rich_rcs', 'status' => 'complete', 'sender_id' => 'HEALTH1', 'rcs_agent' => 'HealthFirst Care', 'recipients_total' => 950, 'recipients_delivered' => 942, 'send_date' => '2024-12-20 06:00:00', 'has_tracking' => 'yes', 'has_optout' => 'yes', 'tags' => 'early,special', 'template' => 'Sale Announcement'],
-];
-
-$accounts = collect($campaigns)->map(fn($c) => ['id' => $c['account_id'], 'name' => $c['account_name']])->unique('id')->values()->toArray();
-$senderIds = collect($campaigns)->pluck('sender_id')->unique()->filter()->sort()->values()->toArray();
-$rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()->values()->toArray();
+$campaigns = $campaigns ?? [];
+$accounts = $accounts ?? [];
 @endphp
 
 @section('content')
@@ -824,16 +810,26 @@ $rcsAgents = collect($campaigns)->pluck('rcs_agent')->unique()->filter()->sort()
                                 @endif
                             </td>
                             <td class="status-cell">
-                                @if($campaign['status'] === 'scheduled')
+                                @if($campaign['status'] === 'draft')
+                                <span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-file-alt me-1"></i>Draft</span>
+                                @elseif($campaign['status'] === 'scheduled')
                                 <span class="badge badge-pastel-warning"><i class="fas fa-clock me-1"></i>Scheduled</span>
+                                @elseif($campaign['status'] === 'pending')
+                                <span class="badge badge-pastel-info"><i class="fas fa-hourglass-half me-1"></i>Pending</span>
                                 @elseif($campaign['status'] === 'sending')
                                 <span class="badge badge-pastel-primary"><i class="fas fa-paper-plane me-1"></i>Sending</span>
                                 @elseif($campaign['status'] === 'complete')
                                 <span class="badge badge-pastel-success"><i class="fas fa-check me-1"></i>Complete</span>
                                 @elseif($campaign['status'] === 'cancelled')
                                 <span class="badge badge-pastel-secondary"><i class="fas fa-ban me-1"></i>Cancelled</span>
+                                @elseif($campaign['status'] === 'paused')
+                                <span class="badge badge-pastel-warning"><i class="fas fa-pause-circle me-1"></i>Paused</span>
                                 @elseif($campaign['status'] === 'suspended')
                                 <span class="badge badge-pastel-warning"><i class="fas fa-pause-circle me-1"></i>Suspended</span>
+                                @elseif($campaign['status'] === 'failed')
+                                <span class="badge badge-pastel-danger"><i class="fas fa-exclamation-triangle me-1"></i>Failed</span>
+                                @elseif($campaign['status'] === 'archived')
+                                <span class="badge" style="background-color: #e2e3e5; color: #6c757d;"><i class="fas fa-archive me-1"></i>Archived</span>
                                 @endif
                             </td>
                             <td>

@@ -386,10 +386,62 @@ class AdminController extends Controller
         ]);
     }
 
-    public function assetsCampaigns()
+    public function assetsCampaigns(Request $request)
     {
+        $typeToChannel = [
+            'sms' => 'sms_only',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
+        ];
+        $statusMap = [
+            'queued' => 'pending',
+            'completed' => 'complete',
+        ];
+
+        $query = \App\Models\Campaign::withoutGlobalScope('tenant')
+            ->with(['account', 'senderId', 'rcsAgent', 'messageTemplate']);
+
+        $paginated = $query->orderByDesc('created_at')->paginate(50)->withQueryString();
+
+        $campaigns = $paginated->getCollection()->map(function ($c) use ($typeToChannel, $statusMap) {
+            $sendDate = $c->scheduled_at ?? $c->started_at ?? $c->created_at;
+            $accountName = $c->account?->trading_name ?: ($c->account?->company_name ?: 'Unknown');
+            $tags = is_array($c->tags) ? implode(',', $c->tags) : ($c->tags ?? '');
+
+            return [
+                'id' => $c->id,
+                'account_id' => $c->account_id,
+                'account_name' => $accountName,
+                'name' => $c->name,
+                'channel' => $typeToChannel[$c->type] ?? 'sms_only',
+                'status' => $statusMap[$c->status] ?? $c->status,
+                'sender_id' => $c->getSenderDisplayName() ?? '-',
+                'rcs_agent' => $c->rcsAgent?->name ?? '',
+                'send_date' => $sendDate ? $sendDate->toIso8601String() : now()->toIso8601String(),
+                'recipients_total' => $c->total_unique_recipients ?? $c->total_recipients ?? 0,
+                'recipients_delivered' => $c->delivered_count,
+                'has_tracking' => 'no',
+                'has_optout' => $c->opt_out_enabled ? 'yes' : 'no',
+                'tags' => $tags,
+                'template' => $c->messageTemplate?->name ?? '',
+            ];
+        })->toArray();
+
+        $accounts = Account::select('id', 'company_name', 'trading_name')
+            ->where('status', 'active')
+            ->orderBy('company_name')
+            ->get()
+            ->map(fn($a) => [
+                'id' => $a->id,
+                'name' => $a->trading_name ?: $a->company_name,
+            ])->toArray();
+
         return view('admin.assets.campaigns', [
-            'page_title' => 'Campaign History'
+            'page_title' => 'Campaign History',
+            'campaigns' => $campaigns,
+            'accounts' => $accounts,
+            'paginator' => $paginated,
         ]);
     }
 
