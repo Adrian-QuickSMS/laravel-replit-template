@@ -2648,21 +2648,10 @@ function confirmMessageExpiry() {
 var portalTemplates = @json($templates ?? []);
 
 function getCompatibleTemplates(currentChannel) {
-    var channelMap = {
-        'sms': ['sms'],
-        'rcs_basic': ['rcs_basic', 'sms'],
-        'rcs_rich': ['rcs_rich', 'rcs_basic', 'sms']
-    };
-    var allowedChannels = channelMap[currentChannel] || ['sms'];
-    
     return portalTemplates.filter(function(t) {
         if (t.trigger === 'API') return false;
         if (t.status === 'Archived') return false;
-        var templateChannel = t.channel || 'sms';
-        if (templateChannel === 'Basic RCS + SMS') templateChannel = 'rcs_basic';
-        if (templateChannel === 'Rich RCS + SMS') templateChannel = 'rcs_rich';
-        if (templateChannel === 'SMS') templateChannel = 'sms';
-        return allowedChannels.indexOf(templateChannel) !== -1;
+        return true;
     });
 }
 
@@ -2787,7 +2776,38 @@ function applySelectedTemplate() {
 
     if (channel === 'Rich RCS + SMS' && tpl.rcs_payload) {
         try {
-            var payload = typeof tpl.rcs_payload === 'string' ? JSON.parse(tpl.rcs_payload) : tpl.rcs_payload;
+            var raw = typeof tpl.rcs_payload === 'string' ? JSON.parse(tpl.rcs_payload) : tpl.rcs_payload;
+            var isCarousel = (raw.messageType === 'carousel') || (raw.cards && raw.cards.length > 1);
+            var wizardCards = (raw.cards || []).map(function(c) {
+                return {
+                    title: c.textBody || c.title || '',
+                    description: c.description || '',
+                    media: c.media || null,
+                    suggestions: (c.buttons || c.suggestions || []).map(function(b) {
+                        var act = b.action || {};
+                        return {
+                            text: b.label || b.text || '',
+                            label: b.label || b.text || '',
+                            type: b.type || 'url',
+                            url: act.url || b.url || '',
+                            phone: act.phoneNumber || b.phone || '',
+                            title: act.title || b.title || '',
+                            start: act.startTime || b.start || '',
+                            end: act.endTime || b.end || '',
+                            description: act.description || b.description || ''
+                        };
+                    })
+                };
+            });
+            var payload = {
+                type: isCarousel ? 'carousel' : 'standalone',
+                fallback: content || ''
+            };
+            if (isCarousel) {
+                payload.cards = wizardCards;
+            } else if (wizardCards.length > 0) {
+                payload.card = wizardCards[0];
+            }
             document.querySelector('#channelRCSRich').click();
             setTimeout(function() {
                 if (typeof openRcsWizard === 'function') {
@@ -2802,6 +2822,8 @@ function applySelectedTemplate() {
         } catch (e) {
             console.warn('Failed to parse RCS payload:', e);
         }
+        document.getElementById('smsContent').value = content;
+        handleContentChange();
     } else if (channel === 'Basic RCS + SMS') {
         document.querySelector('#channelRCSBasic').click();
         document.getElementById('smsContent').value = content;
