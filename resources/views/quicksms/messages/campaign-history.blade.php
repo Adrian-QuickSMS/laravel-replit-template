@@ -1144,7 +1144,7 @@ function loadDraftsFromStorage() {
         row.setAttribute('data-tags', '');
         row.setAttribute('data-template', draft.template || '');
         row.setAttribute('data-message-content', draft.message_content || '');
-        row.setAttribute('data-rcs-content', '');
+        row.setAttribute('data-rcs-content', draft.rcs_content ? JSON.stringify(draft.rcs_content) : (draft.config && draft.config.rcs_content ? JSON.stringify(draft.config.rcs_content) : ''));
         row.setAttribute('data-estimated-cost', '');
         row.setAttribute('data-actual-cost', '');
         row.setAttribute('data-currency', 'GBP');

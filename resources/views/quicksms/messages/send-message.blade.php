@@ -3393,6 +3393,11 @@ function collectCampaignConfig() {
     var tagsCount = recipientState.contactBook.tags.reduce(function(acc, t) { return acc + (t.count || 0); }, 0);
     var totalRecipientCount = manualCount + uploadCount + contactsCount + listsCount + dynamicListsCount + tagsCount;
     
+    var rcsPayload = null;
+    if (mappedChannel === 'rich_rcs' && typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
+        rcsPayload = rcsPersistentPayload;
+    }
+
     return {
         channel: mappedChannel,
         sender_id: senderId,
@@ -3403,6 +3408,7 @@ function collectCampaignConfig() {
         rcs_agent_tagline: rcsAgentTagline,
         rcs_agent_brand_color: rcsAgentBrandColor,
         message_content: smsContent,
+        rcs_content: rcsPayload,
         template: templateName,
         trackable_link: trackableLinkEnabled,
         optout_enabled: optoutEnabled,
@@ -3494,6 +3500,7 @@ function confirmSaveDraft() {
         delivered: 0,
         failed: 0,
         message_content: config.message_content,
+        rcs_content: config.rcs_content || null,
         tags: [],
         template: config.template || null,
         has_tracking: config.trackable_link ? 'yes' : 'no',
