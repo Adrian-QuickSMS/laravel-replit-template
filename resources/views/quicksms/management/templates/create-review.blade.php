@@ -396,8 +396,9 @@ document.addEventListener('DOMContentLoaded', function() {
             status: status || 'active'
         };
 
-        if (data2.senderId) payload.sender_id_id = data2.senderId;
-        if (data2.rcsAgent) payload.rcs_agent_id = data2.rcsAgent;
+        var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (data2.senderId && uuidPattern.test(data2.senderId)) payload.sender_id_id = data2.senderId;
+        if (data2.rcsAgent && uuidPattern.test(data2.rcsAgent)) payload.rcs_agent_id = data2.rcsAgent;
         if (data2.rcsContentData) payload.rcs_content = data2.rcsContentData;
 
         if (data2.optOut) {
