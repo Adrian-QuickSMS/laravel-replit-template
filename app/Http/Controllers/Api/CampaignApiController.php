@@ -733,6 +733,22 @@ class CampaignApiController extends Controller
         }
     }
 
+    public function archive(string $id): JsonResponse
+    {
+        $campaign = $this->findCampaignOrFail($id);
+
+        if (!$campaign) {
+            return response()->json(['status' => 'error', 'message' => 'Campaign not found'], 404);
+        }
+
+        try {
+            $this->campaignService->archive($campaign);
+            return response()->json(['success' => true, 'message' => 'Campaign archived']);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 422);
+        }
+    }
+
     // =====================================================
     // CLONE
     // =====================================================

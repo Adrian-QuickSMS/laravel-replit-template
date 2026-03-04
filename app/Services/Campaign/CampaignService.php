@@ -674,6 +674,21 @@ class CampaignService
         return $campaign;
     }
 
+    public function archive(Campaign $campaign): Campaign
+    {
+        if (!in_array($campaign->status, [Campaign::STATUS_COMPLETED, Campaign::STATUS_CANCELLED, Campaign::STATUS_FAILED])) {
+            throw new \InvalidArgumentException("Only completed, cancelled, or failed campaigns can be archived.");
+        }
+
+        $campaign->transitionTo(Campaign::STATUS_ARCHIVED);
+
+        Log::info('[CampaignService] Campaign archived', [
+            'campaign_id' => $campaign->id,
+        ]);
+
+        return $campaign;
+    }
+
     /**
      * Mark a campaign as completed.
      * Called by the queue system when all recipients have been processed.

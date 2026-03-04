@@ -320,6 +320,7 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/campaigns')
     Route::post('/{id}/pause', 'pause')->name('api.campaigns.pause');
     Route::post('/{id}/resume', 'resume')->name('api.campaigns.resume');
     Route::post('/{id}/cancel', 'cancel')->name('api.campaigns.cancel');
+    Route::post('/{id}/archive', 'archive')->name('api.campaigns.archive');
 
     // Clone
     Route::post('/{id}/clone', 'clone')->name('api.campaigns.clone');

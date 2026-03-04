@@ -1752,10 +1752,12 @@ class QuickSMSController extends Controller
             'completed' => 'complete',
             'failed' => 'complete',
             'paused' => 'sending',
+            'archived' => 'archived',
         ];
 
         $query = \App\Models\Campaign::withoutGlobalScope('tenant')
             ->where('account_id', $accountId)
+            ->where('status', '!=', 'archived')
             ->with(['senderId', 'rcsAgent', 'messageTemplate']);
 
         if ($request->filled('search')) {

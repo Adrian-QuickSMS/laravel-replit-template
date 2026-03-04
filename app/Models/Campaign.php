@@ -43,6 +43,7 @@ class Campaign extends Model
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_FAILED = 'failed';
+    const STATUS_ARCHIVED = 'archived';
 
     const STATUSES = [
         self::STATUS_DRAFT,
@@ -53,6 +54,7 @@ class Campaign extends Model
         self::STATUS_COMPLETED,
         self::STATUS_CANCELLED,
         self::STATUS_FAILED,
+        self::STATUS_ARCHIVED,
     ];
 
     // =====================================================
@@ -65,9 +67,10 @@ class Campaign extends Model
         self::STATUS_QUEUED    => [self::STATUS_SENDING, self::STATUS_FAILED, self::STATUS_CANCELLED],
         self::STATUS_SENDING   => [self::STATUS_PAUSED, self::STATUS_COMPLETED, self::STATUS_FAILED],
         self::STATUS_PAUSED    => [self::STATUS_SENDING, self::STATUS_CANCELLED],
-        self::STATUS_COMPLETED => [], // terminal
-        self::STATUS_CANCELLED => [], // terminal
-        self::STATUS_FAILED    => [self::STATUS_DRAFT], // can retry via re-draft
+        self::STATUS_COMPLETED => [self::STATUS_ARCHIVED],
+        self::STATUS_CANCELLED => [self::STATUS_ARCHIVED],
+        self::STATUS_FAILED    => [self::STATUS_DRAFT, self::STATUS_ARCHIVED],
+        self::STATUS_ARCHIVED  => [],
     ];
 
     // =====================================================
@@ -380,9 +383,14 @@ class Campaign extends Model
         return $this->status === self::STATUS_FAILED;
     }
 
+    public function isArchived(): bool
+    {
+        return $this->status === self::STATUS_ARCHIVED;
+    }
+
     public function isTerminal(): bool
     {
-        return in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
+        return in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_CANCELLED, self::STATUS_ARCHIVED]);
     }
 
     public function isActive(): bool

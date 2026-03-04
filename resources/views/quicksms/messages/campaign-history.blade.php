@@ -462,14 +462,30 @@ $permissions = [
                                     </td>
                                     <td class="py-2">{{ \Carbon\Carbon::parse($campaign['send_date'])->format('d/m/Y H:i') }}</td>
                                     <td class="py-2 text-end" style="white-space: nowrap;">
-                                        @if($campaign['status'] === 'draft' || $campaign['status'] === 'scheduled')
-                                            <a href="/messages/send?edit={{ $campaign['id'] }}&source=db" class="btn btn-sm btn-outline-primary me-1" onclick="event.stopPropagation();" title="Edit Campaign">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); confirmDeleteDbCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')" title="Delete Campaign">
-                                                <i class="fas fa-trash"></i>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-link text-muted p-1" type="button" data-bs-toggle="dropdown" aria-expanded="false" onclick="event.stopPropagation();" style="font-size: 1.1rem; line-height: 1;">
+                                                <i class="fas fa-ellipsis-v"></i>
                                             </button>
-                                        @endif
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="min-width: 140px;">
+                                                @if($campaign['status'] === 'draft')
+                                                    <li><a class="dropdown-item" href="/messages/send?edit={{ $campaign['id'] }}&source=db" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-danger" href="#" onclick="event.stopPropagation(); confirmDeleteDbCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                                @elseif($campaign['status'] === 'scheduled')
+                                                    <li><a class="dropdown-item" href="/messages/send?edit={{ $campaign['id'] }}&source=db" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item text-warning" href="#" onclick="event.stopPropagation(); confirmCancelFromTable('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-times-circle me-2"></i>Cancel</a></li>
+                                                @elseif($campaign['status'] === 'cancelled')
+                                                    <li><a class="dropdown-item" href="/messages/send?edit={{ $campaign['id'] }}&source=db" onclick="event.stopPropagation();"><i class="fas fa-edit me-2 text-primary"></i>Edit</a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="event.stopPropagation(); confirmArchiveCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-archive me-2 text-muted"></i>Archive</a></li>
+                                                @elseif($campaign['status'] === 'complete')
+                                                    <li><a class="dropdown-item" href="#" onclick="event.stopPropagation(); confirmArchiveCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-archive me-2 text-muted"></i>Archive</a></li>
+                                                @elseif($campaign['status'] === 'failed')
+                                                    <li><a class="dropdown-item" href="#" onclick="event.stopPropagation(); confirmArchiveCampaign('{{ $campaign['id'] }}', '{{ addslashes($campaign['name']) }}')"><i class="fas fa-archive me-2 text-muted"></i>Archive</a></li>
+                                                @endif
+                                            </ul>
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty
@@ -956,6 +972,48 @@ $permissions = [
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="archiveCampaignModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-0 pb-0">
+                <h5 class="modal-title"><i class="fas fa-archive me-2 text-muted"></i>Archive Campaign</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to archive <strong id="archiveCampaignName">this campaign</strong>?</p>
+                <p class="text-muted small mb-0">Archived campaigns will be hidden from the campaign list.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary" onclick="executeArchiveCampaign()">
+                    <i class="fas fa-archive me-1"></i>Archive
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cancelCampaignFromTableModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Cancel Campaign</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel <strong id="cancelFromTableName">this campaign</strong>?</p>
+                <p class="text-muted small mb-0">The campaign will not be sent. You can archive it afterwards.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Keep Campaign</button>
+                <button type="button" class="btn btn-danger" onclick="executeCancelFromTable()">
+                    <i class="fas fa-times-circle me-1"></i>Cancel Campaign
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1275,6 +1333,79 @@ function executeDeleteDbCampaign() {
         bootstrap.Modal.getInstance(document.getElementById('deleteDraftModal')).hide();
         pendingDeleteDbCampaignId = null;
         showToast('Failed to delete campaign', 'error');
+    });
+}
+
+var pendingArchiveCampaignId = null;
+
+function confirmArchiveCampaign(campaignId, campaignName) {
+    pendingArchiveCampaignId = campaignId;
+    document.getElementById('archiveCampaignName').textContent = campaignName || 'this campaign';
+    var modal = new bootstrap.Modal(document.getElementById('archiveCampaignModal'));
+    modal.show();
+}
+
+function executeArchiveCampaign() {
+    if (!pendingArchiveCampaignId) return;
+
+    fetch('/api/campaigns/' + pendingArchiveCampaignId + '/archive', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Archive failed');
+        return r.json();
+    })
+    .then(function() {
+        var row = document.querySelector('tr[data-id="' + pendingArchiveCampaignId + '"]');
+        if (row) row.remove();
+        bootstrap.Modal.getInstance(document.getElementById('archiveCampaignModal')).hide();
+        pendingArchiveCampaignId = null;
+        showToast('Campaign archived', 'success');
+    })
+    .catch(function(err) {
+        bootstrap.Modal.getInstance(document.getElementById('archiveCampaignModal')).hide();
+        pendingArchiveCampaignId = null;
+        showToast('Failed to archive campaign', 'error');
+    });
+}
+
+var pendingCancelFromTableId = null;
+
+function confirmCancelFromTable(campaignId, campaignName) {
+    pendingCancelFromTableId = campaignId;
+    document.getElementById('cancelFromTableName').textContent = campaignName || 'this campaign';
+    var modal = new bootstrap.Modal(document.getElementById('cancelCampaignFromTableModal'));
+    modal.show();
+}
+
+function executeCancelFromTable() {
+    if (!pendingCancelFromTableId) return;
+
+    fetch('/api/campaigns/' + pendingCancelFromTableId + '/cancel', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(function(r) {
+        if (!r.ok) throw new Error('Cancel failed');
+        return r.json();
+    })
+    .then(function() {
+        bootstrap.Modal.getInstance(document.getElementById('cancelCampaignFromTableModal')).hide();
+        pendingCancelFromTableId = null;
+        showToast('Campaign cancelled', 'success');
+        setTimeout(function() { window.location.reload(); }, 800);
+    })
+    .catch(function(err) {
+        bootstrap.Modal.getInstance(document.getElementById('cancelCampaignFromTableModal')).hide();
+        pendingCancelFromTableId = null;
+        showToast('Failed to cancel campaign', 'error');
     });
 }
 
