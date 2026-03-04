@@ -236,12 +236,12 @@
                                         <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step3', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step3', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step3') }}@endif"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
-                                        <span class="review-label">Assigned Sub-Accounts:</span>
-                                        <span class="review-value" id="reviewSubAccounts">-</span>
+                                        <span class="review-label">Visibility:</span>
+                                        <span class="review-value" id="reviewVisibility">-</span>
                                     </div>
                                     <div class="review-row">
-                                        <span class="review-label">Assigned Users:</span>
-                                        <span class="review-value" id="reviewUsers">-</span>
+                                        <span class="review-label">Allow Editing:</span>
+                                        <span class="review-value" id="reviewAllowEditing">-</span>
                                     </div>
                                 </div>
 
@@ -364,21 +364,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (step3) {
         var data3 = JSON.parse(step3);
-        
-        // Display sub-accounts
-        if (data3.subAccounts && data3.subAccounts.length > 0) {
-            document.getElementById('reviewSubAccounts').textContent = data3.subAccounts.length + ' sub-account(s) selected';
-        } else {
-            document.getElementById('reviewSubAccounts').textContent = 'None selected';
-        }
-        
-        // Display users
-        if (data3.users && data3.users.length > 0) {
-            var userNames = data3.users.map(function(u) { return u.name; }).join(', ');
-            document.getElementById('reviewUsers').textContent = userNames;
-        } else {
-            document.getElementById('reviewUsers').textContent = 'None selected';
-        }
+        var visibilityMap = { 'all_users': 'All users on this account', 'owner_only': 'Only me (template owner)' };
+        document.getElementById('reviewVisibility').textContent = visibilityMap[data3.visibility] || data3.visibility || 'All users on this account';
+        document.getElementById('reviewAllowEditing').textContent = data3.allowEditing ? 'Yes' : 'No';
     }
     
     // Generate unique template ID
