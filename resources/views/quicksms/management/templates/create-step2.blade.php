@@ -1274,6 +1274,32 @@ function loadSavedData() {
             if (data.optOut) {
                 setTimeout(function() { restoreOptOutData(data.optOut); }, 200);
             }
+            if (data.trackableLink && data.trackableLink.enabled) {
+                var trackableToggle = document.getElementById('includeTrackableLink');
+                if (trackableToggle) {
+                    trackableToggle.checked = true;
+                    trackableLinkConfirmed = true;
+                    var tSummary = document.getElementById('trackableLinkSummary');
+                    if (tSummary) tSummary.classList.remove('d-none');
+                    if (data.trackableLink.domain) {
+                        var domainEl = document.getElementById('trackableLinkDomain');
+                        if (domainEl) domainEl.textContent = data.trackableLink.domain;
+                    }
+                }
+            }
+            if (data.messageExpiry && data.messageExpiry.enabled) {
+                var expiryToggle = document.getElementById('messageExpiry');
+                if (expiryToggle) {
+                    expiryToggle.checked = true;
+                    messageExpiryConfirmed = true;
+                    var eSummary = document.getElementById('messageExpirySummary');
+                    if (eSummary) eSummary.classList.remove('d-none');
+                    if (data.messageExpiry.value) {
+                        var eVal = document.getElementById('messageExpiryValue');
+                        if (eVal) eVal.textContent = data.messageExpiry.value;
+                    }
+                }
+            }
             if (data.socialHours) {
                 restoreSocialHoursData(data.socialHours);
             }
@@ -1387,7 +1413,9 @@ function restoreOptOutData(data) {
                 if (listSelect) listSelect.value = data.replyOptOutListId;
             }
         });
-    } else if (data.urlEnabled) {
+    }
+
+    if (data.urlEnabled) {
         var urlCb = document.getElementById('enableUrlOptout');
         if (urlCb) {
             urlCb.checked = true;
@@ -1454,13 +1482,33 @@ document.getElementById('nextBtn').addEventListener('click', function(e) {
         return;
     }
     
+    var trackableToggle = document.getElementById('includeTrackableLink');
+    var trackableLinkData = { enabled: false };
+    if (trackableToggle && trackableToggle.checked && trackableLinkConfirmed) {
+        var domainEl = document.getElementById('trackableLinkDomain');
+        trackableLinkData = { enabled: true, domain: domainEl ? domainEl.textContent : 'qsms.uk' };
+    }
+
+    var expiryToggle = document.getElementById('messageExpiry');
+    var messageExpiryData = { enabled: false };
+    if (expiryToggle && expiryToggle.checked && messageExpiryConfirmed) {
+        var expiryValueEl = document.getElementById('messageExpiryValue');
+        messageExpiryData = { enabled: true, value: expiryValueEl ? expiryValueEl.textContent : '' };
+    }
+
+    var senderSelect = document.getElementById('senderId');
+    var senderName = senderSelect && senderSelect.selectedIndex > 0 ? senderSelect.options[senderSelect.selectedIndex].text : '';
+
     sessionStorage.setItem('templateWizardStep2', JSON.stringify({
         channel: channel,
         smsText: smsContent.value,
-        senderId: document.getElementById('senderId').value,
+        senderId: senderSelect ? senderSelect.value : '',
+        senderName: senderName,
         rcsAgent: document.getElementById('rcsAgent').value,
         rcsContentData: rcsContentData,
         optOut: collectOptOutData(),
+        trackableLink: trackableLinkData,
+        messageExpiry: messageExpiryData,
         socialHours: collectSocialHoursData()
     }));
 });

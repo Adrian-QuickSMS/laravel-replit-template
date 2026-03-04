@@ -224,9 +224,25 @@
                                         <span class="review-label">Channel:</span>
                                         <span class="review-value" id="reviewChannel">-</span>
                                     </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Sender ID:</span>
+                                        <span class="review-value" id="reviewSenderId">Not set</span>
+                                    </div>
                                     <div class="mt-2">
                                         <div class="review-label mb-1">Message:</div>
                                         <div class="message-preview" id="reviewMessage">-</div>
+                                    </div>
+                                    <div class="review-row mt-2">
+                                        <span class="review-label">Trackable Link:</span>
+                                        <span class="review-value" id="reviewTrackableLink">Disabled</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Message Expiry:</span>
+                                        <span class="review-value" id="reviewMessageExpiry">Disabled</span>
+                                    </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Opt-out:</span>
+                                        <span class="review-value" id="reviewOptOut">Disabled</span>
                                     </div>
                                 </div>
 
@@ -360,6 +376,32 @@ document.addEventListener('DOMContentLoaded', function() {
         var channelMap = { 'sms': 'SMS only', 'rcs_basic': 'Basic RCS + SMS Fallback', 'rcs_rich': 'Rich RCS + SMS Fallback' };
         document.getElementById('reviewChannel').textContent = channelMap[data2.channel] || data2.channel;
         document.getElementById('reviewMessage').textContent = data2.smsText || 'No content';
+
+        if (data2.senderId) {
+            var senderEl = document.getElementById('reviewSenderId');
+            if (senderEl) senderEl.textContent = data2.senderName || data2.senderId;
+        }
+
+        if (data2.trackableLink && data2.trackableLink.enabled) {
+            var tEl = document.getElementById('reviewTrackableLink');
+            if (tEl) tEl.innerHTML = '<span class="badge bg-success">Enabled</span> ' + (data2.trackableLink.domain || 'qsms.uk');
+        }
+
+        if (data2.messageExpiry && data2.messageExpiry.enabled) {
+            var eEl = document.getElementById('reviewMessageExpiry');
+            if (eEl) eEl.innerHTML = '<span class="badge bg-success">Enabled</span> ' + (data2.messageExpiry.value || '');
+        }
+
+        if (data2.optOut && data2.optOut.enabled) {
+            var oEl = document.getElementById('reviewOptOut');
+            var parts = [];
+            if (data2.optOut.replyEnabled) parts.push('Reply-to-opt-out');
+            if (data2.optOut.urlEnabled) parts.push('Click-to-opt-out');
+            if (data2.optOut.screeningListIds && data2.optOut.screeningListIds.length > 0) {
+                parts.push(data2.optOut.screeningListIds.length + ' screening list(s)');
+            }
+            if (oEl) oEl.innerHTML = '<span class="badge bg-success">Enabled</span> ' + (parts.join(', ') || 'Configured');
+        }
     }
     
     if (step3) {
@@ -405,12 +447,23 @@ document.addEventListener('DOMContentLoaded', function() {
             var opt = data2.optOut;
             payload.opt_out_enabled = opt.enabled || false;
             if (opt.enabled) {
-                if (opt.method) payload.opt_out_method = opt.method;
-                if (opt.numberId) payload.opt_out_number_id = opt.numberId;
-                if (opt.keyword) payload.opt_out_keyword = opt.keyword;
-                if (opt.text) payload.opt_out_text = opt.text;
-                if (opt.listId) payload.opt_out_list_id = opt.listId;
-                if (opt.urlEnabled) payload.opt_out_url_enabled = opt.urlEnabled;
+                var method = null;
+                if (opt.replyEnabled && opt.urlEnabled) method = 'both';
+                else if (opt.replyEnabled) method = 'reply';
+                else if (opt.urlEnabled) method = 'url';
+                if (method) payload.opt_out_method = method;
+
+                if (opt.replyNumberId) payload.opt_out_number_id = opt.replyNumberId;
+                if (opt.replyKeyword) payload.opt_out_keyword = opt.replyKeyword;
+                if (opt.replyEnabled && opt.replyOptoutText) payload.opt_out_text = opt.replyOptoutText;
+                if (opt.urlEnabled && opt.urlOptoutText && !opt.replyEnabled) payload.opt_out_text = opt.urlOptoutText;
+
+                var listId = null;
+                if (opt.replyEnabled && opt.replyOptOutListId) listId = opt.replyOptOutListId;
+                else if (opt.urlEnabled && opt.urlOptOutListId) listId = opt.urlOptOutListId;
+                if (listId) payload.opt_out_list_id = listId;
+
+                if (opt.urlEnabled) payload.opt_out_url_enabled = true;
                 if (opt.screeningListIds && opt.screeningListIds.length > 0) {
                     payload.opt_out_screening_list_ids = opt.screeningListIds;
                 }
