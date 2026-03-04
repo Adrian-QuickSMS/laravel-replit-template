@@ -1990,11 +1990,34 @@ function loadDbCampaignForEditing(campaignId) {
         }
 
         if (c.scheduled_at) {
-            var scheduleInfo = document.createElement('div');
-            scheduleInfo.className = 'alert alert-info py-2 mt-2';
-            scheduleInfo.innerHTML = '<i class="fas fa-clock me-1"></i>Originally scheduled for: <strong>' + new Date(c.scheduled_at).toLocaleString() + '</strong>';
-            var contentSection = document.querySelector('.card-body');
-            if (contentSection) contentSection.insertAdjacentElement('afterbegin', scheduleInfo);
+            var schedDate = new Date(c.scheduled_at);
+            var dateStr = schedDate.getFullYear() + '-' + String(schedDate.getMonth() + 1).padStart(2, '0') + '-' + String(schedDate.getDate()).padStart(2, '0');
+            var timeStr = String(schedDate.getHours()).padStart(2, '0') + ':' + String(schedDate.getMinutes()).padStart(2, '0');
+
+            var scheduleCheckbox = document.getElementById('scheduleRules');
+            if (scheduleCheckbox) {
+                scheduleCheckbox.checked = true;
+                scheduleRulesConfirmed = true;
+            }
+            var scheduleToggle = document.getElementById('scheduleToggle');
+            if (scheduleToggle) scheduleToggle.checked = true;
+            var scheduleFields = document.getElementById('scheduleFields');
+            if (scheduleFields) scheduleFields.classList.remove('d-none');
+            var dateInput = document.getElementById('scheduleDate');
+            if (dateInput) dateInput.value = dateStr;
+            var timeInput = document.getElementById('scheduleTime');
+            if (timeInput) timeInput.value = timeStr;
+            var scheduleSummary = document.getElementById('scheduleSummary');
+            if (scheduleSummary) {
+                scheduleSummary.classList.remove('d-none');
+                var summaryText = document.getElementById('scheduleSummaryText');
+                if (summaryText) summaryText.textContent = 'Scheduled for: ' + dateStr + ' ' + timeStr;
+            }
+        }
+
+        if (c.send_rate) {
+            var sendRateSelect = document.getElementById('sendRate');
+            if (sendRateSelect) sendRateSelect.value = c.send_rate;
         }
 
         setTimeout(function() {
