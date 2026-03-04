@@ -64,9 +64,7 @@ var RcsPreviewRenderer = (function() {
         if (height === 'none') return '';
         var heightPx = getMediaHeight(height);
         
-        // Use url for preview rendering (contains displayable data URL or original URL)
-        // hostedUrl is the payload URL for delivery, not for preview rendering
-        var imageUrl = media.url;
+        var imageUrl = media.hostedUrl || media.url;
         if (imageUrl) {
             return '<div class="rcs-media rcs-media--' + height + '" style="height: ' + heightPx + ';">' +
                 '<img src="' + escapeHtml(imageUrl) + '" alt="' + escapeHtml(media.altText || '') + '" class="rcs-media-image" loading="lazy"/>' +

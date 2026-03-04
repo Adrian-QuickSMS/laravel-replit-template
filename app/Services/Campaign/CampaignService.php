@@ -57,7 +57,7 @@ class CampaignService
             'status' => Campaign::STATUS_DRAFT,
             'message_template_id' => $data['message_template_id'] ?? null,
             'message_content' => $data['message_content'] ?? null,
-            'rcs_content' => $data['rcs_content'] ?? null,
+            'rcs_content' => $this->sanitizeRcsContent($data['rcs_content'] ?? null),
             'encoding' => $data['encoding'] ?? null,
             'segment_count' => $data['segment_count'] ?? 1,
             'sender_id_id' => $data['sender_id_id'] ?? null,
@@ -117,6 +117,10 @@ class CampaignService
     {
         if (!$campaign->isEditable()) {
             throw new \RuntimeException("Campaign cannot be updated in '{$campaign->status}' status.");
+        }
+
+        if (array_key_exists('rcs_content', $data)) {
+            $data['rcs_content'] = $this->sanitizeRcsContent($data['rcs_content']);
         }
 
         $campaign->fill($data);
@@ -1021,6 +1025,27 @@ class CampaignService
                 'actual_cost' => $counts->actual_cost,
             ]);
         }
+    }
+
+    private function sanitizeRcsContent(?array $rcsContent): ?array
+    {
+        if (!$rcsContent || empty($rcsContent['cards'])) {
+            return $rcsContent;
+        }
+
+        foreach ($rcsContent['cards'] as &$card) {
+            if (!isset($card['media'])) continue;
+
+            $hostedUrl = $card['media']['hostedUrl'] ?? null;
+            $url = $card['media']['url'] ?? null;
+
+            if ($hostedUrl && $url && str_starts_with($url, 'data:')) {
+                $card['media']['url'] = $hostedUrl;
+            }
+        }
+        unset($card);
+
+        return $rcsContent;
     }
 
     private function autoFinalizeRcsAssets(Campaign $campaign): void
