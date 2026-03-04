@@ -438,6 +438,9 @@ class QuickSMSController extends Controller
                 'trackable_link_domain' => $t->trackable_link_domain,
                 'message_expiry_enabled' => (bool) $t->message_expiry_enabled,
                 'message_expiry_value' => $t->message_expiry_value,
+                'social_hours_enabled' => (bool) $t->social_hours_enabled,
+                'social_hours_from' => $t->social_hours_from,
+                'social_hours_to' => $t->social_hours_to,
             ])
             ->toArray();
     }

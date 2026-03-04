@@ -2752,6 +2752,18 @@ function resetTemplateDrivenState() {
     if (replyListSelect) replyListSelect.selectedIndex = 0;
     var urlListSelect = document.getElementById('urlOptOutListId');
     if (urlListSelect) urlListSelect.selectedIndex = 0;
+
+    var scheduleCheckbox = document.getElementById('scheduleRules');
+    if (scheduleCheckbox) {
+        scheduleCheckbox.checked = false;
+        scheduleRulesConfirmed = false;
+        var scheduleSummary = document.getElementById('scheduleSummary');
+        if (scheduleSummary) scheduleSummary.classList.add('d-none');
+    }
+    var scheduleToggle = document.getElementById('scheduleToggle');
+    if (scheduleToggle) { scheduleToggle.checked = false; if (typeof toggleScheduleFields === 'function') toggleScheduleFields(); }
+    var unsociableToggle = document.getElementById('unsociableToggle');
+    if (unsociableToggle) { unsociableToggle.checked = false; if (typeof toggleUnsociableFields === 'function') toggleUnsociableFields(); }
 }
 
 function applySelectedTemplate() {
@@ -2956,6 +2968,31 @@ function applySelectedTemplate() {
             if (mgmtSection) mgmtSection.classList.add('d-none');
             var disabledMsg = document.getElementById('optoutDisabledMessage');
             if (disabledMsg) disabledMsg.classList.remove('d-none');
+        }
+    }
+
+    if (tpl.social_hours_enabled) {
+        var scheduleCheckbox = document.getElementById('scheduleRules');
+        if (scheduleCheckbox) {
+            scheduleCheckbox.checked = true;
+            scheduleRulesConfirmed = true;
+            var scheduleSummary = document.getElementById('scheduleSummary');
+            if (scheduleSummary) {
+                scheduleSummary.classList.remove('d-none');
+                var summaryText = document.getElementById('scheduleSummaryText');
+                var from = tpl.social_hours_from || '08:00';
+                var to = tpl.social_hours_to || '20:00';
+                if (summaryText) summaryText.textContent = 'Quiet hours: ' + from + ' - ' + to;
+            }
+            var unsociableToggle = document.getElementById('unsociableToggle');
+            if (unsociableToggle) {
+                unsociableToggle.checked = true;
+                if (typeof toggleUnsociableFields === 'function') toggleUnsociableFields();
+            }
+            var unsociableFrom = document.getElementById('unsociableFrom');
+            var unsociableTo = document.getElementById('unsociableTo');
+            if (unsociableFrom) unsociableFrom.value = tpl.social_hours_from || '08:00';
+            if (unsociableTo) unsociableTo.value = tpl.social_hours_to || '20:00';
         }
     }
 

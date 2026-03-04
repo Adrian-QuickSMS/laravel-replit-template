@@ -244,6 +244,10 @@
                                         <span class="review-label">Opt-out:</span>
                                         <span class="review-value" id="reviewOptOut">Disabled</span>
                                     </div>
+                                    <div class="review-row">
+                                        <span class="review-label">Social Hours:</span>
+                                        <span class="review-value" id="reviewSocialHours">Disabled</span>
+                                    </div>
                                 </div>
 
                                 <div class="review-section">
@@ -402,6 +406,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (oEl) oEl.innerHTML = '<span class="badge" style="background:#e6f4ea;color:#1e7e34;">Enabled</span> ' + (parts.join(', ') || 'Configured');
         }
+
+        if (data2.socialHours && data2.socialHours.enabled) {
+            var shEl = document.getElementById('reviewSocialHours');
+            if (shEl) shEl.innerHTML = '<span class="badge" style="background:#e6f4ea;color:#1e7e34;">Enabled</span> ' + (data2.socialHours.from || '08:00') + ' - ' + (data2.socialHours.to || '20:00');
+        }
     }
     
     if (step3) {
@@ -480,6 +489,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (expiryEnabled) {
             payload.message_expiry_enabled = true;
             if (data2.messageExpiry.value) payload.message_expiry_value = data2.messageExpiry.value;
+        }
+
+        if (data2.socialHours && data2.socialHours.enabled) {
+            payload.social_hours_enabled = true;
+            if (data2.socialHours.from) payload.social_hours_from = data2.socialHours.from;
+            if (data2.socialHours.to) payload.social_hours_to = data2.socialHours.to;
         }
 
         return payload;

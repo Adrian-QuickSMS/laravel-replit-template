@@ -115,6 +115,10 @@ class MessageTemplateApiController extends Controller
             // Message expiry
             'message_expiry_enabled' => 'nullable|boolean',
             'message_expiry_value' => 'nullable|string|max:10',
+            // Social hours
+            'social_hours_enabled' => 'nullable|boolean',
+            'social_hours_from' => 'nullable|string|max:5',
+            'social_hours_to' => 'nullable|string|max:5',
         ]);
 
         // Validate opt-out keyword if provided
@@ -182,6 +186,10 @@ class MessageTemplateApiController extends Controller
             // Message expiry
             'message_expiry_enabled' => 'nullable|boolean',
             'message_expiry_value' => 'nullable|string|max:10',
+            // Social hours
+            'social_hours_enabled' => 'nullable|boolean',
+            'social_hours_from' => 'nullable|string|max:5',
+            'social_hours_to' => 'nullable|string|max:5',
         ]);
 
         // Validate opt-out keyword if changed
