@@ -485,8 +485,6 @@
             </div>
             <div class="modal-body">
                 <p class="mb-0">This estimate is based on <strong>{{ number_format($penetration * 100, 0) }}%</strong> of recipients receiving RCS and the remaining <strong>{{ number_format((1 - $penetration) * 100, 0) }}%</strong> receiving SMS fallback.</p>
-                <hr>
-                <p class="mb-0">Costs are calculated using per-recipient segment counts, so recipients with longer personalised messages are costed at the correct multi-segment rate.</p>
             </div>
             <div class="modal-footer border-top">
                 <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -504,8 +502,6 @@
             </div>
             <div class="modal-body">
                 <p class="mb-0">This shows the highest possible cost if every recipient were charged via the most expensive channel (<strong>{{ $maxSmsCost >= $maxRcsCost ? 'SMS' : 'RCS' }}</strong>).</p>
-                <hr>
-                <p class="mb-0">Your actual cost will always be equal to or lower than this amount. It provides a worst-case ceiling for budgeting purposes.</p>
             </div>
             <div class="modal-footer border-top">
                 <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
