@@ -1868,6 +1868,26 @@ function loadDraftForEditing(draftId) {
         }
     }
     
+    // Restore RCS rich content
+    var draftRcsContent = (draft.rcs_content) || (draft.config && draft.config.rcs_content) || null;
+    if (draftRcsContent) {
+        try {
+            var payload = typeof draftRcsContent === 'string' ? JSON.parse(draftRcsContent) : draftRcsContent;
+            if (payload && payload.cards) {
+                rcsPersistentPayload = payload;
+                sessionStorage.setItem('quicksms_rcs_draft', JSON.stringify(payload));
+                var configuredSummary = document.getElementById('rcsConfiguredSummary');
+                if (configuredSummary) configuredSummary.classList.remove('d-none');
+                setTimeout(function() {
+                    if (typeof updatePreview === 'function') updatePreview();
+                    if (typeof updateRcsWizardPreviewInMain === 'function') updateRcsWizardPreviewInMain();
+                }, 300);
+            }
+        } catch(e) {
+            console.error('Failed to restore RCS content:', e);
+        }
+    }
+
     // Show notification
     showDraftLoadedNotification(draft.name);
     

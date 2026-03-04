@@ -1954,8 +1954,12 @@ function updateMessagePreview(channel, senderId, rcsAgent, template, messageCont
             previewConfig.message = { type: 'text', content: { body: messageContent || noContentMsg } };
         } else {
             previewConfig.channel = 'rich_rcs';
-            if (rcsContent && typeof rcsContent === 'object') {
-                previewConfig.message = rcsContent;
+            if (rcsContent && typeof rcsContent === 'object' && rcsContent.cards) {
+                container.innerHTML = RcsPreviewRenderer.renderRichRcsPreview(rcsContent, previewConfig.agent);
+                if (rcsContent.type === 'carousel' || (rcsContent.cards && rcsContent.cards.length > 1)) {
+                    RcsPreviewRenderer.initCarouselBehavior('#campaignPreviewContainer');
+                }
+                return;
             } else if (messageContent) {
                 previewConfig.message = { type: 'text', content: { body: messageContent } };
             } else {
