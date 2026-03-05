@@ -2327,8 +2327,10 @@ class QuickSMSController extends Controller
 
     public function templateEditStep1($templateId)
     {
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
-        $template = $this->getMockTemplate($templateId);
+        $template = $this->getTemplateForEdit($templateId);
+        if (!$template) {
+            return redirect()->route('management.templates')->with('error', 'Template not found.');
+        }
 
         return view('quicksms.management.templates.create-step1', [
             'page_title' => 'Edit Template - Metadata',
@@ -2347,8 +2349,10 @@ class QuickSMSController extends Controller
         $virtual_numbers = [];
         $optout_domains = [];
 
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
-        $template = $this->getMockTemplate($templateId);
+        $template = $this->getTemplateForEdit($templateId);
+        if (!$template) {
+            return redirect()->route('management.templates')->with('error', 'Template not found.');
+        }
 
         return view('quicksms.management.templates.create-step2', [
             'page_title' => 'Edit Template - Content',
@@ -2366,8 +2370,10 @@ class QuickSMSController extends Controller
 
     public function templateEditStep3($templateId)
     {
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
-        $template = $this->getMockTemplate($templateId);
+        $template = $this->getTemplateForEdit($templateId);
+        if (!$template) {
+            return redirect()->route('management.templates')->with('error', 'Template not found.');
+        }
 
         return view('quicksms.management.templates.create-step3', [
             'page_title' => 'Edit Template - Settings',
@@ -2380,8 +2386,10 @@ class QuickSMSController extends Controller
 
     public function templateEditReview($templateId)
     {
-        // TODO: Replace with API call - templatesService.getTemplate(templateId)
-        $template = $this->getMockTemplate($templateId);
+        $template = $this->getTemplateForEdit($templateId);
+        if (!$template) {
+            return redirect()->route('management.templates')->with('error', 'Template not found.');
+        }
 
         return view('quicksms.management.templates.create-review', [
             'page_title' => 'Edit Template - Review',
@@ -2506,98 +2514,48 @@ class QuickSMSController extends Controller
         ]);
     }
 
-    private function getMockTemplate($templateId)
+    private function getTemplateForEdit($templateId)
     {
-        // TODO: Replace with database query - GET /api/templates/{templateId}
-        $mockTemplates = [
-            '71829364' => [
-                'id' => 1,
-                'name' => 'Flash Sale Alert',
-                'templateId' => 'TPL-71829364',
-                'trigger' => 'portal',
-                'channel' => 'basic_rcs',
-                'content' => 'Flash Sale! 50% off all items today only. Shop now at {Link}',
-                'senderId' => '1',
-                'rcsAgent' => '1',
-                'trackableLink' => true,
-                'optOut' => false
-            ],
-            '38472615' => [
-                'id' => 2,
-                'name' => 'Product Showcase',
-                'templateId' => 'TPL-38472615',
-                'trigger' => 'portal',
-                'channel' => 'rich_rcs',
-                'content' => '',
-                'senderId' => '1',
-                'rcsAgent' => '2',
-                'trackableLink' => false,
-                'optOut' => false
-            ],
-            '10483726' => [
-                'id' => 3,
-                'name' => 'Welcome Message',
-                'templateId' => 'TPL-10483726',
-                'trigger' => 'api',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}, welcome to QuickSMS! Your account is ready.',
-                'senderId' => '1',
-                'rcsAgent' => '',
-                'trackableLink' => false,
-                'optOut' => true
-            ],
-            'TPL-12345678' => [
-                'id' => 4,
-                'name' => 'Winter Sale 2026',
-                'templateId' => 'TPL-12345678',
-                'trigger' => 'portal',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}! Our Winter Sale is here. Get 40% off all items. Shop now: {Link}',
-                'senderId' => '1',
-                'rcsAgent' => '',
-                'trackableLink' => true,
-                'optOut' => true,
-                'description' => 'Promotional template for winter sale campaign'
-            ],
-            'TPL-23456789' => [
-                'id' => 5,
-                'name' => 'Appointment Confirmation',
-                'templateId' => 'TPL-23456789',
-                'trigger' => 'api',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}, your appointment is confirmed for {AppointmentDate} at {AppointmentTime}.',
-                'senderId' => '2',
-                'rcsAgent' => '',
-                'trackableLink' => false,
-                'optOut' => false,
-                'description' => 'API-triggered appointment confirmation message'
-            ],
-            'TPL-34567890' => [
-                'id' => 6,
-                'name' => 'Delivery Update',
-                'templateId' => 'TPL-34567890',
-                'trigger' => 'api',
-                'channel' => 'basic_rcs',
-                'content' => 'Your order #{OrderId} is on its way! Track here: {TrackingLink}',
-                'senderId' => '1',
-                'rcsAgent' => '1',
-                'trackableLink' => true,
-                'optOut' => false,
-                'description' => 'RCS delivery notification with tracking link'
-            ]
+        $typeToChannel = [
+            'sms' => 'sms',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
         ];
 
-        return $mockTemplates[$templateId] ?? [
-            'id' => 999,
-            'name' => 'Unknown Template',
-            'templateId' => 'TPL-' . $templateId,
-            'trigger' => 'api',
-            'channel' => 'sms',
-            'content' => 'Template content here',
-            'senderId' => '1',
-            'rcsAgent' => '',
-            'trackableLink' => false,
-            'optOut' => false
+        $t = \App\Models\MessageTemplate::find($templateId);
+        if (!$t) {
+            return null;
+        }
+
+        return [
+            'id' => $t->id,
+            'name' => $t->name,
+            'templateId' => $t->id,
+            'trigger' => 'portal',
+            'channel' => $typeToChannel[$t->type] ?? 'sms',
+            'type' => $t->type,
+            'content' => $t->content ?? '',
+            'description' => $t->description ?? '',
+            'senderId' => $t->sender_id_id ?? '',
+            'rcsAgent' => $t->rcs_agent_id ?? '',
+            'trackableLink' => (bool) ($t->trackable_link_enabled ?? false),
+            'trackableLinkDomain' => $t->trackable_link_domain ?? '',
+            'optOut' => (bool) ($t->opt_out_enabled ?? false),
+            'optOutMethod' => $t->opt_out_method ?? '',
+            'optOutNumberId' => $t->opt_out_number_id ?? '',
+            'optOutKeyword' => $t->opt_out_keyword ?? '',
+            'optOutText' => $t->opt_out_text ?? '',
+            'optOutListId' => $t->opt_out_list_id ?? '',
+            'optOutUrlEnabled' => (bool) ($t->opt_out_url_enabled ?? false),
+            'optOutScreeningListIds' => $t->opt_out_screening_list_ids ?? [],
+            'messageExpiry' => (bool) ($t->message_expiry_enabled ?? false),
+            'messageExpiryHours' => $t->message_expiry_hours ?? null,
+            'socialHoursEnabled' => (bool) ($t->social_hours_enabled ?? false),
+            'socialHoursFrom' => $t->social_hours_from ?? '',
+            'socialHoursTo' => $t->social_hours_to ?? '',
+            'rcs_content' => $t->rcs_content,
+            'status' => $t->status,
         ];
     }
 

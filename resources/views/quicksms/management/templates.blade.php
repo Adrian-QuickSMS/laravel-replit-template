@@ -3574,7 +3574,7 @@ function renderTemplates() {
         html += '<ul class="dropdown-menu dropdown-menu-end">';
         
         if (!isArchived) {
-            html += '<li><a class="dropdown-item" href="/management/templates/' + template.templateId.replace('TPL-', '') + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
+            html += '<li><a class="dropdown-item" href="/management/templates/' + (template.uuid || template.templateId.replace('TPL-', '')) + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         html += '<li><a class="dropdown-item" href="#" onclick="duplicateTemplate(' + template.id + '); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
         html += '<li><a class="dropdown-item" href="#" onclick="viewVersionHistory(' + template.id + '); return false;"><i class="fas fa-history me-2"></i>Version History</a></li>';
@@ -3601,8 +3601,8 @@ function renderTemplates() {
 function editTemplate(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
     if (template) {
-        var templateIdNum = template.templateId.replace('TPL-', '');
-        window.location.href = '/management/templates/' + templateIdNum + '/edit';
+        var editId = template.uuid || template.templateId.replace('TPL-', '');
+        window.location.href = '/management/templates/' + editId + '/edit';
     }
 }
 
