@@ -1024,9 +1024,21 @@ function rebuildCardTabs() {
             (function(cardNum) {
                 removeBtn.onclick = function(e) { 
                     e.stopPropagation();
-                    if (confirm('Remove Card ' + cardNum + '?')) {
-                        deleteRcsCard(cardNum);
+                    var msgEl = document.getElementById('rcsRemoveCardMessage');
+                    if (msgEl) msgEl.textContent = 'Are you sure you want to remove Card ' + cardNum + '? This cannot be undone.';
+                    var confirmBtn = document.getElementById('rcsConfirmRemoveCardBtn');
+                    if (confirmBtn) {
+                        var newBtn = confirmBtn.cloneNode(true);
+                        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+                        newBtn.id = 'rcsConfirmRemoveCardBtn';
+                        newBtn.onclick = function() {
+                            var removeModal = bootstrap.Modal.getInstance(document.getElementById('rcsRemoveCardModal'));
+                            if (removeModal) removeModal.hide();
+                            deleteRcsCard(cardNum);
+                        };
                     }
+                    var removeModal = new bootstrap.Modal(document.getElementById('rcsRemoveCardModal'));
+                    removeModal.show();
                 };
             })(i);
             

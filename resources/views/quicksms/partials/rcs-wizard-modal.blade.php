@@ -343,3 +343,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<div class="modal fade" id="rcsRemoveCardModal" tabindex="-1" aria-hidden="true" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom py-3">
+                <h5 class="modal-title text-dark"><i class="fas fa-trash-alt me-2 text-danger"></i>Remove Card</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                <p class="mb-0" id="rcsRemoveCardMessage">Are you sure you want to remove this card?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm" id="rcsConfirmRemoveCardBtn">Remove Card</button>
+            </div>
+        </div>
+    </div>
+</div>
