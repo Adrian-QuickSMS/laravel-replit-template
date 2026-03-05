@@ -1157,7 +1157,7 @@ body > .dropdown-menu.dropdown-menu-end {
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info small mb-3" style="background-color: rgba(48, 101, 208, 0.1); border: none;">
+                <div class="alert alert-pastel-primary small mb-3">
                     <i class="fas fa-info-circle me-2"></i>
                     Reporting Groups are for billing and reporting attribution only. Each Email-to-SMS Address can only belong to one Reporting Group.
                 </div>
