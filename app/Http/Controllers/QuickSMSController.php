@@ -449,6 +449,9 @@ class QuickSMSController extends Controller
             'rcs_carousel' => 'Rich RCS + SMS',
         ];
         return \App\Models\MessageTemplate::whereIn('status', ['active', 'draft'])
+            ->where(function($q) {
+                $q->where('trigger_type', 'portal')->orWhereNull('trigger_type');
+            })
             ->orderByDesc('updated_at')
             ->get()
             ->map(fn($t) => [
