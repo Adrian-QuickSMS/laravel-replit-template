@@ -77,7 +77,8 @@ auth:sanctum middleware         Admin-only middleware
 | Supplier Rate Cards | `suppliers`, `gateways`, `mcc_mnc_master`, `rate_cards`, `fx_rates`, `rate_card_audit_log` |
 | Reporting | Finance data with drill-down (Month → user-chosen dimension) |
 | RCS Media Assets | `rcs_assets` — tenant-scoped via `account_id`, draft lifecycle, daily cleanup |
-| Message Templates | `message_templates` — reusable SMS/RCS templates with sender ID, opt-out config, trackable links, message expiry, social hours. 36 fillable fields including `sender_id_id`, `rcs_agent_id`, opt-out fields, `trackable_link_*`, `message_expiry_*`, `social_hours_*`. Customer CRUD at `/api/message-templates`. Admin list at `/admin/management/templates` (currently mock data via `admin-templates-service.js`). |
+| Message Templates | `message_templates` — reusable SMS/RCS templates with sender ID, opt-out config, trackable links, message expiry, social hours, and **version tracking**. 37 fillable fields including `version` (integer, auto-incremented on edit). Customer CRUD at `/api/message-templates`. Admin list at `/admin/management/templates` (currently mock data via `admin-templates-service.js`). Version history at `GET /api/message-templates/{id}/versions`, audit log at `GET /api/message-templates/{id}/audit-log`, rollback at `POST /api/message-templates/{id}/rollback/{version}`. |
+| Template Versioning | `message_template_versions` — immutable version snapshots with JSONB `snapshot` field. `message_template_audit_log` — audit trail (created, edited, rolled-back, etc.). Both tables have RLS policies for tenant isolation. Edit flow uses PUT (not POST) to update existing templates. |
 | Billing Snapshots | `campaign_estimate_snapshots` — immutable pricing record frozen at campaign send time |
 
 ### RCS Rich Messaging Backend

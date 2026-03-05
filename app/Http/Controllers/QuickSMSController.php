@@ -433,7 +433,7 @@ class QuickSMSController extends Controller
                 'accessScope' => 'All Sub-accounts',
                 'subAccounts' => ['all'],
                 'status' => $t->status === 'active' ? 'live' : $t->status,
-                'version' => 1,
+                'version' => $t->version ?? 1,
                 'lastUpdated' => $t->updated_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
             ])
             ->toArray();
@@ -457,7 +457,7 @@ class QuickSMSController extends Controller
                 'trigger' => 'Portal',
                 'channel' => $typeToChannel[$t->type] ?? 'SMS',
                 'status' => $t->status === 'active' ? 'Live' : ucfirst($t->status),
-                'version' => 1,
+                'version' => $t->version ?? 1,
                 'rcs_payload' => $t->rcs_content,
                 'sender_id_id' => $t->sender_id_id,
                 'rcs_agent_id' => $t->rcs_agent_id,

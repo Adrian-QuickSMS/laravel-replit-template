@@ -339,6 +339,11 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/message-templ
     // Favourites
     Route::post('/{id}/toggle-favourite', 'toggleFavourite')->name('api.message-templates.toggle-favourite');
 
+    // Version history & rollback
+    Route::get('/{id}/versions', 'versionHistory')->name('api.message-templates.versions');
+    Route::get('/{id}/audit-log', 'auditLog')->name('api.message-templates.audit-log');
+    Route::post('/{id}/rollback/{version}', 'rollback')->name('api.message-templates.rollback');
+
     // Content analysis (stateless utility)
     Route::post('/analyse-content', 'analyseContent')->name('api.message-templates.analyse-content');
 });

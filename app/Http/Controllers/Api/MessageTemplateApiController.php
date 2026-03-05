@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\MessageTemplate;
+use App\Models\MessageTemplateVersion;
+use App\Models\MessageTemplateAuditLog;
 use App\Services\OptOutService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -138,11 +140,14 @@ class MessageTemplateApiController extends Controller
         $validated['status'] = $validated['status'] ?? 'draft';
         $validated['created_by'] = session('customer_email', session('customer_user_id'));
 
+        $validated['version'] = 1;
         $template = MessageTemplate::create($validated);
 
-        // Auto-calculate encoding, segments, placeholders
         $template->recalculateMetadata();
         $template->save();
+
+        $this->createVersionSnapshot($template, 'Initial version');
+        $this->createAuditEntry($template, 'created', 'Template created');
 
         return response()->json(['data' => $template->toPortalArray()], 201);
     }
@@ -211,13 +216,20 @@ class MessageTemplateApiController extends Controller
 
         $validated['updated_by'] = session('customer_email', session('customer_user_id'));
 
+        $this->createVersionSnapshot($template, 'Version before edit');
+
+        $newVersion = ($template->version ?? 1) + 1;
+        $validated['version'] = $newVersion;
+
         $template->update($validated);
 
-        // Recalculate if content changed
         if (isset($validated['content']) || isset($validated['type'])) {
             $template->recalculateMetadata();
             $template->save();
         }
+
+        $this->createVersionSnapshot($template, 'Edited');
+        $this->createAuditEntry($template, 'edited', 'Template updated to v' . $newVersion);
 
         return response()->json(['data' => $template->toPortalArray()]);
     }
@@ -277,6 +289,133 @@ class MessageTemplateApiController extends Controller
             'character_count' => mb_strlen($content),
             'segment_count' => $segments,
             'placeholders' => $placeholders,
+        ]);
+    }
+
+    public function versionHistory(string $id): JsonResponse
+    {
+        $template = MessageTemplate::find($id);
+        if (!$template) {
+            return response()->json(['status' => 'error', 'message' => 'Template not found'], 404);
+        }
+
+        $versions = MessageTemplateVersion::where('template_id', $id)
+            ->orderByDesc('version')
+            ->get()
+            ->map(fn($v) => $v->toPortalArray());
+
+        return response()->json(['data' => $versions]);
+    }
+
+    public function auditLog(string $id): JsonResponse
+    {
+        $template = MessageTemplate::find($id);
+        if (!$template) {
+            return response()->json(['status' => 'error', 'message' => 'Template not found'], 404);
+        }
+
+        $entries = MessageTemplateAuditLog::where('template_id', $id)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($e) => $e->toPortalArray());
+
+        return response()->json(['data' => $entries]);
+    }
+
+    public function rollback(string $id, int $version): JsonResponse
+    {
+        $template = MessageTemplate::find($id);
+        if (!$template) {
+            return response()->json(['status' => 'error', 'message' => 'Template not found'], 404);
+        }
+
+        $targetVersion = MessageTemplateVersion::where('template_id', $id)
+            ->where('version', $version)
+            ->first();
+
+        if (!$targetVersion) {
+            return response()->json(['status' => 'error', 'message' => 'Version not found'], 404);
+        }
+
+        $this->createVersionSnapshot($template, 'Version before rollback');
+
+        $snapshot = $targetVersion->snapshot;
+        $newVersion = ($template->version ?? 1) + 1;
+
+        $rollbackFields = array_intersect_key($snapshot, array_flip([
+            'name', 'description', 'type', 'content', 'rcs_content',
+            'encoding', 'character_count', 'segment_count', 'status',
+            'sender_id_id', 'rcs_agent_id',
+            'opt_out_enabled', 'opt_out_method', 'opt_out_text',
+            'trackable_link_enabled', 'message_expiry_enabled',
+            'social_hours_enabled',
+        ]));
+
+        $rollbackFields['version'] = $newVersion;
+        $rollbackFields['updated_by'] = session('customer_email', session('customer_user_id'));
+        $template->update($rollbackFields);
+
+        $this->createVersionSnapshot($template, 'Rolled back from v' . $version);
+        $this->createAuditEntry($template, 'rolled-back', 'Rolled back to version ' . $version . ', creating v' . $newVersion);
+
+        return response()->json(['data' => $template->toPortalArray()]);
+    }
+
+    private function createVersionSnapshot(MessageTemplate $template, string $changeNote = ''): void
+    {
+        $editedBy = session('customer_email', session('customer_user_id', 'System'));
+
+        $existing = MessageTemplateVersion::withoutGlobalScopes()
+            ->where('template_id', $template->id)
+            ->where('version', $template->version)
+            ->exists();
+        if ($existing) {
+            return;
+        }
+
+        MessageTemplateVersion::withoutGlobalScopes()->create([
+            'template_id' => $template->id,
+            'account_id' => $template->account_id,
+            'version' => $template->version,
+            'snapshot' => [
+                'name' => $template->name,
+                'description' => $template->description,
+                'type' => $template->type,
+                'content' => $template->content,
+                'rcs_content' => $template->rcs_content,
+                'encoding' => $template->encoding,
+                'character_count' => $template->character_count,
+                'segment_count' => $template->segment_count,
+                'status' => $template->status,
+                'sender_id_id' => $template->sender_id_id,
+                'rcs_agent_id' => $template->rcs_agent_id,
+                'opt_out_enabled' => $template->opt_out_enabled,
+                'opt_out_method' => $template->opt_out_method,
+                'opt_out_text' => $template->opt_out_text,
+                'trackable_link_enabled' => $template->trackable_link_enabled,
+                'message_expiry_enabled' => $template->message_expiry_enabled,
+                'social_hours_enabled' => $template->social_hours_enabled,
+            ],
+            'change_note' => $changeNote,
+            'edited_by' => $editedBy,
+            'created_at' => now(),
+        ]);
+    }
+
+    private function createAuditEntry(MessageTemplate $template, string $action, string $details = ''): void
+    {
+        $userId = session('customer_user_id', 'system');
+        $userName = session('customer_email', 'System');
+
+        MessageTemplateAuditLog::withoutGlobalScopes()->create([
+            'template_id' => $template->id,
+            'account_id' => $template->account_id,
+            'action' => $action,
+            'version' => $template->version,
+            'user_id' => $userId,
+            'user_name' => $userName,
+            'details' => $details,
+            'created_at' => now(),
         ]);
     }
 }

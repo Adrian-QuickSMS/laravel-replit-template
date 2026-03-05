@@ -523,16 +523,28 @@ document.addEventListener('DOMContentLoaded', function() {
         return payload;
     }
 
+    var isEditMode = {{ ($isEditMode ?? false) ? 'true' : 'false' }};
+    var editTemplateId = {!! json_encode($templateId ?? null) !!};
+
     function submitTemplate(status) {
         var btn = status === 'draft' ? document.getElementById('saveDraftBtn') : document.getElementById('createTemplateBtn');
         var originalHtml = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>' + (status === 'draft' ? 'Saving...' : 'Creating...');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>' + (status === 'draft' ? 'Saving...' : (isEditMode ? 'Saving...' : 'Creating...'));
 
         var payload = collectPayload(status);
 
-        fetch('{{ route("api.message-templates.store") }}', {
-            method: 'POST',
+        var url, method;
+        if (isEditMode && editTemplateId) {
+            url = '/api/message-templates/' + editTemplateId;
+            method = 'PUT';
+        } else {
+            url = '{{ route("api.message-templates.store") }}';
+            method = 'POST';
+        }
+
+        fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
