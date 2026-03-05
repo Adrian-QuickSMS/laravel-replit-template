@@ -4269,18 +4269,40 @@ function generateApiCodeExamples(template, placeholders) {
         'var result = await response.Content.ReadAsStringAsync();\n' +
         'Console.WriteLine(result);';
     
-    document.getElementById('apiCodeCurl').textContent = curlCode;
-    document.getElementById('apiCodePython').textContent = pythonCode;
-    document.getElementById('apiCodeNodejs').textContent = nodejsCode;
-    document.getElementById('apiCodePhp').textContent = phpCode;
-    document.getElementById('apiCodeJava').textContent = javaCode;
-    document.getElementById('apiCodeCsharp').textContent = csharpCode;
+    var allCodes = {
+        apiCodeCurl: curlCode,
+        apiCodePython: pythonCode,
+        apiCodeNodejs: nodejsCode,
+        apiCodePhp: phpCode,
+        apiCodeJava: javaCode,
+        apiCodeCsharp: csharpCode
+    };
+    Object.keys(allCodes).forEach(function(elId) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        var raw = allCodes[elId];
+        el.setAttribute('data-raw', raw);
+        el.innerHTML = highlightCode(raw);
+    });
+}
+
+function highlightCode(code) {
+    var escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    var lines = escaped.split('\n');
+    var highlighted = lines.map(function(line) {
+        return line
+            .replace(/("(?:[^"\\]|\\.)*")(\s*:\s*)/g, '<span style="color:#f5c2e7;">$1</span>$2')
+            .replace(/:\s*("(?:[^"\\]|\\.)*")/g, ': <span style="color:#a6e3a1;">$1</span>')
+            .replace(/(=&gt;\s*)("(?:[^"\\]|\\.)*")/g, '$1<span style="color:#a6e3a1;">$2</span>')
+            .replace(/(=\s*)("(?:[^"\\]|\\.)*")/g, '$1<span style="color:#a6e3a1;">$2</span>');
+    });
+    return highlighted.join('\n');
 }
 
 function copyApiCode() {
     var activePane = document.querySelector('#apiCodeTabContent .tab-pane.active code');
     if (activePane) {
-        var raw = activePane.textContent;
+        var raw = activePane.getAttribute('data-raw') || activePane.textContent;
         navigator.clipboard.writeText(raw).then(function() {
             showToast('Code copied to clipboard', 'success');
         }).catch(function() {
@@ -5327,11 +5349,11 @@ function viewVersion(versionNum) {
         contentPreview.innerHTML = '<p class="text-muted mb-0 fst-italic">Rich RCS content (not displayed in text view)</p>';
     }
     
-    var placeholders = extractPlaceholders(versionData.content || '');
+    var placeholders = extractPlaceholders(versionData.content || '', null);
     var placeholderContainer = document.getElementById('vvPlaceholders');
     if (placeholders.length > 0) {
         placeholderContainer.innerHTML = placeholders.map(function(p) {
-            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>{' + p + '}</span>';
+            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>' + '{' + '{' + p + '}' + '}' + '</span>';
         }).join('');
     } else {
         placeholderContainer.innerHTML = '<span class="text-muted">None</span>';
@@ -5350,10 +5372,6 @@ function viewVersion(versionNum) {
     new bootstrap.Modal(document.getElementById('viewVersionModal')).show();
 }
 
-function extractPlaceholders(content) {
-    var matches = content.match(/\{(\w+)\}/g) || [];
-    return matches.map(function(m) { return m.replace(/[{}]/g, ''); });
-}
 
 function initiateRollback(versionNum) {
     var versionData = currentVersionHistory.versions.find(function(v) { return v.version === versionNum; });
