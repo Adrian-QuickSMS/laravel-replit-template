@@ -3454,11 +3454,16 @@ function loadRcsPayloadIntoWizard(payload) {
     console.log('[RCS Wizard] Loading template payload:', payload);
 
     rcsCardsData = {};
-    rcsCardCount = 1;
     rcsCurrentCard = 1;
 
     var type = payload.type || 'standalone';
     var isCarousel = type === 'carousel';
+
+    if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
+        rcsCardCount = payload.cards.length;
+    } else {
+        rcsCardCount = 1;
+    }
 
     var singleRadio = document.getElementById('rcsTypeSingle');
     var carouselRadio = document.getElementById('rcsTypeCarousel');
@@ -3468,9 +3473,6 @@ function loadRcsPayloadIntoWizard(payload) {
         } else {
             singleRadio.checked = true;
         }
-    }
-    if (typeof toggleRcsMessageType === 'function') {
-        toggleRcsMessageType();
     }
 
     function mapCardToInternal(card) {
@@ -3520,6 +3522,8 @@ function loadRcsPayloadIntoWizard(payload) {
             buttons: buttons
         };
     }
+
+    if (typeof toggleRcsMessageType === 'function') toggleRcsMessageType();
 
     if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
         rcsCardCount = payload.cards.length;
