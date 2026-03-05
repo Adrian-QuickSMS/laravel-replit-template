@@ -1785,10 +1785,14 @@ function openCampaignDrawer(campaignId) {
     var deliveredDisplay = document.getElementById('drawerRecipientsDelivered');
     var failedDisplay = document.getElementById('drawerRecipientsFailed');
     var rateDisplay = document.getElementById('drawerDeliveryRate');
+    var excludedTotal = (parseInt(row.dataset.totalOptedOut) || 0) + (parseInt(row.dataset.totalInvalid) || 0);
+    var actuallySent = recipientsTotal - excludedTotal;
+    if (actuallySent < 0) actuallySent = 0;
     
     if (recipientsDelivered !== null) {
-        failed = recipientsTotal - recipientsDelivered;
-        deliveryRate = recipientsTotal > 0 ? ((recipientsDelivered / recipientsTotal) * 100).toFixed(1) + '%' : '-';
+        failed = actuallySent - recipientsDelivered;
+        if (failed < 0) failed = 0;
+        deliveryRate = actuallySent > 0 ? ((recipientsDelivered / actuallySent) * 100).toFixed(1) + '%' : '-';
         deliveredDisplay.textContent = recipientsDelivered.toLocaleString();
         failedDisplay.textContent = failed.toLocaleString();
         rateDisplay.textContent = deliveryRate;
@@ -2233,7 +2237,8 @@ function updateRecipientBreakdown(total, delivered, totalRaw, totalOptedOut, tot
     var totalSelected = totalRaw || total;
     var excludedInvalid = totalInvalid || 0;
     var excludedOptout = totalOptedOut || 0;
-    var uniqueSent = total;
+    var uniqueSent = totalSelected - excludedInvalid - excludedOptout;
+    if (uniqueSent < 0) uniqueSent = 0;
     
     document.getElementById('dedupTotalSelected').textContent = totalSelected.toLocaleString();
     document.getElementById('dedupUniqueSent').textContent = uniqueSent.toLocaleString();
