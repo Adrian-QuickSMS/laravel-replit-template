@@ -96,7 +96,7 @@ var RcsPreviewRenderer = (function() {
     }
 
     function renderCarousel(carousel) {
-        var cardWidth = carousel.cardWidth === 'small' ? '180px' : '296px';
+        var cardWidth = carousel.cardWidth === 'small' ? '160px' : '250px';
         var mediaHeight = carousel.mediaHeight || 'medium';
         var cards = carousel.cards || [];
         

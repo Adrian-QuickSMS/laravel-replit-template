@@ -356,7 +356,7 @@
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 8px;
+  padding: 0 4px 8px 4px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
