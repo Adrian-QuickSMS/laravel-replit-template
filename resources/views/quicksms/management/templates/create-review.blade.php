@@ -636,7 +636,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 var rcs = data2.rcsContentData;
                 if (rcs.cards && Array.isArray(rcs.cards)) {
                     rcs.cards.forEach(function(card) {
-                        allContent += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.body || '');
+                        allContent += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.textBody || '') + ' ' + (card.body || '');
+                        if (card.media && card.media.url) allContent += ' ' + card.media.url;
                         if (card.buttons && Array.isArray(card.buttons)) {
                             card.buttons.forEach(function(btn) { allContent += ' ' + (btn.label || ''); });
                         }
@@ -651,7 +652,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 var rcsResp = responseData.rcs_content;
                 if (rcsResp.cards && Array.isArray(rcsResp.cards)) {
                     rcsResp.cards.forEach(function(card) {
-                        allContent += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.body || '');
+                        allContent += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.textBody || '') + ' ' + (card.body || '');
+                        if (card.media && card.media.url) allContent += ' ' + card.media.url;
                         if (card.buttons && Array.isArray(card.buttons)) {
                             card.buttons.forEach(function(btn) { allContent += ' ' + (btn.label || ''); });
                         }
