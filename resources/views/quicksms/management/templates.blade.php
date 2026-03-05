@@ -4287,16 +4287,33 @@ function generateApiCodeExamples(template, placeholders) {
 }
 
 function highlightCode(code) {
-    var escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    var lines = escaped.split('\n');
-    var highlighted = lines.map(function(line) {
-        return line
-            .replace(/("(?:[^"\\]|\\.)*")(\s*:\s*)/g, '<span style="color:#f5c2e7;">$1</span>$2')
-            .replace(/:\s*("(?:[^"\\]|\\.)*")/g, ': <span style="color:#a6e3a1;">$1</span>')
-            .replace(/(=&gt;\s*)("(?:[^"\\]|\\.)*")/g, '$1<span style="color:#a6e3a1;">$2</span>')
-            .replace(/(=\s*)("(?:[^"\\]|\\.)*")/g, '$1<span style="color:#a6e3a1;">$2</span>');
-    });
-    return highlighted.join('\n');
+    var lines = code.split('\n');
+    var result = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        var parts = [];
+        var remaining = line;
+        var safeStr = function(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        };
+        var keyValRegex = /"([^"\\]*(?:\\.[^"\\]*)*)"(\s*(?::|=>|=)\s*)"([^"\\]*(?:\\.[^"\\]*)*)"/g;
+        var lastIndex = 0;
+        var m;
+        while ((m = keyValRegex.exec(remaining)) !== null) {
+            if (m.index > lastIndex) {
+                parts.push(safeStr(remaining.substring(lastIndex, m.index)));
+            }
+            parts.push('<span style="color:#f5c2e7;">"' + safeStr(m[1]) + '"</span>');
+            parts.push(safeStr(m[2]));
+            parts.push('<span style="color:#a6e3a1;">"' + safeStr(m[3]) + '"</span>');
+            lastIndex = m.index + m[0].length;
+        }
+        if (lastIndex < remaining.length) {
+            parts.push(safeStr(remaining.substring(lastIndex)));
+        }
+        result.push(parts.join(''));
+    }
+    return result.join('\n');
 }
 
 function copyApiCode() {
