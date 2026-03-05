@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\EmailToSmsAuditLog;
 use App\Models\EmailToSmsReportingGroup;
 use App\Models\EmailToSmsSetup;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EmailToSmsReportingGroupController extends Controller
 {
@@ -42,7 +44,7 @@ class EmailToSmsReportingGroupController extends Controller
             ->get()
             ->groupBy('reporting_group_id');
 
-        // Get computed aggregates from message_logs if table exists
+        // Get computed aggregates from message_logs if table/column exists
         $aggregates = collect();
         try {
             $aggregates = DB::table('message_logs')
@@ -59,6 +61,9 @@ class EmailToSmsReportingGroupController extends Controller
                 ->keyBy('reporting_group_id');
         } catch (\Exception $e) {
             // message_logs may not have email_to_sms_setup_id column yet
+            Log::warning('Email-to-SMS reporting group aggregates query failed', [
+                'error' => $e->getMessage(),
+            ]);
         }
 
         $data = $groups->map(function ($group) use ($linkedSetups, $aggregates) {
@@ -91,12 +96,31 @@ class EmailToSmsReportingGroupController extends Controller
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $group = EmailToSmsReportingGroup::create([
-            'account_id' => $this->tenantId(),
-            'name' => $request->input('name'),
-            'description' => $request->input('description'),
-            'status' => 'active',
-        ]);
+        $tenantId = $this->tenantId();
+
+        // Check for duplicate name within tenant
+        $nameExists = EmailToSmsReportingGroup::forAccount($tenantId)
+            ->where('name', $request->input('name'))
+            ->exists();
+        if ($nameExists) {
+            return response()->json(['success' => false, 'error' => 'A reporting group with this name already exists'], 422);
+        }
+
+        $group = DB::transaction(function () use ($request, $tenantId) {
+            $group = EmailToSmsReportingGroup::create([
+                'account_id' => $tenantId,
+                'name' => $request->input('name'),
+                'description' => $request->input('description'),
+                'status' => 'active',
+            ]);
+
+            EmailToSmsAuditLog::logAction(
+                $tenantId, 'created', 'reporting_group', null, $group->id,
+                ['name' => $group->name]
+            );
+
+            return $group;
+        });
 
         return response()->json([
             'success' => true,
@@ -124,7 +148,30 @@ class EmailToSmsReportingGroupController extends Controller
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $group->update($request->only(['name', 'description']));
+        $tenantId = $this->tenantId();
+
+        // Check for duplicate name within tenant (if name is being changed)
+        if ($request->filled('name') && $request->input('name') !== $group->name) {
+            $nameExists = EmailToSmsReportingGroup::forAccount($tenantId)
+                ->where('name', $request->input('name'))
+                ->where('id', '!=', $group->id)
+                ->exists();
+            if ($nameExists) {
+                return response()->json(['success' => false, 'error' => 'A reporting group with this name already exists'], 422);
+            }
+        }
+
+        $updateFields = $request->only(['name', 'description']);
+
+        DB::transaction(function () use ($group, $updateFields, $tenantId) {
+            $original = $group->only(array_keys($updateFields));
+            $group->update($updateFields);
+
+            EmailToSmsAuditLog::logAction(
+                $tenantId, 'updated', 'reporting_group', null, $group->id,
+                ['before' => $original, 'after' => $updateFields]
+            );
+        });
 
         return response()->json([
             'success' => true,
@@ -138,6 +185,10 @@ class EmailToSmsReportingGroupController extends Controller
         $group = EmailToSmsReportingGroup::forAccount($this->tenantId())->findOrFail($id);
         $group->update(['status' => 'archived']);
 
+        EmailToSmsAuditLog::logAction(
+            $this->tenantId(), 'archived', 'reporting_group', null, $group->id
+        );
+
         return response()->json([
             'success' => true,
             'data' => $this->transformGroup($group),
@@ -150,6 +201,10 @@ class EmailToSmsReportingGroupController extends Controller
         $group = EmailToSmsReportingGroup::forAccount($this->tenantId())->findOrFail($id);
         $group->update(['status' => 'active']);
 
+        EmailToSmsAuditLog::logAction(
+            $this->tenantId(), 'unarchived', 'reporting_group', null, $group->id
+        );
+
         return response()->json([
             'success' => true,
             'data' => $this->transformGroup($group),
@@ -161,7 +216,11 @@ class EmailToSmsReportingGroupController extends Controller
     {
         $group = EmailToSmsReportingGroup::forAccount($this->tenantId())->findOrFail($id);
 
-        // Soft delete
+        EmailToSmsAuditLog::logAction(
+            $this->tenantId(), 'deleted', 'reporting_group', null, $group->id,
+            ['name' => $group->name]
+        );
+
         $group->delete();
 
         return response()->json([

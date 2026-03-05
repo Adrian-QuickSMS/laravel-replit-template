@@ -122,7 +122,6 @@ class AdminEmailToSmsController extends Controller
             'allowed_sender_emails' => 'nullable|array',
             'sender_id_template_id' => 'nullable|string',
             'sender_id' => 'nullable|string|max:11',
-            'subject_overrides_sender_id' => 'nullable|boolean',
             'multiple_sms_enabled' => 'nullable|boolean',
             'delivery_reports_enabled' => 'nullable|boolean',
             'delivery_reports_email' => 'nullable|email|max:255',
@@ -132,7 +131,7 @@ class AdminEmailToSmsController extends Controller
 
         $setup->update($request->only([
             'name', 'description', 'allowed_sender_emails',
-            'sender_id_template_id', 'sender_id', 'subject_overrides_sender_id',
+            'sender_id_template_id', 'sender_id',
             'multiple_sms_enabled', 'delivery_reports_enabled', 'delivery_reports_email',
             'reporting_group_id', 'status',
         ]));
@@ -262,7 +261,6 @@ class AdminEmailToSmsController extends Controller
             'allowedEmails' => $setup->allowed_sender_emails ?? [],
             'senderIdTemplateId' => $setup->sender_id_template_id,
             'senderId' => $setup->sender_id,
-            'subjectOverridesSenderId' => $setup->subject_overrides_sender_id,
             'multipleSmsEnabled' => $setup->multiple_sms_enabled,
             'deliveryReportsEnabled' => $setup->delivery_reports_enabled,
             'deliveryReportsEmail' => $setup->delivery_reports_email,
