@@ -1285,15 +1285,15 @@ function renderTemplates(templates) {
             html += '<li><hr class="dropdown-divider"></li>';
             
             if (template.status === 'live' && AdminPermissions.canSuspend()) {
-                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
             }
             
             if (template.status === 'suspended' && AdminPermissions.canReactivate()) {
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="reactivateTemplate(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\'); return false;"><i class="fas fa-play-circle me-2"></i>Reactivate</a></li>';
             }
             
             if (AdminPermissions.canArchive()) {
-                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\', \'' + template.status + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\', \'' + escapeJs(template.accountName) + '\', \'' + template.status + '\'); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
             }
         }
         

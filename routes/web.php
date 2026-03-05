@@ -393,6 +393,9 @@ Route::prefix('admin')->group(function () {
             
             Route::get('/management/templates', 'managementTemplates')->name('admin.management.templates');
             Route::get('/api/templates', 'apiTemplatesList')->name('admin.api.templates');
+            Route::post('/api/templates/{accountId}/{templateId}/suspend', 'apiTemplateSuspend')->name('admin.api.templates.suspend');
+            Route::post('/api/templates/{accountId}/{templateId}/reactivate', 'apiTemplateReactivate')->name('admin.api.templates.reactivate');
+            Route::post('/api/templates/{accountId}/{templateId}/archive', 'apiTemplateArchive')->name('admin.api.templates.archive');
             Route::get('/api/accounts', 'apiAccountsSearch')->name('admin.api.accounts.search');
             Route::get('/management/templates/{accountId}/{templateId}/edit', function($accountId, $templateId) {
                 return redirect()->route('admin.management.templates.edit.step1', ['accountId' => $accountId, 'templateId' => $templateId]);

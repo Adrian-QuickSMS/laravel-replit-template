@@ -1514,6 +1514,89 @@ class AdminController extends Controller
         ]);
     }
 
+    public function apiTemplateSuspend(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $reason = $request->input('reason', '');
+        $template->status = 'suspended';
+        $template->save();
+
+        \App\Models\MessageTemplateAuditLog::create([
+            'template_id' => $template->id,
+            'account_id' => $template->account_id,
+            'action' => 'suspended',
+            'version' => $template->version,
+            'user_id' => session('admin_user_id', 'admin'),
+            'user_name' => session('admin_email', 'Admin'),
+            'details' => 'Admin suspended template' . ($reason ? ': ' . $reason : ''),
+        ]);
+
+        return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'suspended']]);
+    }
+
+    public function apiTemplateReactivate(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $template->status = 'active';
+        $template->save();
+
+        \App\Models\MessageTemplateAuditLog::create([
+            'template_id' => $template->id,
+            'account_id' => $template->account_id,
+            'action' => 'status-changed',
+            'version' => $template->version,
+            'user_id' => session('admin_user_id', 'admin'),
+            'user_name' => session('admin_email', 'Admin'),
+            'details' => 'Admin reactivated template',
+        ]);
+
+        return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'active']]);
+    }
+
+    public function apiTemplateArchive(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $reason = $request->input('reason', '');
+        $template->status = 'archived';
+        $template->save();
+
+        \App\Models\MessageTemplateAuditLog::create([
+            'template_id' => $template->id,
+            'account_id' => $template->account_id,
+            'action' => 'archived',
+            'version' => $template->version,
+            'user_id' => session('admin_user_id', 'admin'),
+            'user_name' => session('admin_email', 'Admin'),
+            'details' => 'Admin archived template' . ($reason ? ': ' . $reason : ''),
+        ]);
+
+        return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'archived']]);
+    }
+
     public function apiAccountsSearch(Request $request): \Illuminate\Http\JsonResponse
     {
         $search = $request->query('search', '');
