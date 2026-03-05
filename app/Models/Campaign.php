@@ -244,12 +244,12 @@ class Campaign extends Model
 
     public function senderId(): BelongsTo
     {
-        return $this->belongsTo(SenderId::class, 'sender_id_id', 'uuid');
+        return $this->belongsTo(SenderId::class, 'sender_id_id', 'id');
     }
 
     public function rcsAgent(): BelongsTo
     {
-        return $this->belongsTo(RcsAgent::class, 'rcs_agent_id', 'uuid');
+        return $this->belongsTo(RcsAgent::class, 'rcs_agent_id', 'id');
     }
 
     public function reservation(): BelongsTo
