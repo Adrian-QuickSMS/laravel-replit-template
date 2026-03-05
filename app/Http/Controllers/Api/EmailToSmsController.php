@@ -426,19 +426,7 @@ class EmailToSmsController extends Controller
             Log::debug('message_logs query failed for email-to-sms overview', ['error' => $e->getMessage()]);
         }
 
-        // Get daily limit from account flags
-        $dailyLimit = null;
-        try {
-            $flags = DB::table('account_flags')
-                ->where('account_id', $this->tenantId())
-                ->select('daily_message_limit')
-                ->first();
-            $dailyLimit = $flags->daily_message_limit ?? null;
-        } catch (\Exception $e) {
-            // account_flags table may not exist
-        }
-
-        $data = $setups->map(function ($setup) use ($messageCounts, $dailyLimit) {
+        $data = $setups->map(function ($setup) use ($messageCounts) {
             $type = $setup->type === 'contact_list' ? 'Contact List' : 'Standard';
             $msgCount = $messageCounts->get($setup->id);
 
@@ -456,7 +444,6 @@ class EmailToSmsController extends Controller
                 'created' => $setup->created_at?->format('Y-m-d'),
                 'lastUsed' => $setup->updated_at?->format('Y-m-d H:i'),
                 'messagesSent' => $msgCount->total ?? 0,
-                'dailyLimit' => $dailyLimit,
                 'optOut' => $setup->opt_out_mode !== 'NONE',
                 'optOutMode' => $setup->opt_out_mode,
                 'sourceType' => $setup->type,
