@@ -1681,7 +1681,7 @@ class AdminController extends Controller
         ];
 
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('shared.template-wizard', [
@@ -1699,78 +1699,93 @@ class AdminController extends Controller
         ]);
     }
 
-    private function getAdminMockTemplate($accountId, $templateId)
+    private function getAdminTemplate($accountId, $templateId)
     {
-        // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $mockTemplates = [
-            'TPL-12345678' => [
-                'id' => 1,
-                'name' => 'Winter Sale 2026',
-                'templateId' => 'TPL-12345678',
-                'trigger' => 'portal',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}! Our Winter Sale is here. Get 40% off all items. Shop now: {Link}',
-                'senderId' => '1',
-                'rcsAgent' => '',
-                'trackableLink' => true,
-                'optOut' => true
-            ],
-            'TPL-23456789' => [
-                'id' => 2,
-                'name' => 'Appointment Confirmation',
-                'templateId' => 'TPL-23456789',
-                'trigger' => 'api',
-                'channel' => 'sms',
-                'content' => 'Hi {FirstName}, your appointment is confirmed for {AppointmentDate} at {AppointmentTime}.',
-                'senderId' => '2',
-                'rcsAgent' => '',
-                'trackableLink' => false,
-                'optOut' => false
-            ],
-            'TPL-34567890' => [
-                'id' => 3,
-                'name' => 'Delivery Update',
-                'templateId' => 'TPL-34567890',
-                'trigger' => 'api',
-                'channel' => 'basic_rcs',
-                'content' => 'Your order #{OrderId} is on its way! Track here: {TrackingLink}',
-                'senderId' => '1',
-                'rcsAgent' => '1',
-                'trackableLink' => true,
-                'optOut' => false
-            ]
+        $typeToChannel = [
+            'sms' => 'sms',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
         ];
 
-        return $mockTemplates[$templateId] ?? [
-            'id' => 999,
-            'name' => 'Template ' . $templateId,
-            'templateId' => $templateId,
-            'trigger' => 'api',
-            'channel' => 'sms',
-            'content' => 'Template content for ' . $templateId,
-            'senderId' => '1',
-            'rcsAgent' => '',
-            'trackableLink' => false,
-            'optOut' => false
+        $t = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$t) {
+            return [
+                'id' => $templateId,
+                'name' => 'Template Not Found',
+                'templateId' => $templateId,
+                'trigger' => 'portal',
+                'channel' => 'sms',
+                'type' => 'sms',
+                'content' => '',
+                'description' => '',
+                'senderId' => '',
+                'rcsAgent' => '',
+                'trackableLink' => false,
+                'trackableLinkDomain' => '',
+                'optOut' => false,
+                'optOutMethod' => '',
+                'optOutNumberId' => '',
+                'optOutKeyword' => '',
+                'optOutText' => '',
+                'optOutListId' => '',
+                'optOutUrlEnabled' => false,
+                'optOutScreeningListIds' => [],
+                'messageExpiry' => false,
+                'messageExpiryHours' => null,
+                'socialHoursEnabled' => false,
+                'socialHoursFrom' => '',
+                'socialHoursTo' => '',
+                'rcs_content' => null,
+                'status' => 'draft',
+            ];
+        }
+
+        return [
+            'id' => $t->id,
+            'name' => $t->name,
+            'templateId' => $t->id,
+            'trigger' => 'portal',
+            'channel' => $typeToChannel[$t->type] ?? 'sms',
+            'type' => $t->type,
+            'content' => $t->content ?? '',
+            'description' => $t->description ?? '',
+            'senderId' => $t->sender_id_id ?? '',
+            'rcsAgent' => $t->rcs_agent_id ?? '',
+            'trackableLink' => (bool) ($t->trackable_link_enabled ?? false),
+            'trackableLinkDomain' => $t->trackable_link_domain ?? '',
+            'optOut' => (bool) ($t->opt_out_enabled ?? false),
+            'optOutMethod' => $t->opt_out_method ?? '',
+            'optOutNumberId' => $t->opt_out_number_id ?? '',
+            'optOutKeyword' => $t->opt_out_keyword ?? '',
+            'optOutText' => $t->opt_out_text ?? '',
+            'optOutListId' => $t->opt_out_list_id ?? '',
+            'optOutUrlEnabled' => (bool) ($t->opt_out_url_enabled ?? false),
+            'optOutScreeningListIds' => $t->opt_out_screening_list_ids ?? [],
+            'messageExpiry' => (bool) ($t->message_expiry_enabled ?? false),
+            'messageExpiryHours' => $t->message_expiry_value ?? null,
+            'socialHoursEnabled' => (bool) ($t->social_hours_enabled ?? false),
+            'socialHoursFrom' => $t->social_hours_from ?? '',
+            'socialHoursTo' => $t->social_hours_to ?? '',
+            'rcs_content' => $t->rcs_content,
+            'status' => $t->status,
         ];
     }
 
     private function getAccountName($accountId)
     {
-        // TODO: Replace with API call
-        $accounts = [
-            'ACC-001' => 'Acme Corporation',
-            'ACC-002' => 'TechStart Ltd',
-            'ACC-003' => 'GlobalRetail Inc'
-        ];
-
-        return $accounts[$accountId] ?? 'Account ' . $accountId;
+        $name = \DB::table('accounts')->where('id', $accountId)->value('company_name');
+        return $name ?? 'Account ' . $accountId;
     }
 
     public function adminTemplateEditStep1($accountId, $templateId)
     {
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('quicksms.management.templates.create-step1', [
@@ -1816,7 +1831,7 @@ class AdminController extends Controller
         ];
 
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('quicksms.management.templates.create-step2', [
@@ -1838,7 +1853,7 @@ class AdminController extends Controller
     public function adminTemplateEditStep3($accountId, $templateId)
     {
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('quicksms.management.templates.create-step3', [
@@ -1855,7 +1870,7 @@ class AdminController extends Controller
     public function adminTemplateEditReview($accountId, $templateId)
     {
         // TODO: Replace with API call - adminTemplatesService.getTemplate(accountId, templateId)
-        $template = $this->getAdminMockTemplate($accountId, $templateId);
+        $template = $this->getAdminTemplate($accountId, $templateId);
         $accountName = $this->getAccountName($accountId);
 
         return view('quicksms.management.templates.create-review', [
