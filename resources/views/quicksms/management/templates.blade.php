@@ -5046,7 +5046,7 @@ function renderVersionsTable() {
         
         html += '<td class="text-end">';
         html += '<div class="dropdown">';
-        html += '<button class="btn btn-sm btn-outline-secondary border-0 px-2 py-1" type="button" data-bs-toggle="dropdown" data-bs-boundary="window" aria-expanded="false">';
+        html += '<button class="btn btn-link p-0" type="button" data-bs-toggle="dropdown" data-bs-boundary="window" aria-expanded="false" style="color: #6c757d; font-size: 1rem;">';
         html += '<i class="fas fa-ellipsis-v"></i>';
         html += '</button>';
         html += '<ul class="dropdown-menu dropdown-menu-end" style="z-index: 1060;">';
