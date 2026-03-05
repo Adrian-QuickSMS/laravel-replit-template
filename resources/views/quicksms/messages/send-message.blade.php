@@ -4159,12 +4159,13 @@ function continueToConfirmation() {
     var channel = document.querySelector('input[name="channel"]:checked');
     var channelValue = channel ? channel.value : 'sms';
     
-    var apiChannelMap = {
-        'sms': 'sms',
-        'rcs_basic': 'rcs_basic',
-        'rcs_rich': 'rcs_single'
-    };
-    var apiChannelValue = apiChannelMap[channelValue] || 'sms';
+    var apiChannelValue = 'sms';
+    if (channelValue === 'rcs_basic') {
+        apiChannelValue = 'rcs_basic';
+    } else if (channelValue === 'rcs_rich') {
+        var isCarousel = typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload && rcsPersistentPayload.type === 'carousel';
+        apiChannelValue = isCarousel ? 'rcs_carousel' : 'rcs_single';
+    }
 
     var sessionChannelMap = {
         'sms': 'sms_only',
