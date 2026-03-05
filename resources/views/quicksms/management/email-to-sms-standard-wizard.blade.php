@@ -199,13 +199,16 @@ button.btn-save-draft:hover {
     border-color: #D653C1 !important;
 }
 .success-email-box {
-    background: #f8f9fa;
+    background: rgba(136, 108, 192, 0.12);
     border: none;
 }
 .success-email-box span {
     color: #000;
     font-family: monospace;
     background: transparent;
+}
+#successModal .modal-dialog {
+    max-width: 550px;
 }
 .api-table {
     font-size: 0.9rem;
