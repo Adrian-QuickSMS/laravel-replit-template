@@ -404,6 +404,41 @@ class QuickSMSController extends Controller
     /**
      * Get real approved RCS agents for the current user, mapped for Blade views.
      */
+    private function getTemplatesForLibrary(): array
+    {
+        $typeToChannel = [
+            'sms' => 'sms',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
+        ];
+        $typeToContentType = [
+            'sms' => 'text',
+            'rcs_basic' => 'text',
+            'rcs_single' => 'rich_card',
+            'rcs_carousel' => 'carousel',
+        ];
+        return \App\Models\MessageTemplate::orderByDesc('updated_at')
+            ->get()
+            ->values()
+            ->map(fn($t, $i) => [
+                'id' => $i + 1,
+                'uuid' => $t->id,
+                'templateId' => substr(md5($t->id), 0, 8),
+                'name' => $t->name,
+                'channel' => $typeToChannel[$t->type] ?? 'sms',
+                'trigger' => 'portal',
+                'content' => $t->content ?? '',
+                'contentType' => $typeToContentType[$t->type] ?? 'text',
+                'accessScope' => 'All Sub-accounts',
+                'subAccounts' => ['all'],
+                'status' => $t->status === 'active' ? 'live' : $t->status,
+                'version' => 1,
+                'lastUpdated' => $t->updated_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            ])
+            ->toArray();
+    }
+
     private function getTemplatesForView(): array
     {
         $typeToChannel = [
@@ -2202,13 +2237,16 @@ class QuickSMSController extends Controller
         $virtual_numbers = [];
         $optout_domains = [];
 
+        $templates = $this->getTemplatesForLibrary();
+
         return view('quicksms.management.templates', [
             'page_title' => 'Message Templates',
             'sender_ids' => $sender_ids,
             'rcs_agents' => $rcs_agents,
             'opt_out_lists' => $opt_out_lists,
             'virtual_numbers' => $virtual_numbers,
-            'optout_domains' => $optout_domains
+            'optout_domains' => $optout_domains,
+            'templates' => $templates,
         ]);
     }
 
