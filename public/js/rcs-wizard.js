@@ -3222,6 +3222,42 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    var rcsMessageTypeBeforeChange = null;
+    function captureRcsMessageTypeState() {
+        rcsMessageTypeBeforeChange = document.querySelector('input[name="rcsMessageType"]:checked')?.value;
+    }
+    document.querySelectorAll('label[for^="rcsType"]').forEach(function(label) {
+        label.addEventListener('mousedown', captureRcsMessageTypeState);
+        label.addEventListener('touchstart', captureRcsMessageTypeState);
+    });
+    document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
+        radio.addEventListener('focus', captureRcsMessageTypeState);
+        radio.addEventListener('change', function(e) {
+            var newValue = e.target.value;
+            if (isRcsImageDirty()) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                if (rcsMessageTypeBeforeChange && rcsMessageTypeBeforeChange !== newValue) {
+                    var revertId = rcsMessageTypeBeforeChange === 'single' ? 'rcsTypeSingle' : 'rcsTypeCarousel';
+                    var revertEl = document.getElementById(revertId);
+                    if (revertEl) revertEl.checked = true;
+                }
+                showRcsUnsavedChangesModal({ type: 'changeType', targetValue: newValue });
+                return;
+            }
+            toggleRcsMessageType();
+            if (typeof updateCarouselOrientationWarning === 'function') updateCarouselOrientationWarning();
+            if (typeof updateRcsWizardPreview === 'function') updateRcsWizardPreview();
+        });
+    });
+
+    document.querySelectorAll('input[name="rcsOrientation"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            markRcsImageDirty();
+            if (typeof updateRcsWizardPreview === 'function') updateRcsWizardPreview();
+        });
+    });
+
     // Initialize https:// prefill behavior for all URL inputs
     initRcsHttpsPrefill();
     

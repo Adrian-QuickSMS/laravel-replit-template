@@ -3310,75 +3310,7 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-var rcsMessageTypeBeforeChange = null;
-
-function captureRcsMessageTypeState() {
-    rcsMessageTypeBeforeChange = document.querySelector('input[name="rcsMessageType"]:checked')?.value;
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('label[for^="rcsType"]').forEach(function(label) {
-        label.addEventListener('mousedown', captureRcsMessageTypeState);
-        label.addEventListener('touchstart', captureRcsMessageTypeState);
-    });
-    
-    document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
-        radio.addEventListener('focus', captureRcsMessageTypeState);
-    });
-    
-    document.querySelectorAll('input[name="rcsMessageType"]').forEach(function(radio) {
-        radio.addEventListener('change', function(e) {
-            var newValue = e.target.value;
-            if (isRcsImageDirty()) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                if (rcsMessageTypeBeforeChange && rcsMessageTypeBeforeChange !== newValue) {
-                    document.getElementById(rcsMessageTypeBeforeChange === 'single' ? 'rcsTypeSingle' : 'rcsTypeCarousel').checked = true;
-                }
-                showRcsUnsavedChangesModal({ type: 'changeType', targetValue: newValue });
-                return;
-            }
-            toggleRcsMessageType();
-            updateCarouselOrientationWarning();
-            updateRcsWizardPreview();
-        });
-    });
-    
-    document.querySelectorAll('input[name="rcsMediaSource"]').forEach(function(radio) {
-        radio.addEventListener('change', toggleRcsMediaSource);
-    });
-    
-    document.querySelectorAll('input[name="rcsOrientation"]').forEach(function(radio) {
-        radio.addEventListener('change', function() {
-            markRcsImageDirty();
-            updateRcsWizardPreview();
-        });
-    });
-    
-    var fileInput = document.getElementById('rcsMediaFileInput');
-    fileInput.addEventListener('change', function(e) {
-        if (e.target.files.length > 0) {
-            handleRcsFileUpload(e.target.files[0]);
-        }
-    });
-    
-    var dropzone = document.getElementById('rcsMediaDropzone');
-    dropzone.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        dropzone.classList.add('border-primary');
-    });
-    dropzone.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        dropzone.classList.remove('border-primary');
-    });
-    dropzone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        dropzone.classList.remove('border-primary');
-        if (e.dataTransfer.files.length > 0) {
-            handleRcsFileUpload(e.dataTransfer.files[0]);
-        }
-    });
-    
     document.getElementById('personalisationModal').addEventListener('hidden.bs.modal', function() {
         rcsActiveTextField = null;
     });
