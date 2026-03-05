@@ -207,8 +207,15 @@ button.btn-save-draft:hover {
     font-family: monospace;
     background: transparent;
 }
+#successModal {
+    z-index: 1060 !important;
+}
 #successModal .modal-dialog {
     max-width: 550px;
+}
+#successModal + .modal-backdrop,
+.modal-backdrop {
+    z-index: 1055 !important;
 }
 .api-table {
     font-size: 0.9rem;
