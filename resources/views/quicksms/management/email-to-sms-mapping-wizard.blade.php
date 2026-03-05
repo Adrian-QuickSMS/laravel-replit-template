@@ -600,24 +600,6 @@ button.btn-save-draft:hover {
                                             <div class="invalid-feedback">Please select a SenderID.</div>
                                         </div>
                                         
-                                        {{-- Dynamic SenderID Toggle (visible if account flag allows) --}}
-                                        <div class="mb-4" id="dynamicSenderIdSection">
-                                            <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="subjectAsSenderId">
-                                                <label class="form-check-label" for="subjectAsSenderId">
-                                                    <strong>Use Email Subject as SenderID</strong>
-                                                </label>
-                                            </div>
-                                            <small class="text-muted">Override the selected SenderID with content from the email subject line. Subject must be 3-11 alphanumeric characters.</small>
-                                            
-                                            <div class="alert alert-pastel-warning small mt-2 d-none" id="dynamicSenderIdWarning">
-                                                <i class="fas fa-exclamation-triangle me-1"></i>
-                                                <strong>Warning:</strong> When enabled, the SenderID dropdown above becomes a fallback. Invalid subjects will use the fallback SenderID.
-                                            </div>
-                                        </div>
-                                        
-                                        <hr class="my-3">
-                                        
                                         {{-- Multiple SMS Toggle --}}
                                         <div class="mb-4">
                                             <div class="form-check form-switch">
@@ -647,31 +629,6 @@ button.btn-save-draft:hover {
                                             </div>
                                         </div>
                                         
-                                        <hr class="my-3">
-                                        
-                                        {{-- Content Filter Textarea --}}
-                                        <div class="mb-3">
-                                            <label class="form-label">
-                                                <strong>Filter Content</strong> <span class="badge badge-pastel-secondary">Optional</span>
-                                            </label>
-                                            <textarea class="form-control" id="contentFilter" rows="4" placeholder="Enter regex patterns to remove from email content (one per line)&#10;&#10;Example:&#10;^--[\s\S]*$&#10;Sent from my iPhone&#10;\[image:.*?\]"></textarea>
-                                            <small class="text-muted">
-                                                Enter regex patterns (one per line) to filter out signatures, footers, or unwanted content from emails before converting to SMS.
-                                            </small>
-                                            
-                                            <div class="mt-2">
-                                                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnTestFilter">
-                                                    <i class="fas fa-vial me-1"></i> Test Patterns
-                                                </button>
-                                                <button type="button" class="btn btn-link btn-sm" id="btnAddCommonPatterns">
-                                                    <i class="fas fa-plus me-1"></i> Add Common Patterns
-                                                </button>
-                                            </div>
-                                            
-                                            <div class="alert alert-pastel-primary small mt-2 d-none" id="filterTestResult">
-                                                <strong>Test Result:</strong> <span id="filterTestOutput"></span>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -740,10 +697,6 @@ button.btn-save-draft:hover {
                                                         <tr>
                                                             <td class="text-muted">Settings</td>
                                                             <td id="summaryMessageSettings">-</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-muted">Content Filters</td>
-                                                            <td id="summaryContentFilter">-</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -1044,15 +997,9 @@ $(document).ready(function() {
         selectedTags: [],
         optOutLists: ['NO'],
         senderId: '',
-        subjectAsSenderId: false,
         multipleSms: true,
         deliveryReports: true,
-        deliveryReportEmail: '',
-        contentFilterPatterns: ''
-    };
-    
-    var accountFlags = {
-        dynamic_senderid_allowed: true
+        deliveryReportEmail: ''
     };
     
     function getSelectedClmSubaccounts() {
@@ -1115,11 +1062,9 @@ $(document).ready(function() {
                 wizardData.generatedEmail = (data.originatingEmails && data.originatingEmails[0]) || '';
                 wizardData.allowedSenders = data.allowedSenderEmails || [];
                 wizardData.senderId = data.senderIdTemplateId || '';
-                wizardData.subjectAsSenderId = data.subjectOverridesSenderId || false;
                 wizardData.multipleSms = data.multipleSmsEnabled !== false;
                 wizardData.deliveryReports = data.deliveryReportsEnabled !== false;
                 wizardData.deliveryReportEmail = data.deliveryReportsEmail || '';
-                wizardData.contentFilterPatterns = data.contentFilter || '';
                 
                 $('#mappingName').val(wizardData.name);
                 $('#mappingDescription').val(wizardData.description);
@@ -1132,11 +1077,9 @@ $(document).ready(function() {
                     $('#generatedEmailSection').show();
                 }
                 
-                $('#subjectAsSenderId').prop('checked', wizardData.subjectAsSenderId);
                 $('#multipleSms').prop('checked', wizardData.multipleSms);
                 $('#deliveryReports').prop('checked', wizardData.deliveryReports);
                 $('#deliveryReportEmail').val(wizardData.deliveryReportEmail);
-                $('#contentFilterPatterns').val(wizardData.contentFilterPatterns);
                 
                 if (data.contactBookListNames && data.contactBookListNames.length > 0) {
                     wizardData.selectedLists = data.contactBookListNames.map(function(name, idx) {
@@ -1198,8 +1141,6 @@ $(document).ready(function() {
     function loadAccountFlags() {
         EmailToSmsService.getAccountFlags().then(function(response) {
             if (response.success) {
-                accountFlags = response.data;
-                updateDynamicSenderIdVisibility();
             }
         }).catch(function(err) {
             console.error('Error loading account flags:', err);
@@ -1212,16 +1153,6 @@ $(document).ready(function() {
             html += '<option value="' + tpl.id + '">' + tpl.senderId + '</option>';
         });
         $('#senderId').html(html);
-    }
-    
-    function updateDynamicSenderIdVisibility() {
-        if (accountFlags.dynamic_senderid_allowed) {
-            $('#dynamicSenderIdGroup').show();
-        } else {
-            $('#dynamicSenderIdGroup').hide();
-            $('#subjectAsSenderId').prop('checked', false);
-            wizardData.subjectAsSenderId = false;
-        }
     }
     
     function renderContactsTab() {
@@ -1363,11 +1294,7 @@ $(document).ready(function() {
             }
             settings.push(reportStr);
         }
-        if (wizardData.subjectAsSenderId) settings.push('Subject as SenderID');
         $('#summaryMessageSettings').text(settings.length > 0 ? settings.join(', ') : 'Default');
-        
-        var filterCount = wizardData.contentFilterPatterns.trim() ? wizardData.contentFilterPatterns.split('\n').filter(p => p.trim()).length : 0;
-        $('#summaryContentFilter').text(filterCount > 0 ? filterCount + ' pattern(s) configured' : 'None');
     }
     
     function calculateRecipientStats() {
@@ -1686,67 +1613,6 @@ $(document).ready(function() {
         }
     });
     
-    $('#contentFilter').on('input', function() {
-        wizardData.contentFilterPatterns = $(this).val();
-    });
-    
-    $('#subjectAsSenderId').on('change', function() {
-        wizardData.subjectAsSenderId = $(this).is(':checked');
-        if (wizardData.subjectAsSenderId) {
-            $('#dynamicSenderIdWarning').removeClass('d-none');
-        } else {
-            $('#dynamicSenderIdWarning').addClass('d-none');
-        }
-    });
-    
-    $('#btnTestFilter').on('click', function() {
-        var patterns = wizardData.contentFilterPatterns.split('\n').filter(p => p.trim());
-        if (patterns.length === 0) {
-            $('#filterTestResult').removeClass('d-none');
-            $('#filterTestOutput').text('No patterns defined. Add patterns to test.');
-            return;
-        }
-        
-        var testContent = "Hello, this is a test message.\n\n--\nSent from my iPhone\nJohn Smith\nEmail: john@example.com";
-        var result = testContent;
-        
-        patterns.forEach(function(pattern) {
-            try {
-                var regex = new RegExp(pattern, 'gim');
-                result = result.replace(regex, '');
-            } catch (e) {
-                result = '[Invalid regex: ' + pattern + ']';
-            }
-        });
-        
-        $('#filterTestResult').removeClass('d-none');
-        $('#filterTestOutput').html('<br><strong>Before:</strong><pre class="mb-1 small bg-light p-2">' + testContent.replace(/</g, '&lt;') + '</pre><strong>After:</strong><pre class="mb-0 small bg-light p-2">' + result.trim().replace(/</g, '&lt;') + '</pre>');
-    });
-    
-    $('#btnAddCommonPatterns').on('click', function() {
-        var commonPatterns = [
-            '^--[\\s\\S]*$',
-            'Sent from my iPhone',
-            'Sent from my Android',
-            '\\[image:.*?\\]',
-            'Get Outlook for iOS',
-            'Confidentiality Notice:.*'
-        ];
-        
-        var current = $('#contentFilter').val();
-        var existing = current.split('\n').filter(p => p.trim());
-        var toAdd = commonPatterns.filter(p => !existing.includes(p));
-        
-        if (toAdd.length > 0) {
-            var newValue = current ? current + '\n' + toAdd.join('\n') : toAdd.join('\n');
-            $('#contentFilter').val(newValue);
-            wizardData.contentFilterPatterns = newValue;
-        }
-    });
-    
-    if (!accountFlags.dynamic_senderid_allowed) {
-        $('#dynamicSenderIdSection').hide();
-    }
     
     $('#searchContactList').on('input', function() {
         var term = $(this).val().toLowerCase();
@@ -1844,11 +1710,9 @@ $(document).ready(function() {
             selectedTags: wizardData.selectedTags,
             optOutLists: wizardData.optOutLists,
             senderId: wizardData.senderId,
-            subjectAsSenderId: wizardData.subjectAsSenderId,
             multipleSms: wizardData.multipleSms,
             deliveryReports: wizardData.deliveryReports,
             deliveryReportEmail: wizardData.deliveryReportEmail,
-            contentFilterPatterns: wizardData.contentFilterPatterns,
             status: 'draft'
         };
         
@@ -1906,11 +1770,9 @@ $(document).ready(function() {
             optOutListNames: optOutListNames,
             senderIdTemplateId: wizardData.senderId,
             senderId: wizardData.senderId ? $('#senderId option:selected').text() : 'QuickSMS',
-            subjectOverridesSenderId: wizardData.subjectAsSenderId,
             multipleSmsEnabled: wizardData.multipleSms,
             deliveryReportsEnabled: wizardData.deliveryReports,
             deliveryReportsEmail: wizardData.deliveryReportEmail,
-            contentFilter: wizardData.contentFilterPatterns,
             status: status
         };
     }
