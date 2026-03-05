@@ -57,9 +57,13 @@ class MessageTemplateVersion extends Model
     public function toPortalArray(): array
     {
         $snapshot = $this->snapshot ?? [];
+        $status = $snapshot['status'] ?? 'draft';
+        if ($status === 'active') {
+            $status = 'live';
+        }
         return [
             'version' => $this->version,
-            'status' => $snapshot['status'] ?? 'draft',
+            'status' => $status,
             'content' => $snapshot['content'] ?? '',
             'channel' => $snapshot['type'] ?? 'sms',
             'trigger' => 'portal',

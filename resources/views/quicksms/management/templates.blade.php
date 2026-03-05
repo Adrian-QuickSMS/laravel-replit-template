@@ -5046,10 +5046,10 @@ function renderVersionsTable() {
         
         html += '<td class="text-end">';
         html += '<div class="dropdown">';
-        html += '<button class="btn btn-link p-0 text-muted" type="button" data-bs-toggle="dropdown" aria-expanded="false">';
+        html += '<button class="btn btn-sm btn-outline-secondary border-0 px-2 py-1" type="button" data-bs-toggle="dropdown" data-bs-boundary="window" aria-expanded="false">';
         html += '<i class="fas fa-ellipsis-v"></i>';
         html += '</button>';
-        html += '<ul class="dropdown-menu dropdown-menu-end">';
+        html += '<ul class="dropdown-menu dropdown-menu-end" style="z-index: 1060;">';
         html += '<li><a class="dropdown-item" href="#" onclick="viewVersion(' + v.version + '); return false;"><i class="fas fa-eye me-2"></i>View version</a></li>';
         
         if (!isCurrent && !isArchived) {
