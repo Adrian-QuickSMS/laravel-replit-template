@@ -790,46 +790,19 @@ button.btn-save-draft:hover {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-0">
-                <div class="bg-light rounded mx-4 mt-3 p-2 mb-0" style="font-size: 13px;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span><strong>Current Selection:</strong> <span id="modalSelectionSummary">None</span></span>
-                        <button type="button" class="btn btn-link btn-sm text-danger p-0" id="btnModalClearAll">
-                            <i class="fas fa-times me-1"></i> Clear All
-                        </button>
-                    </div>
-                </div>
-                
                 <ul class="nav nav-tabs px-4 pt-3 mb-0" style="border-bottom: none;">
-                    <li class="nav-item">
-                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#modalContactsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">
-                            <i class="fas fa-user me-1"></i> Contacts <span class="badge bg-secondary ms-1" id="modalContactsBadge">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalListsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">
-                            <i class="fas fa-list me-1"></i> Lists <span class="badge bg-secondary ms-1" id="modalListsBadge">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalDynamicListsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">
-                            <i class="fas fa-sync-alt me-1"></i> Dynamic <span class="badge bg-secondary ms-1" id="modalDynamicBadge">0</span>
-                        </button>
-                    </li>
-                    <li class="nav-item">
-                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalTagsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">
-                            <i class="fas fa-tags me-1"></i> Tags <span class="badge bg-secondary ms-1" id="modalTagsBadge">0</span>
-                        </button>
-                    </li>
+                    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#modalContactsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Contacts</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalListsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Lists</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalDynamicListsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Dynamic Lists</button></li>
+                    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalTagsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">Tags</button></li>
                 </ul>
-                
                 <div class="tab-content px-4 pt-3">
-                    {{-- Contacts Tab --}}
                     <div class="tab-pane fade show active" id="modalContactsTab">
                         <div class="row mb-3">
                             <div class="col-md-7">
                                 <div class="input-group">
                                     <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
-                                    <input type="text" class="form-control modal-cb-search" placeholder="Search names, numbers, tags..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                    <input type="text" class="form-control modal-cb-search" placeholder="Search names, numbers, tags, custom fields..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
                                 </div>
                             </div>
                             <div class="col-md-5">
@@ -840,47 +813,20 @@ button.btn-save-draft:hover {
                                         <option value="name_asc">Name A-Z</option>
                                         <option value="name_desc">Name Z-A</option>
                                     </select>
-                                    <button type="button" class="btn btn-outline-secondary" id="modalBtnToggleFilters" style="border-color: #e6e6e6; border-radius: 0.625rem; color: #886CC0;">
-                                        <i class="fas fa-filter"></i>
-                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="modalBtnToggleFilters" style="border-color: #e6e6e6; border-radius: 0.625rem; color: #886CC0;"><i class="fas fa-filter"></i></button>
                                 </div>
                             </div>
                         </div>
-                        
                         <div class="d-none mb-3 p-3 rounded" id="modalContactFilters" style="font-size: 13px; background: #f8f7fc;">
                             <div class="row">
-                                <div class="col-md-3">
-                                    <label class="form-label mb-1" style="font-weight: 500;">Tags</label>
-                                    <select class="form-select form-select-sm modal-filter-tags" style="border-radius: 0.625rem;">
-                                        <option value="">All tags</option>
-                                        <option value="vip">VIP</option>
-                                        <option value="asthma">Asthma</option>
-                                        <option value="diabetes">Diabetes</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label mb-1" style="font-weight: 500;">Has Mobile</label>
-                                    <select class="form-select form-select-sm modal-filter-mobile" style="border-radius: 0.625rem;">
-                                        <option value="">Any</option>
-                                        <option value="yes">Yes</option>
-                                        <option value="no">No</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label mb-1" style="font-weight: 500;">Opt-out Status</label>
-                                    <select class="form-select form-select-sm" style="border-radius: 0.625rem;">
-                                        <option value="exclude">Exclude opted-out</option>
-                                        <option value="include">Include all</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <button class="btn btn-link btn-sm" id="modalBtnClearFilters" style="color: #886CC0;">Clear filters</button>
-                                </div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Tags</label><select class="form-select form-select-sm modal-filter-tags" style="border-radius: 0.625rem;"><option value="">All tags</option></select></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Has Mobile</label><select class="form-select form-select-sm modal-filter-mobile" style="border-radius: 0.625rem;"><option value="">Any</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+                                <div class="col-md-3"><label class="form-label mb-1" style="font-weight: 500;">Opt-out Status</label><select class="form-select form-select-sm" style="border-radius: 0.625rem;"><option value="exclude">Exclude opted-out</option><option value="include">Include all</option></select></div>
+                                <div class="col-md-3 d-flex align-items-end"><button class="btn btn-link btn-sm" id="modalBtnClearFilters" style="color: #886CC0;">Clear filters</button></div>
                             </div>
                         </div>
-                        
                         <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-                            <table class="table table-hover mb-0" style="font-size: 13px;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
                                 <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
                                     <tr style="border-bottom: 2px solid #f0ebf8;">
                                         <th style="width: 40px; padding: 12px 8px;"><input type="checkbox" class="form-check-input" id="modalSelectAllContacts"></th>
@@ -902,8 +848,6 @@ button.btn-save-draft:hover {
                             </table>
                         </div>
                     </div>
-                    
-                    {{-- Static Lists Tab --}}
                     <div class="tab-pane fade" id="modalListsTab">
                         <div class="row mb-3">
                             <div class="col-md-7">
@@ -912,9 +856,20 @@ button.btn-save-draft:hover {
                                     <input type="text" class="form-control modal-list-search" placeholder="Search lists..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
                                 </div>
                             </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                        <option value="updated">Recently updated</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-                            <table class="table table-hover mb-0" style="font-size: 13px;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
                                 <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
                                     <tr style="border-bottom: 2px solid #f0ebf8;">
                                         <th style="width: 40px; padding: 12px 8px;"></th>
@@ -933,8 +888,6 @@ button.btn-save-draft:hover {
                             </table>
                         </div>
                     </div>
-                    
-                    {{-- Dynamic Lists Tab --}}
                     <div class="tab-pane fade" id="modalDynamicListsTab">
                         <div class="row mb-3">
                             <div class="col-md-7">
@@ -943,9 +896,19 @@ button.btn-save-draft:hover {
                                     <input type="text" class="form-control modal-dynamic-search" placeholder="Search dynamic lists..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
                                 </div>
                             </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-                            <table class="table table-hover mb-0" style="font-size: 13px;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
                                 <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
                                     <tr style="border-bottom: 2px solid #f0ebf8;">
                                         <th style="width: 40px; padding: 12px 8px;"></th>
@@ -963,8 +926,6 @@ button.btn-save-draft:hover {
                             </table>
                         </div>
                     </div>
-                    
-                    {{-- Tags Tab --}}
                     <div class="tab-pane fade" id="modalTagsTab">
                         <div class="row mb-3">
                             <div class="col-md-7">
@@ -973,9 +934,19 @@ button.btn-save-draft:hover {
                                     <input type="text" class="form-control modal-tag-search" placeholder="Search tags..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
                                 </div>
                             </div>
+                            <div class="col-md-5">
+                                <div class="d-flex gap-2 align-items-center">
+                                    <select class="form-select" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
+                                        <option value="name_asc">Name A-Z</option>
+                                        <option value="name_desc">Name Z-A</option>
+                                        <option value="count_desc">Most contacts</option>
+                                        <option value="count_asc">Fewest contacts</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
-                            <table class="table table-hover mb-0" style="font-size: 13px;">
+                            <table class="table table-hover mb-0 cb-table" style="font-size: 13px;">
                                 <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
                                     <tr style="border-bottom: 2px solid #f0ebf8;">
                                         <th style="width: 40px; padding: 12px 8px;"></th>
@@ -994,11 +965,14 @@ button.btn-save-draft:hover {
                         </div>
                     </div>
                 </div>
+                <div class="px-4 py-2 mt-2" style="font-size: 13px; border-top: 1px solid #f0ebf8; background: #faf9fd;">
+                    <strong style="color: #6b5b95;">Selected:</strong> <span id="modalSelectionSummary" style="color: #555;">0 contacts, 0 lists, 0 dynamic lists, 0 tags</span>
+                </div>
             </div>
             <div class="modal-footer py-3 px-4" style="border-top: 1px solid #f0ebf8;">
-                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="btnApplyContactSelection">
-                    <i class="fas fa-check me-1"></i> Apply Selection
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="border-radius: 0.625rem;">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnApplyContactSelection" style="border-radius: 0.625rem; background-color: #886CC0; border-color: #886CC0;">
+                    <i class="fas fa-plus me-1"></i> Add to Campaign
                 </button>
             </div>
         </div>
@@ -2147,13 +2121,7 @@ $(document).ready(function() {
         var dynamicCount = wizardData.selectedDynamicLists.length;
         var tagCount = wizardData.selectedTags.length;
         
-        $('#modalContactsBadge').text(contactCount).toggleClass('bg-primary', contactCount > 0).toggleClass('bg-secondary', contactCount === 0);
-        $('#modalListsBadge').text(listCount).toggleClass('bg-primary', listCount > 0).toggleClass('bg-secondary', listCount === 0);
-        $('#modalDynamicBadge').text(dynamicCount).toggleClass('bg-primary', dynamicCount > 0).toggleClass('bg-secondary', dynamicCount === 0);
-        $('#modalTagsBadge').text(tagCount).toggleClass('bg-primary', tagCount > 0).toggleClass('bg-secondary', tagCount === 0);
-        
-        var total = contactCount + listCount + dynamicCount + tagCount;
-        $('#modalSelectionSummary').text(total > 0 ? total + ' items selected' : 'None');
+        $('#modalSelectionSummary').text(contactCount + ' contacts, ' + listCount + ' lists, ' + dynamicCount + ' dynamic lists, ' + tagCount + ' tags');
     }
     
     function updateSelectionPreview() {
