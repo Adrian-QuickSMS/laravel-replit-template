@@ -1832,6 +1832,41 @@ var EmailToSmsService = (function() {
         
         return _makeRequest('POST', '/reporting-groups/' + id + '/unarchive');
     }
+
+    function createReportingGroup(payload) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var newGroup = {
+                    id: 'rg-' + Date.now(),
+                    name: payload.name,
+                    description: payload.description || '',
+                    linkedAddresses: [],
+                    messagesSent: 0,
+                    lastActivity: '-',
+                    created: new Date().toISOString().split('T')[0],
+                    status: 'Active'
+                };
+                mockReportingGroups.push(newGroup);
+                return { success: true, data: newGroup, message: 'Reporting group created successfully' };
+            });
+        }
+        return _makeRequest('POST', '/reporting-groups', payload);
+    }
+
+    function updateReportingGroup(id, payload) {
+        if (config.useMockData) {
+            return simulateDelay(200).then(function() {
+                var index = mockReportingGroups.findIndex(function(g) { return g.id === id; });
+                if (index === -1) {
+                    return { success: false, error: 'Group not found' };
+                }
+                if (payload.name) mockReportingGroups[index].name = payload.name;
+                if (payload.description !== undefined) mockReportingGroups[index].description = payload.description;
+                return { success: true, data: mockReportingGroups[index], message: 'Reporting group updated successfully' };
+            });
+        }
+        return _makeRequest('PUT', '/reporting-groups/' + id, payload);
+    }
     
     /**
      * Get mock addresses data - AGGREGATES from Standard and Contact List setups
@@ -1980,6 +2015,8 @@ var EmailToSmsService = (function() {
         
         // Reporting Groups
         listReportingGroups: listReportingGroups,
+        createReportingGroup: createReportingGroup,
+        updateReportingGroup: updateReportingGroup,
         archiveReportingGroup: archiveReportingGroup,
         unarchiveReportingGroup: unarchiveReportingGroup,
         getMockReportingGroups: getMockReportingGroups,

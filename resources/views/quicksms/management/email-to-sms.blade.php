@@ -2108,8 +2108,33 @@ $(document).ready(function() {
     var standardSmsSortDirection = 'asc';
     
     function loadOverviewData() {
-        overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
-        reportingGroups = EmailToSmsService.getMockReportingGroups();
+        return Promise.all([
+            EmailToSmsService.listOverviewAddresses({}),
+            EmailToSmsService.listReportingGroups({})
+        ]).then(function(results) {
+            if (results[0].success) {
+                overviewAddresses = results[0].data || [];
+            }
+            if (results[1].success) {
+                reportingGroups = results[1].data || [];
+            }
+            renderAddressesTable(overviewAddresses);
+            renderReportingGroups(reportingGroups);
+        }).catch(function(error) {
+            console.error('Error loading overview data:', error);
+            showErrorToast('Failed to load overview data');
+        });
+    }
+
+    function loadReportingGroupsData() {
+        return EmailToSmsService.listReportingGroups({}).then(function(response) {
+            if (response.success) {
+                reportingGroups = response.data || [];
+                renderReportingGroups(reportingGroups);
+            }
+        }).catch(function(error) {
+            console.error('Error loading reporting groups:', error);
+        });
     }
     
     // ========================================
@@ -2644,25 +2669,7 @@ $(document).ready(function() {
                     };
                 });
                 
-                var pendingContactList = JSON.parse(localStorage.getItem('quicksms_pending_contactlist') || '[]');
-                if (pendingContactList.length > 0) {
-                    pendingContactList.forEach(function(entry) {
-                        contactListSetups.unshift({
-                            id: entry.id,
-                            name: entry.name,
-                            description: entry.description,
-                            subaccountId: entry.subaccount,
-                            subaccountName: entry.subaccountName,
-                            allowedSenders: entry.allowedSenders || [],
-                            targetLists: [entry.contactList],
-                            optOutLists: [],
-                            created: entry.created,
-                            lastUpdated: entry.created,
-                            status: 'Active'
-                        });
-                    });
-                    localStorage.removeItem('quicksms_pending_contactlist');
-                }
+                
             }
             return contactListSetups;
         }).catch(function(error) {
@@ -3721,11 +3728,7 @@ $(document).ready(function() {
         var addressName = $selectedAddress.data('name');
         var isLinked = $selectedAddress.data('linked');
         
-        if (!addressId) {
-            $('#rgAssignAddress').addClass('is-invalid');
-            $('#rgAddressError').text('Please select an Email-to-SMS Address.');
-            isValid = false;
-        } else if (isLinked) {
+        if (addressId && isLinked) {
             $('#rgAssignAddress').addClass('is-invalid');
             var linkedGroup = findGroupByAddressName(addressName);
             var groupName = linkedGroup ? linkedGroup.name : 'another group';
@@ -3737,20 +3740,37 @@ $(document).ready(function() {
         
         if (!isValid) return;
         
-        var newGroup = {
-            id: 'rg-' + Date.now(),
+        var $btn = $(this);
+        var originalHtml = $btn.html();
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Saving...');
+        
+        var payload = {
             name: name,
-            description: $('#rgDescription').val().trim(),
-            linkedAddresses: [addressName],
-            messagesSent: 0,
-            lastActivity: '-',
-            created: new Date().toISOString().split('T')[0],
-            status: 'Active'
+            description: $('#rgDescription').val().trim()
         };
         
-        reportingGroups.push(newGroup);
-        renderReportingGroups(reportingGroups);
-        $('#createReportingGroupModal').modal('hide');
+        var savePromise;
+        if (rgEditingId) {
+            savePromise = EmailToSmsService.updateReportingGroup(rgEditingId, payload);
+        } else {
+            savePromise = EmailToSmsService.createReportingGroup(payload);
+        }
+        
+        savePromise.then(function(response) {
+            if (response.success) {
+                showSuccessToast(response.message || (rgEditingId ? 'Reporting group updated' : 'Reporting group created'));
+                $('#createReportingGroupModal').modal('hide');
+                loadReportingGroupsData();
+                loadOverviewData();
+            } else {
+                showErrorToast(response.error || 'Failed to save reporting group');
+            }
+        }).catch(function(error) {
+            console.error('Error saving reporting group:', error);
+            showErrorToast('An error occurred while saving the reporting group');
+        }).finally(function() {
+            $btn.prop('disabled', false).html(originalHtml);
+        });
     });
     
     // Reporting Groups filter/search handlers
@@ -3811,9 +3831,8 @@ $(document).ready(function() {
         
         EmailToSmsService.archiveReportingGroup(id).then(function(response) {
             if (response.success) {
-                reportingGroups = EmailToSmsService.getMockReportingGroups();
-                renderReportingGroups(reportingGroups);
                 showSuccessToast(response.message);
+                loadReportingGroupsData();
             } else {
                 showErrorToast(response.error || 'Failed to archive group');
             }
@@ -3835,9 +3854,8 @@ $(document).ready(function() {
         
         EmailToSmsService.unarchiveReportingGroup(id).then(function(response) {
             if (response.success) {
-                reportingGroups = EmailToSmsService.getMockReportingGroups();
-                renderReportingGroups(reportingGroups);
                 showSuccessToast(response.message);
+                loadReportingGroupsData();
             } else {
                 showErrorToast(response.error || 'Failed to unarchive group');
             }
@@ -3875,8 +3893,7 @@ $(document).ready(function() {
         $('#rgName').val(group.name);
         $('#rgDescription').val(group.description || '');
         
-        // Populate address dropdown and select current
-        var allAddresses = EmailToSmsService.getMockOverviewAddresses();
+        var allAddresses = overviewAddresses;
         var addressSelect = $('#rgAssignAddress');
         addressSelect.empty().append('<option value="">Select an address...</option>');
         allAddresses.forEach(function(addr) {
@@ -3914,18 +3931,16 @@ $(document).ready(function() {
         
         serviceMethod.then(function(response) {
             if (response.success) {
-                overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
-                renderAddressesTable(overviewAddresses);
-                
-                if (selectedAddress && selectedAddress.id === id) {
-                    var updatedAddress = overviewAddresses.find(function(a) { return a.id === id; });
-                    if (updatedAddress) {
-                        selectedAddress = updatedAddress;
-                        openDetailsDrawer(updatedAddress);
-                    }
-                }
-                
                 showSuccessToast(response.message);
+                return loadOverviewData().then(function() {
+                    if (selectedAddress && selectedAddress.id === id) {
+                        var updatedAddress = overviewAddresses.find(function(a) { return a.id === id; });
+                        if (updatedAddress) {
+                            selectedAddress = updatedAddress;
+                            openDetailsDrawer(updatedAddress);
+                        }
+                    }
+                });
             } else {
                 showErrorToast(response.error || 'Failed to update address status');
             }
@@ -4008,10 +4023,9 @@ $(document).ready(function() {
         
         EmailToSmsService.deleteOverviewAddress(id).then(function(response) {
             if (response.success) {
-                overviewAddresses = EmailToSmsService.getMockOverviewAddresses();
-                renderAddressesTable(overviewAddresses);
                 closeDetailsDrawer();
                 showSuccessToast(response.message);
+                loadOverviewData();
             } else {
                 showErrorToast(response.error || 'Failed to delete address');
             }
@@ -4054,45 +4068,7 @@ $(document).ready(function() {
         }
     });
     
-    (function loadPendingOverviewEntries() {
-        var pendingStandard = JSON.parse(localStorage.getItem('quicksms_pending_standard') || '[]');
-        pendingStandard.forEach(function(entry) {
-            overviewAddresses.unshift({
-                id: entry.id,
-                email: 'mobilenumber' + EMAIL_DOMAIN,
-                name: entry.name,
-                description: entry.description,
-                type: 'Standard',
-                subaccount: entry.subaccount,
-                originatingEmails: entry.allowedSenderEmails.length > 0 ? entry.allowedSenderEmails : ['All senders'],
-                reportingGroup: '-',
-                status: 'active',
-                created: entry.created,
-                lastUsed: '-'
-            });
-        });
-        
-        var pendingContactList = JSON.parse(localStorage.getItem('quicksms_pending_contactlist') || '[]');
-        pendingContactList.forEach(function(entry) {
-            overviewAddresses.unshift({
-                id: entry.id,
-                email: entry.emailAddress,
-                name: entry.name,
-                description: entry.description,
-                type: 'Contact List',
-                subaccount: entry.subaccountName,
-                originatingEmails: entry.allowedSenders.length > 0 ? entry.allowedSenders : ['All senders'],
-                reportingGroup: '-',
-                status: 'active',
-                created: entry.created,
-                lastUsed: '-'
-            });
-        });
-    })();
-    
     loadOverviewData();
-    renderAddressesTable(overviewAddresses);
-    renderReportingGroups(reportingGroups);
     loadContactListSetups().then(filterContactListMappings);
     
     // Contact Lists tab handlers
@@ -5002,32 +4978,6 @@ $(document).ready(function() {
                         archived: item.status === 'archived'
                     };
                 });
-                
-                var pendingStandard = JSON.parse(localStorage.getItem('quicksms_pending_standard') || '[]');
-                if (pendingStandard.length > 0) {
-                    pendingStandard.forEach(function(entry) {
-                        mockStandardSms.unshift({
-                            id: entry.id,
-                            name: entry.name,
-                            description: entry.description,
-                            subaccount: entry.subaccountId,
-                            subaccountName: entry.subaccount,
-                            allowedSenders: entry.allowedSenderEmails || [],
-                            originatingEmails: entry.originatingEmails || [],
-                            senderId: entry.senderId,
-                            subjectAsSenderId: entry.subjectAsSenderId,
-                            multipleSms: entry.multipleSms,
-                            deliveryReports: entry.deliveryReports,
-                            deliveryEmail: entry.deliveryEmail,
-                            signatureFilter: entry.contentFilter,
-                            created: entry.created,
-                            lastUpdated: entry.lastUpdated,
-                            status: 'active',
-                            archived: false
-                        });
-                    });
-                    localStorage.removeItem('quicksms_pending_standard');
-                }
                 
                 renderStandardSmsTable(mockStandardSms);
             }

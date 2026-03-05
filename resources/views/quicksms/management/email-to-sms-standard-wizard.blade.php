@@ -797,31 +797,46 @@ $(document).ready(function() {
     $('#btnCreate').on('click', function() {
         if (!validateStep(2)) return;
         
-        var newEntry = {
-            id: 'std-' + Date.now(),
+        var btn = $(this);
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Creating...');
+        
+        var selectedSubs = getSelectedSubaccounts();
+        var payload = {
+            type: 'standard',
             name: $('#stdName').val().trim(),
             description: $('#stdDescription').val().trim(),
-            subaccount: getSelectedSubaccounts().map(function(s) { return s.label; }).join(', '),
-            subaccountIds: getSelectedSubaccounts().map(function(s) { return s.value; }),
-            allowedSenderEmails: allowedEmails,
-            senderId: $('#stdSenderId option:selected').text(),
-            senderIdValue: $('#stdSenderId').val(),
-
-            multipleSms: $('#stdMultipleSms').is(':checked'),
-            deliveryReports: $('#stdDeliveryReports').is(':checked'),
-            deliveryEmail: $('#stdDeliveryEmail').val().trim(),
-            status: 'active',
-            created: new Date().toISOString().split('T')[0],
-            lastUpdated: new Date().toISOString().split('T')[0],
-            type: 'standard'
+            subaccountId: selectedSubs.length > 0 ? selectedSubs[0].value : null,
+            allowedEmails: allowedEmails,
+            senderIdTemplateId: $('#stdSenderId').val() || null,
+            senderId: $('#stdSenderId option:selected').text() || null,
+            multipleSmsEnabled: $('#stdMultipleSms').is(':checked'),
+            deliveryReportsEnabled: $('#stdDeliveryReports').is(':checked'),
+            deliveryReportsEmail: $('#stdDeliveryEmail').val().trim()
         };
         
-        var pendingEntries = JSON.parse(localStorage.getItem('quicksms_pending_standard') || '[]');
-        pendingEntries.push(newEntry);
-        localStorage.setItem('quicksms_pending_standard', JSON.stringify(pendingEntries));
-        
-        var modal = new bootstrap.Modal($('#successModal')[0]);
-        modal.show();
+        EmailToSmsService.createEmailToSmsSetup(payload).then(function(response) {
+            if (response.success) {
+                var generatedEmail = '-';
+                if (response.data && response.data.originatingEmails && response.data.originatingEmails.length > 0) {
+                    generatedEmail = response.data.originatingEmails[0];
+                }
+                $('.success-email-box span').first().text(generatedEmail);
+                var modal = new bootstrap.Modal($('#successModal')[0]);
+                modal.show();
+            } else {
+                var errorMsg = response.error || 'Failed to create setup';
+                if (response.errors) {
+                    var fieldErrors = Object.values(response.errors).flat();
+                    if (fieldErrors.length > 0) errorMsg = fieldErrors[0];
+                }
+                alert(errorMsg);
+            }
+        }).catch(function(error) {
+            console.error('Error creating standard setup:', error);
+            alert('An error occurred while creating the setup. Please try again.');
+        }).finally(function() {
+            btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Setup');
+        });
     });
     
     $('#btnSaveDraft').on('click', function() {
