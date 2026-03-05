@@ -324,14 +324,14 @@ button.btn-save-draft:hover {
                                         
                                         <div class="mb-3">
                                             <label class="form-label">Allowed Sender Emails</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="stdEmailInput" placeholder="e.g., user@domain.com or *@domain.com">
-                                                <button class="btn btn-outline-primary" type="button" id="stdAddEmailBtn">
+                                            <div class="d-flex gap-2 align-items-start">
+                                                <textarea class="form-control" id="stdEmailInput" rows="2" placeholder="Enter one or more emails, separated by commas, spaces, or new lines&#10;e.g., user@nhs.uk, admin@trust.nhs.uk, *@domain.com"></textarea>
+                                                <button class="btn btn-outline-primary flex-shrink-0" type="button" id="stdAddEmailBtn" style="height: fit-content;">
                                                     <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>
-                                            <div class="invalid-feedback" id="stdEmailError" style="display: none;">Invalid email format.</div>
-                                            <small class="text-muted">Restrict who can trigger this setup. Supports wildcards like *@domain.com. Leave empty to allow all senders.</small>
+                                            <div class="text-danger small mt-1" id="stdEmailError" style="display: none;"></div>
+                                            <small class="text-muted">Supports multiple emails separated by commas, spaces, or new lines. Wildcards like *@domain.com are supported. Leave empty to allow all senders.</small>
                                         </div>
                                         
                                         <div id="stdWildcardWarning" class="alert alert-pastel-warning mb-3 d-none">
@@ -753,20 +753,45 @@ $(document).ready(function() {
     }
     
     $('#stdAddEmailBtn').on('click', function() {
-        var email = $('#stdEmailInput').val().trim();
+        var raw = $('#stdEmailInput').val().trim();
+        if (!raw) return;
+
+        var parts = raw.split(/[\s,;\n\r]+/).filter(function(s) { return s.length > 0; });
         var emailRegex = /^(\*@[\w.-]+|[^\s@]+@[^\s@]+\.[^\s@]+)$/;
-        
-        if (email && emailRegex.test(email)) {
-            addEmail(email);
-            $('#stdEmailInput').val('');
-            $('#stdEmailError').hide();
+        var invalid = [];
+        var added = 0;
+        var duplicates = 0;
+
+        parts.forEach(function(part) {
+            var cleaned = part.replace(/^[,;\s]+|[,;\s]+$/g, '');
+            if (!cleaned) return;
+            if (emailRegex.test(cleaned)) {
+                if (allowedEmails.indexOf(cleaned) === -1) {
+                    addEmail(cleaned);
+                    added++;
+                } else {
+                    duplicates++;
+                }
+            } else {
+                invalid.push(cleaned);
+            }
+        });
+
+        $('#stdEmailInput').val('');
+
+        if (invalid.length > 0) {
+            $('#stdEmailError').html(
+                '<strong>' + invalid.length + ' invalid email' + (invalid.length > 1 ? 's' : '') + ':</strong> ' +
+                invalid.slice(0, 5).map(function(e) { return '<code>' + escapeHtml(e) + '</code>'; }).join(', ') +
+                (invalid.length > 5 ? ' and ' + (invalid.length - 5) + ' more...' : '')
+            ).show();
         } else {
-            $('#stdEmailError').show();
+            $('#stdEmailError').hide();
         }
     });
     
-    $('#stdEmailInput').on('keypress', function(e) {
-        if (e.which === 13) {
+    $('#stdEmailInput').on('keydown', function(e) {
+        if (e.which === 13 && !e.shiftKey) {
             e.preventDefault();
             $('#stdAddEmailBtn').click();
         }
