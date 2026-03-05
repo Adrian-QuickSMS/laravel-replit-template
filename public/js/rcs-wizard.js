@@ -2343,6 +2343,12 @@ function openRcsPlaceholderPicker(field) {
     modal.show();
 }
 
+function openRcsUrlPlaceholderPicker(inputId) {
+    rcsActiveTextField = inputId;
+    var modal = new bootstrap.Modal(document.getElementById('personalisationModal'));
+    modal.show();
+}
+
 function openRcsEmojiPicker(field) {
     rcsActiveTextField = field;
     var modal = new bootstrap.Modal(document.getElementById('emojiPickerModal'));

@@ -141,6 +141,9 @@
                            id="{{ $editorId }}UrlInput" 
                            value="https://"
                            data-prefix="https://">
+                    <button type="button" class="btn btn-outline-secondary" id="{{ $editorId }}UrlPlaceholderBtn" title="Insert personalisation field" onclick="if(typeof openRcsUrlPlaceholderPicker==='function')openRcsUrlPlaceholderPicker('{{ $editorId }}UrlInput')">
+                        <i class="fas fa-user-tag"></i>
+                    </button>
                     <button type="button" class="btn btn-outline-primary" id="{{ $editorId }}UrlConfirmBtn">
                         <i class="fas fa-check"></i>
                     </button>
