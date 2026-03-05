@@ -4117,7 +4117,7 @@ function continueToConfirmation() {
     if (!campaignName) {
         var now = new Date();
         var ts = now.toISOString().slice(0, 16).replace('T', ' ');
-        var tplSelect = document.getElementById('templateSelect');
+        var tplSelect = document.getElementById('templateSelector');
         var tplName = (tplSelect && tplSelect.value) ? tplSelect.options[tplSelect.selectedIndex].text : '';
         campaignName = tplName ? tplName + ' - ' + ts : 'Campaign - ' + ts;
         document.getElementById('campaignName').value = campaignName;
