@@ -1390,6 +1390,157 @@ class AdminController extends Controller
         ]);
     }
 
+    public function apiTemplatesList(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $query = \App\Models\MessageTemplate::query()->withoutGlobalScopes();
+
+        $accountId = $request->query('accountId');
+        if ($accountId) {
+            $query->where('account_id', $accountId);
+        }
+
+        $showArchived = $request->query('showArchived', 'false') === 'true';
+        if (!$showArchived) {
+            $query->where('status', '!=', 'archived');
+        }
+
+        $search = $request->query('search');
+        if ($search) {
+            $term = '%' . $search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->whereRaw('LOWER(name) LIKE LOWER(?)', [$term])
+                  ->orWhereRaw('CAST(id AS TEXT) LIKE ?', [$term]);
+            });
+        }
+
+        $channels = $request->query('channels');
+        if ($channels) {
+            $channelList = explode(',', $channels);
+            $typeMap = ['sms' => 'sms', 'basic_rcs' => 'rcs_basic', 'rich_rcs' => ['rcs_single', 'rcs_carousel']];
+            $dbTypes = [];
+            foreach ($channelList as $ch) {
+                if (isset($typeMap[$ch])) {
+                    $val = $typeMap[$ch];
+                    $dbTypes = array_merge($dbTypes, is_array($val) ? $val : [$val]);
+                }
+            }
+            if (!empty($dbTypes)) {
+                $query->whereIn('type', $dbTypes);
+            }
+        }
+
+        $triggers = $request->query('triggers');
+        if ($triggers) {
+            // trigger_source not stored in DB; skip filtering
+        }
+
+        $statuses = $request->query('statuses');
+        if ($statuses) {
+            $statusList = explode(',', $statuses);
+            $dbStatuses = array_map(function ($s) { return $s === 'live' ? 'active' : $s; }, $statusList);
+            $query->whereIn('status', $dbStatuses);
+        }
+
+        $sortColumn = $request->query('sortColumn', 'lastUpdated');
+        $sortDirection = $request->query('sortDirection', 'desc');
+        $sortMap = [
+            'name' => 'name',
+            'accountName' => 'account_id',
+            'version' => 'version',
+            'lastUpdated' => 'updated_at',
+            'channel' => 'type',
+            'status' => 'status',
+        ];
+        $dbSort = $sortMap[$sortColumn] ?? 'updated_at';
+        $query->orderBy($dbSort, $sortDirection === 'asc' ? 'asc' : 'desc');
+
+        $page = max(1, (int) $request->query('page', 1));
+        $pageSize = min(100, max(1, (int) $request->query('pageSize', 20)));
+
+        $total = $query->count();
+        $templates = $query->skip(($page - 1) * $pageSize)->take($pageSize)->get();
+
+        $accountIds = $templates->pluck('account_id')->unique()->filter();
+        $accountNames = \DB::table('accounts')
+            ->whereIn('id', $accountIds)
+            ->pluck('company_name', 'id');
+
+        $typeToChannel = [
+            'sms' => 'sms',
+            'rcs_basic' => 'basic_rcs',
+            'rcs_single' => 'rich_rcs',
+            'rcs_carousel' => 'rich_rcs',
+        ];
+
+        $typeToContentType = [
+            'sms' => 'text',
+            'rcs_basic' => 'text',
+            'rcs_single' => 'rich_card',
+            'rcs_carousel' => 'carousel',
+        ];
+
+        $mapped = $templates->map(function ($t) use ($accountNames, $typeToChannel, $typeToContentType) {
+            $shortId = substr($t->id, 0, 8);
+            return [
+                'id' => $t->id,
+                'accountId' => $t->account_id,
+                'accountName' => $accountNames[$t->account_id] ?? 'Unknown',
+                'templateId' => $shortId,
+                'name' => $t->name,
+                'channel' => $typeToChannel[$t->type] ?? 'sms',
+                'trigger' => 'portal',
+                'content' => $t->content ?? '',
+                'contentType' => $typeToContentType[$t->type] ?? 'text',
+                'accessScope' => 'All Sub-accounts',
+                'status' => $t->status === 'active' ? 'live' : $t->status,
+                'version' => $t->version ?? 1,
+                'lastUpdated' => $t->updated_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'templates' => $mapped->values(),
+                'pagination' => [
+                    'page' => $page,
+                    'pageSize' => $pageSize,
+                    'totalCount' => $total,
+                    'totalPages' => (int) ceil($total / $pageSize),
+                    'hasNextPage' => $page < ceil($total / $pageSize),
+                    'hasPrevPage' => $page > 1,
+                ],
+            ],
+        ]);
+    }
+
+    public function apiAccountsSearch(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $search = $request->query('search', '');
+        $query = \DB::table('accounts')->select('id', 'company_name as name', 'status');
+
+        if ($search) {
+            $term = '%' . $search . '%';
+            $query->where(function ($q) use ($term) {
+                $q->whereRaw('LOWER(company_name) LIKE LOWER(?)', [$term])
+                  ->orWhereRaw('CAST(id AS TEXT) LIKE ?', [$term]);
+            });
+        }
+
+        $accounts = $query->orderBy('company_name')->limit(50)->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $accounts->map(function ($a) {
+                return [
+                    'id' => $a->id,
+                    'name' => $a->name ?? 'Unknown',
+                    'status' => $a->status ?? 'active',
+                ];
+            }),
+        ]);
+    }
+
     public function managementTemplateEdit($accountId, $templateId)
     {
         $sender_ids = [

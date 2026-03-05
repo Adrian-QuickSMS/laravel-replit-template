@@ -671,8 +671,6 @@
                                 <th data-sort="channel">Channel <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="trigger">Trigger <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="senderId">Sender / Agent <i class="fas fa-sort sort-icon"></i></th>
-                                <th>Preview</th>
-                                <th>Features</th>
                                 <th data-sort="accessScope">Scope <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="status">Status <i class="fas fa-sort sort-icon"></i></th>
                                 <th data-sort="lastUpdated">Updated <i class="fas fa-sort sort-icon"></i></th>
@@ -1255,8 +1253,6 @@ function renderTemplates(templates) {
         html += '<td><span class="channel-text">' + getChannelLabel(template.channel) + '</span></td>';
         html += '<td>' + getTriggerLabel(template.trigger) + '</td>';
         html += '<td>' + getSenderAgentLabel(template) + '</td>';
-        html += '<td><span class="content-preview">' + getContentPreviewText(template) + '</span></td>';
-        html += '<td class="features-cell">' + getFeaturesIcons(template) + '</td>';
         html += '<td><span class="access-scope">' + template.accessScope + '</span></td>';
         html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span></td>';
         html += '<td>' + template.lastUpdated + '</td>';
@@ -1270,7 +1266,7 @@ function renderTemplates(templates) {
         html += '<li><a class="dropdown-item" href="#" onclick="viewTemplate(\'' + template.accountId + '\', \'' + template.templateId + '\'); return false;"><i class="fas fa-eye me-2"></i>View Details</a></li>';
         
         if (!isArchived && AdminPermissions.canEdit()) {
-            html += '<li><a class="dropdown-item" href="/admin/management/templates/' + template.accountId + '/' + template.templateId + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
+            html += '<li><a class="dropdown-item" href="/admin/management/templates/' + template.accountId + '/' + template.id + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         
         html += '<li><a class="dropdown-item" href="#" onclick="viewDuplicate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';

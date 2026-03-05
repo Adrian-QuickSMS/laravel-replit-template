@@ -15,9 +15,9 @@ const AdminTemplatesService = (function() {
     'use strict';
 
     const config = {
-        useMockData: true,
-        apiBaseUrl: '/api/admin/templates',
-        accountsApiUrl: '/api/admin/accounts',
+        useMockData: false,
+        apiBaseUrl: '/admin/api/templates',
+        accountsApiUrl: '/admin/api/accounts',
         defaultPageSize: 20,
         maxPageSize: 100
     };
