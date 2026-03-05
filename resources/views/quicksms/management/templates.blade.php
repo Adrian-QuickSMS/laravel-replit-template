@@ -5,18 +5,18 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/rcs-preview.css') }}">
 <style>
-#apiStructureModal pre code,
-#apiStructureModal pre code * {
-    color: #cdd6f4 !important;
-    background: transparent !important;
-    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace !important;
-    font-size: 0.8rem !important;
-}
-#apiStructureModal pre {
-    background-color: #1e1e2e !important;
-    border: 1px solid #2d2d3d !important;
-    border-radius: 0.5rem !important;
-    white-space: pre-wrap !important;
+.api-code-block {
+    background: #1e1e2e;
+    border: 1px solid #2d2d3d;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    max-height: 350px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 0.8rem;
+    color: #cdd6f4;
+    line-height: 1.5;
 }
 #rcsWizardModal {
     z-index: 1060 !important;
@@ -2084,22 +2084,22 @@
                                 </ul>
                                 <div class="tab-content" id="apiCodeTabContent">
                                     <div class="tab-pane fade show active" id="curl-pane" role="tabpanel">
-                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodeCurl" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
+                                        <div id="apiCodeCurl" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="python-pane" role="tabpanel">
-                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodePython" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
+                                        <div id="apiCodePython" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="nodejs-pane" role="tabpanel">
-                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodeNodejs" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
+                                        <div id="apiCodeNodejs" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="php-pane" role="tabpanel">
-                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodePhp" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
+                                        <div id="apiCodePhp" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="java-pane" role="tabpanel">
-                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodeJava" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
+                                        <div id="apiCodeJava" class="api-code-block"></div>
                                     </div>
                                     <div class="tab-pane fade" id="csharp-pane" role="tabpanel">
-                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodeCsharp" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
+                                        <div id="apiCodeCsharp" class="api-code-block"></div>
                                     </div>
                                 </div>
                             </div>
@@ -4300,7 +4300,7 @@ function highlightCode(code) {
 }
 
 function copyApiCode() {
-    var activePane = document.querySelector('#apiCodeTabContent .tab-pane.active code');
+    var activePane = document.querySelector('#apiCodeTabContent .tab-pane.active .api-code-block');
     if (activePane) {
         var raw = activePane.getAttribute('data-raw') || activePane.textContent;
         navigator.clipboard.writeText(raw).then(function() {
