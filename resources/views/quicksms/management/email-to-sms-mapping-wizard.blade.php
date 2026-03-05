@@ -331,7 +331,7 @@ button.btn-save-draft:hover {
     border: none;
 }
 .success-email-box code {
-    color: #886CC0;
+    color: #2c2c2c;
 }
 </style>
 @endpush
@@ -952,7 +952,6 @@ button.btn-save-draft:hover {
                 </div>
                 <div class="alert alert-pastel-primary small mb-0">
                     <i class="fas fa-info-circle me-1"></i> 
-                    <strong>SenderID:</strong> Extracted from email subject<br>
                     <strong>SMS Content:</strong> Extracted from email body
                 </div>
             </div>
