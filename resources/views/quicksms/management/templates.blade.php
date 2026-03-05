@@ -3557,7 +3557,7 @@ function renderTemplates() {
         var rowClass = isArchived ? 'archived-row' : '';
         
         html += '<tr class="' + rowClass + '">';
-        html += '<td><span class="template-name">' + template.name + '</span></td>';
+        html += '<td><span class="template-name" title="' + template.name.replace(/"/g, '&quot;') + '">' + template.name + '</span></td>';
         html += '<td><span class="template-id">' + template.templateId + '</span></td>';
         html += '<td><span class="version-text">v' + template.version + '</span></td>';
         html += '<td><span class="channel-text">' + getChannelLabel(template.channel) + '</span></td>';
