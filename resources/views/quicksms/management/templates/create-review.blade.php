@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     apiDetails.style.display = 'block';
                     portalDetails.style.display = 'none';
                     document.getElementById('generatedTemplateId').value = result.data.data.id;
-                    buildApiUsageExample(result.data.data.id);
+                    buildApiUsageExample(result.data.data.id, result.data.data);
                 } else {
                     apiDetails.style.display = 'none';
                     portalDetails.style.display = 'block';
@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    function buildApiUsageExample(templateId) {
+    function buildApiUsageExample(templateId, responseData) {
         var allContent = '';
         try {
             var data2 = step2 ? JSON.parse(step2) : {};
@@ -644,6 +644,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         } catch(e) {}
+
+        if (responseData) {
+            allContent += ' ' + (responseData.content || '');
+            if (responseData.rcs_content) {
+                var rcsResp = responseData.rcs_content;
+                if (rcsResp.cards && Array.isArray(rcsResp.cards)) {
+                    rcsResp.cards.forEach(function(card) {
+                        allContent += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.body || '');
+                        if (card.buttons && Array.isArray(card.buttons)) {
+                            card.buttons.forEach(function(btn) { allContent += ' ' + (btn.label || ''); });
+                        }
+                    });
+                }
+            }
+        }
 
         var fieldPattern = /\{\{(Field_\d+)\}\}/g;
         var usedFields = [];
