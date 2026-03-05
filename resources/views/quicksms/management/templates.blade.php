@@ -5041,7 +5041,11 @@ function renderVersionsTable() {
         html += '<td class="small">' + (v.changeNote || '<span class="text-muted fst-italic">No summary</span>') + '</td>';
         
         html += '<td>';
-        html += '<span class="badge rounded-pill ' + getStatusBadgeClass(v.status) + '">' + getStatusLabel(v.status) + '</span>';
+        if (isCurrent) {
+            html += '<span class="badge rounded-pill ' + getStatusBadgeClass(v.status) + '">' + getStatusLabel(v.status) + '</span>';
+        } else {
+            html += '<span class="badge rounded-pill badge-draft">Previous</span>';
+        }
         html += '</td>';
         
         html += '<td class="text-end">';
