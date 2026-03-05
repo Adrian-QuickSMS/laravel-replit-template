@@ -389,14 +389,45 @@ button.btn-save-draft:hover {
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="subAccount">
-                                                    <option value="">Select sub-account...</option>
-                                                    <option value="main">Main Account</option>
-                                                    <option value="marketing">Marketing</option>
-                                                    <option value="operations">Operations</option>
-                                                    <option value="support">Support</option>
-                                                </select>
-                                                <div class="invalid-feedback">Please select a sub-account.</div>
+                                                <div class="dropdown" id="clmSubaccountDropdown">
+                                                    <button class="form-select text-start d-flex justify-content-between align-items-center" type="button" id="clmSubaccountBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                                        <span id="clmSubaccountLabel">Select sub-accounts...</span>
+                                                    </button>
+                                                    <ul class="dropdown-menu w-100 p-2" id="clmSubaccountMenu" style="max-height: 250px; overflow-y: auto;">
+                                                        <li>
+                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
+                                                                <input type="checkbox" id="clmSubaccountSelectAll" class="form-check-input m-0">
+                                                                <strong>Select All</strong>
+                                                            </label>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider my-1"></li>
+                                                        <li>
+                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
+                                                                <input type="checkbox" class="form-check-input m-0 clm-subaccount-check" value="main" data-label="Main Account">
+                                                                Main Account
+                                                            </label>
+                                                        </li>
+                                                        <li>
+                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
+                                                                <input type="checkbox" class="form-check-input m-0 clm-subaccount-check" value="marketing" data-label="Marketing">
+                                                                Marketing
+                                                            </label>
+                                                        </li>
+                                                        <li>
+                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
+                                                                <input type="checkbox" class="form-check-input m-0 clm-subaccount-check" value="operations" data-label="Operations">
+                                                                Operations
+                                                            </label>
+                                                        </li>
+                                                        <li>
+                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
+                                                                <input type="checkbox" class="form-check-input m-0 clm-subaccount-check" value="support" data-label="Support">
+                                                                Support
+                                                            </label>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div class="invalid-feedback" id="clmSubaccountError" style="display: none;">Please select at least one sub-account.</div>
                                             </div>
                                         </div>
                                     </div>
@@ -1003,7 +1034,7 @@ $(document).ready(function() {
     var wizardData = {
         name: '',
         description: '',
-        subAccount: '',
+        subAccounts: [],
         allowedSenders: [],
         generatedEmail: '',
         selectedContacts: [],
@@ -1023,6 +1054,43 @@ $(document).ready(function() {
         dynamic_senderid_allowed: true
     };
     
+    function getSelectedClmSubaccounts() {
+        var selected = [];
+        $('.clm-subaccount-check:checked').each(function() {
+            selected.push({ value: $(this).val(), label: $(this).attr('data-label') });
+        });
+        return selected;
+    }
+
+    function updateClmSubaccountLabel() {
+        var selected = getSelectedClmSubaccounts();
+        if (selected.length === 0) {
+            $('#clmSubaccountLabel').text('Select sub-accounts...');
+        } else if (selected.length === $('.clm-subaccount-check').length) {
+            $('#clmSubaccountLabel').text('All sub-accounts');
+        } else {
+            $('#clmSubaccountLabel').text(selected.map(function(s) { return s.label; }).join(', '));
+        }
+        var allChecked = $('.clm-subaccount-check').length === $('.clm-subaccount-check:checked').length;
+        $('#clmSubaccountSelectAll').prop('checked', allChecked);
+    }
+
+    $('#clmSubaccountSelectAll').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        $('.clm-subaccount-check').prop('checked', isChecked);
+        updateClmSubaccountLabel();
+        wizardData.subAccounts = getSelectedClmSubaccounts();
+        updateNextButtonState();
+    });
+
+    $(document).on('change', '.clm-subaccount-check', function() {
+        updateClmSubaccountLabel();
+        wizardData.subAccounts = getSelectedClmSubaccounts();
+        $('#clmSubaccountError').hide();
+        $('#clmSubaccountBtn').removeClass('is-invalid');
+        updateNextButtonState();
+    });
+
     function loadEditData() {
         if (!isEditMode || !editId) return;
         
@@ -1032,7 +1100,17 @@ $(document).ready(function() {
                 
                 wizardData.name = data.name || '';
                 wizardData.description = data.description || '';
-                wizardData.subAccount = data.subaccountId || '';
+                if (data.subaccountIds && data.subaccountIds.length > 0) {
+                    data.subaccountIds.forEach(function(id) {
+                        $('.clm-subaccount-check[value="' + id + '"]').prop('checked', true);
+                    });
+                    updateClmSubaccountLabel();
+                    wizardData.subAccounts = getSelectedClmSubaccounts();
+                } else if (data.subaccountId) {
+                    $('.clm-subaccount-check[value="' + data.subaccountId + '"]').prop('checked', true);
+                    updateClmSubaccountLabel();
+                    wizardData.subAccounts = getSelectedClmSubaccounts();
+                }
                 wizardData.generatedEmail = (data.originatingEmails && data.originatingEmails[0]) || '';
                 wizardData.allowedSenders = data.allowedSenderEmails || [];
                 wizardData.senderId = data.senderIdTemplateId || '';
@@ -1044,7 +1122,7 @@ $(document).ready(function() {
                 
                 $('#mappingName').val(wizardData.name);
                 $('#mappingDescription').val(wizardData.description);
-                $('#subAccount').val(wizardData.subAccount).trigger('change');
+                updateClmSubaccountLabel();
                 
                 renderSenderEmails();
                 
@@ -1248,7 +1326,7 @@ $(document).ready(function() {
     function updateSummary() {
         $('#summaryName').text(wizardData.name || '-');
         $('#summaryDescription').text(wizardData.description || 'No description');
-        $('#summarySubAccount').text(wizardData.subAccount ? $('#subAccount option:selected').text() : '-');
+        $('#summarySubAccount').text(wizardData.subAccounts.length > 0 ? wizardData.subAccounts.map(function(s) { return s.label; }).join(', ') : '-');
         $('#summarySenders').text(wizardData.allowedSenders.length > 0 ? wizardData.allowedSenders.length + ' whitelisted' : 'Any sender allowed');
         
         var recipientParts = [];
@@ -1395,11 +1473,13 @@ $(document).ready(function() {
                 } else {
                     $('#mappingName').removeClass('is-invalid');
                 }
-                if (!wizardData.subAccount) {
-                    $('#subAccount').addClass('is-invalid');
+                if (wizardData.subAccounts.length === 0) {
+                    $('#clmSubaccountError').show();
+                    $('#clmSubaccountBtn').addClass('is-invalid');
                     isValid = false;
                 } else {
-                    $('#subAccount').removeClass('is-invalid');
+                    $('#clmSubaccountError').hide();
+                    $('#clmSubaccountBtn').removeClass('is-invalid');
                 }
                 break;
             case 1:
@@ -1490,7 +1570,7 @@ $(document).ready(function() {
         
         switch (currentStep) {
             case 0:
-                canProceed = wizardData.name.trim() !== '' && wizardData.subAccount !== '';
+                canProceed = wizardData.name.trim() !== '' && wizardData.subAccounts.length > 0;
                 break;
             case 1:
                 canProceed = true;
@@ -1560,25 +1640,6 @@ $(document).ready(function() {
         $('#descCharCount').text($(this).val().length);
     });
     
-    $('#subAccount').on('change', function() {
-        wizardData.subAccount = $(this).val();
-        $(this).removeClass('is-invalid');
-        
-        wizardData.selectedContacts = [];
-        wizardData.selectedLists = [];
-        wizardData.selectedDynamicLists = [];
-        wizardData.selectedTags = [];
-        wizardData.optOutLists = ['NO'];
-        wizardData.senderId = '';
-        
-        if (wizardData.subAccount) {
-            loadContactBookData(wizardData.subAccount);
-            loadSenderIdTemplates(wizardData.subAccount);
-        }
-        
-        updateRecipientSummary();
-        updateNextButtonState();
-    });
     
     $('#senderId').on('change', function() {
         wizardData.senderId = $(this).val();
@@ -1748,7 +1809,7 @@ $(document).ready(function() {
         var payload = {
             name: wizardData.name,
             description: wizardData.description,
-            subAccount: wizardData.subAccount,
+            subAccounts: wizardData.subAccounts.map(function(s) { return s.value; }),
             emailAddress: wizardData.generatedEmail,
             allowedSenders: wizardData.allowedSenders,
             selectedContacts: wizardData.selectedContacts,
@@ -1809,7 +1870,7 @@ $(document).ready(function() {
         return {
             name: wizardData.name,
             description: wizardData.description,
-            subaccountId: wizardData.subAccount,
+            subaccountIds: wizardData.subAccounts.map(function(s) { return s.value; }),
             emailAddress: wizardData.generatedEmail,
             allowedSenderEmails: wizardData.allowedSenders,
             contactBookListIds: listIds,
@@ -1859,8 +1920,8 @@ $(document).ready(function() {
             name: wizardData.name,
             description: wizardData.description,
             emailAddress: wizardData.generatedEmail,
-            subaccount: wizardData.subAccount,
-            subaccountName: $('#subAccount option:selected').text(),
+            subaccount: wizardData.subAccounts.map(function(s) { return s.value; }).join(','),
+            subaccountName: wizardData.subAccounts.map(function(s) { return s.label; }).join(', '),
             contactList: wizardData.selectedLists.map(function(l) { return l.name; }).join(', ') || 
                          wizardData.selectedDynamicLists.map(function(l) { return l.name; }).join(', ') ||
                          wizardData.selectedContacts.length + ' contacts',
