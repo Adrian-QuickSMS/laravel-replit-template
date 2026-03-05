@@ -1600,6 +1600,54 @@ class AdminController extends Controller
         return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'archived']]);
     }
 
+    public function apiTemplateDuplicate(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $original = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$original) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $duplicateFields = $original->only([
+            'account_id', 'sub_account_id', 'type', 'content', 'rcs_content',
+            'placeholders', 'encoding', 'character_count', 'segment_count',
+            'sender_id_id', 'rcs_agent_id',
+            'opt_out_enabled', 'opt_out_method', 'opt_out_number_id',
+            'opt_out_keyword', 'opt_out_text', 'opt_out_list_id',
+            'opt_out_url_enabled', 'opt_out_screening_list_ids',
+            'trackable_link_enabled', 'trackable_link_domain',
+            'message_expiry_enabled', 'message_expiry_value',
+            'social_hours_enabled', 'social_hours_from', 'social_hours_to',
+            'category', 'tags',
+        ]);
+
+        $duplicateFields['name'] = $original->name . ' (Copy)';
+        $duplicateFields['description'] = $original->description;
+        $duplicateFields['status'] = 'draft';
+        $duplicateFields['suspended_by'] = null;
+        $duplicateFields['version'] = 1;
+        $duplicateFields['is_favourite'] = false;
+        $duplicateFields['created_by'] = session('admin_email', 'Admin');
+        $duplicateFields['updated_by'] = session('admin_email', 'Admin');
+
+        $duplicate = \App\Models\MessageTemplate::withoutGlobalScopes()->create($duplicateFields);
+
+        \App\Models\MessageTemplateAuditLog::create([
+            'template_id' => $duplicate->id,
+            'account_id' => $duplicate->account_id,
+            'action' => 'created',
+            'version' => 1,
+            'user_id' => session('admin_user_id', 'admin'),
+            'user_name' => session('admin_email', 'Admin'),
+            'details' => 'Duplicated from template ' . $original->name . ' (ID: ' . substr($original->id, 0, 8) . ')',
+        ]);
+
+        return response()->json(['success' => true, 'data' => ['id' => $duplicate->id, 'name' => $duplicate->name]]);
+    }
+
     public function apiTemplateVersions(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
     {
         $template = \App\Models\MessageTemplate::withoutGlobalScopes()

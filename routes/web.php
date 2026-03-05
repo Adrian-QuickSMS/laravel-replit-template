@@ -396,6 +396,7 @@ Route::prefix('admin')->group(function () {
             Route::post('/api/templates/{accountId}/{templateId}/suspend', 'apiTemplateSuspend')->name('admin.api.templates.suspend');
             Route::post('/api/templates/{accountId}/{templateId}/reactivate', 'apiTemplateReactivate')->name('admin.api.templates.reactivate');
             Route::post('/api/templates/{accountId}/{templateId}/archive', 'apiTemplateArchive')->name('admin.api.templates.archive');
+            Route::post('/api/templates/{accountId}/{templateId}/duplicate', 'apiTemplateDuplicate')->name('admin.api.templates.duplicate');
             Route::get('/api/templates/{accountId}/{templateId}/versions', 'apiTemplateVersions')->name('admin.api.templates.versions');
             Route::get('/api/templates/{accountId}/{templateId}/audit-log', 'apiTemplateAuditLog')->name('admin.api.templates.audit-log');
             Route::get('/api/accounts', 'apiAccountsSearch')->name('admin.api.accounts.search');

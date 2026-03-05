@@ -1328,7 +1328,7 @@ function renderTemplates(templates) {
             html += '<li><a class="dropdown-item" href="/admin/management/templates/' + template.accountId + '/' + template.id + '/edit"><i class="fas fa-edit me-2"></i>Edit</a></li>';
         }
         
-        html += '<li><a class="dropdown-item" href="#" onclick="viewDuplicate(\'' + template.accountId + '\', \'' + template.templateId + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
+        html += '<li><a class="dropdown-item" href="#" onclick="viewDuplicate(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-copy me-2"></i>Duplicate</a></li>';
         
         html += '<li><a class="dropdown-item" href="#" onclick="viewVersionHistory(\'' + template.accountId + '\', \'' + template.id + '\', \'' + escapeJs(template.name) + '\'); return false;"><i class="fas fa-history me-2"></i>Version History</a></li>';
         
@@ -1713,13 +1713,32 @@ function archiveTemplate(accountId, templateId, name, accountName, currentStatus
 }
 
 function viewDuplicate(accountId, templateId, templateName) {
-    showToast('Duplicate is a customer action. Use impersonation to duplicate "' + templateName + '" for account ' + accountId + '.', 'info');
-    
+    if (!confirm('Duplicate "' + templateName + '"? A new draft copy will be created in the same account.')) return;
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/admin/api/templates/' + accountId + '/' + templateId + '/duplicate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        if (result.success) {
+            showToast('Template duplicated as "' + result.data.name + '"', 'success');
+            setTimeout(function() { loadTemplates(); }, 800);
+        } else {
+            showToast(result.error || 'Duplicate failed', 'danger');
+        }
+    })
+    .catch(function(err) {
+        showToast('Duplicate failed: ' + err.message, 'danger');
+    });
+
     AdminControlPlane.logAudit({
-        action: 'TEMPLATE_DUPLICATE_VIEWED',
-        severity: 'LOW',
+        action: 'TEMPLATE_DUPLICATED',
+        severity: 'MEDIUM',
         targetAccount: accountId,
-        details: { templateId: templateId, templateName: templateName, note: 'Admin viewed duplicate option - customer action' }
+        details: { templateId: templateId, templateName: templateName }
     });
 }
 
