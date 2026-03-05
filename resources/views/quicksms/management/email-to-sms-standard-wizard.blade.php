@@ -411,8 +411,8 @@ button.btn-save-draft:hover {
                                             <strong>Step 4: Review & Confirm</strong> – Please review your configuration before creating.
                                         </div>
                                         
-                                        <div class="alert alert-pastel-warning mb-4">
-                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <div class="alert alert-pastel-primary mb-4">
+                                            <i class="fas fa-info-circle me-2"></i>
                                             <strong>Note:</strong> Email address will be generated and cannot be changed after creation.
                                         </div>
                                         
