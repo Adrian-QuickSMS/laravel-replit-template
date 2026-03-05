@@ -228,6 +228,14 @@
                                         <span class="review-label">Sender ID:</span>
                                         <span class="review-value" id="reviewSenderId">Not set</span>
                                     </div>
+                                    <div class="review-row d-none" id="reviewRcsAgentRow">
+                                        <span class="review-label">RCS Agent:</span>
+                                        <span class="review-value" id="reviewRcsAgent">Not set</span>
+                                    </div>
+                                    <div class="review-row d-none" id="reviewRcsContentTypeRow">
+                                        <span class="review-label">RCS Content:</span>
+                                        <span class="review-value" id="reviewRcsContentType">-</span>
+                                    </div>
                                     <div class="mt-2">
                                         <div class="review-label mb-1">Message:</div>
                                         <div class="message-preview" id="reviewMessage">-</div>
@@ -384,6 +392,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (data2.senderId) {
             var senderEl = document.getElementById('reviewSenderId');
             if (senderEl) senderEl.textContent = data2.senderName || data2.senderId;
+        }
+
+        if (data2.rcsAgentName && (data2.channel === 'rcs_basic' || data2.channel === 'rcs_rich')) {
+            var agentRow = document.getElementById('reviewRcsAgentRow');
+            var agentEl = document.getElementById('reviewRcsAgent');
+            if (agentRow) agentRow.classList.remove('d-none');
+            if (agentEl) agentEl.textContent = data2.rcsAgentName;
+        }
+
+        if (data2.channel === 'rcs_rich') {
+            var typeRow = document.getElementById('reviewRcsContentTypeRow');
+            var typeEl = document.getElementById('reviewRcsContentType');
+            if (typeRow) typeRow.classList.remove('d-none');
+            var contentTypeMap = { 'single': 'Single Rich Card', 'carousel': 'Carousel (multiple cards)' };
+            if (typeEl) typeEl.textContent = contentTypeMap[data2.rcsContentType] || 'Single Rich Card';
         }
 
         if (data2.trackableLink && data2.trackableLink.enabled) {
