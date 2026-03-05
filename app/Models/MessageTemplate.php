@@ -129,6 +129,7 @@ class MessageTemplate extends Model
         'opt_out_list_id' => 'string',
         'trackable_link_enabled' => 'boolean',
         'message_expiry_enabled' => 'boolean',
+        'social_hours_enabled' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -218,7 +219,7 @@ class MessageTemplate extends Model
 
     public function scopeRcs($query)
     {
-        return $query->whereIn('type', [self::TYPE_RCS_BASIC, self::TYPE_RCS_SINGLE, self::TYPE_RCS_CAROUSEL]);
+        return $query->whereIn('type', [self::TYPE_RCS_BASIC, self::TYPE_RCS_SINGLE]);
     }
 
     public function scopeFavourites($query)

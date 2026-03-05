@@ -2424,49 +2424,120 @@ var tplRichRcsPreviewMode = 'rcs';
 var templateRcsPayload = null;
 var isTemplateWizardContext = true;
 
-var mockTemplates = [];
-
-function mapApiTemplateToLocal(apiTemplate) {
-    var typeToChannel = { 'sms': 'sms', 'rcs_basic': 'basic_rcs', 'rcs_single': 'rich_rcs', 'rcs_carousel': 'rich_rcs' };
-    var typeToContentType = { 'sms': 'text', 'rcs_basic': 'text', 'rcs_single': 'rich_card', 'rcs_carousel': 'carousel' };
-
-    return {
-        id: apiTemplate.id,
-        templateId: apiTemplate.id.substring(0, 8),
-        name: apiTemplate.name || 'Untitled',
-        channel: typeToChannel[apiTemplate.type] || 'sms',
+var mockTemplates = [
+    {
+        id: 1,
+        templateId: '10483726',
+        name: 'Welcome Message',
+        channel: 'sms',
         trigger: 'portal',
-        content: apiTemplate.content || '',
-        contentType: typeToContentType[apiTemplate.type] || 'text',
-        accessScope: 'All users',
+        content: 'Hi {FirstName}, welcome to QuickSMS! Your account is now active. Reply HELP for support or STOP to opt out.',
+        contentType: 'text',
+        accessScope: 'All Sub-accounts',
         subAccounts: ['all'],
-        status: apiTemplate.status === 'active' ? 'live' : (apiTemplate.status || 'draft'),
+        status: 'live',
+        version: 3,
+        lastUpdated: '2026-01-05'
+    },
+    {
+        id: 2,
+        templateId: '20957341',
+        name: 'Appointment Reminder',
+        channel: 'basic_rcs',
+        trigger: 'api',
+        content: 'Reminder: Your appointment with {Company} is scheduled for tomorrow at {Time}. Reply YES to confirm.',
+        contentType: 'text',
+        accessScope: 'Marketing Team',
+        subAccounts: ['marketing'],
+        status: 'live',
+        version: 2,
+        lastUpdated: '2026-01-04'
+    },
+    {
+        id: 3,
+        templateId: '38472615',
+        name: 'Product Showcase',
+        channel: 'rich_rcs',
+        trigger: 'portal',
+        content: '',
+        contentType: 'rich_card',
+        accessScope: 'Sales, Support',
+        subAccounts: ['sales', 'support'],
+        status: 'draft',
         version: 1,
-        lastUpdated: apiTemplate.updated_at ? apiTemplate.updated_at.substring(0, 10) : '',
-        description: apiTemplate.description || '',
-        rcsContent: apiTemplate.rcs_content || null,
-        isFavourite: apiTemplate.is_favourite || false
-    };
-}
-
-function loadTemplatesFromApi() {
-    fetch('{{ route("api.message-templates.index") }}?per_page=100', {
-        headers: { 'Accept': 'application/json' }
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(result) {
-        var templates = result.data || result || [];
-        mockTemplates = templates.map(mapApiTemplateToLocal);
-        renderTemplates();
-    })
-    .catch(function(err) {
-        console.error('Failed to load templates:', err);
-        mockTemplates = [];
-        renderTemplates();
-    });
-}
-
-loadTemplatesFromApi();
+        lastUpdated: '2026-01-06'
+    },
+    {
+        id: 4,
+        templateId: '47291830',
+        name: 'Holiday Promotions',
+        channel: 'rich_rcs',
+        trigger: 'api',
+        content: '',
+        contentType: 'carousel',
+        accessScope: 'Marketing Team',
+        subAccounts: ['marketing'],
+        status: 'draft',
+        version: 4,
+        lastUpdated: '2025-12-20'
+    },
+    {
+        id: 5,
+        templateId: '56384029',
+        name: 'Order Confirmation',
+        channel: 'sms',
+        trigger: 'email',
+        content: 'Order #{OrderID} confirmed! Your items will ship within 2 business days. Track at: {TrackingURL}',
+        contentType: 'text',
+        accessScope: 'All Sub-accounts',
+        subAccounts: ['all'],
+        status: 'live',
+        version: 1,
+        lastUpdated: '2026-01-03'
+    },
+    {
+        id: 6,
+        templateId: '69102847',
+        name: 'Password Reset',
+        channel: 'sms',
+        trigger: 'api',
+        content: 'Your verification code is {Code}. This code expires in 10 minutes. Do not share this code.',
+        contentType: 'text',
+        accessScope: 'IT Security',
+        subAccounts: ['it'],
+        status: 'archived',
+        version: 5,
+        lastUpdated: '2025-11-15'
+    },
+    {
+        id: 7,
+        templateId: '71829364',
+        name: 'Flash Sale Alert',
+        channel: 'basic_rcs',
+        trigger: 'portal',
+        content: 'Flash Sale! 50% off all items for the next 24 hours. Shop now at {ShopURL}. Limited stock available!',
+        contentType: 'text',
+        accessScope: 'Marketing Team',
+        subAccounts: ['marketing'],
+        status: 'draft',
+        version: 1,
+        lastUpdated: '2026-01-07'
+    },
+    {
+        id: 8,
+        templateId: '82946150',
+        name: 'Customer Feedback',
+        channel: 'rich_rcs',
+        trigger: 'email',
+        content: '',
+        contentType: 'rich_card',
+        accessScope: 'Support Team',
+        subAccounts: ['support'],
+        status: 'live',
+        version: 2,
+        lastUpdated: '2026-01-02'
+    }
+];
 
 var mockVersionHistory = {
     1: [
@@ -3314,8 +3385,21 @@ function saveTemplateAsDraft() {
         if (result.ok && result.data.data) {
             wizardData.apiTemplateId = result.data.data.id;
 
-            var mapped = mapApiTemplateToLocal(result.data.data);
-            mockTemplates.unshift(mapped);
+            // Also add to mock list for immediate UI update
+            var channel = document.querySelector('input[name="templateChannel"]:checked').value;
+            var content = document.getElementById('templateContent').value.trim();
+            var template = {
+                id: result.data.data.id,
+                templateId: wizardData.templateId,
+                name: name,
+                channel: channel,
+                content: content,
+                contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
+                status: 'draft',
+                version: 1,
+                lastUpdated: new Date().toISOString().split('T')[0]
+            };
+            mockTemplates.unshift(template);
 
             bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
             renderTemplates();
@@ -3425,20 +3509,38 @@ function launchTemplate() {
         if (result.ok && result.data.data) {
             wizardData.apiTemplateId = result.data.data.id;
 
-            var mapped = mapApiTemplateToLocal(result.data.data);
-            var existingIdx = mockTemplates.findIndex(function(t) { return t.id === mapped.id; });
-            if (existingIdx !== -1) {
-                mockTemplates[existingIdx] = mapped;
-            } else {
-                mockTemplates.unshift(mapped);
+            var channel = document.querySelector('input[name="templateChannel"]:checked').value;
+            var content = document.getElementById('templateContent').value.trim();
+
+            // Archive any existing live version in mock list
+            var existingLiveIndex = mockTemplates.findIndex(function(t) {
+                return t.templateId === wizardData.templateId && t.status === 'live';
+            });
+            var newVersion = 1;
+            if (existingLiveIndex !== -1) {
+                newVersion = mockTemplates[existingLiveIndex].version + 1;
+                mockTemplates[existingLiveIndex].status = 'archived';
             }
+
+            var template = {
+                id: result.data.data.id,
+                templateId: wizardData.templateId,
+                name: name,
+                channel: channel,
+                content: content,
+                contentType: channel === 'rich_rcs' ? 'rich_card' : 'text',
+                status: 'live',
+                version: newVersion,
+                lastUpdated: new Date().toISOString().split('T')[0]
+            };
+            mockTemplates.unshift(template);
 
             bootstrap.Modal.getInstance(document.getElementById('launchConfirmModal')).hide();
             document.getElementById('launchConfirmModal').remove();
             bootstrap.Modal.getInstance(document.getElementById('createTemplateModal')).hide();
 
             renderTemplates();
-            showToast('Template "' + name + '" launched as Live', 'success');
+            showToast('Template "' + name + '" launched as Live (v' + newVersion + ')', 'success');
         } else {
             var msg = result.data.message || 'Failed to launch template.';
             showToast(msg, 'error');
