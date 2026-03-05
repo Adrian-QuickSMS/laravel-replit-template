@@ -4116,7 +4116,10 @@ function continueToConfirmation() {
     var campaignName = document.getElementById('campaignName').value;
     if (!campaignName) {
         var now = new Date();
-        campaignName = 'Campaign - ' + now.toISOString().slice(0, 16).replace('T', ' ');
+        var ts = now.toISOString().slice(0, 16).replace('T', ' ');
+        var tplSelect = document.getElementById('templateSelect');
+        var tplName = (tplSelect && tplSelect.value) ? tplSelect.options[tplSelect.selectedIndex].text : '';
+        campaignName = tplName ? tplName + ' - ' + ts : 'Campaign - ' + ts;
         document.getElementById('campaignName').value = campaignName;
     }
     
