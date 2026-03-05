@@ -448,14 +448,14 @@ button.btn-save-draft:hover {
                                         
                                         <div class="mb-3">
                                             <label class="form-label">Allowed Sender Emails <span class="text-danger">*</span></label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="newSenderEmail" placeholder="e.g., user@domain.com or *@domain.com">
-                                                <button class="btn btn-outline-primary" type="button" id="btnAddSender">
+                                            <div class="d-flex gap-2 align-items-start">
+                                                <textarea class="form-control" id="newSenderEmail" rows="2" placeholder="Enter one or more emails, separated by commas, spaces, or new lines&#10;e.g., user@nhs.uk, admin@trust.nhs.uk, *@domain.com"></textarea>
+                                                <button class="btn btn-outline-primary flex-shrink-0" type="button" id="btnAddSender" style="height: fit-content;">
                                                     <i class="fas fa-plus"></i> Add
                                                 </button>
                                             </div>
-                                            <div class="invalid-feedback" id="emailError">At least one sender email address is required.</div>
-                                            <small class="text-muted">Restrict who can trigger this mapping. Supports wildcards like *@domain.com</small>
+                                            <div class="text-danger small mt-1" id="emailError" style="display: none;"></div>
+                                            <small class="text-muted">Supports multiple emails separated by commas, spaces, or new lines. Wildcards like *@domain.com are supported.</small>
                                         </div>
                                         
                                         <div id="wildcardWarning" class="alert alert-pastel-warning mb-3" style="display: none;">
@@ -1741,35 +1741,48 @@ $(document).ready(function() {
     });
     
     function addSenderEmail() {
-        var email = $('#newSenderEmail').val().trim().toLowerCase();
-        if (!email) return;
-        
-        $('#emailError').hide();
-        $('#newSenderEmail').removeClass('is-invalid');
-        
-        if (!isValidEmailOrWildcard(email)) {
-            $('#emailError').text('Invalid format. Use user@domain.com or *@domain.com').show();
-            $('#newSenderEmail').addClass('is-invalid');
-            return;
-        }
-        
-        if (wizardData.allowedSenders.indexOf(email) !== -1) {
-            $('#emailError').text('This email address is already added').show();
-            $('#newSenderEmail').addClass('is-invalid');
-            return;
-        }
-        
-        wizardData.allowedSenders.push(email);
+        var raw = $('#newSenderEmail').val().trim();
+        if (!raw) return;
+
+        var parts = raw.split(/[\s,;\n\r]+/).filter(function(s) { return s.length > 0; });
+        var invalid = [];
+        var added = 0;
+
+        parts.forEach(function(part) {
+            var cleaned = part.replace(/^[,;\s]+|[,;\s]+$/g, '').toLowerCase();
+            if (!cleaned) return;
+            if (isValidEmailOrWildcard(cleaned)) {
+                if (wizardData.allowedSenders.indexOf(cleaned) === -1) {
+                    wizardData.allowedSenders.push(cleaned);
+                    added++;
+                }
+            } else {
+                invalid.push(cleaned);
+            }
+        });
+
         $('#newSenderEmail').val('').removeClass('is-invalid');
-        $('#emailError').hide();
-        $('#emailRequiredError').hide();
-        renderSenderEmails();
-        saveDraft();
+
+        if (invalid.length > 0) {
+            $('#emailError').html(
+                '<strong>' + invalid.length + ' invalid email' + (invalid.length > 1 ? 's' : '') + ':</strong> ' +
+                invalid.slice(0, 5).map(function(e) { return '<code>' + escapeHtml(e) + '</code>'; }).join(', ') +
+                (invalid.length > 5 ? ' and ' + (invalid.length - 5) + ' more...' : '')
+            ).show();
+        } else {
+            $('#emailError').hide();
+        }
+
+        if (added > 0) {
+            $('#emailRequiredError').hide();
+            renderSenderEmails();
+            saveDraft();
+        }
     }
     
     $('#btnAddSender').on('click', addSenderEmail);
-    $('#newSenderEmail').on('keypress', function(e) {
-        if (e.which === 13) {
+    $('#newSenderEmail').on('keydown', function(e) {
+        if (e.which === 13 && !e.shiftKey) {
             e.preventDefault();
             addSenderEmail();
         }
