@@ -92,6 +92,7 @@ class MessageTemplateApiController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:2000',
             'type' => 'required|string|in:sms,rcs_basic,rcs_single,rcs_carousel',
+            'trigger_type' => 'nullable|string|in:portal,api',
             'content' => 'nullable|string|max:10000',
             'rcs_content' => 'nullable|array',
             'category' => 'nullable|string|max:100',

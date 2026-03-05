@@ -465,6 +465,7 @@ document.addEventListener('DOMContentLoaded', function() {
             name: data1.name || 'Untitled Template',
             description: data1.description || null,
             type: templateType,
+            trigger_type: data1.type || 'portal',
             content: data2.smsText || null,
             category: data1.category || null,
             status: status || 'active'
@@ -566,7 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 var triggerType = 'portal';
                 if (step1) {
-                    try { triggerType = JSON.parse(step1).trigger || 'portal'; } catch(e) {}
+                    try { triggerType = JSON.parse(step1).type || 'portal'; } catch(e) {}
                 }
 
                 var apiDetails = document.getElementById('apiTemplateDetails');

@@ -1488,7 +1488,7 @@ class AdminController extends Controller
                 'templateId' => $shortId,
                 'name' => $t->name,
                 'channel' => $typeToChannel[$t->type] ?? 'sms',
-                'trigger' => 'portal',
+                'trigger' => $t->trigger_type ?? 'portal',
                 'content' => $t->content ?? '',
                 'contentType' => $typeToContentType[$t->type] ?? 'text',
                 'accessScope' => 'All Sub-accounts',
@@ -1612,7 +1612,7 @@ class AdminController extends Controller
         }
 
         $duplicateFields = $original->only([
-            'account_id', 'sub_account_id', 'type', 'content', 'rcs_content',
+            'account_id', 'sub_account_id', 'type', 'trigger_type', 'content', 'rcs_content',
             'placeholders', 'encoding', 'character_count', 'segment_count',
             'sender_id_id', 'rcs_agent_id',
             'opt_out_enabled', 'opt_out_method', 'opt_out_number_id',
@@ -1798,7 +1798,7 @@ class AdminController extends Controller
             'id' => $t->id,
             'name' => $t->name,
             'templateId' => $t->id,
-            'trigger' => 'portal',
+            'trigger' => $t->trigger_type ?? 'portal',
             'channel' => $typeToChannel[$t->type] ?? 'sms',
             'type' => $t->type,
             'content' => $t->content ?? '',

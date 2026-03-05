@@ -85,6 +85,7 @@ class MessageTemplate extends Model
         'name',
         'description',
         'type',
+        'trigger_type',
         'content',
         'rcs_content',
         'placeholders',
