@@ -1223,7 +1223,6 @@ function loadSavedData() {
     var isEditMode = {{ $isEditMode ? 'true' : 'false' }};
     
     if (isEditMode) {
-        // In Edit mode, load from template data
         @if($isEditMode && $template)
         var templateChannel = '{{ $template['channel'] ?? 'sms' }}';
         var channelMap = { 'sms': 'channelSMS', 'basic_rcs': 'channelRCSBasic', 'rich_rcs': 'channelRCSRich' };
@@ -1232,18 +1231,91 @@ function loadSavedData() {
             document.getElementById(radioId).checked = true;
             handleChannelChange(templateChannel === 'basic_rcs' ? 'rcs_basic' : (templateChannel === 'rich_rcs' ? 'rcs_rich' : templateChannel));
         }
-        
-        document.getElementById('smsContent').value = '{{ addslashes($template['content'] ?? '') }}';
-        
+
+        document.getElementById('smsContent').value = {!! json_encode($template['content'] ?? '') !!};
+
         var templateSenderId = '{{ $template['senderId'] ?? '' }}';
         if (templateSenderId && document.getElementById('senderId')) {
             document.getElementById('senderId').value = templateSenderId;
         }
-        
+
         var templateRcsAgent = '{{ $template['rcsAgent'] ?? '' }}';
         if (templateRcsAgent && document.getElementById('rcsAgent')) {
             document.getElementById('rcsAgent').value = templateRcsAgent;
         }
+
+        var templateRcsContent = {!! json_encode($template['rcs_content'] ?? null, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!};
+        if (templateRcsContent && (templateChannel === 'rich_rcs')) {
+            rcsContentData = templateRcsContent;
+            updateRcsContentPreview();
+        }
+
+        @if(!empty($template['trackableLink']))
+        (function() {
+            var trackableToggle = document.getElementById('includeTrackableLink');
+            if (trackableToggle) {
+                trackableToggle.checked = true;
+                trackableLinkConfirmed = true;
+                var tSummary = document.getElementById('trackableLinkSummary');
+                if (tSummary) tSummary.classList.remove('d-none');
+                var domain = '{{ $template['trackableLinkDomain'] ?? 'qsms.uk' }}';
+                var domainEl = document.getElementById('trackableLinkDomain');
+                if (domainEl) domainEl.textContent = domain;
+            }
+        })();
+        @endif
+
+        @if(!empty($template['messageExpiry']))
+        (function() {
+            var expiryToggle = document.getElementById('messageExpiry');
+            if (expiryToggle) {
+                expiryToggle.checked = true;
+                messageExpiryConfirmed = true;
+                var eSummary = document.getElementById('messageExpirySummary');
+                if (eSummary) eSummary.classList.remove('d-none');
+                var hours = '{{ $template['messageExpiryHours'] ?? '24' }}';
+                var eVal = document.getElementById('messageExpiryValue');
+                if (eVal) eVal.textContent = hours + ' Hours';
+            }
+        })();
+        @endif
+
+        @if(!empty($template['socialHoursEnabled']))
+        (function() {
+            var shToggle = document.getElementById('socialHours');
+            if (shToggle) {
+                shToggle.checked = true;
+                var shSummary = document.getElementById('socialHoursSummary');
+                if (shSummary) shSummary.classList.remove('d-none');
+                var fromVal = '{{ $template['socialHoursFrom'] ?? '08:00' }}';
+                var toVal = '{{ $template['socialHoursTo'] ?? '20:00' }}';
+                var shText = document.getElementById('socialHoursValue');
+                if (shText) shText.textContent = fromVal + ' - ' + toVal;
+            }
+        })();
+        @endif
+
+        @if(!empty($template['optOut']))
+        setTimeout(function() {
+            var optOutToggle = document.getElementById('optOutEnabled');
+            if (optOutToggle) {
+                optOutToggle.checked = true;
+                optOutToggle.dispatchEvent(new Event('change'));
+            }
+            var optOutData = {
+                replyEnabled: {{ !empty($template['optOutMethod']) && in_array($template['optOutMethod'], ['reply', 'both']) ? 'true' : 'false' }},
+                urlEnabled: {{ !empty($template['optOutUrlEnabled']) ? 'true' : 'false' }},
+                replyNumberId: '{{ $template['optOutNumberId'] ?? '' }}',
+                replyKeyword: '{{ $template['optOutKeyword'] ?? '' }}',
+                replyOptoutText: {!! json_encode($template['optOutText'] ?? '') !!},
+                replyOptOutListId: '{{ $template['optOutListId'] ?? '' }}',
+                screeningListIds: {!! json_encode($template['optOutScreeningListIds'] ?? []) !!}
+            };
+            if (typeof restoreOptOutData === 'function') {
+                restoreOptOutData(optOutData);
+            }
+        }, 300);
+        @endif
         @endif
     } else {
         // In Create mode, restore from sessionStorage
