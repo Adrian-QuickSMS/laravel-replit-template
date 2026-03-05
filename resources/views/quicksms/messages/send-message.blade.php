@@ -2357,10 +2357,9 @@ function updatePreview() {
             };
             
             if (typeof rcsPersistentPayload !== 'undefined' && rcsPersistentPayload) {
-                // Render configured Rich RCS content
                 container.innerHTML = RcsPreviewRenderer.renderRichRcsPreview(rcsPersistentPayload, agent);
+                RcsPreviewRenderer.initCarouselBehavior('#mainPreviewContainer');
             } else {
-                // Show placeholder for unconfigured Rich RCS
                 container.innerHTML = RcsPreviewRenderer.renderRichRcsPlaceholder(agent);
             }
             return;
