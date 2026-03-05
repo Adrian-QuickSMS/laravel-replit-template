@@ -52,6 +52,7 @@
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     font-size: 0.85rem;
+    color: #000;
 }
 #standard textarea.form-control {
     min-height: auto;
@@ -2972,7 +2973,7 @@ $(document).ready(function() {
             var originatingEmailsDisplay = '';
             if (mapping.originatingEmails && mapping.originatingEmails.length > 0) {
                 originatingEmailsDisplay = mapping.originatingEmails.slice(0, 2).map(function(email) {
-                    return '<span class="d-block text-truncate" style="max-width: 250px;"><a href="mailto:' + escapeHtml(email) + '" class="text-primary">' + escapeHtml(email) + '</a></span>';
+                    return '<span class="d-block text-truncate email-address-display" style="max-width: 250px;">' + escapeHtml(email) + '</span>';
                 }).join('');
                 if (mapping.originatingEmails.length > 2) {
                     originatingEmailsDisplay += '<span class="text-muted small">+' + (mapping.originatingEmails.length - 2) + ' more</span>';
@@ -4724,7 +4725,7 @@ $(document).ready(function() {
             var originatingEmailsHtml = '';
             if (item.originatingEmails && item.originatingEmails.length > 0) {
                 originatingEmailsHtml = item.originatingEmails.slice(0, 2).map(function(email) {
-                    return '<span class="d-block text-truncate" style="max-width: 250px;"><a href="mailto:' + escapeHtml(email) + '" class="text-primary">' + escapeHtml(email) + '</a></span>';
+                    return '<span class="d-block text-truncate email-address-display" style="max-width: 250px;">' + escapeHtml(email) + '</span>';
                 }).join('');
                 if (item.originatingEmails.length > 2) {
                     originatingEmailsHtml += '<span class="text-muted small">+' + (item.originatingEmails.length - 2) + ' more</span>';
