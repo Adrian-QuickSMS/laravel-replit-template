@@ -668,6 +668,9 @@ document.addEventListener('DOMContentLoaded', function() {
         while ((match = fieldPattern.exec(allContent)) !== null) {
             if (usedFields.indexOf(match[1]) === -1) usedFields.push(match[1]);
         }
+        usedFields.sort(function(a, b) {
+            return parseInt(a.replace('Field_', '')) - parseInt(b.replace('Field_', ''));
+        });
 
         var personalisationObj = {};
         var sampleValues = ['John', 'ORD-12345', 'Premium', '29.99', 'London', '10:00 AM', 'example.com', 'ABC123', 'Thank you', 'Active'];
