@@ -544,7 +544,7 @@ button.btn-save-draft:hover {
                                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                                             <h6 class="mb-0">Opt-out Management</h6>
                                                             <div class="form-check form-switch mb-0">
-                                                                <input class="form-check-input" type="checkbox" id="enableMappingOptout" onchange="toggleMappingOptout()">
+                                                                <input class="form-check-input" type="checkbox" id="enableMappingOptout">
                                                                 <label class="form-check-label" for="enableMappingOptout">Enable</label>
                                                             </div>
                                                         </div>
@@ -2175,6 +2175,10 @@ $(document).ready(function() {
     }
     
     // Opt-out management toggle and checkbox handlers
+    $('#enableMappingOptout').on('change', function() {
+        toggleMappingOptout();
+    });
+
     $('.opt-out-item').on('change', function() {
         wizardData.optOutLists = $('.opt-out-item:checked').map(function() { return $(this).val(); }).get();
         if (wizardData.optOutLists.length === 0) {
