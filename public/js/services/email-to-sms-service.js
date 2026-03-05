@@ -18,7 +18,7 @@ var EmailToSmsService = (function() {
     
     // Configuration - easily swappable for real endpoints
     var config = {
-        useMockData: true,
+        useMockData: false,
         baseUrl: '/api/email-to-sms',
         endpoints: {
             list: '/setups',
@@ -207,16 +207,16 @@ var EmailToSmsService = (function() {
      */
     function _makeRequest(method, endpoint, data) {
         var url = config.baseUrl + endpoint;
-        
+        var csrfToken = document.querySelector('meta[name="csrf-token"]');
+
         return $.ajax({
             url: url,
             method: method,
             contentType: 'application/json',
             data: data ? JSON.stringify(data) : undefined,
             headers: {
-                'Accept': 'application/json'
-                // TODO: Add authentication headers
-                // 'Authorization': 'Bearer ' + getAuthToken()
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken ? csrfToken.getAttribute('content') : ''
             }
         });
     }
@@ -672,6 +672,7 @@ var EmailToSmsService = (function() {
             create: '/contact-list-setups',
             update: '/contact-list-setups/{id}',
             archive: '/contact-list-setups/{id}/archive',
+            unarchive: '/contact-list-setups/{id}/unarchive',
             contactBooks: '/contact-books',
             contacts: '/contacts',
             tags: '/tags',
@@ -1215,7 +1216,7 @@ var EmailToSmsService = (function() {
             });
         }
         
-        var endpoint = contactListConfig.endpoints.archive.replace('{id}', id) + '/unarchive';
+        var endpoint = contactListConfig.endpoints.unarchive.replace('{id}', id);
         return _makeRequest('POST', endpoint);
     }
     
@@ -1480,13 +1481,13 @@ var EmailToSmsService = (function() {
     
     var overviewConfig = {
         endpoints: {
-            list: '/addresses',
-            get: '/addresses/{id}',
-            create: '/addresses',
-            update: '/addresses/{id}',
-            suspend: '/addresses/{id}/suspend',
-            reactivate: '/addresses/{id}/reactivate',
-            delete: '/addresses/{id}'
+            list: '/overview',
+            get: '/setups/{id}',
+            create: '/setups',
+            update: '/setups/{id}',
+            suspend: '/setups/{id}/suspend',
+            reactivate: '/setups/{id}/reactivate',
+            delete: '/setups/{id}'
         }
     };
     

@@ -436,6 +436,9 @@
 @push('scripts')
 <script src="{{ asset('js/services/email-to-sms-service.js') }}"></script>
 <script>
+// Override base URL for admin context
+EmailToSmsService.config.baseUrl = '/admin/api/email-to-sms';
+
 var allConfigurations = [];
 var filteredConfigurations = [];
 var currentSort = { field: 'created', direction: 'desc' };
