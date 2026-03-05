@@ -929,13 +929,36 @@ class QuickSMSController extends Controller
             }
 
             if (!$campaign) {
+                $senderIdValue = $sessionData['sender_id_id'] ?? null;
+                if ($senderIdValue && !is_numeric($senderIdValue)) {
+                    $resolved = \DB::table('sender_ids')
+                        ->where('uuid', $senderIdValue)
+                        ->where('account_id', $accountId)
+                        ->value('id');
+                    if (!$resolved) {
+                        return response()->json(['success' => false, 'message' => 'Sender ID not found.'], 422);
+                    }
+                    $senderIdValue = $resolved;
+                }
+                $rcsAgentValue = $sessionData['rcs_agent_id'] ?? null;
+                if ($rcsAgentValue && !is_numeric($rcsAgentValue)) {
+                    $resolved = \DB::table('rcs_agents')
+                        ->where('uuid', $rcsAgentValue)
+                        ->where('account_id', $accountId)
+                        ->value('id');
+                    if (!$resolved) {
+                        return response()->json(['success' => false, 'message' => 'RCS Agent not found.'], 422);
+                    }
+                    $rcsAgentValue = $resolved;
+                }
+
                 $campaignData = [
                     'name' => $sessionData['campaign_name'] ?? 'Untitled Campaign',
                     'type' => $sessionData['campaign_type'] ?? 'sms',
                     'message_content' => $sessionData['message_content'] ?? null,
                     'rcs_content' => $sessionData['rcs_content'] ?? null,
-                    'sender_id_id' => $sessionData['sender_id_id'] ?? null,
-                    'rcs_agent_id' => $sessionData['rcs_agent_id'] ?? null,
+                    'sender_id_id' => $senderIdValue,
+                    'rcs_agent_id' => $rcsAgentValue,
                     'recipient_sources' => $sessionData['recipient_sources'] ?? [],
                 ];
                 $campaign = $campaignService->create($accountId, $campaignData);

@@ -190,6 +190,27 @@ class CampaignApiController extends Controller
             }
         }
 
+        if (!empty($validated['sender_id_id'])) {
+            $senderId = DB::table('sender_ids')
+                ->where('uuid', $validated['sender_id_id'])
+                ->where('account_id', $this->tenantId())
+                ->value('id');
+            if (!$senderId) {
+                return response()->json(['status' => 'error', 'message' => 'Sender ID not found.'], 422);
+            }
+            $validated['sender_id_id'] = $senderId;
+        }
+        if (!empty($validated['rcs_agent_id'])) {
+            $rcsAgentId = DB::table('rcs_agents')
+                ->where('uuid', $validated['rcs_agent_id'])
+                ->where('account_id', $this->tenantId())
+                ->value('id');
+            if (!$rcsAgentId) {
+                return response()->json(['status' => 'error', 'message' => 'RCS Agent not found.'], 422);
+            }
+            $validated['rcs_agent_id'] = $rcsAgentId;
+        }
+
         $validated['created_by'] = session('customer_email', session('customer_user_id'));
 
         try {
@@ -289,6 +310,27 @@ class CampaignApiController extends Controller
             if ($ownedCount !== count($validated['opt_out_screening_list_ids'])) {
                 return response()->json(['status' => 'error', 'message' => 'One or more screening lists not found.'], 422);
             }
+        }
+
+        if (!empty($validated['sender_id_id'])) {
+            $senderId = DB::table('sender_ids')
+                ->where('uuid', $validated['sender_id_id'])
+                ->where('account_id', $this->tenantId())
+                ->value('id');
+            if (!$senderId) {
+                return response()->json(['status' => 'error', 'message' => 'Sender ID not found.'], 422);
+            }
+            $validated['sender_id_id'] = $senderId;
+        }
+        if (!empty($validated['rcs_agent_id'])) {
+            $rcsAgentId = DB::table('rcs_agents')
+                ->where('uuid', $validated['rcs_agent_id'])
+                ->where('account_id', $this->tenantId())
+                ->value('id');
+            if (!$rcsAgentId) {
+                return response()->json(['status' => 'error', 'message' => 'RCS Agent not found.'], 422);
+            }
+            $validated['rcs_agent_id'] = $rcsAgentId;
         }
 
         $validated['updated_by'] = session('customer_email', session('customer_user_id'));
