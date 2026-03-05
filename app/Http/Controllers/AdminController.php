@@ -1630,6 +1630,7 @@ class AdminController extends Controller
         $duplicateFields['suspended_by'] = null;
         $duplicateFields['version'] = 1;
         $duplicateFields['is_favourite'] = false;
+        $duplicateFields['id'] = (string) \Illuminate\Support\Str::uuid();
         $duplicateFields['created_by'] = session('admin_email', 'Admin');
         $duplicateFields['updated_by'] = session('admin_email', 'Admin');
 

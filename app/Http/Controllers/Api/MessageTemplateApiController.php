@@ -141,6 +141,7 @@ class MessageTemplateApiController extends Controller
         $validated['created_by'] = session('customer_email', session('customer_user_id'));
 
         $validated['version'] = 1;
+        $validated['id'] = (string) \Illuminate\Support\Str::uuid();
         $template = MessageTemplate::create($validated);
 
         $template->recalculateMetadata();

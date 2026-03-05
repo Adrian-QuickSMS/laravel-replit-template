@@ -79,6 +79,7 @@ class MessageTemplate extends Model
     // =====================================================
 
     protected $fillable = [
+        'id',
         'account_id',
         'sub_account_id',
         'name',
