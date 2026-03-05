@@ -103,6 +103,7 @@ class MessageTemplate extends Model
         'social_hours_from',
         'social_hours_to',
         'status',
+        'version',
         'is_favourite',
         'category',
         'tags',
@@ -122,6 +123,7 @@ class MessageTemplate extends Model
         'opt_out_screening_list_ids' => 'array',
         'character_count' => 'integer',
         'segment_count' => 'integer',
+        'version' => 'integer',
         'is_favourite' => 'boolean',
         'opt_out_enabled' => 'boolean',
         'opt_out_url_enabled' => 'boolean',
@@ -196,6 +198,16 @@ class MessageTemplate extends Model
     public function optOutList(): BelongsTo
     {
         return $this->belongsTo(OptOutList::class, 'opt_out_list_id');
+    }
+
+    public function versions(): HasMany
+    {
+        return $this->hasMany(MessageTemplateVersion::class, 'template_id');
+    }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(MessageTemplateAuditLog::class, 'template_id');
     }
 
     // =====================================================
@@ -350,6 +362,7 @@ class MessageTemplate extends Model
             'social_hours_from' => $this->social_hours_from,
             'social_hours_to' => $this->social_hours_to,
             'status' => $this->status,
+            'version' => $this->version,
             'is_favourite' => $this->is_favourite,
             'category' => $this->category,
             'tags' => $this->tags,
