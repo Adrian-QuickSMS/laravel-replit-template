@@ -318,17 +318,19 @@
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
-                        <small class="text-muted mt-2 d-block">Use this ID when sending messages via the API with <code>template_id</code> parameter.</small>
+                        <small class="text-muted mt-2 d-block">Use this ID when sending messages via the API with the <span class="badge" style="background: #f0ebf8; color: #886CC0; font-family: monospace; font-weight: 500;">template_id</span> parameter.</small>
                     </div>
                     
-                    <div class="alert small mb-0" style="background: rgba(136, 108, 192, 0.1); border: 1px solid rgba(136, 108, 192, 0.3); color: #614099;">
-                        <i class="fas fa-info-circle me-1"></i>
-                        <strong>API Usage Example:</strong>
-                        <pre class="mb-0 mt-2" style="font-size: 0.75rem; background: #fff; padding: 0.5rem; border-radius: 4px; overflow-x: auto; color: #333;">{
-  "template_id": "<span id="templateIdExample">TPL-XXXXXXXX</span>",
-  "recipients": ["+447123456789"],
-  "variables": { "name": "John" }
-}</pre>
+                    <div class="small mb-0">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-bold" style="color: #614099;"><i class="fas fa-terminal me-1"></i>API Usage Example</span>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="copyApiExampleBtn" title="Copy to clipboard">
+                                <i class="fas fa-copy me-1"></i>Copy
+                            </button>
+                        </div>
+                        <div class="rounded p-3" style="background: #1e1e2e; border: 1px solid #2d2d3d;">
+                            <pre class="mb-0" id="apiUsageExampleCode" style="white-space: pre-wrap; font-size: 0.8rem; color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></pre>
+                        </div>
                     </div>
                 </div>
                 
@@ -577,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     apiDetails.style.display = 'block';
                     portalDetails.style.display = 'none';
                     document.getElementById('generatedTemplateId').value = result.data.data.id;
-                    document.getElementById('templateIdExample').textContent = result.data.data.id;
+                    buildApiUsageExample(result.data.data.id);
                 } else {
                     apiDetails.style.display = 'none';
                     portalDetails.style.display = 'block';
@@ -623,6 +625,76 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.classList.add('btn-outline-primary');
             }, 2000);
         });
+    });
+
+    function buildApiUsageExample(templateId) {
+        var allContent = '';
+        try {
+            var data2 = step2 ? JSON.parse(step2) : {};
+            allContent += (data2.smsText || '');
+            if (data2.rcsContentData) {
+                var rcs = data2.rcsContentData;
+                if (rcs.cards && Array.isArray(rcs.cards)) {
+                    rcs.cards.forEach(function(card) {
+                        allContent += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.body || '');
+                        if (card.buttons && Array.isArray(card.buttons)) {
+                            card.buttons.forEach(function(btn) { allContent += ' ' + (btn.label || ''); });
+                        }
+                    });
+                }
+            }
+        } catch(e) {}
+
+        var fieldPattern = /\{\{(Field_\d+)\}\}/g;
+        var usedFields = [];
+        var match;
+        while ((match = fieldPattern.exec(allContent)) !== null) {
+            if (usedFields.indexOf(match[1]) === -1) usedFields.push(match[1]);
+        }
+
+        var personalisationObj = {};
+        var sampleValues = ['John', 'ORD-12345', 'Premium', '29.99', 'London', '10:00 AM', 'example.com', 'ABC123', 'Thank you', 'Active'];
+        usedFields.forEach(function(field, i) {
+            personalisationObj[field] = sampleValues[i] || 'value' + (i + 1);
+        });
+
+        var apiObj = {
+            to: '+447700900100',
+            template_id: templateId
+        };
+        if (usedFields.length > 0) {
+            apiObj.personalisation = personalisationObj;
+        }
+
+        var jsonStr = JSON.stringify(apiObj, null, 2);
+        var codeEl = document.getElementById('apiUsageExampleCode');
+
+        var highlighted = jsonStr
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"([^"]+)"(\s*:)/g, '<span style="color: #f5c2e7;">"$1"</span>$2')
+            .replace(/:\s*"([^"]+)"/g, ': <span style="color: #a6e3a1;">"$1"</span>')
+            .replace(/[\{\}]/g, '<span style="color: #6c7086;">$&</span>');
+        codeEl.innerHTML = highlighted;
+
+        codeEl.setAttribute('data-raw', jsonStr);
+    }
+
+    document.getElementById('copyApiExampleBtn').addEventListener('click', function() {
+        var rawJson = document.getElementById('apiUsageExampleCode').getAttribute('data-raw');
+        if (rawJson) {
+            navigator.clipboard.writeText(rawJson).then(function() {
+                var btn = document.getElementById('copyApiExampleBtn');
+                var originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied';
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+                setTimeout(function() {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-primary');
+                }, 2000);
+            });
+        }
     });
 
     document.getElementById('createAnotherBtn').addEventListener('click', function() {
