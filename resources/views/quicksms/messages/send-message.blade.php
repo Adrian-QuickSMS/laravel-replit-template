@@ -2810,15 +2810,16 @@ function applySelectedTemplate() {
             }
             document.querySelector('#channelRCSRich').click();
             setTimeout(function() {
+                if (typeof loadRcsPayloadIntoWizard === 'function') {
+                    loadRcsPayloadIntoWizard(payload);
+                }
                 if (typeof openRcsWizard === 'function') {
                     openRcsWizard();
                     setTimeout(function() {
-                        if (typeof loadRcsPayloadIntoWizard === 'function') {
-                            loadRcsPayloadIntoWizard(payload);
-                        }
+                        if (typeof loadCardData === 'function') loadCardData(1);
                     }, 300);
                 }
-            }, 200);
+            }, 300);
         } catch (e) {
             console.warn('Failed to parse RCS payload:', e);
         }

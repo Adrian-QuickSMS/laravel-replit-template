@@ -3402,16 +3402,16 @@ function validateRcsHttpsUrl(input) {
  */
 function loadRcsPayloadIntoWizard(payload) {
     if (!payload) return;
-    
+
     console.log('[RCS Wizard] Loading template payload:', payload);
-    
+
     rcsCardsData = {};
     rcsCardCount = 1;
     rcsCurrentCard = 1;
-    
+
     var type = payload.type || 'standalone';
     var isCarousel = type === 'carousel';
-    
+
     var standaloneRadio = document.getElementById('rcsTypeStandalone');
     var carouselRadio = document.getElementById('rcsTypeCarousel');
     if (standaloneRadio && carouselRadio) {
@@ -3421,61 +3421,75 @@ function loadRcsPayloadIntoWizard(payload) {
             standaloneRadio.checked = true;
         }
     }
-    
+
+    function mapCardToInternal(card) {
+        var defaultMedia = {
+            source: null, url: null, file: null, fileName: null,
+            fileSize: 0, dimensions: null, orientation: 'vertical_short',
+            cardWidth: 'medium', zoom: 100, cropOffsetX: 0, cropOffsetY: 0,
+            assetUuid: null, hostedUrl: null, originalUrl: null, savedDataUrl: null
+        };
+        var media = defaultMedia;
+        if (card.media) {
+            media = {
+                source: card.media.source || (card.media.url ? 'url' : null),
+                url: card.media.url || null,
+                file: null,
+                fileName: card.media.fileName || null,
+                fileSize: card.media.fileSize || 0,
+                dimensions: card.media.dimensions || null,
+                orientation: card.media.orientation || 'vertical_short',
+                cardWidth: card.media.cardWidth || 'medium',
+                zoom: card.media.zoom || 100,
+                cropOffsetX: card.media.cropOffsetX || 0,
+                cropOffsetY: card.media.cropOffsetY || 0,
+                assetUuid: card.media.assetUuid || null,
+                hostedUrl: card.media.hostedUrl || null,
+                originalUrl: card.media.originalUrl || card.media.url || null,
+                savedDataUrl: card.media.savedDataUrl || card.media.url || null
+            };
+        }
+        var buttons = (card.suggestions || card.buttons || []).map(function(b) {
+            var act = b.action || {};
+            return {
+                label: b.label || b.text || '',
+                type: b.type || 'url',
+                url: act.url || b.url || '',
+                phone: act.phoneNumber || b.phone || '',
+                eventTitle: act.title || b.eventTitle || b.title || '',
+                eventStart: act.startTime || b.eventStart || b.start || '',
+                eventEnd: act.endTime || b.eventEnd || b.end || '',
+                eventDesc: act.description || b.eventDesc || ''
+            };
+        });
+        return {
+            media: media,
+            description: card.description || '',
+            textBody: card.title || card.textBody || '',
+            buttons: buttons
+        };
+    }
+
     if (isCarousel && payload.cards && Array.isArray(payload.cards)) {
         rcsCardCount = payload.cards.length;
         payload.cards.forEach(function(card, index) {
-            var cardNum = index + 1;
-            rcsCardsData[cardNum] = {
-                title: card.title || '',
-                description: card.description || '',
-                media: card.media || null,
-                buttons: card.suggestions || []
-            };
+            rcsCardsData[index + 1] = mapCardToInternal(card);
         });
-        
         if (typeof rebuildCardTabs === 'function') rebuildCardTabs();
-        if (typeof selectRcsCard === 'function') selectRcsCard(1);
+        loadCardData(1);
     } else if (payload.card) {
-        var card = payload.card;
-        rcsCardsData[1] = {
-            title: card.title || '',
-            description: card.description || '',
-            media: card.media || null,
-            buttons: card.suggestions || []
-        };
-        
-        var titleInput = document.getElementById('rcsCardTitle');
-        var descInput = document.getElementById('rcsCardDescription');
-        
-        if (titleInput) titleInput.value = card.title || '';
-        if (descInput) descInput.value = card.description || '';
-        
-        if (card.suggestions && Array.isArray(card.suggestions)) {
-            rcsButtons = card.suggestions.map(function(s) {
-                return {
-                    label: s.text || s.label || '',
-                    type: s.type || 'url',
-                    url: s.url || '',
-                    phone: s.phone || '',
-                    title: s.title || '',
-                    start: s.start || '',
-                    end: s.end || '',
-                    description: s.description || ''
-                };
-            });
-            if (typeof updateButtonsList === 'function') updateButtonsList();
-        }
+        rcsCardsData[1] = mapCardToInternal(payload.card);
+        loadCardData(1);
     }
-    
+
     var fallbackTextarea = document.getElementById('rcsFallbackText');
     if (fallbackTextarea && payload.fallback) {
         fallbackTextarea.value = payload.fallback;
     }
-    
+
     if (typeof updateRcsPreview === 'function') {
-        setTimeout(updateRcsPreview, 100);
+        setTimeout(updateRcsPreview, 200);
     }
-    
+
     console.log('[RCS Wizard] Template loaded successfully');
 }
