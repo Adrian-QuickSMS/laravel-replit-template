@@ -2813,11 +2813,9 @@ function applySelectedTemplate() {
                 if (typeof loadRcsPayloadIntoWizard === 'function') {
                     loadRcsPayloadIntoWizard(payload);
                 }
-                if (typeof openRcsWizard === 'function') {
-                    openRcsWizard();
-                    setTimeout(function() {
-                        if (typeof loadCardData === 'function') loadCardData(1);
-                    }, 300);
+                rcsPersistentPayload = buildRcsPayload();
+                if (typeof updateRcsWizardPreviewInMain === 'function') {
+                    updateRcsWizardPreviewInMain();
                 }
             }, 300);
         } catch (e) {
