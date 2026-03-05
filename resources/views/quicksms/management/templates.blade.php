@@ -4950,20 +4950,45 @@ document.addEventListener('DOMContentLoaded', function() {
 function viewVersionHistory(templateId) {
     var template = mockTemplates.find(function(t) { return t.id === templateId; });
     if (!template) return;
-    
+
+    var uuid = template.uuid;
+    if (!uuid) return;
+
     currentVersionHistory.templateId = templateId;
-    currentVersionHistory.versions = mockVersionHistory[templateId] || generateDefaultVersionHistory(template);
-    currentVersionHistory.auditLog = mockAuditLog[templateId] || generateDefaultAuditLog(template);
-    
+
     document.getElementById('vhTemplateName').textContent = template.name;
     document.getElementById('vhTemplateId').textContent = template.templateId;
-    
+
+    currentVersionHistory.versions = generateDefaultVersionHistory(template);
+    currentVersionHistory.auditLog = generateDefaultAuditLog(template);
     renderVersionsTable();
     renderAuditTimeline();
-    
+
     document.getElementById('versions-tab').click();
-    
     new bootstrap.Modal(document.getElementById('versionHistoryModal')).show();
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var headers = { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken };
+
+    Promise.all([
+        fetch('/api/message-templates/' + uuid + '/versions', { headers: headers }).then(function(r) { return r.json(); }),
+        fetch('/api/message-templates/' + uuid + '/audit-log', { headers: headers }).then(function(r) { return r.json(); })
+    ]).then(function(results) {
+        var versionsData = results[0].data || [];
+        var auditData = results[1].data || [];
+
+        if (versionsData.length > 0) {
+            currentVersionHistory.versions = versionsData;
+        }
+        if (auditData.length > 0) {
+            currentVersionHistory.auditLog = auditData;
+        }
+
+        renderVersionsTable();
+        renderAuditTimeline();
+    }).catch(function(err) {
+        console.error('[VersionHistory] Failed to load:', err);
+    });
 }
 
 function generateDefaultVersionHistory(template) {
@@ -5211,94 +5236,40 @@ function rollbackFromViewVersion() {
 
 function confirmRollback() {
     if (!rollbackTarget.templateId || !rollbackTarget.version || !rollbackTarget.data) return;
-    
+
     var template = mockTemplates.find(function(t) { return t.id === rollbackTarget.templateId; });
-    if (!template) return;
-    
-    var changeNote = document.getElementById('rbChangeNote').value.trim() || 'Rolled back from version ' + rollbackTarget.version;
-    var setLive = document.getElementById('rbSetLive').checked;
-    
-    var newVersion = template.version + 1;
-    
-    var newVersionEntry = {
-        version: newVersion,
-        status: setLive ? 'live' : 'draft',
-        content: rollbackTarget.data.content,
-        channel: rollbackTarget.data.channel,
-        trigger: rollbackTarget.data.trigger,
-        changeNote: changeNote,
-        editedBy: 'Current User',
-        editedAt: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        userId: 'current'
-    };
-    
-    if (!mockVersionHistory[rollbackTarget.templateId]) {
-        mockVersionHistory[rollbackTarget.templateId] = generateDefaultVersionHistory(template);
-    }
-    mockVersionHistory[rollbackTarget.templateId].unshift(newVersionEntry);
-    
-    if (setLive) {
-        mockVersionHistory[rollbackTarget.templateId].forEach(function(v) {
-            if (v.version !== newVersion && v.status === 'live') {
-                v.status = 'draft';
-            }
-        });
-    }
-    
-    var auditEntry = {
-        action: 'rolled-back',
-        version: newVersion,
-        userId: 'current',
-        userName: 'Current User',
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-        details: 'Rolled back to version ' + rollbackTarget.version + '. ' + changeNote
-    };
-    
-    if (!mockAuditLog[rollbackTarget.templateId]) {
-        mockAuditLog[rollbackTarget.templateId] = generateDefaultAuditLog(template);
-    }
-    mockAuditLog[rollbackTarget.templateId].unshift(auditEntry);
-    
-    if (setLive) {
-        var launchEntry = {
-            action: 'launched',
-            version: newVersion,
-            userId: 'current',
-            userName: 'Current User',
-            timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
-            details: 'Published version ' + newVersion + ' as Live'
-        };
-        mockAuditLog[rollbackTarget.templateId].unshift(launchEntry);
-    }
-    
-    template.version = newVersion;
-    template.content = rollbackTarget.data.content;
-    template.channel = rollbackTarget.data.channel;
-    
-    if (setLive) {
-        template.status = 'live';
-    } else {
-        template.status = 'draft';
-    }
-    template.lastUpdated = new Date().toISOString().split('T')[0];
-    
-    var statusBadge = document.getElementById('vhCurrentStatus');
-    statusBadge.textContent = getStatusLabel(template.status);
-    statusBadge.className = 'badge ' + getStatusBadgeClass(template.status).replace('badge-', 'bg-');
-    
-    bootstrap.Modal.getInstance(document.getElementById('rollbackConfirmModal')).hide();
-    
-    currentVersionHistory.versions = mockVersionHistory[rollbackTarget.templateId];
-    currentVersionHistory.auditLog = mockAuditLog[rollbackTarget.templateId];
-    
-    renderVersionsTable();
-    renderAuditTimeline();
-    
-    renderTemplates();
-    
-    showToast('Rollback complete. Created v' + newVersion + ' from v' + rollbackTarget.version + '.', 'success');
-    
-    rollbackTarget = { templateId: null, version: null, data: null };
+    if (!template || !template.uuid) return;
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/api/message-templates/' + template.uuid + '/rollback/' + rollbackTarget.version, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(result) {
+        if (result.data) {
+            template.version = result.data.version;
+            template.content = result.data.content || template.content;
+            template.lastUpdated = new Date().toISOString().split('T')[0];
+
+            bootstrap.Modal.getInstance(document.getElementById('rollbackConfirmModal')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('versionHistoryModal')).hide();
+
+            renderTemplates();
+            showToast('Rollback complete. Created v' + result.data.version + ' from v' + rollbackTarget.version + '.', 'success');
+            rollbackTarget = { templateId: null, version: null, data: null };
+        } else {
+            alert(result.message || 'Rollback failed.');
+        }
+    })
+    .catch(function(err) {
+        alert('Rollback failed: ' + err.message);
+    });
 }
 </script>
 @endpush
