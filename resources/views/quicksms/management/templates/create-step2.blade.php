@@ -1516,5 +1516,51 @@ document.getElementById('nextBtn').addEventListener('click', function(e) {
 document.getElementById('smsContent').addEventListener('input', function() {
     this.classList.remove('is-invalid');
 });
+
+var nextBtn = document.getElementById('nextBtn');
+if (nextBtn) {
+    nextBtn.addEventListener('click', function(e) {
+        var errors = [];
+        var senderSelect = document.getElementById('senderId');
+        if (senderSelect && !senderSelect.value) {
+            errors.push('Please select an SMS Sender ID.');
+            senderSelect.classList.add('is-invalid');
+        }
+
+        var channel = document.querySelector('input[name="channel"]:checked')?.value || 'sms';
+        if (channel === 'rcs_basic' || channel === 'rcs_rich') {
+            var rcsAgent = document.getElementById('rcsAgent');
+            if (rcsAgent && !rcsAgent.value) {
+                errors.push('Please select an RCS Agent.');
+                rcsAgent.classList.add('is-invalid');
+            }
+        }
+
+        var smsContent = document.getElementById('smsContent');
+        if (smsContent && !smsContent.value.trim()) {
+            errors.push('Please enter message content.');
+            smsContent.classList.add('is-invalid');
+        }
+
+        if (errors.length > 0) {
+            e.preventDefault();
+            var alertHtml = '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
+                errors.join('<br>') +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            var container = document.querySelector('.template-content-left .card-body');
+            if (container) {
+                var existing = container.querySelector('.alert-danger');
+                if (existing) existing.remove();
+                container.insertAdjacentHTML('afterbegin', alertHtml);
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    });
+}
+
+var senderEl = document.getElementById('senderId');
+if (senderEl) senderEl.addEventListener('change', function() { this.classList.remove('is-invalid'); });
+var agentEl = document.getElementById('rcsAgent');
+if (agentEl) agentEl.addEventListener('change', function() { this.classList.remove('is-invalid'); });
 </script>
 @endpush
