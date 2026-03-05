@@ -2755,6 +2755,33 @@ function resetTemplateDrivenState() {
     if (unsociableToggle) { unsociableToggle.checked = false; if (typeof toggleUnsociableFields === 'function') toggleUnsociableFields(); }
 }
 
+function setTemplateSenderAndAgent(tpl, channel) {
+    if (tpl.sender_id_id) {
+        var senderSelect = document.getElementById('senderId');
+        if (senderSelect) {
+            for (var i = 0; i < senderSelect.options.length; i++) {
+                if (senderSelect.options[i].value == tpl.sender_id_id) {
+                    senderSelect.selectedIndex = i;
+                    senderSelect.dispatchEvent(new Event('change'));
+                    break;
+                }
+            }
+        }
+    }
+    if (tpl.rcs_agent_id && (channel === 'Basic RCS + SMS' || channel === 'Rich RCS + SMS')) {
+        var rcsAgentSelect = document.getElementById('rcsAgent');
+        if (rcsAgentSelect) {
+            for (var i = 0; i < rcsAgentSelect.options.length; i++) {
+                if (rcsAgentSelect.options[i].value == tpl.rcs_agent_id) {
+                    rcsAgentSelect.selectedIndex = i;
+                    rcsAgentSelect.dispatchEvent(new Event('change'));
+                    break;
+                }
+            }
+        }
+    }
+}
+
 function applySelectedTemplate() {
     var selector = document.getElementById('templateSelector');
     var selectedOption = selector.options[selector.selectedIndex];
@@ -2817,6 +2844,7 @@ function applySelectedTemplate() {
                 if (typeof updateRcsWizardPreviewInMain === 'function') {
                     updateRcsWizardPreviewInMain();
                 }
+                setTemplateSenderAndAgent(tpl, channel);
             }, 300);
         } catch (e) {
             console.warn('Failed to parse RCS payload:', e);
@@ -2827,35 +2855,11 @@ function applySelectedTemplate() {
         document.querySelector('#channelRCSBasic').click();
         document.getElementById('smsContent').value = content;
         handleContentChange();
+        setTimeout(function() { setTemplateSenderAndAgent(tpl, channel); }, 100);
     } else {
         document.getElementById('smsContent').value = content;
         handleContentChange();
-    }
-
-    if (tpl.sender_id_id) {
-        var senderSelect = document.getElementById('senderId');
-        if (senderSelect) {
-            for (var i = 0; i < senderSelect.options.length; i++) {
-                if (senderSelect.options[i].value == tpl.sender_id_id) {
-                    senderSelect.selectedIndex = i;
-                    senderSelect.dispatchEvent(new Event('change'));
-                    break;
-                }
-            }
-        }
-    }
-
-    if (tpl.rcs_agent_id && (channel === 'Basic RCS + SMS' || channel === 'Rich RCS + SMS')) {
-        var rcsAgentSelect = document.getElementById('rcsAgentSelect');
-        if (rcsAgentSelect) {
-            for (var i = 0; i < rcsAgentSelect.options.length; i++) {
-                if (rcsAgentSelect.options[i].value == tpl.rcs_agent_id) {
-                    rcsAgentSelect.selectedIndex = i;
-                    rcsAgentSelect.dispatchEvent(new Event('change'));
-                    break;
-                }
-            }
-        }
+        setTemplateSenderAndAgent(tpl, channel);
     }
 
     if (tpl.trackable_link_enabled) {

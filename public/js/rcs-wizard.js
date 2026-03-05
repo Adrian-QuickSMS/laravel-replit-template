@@ -3460,14 +3460,17 @@ function loadRcsPayloadIntoWizard(payload) {
     var type = payload.type || 'standalone';
     var isCarousel = type === 'carousel';
 
-    var standaloneRadio = document.getElementById('rcsTypeStandalone');
+    var singleRadio = document.getElementById('rcsTypeSingle');
     var carouselRadio = document.getElementById('rcsTypeCarousel');
-    if (standaloneRadio && carouselRadio) {
+    if (singleRadio && carouselRadio) {
         if (isCarousel) {
             carouselRadio.checked = true;
         } else {
-            standaloneRadio.checked = true;
+            singleRadio.checked = true;
         }
+    }
+    if (typeof toggleRcsMessageType === 'function') {
+        toggleRcsMessageType();
     }
 
     function mapCardToInternal(card) {
