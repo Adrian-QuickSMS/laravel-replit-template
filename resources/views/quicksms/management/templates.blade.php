@@ -2084,22 +2084,22 @@
                                 </ul>
                                 <div class="tab-content" id="apiCodeTabContent">
                                     <div class="tab-pane fade show active" id="curl-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeCurl"></code></pre>
+                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodeCurl" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
                                     </div>
                                     <div class="tab-pane fade" id="python-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodePython"></code></pre>
+                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodePython" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
                                     </div>
                                     <div class="tab-pane fade" id="nodejs-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeNodejs"></code></pre>
+                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodeNodejs" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
                                     </div>
                                     <div class="tab-pane fade" id="php-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodePhp"></code></pre>
+                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodePhp" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
                                     </div>
                                     <div class="tab-pane fade" id="java-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeJava"></code></pre>
+                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodeJava" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
                                     </div>
                                     <div class="tab-pane fade" id="csharp-pane" role="tabpanel">
-                                        <pre class="bg-dark text-light p-3 mb-0 rounded-0" style="font-size: 0.8rem; max-height: 350px; overflow-y: auto;"><code id="apiCodeCsharp"></code></pre>
+                                        <pre class="p-3 mb-0 rounded" style="background: #1e1e2e; border: 1px solid #2d2d3d; font-size: 0.8rem; max-height: 350px; overflow-y: auto; white-space: pre-wrap;"><code id="apiCodeCsharp" style="color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"></code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -4269,33 +4269,18 @@ function generateApiCodeExamples(template, placeholders) {
         'var result = await response.Content.ReadAsStringAsync();\n' +
         'Console.WriteLine(result);';
     
-    var codes = {
-        apiCodeCurl: curlCode,
-        apiCodePython: pythonCode,
-        apiCodeNodejs: nodejsCode,
-        apiCodePhp: phpCode,
-        apiCodeJava: javaCode,
-        apiCodeCsharp: csharpCode
-    };
-    Object.keys(codes).forEach(function(elId) {
-        var el = document.getElementById(elId);
-        if (!el) return;
-        el.setAttribute('data-raw', codes[elId]);
-        var escaped = codes[elId]
-            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        var highlighted = escaped
-            .replace(/"([^"]+)"(\s*:)/g, '<span style="color: #f5c2e7;">"$1"</span>$2')
-            .replace(/:\s*"([^"]+)"/g, ': <span style="color: #a6e3a1;">"$1"</span>')
-            .replace(/"([^"]+)"/g, '<span style="color: #a6e3a1;">"$1"</span>')
-            .replace(/[\{\}\[\]]/g, '<span style="color: #6c7086;">$&</span>');
-        el.innerHTML = highlighted;
-    });
+    document.getElementById('apiCodeCurl').textContent = curlCode;
+    document.getElementById('apiCodePython').textContent = pythonCode;
+    document.getElementById('apiCodeNodejs').textContent = nodejsCode;
+    document.getElementById('apiCodePhp').textContent = phpCode;
+    document.getElementById('apiCodeJava').textContent = javaCode;
+    document.getElementById('apiCodeCsharp').textContent = csharpCode;
 }
 
 function copyApiCode() {
     var activePane = document.querySelector('#apiCodeTabContent .tab-pane.active code');
     if (activePane) {
-        var raw = activePane.getAttribute('data-raw') || activePane.textContent;
+        var raw = activePane.textContent;
         navigator.clipboard.writeText(raw).then(function() {
             showToast('Code copied to clipboard', 'success');
         }).catch(function() {
