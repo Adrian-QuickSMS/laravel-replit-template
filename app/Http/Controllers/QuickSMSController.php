@@ -32,7 +32,7 @@ class QuickSMSController extends Controller
         }
 
         return $senderIds->map(fn($s) => [
-            'id' => $s->id,
+            'id' => $s->uuid,
             'name' => $s->sender_id_value,
             'type' => strtolower($s->sender_type === 'ALPHA' ? 'alphanumeric' : ($s->sender_type === 'NUMERIC' ? 'numeric' : 'shortcode')),
         ])->toArray();
@@ -362,7 +362,7 @@ class QuickSMSController extends Controller
                 ->select('id', 'uuid', 'name', 'description', 'brand_color', 'logo_url')
                 ->get()
                 ->map(fn($a) => [
-                    'id'          => $a->id,
+                    'id'          => $a->uuid,
                     'name'        => $a->name,
                     'logo'        => $a->logo_url ?: null,
                     'tagline'     => $a->description ?? '',
@@ -456,7 +456,7 @@ class QuickSMSController extends Controller
             ->select('id', 'uuid', 'name', 'description', 'brand_color', 'logo_url')
             ->get()
             ->map(fn($a) => [
-                'id'          => $a->id,
+                'id'          => $a->uuid,
                 'name'        => $a->name,
                 'logo'        => $a->logo_url ?: asset('images/rcs-agents/quicksms-brand.svg'),
                 'tagline'     => $a->description ?? '',

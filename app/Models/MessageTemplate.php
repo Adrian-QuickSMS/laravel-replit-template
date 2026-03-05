@@ -180,12 +180,12 @@ class MessageTemplate extends Model
 
     public function senderId(): BelongsTo
     {
-        return $this->belongsTo(SenderId::class, 'sender_id_id');
+        return $this->belongsTo(SenderId::class, 'sender_id_id', 'uuid');
     }
 
     public function rcsAgent(): BelongsTo
     {
-        return $this->belongsTo(RcsAgent::class, 'rcs_agent_id');
+        return $this->belongsTo(RcsAgent::class, 'rcs_agent_id', 'uuid');
     }
 
     public function optOutNumber(): BelongsTo
