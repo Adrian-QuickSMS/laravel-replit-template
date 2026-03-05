@@ -782,17 +782,16 @@ button.btn-save-draft:hover {
 
 {{-- Contact Book Selection Modal --}}
 <div class="modal fade" id="contactBookModal" tabindex="-1" aria-labelledby="contactBookModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header py-2 bg-primary text-white">
-                <h5 class="modal-title" id="contactBookModalLabel">
-                    <i class="fas fa-address-book me-2"></i>Select from Contact Book
+    <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
+        <div class="modal-content" style="border-radius: 0.75rem; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+            <div class="modal-header py-3 px-4" style="border-bottom: 1px solid #f0ebf8;">
+                <h5 class="modal-title" id="contactBookModalLabel" style="font-weight: 600; color: #2c2c2c;">
+                    <i class="fas fa-address-book me-2" style="color: #886CC0;"></i>Select from Contact Book
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-3">
-                {{-- Modal Selection Summary --}}
-                <div class="bg-light rounded p-2 mb-3" style="font-size: 13px;">
+            <div class="modal-body p-0">
+                <div class="bg-light rounded mx-4 mt-3 p-2 mb-0" style="font-size: 13px;">
                     <div class="d-flex justify-content-between align-items-center">
                         <span><strong>Current Selection:</strong> <span id="modalSelectionSummary">None</span></span>
                         <button type="button" class="btn btn-link btn-sm text-danger p-0" id="btnModalClearAll">
@@ -801,170 +800,203 @@ button.btn-save-draft:hover {
                     </div>
                 </div>
                 
-                {{-- Tabs --}}
-                <ul class="nav nav-tabs mb-3" id="modalRecipientTabs">
+                <ul class="nav nav-tabs px-4 pt-3 mb-0" style="border-bottom: none;">
                     <li class="nav-item">
-                        <button class="nav-link active py-2 px-3" data-bs-toggle="tab" data-bs-target="#modalContactsTab">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#modalContactsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">
                             <i class="fas fa-user me-1"></i> Contacts <span class="badge bg-secondary ms-1" id="modalContactsBadge">0</span>
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#modalListsTab">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalListsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">
                             <i class="fas fa-list me-1"></i> Lists <span class="badge bg-secondary ms-1" id="modalListsBadge">0</span>
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#modalDynamicListsTab">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalDynamicListsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">
                             <i class="fas fa-sync-alt me-1"></i> Dynamic <span class="badge bg-secondary ms-1" id="modalDynamicBadge">0</span>
                         </button>
                     </li>
                     <li class="nav-item">
-                        <button class="nav-link py-2 px-3" data-bs-toggle="tab" data-bs-target="#modalTagsTab">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#modalTagsTab" style="font-size: 13px; font-weight: 500; padding: 0.5rem 1rem;">
                             <i class="fas fa-tags me-1"></i> Tags <span class="badge bg-secondary ms-1" id="modalTagsBadge">0</span>
                         </button>
                     </li>
                 </ul>
                 
-                <div class="tab-content">
+                <div class="tab-content px-4 pt-3">
                     {{-- Contacts Tab --}}
-                    <div class="tab-pane show active" id="modalContactsTab">
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control modal-cb-search" placeholder="Search names, numbers, tags...">
+                    <div class="tab-pane fade show active" id="modalContactsTab">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control modal-cb-search" placeholder="Search names, numbers, tags..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-5">
                                 <div class="d-flex gap-2 align-items-center">
-                                    <select class="form-select form-select-sm modal-cb-sort">
+                                    <select class="form-select modal-cb-sort" style="border-color: #e6e6e6; border-radius: 0.625rem; font-size: 13px;">
                                         <option value="recent">Most recently contacted</option>
                                         <option value="added">Most recently added</option>
                                         <option value="name_asc">Name A-Z</option>
                                         <option value="name_desc">Name Z-A</option>
                                     </select>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="modalBtnToggleFilters">
+                                    <button type="button" class="btn btn-outline-secondary" id="modalBtnToggleFilters" style="border-color: #e6e6e6; border-radius: 0.625rem; color: #886CC0;">
                                         <i class="fas fa-filter"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="d-none mb-2 p-2 bg-light rounded" id="modalContactFilters" style="font-size: 12px;">
+                        <div class="d-none mb-3 p-3 rounded" id="modalContactFilters" style="font-size: 13px; background: #f8f7fc;">
                             <div class="row">
-                                <div class="col-md-4">
-                                    <label class="form-label mb-1">Tags</label>
-                                    <select class="form-select form-select-sm modal-filter-tags">
+                                <div class="col-md-3">
+                                    <label class="form-label mb-1" style="font-weight: 500;">Tags</label>
+                                    <select class="form-select form-select-sm modal-filter-tags" style="border-radius: 0.625rem;">
                                         <option value="">All tags</option>
                                         <option value="vip">VIP</option>
                                         <option value="asthma">Asthma</option>
                                         <option value="diabetes">Diabetes</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <label class="form-label mb-1">Has Mobile</label>
-                                    <select class="form-select form-select-sm modal-filter-mobile">
+                                <div class="col-md-3">
+                                    <label class="form-label mb-1" style="font-weight: 500;">Has Mobile</label>
+                                    <select class="form-select form-select-sm modal-filter-mobile" style="border-radius: 0.625rem;">
                                         <option value="">Any</option>
                                         <option value="yes">Yes</option>
                                         <option value="no">No</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <button class="btn btn-link btn-sm" id="modalBtnClearFilters">Clear filters</button>
+                                <div class="col-md-3">
+                                    <label class="form-label mb-1" style="font-weight: 500;">Opt-out Status</label>
+                                    <select class="form-select form-select-sm" style="border-radius: 0.625rem;">
+                                        <option value="exclude">Exclude opted-out</option>
+                                        <option value="include">Include all</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-link btn-sm" id="modalBtnClearFilters" style="color: #886CC0;">Clear filters</button>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table modal-api-table mb-0">
-                                <thead class="sticky-top">
-                                    <tr>
-                                        <th style="width: 30px;"><input type="checkbox" class="form-check-input" id="modalSelectAllContacts"></th>
-                                        <th>Name</th>
-                                        <th>Mobile</th>
-                                        <th>Tags</th>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"><input type="checkbox" class="form-check-input" id="modalSelectAllContacts"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Mobile</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tags</th>
                                     </tr>
                                 </thead>
                                 <tbody id="modalContactsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="1" data-name="John Smith"></td><td>John Smith</td><td>+44 7700***123</td><td><span class="badge badge-pastel-info">VIP</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="2" data-name="Jane Doe"></td><td>Jane Doe</td><td>+44 7700***456</td><td><span class="badge badge-pastel-success">Asthma</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="3" data-name="Robert Brown"></td><td>Robert Brown</td><td>+44 7700***789</td><td></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="4" data-name="Sarah Wilson"></td><td>Sarah Wilson</td><td>+44 7700***012</td><td><span class="badge badge-pastel-warning">Diabetes</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="5" data-name="Michael Johnson"></td><td>Michael Johnson</td><td>+44 7700***345</td><td><span class="badge badge-pastel-info">VIP</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="6" data-name="Emily Davis"></td><td>Emily Davis</td><td>+44 7700***678</td><td><span class="badge badge-pastel-success">Asthma</span></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="7" data-name="David Miller"></td><td>David Miller</td><td>+44 7700***901</td><td></td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-contact" value="8" data-name="Lisa Anderson"></td><td>Lisa Anderson</td><td>+44 7700***234</td><td><span class="badge badge-pastel-warning">Diabetes</span> <span class="badge badge-pastel-danger">Hypertension</span></td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-contact" value="1" data-name="John Smith"></td><td>John Smith</td><td>+44 7700***123</td><td><span class="badge badge-pastel-info">VIP</span></td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-contact" value="2" data-name="Jane Doe"></td><td>Jane Doe</td><td>+44 7700***456</td><td><span class="badge badge-pastel-success">Asthma</span></td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-contact" value="3" data-name="Robert Brown"></td><td>Robert Brown</td><td>+44 7700***789</td><td></td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-contact" value="4" data-name="Sarah Wilson"></td><td>Sarah Wilson</td><td>+44 7700***012</td><td><span class="badge badge-pastel-warning">Diabetes</span></td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-contact" value="5" data-name="Michael Johnson"></td><td>Michael Johnson</td><td>+44 7700***345</td><td><span class="badge badge-pastel-info">VIP</span></td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-contact" value="6" data-name="Emily Davis"></td><td>Emily Davis</td><td>+44 7700***678</td><td><span class="badge badge-pastel-success">Asthma</span></td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-contact" value="7" data-name="David Miller"></td><td>David Miller</td><td>+44 7700***901</td><td></td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-contact" value="8" data-name="Lisa Anderson"></td><td>Lisa Anderson</td><td>+44 7700***234</td><td><span class="badge badge-pastel-warning">Diabetes</span> <span class="badge badge-pastel-danger">Hypertension</span></td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
                     {{-- Static Lists Tab --}}
-                    <div class="tab-pane" id="modalListsTab">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control modal-list-search" placeholder="Search lists...">
+                    <div class="tab-pane fade" id="modalListsTab">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control modal-list-search" placeholder="Search lists..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table modal-api-table mb-0">
-                                <thead class="sticky-top">
-                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Contacts</th><th>Last Updated</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">List Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Last Updated</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="modalListsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="1" data-name="VIP Patients" data-count="1234"></td><td>VIP Patients</td><td>1,234</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="2" data-name="Newsletter Subscribers" data-count="5678"></td><td>Newsletter Subscribers</td><td>5,678</td><td>21-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="3" data-name="Flu Campaign 2025" data-count="3456"></td><td>Flu Campaign 2025</td><td>3,456</td><td>20-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="4" data-name="Repeat Prescriptions" data-count="2100"></td><td>Repeat Prescriptions</td><td>2,100</td><td>19-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-list" value="5" data-name="NHS Reminders" data-count="8900"></td><td>NHS Reminders</td><td>8,900</td><td>18-Dec-2025</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="1" data-name="VIP Patients" data-count="1234"></td><td>VIP Patients</td><td>1,234</td><td>22-Dec-2025</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="2" data-name="Newsletter Subscribers" data-count="5678"></td><td>Newsletter Subscribers</td><td>5,678</td><td>21-Dec-2025</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="3" data-name="Flu Campaign 2025" data-count="3456"></td><td>Flu Campaign 2025</td><td>3,456</td><td>20-Dec-2025</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="4" data-name="Repeat Prescriptions" data-count="2100"></td><td>Repeat Prescriptions</td><td>2,100</td><td>19-Dec-2025</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="5" data-name="NHS Reminders" data-count="8900"></td><td>NHS Reminders</td><td>8,900</td><td>18-Dec-2025</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
                     {{-- Dynamic Lists Tab --}}
-                    <div class="tab-pane" id="modalDynamicListsTab">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control modal-dynamic-search" placeholder="Search dynamic lists...">
+                    <div class="tab-pane fade" id="modalDynamicListsTab">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control modal-dynamic-search" placeholder="Search dynamic lists..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table modal-api-table mb-0">
-                                <thead class="sticky-top">
-                                    <tr><th style="width: 30px;"></th><th>List Name</th><th>Rules</th><th>Contacts</th><th>Last Evaluated</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">List Name</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Rules</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Last Evaluated</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="modalDynamicListsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="1" data-name="Over 65s" data-count="2345"></td><td>Over 65s</td><td>Age > 65</td><td>2,345</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="2" data-name="Local Postcodes" data-count="1890"></td><td>Local Postcodes</td><td>Postcode starts with SW</td><td>1,890</td><td>22-Dec-2025</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-dynamic" value="3" data-name="Active Last 30 Days" data-count="4500"></td><td>Active Last 30 Days</td><td>Last contact < 30 days</td><td>4,500</td><td>22-Dec-2025</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-dynamic" value="1" data-name="Over 65s" data-count="2345"></td><td>Over 65s</td><td>Age > 65</td><td>2,345</td><td>22-Dec-2025</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-dynamic" value="2" data-name="Local Postcodes" data-count="1890"></td><td>Local Postcodes</td><td>Postcode starts with SW</td><td>1,890</td><td>22-Dec-2025</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-dynamic" value="3" data-name="Active Last 30 Days" data-count="4500"></td><td>Active Last 30 Days</td><td>Last contact < 30 days</td><td>4,500</td><td>22-Dec-2025</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
                     {{-- Tags Tab --}}
-                    <div class="tab-pane" id="modalTagsTab">
-                        <div class="input-group input-group-sm mb-2">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control modal-tag-search" placeholder="Search tags...">
+                    <div class="tab-pane fade" id="modalTagsTab">
+                        <div class="row mb-3">
+                            <div class="col-md-7">
+                                <div class="input-group">
+                                    <span class="input-group-text" style="background: #f8f7fc; border-color: #e6e6e6; border-radius: 0.625rem 0 0 0.625rem;"><i class="fas fa-search" style="color: #a1a1a1;"></i></span>
+                                    <input type="text" class="form-control modal-tag-search" placeholder="Search tags..." style="border-color: #e6e6e6; border-radius: 0 0.625rem 0.625rem 0; font-size: 13px;">
+                                </div>
+                            </div>
                         </div>
-                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
-                            <table class="table modal-api-table mb-0">
-                                <thead class="sticky-top">
-                                    <tr><th style="width: 30px;"></th><th>Tag</th><th>Contacts</th></tr>
+                        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                            <table class="table table-hover mb-0" style="font-size: 13px;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background: #fff;">
+                                    <tr style="border-bottom: 2px solid #f0ebf8;">
+                                        <th style="width: 40px; padding: 12px 8px;"></th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Tag</th>
+                                        <th style="padding: 12px 8px; color: #6c757d; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contacts</th>
+                                    </tr>
                                 </thead>
                                 <tbody id="modalTagsTable">
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="1" data-name="VIP" data-count="456"></td><td><span class="badge badge-pastel-info">VIP</span></td><td>456</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="2" data-name="Asthma" data-count="1234"></td><td><span class="badge badge-pastel-success">Asthma</span></td><td>1,234</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="3" data-name="Diabetes" data-count="890"></td><td><span class="badge badge-pastel-warning">Diabetes</span></td><td>890</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="4" data-name="Hypertension" data-count="567"></td><td><span class="badge badge-pastel-danger">Hypertension</span></td><td>567</td></tr>
-                                    <tr><td><input type="checkbox" class="form-check-input cb-tag" value="5" data-name="Chronic Care" data-count="1023"></td><td><span class="badge badge-pastel-primary">Chronic Care</span></td><td>1,023</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="1" data-name="VIP" data-count="456"></td><td><span class="badge badge-pastel-info">VIP</span></td><td>456</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="2" data-name="Asthma" data-count="1234"></td><td><span class="badge badge-pastel-success">Asthma</span></td><td>1,234</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="3" data-name="Diabetes" data-count="890"></td><td><span class="badge badge-pastel-warning">Diabetes</span></td><td>890</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="4" data-name="Hypertension" data-count="567"></td><td><span class="badge badge-pastel-danger">Hypertension</span></td><td>567</td></tr>
+                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="5" data-name="Chronic Care" data-count="1023"></td><td><span class="badge badge-pastel-primary">Chronic Care</span></td><td>1,023</td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer py-2">
+            <div class="modal-footer py-3 px-4" style="border-top: 1px solid #f0ebf8;">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-primary" id="btnApplyContactSelection">
                     <i class="fas fa-check me-1"></i> Apply Selection
