@@ -429,6 +429,7 @@ class QuickSMSController extends Controller
                 'channel' => $typeToChannel[$t->type] ?? 'sms',
                 'trigger' => $t->trigger_type ?? 'portal',
                 'content' => $t->content ?? '',
+                'rcsContent' => $t->rcs_content,
                 'contentType' => $typeToContentType[$t->type] ?? 'text',
                 'accessScope' => 'All Sub-accounts',
                 'subAccounts' => ['all'],

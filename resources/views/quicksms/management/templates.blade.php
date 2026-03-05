@@ -2536,9 +2536,25 @@ window.toggleActionMenu = function(btn, event) {
     }
 };
 
+function closeAllActionMenus() {
+    if (activeMenu) {
+        activeMenu.classList.remove('show');
+        activeMenu.style.cssText = '';
+        activeMenu = null;
+    }
+    document.querySelectorAll('#templatesBody .dropdown-menu.show').forEach(function(menu) {
+        menu.classList.remove('show');
+        menu.style.display = 'none';
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     renderTemplates();
     setupEventListeners();
+
+    document.addEventListener('show.bs.modal', function() {
+        closeAllActionMenus();
+    });
     
     // Close menus when clicking outside
     document.addEventListener('click', function(e) {
@@ -4040,19 +4056,19 @@ function viewApiStructure(id) {
     }
     
     document.getElementById('apiTemplateName').textContent = template.name;
-    document.getElementById('apiTemplateIdBadge').textContent = 'ID: ' + template.templateId;
+    document.getElementById('apiTemplateIdBadge').textContent = 'ID: ' + (template.uuid || template.templateId);
     document.getElementById('apiChannelBadge').textContent = getChannelLabel(template.channel);
     document.getElementById('apiChannelBadge').className = 'badge ' + getChannelBadgeClass(template.channel);
     document.getElementById('apiVersionBadge').textContent = 'v' + template.version;
     
-    var placeholders = extractPlaceholders(template.content);
+    var placeholders = extractPlaceholders(template.content, template.rcsContent);
     var hasPlaceholders = placeholders.length > 0;
     
     if (hasPlaceholders) {
         document.getElementById('apiNoPlaceholders').classList.add('d-none');
         document.getElementById('apiPlaceholdersList').classList.remove('d-none');
         document.getElementById('apiPlaceholderChips').innerHTML = placeholders.map(function(ph) {
-            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>{' + ph + '}</span>';
+            return '<span class="placeholder-pill"><i class="fas fa-tag"></i>' + '{' + '{' + ph + '}' + '}' + '</span>';
         }).join('');
     } else {
         document.getElementById('apiNoPlaceholders').classList.remove('d-none');
@@ -4091,20 +4107,37 @@ function viewApiStructure(id) {
     new bootstrap.Modal(document.getElementById('apiStructureModal')).show();
 }
 
-function extractPlaceholders(content) {
-    var regex = /\{([A-Za-z][A-Za-z0-9_]*)\}/g;
+function extractPlaceholders(content, rcsContent) {
+    var allText = (content || '');
+    if (rcsContent && rcsContent.cards && Array.isArray(rcsContent.cards)) {
+        rcsContent.cards.forEach(function(card) {
+            allText += ' ' + (card.title || '') + ' ' + (card.description || '') + ' ' + (card.textBody || '') + ' ' + (card.body || '');
+            if (card.media && card.media.url) allText += ' ' + card.media.url;
+            if (card.buttons && Array.isArray(card.buttons)) {
+                card.buttons.forEach(function(btn) {
+                    allText += ' ' + (btn.label || '');
+                    if (btn.action && btn.action.url) allText += ' ' + btn.action.url;
+                });
+            }
+        });
+    }
+    var regex = /\{\{(Field_\d+)\}\}/g;
     var matches = [];
     var match;
-    while ((match = regex.exec(content)) !== null) {
+    while ((match = regex.exec(allText)) !== null) {
         if (!matches.includes(match[1])) {
             matches.push(match[1]);
         }
     }
+    matches.sort(function(a, b) {
+        return parseInt(a.replace('Field_', '')) - parseInt(b.replace('Field_', ''));
+    });
     return matches;
 }
 
 function generateApiCodeExamples(template, placeholders) {
     var hasPlaceholders = placeholders.length > 0;
+    var realId = template.uuid || template.templateId;
     var msisdnType = hasPlaceholders ? '"+447700900123"' : '["+447700900123", "+447700900456"]';
     var msisdnPy = hasPlaceholders ? '"+447700900123"' : '["+447700900123", "+447700900456"]';
     
@@ -4119,7 +4152,7 @@ function generateApiCodeExamples(template, placeholders) {
         '  -H "Authorization: Bearer YOUR_API_KEY" \\\n' +
         '  -H "Content-Type: application/json" \\\n' +
         '  -d \'{\n' +
-        '    "template_id": "' + template.templateId + '",\n' +
+        '    "template_id": "' + realId + '",\n' +
         '    "msisdn": ' + msisdnType;
     if (hasPlaceholders) {
         curlCode += ',\n    "placeholders": ' + placeholderJson.replace(/\n/g, '\n    ');
@@ -4133,7 +4166,7 @@ function generateApiCodeExamples(template, placeholders) {
         '    "Content-Type": "application/json"\n' +
         '}\n\n' +
         'payload = {\n' +
-        '    "template_id": "' + template.templateId + '",\n' +
+        '    "template_id": "' + realId + '",\n' +
         '    "msisdn": ' + msisdnPy;
     if (hasPlaceholders) {
         pythonCode += ',\n    "placeholders": ' + placeholderJsonInline;
@@ -4144,7 +4177,7 @@ function generateApiCodeExamples(template, placeholders) {
     
     var nodejsCode = 'const axios = require(\'axios\');\n\n' +
         'const payload = {\n' +
-        '  template_id: "' + template.templateId + '",\n' +
+        '  template_id: "' + realId + '",\n' +
         '  msisdn: ' + msisdnType;
     if (hasPlaceholders) {
         nodejsCode += ',\n  placeholders: ' + placeholderJsonInline;
@@ -4163,7 +4196,7 @@ function generateApiCodeExamples(template, placeholders) {
     var phpCode = '<' + '?php\n\n' +
         '$curl = curl_init();\n\n' +
         '$payload = [\n' +
-        '    "template_id" => "' + template.templateId + '",\n' +
+        '    "template_id" => "' + realId + '",\n' +
         '    "msisdn" => ' + phpMsisdn;
     if (hasPlaceholders) {
         var phpPlaceholders = placeholders.map(function(ph) {
@@ -4190,7 +4223,7 @@ function generateApiCodeExamples(template, placeholders) {
         'public class QuickSMSExample {\n' +
         '    public static void main(String[] args) throws Exception {\n' +
         '        String json = """{\n' +
-        '            "template_id": "' + template.templateId + '",\n' +
+        '            "template_id": "' + realId + '",\n' +
         '            "msisdn": ' + msisdnType;
     if (hasPlaceholders) {
         javaCode += ',\n            "placeholders": ' + placeholderJsonInline;
@@ -4211,7 +4244,7 @@ function generateApiCodeExamples(template, placeholders) {
     
     var csharpCode = 'using System.Net.Http;\nusing System.Text;\nusing System.Text.Json;\n\n' +
         'var payload = new {\n' +
-        '    template_id = "' + template.templateId + '",\n' +
+        '    template_id = "' + realId + '",\n' +
         '    msisdn = ' + (hasPlaceholders ? '"+447700900123"' : 'new[] { "+447700900123", "+447700900456" }');
     if (hasPlaceholders) {
         csharpCode += ',\n    placeholders = new {\n';
