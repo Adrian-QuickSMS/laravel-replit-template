@@ -1600,6 +1600,46 @@ class AdminController extends Controller
         return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'archived']]);
     }
 
+    public function apiTemplateVersions(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $versions = \App\Models\MessageTemplateVersion::withoutGlobalScopes()
+            ->where('template_id', $templateId)
+            ->orderByDesc('version')
+            ->get()
+            ->map(fn($v) => $v->toPortalArray());
+
+        return response()->json(['success' => true, 'data' => $versions]);
+    }
+
+    public function apiTemplateAuditLog(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
+    {
+        $template = \App\Models\MessageTemplate::withoutGlobalScopes()
+            ->where('id', $templateId)
+            ->where('account_id', $accountId)
+            ->first();
+
+        if (!$template) {
+            return response()->json(['success' => false, 'error' => 'Template not found'], 404);
+        }
+
+        $entries = \App\Models\MessageTemplateAuditLog::withoutGlobalScopes()
+            ->where('template_id', $templateId)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(fn($e) => $e->toPortalArray());
+
+        return response()->json(['success' => true, 'data' => $entries]);
+    }
+
     public function apiAccountsSearch(Request $request): \Illuminate\Http\JsonResponse
     {
         $search = $request->query('search', '');
