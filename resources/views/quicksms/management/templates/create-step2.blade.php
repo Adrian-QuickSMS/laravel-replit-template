@@ -1366,13 +1366,18 @@ function loadSavedData() {
 
         @if(!empty($template['socialHoursEnabled']))
         (function() {
-            var shToggle = document.getElementById('socialHours');
+            var shToggle = document.getElementById('socialHoursToggle');
             if (shToggle) {
                 shToggle.checked = true;
+                socialHoursConfirmed = true;
                 var shSummary = document.getElementById('socialHoursSummary');
                 if (shSummary) shSummary.classList.remove('d-none');
                 var fromVal = '{{ $template['socialHoursFrom'] ?? '08:00' }}';
                 var toVal = '{{ $template['socialHoursTo'] ?? '20:00' }}';
+                var fromInput = document.getElementById('socialHoursFrom');
+                var toInput = document.getElementById('socialHoursTo');
+                if (fromInput) fromInput.value = fromVal;
+                if (toInput) toInput.value = toVal;
                 var shText = document.getElementById('socialHoursValue');
                 if (shText) shText.textContent = fromVal + ' - ' + toVal;
             }
