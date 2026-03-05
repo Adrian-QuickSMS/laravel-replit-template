@@ -199,11 +199,13 @@ button.btn-save-draft:hover {
     border-color: #D653C1 !important;
 }
 .success-email-box {
-    background: rgba(136, 108, 192, 0.12);
+    background: #f8f9fa;
     border: none;
 }
-.success-email-box code {
+.success-email-box span {
     color: #000;
+    font-family: monospace;
+    background: transparent;
 }
 .api-table {
     font-size: 0.9rem;
@@ -496,11 +498,11 @@ button.btn-save-draft:hover {
                 <div class="alert alert-pastel-primary text-start mb-3">
                     <p class="mb-2"><strong>Email Format:</strong></p>
                     <div class="success-email-box rounded p-2 mb-2">
-                        <code class="fs-6">mobilenumber@sms.quicksms.com</code>
+                        <span class="fs-6">mobilenumber@sms.quicksms.com</span>
                     </div>
                     <p class="small mb-2"><strong>Example:</strong></p>
                     <div class="success-email-box rounded p-2 mb-0">
-                        <code class="fs-6">447700123456@sms.quicksms.com</code>
+                        <span class="fs-6">447700123456@sms.quicksms.com</span>
                     </div>
                 </div>
                 <div class="alert alert-pastel-primary small mb-0 text-start">
