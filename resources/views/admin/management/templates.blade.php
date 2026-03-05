@@ -1446,8 +1446,8 @@ function getTriggerLabel(trigger) {
 }
 
 function getStatusLabel(status, suspendedBy) {
-    if (status === 'suspended' && suspendedBy === 'admin') return 'Suspended (Admin)';
     if (status === 'suspended' && suspendedBy === 'customer') return 'Suspended (Customer)';
+    if (status === 'suspended') return 'Suspended (Admin)';
     return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
@@ -1455,7 +1455,7 @@ function getStatusBadgeClass(status, suspendedBy) {
     switch(status) {
         case 'draft': return 'badge-draft';
         case 'live': return 'badge-live';
-        case 'suspended': return suspendedBy === 'admin' ? 'badge-suspended-admin' : 'badge-suspended';
+        case 'suspended': return (suspendedBy === 'customer') ? 'badge-suspended' : 'badge-suspended-admin';
         case 'archived': return 'badge-archived';
         default: return 'badge-draft';
     }
