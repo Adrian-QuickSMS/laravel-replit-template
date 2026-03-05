@@ -537,31 +537,27 @@ button.btn-save-draft:hover {
                                                 </div>
                                             </div>
                                             
-                                            {{-- Right: Opt-out Lists --}}
+                                            {{-- Right: Opt-out Management --}}
                                             <div class="col-lg-4 mb-3">
-                                                <div class="card h-100 border-0" style="background: #f8f7fc; border-radius: 0.75rem;">
-                                                    <div class="card-body p-3">
-                                                        <h6 class="mb-2"><i class="fas fa-ban me-1" style="color: #886CC0;"></i> Opt-out Lists</h6>
-                                                        <div class="form-check mb-2">
-                                                            <input class="form-check-input" type="checkbox" id="optOutNone" checked>
-                                                            <label class="form-check-label" for="optOutNone">No opt-out (include all)</label>
+                                                <div class="card h-100">
+                                                    <div class="card-body p-4">
+                                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                                            <h6 class="mb-0">Opt-out Management</h6>
+                                                            <div class="form-check form-switch mb-0">
+                                                                <input class="form-check-input" type="checkbox" id="enableMappingOptout" onchange="toggleMappingOptout()">
+                                                                <label class="form-check-label" for="enableMappingOptout">Enable</label>
+                                                            </div>
                                                         </div>
-                                                        <div class="border rounded p-2 bg-white" style="max-height: 180px; overflow-y: auto;">
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input opt-out-item" type="checkbox" value="1" id="optOut1">
-                                                                <label class="form-check-label" for="optOut1">Global Opt-out <span class="text-muted">(2,345)</span></label>
-                                                            </div>
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input opt-out-item" type="checkbox" value="2" id="optOut2">
-                                                                <label class="form-check-label" for="optOut2">Marketing <span class="text-muted">(1,234)</span></label>
-                                                            </div>
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input opt-out-item" type="checkbox" value="3" id="optOut3">
-                                                                <label class="form-check-label" for="optOut3">NHS DNC <span class="text-muted">(567)</span></label>
-                                                            </div>
-                                                            <div class="form-check">
-                                                                <input class="form-check-input opt-out-item" type="checkbox" value="4" id="optOut4">
-                                                                <label class="form-check-label" for="optOut4">Temporary <span class="text-muted">(89)</span></label>
+                                                        <div class="d-none" id="mappingOptoutSection">
+                                                            <div class="mb-3 p-3 border rounded">
+                                                                <label class="form-label fw-medium mb-1">Screening Lists</label>
+                                                                <small class="text-muted d-block mb-2">Recipients already on any selected list will be excluded before sending. Screening activates automatically when lists are selected.</small>
+                                                                <div class="border rounded p-2" style="max-height:130px;overflow-y:auto;">
+                                                                    <div class="form-check">
+                                                                        <input class="form-check-input opt-out-item" type="checkbox" value="1" id="optOut1">
+                                                                        <label class="form-check-label" for="optOut1">Opt-Out List <span class="text-muted">(24)</span></label>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1150,7 +1146,7 @@ $(document).ready(function() {
                 
                 if (data.optOutMode === 'NONE' || !data.optOutListNames || data.optOutListNames.length === 0) {
                     wizardData.optOutLists = ['NO'];
-                    $('#optOutNone').prop('checked', true);
+                    $('#enableMappingOptout').prop('checked', false);
                 } else {
                     wizardData.optOutLists = data.optOutListNames.map(function(name, idx) {
                         return { id: data.optOutListIds ? data.optOutListIds[idx] : 'opt-' + idx, name: name };
@@ -1410,6 +1406,18 @@ $(document).ready(function() {
         };
     }
     
+    function toggleMappingOptout() {
+        var enabled = document.getElementById('enableMappingOptout').checked;
+        var section = document.getElementById('mappingOptoutSection');
+        if (enabled) {
+            section.classList.remove('d-none');
+        } else {
+            section.classList.add('d-none');
+            $('.opt-out-item').prop('checked', false);
+            wizardData.optOutLists = ['NO'];
+        }
+    }
+
     function updateRecipientSummary() {
         var stats = calculateRecipientStats();
         
@@ -2166,21 +2174,10 @@ $(document).ready(function() {
         $('#btnOpenContactBookModal').html(btnText);
     }
     
-    // Opt-out list checkbox handlers
-    $('#optOutNone').on('change', function() {
-        if ($(this).is(':checked')) {
-            $('.opt-out-item').prop('checked', false);
-            wizardData.optOutLists = ['NO'];
-        }
-    });
-    
+    // Opt-out management toggle and checkbox handlers
     $('.opt-out-item').on('change', function() {
-        var anyChecked = $('.opt-out-item:checked').length > 0;
-        if (anyChecked) {
-            $('#optOutNone').prop('checked', false);
-            wizardData.optOutLists = $('.opt-out-item:checked').map(function() { return $(this).val(); }).get();
-        } else {
-            $('#optOutNone').prop('checked', true);
+        wizardData.optOutLists = $('.opt-out-item:checked').map(function() { return $(this).val(); }).get();
+        if (wizardData.optOutLists.length === 0) {
             wizardData.optOutLists = ['NO'];
         }
     });
