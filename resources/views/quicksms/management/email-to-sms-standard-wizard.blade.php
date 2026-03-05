@@ -371,17 +371,6 @@ button.btn-save-draft:hover {
                                                 <div class="invalid-feedback">Please select a SenderID.</div>
                                             </div>
                                             
-                                            <div class="col-md-6" id="stdSubjectAsSenderIdGroup">
-                                                <label class="form-label">Subject as SenderID</label>
-                                                <div class="form-check form-switch mt-2">
-                                                    <input class="form-check-input" type="checkbox" id="stdSubjectAsSenderId">
-                                                    <label class="form-check-label" for="stdSubjectAsSenderId">
-                                                        Extract SenderID from email subject
-                                                    </label>
-                                                </div>
-                                                <small class="text-muted">Overrides selected SenderID with subject line content.</small>
-                                            </div>
-                                            
                                             <div class="col-md-6">
                                                 <label class="form-label">Enable Multiple SMS</label>
                                                 <div class="form-check form-switch mt-2">
@@ -410,11 +399,6 @@ button.btn-save-draft:hover {
                                                 <div class="invalid-feedback">Valid email required.</div>
                                             </div>
                                             
-                                            <div class="col-12">
-                                                <label class="form-label">Filter Content (Signature Removal)</label>
-                                                <textarea class="form-control" id="stdSignatureFilter" rows="3" placeholder="e.g., --&#10;.*&#10;Sent from.*"></textarea>
-                                                <small class="text-muted">Remove matching content from emails. Regex patterns supported, one pattern per line.</small>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -466,10 +450,6 @@ button.btn-save-draft:hover {
                                                     <tr>
                                                         <td class="text-muted">Settings</td>
                                                         <td id="summaryMessageSettings">-</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="text-muted">Content Filters</td>
-                                                        <td id="summaryContentFilter">None</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
@@ -683,13 +663,9 @@ $(document).ready(function() {
         $('#summarySenderId').text($('#stdSenderId option:selected').text() || '-');
         
         var settings = [];
-        if ($('#stdSubjectAsSenderId').is(':checked')) settings.push('Subject as SenderID');
         if ($('#stdMultipleSms').is(':checked')) settings.push('Multiple SMS');
         if ($('#stdDeliveryReports').is(':checked')) settings.push('Delivery Reports');
         $('#summaryMessageSettings').text(settings.length > 0 ? settings.join(', ') : 'None');
-        
-        var filter = $('#stdSignatureFilter').val().trim();
-        $('#summaryContentFilter').text(filter ? 'Custom patterns applied' : 'None');
     }
     
     $('#btnNext').on('click', function() {
@@ -819,11 +795,10 @@ $(document).ready(function() {
             allowedSenderEmails: allowedEmails,
             senderId: $('#stdSenderId option:selected').text(),
             senderIdValue: $('#stdSenderId').val(),
-            subjectAsSenderId: $('#stdSubjectAsSenderId').is(':checked'),
+
             multipleSms: $('#stdMultipleSms').is(':checked'),
             deliveryReports: $('#stdDeliveryReports').is(':checked'),
             deliveryEmail: $('#stdDeliveryEmail').val().trim(),
-            contentFilter: $('#stdSignatureFilter').val().trim(),
             status: 'active',
             created: new Date().toISOString().split('T')[0],
             lastUpdated: new Date().toISOString().split('T')[0],
