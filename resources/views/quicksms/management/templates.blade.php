@@ -3608,23 +3608,82 @@ function editTemplate(id) {
 
 function duplicateTemplate(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
-    if (!template) return;
-    
-    var newId = mockTemplates.length + 1;
-    var newTemplateId = Math.floor(10000000 + Math.random() * 90000000).toString();
-    
-    var duplicate = Object.assign({}, template, {
-        id: newId,
-        templateId: newTemplateId,
-        name: template.name + ' (Copy)',
-        status: 'draft',
-        version: 1,
-        lastUpdated: new Date().toISOString().split('T')[0]
+    if (!template || !template.uuid) return;
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/api/message-templates/' + template.uuid, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        if (!result.data) {
+            showToast('Failed to load template for duplication', 'danger');
+            return;
+        }
+        var src = result.data;
+        var payload = {
+            name: src.name + ' (Copy)',
+            description: src.description || '',
+            type: src.type,
+            content: src.content || '',
+            status: 'draft'
+        };
+        if (src.rcs_content) payload.rcs_content = src.rcs_content;
+        if (src.category) payload.category = src.category;
+        if (src.tags && src.tags.length) payload.tags = src.tags;
+        if (src.sender_id_id) payload.sender_id_id = src.sender_id_id;
+        if (src.rcs_agent_id) payload.rcs_agent_id = src.rcs_agent_id;
+        if (src.opt_out_enabled) {
+            payload.opt_out_enabled = true;
+            if (src.opt_out_method) payload.opt_out_method = src.opt_out_method;
+            if (src.opt_out_number_id) payload.opt_out_number_id = src.opt_out_number_id;
+            if (src.opt_out_keyword) payload.opt_out_keyword = src.opt_out_keyword;
+            if (src.opt_out_text) payload.opt_out_text = src.opt_out_text;
+            if (src.opt_out_list_id) payload.opt_out_list_id = src.opt_out_list_id;
+            if (src.opt_out_url_enabled) payload.opt_out_url_enabled = true;
+            if (src.opt_out_screening_list_ids && src.opt_out_screening_list_ids.length) payload.opt_out_screening_list_ids = src.opt_out_screening_list_ids;
+        }
+        if (src.trackable_link_enabled) {
+            payload.trackable_link_enabled = true;
+            if (src.trackable_link_domain) payload.trackable_link_domain = src.trackable_link_domain;
+        }
+        if (src.message_expiry_enabled) {
+            payload.message_expiry_enabled = true;
+            if (src.message_expiry_value) payload.message_expiry_value = src.message_expiry_value;
+        }
+        if (src.social_hours_enabled) {
+            payload.social_hours_enabled = true;
+            if (src.social_hours_from) payload.social_hours_from = src.social_hours_from;
+            if (src.social_hours_to) payload.social_hours_to = src.social_hours_to;
+        }
+
+        return fetch('/api/message-templates', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+    })
+    .then(function(response) {
+        if (!response) return;
+        return response.json();
+    })
+    .then(function(result) {
+        if (!result) return;
+        if (result.data) {
+            showToast('Template duplicated as "' + result.data.name + '"', 'success');
+            setTimeout(function() { window.location.reload(); }, 800);
+        } else {
+            showToast(result.message || 'Duplication failed', 'danger');
+        }
+    })
+    .catch(function(err) {
+        showToast('Duplication failed: ' + err.message, 'danger');
     });
-    
-    mockTemplates.push(duplicate);
-    renderTemplates();
-    showToast('Template duplicated as "' + duplicate.name + '"', 'success');
 }
 
 var currentPermissions = {
