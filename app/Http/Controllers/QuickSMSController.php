@@ -709,9 +709,10 @@ class QuickSMSController extends Controller
             $accountId = session('customer_tenant_id');
             $user = $userId ? \App\Models\User::withoutGlobalScope('tenant')->find($userId) : null;
             if ($user) {
+                $lookupCol = is_numeric($agentId) ? 'id' : 'uuid';
                 $agentRecord = \App\Models\RcsAgent::withoutGlobalScope('tenant')
                     ->where('account_id', $accountId)
-                    ->where('id', $agentId)
+                    ->where($lookupCol, $agentId)
                     ->whereNull('deleted_at')
                     ->first();
                 if ($agentRecord) {
