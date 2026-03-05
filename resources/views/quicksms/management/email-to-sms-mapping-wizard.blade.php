@@ -640,8 +640,8 @@ button.btn-save-draft:hover {
                                             <strong>Step 5: Review & Confirm</strong> – Please review your mapping configuration before creating.
                                         </div>
                                         
-                                        <div class="alert alert-pastel-warning small py-2 mb-3">
-                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                        <div class="alert alert-pastel-primary small py-2 mb-3">
+                                            <i class="fas fa-info-circle me-1"></i>
                                             <strong>Note:</strong> Email address will be generated and cannot be changed after creation.
                                         </div>
                                         
