@@ -7,11 +7,16 @@
 <style>
 #apiStructureModal pre code,
 #apiStructureModal pre code * {
-    color: #f8f9fa !important;
+    color: #cdd6f4 !important;
     background: transparent !important;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace !important;
+    font-size: 0.8rem !important;
 }
 #apiStructureModal pre {
-    background-color: #1a1a1a !important;
+    background-color: #1e1e2e !important;
+    border: 1px solid #2d2d3d !important;
+    border-radius: 0.5rem !important;
+    white-space: pre-wrap !important;
 }
 #rcsWizardModal {
     z-index: 1060 !important;
@@ -4141,9 +4146,10 @@ function generateApiCodeExamples(template, placeholders) {
     var msisdnType = hasPlaceholders ? '"+447700900123"' : '["+447700900123", "+447700900456"]';
     var msisdnPy = hasPlaceholders ? '"+447700900123"' : '["+447700900123", "+447700900456"]';
     
+    var sampleValues = ['John', 'ORD-12345', 'Premium', '29.99', 'London', '10:00 AM', 'example.com', 'ABC123', 'Thank you', 'Active'];
     var placeholderObj = {};
-    placeholders.forEach(function(ph) {
-        placeholderObj[ph] = 'Example ' + ph;
+    placeholders.forEach(function(ph, i) {
+        placeholderObj[ph] = sampleValues[i] || 'value' + (i + 1);
     });
     var placeholderJson = JSON.stringify(placeholderObj, null, 2);
     var placeholderJsonInline = JSON.stringify(placeholderObj);
@@ -4199,8 +4205,8 @@ function generateApiCodeExamples(template, placeholders) {
         '    "template_id" => "' + realId + '",\n' +
         '    "msisdn" => ' + phpMsisdn;
     if (hasPlaceholders) {
-        var phpPlaceholders = placeholders.map(function(ph) {
-            return '"' + ph + '" => "Example ' + ph + '"';
+        var phpPlaceholders = placeholders.map(function(ph, i) {
+            return '"' + ph + '" => "' + (sampleValues[i] || 'value' + (i+1)) + '"';
         }).join(', ');
         phpCode += ',\n    "placeholders" => [' + phpPlaceholders + ']';
     }
@@ -4249,7 +4255,7 @@ function generateApiCodeExamples(template, placeholders) {
     if (hasPlaceholders) {
         csharpCode += ',\n    placeholders = new {\n';
         placeholders.forEach(function(ph, i) {
-            csharpCode += '        ' + ph + ' = "Example ' + ph + '"' + (i < placeholders.length - 1 ? ',' : '') + '\n';
+            csharpCode += '        ' + ph + ' = "' + (sampleValues[i] || 'value' + (i+1)) + '"' + (i < placeholders.length - 1 ? ',' : '') + '\n';
         });
         csharpCode += '    }';
     }
@@ -4263,18 +4269,34 @@ function generateApiCodeExamples(template, placeholders) {
         'var result = await response.Content.ReadAsStringAsync();\n' +
         'Console.WriteLine(result);';
     
-    document.getElementById('apiCodeCurl').textContent = curlCode;
-    document.getElementById('apiCodePython').textContent = pythonCode;
-    document.getElementById('apiCodeNodejs').textContent = nodejsCode;
-    document.getElementById('apiCodePhp').textContent = phpCode;
-    document.getElementById('apiCodeJava').textContent = javaCode;
-    document.getElementById('apiCodeCsharp').textContent = csharpCode;
+    var codes = {
+        apiCodeCurl: curlCode,
+        apiCodePython: pythonCode,
+        apiCodeNodejs: nodejsCode,
+        apiCodePhp: phpCode,
+        apiCodeJava: javaCode,
+        apiCodeCsharp: csharpCode
+    };
+    Object.keys(codes).forEach(function(elId) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        el.setAttribute('data-raw', codes[elId]);
+        var escaped = codes[elId]
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        var highlighted = escaped
+            .replace(/"([^"]+)"(\s*:)/g, '<span style="color: #f5c2e7;">"$1"</span>$2')
+            .replace(/:\s*"([^"]+)"/g, ': <span style="color: #a6e3a1;">"$1"</span>')
+            .replace(/"([^"]+)"/g, '<span style="color: #a6e3a1;">"$1"</span>')
+            .replace(/[\{\}\[\]]/g, '<span style="color: #6c7086;">$&</span>');
+        el.innerHTML = highlighted;
+    });
 }
 
 function copyApiCode() {
     var activePane = document.querySelector('#apiCodeTabContent .tab-pane.active code');
     if (activePane) {
-        navigator.clipboard.writeText(activePane.textContent).then(function() {
+        var raw = activePane.getAttribute('data-raw') || activePane.textContent;
+        navigator.clipboard.writeText(raw).then(function() {
             showToast('Code copied to clipboard', 'success');
         }).catch(function() {
             showToast('Failed to copy code', 'warning');
