@@ -293,21 +293,21 @@
                     <h6 class="mb-2"><i class="fas fa-info-circle text-primary me-1"></i>How it works</h6>
                     <ul class="mb-0 small text-muted" style="padding-left: 1.2rem;">
                         <li>Click a field to insert it at the cursor position</li>
-                        <li>Fields appear as <code>@{{Field_1}}</code> in your message</li>
-                        <li>When sending via the API, pass values in the <code>personalisation</code> object</li>
+                        <li>Fields appear as <span class="badge" style="background: #f0ebf8; color: #886CC0; font-family: monospace; font-weight: 500;">@{{Field_1}}</span> in your message</li>
+                        <li>When sending via the API, pass values in the <span class="badge" style="background: #f0ebf8; color: #886CC0; font-family: monospace; font-weight: 500;">personalisation</span> object</li>
                         <li>Fields can be used in SMS content, RCS card titles, descriptions, body text, and button labels</li>
                     </ul>
                 </div>
-                <div class="border rounded p-3" style="background: #f8f9fa;">
-                    <h6 class="mb-2"><i class="fas fa-terminal text-muted me-1"></i>API Example</h6>
-                    <pre class="mb-0 small" style="white-space: pre-wrap; color: #495057;"><code>{
-  "to": "+447700900100",
-  "template_id": "your-template-id",
-  "personalisation": {
-    "Field_1": "John",
-    "Field_2": "ORD-12345"
-  }
-}</code></pre>
+                <div class="rounded p-3" style="background: #1e1e2e; border: 1px solid #2d2d3d;">
+                    <h6 class="mb-2" style="color: #cdd6f4;"><i class="fas fa-terminal me-1" style="color: #f5c2e7;"></i>API Example</h6>
+                    <pre class="mb-0 small" style="white-space: pre-wrap; color: #cdd6f4; font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;"><span style="color: #6c7086;">{</span>
+  <span style="color: #f5c2e7;">"to"</span>: <span style="color: #a6e3a1;">"+447700900100"</span>,
+  <span style="color: #f5c2e7;">"template_id"</span>: <span style="color: #a6e3a1;">"your-template-id"</span>,
+  <span style="color: #f5c2e7;">"personalisation"</span>: <span style="color: #6c7086;">{</span>
+    <span style="color: #f5c2e7;">"Field_1"</span>: <span style="color: #a6e3a1;">"John"</span>,
+    <span style="color: #f5c2e7;">"Field_2"</span>: <span style="color: #a6e3a1;">"ORD-12345"</span>
+  <span style="color: #6c7086;">}</span>
+<span style="color: #6c7086;">}</span></pre>
                 </div>
             </div>
         </div>
