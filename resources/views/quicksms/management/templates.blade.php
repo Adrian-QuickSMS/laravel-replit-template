@@ -107,15 +107,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.templates-table thead th:first-child { width: 14%; }  /* Name */
-.templates-table thead th:nth-child(2) { width: 10%; } /* ID */
-.templates-table thead th:nth-child(3) { width: 6%; }  /* Ver */
-.templates-table thead th:nth-child(4) { width: 10%; } /* Channel */
-.templates-table thead th:nth-child(5) { width: 8%; }  /* Trigger */
-.templates-table thead th:nth-child(6) { width: 18%; } /* Preview */
-.templates-table thead th:nth-child(7) { width: 12%; } /* Scope */
-.templates-table thead th:nth-child(8) { width: 7%; }  /* Status */
-.templates-table thead th:nth-child(9) { width: 10%; } /* Updated */
+.templates-table thead th:first-child { width: 16%; }  /* Name */
+.templates-table thead th:nth-child(2) { width: 6%; }  /* Ver */
+.templates-table thead th:nth-child(3) { width: 11%; } /* Channel */
+.templates-table thead th:nth-child(4) { width: 8%; }  /* Trigger */
+.templates-table thead th:nth-child(5) { width: 20%; } /* Preview */
+.templates-table thead th:nth-child(6) { width: 14%; } /* Scope */
+.templates-table thead th:nth-child(7) { width: 8%; }  /* Status */
+.templates-table thead th:nth-child(8) { width: 11%; } /* Updated */
 .templates-table thead th:last-child { 
     width: 40px; 
     background: #f8f9fa;
@@ -712,7 +711,7 @@
                 <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" class="form-control" id="templateSearch" placeholder="Search by name or ID...">
+                        <input type="text" class="form-control" id="templateSearch" placeholder="Search by name...">
                     </div>
                 </div>
             </div>
@@ -813,7 +812,6 @@
                     <thead>
                         <tr>
                             <th data-sort="name" onclick="sortTable('name')">Name <i class="fas fa-sort sort-icon"></i></th>
-                            <th data-sort="templateId" onclick="sortTable('templateId')">ID <i class="fas fa-sort sort-icon"></i></th>
                             <th data-sort="version" onclick="sortTable('version')">Ver <i class="fas fa-sort sort-icon"></i></th>
                             <th data-sort="channel" onclick="sortTable('channel')">Channel <i class="fas fa-sort sort-icon"></i></th>
                             <th data-sort="trigger" onclick="sortTable('trigger')">Trigger <i class="fas fa-sort sort-icon"></i></th>
@@ -3521,7 +3519,7 @@ function renderTemplates() {
             return false;
         }
         
-        var matchSearch = !search || t.name.toLowerCase().includes(search) || t.templateId.includes(search);
+        var matchSearch = !search || t.name.toLowerCase().includes(search);
         var matchChannel = appliedFilters.channels.length === 0 || appliedFilters.channels.includes(t.channel);
         var matchTrigger = appliedFilters.triggers.length === 0 || appliedFilters.triggers.includes(t.trigger);
         var matchStatus = appliedFilters.statuses.length === 0 || appliedFilters.statuses.includes(t.status);
@@ -3569,7 +3567,6 @@ function renderTemplates() {
         
         html += '<tr class="' + rowClass + '">';
         html += '<td><span class="template-name" title="' + template.name.replace(/"/g, '&quot;') + '">' + template.name + '</span></td>';
-        html += '<td><span class="template-id">' + template.templateId + '</span></td>';
         html += '<td><span class="version-text">v' + template.version + '</span></td>';
         html += '<td><span class="channel-text">' + getChannelLabel(template.channel) + '</span></td>';
         html += '<td>' + getTriggerLabel(template.trigger) + '</td>';
