@@ -171,7 +171,7 @@ class MessageTemplateApiController extends Controller
             'rcs_content' => 'nullable|array',
             'category' => 'nullable|string|max:100',
             'tags' => 'nullable|array',
-            'status' => 'nullable|string|in:draft,active,archived',
+            'status' => 'nullable|string|in:draft,active,suspended,archived',
             // Sender / RCS Agent
             'sender_id_id' => 'nullable|uuid',
             'rcs_agent_id' => 'nullable|uuid',
@@ -216,20 +216,33 @@ class MessageTemplateApiController extends Controller
 
         $validated['updated_by'] = session('customer_email', session('customer_user_id'));
 
-        $this->createVersionSnapshot($template, 'Version before edit');
+        $requestKeys = array_keys($request->except(['_token', '_method']));
+        $isStatusOnlyChange = isset($validated['status']) && count($requestKeys) === 1 && $requestKeys[0] === 'status';
 
-        $newVersion = ($template->version ?? 1) + 1;
-        $validated['version'] = $newVersion;
+        if ($isStatusOnlyChange) {
+            $oldStatus = $template->status;
+            $newStatus = $validated['status'];
+            $template->update($validated);
 
-        $template->update($validated);
+            $statusLabels = ['active' => 'live', 'suspended' => 'suspended', 'archived' => 'archived', 'draft' => 'draft'];
+            $label = $statusLabels[$newStatus] ?? $newStatus;
+            $this->createAuditEntry($template, $newStatus === 'archived' ? 'archived' : ($newStatus === 'suspended' ? 'suspended' : 'status-changed'), 'Status changed from ' . ($statusLabels[$oldStatus] ?? $oldStatus) . ' to ' . $label);
+        } else {
+            $this->createVersionSnapshot($template, 'Version before edit');
 
-        if (isset($validated['content']) || isset($validated['type'])) {
-            $template->recalculateMetadata();
-            $template->save();
+            $newVersion = ($template->version ?? 1) + 1;
+            $validated['version'] = $newVersion;
+
+            $template->update($validated);
+
+            if (isset($validated['content']) || isset($validated['type'])) {
+                $template->recalculateMetadata();
+                $template->save();
+            }
+
+            $this->createVersionSnapshot($template, 'Edited');
+            $this->createAuditEntry($template, 'edited', 'Template updated to v' . $newVersion);
         }
-
-        $this->createVersionSnapshot($template, 'Edited');
-        $this->createAuditEntry($template, 'edited', 'Template updated to v' . $newVersion);
 
         return response()->json(['data' => $template->toPortalArray()]);
     }

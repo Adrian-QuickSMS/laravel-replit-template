@@ -432,7 +432,7 @@ class QuickSMSController extends Controller
                 'contentType' => $typeToContentType[$t->type] ?? 'text',
                 'accessScope' => 'All Sub-accounts',
                 'subAccounts' => ['all'],
-                'status' => $t->status === 'active' ? 'live' : $t->status,
+                'status' => $t->status === 'active' ? 'live' : ($t->status === 'suspended' ? 'suspended' : $t->status),
                 'version' => $t->version ?? 1,
                 'lastUpdated' => $t->updated_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
             ])

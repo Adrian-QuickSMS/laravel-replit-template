@@ -233,6 +233,10 @@
     background: rgba(255, 191, 0, 0.15);
     color: #cc9900;
 }
+.badge-suspended {
+    background: rgba(255, 153, 0, 0.15);
+    color: #e68a00;
+}
 .badge-archived {
     background: rgba(220, 53, 69, 0.15);
     color: #dc3545;
@@ -759,6 +763,7 @@
                                 </div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="draft" id="statusDraft"><label class="form-check-label small" for="statusDraft">Draft</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="live" id="statusLive"><label class="form-check-label small" for="statusLive">Live</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" value="suspended" id="statusSuspended"><label class="form-check-label small" for="statusSuspended">Suspended</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="paused" id="statusPaused"><label class="form-check-label small" for="statusPaused">Paused</label></div>
                                 <div class="form-check"><input class="form-check-input" type="checkbox" value="archived" id="statusArchived"><label class="form-check-label small" for="statusArchived">Archived</label></div>
                             </div>
@@ -2473,7 +2478,7 @@ var appliedFilters = {
 var filterLabels = {
     channels: { 'sms': 'SMS', 'basic_rcs': 'Basic RCS', 'rich_rcs': 'Rich RCS' },
     triggers: { 'api': 'API', 'portal': 'Portal', 'email': 'Email-to-SMS' },
-    statuses: { 'draft': 'Draft', 'live': 'Live', 'paused': 'Paused', 'archived': 'Archived' },
+    statuses: { 'draft': 'Draft', 'live': 'Live', 'suspended': 'Suspended', 'paused': 'Paused', 'archived': 'Archived' },
     subAccounts: { 'marketing': 'Marketing Team', 'sales': 'Sales', 'support': 'Support Team', 'it': 'IT Security', 'all': 'All Sub-accounts' }
 };
 
@@ -3474,6 +3479,7 @@ function getStatusBadgeClass(status) {
     switch(status) {
         case 'draft': return 'badge-draft';
         case 'live': return 'badge-live';
+        case 'suspended': return 'badge-suspended';
         case 'paused': return 'badge-paused';
         case 'archived': return 'badge-archived';
         default: return 'badge-draft';
@@ -3586,7 +3592,14 @@ function renderTemplates() {
         }
         if (!isArchived) {
             html += '<li><hr class="dropdown-divider"></li>';
-            html += '<li><a class="dropdown-item text-warning" href="#" onclick="archiveTemplate(' + template.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+            if (template.status === 'live') {
+                html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(' + template.id + '); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
+            } else if (template.status === 'suspended') {
+                html += '<li><a class="dropdown-item text-success" href="#" onclick="unsuspendTemplate(' + template.id + '); return false;"><i class="fas fa-play-circle me-2"></i>Unsuspend</a></li>';
+                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(' + template.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+            } else if (template.status === 'draft') {
+                html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(' + template.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
+            }
         }
         
         html += '</ul>';
@@ -4230,6 +4243,47 @@ function copyApiCode() {
     }
 }
 
+function updateTemplateStatus(id, newStatus, successMessage) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template || !template.uuid) return;
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/api/message-templates/' + template.uuid, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(result) {
+        if (result.data) {
+            showToast(successMessage, 'success');
+            setTimeout(function() { window.location.reload(); }, 800);
+        } else {
+            showToast(result.message || 'Status update failed', 'danger');
+        }
+    })
+    .catch(function(err) {
+        showToast('Status update failed: ' + err.message, 'danger');
+    });
+}
+
+function suspendTemplate(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template) return;
+    updateTemplateStatus(id, 'suspended', 'Template "' + template.name + '" has been suspended');
+}
+
+function unsuspendTemplate(id) {
+    var template = mockTemplates.find(function(t) { return t.id === id; });
+    if (!template) return;
+    updateTemplateStatus(id, 'active', 'Template "' + template.name + '" is now Live again');
+}
+
 function archiveTemplate(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
     if (!template) return;
@@ -4246,21 +4300,14 @@ function executeArchiveTemplate() {
     var modal = bootstrap.Modal.getInstance(document.getElementById('archiveConfirmModal'));
     modal.hide();
     
-    template.status = 'archived';
-    template.lastUpdated = new Date().toISOString().split('T')[0];
-    renderTemplates();
-    showToast('Template "' + template.name + '" has been archived', 'success');
+    updateTemplateStatus(id, 'archived', 'Template "' + template.name + '" has been archived');
 }
 
 function goLiveTemplate(id) {
     var template = mockTemplates.find(function(t) { return t.id === id; });
     if (!template || template.status === 'archived') return;
     
-    template.status = 'live';
-    template.version = template.version + 1;
-    template.lastUpdated = new Date().toISOString().split('T')[0];
-    renderTemplates();
-    showToast('Template "' + template.name + '" is now Live (v' + template.version + ')', 'success');
+    updateTemplateStatus(id, 'active', 'Template "' + template.name + '" is now Live (v' + template.version + ')');
 }
 
 function showToast(message, type) {

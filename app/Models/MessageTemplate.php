@@ -46,11 +46,13 @@ class MessageTemplate extends Model
 
     const STATUS_DRAFT = 'draft';
     const STATUS_ACTIVE = 'active';
+    const STATUS_SUSPENDED = 'suspended';
     const STATUS_ARCHIVED = 'archived';
 
     const STATUSES = [
         self::STATUS_DRAFT,
         self::STATUS_ACTIVE,
+        self::STATUS_SUSPENDED,
         self::STATUS_ARCHIVED,
     ];
 
