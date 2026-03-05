@@ -342,6 +342,44 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/message-templ
     Route::post('/analyse-content', 'analyseContent')->name('api.message-templates.analyse-content');
 });
 
+// =====================================================
+// Email-to-SMS API (Customer Portal)
+// =====================================================
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms')
+    ->controller(\App\Http\Controllers\Api\EmailToSmsController::class)->group(function () {
+    // Overview (unified standard + contact list listing)
+    Route::get('/overview', 'overview')->name('api.email-to-sms.overview');
+
+    // Helper endpoints
+    Route::get('/templates/senderids', 'senderIdTemplates')->name('api.email-to-sms.sender-id-templates');
+    Route::get('/subaccounts', 'subaccounts')->name('api.email-to-sms.subaccounts');
+    Route::get('/account/flags', 'accountFlags')->name('api.email-to-sms.account-flags');
+
+    // Setup CRUD
+    Route::get('/setups', 'index')->name('api.email-to-sms.setups.index');
+    Route::post('/setups', 'store')->name('api.email-to-sms.setups.store');
+    Route::get('/setups/{id}', 'show')->name('api.email-to-sms.setups.show');
+    Route::put('/setups/{id}', 'update')->name('api.email-to-sms.setups.update');
+    Route::delete('/setups/{id}', 'destroy')->name('api.email-to-sms.setups.destroy');
+
+    // State transitions
+    Route::post('/setups/{id}/suspend', 'suspend')->name('api.email-to-sms.setups.suspend');
+    Route::post('/setups/{id}/reactivate', 'reactivate')->name('api.email-to-sms.setups.reactivate');
+    Route::post('/setups/{id}/archive', 'archive')->name('api.email-to-sms.setups.archive');
+    Route::post('/setups/{id}/unarchive', 'unarchive')->name('api.email-to-sms.setups.unarchive');
+});
+
+Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms/reporting-groups')
+    ->controller(\App\Http\Controllers\Api\EmailToSmsReportingGroupController::class)->group(function () {
+    Route::get('/', 'index')->name('api.email-to-sms.reporting-groups.index');
+    Route::post('/', 'store')->name('api.email-to-sms.reporting-groups.store');
+    Route::get('/{id}', 'show')->name('api.email-to-sms.reporting-groups.show');
+    Route::put('/{id}', 'update')->name('api.email-to-sms.reporting-groups.update');
+    Route::delete('/{id}', 'destroy')->name('api.email-to-sms.reporting-groups.destroy');
+    Route::post('/{id}/archive', 'archive')->name('api.email-to-sms.reporting-groups.archive');
+    Route::post('/{id}/unarchive', 'unarchive')->name('api.email-to-sms.reporting-groups.unarchive');
+});
+
 Route::prefix('admin')->group(function () {
     Route::controller(\App\Http\Controllers\AdminAuthController::class)->group(function () {
         Route::get('/login', 'showLogin')->name('admin.login');
@@ -399,7 +437,19 @@ Route::prefix('admin')->group(function () {
             Route::get('/assets/email-to-sms', 'assetsEmailToSms')->name('admin.assets.email-to-sms');
             Route::get('/assets/email-to-sms/standard/{id}/edit', 'assetsEmailToSmsStandardEdit')->name('admin.assets.email-to-sms.standard.edit');
             Route::get('/assets/email-to-sms/contact-list/{id}/edit', 'assetsEmailToSmsContactListEdit')->name('admin.assets.email-to-sms.contact-list.edit');
-            
+
+            // Admin Email-to-SMS API endpoints
+            Route::prefix('api/email-to-sms')->controller(\App\Http\Controllers\Api\Admin\AdminEmailToSmsController::class)->group(function () {
+                Route::get('/overview', 'overview')->name('admin.api.email-to-sms.overview');
+                Route::get('/accounts', 'accounts')->name('admin.api.email-to-sms.accounts');
+                Route::get('/reporting-groups', 'reportingGroups')->name('admin.api.email-to-sms.reporting-groups');
+                Route::get('/setups/{id}', 'show')->name('admin.api.email-to-sms.show');
+                Route::put('/setups/{id}', 'update')->name('admin.api.email-to-sms.update');
+                Route::post('/setups/{id}/suspend', 'suspend')->name('admin.api.email-to-sms.suspend');
+                Route::post('/setups/{id}/reactivate', 'reactivate')->name('admin.api.email-to-sms.reactivate');
+                Route::delete('/setups/{id}', 'destroy')->name('admin.api.email-to-sms.destroy');
+            });
+
             Route::get('/api/connections', 'apiConnections')->name('admin.api.connections');
             Route::get('/api/connections/create', 'apiConnectionCreate')->name('admin.api.connections.create');
             Route::get('/api/callbacks', 'apiCallbacks')->name('admin.api.callbacks');
