@@ -537,33 +537,32 @@ button.btn-save-draft:hover {
                                                 </div>
                                             </div>
                                             
-                                            {{-- Right: Opt-out Lists Compact Card --}}
+                                            {{-- Right: Opt-out Lists --}}
                                             <div class="col-lg-4 mb-3">
-                                                <div class="card h-100">
-                                                    <div class="card-header py-2">
-                                                        <h6 class="mb-0 small"><i class="fas fa-ban me-1"></i> Opt-out Lists</h6>
-                                                    </div>
-                                                    <div class="card-body p-2" style="font-size: 12px;">
-                                                        <div class="form-check mb-1">
+                                                <div class="card h-100 border-0" style="background: #f8f7fc; border-radius: 0.75rem;">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="mb-2"><i class="fas fa-ban me-1" style="color: #886CC0;"></i> Opt-out Lists</h6>
+                                                        <div class="form-check mb-2">
                                                             <input class="form-check-input" type="checkbox" id="optOutNone" checked>
                                                             <label class="form-check-label" for="optOutNone">No opt-out (include all)</label>
                                                         </div>
-                                                        <hr class="my-1">
-                                                        <div class="form-check mb-1">
-                                                            <input class="form-check-input opt-out-item" type="checkbox" value="1" id="optOut1">
-                                                            <label class="form-check-label" for="optOut1">Global Opt-out <span class="badge badge-pastel-danger">2,345</span></label>
-                                                        </div>
-                                                        <div class="form-check mb-1">
-                                                            <input class="form-check-input opt-out-item" type="checkbox" value="2" id="optOut2">
-                                                            <label class="form-check-label" for="optOut2">Marketing <span class="badge badge-pastel-warning">1,234</span></label>
-                                                        </div>
-                                                        <div class="form-check mb-1">
-                                                            <input class="form-check-input opt-out-item" type="checkbox" value="3" id="optOut3">
-                                                            <label class="form-check-label" for="optOut3">NHS DNC <span class="badge badge-pastel-info">567</span></label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input opt-out-item" type="checkbox" value="4" id="optOut4">
-                                                            <label class="form-check-label" for="optOut4">Temporary <span class="badge badge-pastel-secondary">89</span></label>
+                                                        <div class="border rounded p-2 bg-white" style="max-height: 180px; overflow-y: auto;">
+                                                            <div class="form-check mb-2">
+                                                                <input class="form-check-input opt-out-item" type="checkbox" value="1" id="optOut1">
+                                                                <label class="form-check-label" for="optOut1">Global Opt-out <span class="text-muted">(2,345)</span></label>
+                                                            </div>
+                                                            <div class="form-check mb-2">
+                                                                <input class="form-check-input opt-out-item" type="checkbox" value="2" id="optOut2">
+                                                                <label class="form-check-label" for="optOut2">Marketing <span class="text-muted">(1,234)</span></label>
+                                                            </div>
+                                                            <div class="form-check mb-2">
+                                                                <input class="form-check-input opt-out-item" type="checkbox" value="3" id="optOut3">
+                                                                <label class="form-check-label" for="optOut3">NHS DNC <span class="text-muted">(567)</span></label>
+                                                            </div>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input opt-out-item" type="checkbox" value="4" id="optOut4">
+                                                                <label class="form-check-label" for="optOut4">Temporary <span class="text-muted">(89)</span></label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
