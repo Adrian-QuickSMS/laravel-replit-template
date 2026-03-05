@@ -367,6 +367,15 @@ Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms'
     Route::post('/setups/{id}/reactivate', 'reactivate')->name('api.email-to-sms.setups.reactivate');
     Route::post('/setups/{id}/archive', 'archive')->name('api.email-to-sms.setups.archive');
     Route::post('/setups/{id}/unarchive', 'unarchive')->name('api.email-to-sms.setups.unarchive');
+
+    // Contact List setup aliases — JS service calls /contact-list-setups/* which maps to unified /setups?type=contact_list
+    Route::get('/contact-list-setups', 'index')->name('api.email-to-sms.contact-list-setups.index')
+        ->defaults('type', 'contact_list');
+    Route::post('/contact-list-setups', 'store')->name('api.email-to-sms.contact-list-setups.store');
+    Route::get('/contact-list-setups/{id}', 'show')->name('api.email-to-sms.contact-list-setups.show');
+    Route::put('/contact-list-setups/{id}', 'update')->name('api.email-to-sms.contact-list-setups.update');
+    Route::post('/contact-list-setups/{id}/archive', 'archive')->name('api.email-to-sms.contact-list-setups.archive');
+    Route::post('/contact-list-setups/{id}/unarchive', 'unarchive')->name('api.email-to-sms.contact-list-setups.unarchive');
 });
 
 Route::middleware(['customer.auth', 'throttle:60,1'])->prefix('api/email-to-sms/reporting-groups')

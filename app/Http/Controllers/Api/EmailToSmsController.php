@@ -35,8 +35,9 @@ class EmailToSmsController extends Controller
             });
         }
 
-        if ($request->filled('type')) {
-            $query->where('type', $request->input('type'));
+        $type = $request->input('type') ?? $request->route('type');
+        if ($type) {
+            $query->where('type', $type);
         }
 
         if ($request->filled('status')) {
@@ -556,7 +557,7 @@ class EmailToSmsController extends Controller
             'multipleSmsEnabled' => $setup->multiple_sms_enabled,
             'deliveryReportsEnabled' => $setup->delivery_reports_enabled,
             'deliveryReportsEmail' => $setup->delivery_reports_email,
-            'status' => $setup->status,
+            'status' => ucfirst($setup->status),
             'type' => $setup->type,
             'reportingGroupId' => $setup->reporting_group_id,
             'reportingGroupName' => $setup->reportingGroup?->name,
