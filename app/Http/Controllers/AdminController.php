@@ -1493,6 +1493,7 @@ class AdminController extends Controller
                 'contentType' => $typeToContentType[$t->type] ?? 'text',
                 'accessScope' => 'All Sub-accounts',
                 'status' => $t->status === 'active' ? 'live' : $t->status,
+                'suspendedBy' => $t->suspended_by,
                 'version' => $t->version ?? 1,
                 'lastUpdated' => $t->updated_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
             ];
@@ -1527,6 +1528,7 @@ class AdminController extends Controller
 
         $reason = $request->input('reason', '');
         $template->status = 'suspended';
+        $template->suspended_by = 'admin';
         $template->save();
 
         \App\Models\MessageTemplateAuditLog::create([
@@ -1539,7 +1541,7 @@ class AdminController extends Controller
             'details' => 'Admin suspended template' . ($reason ? ': ' . $reason : ''),
         ]);
 
-        return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'suspended']]);
+        return response()->json(['success' => true, 'data' => ['id' => $template->id, 'status' => 'suspended', 'suspended_by' => 'admin']]);
     }
 
     public function apiTemplateReactivate(Request $request, string $accountId, string $templateId): \Illuminate\Http\JsonResponse
@@ -1554,6 +1556,7 @@ class AdminController extends Controller
         }
 
         $template->status = 'active';
+        $template->suspended_by = null;
         $template->save();
 
         \App\Models\MessageTemplateAuditLog::create([

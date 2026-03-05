@@ -49,6 +49,9 @@ class MessageTemplate extends Model
     const STATUS_SUSPENDED = 'suspended';
     const STATUS_ARCHIVED = 'archived';
 
+    const SUSPENDED_BY_ADMIN = 'admin';
+    const SUSPENDED_BY_CUSTOMER = 'customer';
+
     const STATUSES = [
         self::STATUS_DRAFT,
         self::STATUS_ACTIVE,
@@ -105,6 +108,7 @@ class MessageTemplate extends Model
         'social_hours_from',
         'social_hours_to',
         'status',
+        'suspended_by',
         'version',
         'is_favourite',
         'category',
@@ -364,6 +368,7 @@ class MessageTemplate extends Model
             'social_hours_from' => $this->social_hours_from,
             'social_hours_to' => $this->social_hours_to,
             'status' => $this->status,
+            'suspended_by' => $this->suspended_by,
             'version' => $this->version,
             'is_favourite' => $this->is_favourite,
             'category' => $this->category,

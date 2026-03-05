@@ -222,12 +222,42 @@ class MessageTemplateApiController extends Controller
         if ($isStatusOnlyChange) {
             $oldStatus = $template->status;
             $newStatus = $validated['status'];
+
+            if ($oldStatus === 'suspended' && $newStatus === 'active' && $template->suspended_by === 'admin') {
+                return response()->json([
+                    'message' => 'This template has been suspended by an administrator and cannot be unsuspended from the customer portal. Please contact support.',
+                    'error' => 'admin_suspended',
+                ], 403);
+            }
+
+            if ($newStatus === 'suspended') {
+                $validated['suspended_by'] = 'customer';
+            } elseif ($oldStatus === 'suspended' && $newStatus === 'active') {
+                $validated['suspended_by'] = null;
+            }
+
             $template->update($validated);
 
             $statusLabels = ['active' => 'live', 'suspended' => 'suspended', 'archived' => 'archived', 'draft' => 'draft'];
             $label = $statusLabels[$newStatus] ?? $newStatus;
             $this->createAuditEntry($template, $newStatus === 'archived' ? 'archived' : ($newStatus === 'suspended' ? 'suspended' : 'status-changed'), 'Status changed from ' . ($statusLabels[$oldStatus] ?? $oldStatus) . ' to ' . $label);
         } else {
+            if (isset($validated['status'])) {
+                $oldStatus = $template->status;
+                $newStatus = $validated['status'];
+                if ($oldStatus === 'suspended' && $newStatus === 'active' && $template->suspended_by === 'admin') {
+                    return response()->json([
+                        'message' => 'This template has been suspended by an administrator and cannot be unsuspended from the customer portal. Please contact support.',
+                        'error' => 'admin_suspended',
+                    ], 403);
+                }
+                if ($newStatus === 'suspended') {
+                    $validated['suspended_by'] = 'customer';
+                } elseif ($oldStatus === 'suspended' && $newStatus !== 'suspended') {
+                    $validated['suspended_by'] = null;
+                }
+            }
+
             $this->createVersionSnapshot($template, 'Version before edit');
 
             $newVersion = ($template->version ?? 1) + 1;

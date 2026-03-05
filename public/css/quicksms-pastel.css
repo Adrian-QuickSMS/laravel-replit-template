@@ -473,8 +473,14 @@
     color: #1cbb8c;
 }
 
-/* Suspended Status - Red */
+/* Suspended Status - Yellow (customer suspension) */
 .badge-suspended {
+    background: rgba(255, 191, 0, 0.15);
+    color: #cc9900;
+}
+
+/* Admin Suspended Status - Red (admin suspension, higher authority) */
+.badge-suspended-admin {
     background: rgba(220, 53, 69, 0.15);
     color: #dc3545;
 }

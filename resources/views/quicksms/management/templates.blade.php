@@ -234,8 +234,12 @@
     color: #cc9900;
 }
 .badge-suspended {
-    background: rgba(255, 153, 0, 0.15);
-    color: #e68a00;
+    background: rgba(255, 191, 0, 0.15);
+    color: #cc9900;
+}
+.badge-suspended-admin {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
 }
 .badge-archived {
     background: rgba(220, 53, 69, 0.15);
@@ -3471,19 +3475,20 @@ function getTriggerIcon(trigger) {
     return '';
 }
 
-function getStatusLabel(status) {
-    return status.charAt(0).toUpperCase() + status.slice(1);
-}
-
-function getStatusBadgeClass(status) {
+function getStatusBadgeClass(status, suspendedBy) {
     switch(status) {
         case 'draft': return 'badge-draft';
         case 'live': return 'badge-live';
-        case 'suspended': return 'badge-suspended';
+        case 'suspended': return suspendedBy === 'admin' ? 'badge-suspended-admin' : 'badge-suspended';
         case 'paused': return 'badge-paused';
         case 'archived': return 'badge-archived';
         default: return 'badge-draft';
     }
+}
+
+function getStatusLabel(status, suspendedBy) {
+    if (status === 'suspended' && suspendedBy === 'admin') return 'Suspended (Admin)';
+    return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
 function getContentPreview(template) {
@@ -3570,7 +3575,7 @@ function renderTemplates() {
         html += '<td>' + getTriggerLabel(template.trigger) + '</td>';
         html += '<td><span class="content-preview">' + getContentPreviewText(template) + '</span></td>';
         html += '<td><span class="access-scope">' + template.accessScope + '</span></td>';
-        html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span></td>';
+        html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status, template.suspendedBy) + '">' + getStatusLabel(template.status, template.suspendedBy) + '</span></td>';
         html += '<td>' + formatDate(template.lastUpdated) + '</td>';
         html += '<td>';
         html += '<div class="dropdown">';
@@ -3595,7 +3600,11 @@ function renderTemplates() {
             if (template.status === 'live') {
                 html += '<li><a class="dropdown-item text-warning" href="#" onclick="suspendTemplate(' + template.id + '); return false;"><i class="fas fa-pause-circle me-2"></i>Suspend</a></li>';
             } else if (template.status === 'suspended') {
-                html += '<li><a class="dropdown-item text-success" href="#" onclick="unsuspendTemplate(' + template.id + '); return false;"><i class="fas fa-play-circle me-2"></i>Unsuspend</a></li>';
+                if (template.suspendedBy === 'admin') {
+                    html += '<li><span class="dropdown-item text-muted disabled" style="cursor: not-allowed; opacity: 0.6;"><i class="fas fa-lock me-2"></i>Admin Suspended</span></li>';
+                } else {
+                    html += '<li><a class="dropdown-item text-success" href="#" onclick="unsuspendTemplate(' + template.id + '); return false;"><i class="fas fa-play-circle me-2"></i>Unsuspend</a></li>';
+                }
                 html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(' + template.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';
             } else if (template.status === 'draft') {
                 html += '<li><a class="dropdown-item text-danger" href="#" onclick="archiveTemplate(' + template.id + '); return false;"><i class="fas fa-archive me-2"></i>Archive</a></li>';

@@ -267,6 +267,10 @@
     background: rgba(255, 191, 0, 0.15);
     color: #cc9900;
 }
+.badge-suspended-admin {
+    background: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
 .badge-archived {
     background: rgba(220, 53, 69, 0.15);
     color: #dc3545;
@@ -1254,7 +1258,7 @@ function renderTemplates(templates) {
         html += '<td>' + getTriggerLabel(template.trigger) + '</td>';
         html += '<td>' + getSenderAgentLabel(template) + '</td>';
         html += '<td><span class="access-scope">' + template.accessScope + '</span></td>';
-        html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span></td>';
+        html += '<td><span class="badge rounded-pill ' + getStatusBadgeClass(template.status, template.suspendedBy) + '">' + getStatusLabel(template.status, template.suspendedBy) + '</span></td>';
         html += '<td>' + template.lastUpdated + '</td>';
         html += '<td>';
         html += '<div class="dropdown">';
@@ -1441,15 +1445,17 @@ function getTriggerLabel(trigger) {
     }
 }
 
-function getStatusLabel(status) {
+function getStatusLabel(status, suspendedBy) {
+    if (status === 'suspended' && suspendedBy === 'admin') return 'Suspended (Admin)';
+    if (status === 'suspended' && suspendedBy === 'customer') return 'Suspended (Customer)';
     return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-function getStatusBadgeClass(status) {
+function getStatusBadgeClass(status, suspendedBy) {
     switch(status) {
         case 'draft': return 'badge-draft';
         case 'live': return 'badge-live';
-        case 'suspended': return 'badge-suspended';
+        case 'suspended': return suspendedBy === 'admin' ? 'badge-suspended-admin' : 'badge-suspended';
         case 'archived': return 'badge-archived';
         default: return 'badge-draft';
     }
@@ -1514,7 +1520,7 @@ async function viewTemplate(accountId, templateId) {
         document.getElementById('viewVersion').textContent = 'v' + template.version;
         document.getElementById('viewChannel').innerHTML = '<span class="badge rounded-pill ' + getChannelBadgeClass(template.channel) + '">' + getChannelLabel(template.channel) + '</span>';
         document.getElementById('viewTrigger').textContent = getTriggerLabel(template.trigger);
-        document.getElementById('viewStatus').innerHTML = '<span class="badge rounded-pill ' + getStatusBadgeClass(template.status) + '">' + getStatusLabel(template.status) + '</span>';
+        document.getElementById('viewStatus').innerHTML = '<span class="badge rounded-pill ' + getStatusBadgeClass(template.status, template.suspendedBy) + '">' + getStatusLabel(template.status, template.suspendedBy) + '</span>';
         document.getElementById('viewContent').textContent = template.content || (template.contentType === 'rich_card' ? 'Rich RCS Card' : 'Carousel');
         document.getElementById('viewSenderId').textContent = template.senderId || '-';
         document.getElementById('viewRcsAgent').textContent = template.rcsAgent || '-';
