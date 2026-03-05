@@ -944,7 +944,7 @@ button.btn-save-draft:hover {
                 <p class="mb-3">Your Email-to-SMS mapping has been created successfully. Send emails to the address below to trigger SMS messages:</p>
                 <div class="success-email-box rounded p-3 mb-3">
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <code class="fs-5" id="successEmailAddress">-</code>
+                        <span class="fs-5 fw-semibold" id="successEmailAddress" style="color: #2c2c2c; font-family: monospace;">-</span>
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCopySuccessEmail" title="Copy to clipboard">
                             <i class="fas fa-copy"></i>
                         </button>
