@@ -276,13 +276,39 @@ button.btn-save-draft:hover {
                                             
                                             <div class="col-lg-6 mb-3">
                                                 <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
-                                                <select class="form-select" id="stdSubaccount">
-                                                    <option value="">Select sub-account...</option>
-                                                    <option value="main">Main Account</option>
-                                                    <option value="marketing">Marketing Team</option>
-                                                    <option value="support">Support Team</option>
-                                                </select>
-                                                <div class="invalid-feedback">Please select a sub-account.</div>
+                                                <div class="dropdown" id="stdSubaccountDropdown">
+                                                    <button class="form-select text-start d-flex justify-content-between align-items-center" type="button" id="stdSubaccountBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                                        <span id="stdSubaccountLabel">Select sub-accounts...</span>
+                                                    </button>
+                                                    <ul class="dropdown-menu w-100 p-2" id="stdSubaccountMenu" style="max-height: 250px; overflow-y: auto;">
+                                                        <li>
+                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
+                                                                <input type="checkbox" id="stdSubaccountSelectAll" class="form-check-input m-0">
+                                                                <strong>Select All</strong>
+                                                            </label>
+                                                        </li>
+                                                        <li><hr class="dropdown-divider my-1"></li>
+                                                        <li>
+                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
+                                                                <input type="checkbox" class="form-check-input m-0 std-subaccount-check" value="main" data-label="Main Account">
+                                                                Main Account
+                                                            </label>
+                                                        </li>
+                                                        <li>
+                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
+                                                                <input type="checkbox" class="form-check-input m-0 std-subaccount-check" value="marketing" data-label="Marketing Team">
+                                                                Marketing Team
+                                                            </label>
+                                                        </li>
+                                                        <li>
+                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
+                                                                <input type="checkbox" class="form-check-input m-0 std-subaccount-check" value="support" data-label="Support Team">
+                                                                Support Team
+                                                            </label>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                                <div class="invalid-feedback" id="stdSubaccountError" style="display: none;">Please select at least one sub-account.</div>
                                             </div>
                                         </div>
                                     </div>
@@ -522,6 +548,37 @@ $(document).ready(function() {
     var totalSteps = 4;
     var allowedEmails = [];
     
+    function getSelectedSubaccounts() {
+        var selected = [];
+        $('.std-subaccount-check:checked').each(function() {
+            selected.push({ value: $(this).val(), label: $(this).attr('data-label') });
+        });
+        return selected;
+    }
+
+    function updateSubaccountLabel() {
+        var selected = getSelectedSubaccounts();
+        if (selected.length === 0) {
+            $('#stdSubaccountLabel').text('Select sub-accounts...');
+        } else if (selected.length === $('.std-subaccount-check').length) {
+            $('#stdSubaccountLabel').text('All sub-accounts');
+        } else {
+            $('#stdSubaccountLabel').text(selected.map(function(s) { return s.label; }).join(', '));
+        }
+        var allChecked = $('.std-subaccount-check').length === $('.std-subaccount-check:checked').length;
+        $('#stdSubaccountSelectAll').prop('checked', allChecked);
+    }
+
+    $('#stdSubaccountSelectAll').on('change', function() {
+        var isChecked = $(this).is(':checked');
+        $('.std-subaccount-check').prop('checked', isChecked);
+        updateSubaccountLabel();
+    });
+
+    $(document).on('change', '.std-subaccount-check', function() {
+        updateSubaccountLabel();
+    });
+
     function goToStep(stepIndex) {
         if (stepIndex < 0 || stepIndex >= totalSteps) return;
         
@@ -568,7 +625,7 @@ $(document).ready(function() {
         
         if (step === 0) {
             var name = $('#stdName').val().trim();
-            var subaccount = $('#stdSubaccount').val();
+            var selectedSubaccounts = getSelectedSubaccounts();
             
             if (!name) {
                 $('#stdName').addClass('is-invalid');
@@ -577,11 +634,13 @@ $(document).ready(function() {
                 $('#stdName').removeClass('is-invalid');
             }
             
-            if (!subaccount) {
-                $('#stdSubaccount').addClass('is-invalid');
+            if (selectedSubaccounts.length === 0) {
+                $('#stdSubaccountError').show();
+                $('#stdSubaccountBtn').addClass('is-invalid');
                 isValid = false;
             } else {
-                $('#stdSubaccount').removeClass('is-invalid');
+                $('#stdSubaccountError').hide();
+                $('#stdSubaccountBtn').removeClass('is-invalid');
             }
         } else if (step === 2) {
             var senderId = $('#stdSenderId').val();
@@ -609,7 +668,8 @@ $(document).ready(function() {
     function updateReviewSummary() {
         $('#summaryName').text($('#stdName').val() || '-');
         $('#summaryDescription').text($('#stdDescription').val() || 'None');
-        $('#summarySubaccount').text($('#stdSubaccount option:selected').text() || '-');
+        var selectedSubs = getSelectedSubaccounts();
+        $('#summarySubaccount').text(selectedSubs.length > 0 ? selectedSubs.map(function(s) { return s.label; }).join(', ') : '-');
         
         if (allowedEmails.length > 0) {
             var emailBadges = allowedEmails.map(function(email) {
@@ -729,8 +789,8 @@ $(document).ready(function() {
             id: 'std-' + Date.now(),
             name: $('#stdName').val().trim(),
             description: $('#stdDescription').val().trim(),
-            subaccount: $('#stdSubaccount option:selected').text(),
-            subaccountId: $('#stdSubaccount').val(),
+            subaccount: getSelectedSubaccounts().map(function(s) { return s.label; }).join(', '),
+            subaccountIds: getSelectedSubaccounts().map(function(s) { return s.value; }),
             allowedSenderEmails: allowedEmails,
             senderId: $('#stdSenderId option:selected').text(),
             senderIdValue: $('#stdSenderId').val(),
