@@ -265,6 +265,55 @@
 @include('quicksms.partials.rcs-wizard-modal')
 @include('quicksms.partials.rcs-button-config-modal')
 
+<div class="modal fade" id="personalisationModal" tabindex="-1" style="z-index: 1070;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-3" style="background: var(--primary); color: #fff;">
+                <h5 class="modal-title text-white"><i class="fas fa-user-tag me-2"></i>Personalisation Fields</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Insert personalisation fields into your message. When sending via the API, pass values for each field to personalise messages per recipient.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold mb-2">API Personalisation Fields</label>
+                    <div class="d-flex flex-wrap gap-2" id="personalisationFieldButtons">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_1')"><i class="fas fa-code me-1"></i>Field_1</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_2')"><i class="fas fa-code me-1"></i>Field_2</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_3')"><i class="fas fa-code me-1"></i>Field_3</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_4')"><i class="fas fa-code me-1"></i>Field_4</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_5')"><i class="fas fa-code me-1"></i>Field_5</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_6')"><i class="fas fa-code me-1"></i>Field_6</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_7')"><i class="fas fa-code me-1"></i>Field_7</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_8')"><i class="fas fa-code me-1"></i>Field_8</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_9')"><i class="fas fa-code me-1"></i>Field_9</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="insertPersonalisationField('Field_10')"><i class="fas fa-code me-1"></i>Field_10</button>
+                    </div>
+                </div>
+                <div class="border rounded p-3 mb-3" style="background: rgba(136, 108, 192, 0.06);">
+                    <h6 class="mb-2"><i class="fas fa-info-circle text-primary me-1"></i>How it works</h6>
+                    <ul class="mb-0 small text-muted" style="padding-left: 1.2rem;">
+                        <li>Click a field to insert it at the cursor position</li>
+                        <li>Fields appear as <code>@{{Field_1}}</code> in your message</li>
+                        <li>When sending via the API, pass values in the <code>personalisation</code> object</li>
+                        <li>Fields can be used in SMS content, RCS card titles, descriptions, body text, and button labels</li>
+                    </ul>
+                </div>
+                <div class="border rounded p-3" style="background: #f8f9fa;">
+                    <h6 class="mb-2"><i class="fas fa-terminal text-muted me-1"></i>API Example</h6>
+                    <pre class="mb-0 small" style="white-space: pre-wrap; color: #495057;"><code>{
+  "to": "+447700900100",
+  "template_id": "your-template-id",
+  "personalisation": {
+    "Field_1": "John",
+    "Field_2": "ORD-12345"
+  }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade" id="trackableLinkModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -681,8 +730,43 @@ function showPreview(mode) {
     updatePreview();
 }
 
+var personalisationActiveTarget = 'smsContent';
+
 function openPersonalisationModal() {
-    alert('Personalisation modal would open here');
+    personalisationActiveTarget = 'smsContent';
+    new bootstrap.Modal(document.getElementById('personalisationModal')).show();
+}
+
+function insertPersonalisationField(fieldName) {
+    var placeholder = '{' + '{' + fieldName + '}' + '}';
+    var target = null;
+
+    if (typeof rcsActiveTextField !== 'undefined' && rcsActiveTextField) {
+        target = typeof getRcsTextElement === 'function' ? getRcsTextElement(rcsActiveTextField) : document.getElementById(rcsActiveTextField);
+    }
+
+    if (!target) {
+        target = document.getElementById(personalisationActiveTarget || 'smsContent');
+    }
+
+    if (target) {
+        var start = target.selectionStart || 0;
+        var end = target.selectionEnd || 0;
+        var text = target.value || '';
+        target.value = text.substring(0, start) + placeholder + text.substring(end);
+        target.selectionStart = target.selectionEnd = start + placeholder.length;
+        target.focus();
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    var modal = bootstrap.Modal.getInstance(document.getElementById('personalisationModal'));
+    if (modal) modal.hide();
+
+    if (!rcsActiveTextField || personalisationActiveTarget === 'smsContent') {
+        handleContentChange();
+    }
+
+    if (typeof rcsActiveTextField !== 'undefined') rcsActiveTextField = null;
 }
 
 var aiSuggestedText = '';
