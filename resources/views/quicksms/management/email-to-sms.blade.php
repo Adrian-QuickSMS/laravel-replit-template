@@ -2969,16 +2969,16 @@ $(document).ready(function() {
         $('#emptyStateContactLists').hide();
         
         mappings.forEach(function(mapping) {
-            var originatingEmailsDisplay = '';
-            if (mapping.originatingEmails && mapping.originatingEmails.length > 0) {
-                originatingEmailsDisplay = mapping.originatingEmails.slice(0, 2).map(function(email) {
+            var allowedEmailsDisplay = '';
+            if (mapping.allowedSenders && mapping.allowedSenders.length > 0) {
+                allowedEmailsDisplay = mapping.allowedSenders.slice(0, 2).map(function(email) {
                     return '<span class="d-block text-truncate email-address-display" style="max-width: 250px;">' + escapeHtml(email) + '</span>';
                 }).join('');
-                if (mapping.originatingEmails.length > 2) {
-                    originatingEmailsDisplay += '<span class="text-muted small">+' + (mapping.originatingEmails.length - 2) + ' more</span>';
+                if (mapping.allowedSenders.length > 2) {
+                    allowedEmailsDisplay += '<span class="text-muted small">+' + (mapping.allowedSenders.length - 2) + ' more</span>';
                 }
             } else {
-                originatingEmailsDisplay = '<span class="text-muted">-</span>';
+                allowedEmailsDisplay = '<span class="text-muted">All senders</span>';
             }
             
             var targetDisplay = '';
@@ -3001,7 +3001,7 @@ $(document).ready(function() {
             
             var row = '<tr data-id="' + mapping.id + '">' +
                 '<td><span class="fw-medium">' + escapeHtml(mapping.name) + '</span></td>' +
-                '<td>' + originatingEmailsDisplay + '</td>' +
+                '<td>' + allowedEmailsDisplay + '</td>' +
                 '<td>' + targetDisplay + '</td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + formatDate(mapping.created) + '</td>' +
@@ -4697,16 +4697,16 @@ $(document).ready(function() {
         $('#emptyStateStandardSms').hide();
         
         filteredItems.forEach(function(item) {
-            var originatingEmailsHtml = '';
-            if (item.originatingEmails && item.originatingEmails.length > 0) {
-                originatingEmailsHtml = item.originatingEmails.slice(0, 2).map(function(email) {
+            var allowedEmailsHtml = '';
+            if (item.allowedSenders && item.allowedSenders.length > 0) {
+                allowedEmailsHtml = item.allowedSenders.slice(0, 2).map(function(email) {
                     return '<span class="d-block text-truncate email-address-display" style="max-width: 250px;">' + escapeHtml(email) + '</span>';
                 }).join('');
-                if (item.originatingEmails.length > 2) {
-                    originatingEmailsHtml += '<span class="text-muted small">+' + (item.originatingEmails.length - 2) + ' more</span>';
+                if (item.allowedSenders.length > 2) {
+                    allowedEmailsHtml += '<span class="text-muted small">+' + (item.allowedSenders.length - 2) + ' more</span>';
                 }
             } else {
-                originatingEmailsHtml = '<span class="text-muted">-</span>';
+                allowedEmailsHtml = '<span class="text-muted">All senders</span>';
             }
             
             var statusBadge = '';
@@ -4731,7 +4731,7 @@ $(document).ready(function() {
             
             var row = '<tr data-id="' + item.id + '"' + (item.archived ? ' class="table-secondary"' : '') + '>' +
                 '<td><span class="email-sms-name">' + escapeHtml(item.name) + '</span></td>' +
-                '<td>' + originatingEmailsHtml + '</td>' +
+                '<td>' + allowedEmailsHtml + '</td>' +
                 '<td>' + escapeHtml(item.subaccountName) + '</td>' +
                 '<td>' + statusBadge + '</td>' +
                 '<td>' + formatDate(item.created) + '</td>' +
