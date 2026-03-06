@@ -163,67 +163,81 @@ class EmailToSmsController extends Controller
             }
         }
 
-        $setup = DB::transaction(function () use ($request, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel, $rcsAgentId, $generatedEmail) {
-            $setup = EmailToSmsSetup::withoutGlobalScopes()->create([
-                'account_id' => $tenantId,
-                'sub_account_id' => $subAccountId,
-                'type' => $type,
-                'name' => $request->input('name'),
-                'description' => $request->input('description'),
-                'status' => 'active',
-                'reporting_group_id' => $reportingGroupId,
-                'sender_id_template_id' => $senderIdTemplateId,
-                'sender_id_label' => $senderIdLabel,
-                'rcs_agent_id' => $rcsAgentId,
-                'multiple_sms_enabled' => $request->boolean('multipleSmsEnabled', true),
-                'delivery_reports_enabled' => $request->boolean('deliveryReportsEnabled', false),
-                'delivery_report_email' => $request->input('deliveryReportsEmail') ?? $request->input('delivery_report_email'),
-                'daily_limit' => $request->input('dailyLimit', 5000),
-            ]);
+        try {
+            $setup = DB::transaction(function () use ($request, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel, $rcsAgentId, $generatedEmail) {
+                $setup = EmailToSmsSetup::withoutGlobalScopes()->create([
+                    'account_id' => $tenantId,
+                    'sub_account_id' => $subAccountId,
+                    'type' => $type,
+                    'name' => $request->input('name'),
+                    'description' => $request->input('description'),
+                    'status' => 'active',
+                    'reporting_group_id' => $reportingGroupId,
+                    'sender_id_template_id' => $senderIdTemplateId,
+                    'sender_id_label' => $senderIdLabel,
+                    'rcs_agent_id' => $rcsAgentId,
+                    'multiple_sms_enabled' => $request->boolean('multipleSmsEnabled', true),
+                    'delivery_reports_enabled' => $request->boolean('deliveryReportsEnabled', false),
+                    'delivery_report_email' => $request->input('deliveryReportsEmail') ?? $request->input('delivery_report_email'),
+                    'daily_limit' => $request->input('dailyLimit', 5000),
+                ]);
 
-            EmailToSmsAddress::withoutGlobalScopes()->create([
-                'setup_id' => $setup->id,
-                'account_id' => $tenantId,
-                'email_address' => $generatedEmail,
-                'is_primary' => true,
-                'status' => 'active',
-            ]);
-
-            $allowedEmails = $type === 'contact_list'
-                ? ($request->input('allowedSenderEmails') ?? [])
-                : ($request->input('allowedEmails') ?? []);
-            foreach ($allowedEmails as $email) {
-                EmailToSmsAllowedSender::withoutGlobalScopes()->create([
+                EmailToSmsAddress::withoutGlobalScopes()->create([
                     'setup_id' => $setup->id,
                     'account_id' => $tenantId,
-                    'email_pattern' => $email,
+                    'email_address' => $generatedEmail,
+                    'is_primary' => true,
+                    'status' => 'active',
                 ]);
-            }
 
-            if ($type === 'contact_list') {
-                $this->syncRecipients($setup, $request, $tenantId);
-                $this->syncOptOutConfig($setup, $request, $tenantId);
-            }
+                $allowedEmails = $type === 'contact_list'
+                    ? ($request->input('allowedSenderEmails') ?? [])
+                    : ($request->input('allowedEmails') ?? []);
+                foreach ($allowedEmails as $email) {
+                    EmailToSmsAllowedSender::withoutGlobalScopes()->create([
+                        'setup_id' => $setup->id,
+                        'account_id' => $tenantId,
+                        'email_pattern' => $email,
+                    ]);
+                }
 
-            EmailToSmsAuditLog::logAction(
-                $tenantId,
-                'created',
-                $setup->id,
-                null,
-                "Created {$type} setup: {$setup->name}",
-                ['name' => $setup->name, 'type' => $type]
-            );
+                if ($type === 'contact_list') {
+                    $this->syncRecipients($setup, $request, $tenantId);
+                    $this->syncOptOutConfig($setup, $request, $tenantId);
+                }
 
-            return $setup;
-        });
+                EmailToSmsAuditLog::logAction(
+                    $tenantId,
+                    'created',
+                    $setup->id,
+                    null,
+                    "Created {$type} setup: {$setup->name}",
+                    ['name' => $setup->name, 'type' => $type]
+                );
 
-        $setup->load(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
+                return $setup;
+            });
 
-        return response()->json([
-            'success' => true,
-            'data' => $setup->toPortalArray(),
-            'message' => 'Setup created successfully',
-        ], 201);
+            $setup->load(['subAccount', 'reportingGroup', 'addresses', 'allowedSenders', 'recipients', 'optOutConfig']);
+
+            return response()->json([
+                'success' => true,
+                'data' => $setup->toPortalArray(),
+                'message' => 'Setup created successfully',
+            ], 201);
+        } catch (\Exception $e) {
+            Log::error('Email-to-SMS store failed', [
+                'error' => $e->getMessage(),
+                'type' => $type,
+                'name' => $request->input('name'),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to create setup: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function update(Request $request, string $id): JsonResponse
