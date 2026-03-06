@@ -80,6 +80,22 @@
             }).then(this._handleResponse);
         },
 
+        bulkAddToOptOut: function(contactIds, optOutListId) {
+            return fetch(this.config.baseUrl + '/bulk/add-to-opt-out', {
+                method: 'POST',
+                headers: this._headers(),
+                body: JSON.stringify({ contact_ids: contactIds, opt_out_list_id: optOutListId })
+            }).then(this._handleResponse);
+        },
+
+        bulkRemoveFromOptOut: function(contactIds, optOutListId) {
+            return fetch(this.config.baseUrl + '/bulk/remove-from-opt-out', {
+                method: 'POST',
+                headers: this._headers(),
+                body: JSON.stringify({ contact_ids: contactIds, opt_out_list_id: optOutListId })
+            }).then(this._handleResponse);
+        },
+
         bulkExport: function(contactIds, fields, format) {
             format = format || 'csv';
 

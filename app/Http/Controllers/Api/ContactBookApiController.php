@@ -314,6 +314,91 @@ class ContactBookApiController extends Controller
         ]);
     }
 
+    public function bulkAddToOptOut(Request $request): JsonResponse
+    {
+        $request->validate([
+            'contact_ids' => 'required|array|min:1|max:1000',
+            'contact_ids.*' => 'uuid',
+            'opt_out_list_id' => 'required|uuid',
+        ]);
+
+        $tenantId = $this->tenantId();
+        $listId = $request->input('opt_out_list_id');
+
+        $list = OptOutList::find($listId);
+        if (!$list) {
+            return response()->json(['success' => false, 'message' => 'Opt-out list not found'], 404);
+        }
+
+        $contacts = Contact::whereIn('id', $request->input('contact_ids'))
+            ->select('id', 'mobile_number')
+            ->get();
+
+        $inserted = 0;
+        foreach ($contacts as $contact) {
+            $exists = DB::table('opt_out_records')
+                ->where('opt_out_list_id', $listId)
+                ->where('mobile_number', $contact->mobile_number)
+                ->where('account_id', $tenantId)
+                ->exists();
+
+            if (!$exists) {
+                DB::table('opt_out_records')->insert([
+                    'id' => (string) Str::uuid(),
+                    'mobile_number' => $contact->mobile_number,
+                    'account_id' => $tenantId,
+                    'opt_out_list_id' => $listId,
+                    'source' => 'manual',
+                    'created_at' => now(),
+                ]);
+                $inserted++;
+            }
+        }
+
+        $list->refreshCount();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Added {$inserted} number(s) to opt-out list",
+            'affectedCount' => $inserted,
+        ]);
+    }
+
+    public function bulkRemoveFromOptOut(Request $request): JsonResponse
+    {
+        $request->validate([
+            'contact_ids' => 'required|array|min:1|max:1000',
+            'contact_ids.*' => 'uuid',
+            'opt_out_list_id' => 'required|uuid',
+        ]);
+
+        $tenantId = $this->tenantId();
+        $listId = $request->input('opt_out_list_id');
+
+        $list = OptOutList::find($listId);
+        if (!$list) {
+            return response()->json(['success' => false, 'message' => 'Opt-out list not found'], 404);
+        }
+
+        $mobileNumbers = Contact::whereIn('id', $request->input('contact_ids'))
+            ->pluck('mobile_number')
+            ->toArray();
+
+        $deleted = DB::table('opt_out_records')
+            ->where('opt_out_list_id', $listId)
+            ->where('account_id', $tenantId)
+            ->whereIn('mobile_number', $mobileNumbers)
+            ->delete();
+
+        $list->refreshCount();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Removed {$deleted} number(s) from opt-out list",
+            'affectedCount' => $deleted,
+        ]);
+    }
+
     public function bulkDelete(Request $request): JsonResponse
     {
         $request->validate([
@@ -321,7 +406,6 @@ class ContactBookApiController extends Controller
             'contact_ids.*' => 'uuid',
         ]);
 
-        // Eloquent soft-delete — global scope ensures tenant isolation
         $deleted = Contact::whereIn('id', $request->input('contact_ids'))->delete();
 
         return response()->json([
