@@ -1268,8 +1268,8 @@ body > .dropdown-menu.dropdown-menu-end {
                 <span class="detail-value" id="stdDrawerSenderId">-</span>
             </div>
             <div class="detail-row">
-                <span class="detail-label">Subject as SenderID</span>
-                <span class="detail-value" id="stdDrawerSubjectAsSenderId">-</span>
+                <span class="detail-label">RCS Agent</span>
+                <span class="detail-value" id="stdDrawerRcsAgent">-</span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Multiple SMS</span>
@@ -4862,7 +4862,7 @@ $(document).ready(function() {
         }
         
         $('#stdDrawerSenderId').text(item.senderId);
-        $('#stdDrawerSubjectAsSenderId').text(item.subjectAsSenderId ? 'Enabled' : 'Disabled');
+        $('#stdDrawerRcsAgent').text(item.rcsAgentId || '-');
         $('#stdDrawerMultipleSms').text(item.multipleSms ? 'Enabled' : 'Disabled');
         $('#stdDrawerDeliveryReports').text(item.deliveryReports ? 'Enabled' : 'Disabled');
         
