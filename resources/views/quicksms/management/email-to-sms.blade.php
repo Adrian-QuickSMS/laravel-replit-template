@@ -700,7 +700,7 @@ body > .dropdown-menu.dropdown-menu-end {
                                                 <thead>
                                                     <tr>
                                                         <th data-sort="name" onclick="sortContactListsTable('name')">Name <i class="fas fa-sort sort-icon"></i></th>
-                                                        <th data-sort="emails" onclick="sortContactListsTable('emails')">Originating Emails <i class="fas fa-sort sort-icon"></i></th>
+                                                        <th data-sort="emails" onclick="sortContactListsTable('emails')">Allowed Emails <i class="fas fa-sort sort-icon"></i></th>
                                                         <th data-sort="targetLists" onclick="sortContactListsTable('targetLists')">Target Lists <i class="fas fa-sort sort-icon"></i></th>
                                                         <th data-sort="status" onclick="sortContactListsTable('status')">Status <i class="fas fa-sort sort-icon"></i></th>
                                                         <th data-sort="created" onclick="sortContactListsTable('created')">Created <i class="fas fa-sort sort-icon"></i></th>
@@ -895,7 +895,7 @@ body > .dropdown-menu.dropdown-menu-end {
                                         <thead>
                                             <tr>
                                                 <th data-sort="name" onclick="sortStandardSmsTable('name')" style="width: 18%;">Name <i class="fas fa-sort sort-icon"></i></th>
-                                                <th data-sort="emails" onclick="sortStandardSmsTable('emails')" style="width: 26%;">Originating Emails <i class="fas fa-sort sort-icon"></i></th>
+                                                <th data-sort="emails" onclick="sortStandardSmsTable('emails')" style="width: 26%;">Allowed Emails <i class="fas fa-sort sort-icon"></i></th>
                                                 <th data-sort="subaccount" onclick="sortStandardSmsTable('subaccount')" style="width: 12%;">Subaccount <i class="fas fa-sort sort-icon"></i></th>
                                                 <th data-sort="status" onclick="sortStandardSmsTable('status')" style="width: 10%;">Status <i class="fas fa-sort sort-icon"></i></th>
                                                 <th data-sort="created" onclick="sortStandardSmsTable('created')" style="width: 10%;">Created <i class="fas fa-sort sort-icon"></i></th>
@@ -981,7 +981,7 @@ body > .dropdown-menu.dropdown-menu-end {
         </div>
         
         <div class="mb-4" id="drawerAdditionalEmailsSection" style="display: none;">
-            <h6 class="text-muted mb-3">Additional Originating Emails</h6>
+            <h6 class="text-muted mb-3">Additional Allowed Emails</h6>
             <div id="drawerAdditionalEmails">-</div>
         </div>
         
@@ -1340,7 +1340,7 @@ body > .dropdown-menu.dropdown-menu-end {
                 <span class="detail-value" id="clmDrawerAllowedSenders">-</span>
             </div>
             <div class="detail-row">
-                <span class="detail-label">Originating Emails</span>
+                <span class="detail-label">Allowed Emails</span>
                 <span class="detail-value" id="clmDrawerOriginatingEmails">-</span>
             </div>
         </div>
