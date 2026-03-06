@@ -109,7 +109,10 @@ class EmailToSmsController extends Controller
         }
 
         $subAccountId = $request->input('subaccountId') ?? $request->input('sub_account_id');
-        if ($subAccountId && $subAccountId !== $tenantId) {
+        if ($subAccountId && $subAccountId === $tenantId) {
+            $subAccountId = null;
+        }
+        if ($subAccountId) {
             $exists = DB::table('sub_accounts')
                 ->where('id', $subAccountId)
                 ->where('account_id', $tenantId)
@@ -245,7 +248,10 @@ class EmailToSmsController extends Controller
         }
 
         $subAccountId = $request->input('subaccountId') ?? $request->input('sub_account_id');
-        if ($subAccountId && $subAccountId !== $tenantId) {
+        if ($subAccountId && $subAccountId === $tenantId) {
+            $subAccountId = null;
+        }
+        if ($subAccountId) {
             $exists = DB::table('sub_accounts')
                 ->where('id', $subAccountId)
                 ->where('account_id', $tenantId)

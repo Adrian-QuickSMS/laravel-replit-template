@@ -5,6 +5,15 @@
 @push('styles')
 <link href="{{ asset('vendor/jquery-smartwizard/dist/css/smart_wizard.min.css') }}" rel="stylesheet">
 <style>
+#successModal,
+#errorModal {
+    z-index: 1060 !important;
+}
+#successModal + .modal-backdrop,
+#errorModal + .modal-backdrop,
+.modal-backdrop {
+    z-index: 1055 !important;
+}
 .form-wizard {
     border: 0;
 }

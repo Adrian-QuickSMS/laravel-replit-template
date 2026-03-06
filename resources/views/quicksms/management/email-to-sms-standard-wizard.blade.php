@@ -207,13 +207,15 @@ button.btn-save-draft:hover {
     font-family: monospace;
     background: transparent;
 }
-#successModal {
+#successModal,
+#errorModal {
     z-index: 1060 !important;
 }
 #successModal .modal-dialog {
     max-width: 550px;
 }
 #successModal + .modal-backdrop,
+#errorModal + .modal-backdrop,
 .modal-backdrop {
     z-index: 1055 !important;
 }
