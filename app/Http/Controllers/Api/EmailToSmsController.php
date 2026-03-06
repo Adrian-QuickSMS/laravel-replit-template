@@ -658,6 +658,7 @@ class EmailToSmsController extends Controller
         $dynamicLists = collect();
         $contacts = collect();
         $tags = collect();
+        $optOutLists = collect();
 
         try {
             $lists = DB::table('contact_lists')
@@ -697,13 +698,24 @@ class EmailToSmsController extends Controller
             Log::debug('tags query failed', ['error' => $e->getMessage()]);
         }
 
+        try {
+            $optOutLists = DB::table('opt_out_lists')
+                ->where('account_id', $tenantId)
+                ->select('id', 'name', DB::raw("COALESCE(count, 0) as count"))
+                ->orderBy('name')
+                ->get();
+        } catch (\Exception $e) {
+            Log::debug('opt_out_lists query failed', ['error' => $e->getMessage()]);
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
-                'static' => $lists->values(),
-                'dynamic' => $dynamicLists->values(),
+                'lists' => $lists->values(),
+                'dynamicLists' => $dynamicLists->values(),
                 'contacts' => $contacts->values(),
                 'tags' => $tags->values(),
+                'optOutLists' => $optOutLists->values(),
             ],
         ]);
     }
