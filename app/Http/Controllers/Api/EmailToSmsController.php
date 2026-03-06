@@ -707,7 +707,7 @@ class EmailToSmsController extends Controller
         try {
             $optOutLists = DB::table('opt_out_lists')
                 ->where('account_id', $tenantId)
-                ->select('id', 'name', DB::raw("COALESCE(count, 0) as count"))
+                ->select('id', 'name', DB::raw("COALESCE(count, 0) as \"recipientCount\""))
                 ->orderBy('name')
                 ->get();
         } catch (\Exception $e) {

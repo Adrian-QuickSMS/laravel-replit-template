@@ -1234,7 +1234,7 @@ $(document).ready(function() {
     function renderOptOutLists() {
         var html = '<option value="NO">Do not apply opt-out lists</option>';
         contactBookData.optOutLists.forEach(function(list) {
-            html += '<option value="' + list.id + '">' + list.name + ' (' + list.recipientCount.toLocaleString() + ')</option>';
+            html += '<option value="' + list.id + '">' + list.name + ' (' + (list.recipientCount || 0).toLocaleString() + ')</option>';
         });
         $('#optOutList').html(html);
     }
