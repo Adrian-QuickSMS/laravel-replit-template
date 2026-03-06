@@ -35,7 +35,7 @@ class EmailToSmsController extends Controller
             });
         }
 
-        $type = $request->input('type') ?? $request->route('type');
+        $type = $request->input('type') ?? $request->route('type') ?? $request->route()->defaults['type'] ?? null;
         if ($type) {
             $query->where('type', $type);
         }
@@ -51,7 +51,7 @@ class EmailToSmsController extends Controller
             $query->where('sub_account_id', $request->input('sub_account_id'));
         }
 
-        if (!$request->boolean('include_archived')) {
+        if (!$request->boolean('include_archived') && !$request->boolean('includeArchived')) {
             $query->where('status', '!=', 'archived');
         }
 
