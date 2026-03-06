@@ -851,11 +851,7 @@ $(document).ready(function() {
         
         EmailToSmsService.createEmailToSmsSetup(payload).then(function(response) {
             if (response.success) {
-                var generatedEmail = '-';
-                if (response.data && response.data.originatingEmails && response.data.originatingEmails.length > 0) {
-                    generatedEmail = response.data.originatingEmails[0];
-                }
-                $('.success-email-box span').first().text(generatedEmail);
+                $('.success-email-box span').first().text('mobilenumber@sms.quicksms.com');
                 var modal = new bootstrap.Modal($('#successModal')[0]);
                 modal.show();
             } else {

@@ -794,7 +794,7 @@ class EmailToSmsController extends Controller
         $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $name));
         $slug = trim($slug, '-');
         $slug = substr($slug, 0, 30);
-        $emailDomain = '@sms.quicksms.io';
+        $emailDomain = '@sms.quicksms.com';
 
         for ($attempt = 0; $attempt < 10; $attempt++) {
             $suffix = str_pad((string) random_int(1000, 9999), 4, '0', STR_PAD_LEFT);

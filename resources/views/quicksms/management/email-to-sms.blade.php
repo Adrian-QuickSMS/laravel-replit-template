@@ -2039,7 +2039,7 @@ body > .dropdown-menu.dropdown-menu-end {
 <script src="{{ asset('js/services/email-to-sms-service.js') }}"></script>
 <script>
 $(document).ready(function() {
-    var EMAIL_DOMAIN = '@sms.quicksms.io';
+    var EMAIL_DOMAIN = '@sms.quicksms.com';
 
     function formatDate(dateStr) {
         if (!dateStr) return '-';

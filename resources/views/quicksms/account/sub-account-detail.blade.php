@@ -958,7 +958,7 @@
                             <tbody>
                                 <tr>
                                     <td>
-                                        <div class="asset-name">alerts@company.quicksms.io</div>
+                                        <div class="asset-name">alerts@company.quicksms.com</div>
                                         <div class="asset-id">E2S-001</div>
                                     </td>
                                     <td><span class="type-badge">Standard</span></td>

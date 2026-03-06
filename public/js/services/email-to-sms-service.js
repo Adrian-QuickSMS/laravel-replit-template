@@ -14,7 +14,7 @@ var EmailToSmsService = (function() {
     'use strict';
     
     // Email domain constant - used for generating originating emails
-    var EMAIL_DOMAIN = '@sms.quicksms.io';
+    var EMAIL_DOMAIN = '@sms.quicksms.com';
     
     // Configuration - easily swappable for real endpoints
     var config = {
@@ -139,13 +139,13 @@ var EmailToSmsService = (function() {
             subaccountId: 'support',
             subaccountName: 'Support Team',
             originatingEmails: ['test.internal' + EMAIL_DOMAIN, 'dev.test' + EMAIL_DOMAIN, 'qa.test' + EMAIL_DOMAIN],
-            allowedEmails: ['dev@quicksms.io', 'qa@quicksms.io', 'test@quicksms.io', 'staging@quicksms.io'],
+            allowedEmails: ['dev@quicksms.com', 'qa@quicksms.com', 'test@quicksms.com', 'staging@quicksms.com'],
             senderIdTemplateId: 'tpl-quicksms-001',
             senderId: 'QuickSMS',
             subjectOverridesSenderId: false,
             multipleSmsEnabled: true,
             deliveryReportsEnabled: true,
-            deliveryReportsEmail: 'dev-team@quicksms.io',
+            deliveryReportsEmail: 'dev-team@quicksms.com',
             contentFilterRegex: '',
             status: 'active',
             createdAt: '2024-12-15T10:00:00Z',
@@ -788,7 +788,7 @@ var EmailToSmsService = (function() {
             subaccountId: 'main',
             subaccountName: 'Main Account',
             originatingEmails: ['emergency.alert1' + EMAIL_DOMAIN, 'urgent.notify' + EMAIL_DOMAIN],
-            allowedSenderEmails: ['system@quicksms.io', 'alerts@quicksms.io', 'admin@quicksms.io', 'emergency@quicksms.io'],
+            allowedSenderEmails: ['system@quicksms.com', 'alerts@quicksms.com', 'admin@quicksms.com', 'emergency@quicksms.com'],
             contactBookListIds: ['cb-005'],
             contactBookListNames: ['Emergency Contacts'],
             optOutMode: 'NONE',
@@ -799,7 +799,7 @@ var EmailToSmsService = (function() {
             subjectOverridesSenderId: false,
             multipleSmsEnabled: false,
             deliveryReportsEnabled: true,
-            deliveryReportsEmail: 'alerts@quicksms.io',
+            deliveryReportsEmail: 'alerts@quicksms.com',
             contentFilter: '',
             status: 'active',
             createdAt: '2024-12-01T12:00:00Z',
