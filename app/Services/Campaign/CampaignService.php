@@ -713,13 +713,24 @@ class CampaignService
      * Process a scheduled campaign that's due for send.
      * Called by the ScheduledCampaignDispatcher job.
      *
-     * Forces content re-resolution because contact data may have changed
-     * between scheduling and the actual send time.
+     * Re-validates test mode constraints at send time because the account's
+     * status may have changed between scheduling and the actual send:
+     * - Account was test_standard when scheduled but is now active_standard
+     * - Account was test_dynamic but credits have been exhausted
+     * - Account was suspended or closed after scheduling
+     *
+     * Forces content re-resolution because contact data may have changed.
      */
     public function processScheduled(Campaign $campaign): PreflightResult
     {
         if (!$campaign->isScheduled()) {
             throw new \RuntimeException("Campaign is not in scheduled status.");
+        }
+
+        // Re-validate at send time — account status may have changed since scheduling
+        $errors = $this->validateForSend($campaign);
+        if (!empty($errors)) {
+            throw ValidationException::withMessages(['campaign' => $errors]);
         }
 
         return DB::transaction(function () use ($campaign) {

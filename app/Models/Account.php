@@ -553,6 +553,14 @@ class Account extends Model
      * two concurrent requests (e.g., admin approve + auto-approve from fraud
      * screening) could both read the same status, both validate, and both write.
      *
+     * LOCK ORDERING CONTRACT: This method locks the `accounts` row. It must
+     * NOT acquire locks on `account_credits` rows. Code that locks credits
+     * (deductTestCredits) must NOT call transitionTo. This prevents deadlocks
+     * when callers wrap both operations in a broader transaction.
+     *
+     * Safe to call inside a broader DB::transaction() — Laravel will use a
+     * savepoint, and the lock remains valid for the outer transaction's lifetime.
+     *
      * @throws \InvalidArgumentException if transition is not allowed
      */
     public function transitionTo(string $newStatus): self
@@ -695,6 +703,11 @@ class Account extends Model
      * Locks credit rows, verifies availability, and deducts in a single
      * transaction to prevent race conditions where concurrent requests
      * could both pass the credit check and exceed the fragment limit.
+     *
+     * LOCK ORDERING CONTRACT: This method locks `account_credits` rows.
+     * It must NOT acquire locks on the `accounts` row (no transitionTo).
+     * This prevents deadlocks when callers wrap credit operations alongside
+     * account transitions in broader transactions.
      *
      * @param int $fragments Number of fragments to deduct
      * @return bool True if deduction succeeded, false if insufficient credits

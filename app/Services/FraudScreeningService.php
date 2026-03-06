@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Account;
 use App\Models\AccountFlags;
 use App\Models\AdminNotification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 
@@ -91,6 +92,10 @@ class FraudScreeningService
 
     /**
      * Admin approves a flagged account after manual review.
+     *
+     * Wraps transitionTo() + flags update in a single transaction so that
+     * if the flags update fails, the status transition is also rolled back.
+     * This prevents an account that transitioned but has no flags record.
      */
     public function adminApprove(Account $account, string $adminId, string $targetStatus = Account::STATUS_TEST_STANDARD): void
     {
@@ -98,17 +103,19 @@ class FraudScreeningService
             throw new \InvalidArgumentException("Target status must be a test status, got: {$targetStatus}");
         }
 
-        $account->transitionTo($targetStatus);
+        DB::transaction(function () use ($account, $adminId, $targetStatus) {
+            $account->transitionTo($targetStatus);
 
-        // Update flags
-        $flags = $account->flags;
-        if ($flags) {
-            $flags->update([
-                'fraud_review_status' => 'approved',
-                'fraud_reviewed_by' => $adminId,
-                'fraud_reviewed_at' => now(),
-            ]);
-        }
+            // Update flags within the same transaction
+            $flags = $account->flags;
+            if ($flags) {
+                $flags->update([
+                    'fraud_review_status' => 'approved',
+                    'fraud_reviewed_by' => $adminId,
+                    'fraud_reviewed_at' => now(),
+                ]);
+            }
+        });
 
         Log::info('[FraudScreening] Admin approved account', [
             'account_id' => $account->id,
@@ -119,20 +126,24 @@ class FraudScreeningService
 
     /**
      * Admin rejects a flagged account.
+     *
+     * Wraps transitionTo() + flags update in a single transaction.
      */
     public function adminReject(Account $account, string $adminId, string $reason): void
     {
-        $account->transitionTo(Account::STATUS_CLOSED);
+        DB::transaction(function () use ($account, $adminId, $reason) {
+            $account->transitionTo(Account::STATUS_CLOSED);
 
-        $flags = $account->flags;
-        if ($flags) {
-            $flags->update([
-                'fraud_review_status' => 'rejected',
-                'fraud_reviewed_by' => $adminId,
-                'fraud_reviewed_at' => now(),
-                'fraud_rejection_reason' => $reason,
-            ]);
-        }
+            $flags = $account->flags;
+            if ($flags) {
+                $flags->update([
+                    'fraud_review_status' => 'rejected',
+                    'fraud_reviewed_by' => $adminId,
+                    'fraud_reviewed_at' => now(),
+                    'fraud_rejection_reason' => $reason,
+                ]);
+            }
+        });
 
         Log::info('[FraudScreening] Admin rejected account', [
             'account_id' => $account->id,
@@ -227,18 +238,23 @@ class FraudScreeningService
 
     /**
      * Auto-approve: transition account to target test status.
+     *
+     * Wraps transitionTo() + flags update in a single transaction so a
+     * failure in the flags update rolls back the status transition too.
      */
     protected function approveAccount(Account $account, string $targetStatus, array $score): void
     {
-        $account->transitionTo($targetStatus);
+        DB::transaction(function () use ($account, $targetStatus) {
+            $account->transitionTo($targetStatus);
 
-        $flags = $account->flags;
-        if ($flags) {
-            $flags->update([
-                'fraud_review_status' => 'auto_approved',
-                'fraud_reviewed_at' => now(),
-            ]);
-        }
+            $flags = $account->flags;
+            if ($flags) {
+                $flags->update([
+                    'fraud_review_status' => 'auto_approved',
+                    'fraud_reviewed_at' => now(),
+                ]);
+            }
+        });
 
         Log::info('[FraudScreening] Account auto-approved', [
             'account_id' => $account->id,
