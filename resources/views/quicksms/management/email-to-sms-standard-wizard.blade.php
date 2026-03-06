@@ -504,6 +504,7 @@ button.btn-save-draft:hover {
 
 @push('scripts')
 <script src="{{ asset('vendor/jquery-smartwizard/dist/js/jquery.smartWizard.min.js') }}"></script>
+<script src="{{ asset('js/services/email-to-sms-service.js') }}"></script>
 <script>
 $(document).ready(function() {
     var currentStep = 0;
