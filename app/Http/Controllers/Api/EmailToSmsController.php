@@ -685,12 +685,14 @@ class EmailToSmsController extends Controller
         $optOutLists = collect();
 
         try {
-            $lists = DB::table('contact_lists')
+            $allLists = DB::table('contact_lists')
                 ->where('account_id', $tenantId)
-                ->whereNull('deleted_at')
-                ->select('id', 'name', DB::raw("'static' as type"), DB::raw("0 as recipientCount"), DB::raw("'active' as status"))
+                ->select('id', 'name', 'type', DB::raw("COALESCE(contact_count, 0) as \"recipientCount\""), 'updated_at', DB::raw("'active' as status"))
                 ->orderBy('name')
                 ->get();
+
+            $lists = $allLists->where('type', 'static')->values();
+            $dynamicLists = $allLists->where('type', 'dynamic')->values();
         } catch (\Exception $e) {
             Log::debug('contact_lists query failed', ['error' => $e->getMessage()]);
         }
@@ -714,8 +716,7 @@ class EmailToSmsController extends Controller
         try {
             $tags = DB::table('tags')
                 ->where('account_id', $tenantId)
-                ->whereNull('deleted_at')
-                ->select('id', 'name', DB::raw("0 as recipientCount"))
+                ->select('id', 'name', DB::raw("COALESCE(contact_count, 0) as \"recipientCount\""))
                 ->orderBy('name')
                 ->get();
         } catch (\Exception $e) {
@@ -784,8 +785,7 @@ class EmailToSmsController extends Controller
         try {
             $tags = DB::table('tags')
                 ->where('account_id', $tenantId)
-                ->whereNull('deleted_at')
-                ->select('id', 'name', DB::raw("0 as recipientCount"))
+                ->select('id', 'name', DB::raw("COALESCE(contact_count, 0) as \"recipientCount\""))
                 ->orderBy('name')
                 ->get();
         } catch (\Exception $e) {
