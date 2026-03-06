@@ -4858,7 +4858,7 @@ $(document).ready(function() {
         }
         
         $('#stdDrawerSenderId').text(item.senderId);
-        $('#stdDrawerRcsAgent').text(item.rcsAgentId || '-');
+        $('#stdDrawerRcsAgent').text(item.rcsAgentId || 'Not configured');
         $('#stdDrawerMultipleSms').text(item.multipleSms ? 'Enabled' : 'Disabled');
         $('#stdDrawerDeliveryReports').text(item.deliveryReports ? 'Enabled' : 'Disabled');
         
@@ -4967,7 +4967,7 @@ $(document).ready(function() {
                         allowedSenders: item.allowedEmails || [],
                         originatingEmails: item.originatingEmails || [],
                         senderId: item.senderId,
-                        subjectAsSenderId: item.subjectOverridesSenderId || false,
+                        rcsAgentId: item.rcsAgentId || null,
                         multipleSms: item.multipleSmsEnabled || false,
                         deliveryReports: item.deliveryReportsEnabled || false,
                         deliveryEmail: item.deliveryReportsEmail || '',
