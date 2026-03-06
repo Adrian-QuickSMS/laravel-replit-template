@@ -152,7 +152,9 @@ class EmailToSmsController extends Controller
             return response()->json(['success' => false, 'error' => 'Unable to generate unique email address. Please try again.'], 500);
         }
 
-        $setup = DB::transaction(function () use ($request, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel, $generatedEmail) {
+        $rcsAgentId = $request->input('rcsAgentId') ?? $request->input('rcs_agent_id');
+
+        $setup = DB::transaction(function () use ($request, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel, $rcsAgentId, $generatedEmail) {
             $setup = EmailToSmsSetup::withoutGlobalScopes()->create([
                 'account_id' => $tenantId,
                 'sub_account_id' => $subAccountId,
@@ -163,6 +165,7 @@ class EmailToSmsController extends Controller
                 'reporting_group_id' => $reportingGroupId,
                 'sender_id_template_id' => $senderIdTemplateId,
                 'sender_id_label' => $senderIdLabel,
+                'rcs_agent_id' => $rcsAgentId,
                 'multiple_sms_enabled' => $request->boolean('multipleSmsEnabled', true),
                 'delivery_reports_enabled' => $request->boolean('deliveryReportsEnabled', false),
                 'delivery_report_email' => $request->input('deliveryReportsEmail') ?? $request->input('delivery_report_email'),
@@ -286,12 +289,15 @@ class EmailToSmsController extends Controller
             $senderIdLabel = $request->input('senderId') ?? $request->input('sender_id') ?? $setup->sender_id_label;
         }
 
-        DB::transaction(function () use ($request, $setup, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel) {
+        $rcsAgentId = $request->input('rcsAgentId') ?? $request->input('rcs_agent_id');
+
+        DB::transaction(function () use ($request, $setup, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel, $rcsAgentId) {
             $originalData = $setup->toPortalArray();
 
             $updateFields = [
                 'sender_id_template_id' => $senderIdTemplateId ?? $setup->sender_id_template_id,
                 'sender_id_label' => $senderIdLabel,
+                'rcs_agent_id' => $request->has('rcsAgentId') || $request->has('rcs_agent_id') ? $rcsAgentId : $setup->rcs_agent_id,
                 'multiple_sms_enabled' => $request->has('multipleSmsEnabled') ? $request->boolean('multipleSmsEnabled') : $setup->multiple_sms_enabled,
                 'delivery_reports_enabled' => $request->has('deliveryReportsEnabled') ? $request->boolean('deliveryReportsEnabled') : $setup->delivery_reports_enabled,
                 'delivery_report_email' => $request->input('deliveryReportsEmail') ?? $request->input('delivery_report_email') ?? $setup->delivery_report_email,
