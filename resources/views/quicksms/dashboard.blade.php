@@ -592,17 +592,6 @@
     border: none !important;
 }
 
-#tile-balance .media-body p,
-#tile-inbound .media-body p,
-#tile-messages-today .media-body p,
-#tile-delivery-rate .media-body p {
-    color: #555;
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-}
-
 #tile-balance .media-body h4,
 #tile-inbound .media-body h4,
 #tile-messages-today .media-body h4,
