@@ -1283,10 +1283,6 @@ body > .dropdown-menu.dropdown-menu-end {
                 <span class="detail-label">Delivery Email</span>
                 <span class="detail-value" id="stdDrawerDeliveryEmail">-</span>
             </div>
-            <div class="detail-row">
-                <span class="detail-label">Signature Filter</span>
-                <span class="detail-value" id="stdDrawerSignatureFilter">-</span>
-            </div>
         </div>
         
         <div class="mb-4">
@@ -4873,7 +4869,6 @@ $(document).ready(function() {
             $('#stdDrawerDeliveryEmailRow').hide();
         }
         
-        $('#stdDrawerSignatureFilter').text(item.signatureFilter || '-');
         $('#stdDrawerCreated').text(item.created);
         $('#stdDrawerLastUpdated').text(item.lastUpdated);
         
