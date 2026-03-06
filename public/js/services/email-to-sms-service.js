@@ -227,7 +227,7 @@ var EmailToSmsService = (function() {
      * @returns {object} - API-ready payload
      */
     function _transformToApiPayload(formData) {
-        return {
+        var payload = {
             name: formData.name,
             description: formData.description || '',
             subaccountId: formData.subaccountId,
@@ -239,6 +239,10 @@ var EmailToSmsService = (function() {
             deliveryReportsEmail: formData.deliveryReportsEmail || '',
             contentFilterRegex: formData.contentFilterRegex || ''
         };
+        if (formData.rcsAgentId) {
+            payload.rcsAgentId = formData.rcsAgentId;
+        }
+        return payload;
     }
     
     /**
@@ -256,6 +260,8 @@ var EmailToSmsService = (function() {
             allowedEmails: apiData.allowedEmails,
             senderIdTemplateId: apiData.senderIdTemplateId,
             senderId: apiData.senderId,
+            rcsAgentId: apiData.rcsAgentId || null,
+            rcsAgentName: apiData.rcsAgentName || null,
             subjectOverridesSenderId: apiData.subjectOverridesSenderId,
             multipleSmsEnabled: apiData.multipleSmsEnabled,
             deliveryReportsEnabled: apiData.deliveryReportsEnabled,
@@ -264,7 +270,6 @@ var EmailToSmsService = (function() {
             status: apiData.status,
             createdAt: apiData.createdAt,
             updatedAt: apiData.updatedAt,
-            // Computed fields for display
             created: apiData.createdAt ? apiData.createdAt.split('T')[0] : '',
             lastUpdated: apiData.updatedAt ? apiData.updatedAt.split('T')[0] : '',
             archived: apiData.status === 'archived'

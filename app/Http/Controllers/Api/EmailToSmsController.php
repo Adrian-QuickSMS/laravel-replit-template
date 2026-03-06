@@ -152,7 +152,16 @@ class EmailToSmsController extends Controller
             return response()->json(['success' => false, 'error' => 'Unable to generate unique email address. Please try again.'], 500);
         }
 
-        $rcsAgentId = $request->input('rcsAgentId') ?? $request->input('rcs_agent_id');
+        $rcsAgentInput = $request->input('rcsAgentId') ?? $request->input('rcs_agent_id');
+        $rcsAgentId = null;
+        if ($rcsAgentInput) {
+            if (is_numeric($rcsAgentInput)) {
+                $rcsAgentId = (int) $rcsAgentInput;
+            } else {
+                $agent = DB::table('rcs_agents')->where('uuid', $rcsAgentInput)->where('account_id', $tenantId)->first();
+                $rcsAgentId = $agent ? $agent->id : null;
+            }
+        }
 
         $setup = DB::transaction(function () use ($request, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel, $rcsAgentId, $generatedEmail) {
             $setup = EmailToSmsSetup::withoutGlobalScopes()->create([
@@ -289,7 +298,16 @@ class EmailToSmsController extends Controller
             $senderIdLabel = $request->input('senderId') ?? $request->input('sender_id') ?? $setup->sender_id_label;
         }
 
-        $rcsAgentId = $request->input('rcsAgentId') ?? $request->input('rcs_agent_id');
+        $rcsAgentInput = $request->input('rcsAgentId') ?? $request->input('rcs_agent_id');
+        $rcsAgentId = null;
+        if ($rcsAgentInput) {
+            if (is_numeric($rcsAgentInput)) {
+                $rcsAgentId = (int) $rcsAgentInput;
+            } else {
+                $agent = DB::table('rcs_agents')->where('uuid', $rcsAgentInput)->where('account_id', $tenantId)->first();
+                $rcsAgentId = $agent ? $agent->id : null;
+            }
+        }
 
         DB::transaction(function () use ($request, $setup, $tenantId, $type, $subAccountId, $reportingGroupId, $senderIdTemplateId, $senderIdLabel, $rcsAgentId) {
             $originalData = $setup->toPortalArray();
