@@ -1243,7 +1243,7 @@ class AdminController extends Controller
             return [
                 'id' => $network->id,
                 'network' => $network->network_name,
-                'prefix' => $network->country_prefix ? '+' . $network->country_prefix : $network->mcc . '/' . $network->mnc,
+                'prefix' => $network->mcc . '/' . $network->mnc,
                 'mcc' => $network->mcc,
                 'mnc' => $network->mnc,
                 'gateway_count' => $networkGateways->count(),
