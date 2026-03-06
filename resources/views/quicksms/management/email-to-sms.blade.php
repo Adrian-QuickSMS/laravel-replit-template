@@ -618,10 +618,6 @@ body > .dropdown-menu.dropdown-menu-end {
                                     <i class="fas fa-at"></i>
                                 </div>
                                 <h4>No Email-to-SMS Addresses</h4>
-                                <p>Create your first Email-to-SMS address to start sending SMS messages via email.</p>
-                                <button class="btn btn-primary" id="btnCreateAddressEmpty">
-                                    <i class="fas fa-plus me-1"></i> Create Address
-                                </button>
                             </div>
                             
                             <div class="d-flex justify-content-between align-items-center mt-3">
