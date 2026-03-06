@@ -610,26 +610,6 @@
     color: #1a1a1a !important;
 }
 
-#tile-balance .media .me-3,
-#tile-inbound .media .me-3,
-#tile-messages-today .media .me-3,
-#tile-delivery-rate .media .me-3 {
-    background-color: rgba(40, 167, 69, 0.15) !important;
-    color: #28a745 !important;
-}
-
-#tile-balance .media .me-3 i,
-#tile-balance .media .me-3 svg,
-#tile-inbound .media .me-3 i,
-#tile-inbound .media .me-3 svg,
-#tile-messages-today .media .me-3 i,
-#tile-messages-today .media .me-3 svg,
-#tile-delivery-rate .media .me-3 i,
-#tile-delivery-rate .media .me-3 svg {
-    color: #28a745 !important;
-    stroke: #28a745 !important;
-}
-
 /* ========================================
    DASHBOARD TILES
    ======================================== */
