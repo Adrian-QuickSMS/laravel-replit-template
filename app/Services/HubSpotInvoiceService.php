@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Account;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -301,7 +302,7 @@ class HubSpotInvoiceService
             'currentBalance' => 2450.00,
             'creditLimit' => 5000.00,
             'availableCredit' => 7450.00,
-            'accountStatus' => 'active',
+            'accountStatus' => Account::STATUS_ACTIVE_STANDARD,
             'currency' => 'GBP',
             'lastUpdated' => now()->toIso8601String(),
         ];
@@ -336,7 +337,7 @@ class HubSpotInvoiceService
             $currentBalance = (float) ($props['hs_account_balance'] ?? 2450.00);
             $creditLimit = (float) ($props['hs_credit_limit'] ?? 5000.00);
             $billingMode = strtolower($props['hs_billing_mode'] ?? 'prepaid');
-            $accountStatus = strtolower($props['hs_account_status'] ?? 'active_standard');
+            $accountStatus = self::mapHubSpotStatus(strtolower($props['hs_account_status'] ?? 'active_standard'));
 
             $availableCredit = $currentBalance + $creditLimit;
 
@@ -606,5 +607,23 @@ class HubSpotInvoiceService
             'isMockData' => true,
             'invoice' => $invoice,
         ];
+    }
+
+    /**
+     * Map HubSpot account status values to the 7-status model.
+     *
+     * HubSpot custom properties may still use legacy values ('active', 'trial').
+     * This normalises them to valid Account status constants so downstream
+     * code never sees invalid ENUM values.
+     */
+    private static function mapHubSpotStatus(string $hsStatus): string
+    {
+        return match ($hsStatus) {
+            'active' => Account::STATUS_ACTIVE_STANDARD,
+            'trial' => Account::STATUS_TEST_STANDARD,
+            'live' => Account::STATUS_ACTIVE_STANDARD,
+            'test' => Account::STATUS_TEST_STANDARD,
+            default => $hsStatus,
+        };
     }
 }

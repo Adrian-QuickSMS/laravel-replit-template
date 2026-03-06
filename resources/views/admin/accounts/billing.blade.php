@@ -1152,10 +1152,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getStatusPillClass(status) {
-        switch(status.toLowerCase()) {
+        // Normalise 7-status model to display category
+        var displayStatus = typeof BillingServices !== 'undefined'
+            ? BillingServices.AccountStatusUtil.toDisplay(status)
+            : status.toLowerCase();
+        switch(displayStatus) {
             case 'live': return 'pill-live';
             case 'test': return 'pill-test';
             case 'suspended': return 'pill-suspended';
+            case 'pending': return 'pill-test';
+            case 'closed': return 'pill-suspended';
             default: return 'pill-test';
         }
     }
@@ -1206,9 +1212,12 @@ document.addEventListener('DOMContentLoaded', function() {
         availableCreditEl.className = 'metric-value ' + (availableCredit <= 0 ? 'text-danger' : 'text-success');
         
         var accountStatusEl = document.getElementById('summaryAccountStatus');
-        var statusLabel = data.status === 'suspended' ? 'Suspended' : 'Active';
-        var statusClass = data.status === 'suspended' ? 'pill-suspended' : 'pill-live';
-        var statusIcon = data.status === 'suspended' ? 'ban' : 'check-circle';
+        var normalizedStatus = typeof BillingServices !== 'undefined'
+            ? BillingServices.AccountStatusUtil.toDisplay(data.status) : data.status;
+        var statusLabelMap = { 'live': 'Active', 'test': 'Test', 'suspended': 'Suspended', 'pending': 'Pending', 'closed': 'Closed' };
+        var statusLabel = statusLabelMap[normalizedStatus] || 'Active';
+        var statusClass = getStatusPillClass(data.status);
+        var statusIcon = normalizedStatus === 'suspended' ? 'ban' : (normalizedStatus === 'test' ? 'flask' : 'check-circle');
         accountStatusEl.innerHTML = '<span class="pill-status ' + statusClass + '" style="font-size: 0.8rem;">' +
             '<i class="fas fa-' + statusIcon + ' me-1"></i>' + statusLabel + '</span>';
         
@@ -1873,7 +1882,11 @@ document.addEventListener('DOMContentLoaded', function() {
         var customerData = {
             id: accountId,
             name: currentAccountName,
-            status: data.status === 'suspended' ? 'Suspended' : (data.status === 'test' ? 'Test' : 'Live'),
+            status: (function() {
+                var ns = typeof BillingServices !== 'undefined'
+                    ? BillingServices.AccountStatusUtil.toDisplay(data.status) : data.status;
+                return ns === 'suspended' ? 'Suspended' : (ns === 'test' ? 'Test' : 'Live');
+            })(),
             vatRegistered: data.vatRegistered !== undefined ? data.vatRegistered : true,
             vatRate: data.vatRate !== undefined ? data.vatRate : 20,
             reverseCharge: data.reverseCharge || false,

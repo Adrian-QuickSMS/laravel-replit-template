@@ -30,6 +30,51 @@
     };
 
     /**
+     * Account Status Utilities
+     *
+     * Maps the 7-status account model to display categories used by the UI.
+     * Backend returns: pending_verification, test_standard, test_dynamic,
+     *                  active_standard, active_dynamic, suspended, closed
+     * UI expects:      pending, test, live, suspended, closed
+     */
+    var AccountStatusUtil = {
+        STATUS_MAP: {
+            'pending_verification': 'pending',
+            'test_standard': 'test',
+            'test_dynamic': 'test',
+            'active_standard': 'live',
+            'active_dynamic': 'live',
+            'suspended': 'suspended',
+            'closed': 'closed',
+            // Legacy values (backward-compatible)
+            'active': 'live',
+            'trial': 'test',
+            'live': 'live',
+            'test': 'test',
+            'pending': 'pending'
+        },
+
+        /** Map raw account status to display category */
+        toDisplay: function(status) {
+            return this.STATUS_MAP[status] || status;
+        },
+
+        /** Get detailed label for a raw status */
+        toDetailLabel: function(status) {
+            var labels = {
+                'pending_verification': 'Pending Verification',
+                'test_standard': 'Test Standard',
+                'test_dynamic': 'Test Dynamic',
+                'active_standard': 'Live Standard',
+                'active_dynamic': 'Live Dynamic',
+                'suspended': 'Suspended',
+                'closed': 'Closed'
+            };
+            return labels[status] || status;
+        }
+    };
+
+    /**
      * @typedef {Object} BillingProfile
      * @property {string} accountId - Internal account identifier
      * @property {string} billingMode - 'prepaid' or 'postpaid'
@@ -161,9 +206,9 @@
         },
         
         accountDetails: {
-            'ACC-1234': { name: 'Acme Corporation', status: 'live' },
-            'ACC-5678': { name: 'Finance Ltd', status: 'live' },
-            'ACC-7890': { name: 'NewClient Inc', status: 'test' },
+            'ACC-1234': { name: 'Acme Corporation', status: 'active_standard' },
+            'ACC-5678': { name: 'Finance Ltd', status: 'active_dynamic' },
+            'ACC-7890': { name: 'NewClient Inc', status: 'test_standard' },
             'ACC-4567': { name: 'TestCo Ltd', status: 'suspended' }
         },
         
@@ -855,7 +900,9 @@
                     return {
                         accountId: accountId,
                         name: details.name,
-                        status: details.status
+                        status: AccountStatusUtil.toDisplay(details.status),
+                        rawStatus: details.status,
+                        statusDetail: AccountStatusUtil.toDetailLabel(details.status)
                     };
                 });
             }
@@ -959,6 +1006,7 @@
     // ============================================================
     global.BillingServices = {
         config: ServiceConfig,
+        AccountStatusUtil: AccountStatusUtil,
         HubSpotBillingService: HubSpotBillingService,
         InternalBillingLedgerService: InternalBillingLedgerService,
         InvoicesService: InvoicesService,

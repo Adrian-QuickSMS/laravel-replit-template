@@ -3070,7 +3070,8 @@ window.executeReactivateAccount = function() {
     // Show success notification
     showToast('Account ' + currentReactivateAccountName + ' has been reactivated.', 'success');
     
-    // Update UI - change status badge back to Live
+    // Update UI - change status badge back to previous operational state
+    // NOTE: Real API response should provide the target status; defaulting to Live for now
     var row = document.querySelector('tr[data-account="' + currentReactivateAccountId + '"]');
     if (row) {
         var statusCell = row.querySelector('td:nth-child(5)');

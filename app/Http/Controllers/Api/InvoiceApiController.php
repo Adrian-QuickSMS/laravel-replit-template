@@ -150,11 +150,13 @@ class InvoiceApiController extends Controller
         $balance = AccountBalance::where('account_id', $accountId)->first();
 
         $billingMode = 'prepaid';
-        $accountStatus = 'active_standard';
+        $accountStatus = Account::STATUS_ACTIVE_STANDARD;
+        $displayStatus = 'live';
 
         if ($account) {
             $billingMode = $account->billing_type === 'postpay' ? 'postpaid' : 'prepaid';
-            $accountStatus = $account->status ?? 'active_standard';
+            $accountStatus = $account->status ?? Account::STATUS_ACTIVE_STANDARD;
+            $displayStatus = self::mapStatusToDisplay($accountStatus);
         }
 
         return response()->json([
@@ -164,6 +166,7 @@ class InvoiceApiController extends Controller
             'creditLimit' => (float) ($balance->credit_limit ?? 0),
             'availableCredit' => (float) ($balance->effective_available ?? 0),
             'accountStatus' => $accountStatus,
+            'displayStatus' => $displayStatus,
             'currency' => $balance->currency ?? 'GBP',
             'lastUpdated' => $balance?->updated_at?->toIso8601String() ?? now()->toIso8601String(),
         ]);
@@ -298,5 +301,23 @@ class InvoiceApiController extends Controller
     private function getCurrentUserId(): string
     {
         return (string) (session('customer_user_id') ?? 'anonymous');
+    }
+
+    /**
+     * Map 7-status account status to a frontend display category.
+     *
+     * Centralises the mapping so frontend consumers don't need to know
+     * about internal status granularity (standard vs dynamic).
+     */
+    private static function mapStatusToDisplay(string $status): string
+    {
+        return match ($status) {
+            Account::STATUS_ACTIVE_STANDARD, Account::STATUS_ACTIVE_DYNAMIC => 'live',
+            Account::STATUS_TEST_STANDARD, Account::STATUS_TEST_DYNAMIC => 'test',
+            Account::STATUS_SUSPENDED => 'suspended',
+            Account::STATUS_PENDING_VERIFICATION => 'pending',
+            Account::STATUS_CLOSED => 'closed',
+            default => $status,
+        };
     }
 }

@@ -108,7 +108,7 @@ class ReconciliationService
     {
         $results = ['matched' => 0, 'mismatched' => 0, 'details' => []];
 
-        Account::where('status', '!=', 'closed')
+        Account::where('status', '!=', Account::STATUS_CLOSED)
             ->select('id')
             ->chunk(100, function ($accounts) use (&$results) {
                 foreach ($accounts as $account) {

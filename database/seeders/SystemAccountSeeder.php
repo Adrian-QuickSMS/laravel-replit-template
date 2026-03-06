@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\Account;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -46,7 +47,7 @@ class SystemAccountSeeder extends Seeder
             'phone' => '+44 800 000 0001',
             'country' => 'GB',
             'account_type' => 'system',
-            'status' => 'active_standard',
+            'status' => Account::STATUS_ACTIVE_STANDARD,
             'email' => 'system@quicksms.internal',
             'created_at' => now(),
             'updated_at' => now(),
