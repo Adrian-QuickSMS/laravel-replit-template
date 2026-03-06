@@ -1341,10 +1341,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 availEl.textContent = fmt(data.availableCredit);
                 availEl.className = 'metric-value ' + (parseFloat(data.availableCredit) >= 0 ? 'text-success' : 'text-danger');
 
-                const status = data.accountStatus || 'active';
-                const statusClass = status === 'active' ? 'active' : 'credit-hold';
-                const statusIcon = status === 'active' ? 'fa-check-circle' : 'fa-exclamation-triangle';
-                const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                const status = data.accountStatus || 'active_standard';
+                const liveStatuses = ['active_standard', 'active_dynamic'];
+                const testStatuses = ['test_standard', 'test_dynamic'];
+                const isLive = liveStatuses.indexOf(status) !== -1;
+                const isTest = testStatuses.indexOf(status) !== -1;
+                const statusClass = isLive ? 'active' : (isTest ? 'test-mode' : 'credit-hold');
+                const statusIcon = isLive ? 'fa-check-circle' : (isTest ? 'fa-flask' : 'fa-exclamation-triangle');
+                const statusLabels = {test_standard: 'Test Standard', test_dynamic: 'Test Dynamic', active_standard: 'Live Standard', active_dynamic: 'Live Dynamic', suspended: 'Suspended', closed: 'Closed'};
+                const statusLabel = statusLabels[status] || (status.charAt(0).toUpperCase() + status.slice(1));
                 document.getElementById('accountStatus').innerHTML = `<span class="account-status-badge ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusLabel}</span>`;
 
                 const lastUp = data.lastUpdated ? new Date(data.lastUpdated).toLocaleString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Just now';

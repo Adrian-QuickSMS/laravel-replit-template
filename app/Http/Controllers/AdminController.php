@@ -593,7 +593,7 @@ class AdminController extends Controller
             'success' => true,
             'accountId' => $account->id,
             'name' => $account->company_name ?? 'Unknown',
-            'status' => $account->status ?? 'active',
+            'status' => $account->status ?? Account::STATUS_PENDING_VERIFICATION,
             'hubspotId' => $account->hubspot_company_id,
             'billingMode' => $billingMode,
             'currentBalance' => $currentBalance,

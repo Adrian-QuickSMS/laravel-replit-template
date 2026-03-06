@@ -336,7 +336,7 @@ class HubSpotInvoiceService
             $currentBalance = (float) ($props['hs_account_balance'] ?? 2450.00);
             $creditLimit = (float) ($props['hs_credit_limit'] ?? 5000.00);
             $billingMode = strtolower($props['hs_billing_mode'] ?? 'prepaid');
-            $accountStatus = strtolower($props['hs_account_status'] ?? 'active');
+            $accountStatus = strtolower($props['hs_account_status'] ?? 'active_standard');
 
             $availableCredit = $currentBalance + $creditLimit;
 

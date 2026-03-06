@@ -1117,10 +1117,12 @@ function populateDetailPage(data, spoofingCheck, statusHistory, account) {
     if (account) {
         var sidebarAccountStatus = document.getElementById('sidebarAccountStatus');
         if (sidebarAccountStatus) {
-            var isActive = (account.status === 'active' || account.status === 'Active');
-            sidebarAccountStatus.innerHTML = isActive
-                ? '<span class="yes-badge">Active</span>'
-                : '<span class="no-badge">' + escapeHtml(account.status || 'Unknown') + '</span>';
+            var operationalStatuses = ['test_standard', 'test_dynamic', 'active_standard', 'active_dynamic'];
+            var isOperational = operationalStatuses.indexOf(account.status) !== -1;
+            var isTest = account.status === 'test_standard' || account.status === 'test_dynamic';
+            var statusLabel = isTest ? 'Test' : (isOperational ? 'Live' : escapeHtml(account.status || 'Unknown'));
+            var badgeClass = isTest ? 'warning-badge' : (isOperational ? 'yes-badge' : 'no-badge');
+            sidebarAccountStatus.innerHTML = '<span class="' + badgeClass + '">' + statusLabel + '</span>';
         }
 
         var sidebarAccountAge = document.getElementById('sidebarAccountAge');

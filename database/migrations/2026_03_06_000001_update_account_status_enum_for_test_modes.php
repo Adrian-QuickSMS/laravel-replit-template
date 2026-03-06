@@ -28,11 +28,18 @@ return new class extends Migration
         DB::statement("ALTER TYPE account_status ADD VALUE IF NOT EXISTS 'active_standard' AFTER 'test_dynamic'");
         DB::statement("ALTER TYPE account_status ADD VALUE IF NOT EXISTS 'active_dynamic' AFTER 'active_standard'");
 
-        // Step 2: Migrate existing data
-        // - 'active' accounts with account_type='trial' → 'test_standard' (conservative default)
-        // - 'active' accounts with account_type!='trial' → 'active_standard' (conservative default)
-        // Note: We need to recreate the type to remove 'active' since PG can't remove enum values.
-        // Instead, we'll migrate data and leave 'active' in the enum but unused.
+        // Step 2: Migrate existing data — handle ALL account_type × status combinations
+        // Note: We leave 'active' in the enum (PG can't remove values) but migrate all rows off it.
+        //
+        // Matrix of old status → new status:
+        //   active + trial         → test_standard  (conservative: Standard has more guardrails)
+        //   active + system        → active_standard (system accounts are always live)
+        //   active + prepay        → active_standard
+        //   active + postpay       → active_standard
+        //   active + (any other)   → active_standard (catch-all for unexpected account_type values)
+        //   pending_verification   → pending_verification (unchanged)
+        //   suspended              → suspended (unchanged)
+        //   closed                 → closed (unchanged)
 
         // Convert existing trial+active accounts to test_standard
         DB::statement("
@@ -42,12 +49,25 @@ return new class extends Migration
             AND account_type = 'trial'
         ");
 
-        // Convert existing non-trial active accounts to active_standard
+        // Convert ALL remaining 'active' accounts (system, prepay, postpay, any other) to active_standard
         DB::statement("
             UPDATE accounts
             SET status = 'active_standard'
             WHERE status = 'active'
-            AND account_type != 'trial'
+        ");
+
+        // Safety check: log any accounts still on old 'active' status (should be zero)
+        // This is a no-op assertion — if any rows match, the migration has a bug
+        DB::statement("
+            DO \$\$
+            DECLARE
+                remaining_count INT;
+            BEGIN
+                SELECT COUNT(*) INTO remaining_count FROM accounts WHERE status = 'active';
+                IF remaining_count > 0 THEN
+                    RAISE WARNING 'Migration incomplete: % accounts still have status=active', remaining_count;
+                END IF;
+            END \$\$
         ");
 
         // Step 3: Update the account_safe_view to include new statuses

@@ -68,7 +68,17 @@ class AccountObserver
                 'new_status' => $newStatus,
             ]);
 
-            if ($newStatus === 'suspended' && $oldStatus !== 'suspended') {
+            // Void remaining test credits when transitioning from test to live mode
+            if (in_array($oldStatus, Account::TEST_STATUSES) && in_array($newStatus, Account::LIVE_STATUSES)) {
+                $this->expirePromotionalCredits($account);
+                Log::info('Test credits voided on test-to-live transition', [
+                    'account_id' => $account->id,
+                    'from' => $oldStatus,
+                    'to' => $newStatus,
+                ]);
+            }
+
+            if ($newStatus === Account::STATUS_SUSPENDED && $oldStatus !== Account::STATUS_SUSPENDED) {
                 try {
                     $enforcementService = app(SenderIdEnforcementService::class);
                     $count = $enforcementService->suspendAllForAccount(

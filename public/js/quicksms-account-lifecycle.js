@@ -1,19 +1,21 @@
 /**
  * QuickSMS Account Lifecycle State Management
- * 
+ *
  * Core state model for account lifecycle management.
  * This service is authoritative - state is NOT inferred from balance or activity.
- * 
- * States:
- * - TEST: New accounts, evaluation period, limited features
- * - LIVE_SELF_SERVICE: Verified accounts, full self-service access
- * - LIVE_SALES_OVERRIDE: Enterprise accounts, sales-managed
+ *
+ * 7-Status Model (matches backend Account::STATUS_* constants):
+ * - PENDING_VERIFICATION: Signup completed, awaiting fraud/identity check
+ * - TEST_STANDARD: Test mode with restrictions (approved numbers, disclaimer, registered SenderIDs)
+ * - TEST_DYNAMIC: Test mode with relaxed SenderID rules (any valid number, any SenderID)
+ * - ACTIVE_STANDARD: Live account, registered SenderIDs only
+ * - ACTIVE_DYNAMIC: Live account, any SenderID passing validation
  * - SUSPENDED: Temporarily blocked (fraud, billing, compliance)
  * - CLOSED: Permanently closed, read-only access
- * 
+ *
  * Backend Integration:
- * - State stored in accounts table: lifecycle_state VARCHAR(30) NOT NULL
- * - All transitions logged to account_lifecycle_audit table
+ * - State stored in accounts.status (account_status ENUM)
+ * - All transitions logged via Account::transitionTo()
  * - API: GET /api/account/lifecycle, POST /api/account/lifecycle/transition
  */
 
@@ -27,17 +29,37 @@
         // =====================================================
         
         STATES: {
-            TEST: 'TEST',
-            LIVE_SELF_SERVICE: 'LIVE_SELF_SERVICE',
-            LIVE_SALES_OVERRIDE: 'LIVE_SALES_OVERRIDE',
-            SUSPENDED: 'SUSPENDED',
-            CLOSED: 'CLOSED'
+            PENDING_VERIFICATION: 'pending_verification',
+            TEST_STANDARD: 'test_standard',
+            TEST_DYNAMIC: 'test_dynamic',
+            ACTIVE_STANDARD: 'active_standard',
+            ACTIVE_DYNAMIC: 'active_dynamic',
+            SUSPENDED: 'suspended',
+            CLOSED: 'closed'
         },
-        
+
+        // Status groups (mirrors Account::TEST_STATUSES, LIVE_STATUSES, OPERATIONAL_STATUSES)
+        TEST_STATUSES: ['test_standard', 'test_dynamic'],
+        LIVE_STATUSES: ['active_standard', 'active_dynamic'],
+        OPERATIONAL_STATUSES: ['test_standard', 'test_dynamic', 'active_standard', 'active_dynamic'],
+
         STATE_META: {
-            TEST: {
-                label: 'Test Account',
-                description: 'Evaluation period with limited features',
+            pending_verification: {
+                label: 'Pending Verification',
+                description: 'Signup completed, awaiting fraud/identity check',
+                badge_class: 'badge-info',
+                icon: 'fas fa-hourglass-half',
+                color: '#17a2b8',
+                can_send_messages: false,
+                can_use_api: false,
+                can_purchase: false,
+                can_access_inbox: false,
+                max_daily_messages: 0,
+                requires_approval_for: ['all']
+            },
+            test_standard: {
+                label: 'Test Standard',
+                description: 'Test mode with restrictions (approved numbers, disclaimer, registered SenderIDs)',
                 badge_class: 'badge-warning',
                 icon: 'fas fa-flask',
                 color: '#f0ad4e',
@@ -46,11 +68,30 @@
                 can_purchase: false,
                 can_access_inbox: true,
                 max_daily_messages: 100,
+                requires_test_disclaimer: true,
+                requires_approved_numbers: true,
+                requires_registered_senderid: true,
                 requires_approval_for: ['bulk_send', 'api_production']
             },
-            LIVE_SELF_SERVICE: {
-                label: 'Live - Self Service',
-                description: 'Full self-service access',
+            test_dynamic: {
+                label: 'Test Dynamic',
+                description: 'Test mode with relaxed SenderID rules (any valid number, any passing SenderID)',
+                badge_class: 'badge-warning',
+                icon: 'fas fa-flask',
+                color: '#e0a800',
+                can_send_messages: true,
+                can_use_api: true,
+                can_purchase: false,
+                can_access_inbox: true,
+                max_daily_messages: 100,
+                requires_test_disclaimer: false,
+                requires_approved_numbers: false,
+                requires_registered_senderid: false,
+                requires_approval_for: ['bulk_send', 'api_production']
+            },
+            active_standard: {
+                label: 'Live Standard',
+                description: 'Live account, registered SenderIDs only',
                 badge_class: 'badge-success',
                 icon: 'fas fa-check-circle',
                 color: '#5cb85c',
@@ -59,23 +100,24 @@
                 can_purchase: true,
                 can_access_inbox: true,
                 max_daily_messages: null,
+                requires_registered_senderid: true,
                 requires_approval_for: []
             },
-            LIVE_SALES_OVERRIDE: {
-                label: 'Live - Enterprise',
-                description: 'Sales-managed enterprise account',
+            active_dynamic: {
+                label: 'Live Dynamic',
+                description: 'Live account, any SenderID passing validation',
                 badge_class: 'badge-primary',
-                icon: 'fas fa-building',
+                icon: 'fas fa-check-circle',
                 color: '#7c3aed',
                 can_send_messages: true,
                 can_use_api: true,
                 can_purchase: true,
                 can_access_inbox: true,
                 max_daily_messages: null,
-                requires_approval_for: [],
-                sales_managed: true
+                requires_registered_senderid: false,
+                requires_approval_for: []
             },
-            SUSPENDED: {
+            suspended: {
                 label: 'Suspended',
                 description: 'Account temporarily suspended',
                 badge_class: 'badge-danger',
@@ -89,7 +131,7 @@
                 requires_approval_for: ['all'],
                 blocked_reason_required: true
             },
-            CLOSED: {
+            closed: {
                 label: 'Closed',
                 description: 'Account permanently closed',
                 badge_class: 'badge-secondary',
@@ -104,14 +146,16 @@
                 read_only: true
             }
         },
-        
-        // Valid state transitions (from -> [allowed_to_states])
+
+        // Valid state transitions (mirrors Account::STATUS_TRANSITIONS)
         VALID_TRANSITIONS: {
-            TEST: ['LIVE_SELF_SERVICE', 'LIVE_SALES_OVERRIDE', 'SUSPENDED', 'CLOSED'],
-            LIVE_SELF_SERVICE: ['LIVE_SALES_OVERRIDE', 'SUSPENDED', 'CLOSED'],
-            LIVE_SALES_OVERRIDE: ['LIVE_SELF_SERVICE', 'SUSPENDED', 'CLOSED'],
-            SUSPENDED: ['TEST', 'LIVE_SELF_SERVICE', 'LIVE_SALES_OVERRIDE', 'CLOSED'],
-            CLOSED: [] // No transitions from CLOSED
+            pending_verification: ['test_standard', 'test_dynamic', 'closed'],
+            test_standard: ['test_dynamic', 'active_standard', 'active_dynamic', 'suspended', 'closed'],
+            test_dynamic: ['test_standard', 'active_standard', 'active_dynamic', 'suspended', 'closed'],
+            active_standard: ['active_dynamic', 'suspended', 'closed'],
+            active_dynamic: ['active_standard', 'suspended', 'closed'],
+            suspended: ['test_standard', 'test_dynamic', 'active_standard', 'active_dynamic', 'closed'],
+            closed: [] // Terminal state
         },
         
         // =====================================================
@@ -130,38 +174,45 @@
         // =====================================================
         
         init: function(accountData) {
-            if (!accountData || !accountData.lifecycle_state) {
+            if (!accountData) {
                 console.error('[AccountLifecycle] Invalid account data provided');
                 return false;
             }
-            
-            if (!this.isValidState(accountData.lifecycle_state)) {
-                console.error('[AccountLifecycle] Invalid state:', accountData.lifecycle_state);
+
+            // Accept both lifecycle_state (legacy) and status (new 7-status model)
+            var state = accountData.status || accountData.lifecycle_state;
+            if (!state) {
+                console.error('[AccountLifecycle] No status or lifecycle_state in account data');
                 return false;
             }
-            
-            this._currentState = accountData.lifecycle_state;
+
+            if (!this.isValidState(state)) {
+                console.error('[AccountLifecycle] Invalid state:', state);
+                return false;
+            }
+
+            this._currentState = state;
             this._accountId = accountData.account_id || null;
             this._suspensionReason = accountData.suspension_reason || null;
             this._stateChangedAt = accountData.state_changed_at || null;
             this._stateLoadedAt = new Date().toISOString();
-            
+
             console.log('[AccountLifecycle] Initialized:', this._currentState, 'for account:', this._accountId);
-            
+
             // Emit event for UI components to react
             this._emitStateEvent('lifecycle:initialized', {
                 state: this._currentState,
                 meta: this.getStateMeta()
             });
-            
+
             return true;
         },
-        
-        // Initialize with TEST state for new signups
+
+        // Initialize with pending_verification state for new signups
         initNewAccount: function(accountId) {
             return this.init({
                 account_id: accountId,
-                lifecycle_state: this.STATES.TEST,
+                status: this.STATES.PENDING_VERIFICATION,
                 state_changed_at: new Date().toISOString()
             });
         },
@@ -209,32 +260,74 @@
         },
         
         isValidState: function(state) {
-            return Object.prototype.hasOwnProperty.call(this.STATES, state);
+            // Check by value (new lowercase model) rather than by key
+            var values = Object.keys(this.STATES).map(function(k) { return this.STATES[k]; }.bind(this));
+            return values.indexOf(state) !== -1;
         },
-        
+
         isState: function(state) {
             return this._currentState === state;
         },
-        
+
+        isPendingVerification: function() {
+            return this.isState(this.STATES.PENDING_VERIFICATION);
+        },
+
         isTest: function() {
-            return this.isState(this.STATES.TEST);
+            return this.TEST_STATUSES.indexOf(this._currentState) !== -1;
         },
-        
+
+        isTestStandard: function() {
+            return this.isState(this.STATES.TEST_STANDARD);
+        },
+
+        isTestDynamic: function() {
+            return this.isState(this.STATES.TEST_DYNAMIC);
+        },
+
         isLive: function() {
-            return this.isState(this.STATES.LIVE_SELF_SERVICE) || 
-                   this.isState(this.STATES.LIVE_SALES_OVERRIDE);
+            return this.LIVE_STATUSES.indexOf(this._currentState) !== -1;
         },
-        
+
+        isActiveStandard: function() {
+            return this.isState(this.STATES.ACTIVE_STANDARD);
+        },
+
+        isActiveDynamic: function() {
+            return this.isState(this.STATES.ACTIVE_DYNAMIC);
+        },
+
+        isOperational: function() {
+            return this.OPERATIONAL_STATUSES.indexOf(this._currentState) !== -1;
+        },
+
+        isStandard: function() {
+            return this.isTestStandard() || this.isActiveStandard();
+        },
+
+        isDynamic: function() {
+            return this.isTestDynamic() || this.isActiveDynamic();
+        },
+
         isSuspended: function() {
             return this.isState(this.STATES.SUSPENDED);
         },
-        
+
         isClosed: function() {
             return this.isState(this.STATES.CLOSED);
         },
-        
+
+        // Legacy alias
         isEnterprise: function() {
-            return this.isState(this.STATES.LIVE_SALES_OVERRIDE);
+            return this.isActiveDynamic();
+        },
+
+        requiresTestDisclaimer: function() {
+            return this.isTestStandard();
+        },
+
+        requiresApprovedNumbers: function() {
+            return this.isTestStandard();
         },
         
         getSuspensionReason: function() {
@@ -370,12 +463,13 @@
         // =====================================================
         // ACCOUNT ACTIVATION (SELF-SERVICE)
         // =====================================================
-        // Trigger: TEST → LIVE_SELF_SERVICE when:
-        //   1. Required account details are complete
+        // Trigger: test_standard/test_dynamic → active_standard/active_dynamic when:
+        //   1. Required account details are complete (5-section activation)
         //   2. A payment is successfully made
         // System Actions:
         //   - Remove Test Mode banner (via onStateChange)
-        //   - Remove message disclaimer
+        //   - Remove message disclaimer (test_standard only)
+        //   - Void remaining test credits
         //   - Enable live SenderIDs
         //   - Lift fragment limits
         //   - Enable live API endpoints
@@ -444,26 +538,26 @@
             };
         },
         
-        // Activate account (TEST → LIVE_SELF_SERVICE)
-        // Called after successful payment when all requirements are met
+        // Activate account (test_* → active_*)
+        // Preserves standard/dynamic mode: test_standard → active_standard, test_dynamic → active_dynamic
         activateAccount: function(paymentReference, callback) {
             var self = this;
-            
+
             if (!this.isTest()) {
-                var error = { 
-                    success: false, 
+                var error = {
+                    success: false,
                     error: 'NOT_TEST_ACCOUNT',
-                    message: 'Only TEST accounts can be activated' 
+                    message: 'Only test accounts can be activated'
                 };
                 if (callback) callback(error);
                 return;
             }
-            
+
             if (!this.canActivate()) {
                 var status = this.getActivationStatus();
                 var missingReqs = status.requirements.filter(function(r) { return !r.met; });
-                var error = { 
-                    success: false, 
+                var error = {
+                    success: false,
                     error: 'REQUIREMENTS_NOT_MET',
                     message: 'Activation requirements not met',
                     missing: missingReqs
@@ -471,11 +565,16 @@
                 if (callback) callback(error);
                 return;
             }
-            
+
+            // Preserve standard/dynamic mode during activation
+            var targetState = this.isTestStandard()
+                ? this.STATES.ACTIVE_STANDARD
+                : this.STATES.ACTIVE_DYNAMIC;
+
             var activationData = {
                 account_id: this._accountId,
-                from_state: this.STATES.TEST,
-                to_state: this.STATES.LIVE_SELF_SERVICE,
+                from_state: this._currentState,
+                to_state: targetState,
                 trigger: 'self_service_activation',
                 payment_reference: paymentReference || null,
                 activation_requirements: this._activationStatus,
@@ -487,21 +586,21 @@
             // Atomic transition with logging
             // In production: POST /api/account/activate
             this.requestTransition(
-                this.STATES.LIVE_SELF_SERVICE, 
+                targetState,
                 'Self-service activation after payment (Ref: ' + (paymentReference || 'N/A') + ')',
                 function(result) {
                     if (result.success) {
                         // Log activation event
                         self._logActivation(activationData);
-                        
+
                         // Update sessionStorage
-                        sessionStorage.setItem('lifecycle_state', self.STATES.LIVE_SELF_SERVICE);
+                        sessionStorage.setItem('lifecycle_state', targetState);
                         sessionStorage.removeItem('test_mode_fragments_used');
-                        
+
                         // Emit activation event
                         self._emitStateEvent('lifecycle:activated', {
-                            previous_state: self.STATES.TEST,
-                            new_state: self.STATES.LIVE_SELF_SERVICE,
+                            previous_state: activationData.from_state,
+                            new_state: targetState,
                             payment_reference: paymentReference,
                             activated_at: activationData.activated_at
                         });
@@ -650,21 +749,22 @@
                 return;
             }
             
-            // Only TEST accounts can be activated via override
+            // Only test accounts can be activated via override
             if (!this.isTest()) {
                 var error = {
                     success: false,
                     error: 'NOT_TEST_ACCOUNT',
-                    message: 'Override activation is only available for TEST accounts'
+                    message: 'Override activation is only available for test accounts'
                 };
                 if (callback) callback(error);
                 return;
             }
-            
+
+            // Admin override always activates to active_dynamic (enterprise flexibility)
             var overrideData = {
                 account_id: this._accountId,
-                from_state: this.STATES.TEST,
-                to_state: this.STATES.LIVE_SALES_OVERRIDE,
+                from_state: this._currentState,
+                to_state: this.STATES.ACTIVE_DYNAMIC,
                 trigger: 'admin_override',
                 admin_user_id: options.admin_user_id,
                 admin_role: options.admin_role,
@@ -682,22 +782,22 @@
             // In production: POST /api/admin/account/activate-override
             // Server validates admin permissions, logs to secure audit table
             this.requestTransition(
-                this.STATES.LIVE_SALES_OVERRIDE,
+                this.STATES.ACTIVE_DYNAMIC,
                 'Sales/Admin override: ' + options.reason,
                 function(result) {
                     if (result.success) {
                         // Log override activation (separate audit entry)
                         self._logAdminOverride(overrideData);
-                        
+
                         // Update sessionStorage
-                        sessionStorage.setItem('lifecycle_state', self.STATES.LIVE_SALES_OVERRIDE);
+                        sessionStorage.setItem('lifecycle_state', self.STATES.ACTIVE_DYNAMIC);
                         sessionStorage.setItem('billing_model', options.billing_model);
                         sessionStorage.removeItem('test_mode_fragments_used');
-                        
+
                         // Emit override event
                         self._emitStateEvent('lifecycle:admin_override', {
-                            previous_state: self.STATES.TEST,
-                            new_state: self.STATES.LIVE_SALES_OVERRIDE,
+                            previous_state: overrideData.from_state,
+                            new_state: self.STATES.ACTIVE_DYNAMIC,
                             admin_user_id: options.admin_user_id,
                             billing_model: options.billing_model,
                             activated_at: overrideData.override_at
@@ -916,7 +1016,7 @@
         // Log payment enablement
         logPaymentEnabled: function() {
             return this.logAudit(this.AUDIT_ACTIONS.PAYMENT_ENABLED, {
-                previous_state: this.STATES.TEST,
+                previous_state: 'test_mode',
                 new_state: this._currentState,
                 details: {
                     requirements_met: true,
