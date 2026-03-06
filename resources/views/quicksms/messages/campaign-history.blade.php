@@ -119,6 +119,10 @@ $permissions = [
     background-color: #e9ecef;
     color: #495057;
 }
+.badge-pastel-danger {
+    background-color: #f8d7da;
+    color: #842029;
+}
 .badge-channel-sms {
     background-color: #d4edda;
     color: #155724;
@@ -164,6 +168,10 @@ $permissions = [
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap" style="background: #fff; border-bottom: none;">
                     <h5 class="card-title mb-2 mb-md-0">Campaign History</h5>
                     <div class="d-flex align-items-center gap-2">
+                        <div class="form-check form-switch mb-0 me-2">
+                            <input class="form-check-input" type="checkbox" id="showArchivedToggle">
+                            <label class="form-check-label small text-muted" for="showArchivedToggle">Archived</label>
+                        </div>
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#filtersPanel">
                             <i class="fas fa-filter me-1"></i> Filters
                             <span id="activeFiltersBadge" class="badge bg-primary ms-1 d-none">0</span>
@@ -447,7 +455,9 @@ $permissions = [
                                         @elseif($campaign['status'] === 'sending')
                                             <span class="badge badge-pastel-primary">Sending</span>
                                         @elseif($campaign['status'] === 'cancelled')
-                                            <span class="badge badge-pastel-secondary">Cancelled</span>
+                                            <span class="badge badge-pastel-danger">Cancelled</span>
+                                        @elseif($campaign['status'] === 'archived')
+                                            <span class="badge badge-pastel-secondary">Archived</span>
                                         @else
                                             <span class="badge badge-pastel-success">Complete</span>
                                         @endif
@@ -1079,6 +1089,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    var archivedToggle = document.getElementById('showArchivedToggle');
+    if (archivedToggle) {
+        archivedToggle.addEventListener('change', filterCampaigns);
+    }
     
     var applyBtn = document.getElementById('btnApplyFilters');
     console.log('[CampaignHistory] Apply button found:', !!applyBtn);
@@ -1129,6 +1144,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     loadDraftsFromStorage();
     restoreFiltersFromUrl();
+    filterCampaigns();
 });
 
 function restoreFiltersFromUrl() {
@@ -1379,10 +1395,20 @@ function executeArchiveCampaign() {
     })
     .then(function() {
         var row = document.querySelector('tr[data-id="' + pendingArchiveCampaignId + '"]');
-        if (row) row.remove();
+        if (row) {
+            row.dataset.status = 'archived';
+            var statusCell = row.querySelector('td:nth-child(3) .badge');
+            if (statusCell) {
+                statusCell.className = 'badge badge-pastel-secondary';
+                statusCell.textContent = 'Archived';
+            }
+            var showArchived = document.getElementById('showArchivedToggle').checked;
+            if (!showArchived) row.style.display = 'none';
+        }
         bootstrap.Modal.getInstance(document.getElementById('archiveCampaignModal')).hide();
         pendingArchiveCampaignId = null;
         showToast('Campaign archived', 'success');
+        filterCampaigns();
     })
     .catch(function(err) {
         bootstrap.Modal.getInstance(document.getElementById('archiveCampaignModal')).hide();
@@ -1507,10 +1533,11 @@ function filterCampaigns() {
     var searchTerm = document.getElementById('campaignSearch').value.toLowerCase().trim();
     var rows = document.querySelectorAll('#campaignsTableBody tr[data-id]');
     var visibleCount = 0;
+    var showArchived = document.getElementById('showArchivedToggle').checked;
     var hasActiveFilters = Object.values(activeFilters).some(function(v) { 
         return Array.isArray(v) ? v.length > 0 : v !== ''; 
     });
-    console.log('[CampaignHistory] Search term:', searchTerm, 'Has active filters:', hasActiveFilters, 'Rows found:', rows.length);
+    console.log('[CampaignHistory] Search term:', searchTerm, 'Has active filters:', hasActiveFilters, 'Rows found:', rows.length, 'Show archived:', showArchived);
     
     rows.forEach(function(row) {
         var name = (row.dataset.name || '').toLowerCase();
@@ -1523,6 +1550,11 @@ function filterCampaigns() {
         var sendDate = row.dataset.sendDate || '';
         var hasTracking = row.dataset.hasTracking || '';
         var hasOptout = row.dataset.hasOptout || '';
+
+        if (status === 'archived' && !showArchived) {
+            row.style.display = 'none';
+            return;
+        }
         
         var searchable = name + ' ' + senderId.toLowerCase() + ' ' + rcsAgent.toLowerCase() + ' ' + tags + ' ' + template + ' ' + channel.toLowerCase().replace('_', ' ') + ' ' + status.toLowerCase();
         var matchesSearch = searchTerm === '' || searchable.includes(searchTerm);
@@ -1747,9 +1779,13 @@ function openCampaignDrawer(campaignId) {
         statusBadge.style.color = '#6f42c1';
         statusBadge.textContent = 'Sending';
     } else if (status === 'cancelled') {
+        statusBadge.style.background = '#f8d7da';
+        statusBadge.style.color = '#842029';
+        statusBadge.textContent = 'Cancelled';
+    } else if (status === 'archived') {
         statusBadge.style.background = '#e9ecef';
         statusBadge.style.color = '#6c757d';
-        statusBadge.textContent = 'Cancelled';
+        statusBadge.textContent = 'Archived';
     } else {
         statusBadge.style.background = '#d1f2eb';
         statusBadge.style.color = '#0d6e5a';
@@ -1767,9 +1803,13 @@ function openCampaignDrawer(campaignId) {
         liveStateBadge.style.color = '#6c757d';
         liveStateBadge.textContent = 'Pending';
     } else if (status === 'cancelled') {
+        liveStateBadge.style.background = '#f8d7da';
+        liveStateBadge.style.color = '#842029';
+        liveStateBadge.textContent = 'Cancelled';
+    } else if (status === 'archived') {
         liveStateBadge.style.background = '#e9ecef';
         liveStateBadge.style.color = '#6c757d';
-        liveStateBadge.textContent = 'Cancelled';
+        liveStateBadge.textContent = 'Archived';
     } else if (status === 'sending') {
         liveStateBadge.style.background = '#d1f2eb';
         liveStateBadge.style.color = '#0d6e5a';
@@ -2373,7 +2413,7 @@ function confirmCancelCampaign() {
         row.dataset.status = 'cancelled';
         var statusCell = row.querySelector('td:nth-child(3) .badge');
         if (statusCell) {
-            statusCell.className = 'badge badge-pastel-secondary';
+            statusCell.className = 'badge badge-pastel-danger';
             statusCell.textContent = 'Cancelled';
         }
     }
