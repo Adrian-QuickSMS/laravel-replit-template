@@ -1963,6 +1963,7 @@ class QuickSMSController extends Controller
         $totalContacts = Contact::count();
         $availableTags = Tag::orderBy('name')->pluck('name')->toArray();
         $availableLists = ContactList::orderBy('name')->pluck('name')->toArray();
+        $optOutLists = OptOutList::orderBy('name')->get()->map(fn($o) => ['id' => $o->id, 'name' => $o->name])->toArray();
 
         return view('quicksms.contacts.all-contacts', [
             'page_title' => 'All Contacts',
@@ -1970,6 +1971,7 @@ class QuickSMSController extends Controller
             'total_contacts' => $totalContacts,
             'available_tags' => $availableTags,
             'available_lists' => $availableLists,
+            'opt_out_lists' => $optOutLists,
         ]);
     }
 
