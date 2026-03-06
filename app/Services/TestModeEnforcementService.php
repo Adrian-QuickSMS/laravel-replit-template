@@ -62,7 +62,7 @@ class TestModeEnforcementService
             );
         }
 
-        // Check 1: Test credits available
+        // Check 1: Test credits available (read-only check for fast fail)
         $creditCheck = $this->checkTestCredits($account, $content);
         if (!$creditCheck['allowed']) {
             return TestModeResult::fail($creditCheck['reason']);
@@ -82,6 +82,14 @@ class TestModeEnforcementService
 
         // Check 4: Apply content rules (disclaimer for Test Standard)
         $finalContent = $this->applyContentRules($account, $content);
+
+        // Check 5: Atomically deduct test credits (prevents race condition
+        // where concurrent requests both pass the read-only check above)
+        if (!$account->deductTestCredits($creditCheck['fragments_required'])) {
+            return TestModeResult::fail(
+                'Insufficient test credits (concurrent usage detected). Please retry.'
+            );
+        }
 
         return TestModeResult::pass(
             $finalContent,
@@ -290,19 +298,28 @@ class TestModeEnforcementService
 
     /**
      * Normalize a phone number to consistent format.
+     *
+     * Handles: +447xxx, 07xxx, 00447xxx, 447xxx, and numbers with whitespace/punctuation.
      */
     protected function normalizeNumber(string $number): string
     {
         // Strip spaces, dashes, parentheses
         $cleaned = preg_replace('/[\s\-\(\)]/', '', $number);
 
-        // Convert UK local format to international
-        if (str_starts_with($cleaned, '0')) {
+        // Strip leading +
+        $cleaned = ltrim($cleaned, '+');
+
+        // Convert international dialling prefix (00) to bare country code
+        // e.g. 00447700900123 → 447700900123
+        if (str_starts_with($cleaned, '00')) {
+            $cleaned = substr($cleaned, 2);
+        }
+        // Convert UK local format (07xxx) to international (447xxx)
+        elseif (str_starts_with($cleaned, '0')) {
             $cleaned = '44' . substr($cleaned, 1);
         }
 
-        // Strip leading +
-        return ltrim($cleaned, '+');
+        return $cleaned;
     }
 
     /**

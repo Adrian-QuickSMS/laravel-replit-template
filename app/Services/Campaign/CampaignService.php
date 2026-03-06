@@ -11,6 +11,7 @@ use App\Models\RcsAgent;
 use App\Models\SenderId;
 use App\Services\Admin\MessageEnforcementService;
 use App\Services\RcsContentValidator;
+use App\Services\TestModeEnforcementService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -33,6 +34,7 @@ class CampaignService
         private BillingPreflightService $billingPreflight,
         private MessageEnforcementService $enforcement,
         private RcsContentValidator $rcsValidator,
+        private TestModeEnforcementService $testModeEnforcement,
     ) {}
 
     // =====================================================
@@ -406,6 +408,15 @@ class CampaignService
     public function validateForSend(Campaign $campaign): array
     {
         $errors = [];
+        $account = Account::findOrFail($campaign->account_id);
+
+        // 0. Test mode enforcement (G2: all test mode checks go through TestModeEnforcementService)
+        if ($account->isTestMode()) {
+            $testModeErrors = $this->validateTestModeConstraints($account, $campaign);
+            if (!empty($testModeErrors)) {
+                return $testModeErrors; // Fail fast — test mode violations are blocking
+            }
+        }
 
         // 1. Message content required
         if ($campaign->isSms() || $campaign->type === Campaign::TYPE_RCS_BASIC) {
@@ -501,6 +512,125 @@ class CampaignService
         }
 
         return $errors;
+    }
+
+    /**
+     * Validate test mode constraints for a campaign via TestModeEnforcementService.
+     *
+     * For campaigns, we validate:
+     * - Test credit availability (total fragments across all recipients)
+     * - Recipient restrictions (test_standard: approved numbers only)
+     * - SenderID restrictions
+     * - Content disclaimer injection (test_standard)
+     *
+     * This ensures test mode accounts cannot bypass restrictions via the campaign path.
+     *
+     * @return array Validation errors (empty = valid)
+     */
+    private function validateTestModeConstraints(Account $account, Campaign $campaign): array
+    {
+        $errors = [];
+
+        // Check 1: Verify total fragment count against available test credits
+        $totalFragments = DB::table('campaign_recipients')
+            ->where('campaign_id', $campaign->id)
+            ->where('status', CampaignRecipient::STATUS_PENDING)
+            ->sum('segments');
+
+        $availableCredits = $account->getAvailableCredits();
+        if ($totalFragments > $availableCredits) {
+            $errors[] = "Insufficient test credits. This campaign requires {$totalFragments} fragments "
+                . "but you have {$availableCredits} remaining. Reduce recipients or contact support.";
+        }
+
+        // Check 2: SenderID validation through TestModeEnforcementService
+        if ($campaign->isSms() && $campaign->sender_id_id) {
+            $sender = SenderId::withoutGlobalScope('tenant')->find($campaign->sender_id_id);
+            if ($sender) {
+                $senderCheck = $this->testModeEnforcement->checkSenderId($account, $sender->sender_id_value);
+                if (!$senderCheck['allowed']) {
+                    $errors[] = $senderCheck['reason'];
+                }
+            }
+        }
+
+        // Check 3: Recipient validation (test_standard must use approved numbers)
+        if ($account->isTestStandard()) {
+            $unapproved = $this->findUnapprovedTestRecipients($account, $campaign);
+            if (!empty($unapproved)) {
+                $count = count($unapproved);
+                $sample = implode(', ', array_slice($unapproved, 0, 3));
+                $errors[] = "Test Standard accounts can only send to approved test numbers. "
+                    . "{$count} recipient(s) are not approved (e.g. {$sample}). "
+                    . "Add them via the portal or upgrade to Test Dynamic.";
+            }
+        }
+
+        // Check 4: Warn about disclaimer injection (informational, not blocking)
+        // The disclaimer will be applied at message dispatch time by TestModeEnforcementService
+
+        return $errors;
+    }
+
+    /**
+     * Find campaign recipients that are not in the account's approved test numbers list.
+     *
+     * @return array List of unapproved phone numbers (max 10 for error display)
+     */
+    private function findUnapprovedTestRecipients(Account $account, Campaign $campaign): array
+    {
+        $settings = $account->settings;
+        $approvedNumbers = $settings?->approved_test_numbers ?? [];
+
+        if (empty($approvedNumbers)) {
+            // No approved numbers at all — all recipients are unapproved
+            $count = DB::table('campaign_recipients')
+                ->where('campaign_id', $campaign->id)
+                ->where('status', CampaignRecipient::STATUS_PENDING)
+                ->count();
+
+            if ($count > 0) {
+                return DB::table('campaign_recipients')
+                    ->where('campaign_id', $campaign->id)
+                    ->where('status', CampaignRecipient::STATUS_PENDING)
+                    ->limit(10)
+                    ->pluck('phone_number')
+                    ->toArray();
+            }
+
+            return [];
+        }
+
+        // Normalize approved numbers for comparison
+        $normalizedApproved = array_map(function ($num) {
+            $cleaned = preg_replace('/[\s\-\(\)]/', '', $num);
+            if (str_starts_with($cleaned, '00')) {
+                $cleaned = substr($cleaned, 2);
+            } elseif (str_starts_with($cleaned, '0')) {
+                $cleaned = '44' . substr($cleaned, 1);
+            }
+            return ltrim($cleaned, '+');
+        }, $approvedNumbers);
+
+        // Check recipients against approved list
+        $unapproved = [];
+        DB::table('campaign_recipients')
+            ->where('campaign_id', $campaign->id)
+            ->where('status', CampaignRecipient::STATUS_PENDING)
+            ->orderBy('id')
+            ->chunk(1000, function ($recipients) use ($normalizedApproved, &$unapproved) {
+                foreach ($recipients as $recipient) {
+                    if (count($unapproved) >= 10) {
+                        return false; // Stop chunking
+                    }
+                    $normalized = ltrim(preg_replace('/[\s\-\(\)]/', '', $recipient->phone_number), '+');
+                    if (!in_array($normalized, $normalizedApproved)) {
+                        $unapproved[] = $recipient->phone_number;
+                    }
+                }
+            });
+
+        return $unapproved;
     }
 
     // =====================================================

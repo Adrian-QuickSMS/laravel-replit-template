@@ -547,28 +547,40 @@ class Account extends Model
     }
 
     /**
-     * Transition account to a new status with validation
+     * Transition account to a new status with validation and pessimistic locking.
+     *
+     * Uses DB::transaction + lockForUpdate to prevent race conditions where
+     * two concurrent requests (e.g., admin approve + auto-approve from fraud
+     * screening) could both read the same status, both validate, and both write.
      *
      * @throws \InvalidArgumentException if transition is not allowed
      */
     public function transitionTo(string $newStatus): self
     {
-        if (!$this->canTransitionTo($newStatus)) {
-            throw new \InvalidArgumentException(
-                "Cannot transition from '{$this->status}' to '{$newStatus}'"
-            );
-        }
+        return DB::transaction(function () use ($newStatus) {
+            // Re-read with pessimistic lock to get the true current status
+            $locked = static::lockForUpdate()->findOrFail($this->id);
 
-        $oldStatus = $this->status;
-        $this->update(['status' => $newStatus]);
+            if (!$locked->canTransitionTo($newStatus)) {
+                throw new \InvalidArgumentException(
+                    "Cannot transition from '{$locked->status}' to '{$newStatus}'"
+                );
+            }
 
-        Log::info('Account status transitioned', [
-            'account_id' => $this->id,
-            'from' => $oldStatus,
-            'to' => $newStatus,
-        ]);
+            $oldStatus = $locked->status;
+            $locked->update(['status' => $newStatus]);
 
-        return $this;
+            // Sync the in-memory model so callers see the updated status
+            $this->status = $newStatus;
+
+            Log::info('Account status transitioned', [
+                'account_id' => $this->id,
+                'from' => $oldStatus,
+                'to' => $newStatus,
+            ]);
+
+            return $this;
+        });
     }
 
     /**
@@ -675,6 +687,54 @@ class Account extends Model
                   ->orWhere('expires_at', '>', now());
             })
             ->sum('credits_remaining');
+    }
+
+    /**
+     * Atomically deduct test credits using SELECT ... FOR UPDATE.
+     *
+     * Locks credit rows, verifies availability, and deducts in a single
+     * transaction to prevent race conditions where concurrent requests
+     * could both pass the credit check and exceed the fragment limit.
+     *
+     * @param int $fragments Number of fragments to deduct
+     * @return bool True if deduction succeeded, false if insufficient credits
+     */
+    public function deductTestCredits(int $fragments): bool
+    {
+        return DB::transaction(function () use ($fragments) {
+            // Lock credit rows for this account (SELECT ... FOR UPDATE)
+            $creditRows = AccountCredit::where('account_id', $this->id)
+                ->where('credits_remaining', '>', 0)
+                ->where(function ($q) {
+                    $q->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', now());
+                })
+                ->whereNull('expired_at')
+                ->lockForUpdate()
+                ->orderBy('created_at', 'asc') // FIFO: use oldest credits first
+                ->get();
+
+            $totalAvailable = $creditRows->sum('credits_remaining');
+
+            if ($totalAvailable < $fragments) {
+                return false;
+            }
+
+            // Deduct across credit rows (FIFO)
+            $remaining = $fragments;
+            foreach ($creditRows as $credit) {
+                if ($remaining <= 0) {
+                    break;
+                }
+
+                $deduct = min($remaining, $credit->credits_remaining);
+                $credit->increment('credits_used', $deduct);
+                $credit->decrement('credits_remaining', $deduct);
+                $remaining -= $deduct;
+            }
+
+            return true;
+        });
     }
 
     // =====================================================

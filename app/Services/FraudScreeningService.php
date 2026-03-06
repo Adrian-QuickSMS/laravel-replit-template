@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Account;
 use App\Models\AccountFlags;
+use App\Models\AdminNotification;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 
@@ -297,12 +298,54 @@ class FraudScreeningService
     /**
      * Notify admin(s) about a fraud screening result.
      *
-     * TODO: Implement via AdminNotification model / email / Slack webhook
+     * Creates a database-backed AdminNotification so the admin dashboard
+     * surfaces pending reviews, auto-rejections, and other fraud events.
+     * Without this, flagged accounts would silently sit in pending_verification.
      */
     protected function notifyAdmin(Account $account, string $type, array $context): void
     {
-        // Placeholder - will be implemented with notification system
-        Log::channel('admin')->info('[FraudScreening] Admin notification', [
+        $severityMap = [
+            'auto_rejected' => 'critical',
+            'pending_review' => 'warning',
+            'scoring_service_unavailable' => 'warning',
+        ];
+
+        $titleMap = [
+            'auto_rejected' => 'Fraud: Account auto-rejected (high risk)',
+            'pending_review' => 'Fraud: Account requires manual review',
+            'scoring_service_unavailable' => 'Fraud: Scoring service unavailable — manual review needed',
+        ];
+
+        $severity = $severityMap[$type] ?? 'info';
+        $title = $titleMap[$type] ?? "Fraud screening: {$type}";
+
+        $body = sprintf(
+            'Account %s (%s) — %s. Risk score: %s. %s',
+            $account->account_number ?? $account->id,
+            $account->company_name ?? 'Unknown',
+            $type,
+            $context['risk_score'] ?? 'N/A',
+            $context['reason'] ?? ''
+        );
+
+        AdminNotification::create([
+            'type' => 'fraud_screening',
+            'severity' => $severity,
+            'title' => $title,
+            'body' => trim($body),
+            'deep_link' => "/admin/accounts/{$account->id}/fraud-review",
+            'meta' => [
+                'account_id' => $account->id,
+                'account_number' => $account->account_number,
+                'company_name' => $account->company_name,
+                'screening_type' => $type,
+                'risk_score' => $context['risk_score'] ?? null,
+                'reason' => $context['reason'] ?? null,
+            ],
+        ]);
+
+        // Keep structured log for audit trail and log aggregation
+        Log::channel('admin')->info('[FraudScreening] Admin notification created', [
             'type' => $type,
             'account_id' => $account->id,
             'account_number' => $account->account_number,

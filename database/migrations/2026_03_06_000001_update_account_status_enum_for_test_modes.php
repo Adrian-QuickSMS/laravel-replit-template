@@ -106,11 +106,22 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Reverse the data migration
+        // Reverse the data migration — PRESERVE test/live distinction via account_type
+        // so the old system can still differentiate trial accounts from live accounts.
+        // Without this, test accounts would get full live access on rollback.
+
+        // Test accounts → active + account_type='trial' (old system's trial indicator)
+        DB::statement("
+            UPDATE accounts
+            SET status = 'active', account_type = 'trial'
+            WHERE status IN ('test_standard', 'test_dynamic')
+        ");
+
+        // Live accounts → active (keep existing account_type)
         DB::statement("
             UPDATE accounts
             SET status = 'active'
-            WHERE status IN ('test_standard', 'test_dynamic', 'active_standard', 'active_dynamic')
+            WHERE status IN ('active_standard', 'active_dynamic')
         ");
 
         // Restore the original view
