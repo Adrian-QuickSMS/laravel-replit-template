@@ -3935,7 +3935,7 @@ $(document).ready(function() {
         serviceMethod.then(function(response) {
             if (response.success) {
                 showSuccessToast(response.message);
-                return loadOverviewData().then(function() {
+                loadOverviewData().then(function() {
                     if (selectedAddress && selectedAddress.id === id) {
                         var updatedAddress = overviewAddresses.find(function(a) { return a.id === id; });
                         if (updatedAddress) {
@@ -3953,7 +3953,9 @@ $(document).ready(function() {
             } else {
                 $btn.html('<i class="fas fa-play me-1"></i> Reactivate');
             }
-            bootstrap.Modal.getInstance(document.getElementById('suspendModal')).hide();
+            var suspendModalEl = document.getElementById('suspendModal');
+            var modalInstance = bootstrap.Modal.getInstance(suspendModalEl);
+            if (modalInstance) modalInstance.hide();
         }).catch(function(error) {
             console.error('Error updating address status:', error);
             showErrorToast('An error occurred while updating the address status');
@@ -3963,7 +3965,9 @@ $(document).ready(function() {
             } else {
                 $btn.html('<i class="fas fa-play me-1"></i> Reactivate');
             }
-            bootstrap.Modal.getInstance(document.getElementById('suspendModal')).hide();
+            var suspendModalEl = document.getElementById('suspendModal');
+            var modalInstance = bootstrap.Modal.getInstance(suspendModalEl);
+            if (modalInstance) modalInstance.hide();
         });
     });
     
