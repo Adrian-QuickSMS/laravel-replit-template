@@ -116,8 +116,8 @@ $permissions = [
     line-height: 1.4;
 }
 .badge-status-draft {
-    background-color: #e9ecef;
-    color: #495057;
+    background-color: #dbe9ff;
+    color: #1a4d8f;
 }
 .badge-pastel-danger {
     background-color: #f8d7da;
@@ -447,7 +447,7 @@ $permissions = [
                                     </td>
                                     <td class="py-2">
                                         @if($campaign['status'] === 'draft')
-                                            <span class="badge badge-pastel-secondary">Draft</span>
+                                            <span class="badge badge-status-draft">Draft</span>
                                         @elseif($campaign['status'] === 'pending')
                                             <span class="badge badge-pastel-warning">Pending</span>
                                         @elseif($campaign['status'] === 'scheduled')
@@ -1263,7 +1263,7 @@ function loadDraftsFromStorage() {
             '<h6 class="mb-0 fs-6">' + escapeHtml(draft.name) + '</h6>' +
             '</td>' +
             '<td class="py-2"><span class="badge ' + channelBadgeClass + '">' + channelLabel + '</span></td>' +
-            '<td class="py-2"><span class="badge" style="background-color: #e9ecef; color: #495057;"><i class="fas fa-file-alt me-1"></i>Draft</span></td>' +
+            '<td class="py-2"><span class="badge" style="background-color: #dbe9ff; color: #1a4d8f;"><i class="fas fa-file-alt me-1"></i>Draft</span></td>' +
             '<td class="py-2">' + draft.recipients + '</td>' +
             '<td class="py-2">' + formattedDate + '<br><small class="text-muted">' + formattedTime + '</small></td>' +
             '<td class="py-2 text-end" style="white-space: nowrap;">' +
@@ -1763,8 +1763,8 @@ function openCampaignDrawer(campaignId) {
     var statusBadge = document.getElementById('drawerStatusBadge');
     statusBadge.className = 'badge';
     if (status === 'draft') {
-        statusBadge.style.background = '#e9ecef';
-        statusBadge.style.color = '#495057';
+        statusBadge.style.background = '#dbe9ff';
+        statusBadge.style.color = '#1a4d8f';
         statusBadge.textContent = 'Draft';
     } else if (status === 'pending') {
         statusBadge.style.background = '#fff3cd';
