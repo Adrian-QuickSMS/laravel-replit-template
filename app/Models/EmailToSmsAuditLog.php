@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class EmailToSmsAuditLog extends Model
 {
@@ -38,6 +39,12 @@ class EmailToSmsAuditLog extends Model
     protected static function boot()
     {
         parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) Str::uuid();
+            }
+        });
 
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = session('customer_tenant_id');

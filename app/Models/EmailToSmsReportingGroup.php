@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class EmailToSmsReportingGroup extends Model
 {
@@ -28,6 +29,12 @@ class EmailToSmsReportingGroup extends Model
     protected static function boot()
     {
         parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) Str::uuid();
+            }
+        });
 
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantId = session('customer_tenant_id');
