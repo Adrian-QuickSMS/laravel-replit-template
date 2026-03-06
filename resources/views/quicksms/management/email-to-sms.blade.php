@@ -951,7 +951,7 @@ body > .dropdown-menu.dropdown-menu-end {
                         <li><a class="dropdown-item" href="#" id="actionSuspend"><i class="fas fa-pause me-2"></i> Suspend</a></li>
                         <li><a class="dropdown-item" href="#" id="actionViewHistory"><i class="fas fa-history me-2"></i> View History</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#" id="actionDelete"><i class="fas fa-trash me-2"></i> Delete</a></li>
+                        <li><a class="dropdown-item text-danger" href="#" id="actionArchive"><i class="fas fa-archive me-2"></i> Archive</a></li>
                     </ul>
                 </div>
             </div>
@@ -2725,7 +2725,7 @@ $(document).ready(function() {
                                 ? '<li><a class="dropdown-item suspend-address" href="#" data-id="' + addr.id + '"><i class="fas fa-pause me-2"></i> Suspend</a></li>'
                                 : '<li><a class="dropdown-item reactivate-address" href="#" data-id="' + addr.id + '"><i class="fas fa-play me-2"></i> Reactivate</a></li>') +
                             '<li><hr class="dropdown-divider"></li>' +
-                            '<li><a class="dropdown-item text-danger delete-address" href="#" data-id="' + addr.id + '"><i class="fas fa-trash me-2"></i> Delete</a></li>' +
+                            '<li><a class="dropdown-item text-danger archive-address" href="#" data-id="' + addr.id + '"><i class="fas fa-archive me-2"></i> Archive</a></li>' +
                         '</ul>' +
                     '</div>' +
                 '</td>' +
@@ -3550,13 +3550,24 @@ $(document).ready(function() {
         }
     });
     
-    $(document).on('click', '.delete-address', function(e) {
+    $(document).on('click', '.archive-address', function(e) {
         e.preventDefault();
         var id = $(this).data('id');
         var address = overviewAddresses.find(function(a) { return a.id === id; });
         if (address) {
-            $('#deleteAddressName').text(address.name);
-            $('#deleteModal').data('id', id).modal('show');
+            if (confirm('Are you sure you want to archive "' + address.name + '"? This will deactivate the setup.')) {
+                EmailToSmsService.archiveEmailToSmsSetup(id).then(function(response) {
+                    if (response.success) {
+                        showSuccessToast('Setup archived successfully');
+                        loadOverviewData();
+                    } else {
+                        showErrorToast(response.error || 'Failed to archive');
+                    }
+                }).catch(function(err) {
+                    console.error('Archive error:', err);
+                    showErrorToast('An error occurred. Please try again.');
+                });
+            }
         }
     });
     
@@ -4059,11 +4070,23 @@ $(document).ready(function() {
         }
     });
     
-    $('#actionDelete').on('click', function(e) {
+    $('#actionArchive').on('click', function(e) {
         e.preventDefault();
         if (selectedAddress) {
-            $('#deleteAddressName').text(selectedAddress.name);
-            $('#deleteModal').data('id', selectedAddress.id).modal('show');
+            if (confirm('Are you sure you want to archive "' + selectedAddress.name + '"? This will deactivate the setup.')) {
+                EmailToSmsService.archiveEmailToSmsSetup(selectedAddress.id).then(function(response) {
+                    if (response.success) {
+                        showSuccessToast('Setup archived successfully');
+                        closeDetailsDrawer();
+                        loadOverviewData();
+                    } else {
+                        showErrorToast(response.error || 'Failed to archive');
+                    }
+                }).catch(function(err) {
+                    console.error('Archive error:', err);
+                    showErrorToast('An error occurred. Please try again.');
+                });
+            }
         }
     });
     
