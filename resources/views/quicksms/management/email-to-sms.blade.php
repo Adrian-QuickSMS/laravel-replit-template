@@ -3263,13 +3263,13 @@ $(document).ready(function() {
                     filterContactListMappings();
                 });
             } else {
-                alert('Error: ' + (response.error || 'Failed to archive setup'));
+                showErrorToast('Error: ' + (response.error || 'Failed to archive setup'));
             }
             bootstrap.Modal.getInstance(document.getElementById('clmArchiveModal')).hide();
             clmArchiveTargetId = null;
         }).catch(function(error) {
             console.error('Archive failed:', error);
-            alert('Error archiving setup. Please try again.');
+            showErrorToast('Error archiving setup. Please try again.');
             bootstrap.Modal.getInstance(document.getElementById('clmArchiveModal')).hide();
             clmArchiveTargetId = null;
         });
@@ -3624,7 +3624,7 @@ $(document).ready(function() {
         var senderId = $('#createSenderId').val();
         
         if (!name || !subAccount || !setupType || !senderId) {
-            alert('Please fill in all required fields.');
+            showErrorToast('Please fill in all required fields.');
             return;
         }
         
@@ -3765,10 +3765,10 @@ $(document).ready(function() {
             } else {
                 showErrorToast(response.error || 'Failed to save reporting group');
             }
+            $btn.prop('disabled', false).html(originalHtml);
         }).catch(function(error) {
             console.error('Error saving reporting group:', error);
             showErrorToast('An error occurred while saving the reporting group');
-        }).finally(function() {
             $btn.prop('disabled', false).html(originalHtml);
         });
     });
@@ -3836,10 +3836,10 @@ $(document).ready(function() {
             } else {
                 showErrorToast(response.error || 'Failed to archive group');
             }
+            $btn.prop('disabled', false).html(originalHtml);
         }).catch(function(error) {
             console.error('Error archiving group:', error);
             showErrorToast('An error occurred while archiving the group');
-        }).finally(function() {
             $btn.prop('disabled', false).html(originalHtml);
         });
     });
@@ -3859,10 +3859,10 @@ $(document).ready(function() {
             } else {
                 showErrorToast(response.error || 'Failed to unarchive group');
             }
+            $btn.prop('disabled', false).html(originalHtml);
         }).catch(function(error) {
             console.error('Error unarchiving group:', error);
             showErrorToast('An error occurred while unarchiving the group');
-        }).finally(function() {
             $btn.prop('disabled', false).html(originalHtml);
         });
     });
@@ -3944,10 +3944,16 @@ $(document).ready(function() {
             } else {
                 showErrorToast(response.error || 'Failed to update address status');
             }
+            $btn.prop('disabled', false);
+            if (action === 'suspend') {
+                $btn.html('<i class="fas fa-pause me-1"></i> Suspend');
+            } else {
+                $btn.html('<i class="fas fa-play me-1"></i> Reactivate');
+            }
+            bootstrap.Modal.getInstance(document.getElementById('suspendModal')).hide();
         }).catch(function(error) {
             console.error('Error updating address status:', error);
             showErrorToast('An error occurred while updating the address status');
-        }).finally(function() {
             $btn.prop('disabled', false);
             if (action === 'suspend') {
                 $btn.html('<i class="fas fa-pause me-1"></i> Suspend');
@@ -4029,10 +4035,11 @@ $(document).ready(function() {
             } else {
                 showErrorToast(response.error || 'Failed to delete address');
             }
+            $btn.prop('disabled', false).html('<i class="fas fa-trash-alt me-1"></i> Delete');
+            $('#deleteModal').modal('hide');
         }).catch(function(error) {
             console.error('Error deleting address:', error);
             showErrorToast('An error occurred while deleting the address');
-        }).finally(function() {
             $btn.prop('disabled', false).html('<i class="fas fa-trash-alt me-1"></i> Delete');
             $('#deleteModal').modal('hide');
         });
@@ -4596,11 +4603,11 @@ $(document).ready(function() {
                     filterContactListMappings();
                 });
             } else {
-                alert('Error: ' + (response.error || 'Failed to save setup'));
+                showErrorToast('Error: ' + (response.error || 'Failed to save setup'));
             }
         }).catch(function(error) {
             console.error('Save failed:', error);
-            alert('Error saving setup. Please try again.');
+            showErrorToast('Error saving setup. Please try again.');
         });
     });
     
@@ -4918,12 +4925,14 @@ $(document).ready(function() {
                 if (response.success) {
                     loadStandardSmsTable();
                 } else {
-                    alert('Error: ' + (response.error || 'Failed to archive'));
+                    showErrorToast('Error: ' + (response.error || 'Failed to archive'));
                 }
+                $btn.prop('disabled', false).html('<i class="fas fa-archive me-1"></i> Archive');
+                stdArchiveTargetId = null;
+                bootstrap.Modal.getInstance(document.getElementById('stdArchiveModal')).hide();
             }).catch(function(err) {
                 console.error('Archive error:', err);
-                alert('An error occurred. Please try again.');
-            }).finally(function() {
+                showErrorToast('An error occurred. Please try again.');
                 $btn.prop('disabled', false).html('<i class="fas fa-archive me-1"></i> Archive');
                 stdArchiveTargetId = null;
                 bootstrap.Modal.getInstance(document.getElementById('stdArchiveModal')).hide();

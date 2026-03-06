@@ -936,6 +936,28 @@ button.btn-save-draft:hover {
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-white border-bottom py-3">
+                <h5 class="modal-title text-dark" id="errorModalLabel">
+                    <i class="fas fa-exclamation-circle me-2 text-danger"></i> Error
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <i class="fas fa-times-circle text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <p class="mb-0" id="errorModalMessage">An error occurred. Please try again.</p>
+            </div>
+            <div class="modal-footer justify-content-center py-3">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -1538,17 +1560,13 @@ $(document).ready(function() {
     function showSuccessToast(message) {
         if (typeof toastr !== 'undefined') {
             toastr.success(message);
-        } else {
-            alert(message);
         }
     }
     
     function showErrorToast(message) {
-        if (typeof toastr !== 'undefined') {
-            toastr.error(message);
-        } else {
-            alert(message);
-        }
+        $('#errorModalMessage').text(message || 'An error occurred. Please try again.');
+        var modal = new bootstrap.Modal($('#errorModal')[0]);
+        modal.show();
     }
     
     loadAccountFlags();
@@ -1811,11 +1829,15 @@ $(document).ready(function() {
                     if (fieldErrors.length > 0) errorMsg = fieldErrors[0];
                 }
                 showErrorToast(errorMsg);
+                btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
             }
         }).catch(function(err) {
             console.error('Create error:', err);
-            showErrorToast('An error occurred. Please try again.');
-        }).finally(function() {
+            var msg = 'An error occurred. Please try again.';
+            if (err && err.responseJSON && err.responseJSON.error) {
+                msg = err.responseJSON.error;
+            }
+            showErrorToast(msg);
             btn.prop('disabled', false).html('<i class="fas fa-check-circle me-2"></i> Create Mapping');
         });
     });
