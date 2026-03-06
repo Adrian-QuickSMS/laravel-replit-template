@@ -584,12 +584,18 @@
 /* ========================================
    OPERATIONAL OVERVIEW STAT CARDS
    ======================================== */
-#operationalOverview .widget-stat.card {
-    background-color: #f5f5f7;
-    border: none;
+#tile-balance,
+#tile-inbound,
+#tile-messages-today,
+#tile-delivery-rate {
+    background-color: #f5f5f7 !important;
+    border: none !important;
 }
 
-#operationalOverview .widget-stat .media-body p {
+#tile-balance .media-body p,
+#tile-inbound .media-body p,
+#tile-messages-today .media-body p,
+#tile-delivery-rate .media-body p {
     color: #555;
     font-weight: 600;
     text-transform: uppercase;
@@ -597,17 +603,29 @@
     letter-spacing: 0.5px;
 }
 
-#operationalOverview .widget-stat .media-body h4 {
+#tile-balance .media-body h4,
+#tile-inbound .media-body h4,
+#tile-messages-today .media-body h4,
+#tile-delivery-rate .media-body h4 {
     color: #1a1a1a !important;
 }
 
-#operationalOverview .widget-stat .media .me-3 {
+#tile-balance .media .me-3,
+#tile-inbound .media .me-3,
+#tile-messages-today .media .me-3,
+#tile-delivery-rate .media .me-3 {
     background-color: rgba(40, 167, 69, 0.15) !important;
     color: #28a745 !important;
 }
 
-#operationalOverview .widget-stat .media .me-3 i,
-#operationalOverview .widget-stat .media .me-3 svg {
+#tile-balance .media .me-3 i,
+#tile-balance .media .me-3 svg,
+#tile-inbound .media .me-3 i,
+#tile-inbound .media .me-3 svg,
+#tile-messages-today .media .me-3 i,
+#tile-messages-today .media .me-3 svg,
+#tile-delivery-rate .media .me-3 i,
+#tile-delivery-rate .media .me-3 svg {
     color: #28a745 !important;
     stroke: #28a745 !important;
 }
