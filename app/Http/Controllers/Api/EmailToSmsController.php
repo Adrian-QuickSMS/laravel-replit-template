@@ -176,7 +176,7 @@ class EmailToSmsController extends Controller
                     'sender_id_template_id' => $senderIdTemplateId,
                     'sender_id_label' => $senderIdLabel,
                     'rcs_agent_id' => $rcsAgentId,
-                    'multiple_sms_enabled' => $request->boolean('multipleSmsEnabled', true),
+                    'multiple_sms_enabled' => $request->boolean('multipleSmsEnabled', false),
                     'delivery_reports_enabled' => $request->boolean('deliveryReportsEnabled', false),
                     'delivery_report_email' => $request->input('deliveryReportsEmail') ?? $request->input('delivery_report_email'),
                     'daily_limit' => $request->input('dailyLimit', 5000),

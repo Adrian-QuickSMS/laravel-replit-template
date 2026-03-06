@@ -364,7 +364,7 @@ button.btn-save-draft:hover {
                                             <div class="col-md-6">
                                                 <label class="form-label">Enable Multiple SMS</label>
                                                 <div class="form-check form-switch mt-2">
-                                                    <input class="form-check-input" type="checkbox" id="stdMultipleSms" checked>
+                                                    <input class="form-check-input" type="checkbox" id="stdMultipleSms">
                                                     <label class="form-check-label" for="stdMultipleSms">
                                                         Allow multipart SMS messages
                                                     </label>

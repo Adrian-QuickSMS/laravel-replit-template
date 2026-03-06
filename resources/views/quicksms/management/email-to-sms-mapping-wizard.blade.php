@@ -577,7 +577,7 @@ button.btn-save-draft:hover {
                                         {{-- Multiple SMS Toggle --}}
                                         <div class="mb-4">
                                             <div class="form-check form-switch">
-                                                <input class="form-check-input" type="checkbox" id="multipleSms" checked>
+                                                <input class="form-check-input" type="checkbox" id="multipleSms">
                                                 <label class="form-check-label" for="multipleSms">
                                                     <strong>Enable Multiple SMS</strong>
                                                 </label>
@@ -975,7 +975,7 @@ $(document).ready(function() {
         selectedTags: [],
         optOutLists: ['NO'],
         senderId: '',
-        multipleSms: true,
+        multipleSms: false,
         deliveryReports: true,
         deliveryReportEmail: ''
     };
