@@ -582,6 +582,37 @@
 .bg-danger-light { background-color: rgba(220, 53, 69, 0.1); }
 
 /* ========================================
+   OPERATIONAL OVERVIEW STAT CARDS
+   ======================================== */
+#operationalOverview .widget-stat.card {
+    background-color: #f5f5f7;
+    border: none;
+}
+
+#operationalOverview .widget-stat .media-body p {
+    color: #555;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+#operationalOverview .widget-stat .media-body h4 {
+    color: #1a1a1a !important;
+}
+
+#operationalOverview .widget-stat .media .me-3 {
+    background-color: rgba(40, 167, 69, 0.15) !important;
+    color: #28a745 !important;
+}
+
+#operationalOverview .widget-stat .media .me-3 i,
+#operationalOverview .widget-stat .media .me-3 svg {
+    color: #28a745 !important;
+    stroke: #28a745 !important;
+}
+
+/* ========================================
    DASHBOARD TILES
    ======================================== */
 .dashboard-tile {
