@@ -343,15 +343,20 @@ button.btn-save-draft:hover {
                                         
                                         <div class="row g-3">
                                             <div class="col-md-6">
-                                                <label class="form-label">SenderID <span class="text-danger">*</span></label>
+                                                <label class="form-label">SMS SenderID <span class="text-danger">*</span></label>
                                                 <select class="form-select" id="stdSenderId">
-                                                    <option value="">Select SenderID...</option>
-                                                    <option value="QuickSMS">QuickSMS</option>
-                                                    <option value="MyBrand">MyBrand</option>
-                                                    <option value="Notify">Notify</option>
+                                                    <option value="">Loading SenderIDs...</option>
                                                 </select>
                                                 <small class="text-muted">Only approved/live SenderIDs are shown.</small>
                                                 <div class="invalid-feedback">Please select a SenderID.</div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <label class="form-label">RCS Agent <span class="text-muted fw-normal">(Optional)</span></label>
+                                                <select class="form-select" id="stdRcsAgent">
+                                                    <option value="">None – SMS only</option>
+                                                </select>
+                                                <small class="text-muted">Select an approved RCS agent to send via Basic RCS with SMS fallback.</small>
                                             </div>
                                             
                                             <div class="col-md-6">
@@ -427,8 +432,12 @@ button.btn-save-draft:hover {
                                                 </thead>
                                                 <tbody>
                                                     <tr>
-                                                        <td class="text-muted">SenderID</td>
+                                                        <td class="text-muted">SMS SenderID</td>
                                                         <td id="summarySenderId">-</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-muted">RCS Agent</td>
+                                                        <td id="summaryRcsAgent">None – SMS only</td>
                                                     </tr>
                                                     <tr>
                                                         <td class="text-muted">Settings</td>
@@ -530,6 +539,43 @@ $(document).ready(function() {
     
     loadAccounts();
 
+    function loadSenderIds() {
+        EmailToSmsService.getTemplatesForSenderIdDropdown().then(function(response) {
+            var $select = $('#stdSenderId');
+            $select.empty().append('<option value="">Select SenderID...</option>');
+            if (response.success && response.data && response.data.length > 0) {
+                response.data.forEach(function(sid) {
+                    $select.append('<option value="' + sid.id + '">' + (sid.senderId || sid.name) + '</option>');
+                });
+            } else {
+                $select.append('<option value="" disabled>No approved SenderIDs found</option>');
+            }
+        }).catch(function() {
+            $('#stdSenderId').empty().append('<option value="">Select SenderID...</option>').append('<option value="" disabled>Failed to load SenderIDs</option>');
+        });
+    }
+
+    function loadRcsAgents() {
+        $.ajax({
+            url: '/api/rcs-agents/approved',
+            method: 'GET',
+            dataType: 'json'
+        }).then(function(response) {
+            var $select = $('#stdRcsAgent');
+            $select.empty().append('<option value="">None – SMS only</option>');
+            if (response.success && response.data && response.data.length > 0) {
+                response.data.forEach(function(agent) {
+                    $select.append('<option value="' + (agent.uuid || agent.id) + '">' + agent.name + '</option>');
+                });
+            }
+        }).catch(function() {
+            $('#stdRcsAgent').empty().append('<option value="">None – SMS only</option>');
+        });
+    }
+
+    loadSenderIds();
+    loadRcsAgents();
+
     function goToStep(stepIndex) {
         if (stepIndex < 0 || stepIndex >= totalSteps) return;
         
@@ -629,6 +675,8 @@ $(document).ready(function() {
         }
         
         $('#summarySenderId').text($('#stdSenderId option:selected').text() || '-');
+        var rcsText = $('#stdRcsAgent option:selected').text();
+        $('#summaryRcsAgent').text($('#stdRcsAgent').val() ? rcsText : 'None – SMS only');
         
         var settings = [];
         if ($('#stdMultipleSms').is(':checked')) settings.push('Multiple SMS');
@@ -765,6 +813,7 @@ $(document).ready(function() {
             allowedEmails: allowedEmails,
             senderIdTemplateId: $('#stdSenderId').val() || null,
             senderId: $('#stdSenderId option:selected').text() || null,
+            rcsAgentId: $('#stdRcsAgent').val() || null,
             multipleSmsEnabled: $('#stdMultipleSms').is(':checked'),
             deliveryReportsEnabled: $('#stdDeliveryReports').is(':checked'),
             deliveryReportsEmail: $('#stdDeliveryEmail').val().trim()

@@ -551,18 +551,21 @@ button.btn-save-draft:hover {
                                         
                                         {{-- SenderID Section --}}
                                         <div class="mb-4">
-                                            <label class="form-label">SenderID <span class="text-danger">*</span></label>
+                                            <label class="form-label">SMS SenderID <span class="text-danger">*</span></label>
                                             <select class="form-select" id="senderId">
-                                                <option value="">Select SenderID...</option>
-                                                <option value="QuickSMS">QuickSMS</option>
-                                                <option value="NHSTrust">NHSTrust</option>
-                                                <option value="Pharmacy">Pharmacy</option>
-                                                <option value="Clinic">Clinic</option>
-                                                <option value="Appointments">Appointments</option>
-                                                <option value="Reminders">Reminders</option>
+                                                <option value="">Loading SenderIDs...</option>
                                             </select>
-                                            <small class="text-muted">The approved SenderID that will appear on SMS messages.</small>
+                                            <small class="text-muted">Only approved/live SenderIDs are shown.</small>
                                             <div class="invalid-feedback">Please select a SenderID.</div>
+                                        </div>
+                                        
+                                        {{-- RCS Agent Section --}}
+                                        <div class="mb-4">
+                                            <label class="form-label">RCS Agent <span class="text-muted fw-normal">(Optional)</span></label>
+                                            <select class="form-select" id="clmRcsAgent">
+                                                <option value="">None – SMS only</option>
+                                            </select>
+                                            <small class="text-muted">Select an approved RCS agent to send via Basic RCS with SMS fallback.</small>
                                         </div>
                                         
                                         {{-- Multiple SMS Toggle --}}
@@ -656,8 +659,12 @@ button.btn-save-draft:hover {
                                                     </thead>
                                                     <tbody>
                                                         <tr>
-                                                            <td class="text-muted">SenderID</td>
+                                                            <td class="text-muted">SMS SenderID</td>
                                                             <td id="summarySenderId">-</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="text-muted">RCS Agent</td>
+                                                            <td id="summaryRcsAgent">None – SMS only</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">Settings</td>
@@ -1109,6 +1116,25 @@ $(document).ready(function() {
         });
     }
     
+    function loadClmRcsAgents() {
+        $.ajax({
+            url: '/api/rcs-agents/approved',
+            method: 'GET',
+            dataType: 'json'
+        }).then(function(response) {
+            var $select = $('#clmRcsAgent');
+            $select.empty().append('<option value="">None – SMS only</option>');
+            if (response.success && response.data && response.data.length > 0) {
+                response.data.forEach(function(agent) {
+                    $select.append('<option value="' + (agent.uuid || agent.id) + '">' + agent.name + '</option>');
+                });
+            }
+        }).catch(function() {
+            $('#clmRcsAgent').empty().append('<option value="">None – SMS only</option>');
+        });
+    }
+    loadClmRcsAgents();
+    
     function renderSenderIdDropdown() {
         var html = '<option value="">Select SenderID...</option>';
         senderIdTemplates.forEach(function(tpl) {
@@ -1234,6 +1260,8 @@ $(document).ready(function() {
         var stats = calculateRecipientStats();
         $('#summaryRecipients').text(stats.uniqueAfterDedup > 0 ? stats.uniqueAfterDedup.toLocaleString() + ' recipients' : '-');
         $('#summarySenderId').text(wizardData.senderId ? $('#senderId option:selected').text() : '-');
+        var clmRcsText = $('#clmRcsAgent option:selected').text();
+        $('#summaryRcsAgent').text($('#clmRcsAgent').val() ? clmRcsText : 'None – SMS only');
         
         if (wizardData.optOutLists.includes('NO')) {
             $('#summaryOptOut').html('<span class="text-muted">None applied</span>');
@@ -1732,7 +1760,8 @@ $(document).ready(function() {
             optOutListIds: optOutListIds,
             optOutListNames: optOutListNames,
             senderIdTemplateId: wizardData.senderId,
-            senderId: wizardData.senderId ? $('#senderId option:selected').text() : 'QuickSMS',
+            senderId: wizardData.senderId ? $('#senderId option:selected').text() : null,
+            rcsAgentId: $('#clmRcsAgent').val() || null,
             multipleSmsEnabled: wizardData.multipleSms,
             deliveryReportsEnabled: wizardData.deliveryReports,
             deliveryReportsEmail: wizardData.deliveryReportEmail,
