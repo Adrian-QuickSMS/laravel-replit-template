@@ -526,11 +526,8 @@ button.btn-save-draft:hover {
                                                             <div class="mb-3 p-3 border rounded">
                                                                 <label class="form-label fw-medium mb-1">Screening Lists</label>
                                                                 <small class="text-muted d-block mb-2">Recipients already on any selected list will be excluded before sending. Screening activates automatically when lists are selected.</small>
-                                                                <div class="border rounded p-2" style="max-height:130px;overflow-y:auto;">
-                                                                    <div class="form-check">
-                                                                        <input class="form-check-input opt-out-item" type="checkbox" value="1" id="optOut1">
-                                                                        <label class="form-check-label" for="optOut1">Opt-Out List <span class="text-muted">(24)</span></label>
-                                                                    </div>
+                                                                <div class="border rounded p-2" style="max-height:130px;overflow-y:auto;" id="optOutCheckboxList">
+                                                                    <div class="text-muted small text-center py-2">Loading opt-out lists...</div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1211,11 +1208,21 @@ $(document).ready(function() {
     }
     
     function renderOptOutLists() {
-        var html = '<option value="NO">Do not apply opt-out lists</option>';
-        contactBookData.optOutLists.forEach(function(list) {
-            html += '<option value="' + list.id + '">' + list.name + ' (' + (list.recipientCount || 0).toLocaleString() + ')</option>';
-        });
-        $('#optOutList').html(html);
+        var html = '';
+        if (!contactBookData.optOutLists || contactBookData.optOutLists.length === 0) {
+            html = '<div class="text-muted small text-center py-2">No opt-out lists available</div>';
+        } else {
+            contactBookData.optOutLists.forEach(function(list) {
+                var isChecked = !wizardData.optOutLists.includes('NO') && wizardData.optOutLists.some(function(ol) {
+                    return (typeof ol === 'object' ? ol.id : ol) == list.id;
+                });
+                html += '<div class="form-check">' +
+                    '<input class="form-check-input opt-out-item" type="checkbox" value="' + list.id + '" id="optOut' + list.id + '"' + (isChecked ? ' checked' : '') + '>' +
+                    '<label class="form-check-label" for="optOut' + list.id + '">' + list.name + ' <span class="text-muted">(' + (list.recipientCount || 0).toLocaleString() + ')</span></label>' +
+                    '</div>';
+            });
+        }
+        $('#optOutCheckboxList').html(html);
     }
     
     var currentStep = 0;
