@@ -192,13 +192,14 @@ class XeroService
 
             // Check if account should be reactivated
             $account = $invoice->account;
-            if ($account->status === 'suspended') {
+            if ($account->isSuspended()) {
                 $hasOverdue = Invoice::where('account_id', $account->id)
                     ->overdue()
                     ->exists();
 
                 if (!$hasOverdue) {
-                    $account->update(['status' => 'active']);
+                    // Reactivate to active_standard by default (admin can upgrade to dynamic)
+                    $account->transitionTo(Account::STATUS_ACTIVE_STANDARD);
                     Log::info('Account reactivated after payment', ['account_id' => $account->id]);
                 }
             }

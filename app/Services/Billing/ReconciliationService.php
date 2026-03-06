@@ -157,7 +157,9 @@ class ReconciliationService
 
                         if (bccomp($balance->effective_available, (string)$charge->amount, 4) < 0) {
                             // Insufficient balance — suspend account
-                            $account->update(['status' => 'suspended']);
+                            if ($account->canTransitionTo(Account::STATUS_SUSPENDED)) {
+                                $account->transitionTo(Account::STATUS_SUSPENDED);
+                            }
                             Log::warning('Account suspended: insufficient balance for recurring charge', [
                                 'account_id' => $account->id,
                                 'charge' => $charge->amount,

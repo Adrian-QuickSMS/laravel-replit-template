@@ -223,10 +223,10 @@ class AdminController extends Controller
             ->get();
 
         $counts = [
-            'active' => Account::where('id', '!=', $systemId)->where('status', 'active')->count(),
-            'trial' => Account::where('id', '!=', $systemId)->where('account_type', 'trial')->count(),
-            'suspended' => Account::where('id', '!=', $systemId)->where('status', 'suspended')->count(),
-            'pending' => Account::where('id', '!=', $systemId)->where('activation_complete', false)->where('status', 'active')->count(),
+            'active' => Account::where('id', '!=', $systemId)->whereIn('status', Account::LIVE_STATUSES)->count(),
+            'trial' => Account::where('id', '!=', $systemId)->whereIn('status', Account::TEST_STATUSES)->count(),
+            'suspended' => Account::where('id', '!=', $systemId)->where('status', Account::STATUS_SUSPENDED)->count(),
+            'pending' => Account::where('id', '!=', $systemId)->where('status', Account::STATUS_PENDING_VERIFICATION)->count(),
             'flagged' => DB::table('account_flags')
                 ->where('account_id', '!=', $systemId)
                 ->where(function($q) {
@@ -443,7 +443,7 @@ class AdminController extends Controller
     public function apiConnectionCreate()
     {
         $accounts = \App\Models\Account::select('id', 'company_name', 'trading_name', 'account_number')
-            ->where('status', 'active')
+            ->whereIn('status', Account::OPERATIONAL_STATUSES)
             ->orderBy('company_name')
             ->get()
             ->map(fn($a) => [

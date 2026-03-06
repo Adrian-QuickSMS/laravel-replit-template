@@ -30,7 +30,19 @@ class SenderIdEnforcementService
      */
     public function validateForSending(string $senderIdValue, string $accountId, ?string $userId = null): array
     {
-        // Look up the SenderID for this account
+        $account = Account::find($accountId);
+
+        // Dynamic accounts (test_dynamic, active_dynamic) can use any SenderID
+        // that passes basic format validation — no registration required
+        if ($account && $account->isDynamic()) {
+            return [
+                'allowed' => true,
+                'reason' => null,
+                'sender_id' => null,
+            ];
+        }
+
+        // Standard accounts: SenderID must be registered and approved
         $senderId = SenderId::withoutGlobalScope('tenant')
             ->where('account_id', $accountId)
             ->where('sender_id_value', $senderIdValue)
@@ -38,18 +50,18 @@ class SenderIdEnforcementService
             ->first();
 
         if (!$senderId) {
-            // Check if this account has freeform exception
-            $account = Account::find($accountId);
-            if ($account) {
-                $flags = $account->flags;
-                // Check for allow_freeform_sender_id flag
-                // This would be a boolean on AccountFlags - future enhancement
-                // For now, freeform is not supported
+            // Test Standard: specific guidance
+            if ($account && $account->isTestStandard()) {
+                return [
+                    'allowed' => false,
+                    'reason' => "Test Standard accounts can only use 'QuickSMS Test Sender' or SenderIDs approved via the registration tool. '{$senderIdValue}' is not approved.",
+                    'sender_id' => null,
+                ];
             }
 
             return [
                 'allowed' => false,
-                'reason' => "SenderID '{$senderIdValue}' is not approved for this account.",
+                'reason' => "SenderID '{$senderIdValue}' is not approved for this account. Register it via the SenderID tool.",
                 'sender_id' => null,
             ];
         }

@@ -150,11 +150,11 @@ class InvoiceApiController extends Controller
         $balance = AccountBalance::where('account_id', $accountId)->first();
 
         $billingMode = 'prepaid';
-        $accountStatus = 'active';
+        $accountStatus = 'active_standard';
 
         if ($account) {
-            $billingMode = $account->account_type === 'postpay' ? 'postpaid' : 'prepaid';
-            $accountStatus = $account->status ?? 'active';
+            $billingMode = $account->billing_type === 'postpay' ? 'postpaid' : 'prepaid';
+            $accountStatus = $account->status ?? 'active_standard';
         }
 
         return response()->json([

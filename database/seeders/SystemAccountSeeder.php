@@ -46,7 +46,7 @@ class SystemAccountSeeder extends Seeder
             'phone' => '+44 800 000 0001',
             'country' => 'GB',
             'account_type' => 'system',
-            'status' => 'active',
+            'status' => 'active_standard',
             'email' => 'system@quicksms.internal',
             'created_at' => now(),
             'updated_at' => now(),

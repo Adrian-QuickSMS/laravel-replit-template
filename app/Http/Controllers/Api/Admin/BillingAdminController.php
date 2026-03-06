@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -474,14 +475,26 @@ class BillingAdminController extends Controller
 
     /**
      * POST /api/admin/v1/accounts/{id}/test-credits
-     * Award additional test credits.
+     * Award additional test credits. No upper limit - admin discretion.
+     * Only accounts in test mode (test_standard, test_dynamic) can receive test credits.
+     * Customers cannot purchase test credits; they must activate and fund prepay wallet.
      */
     public function awardTestCredits(Request $request, string $id): JsonResponse
     {
         $request->validate([
-            'credits' => 'required|integer|min:1|max:10000',
+            'credits' => 'required|integer|min:1',
             'reason' => 'required|string|max:255',
         ]);
+
+        $account = Account::findOrFail($id);
+
+        if (!$account->isTestMode()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Test credits can only be awarded to accounts in test mode (test_standard or test_dynamic). '
+                    . "Current status: {$account->status}",
+            ], 422);
+        }
 
         $wallet = TestCreditWallet::where('account_id', $id)->first();
 
@@ -499,6 +512,15 @@ class BillingAdminController extends Controller
             $wallet->credits_remaining += $request->input('credits');
             $wallet->save();
         }
+
+        Log::info('[AdminBilling] Test credits awarded', [
+            'account_id' => $id,
+            'credits' => $request->input('credits'),
+            'new_total' => $wallet->credits_total,
+            'new_remaining' => $wallet->credits_remaining,
+            'admin_id' => $this->getAdminId($request),
+            'reason' => $request->input('reason'),
+        ]);
 
         return response()->json(['success' => true, 'data' => $wallet]);
     }

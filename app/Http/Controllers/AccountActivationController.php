@@ -406,17 +406,31 @@ class AccountActivationController extends Controller
                 ], 400);
             }
 
-            // Already activated
-            if ($account->account_type !== 'trial') {
+            // Already activated (live accounts)
+            if ($account->isLiveMode()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Account is already activated'
                 ], 400);
             }
 
-            // Change account type from trial to prepay (going live)
+            // Must be in test mode to activate
+            if (!$account->isTestMode()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Account must be in test mode to activate. Current status: ' . $account->status
+                ], 400);
+            }
+
+            // Determine target live status: preserve standard/dynamic mode
+            // test_standard → active_standard, test_dynamic → active_dynamic
+            $oldStatus = $account->status;
+            $targetStatus = $account->isTestStandard()
+                ? Account::STATUS_ACTIVE_STANDARD
+                : Account::STATUS_ACTIVE_DYNAMIC;
+
+            $account->transitionTo($targetStatus);
             $account->update([
-                'account_type' => 'prepay',
                 'activated_by' => $user->id,
             ]);
 
@@ -427,6 +441,8 @@ class AccountActivationController extends Controller
             \Log::info('Account activated and went live', [
                 'account_id' => $account->id,
                 'account_number' => $account->account_number,
+                'old_status' => $oldStatus,
+                'new_status' => $targetStatus,
                 'activated_by' => $user->id,
                 'activated_by_email' => $user->email,
             ]);

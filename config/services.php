@@ -43,6 +43,13 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
+    'fraud_scoring' => [
+        'url' => env('FRAUD_SCORING_API_URL'),
+        'api_key' => env('FRAUD_SCORING_API_KEY'),
+        'auto_approve_threshold' => (int) env('FRAUD_SCORING_AUTO_APPROVE', 30),
+        'manual_review_threshold' => (int) env('FRAUD_SCORING_MANUAL_REVIEW', 70),
+    ],
+
     'xero' => [
         'client_id' => env('XERO_CLIENT_ID'),
         'client_secret' => env('XERO_CLIENT_SECRET'),

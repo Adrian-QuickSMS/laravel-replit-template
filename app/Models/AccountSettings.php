@@ -45,6 +45,7 @@ class AccountSettings extends Model
         'require_mfa',
         'allow_api_access',
         'api_rate_limit_override',
+        'approved_test_numbers',
     ];
 
     protected $casts = [
@@ -57,6 +58,7 @@ class AccountSettings extends Model
         'allow_api_access' => 'boolean',
         'session_timeout_minutes' => 'integer',
         'api_rate_limit_override' => 'integer',
+        'approved_test_numbers' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

@@ -385,11 +385,34 @@
                     <tbody>
                         @forelse($accounts as $acct)
                         @php
-                            $statusMap = ['active' => 'live', 'suspended' => 'suspended', 'inactive' => 'archived'];
-                            $displayStatus = $statusMap[$acct->status] ?? ($acct->account_type === 'trial' ? 'test' : 'live');
-                            $badgeMap = ['live' => 'badge-success', 'test' => 'badge-info', 'suspended' => 'badge-danger', 'archived' => 'badge-secondary'];
+                            $statusMap = [
+                                'test_standard' => 'test',
+                                'test_dynamic' => 'test',
+                                'active_standard' => 'live',
+                                'active_dynamic' => 'live',
+                                'suspended' => 'suspended',
+                                'pending_verification' => 'pending',
+                                'closed' => 'archived',
+                            ];
+                            $displayStatus = $statusMap[$acct->status] ?? 'unknown';
+                            $badgeMap = [
+                                'live' => 'badge-success',
+                                'test' => 'badge-info',
+                                'suspended' => 'badge-danger',
+                                'pending' => 'badge-warning',
+                                'archived' => 'badge-secondary',
+                            ];
                             $badgeClass = $badgeMap[$displayStatus] ?? 'badge-primary';
-                            $statusLabel = ucfirst($displayStatus);
+                            $statusDetailMap = [
+                                'test_standard' => 'Test Standard',
+                                'test_dynamic' => 'Test Dynamic',
+                                'active_standard' => 'Live Standard',
+                                'active_dynamic' => 'Live Dynamic',
+                                'suspended' => 'Suspended',
+                                'pending_verification' => 'Pending',
+                                'closed' => 'Closed',
+                            ];
+                            $statusLabel = $statusDetailMap[$acct->status] ?? ucfirst($displayStatus);
                             $balance = (float) ($acct->current_balance ?? 0);
                         @endphp
                         <tr class="account-row" data-account="{{ $acct->account_number }}" data-name="{{ $acct->company_name }}" data-status="{{ $displayStatus }}" data-volume-year="0" data-volume-month="0" data-balance="{{ $balance }}">

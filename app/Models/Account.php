@@ -31,6 +31,47 @@ class Account extends Model
     protected $keyType = 'string';
     public $incrementing = false;
 
+    // =====================================================
+    // ACCOUNT STATUS CONSTANTS
+    // =====================================================
+
+    // Lifecycle statuses
+    const STATUS_PENDING_VERIFICATION = 'pending_verification';
+    const STATUS_TEST_STANDARD = 'test_standard';
+    const STATUS_TEST_DYNAMIC = 'test_dynamic';
+    const STATUS_ACTIVE_STANDARD = 'active_standard';
+    const STATUS_ACTIVE_DYNAMIC = 'active_dynamic';
+    const STATUS_SUSPENDED = 'suspended';
+    const STATUS_CLOSED = 'closed';
+
+    // Status groups for convenience queries
+    const TEST_STATUSES = [self::STATUS_TEST_STANDARD, self::STATUS_TEST_DYNAMIC];
+    const LIVE_STATUSES = [self::STATUS_ACTIVE_STANDARD, self::STATUS_ACTIVE_DYNAMIC];
+    const STANDARD_STATUSES = [self::STATUS_TEST_STANDARD, self::STATUS_ACTIVE_STANDARD];
+    const DYNAMIC_STATUSES = [self::STATUS_TEST_DYNAMIC, self::STATUS_ACTIVE_DYNAMIC];
+    const OPERATIONAL_STATUSES = [
+        self::STATUS_TEST_STANDARD, self::STATUS_TEST_DYNAMIC,
+        self::STATUS_ACTIVE_STANDARD, self::STATUS_ACTIVE_DYNAMIC,
+    ];
+
+    // Test disclaimer prepended to Test Standard messages
+    const TEST_DISCLAIMER = 'QuickSMS TEST message. If unexpected, do not trust links or numbers.';
+    const TEST_DISCLAIMER_LENGTH = 67; // chars in TEST_DISCLAIMER
+
+    // Default test credit allocation (fragments)
+    const DEFAULT_TEST_CREDITS = 100;
+
+    // Valid status transitions
+    const STATUS_TRANSITIONS = [
+        self::STATUS_PENDING_VERIFICATION => [self::STATUS_TEST_STANDARD, self::STATUS_TEST_DYNAMIC, self::STATUS_CLOSED],
+        self::STATUS_TEST_STANDARD => [self::STATUS_TEST_DYNAMIC, self::STATUS_ACTIVE_STANDARD, self::STATUS_ACTIVE_DYNAMIC, self::STATUS_SUSPENDED, self::STATUS_CLOSED],
+        self::STATUS_TEST_DYNAMIC => [self::STATUS_TEST_STANDARD, self::STATUS_ACTIVE_STANDARD, self::STATUS_ACTIVE_DYNAMIC, self::STATUS_SUSPENDED, self::STATUS_CLOSED],
+        self::STATUS_ACTIVE_STANDARD => [self::STATUS_ACTIVE_DYNAMIC, self::STATUS_SUSPENDED, self::STATUS_CLOSED],
+        self::STATUS_ACTIVE_DYNAMIC => [self::STATUS_ACTIVE_STANDARD, self::STATUS_SUSPENDED, self::STATUS_CLOSED],
+        self::STATUS_SUSPENDED => [self::STATUS_TEST_STANDARD, self::STATUS_TEST_DYNAMIC, self::STATUS_ACTIVE_STANDARD, self::STATUS_ACTIVE_DYNAMIC, self::STATUS_CLOSED],
+        self::STATUS_CLOSED => [], // Terminal state
+    ];
+
     protected $fillable = [
         'account_number',
         'company_name',
@@ -283,19 +324,51 @@ class Account extends Model
     // =====================================================
 
     /**
-     * Scope: Only active accounts
+     * Scope: All operational accounts (test + live, excludes pending/suspended/closed)
      */
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->whereIn('status', self::OPERATIONAL_STATUSES);
     }
 
     /**
-     * Scope: Trial accounts only
+     * Scope: Test mode accounts (test_standard + test_dynamic)
+     */
+    public function scopeTestMode($query)
+    {
+        return $query->whereIn('status', self::TEST_STATUSES);
+    }
+
+    /**
+     * Scope: Live/active accounts (active_standard + active_dynamic)
+     */
+    public function scopeLiveMode($query)
+    {
+        return $query->whereIn('status', self::LIVE_STATUSES);
+    }
+
+    /**
+     * Scope: Standard accounts (test_standard + active_standard)
+     */
+    public function scopeStandard($query)
+    {
+        return $query->whereIn('status', self::STANDARD_STATUSES);
+    }
+
+    /**
+     * Scope: Dynamic accounts (test_dynamic + active_dynamic)
+     */
+    public function scopeDynamic($query)
+    {
+        return $query->whereIn('status', self::DYNAMIC_STATUSES);
+    }
+
+    /**
+     * Scope: Trial accounts only (legacy alias for testMode)
      */
     public function scopeTrial($query)
     {
-        return $query->where('account_type', 'trial');
+        return $query->testMode();
     }
 
     /**
@@ -303,7 +376,7 @@ class Account extends Model
      */
     public function scopePostpay($query)
     {
-        return $query->where('account_type', 'postpay');
+        return $query->where('billing_type', 'postpay');
     }
 
     /**
@@ -311,7 +384,7 @@ class Account extends Model
      */
     public function scopePrepay($query)
     {
-        return $query->where('account_type', 'prepay');
+        return $query->where('billing_type', 'prepay');
     }
 
     /**
@@ -319,7 +392,7 @@ class Account extends Model
      */
     public function scopeSuspended($query)
     {
-        return $query->where('status', 'suspended');
+        return $query->where('status', self::STATUS_SUSPENDED);
     }
 
     /**
@@ -335,11 +408,75 @@ class Account extends Model
     // =====================================================
 
     /**
-     * Check if account is active
+     * Check if account is operational (test or live, not pending/suspended/closed)
      */
     public function isActive(): bool
     {
-        return $this->status === 'active';
+        return in_array($this->status, self::OPERATIONAL_STATUSES);
+    }
+
+    /**
+     * Check if account is in test mode (test_standard or test_dynamic)
+     */
+    public function isTestMode(): bool
+    {
+        return in_array($this->status, self::TEST_STATUSES);
+    }
+
+    /**
+     * Check if account is in live mode (active_standard or active_dynamic)
+     */
+    public function isLiveMode(): bool
+    {
+        return in_array($this->status, self::LIVE_STATUSES);
+    }
+
+    /**
+     * Check if account is test_standard
+     */
+    public function isTestStandard(): bool
+    {
+        return $this->status === self::STATUS_TEST_STANDARD;
+    }
+
+    /**
+     * Check if account is test_dynamic
+     */
+    public function isTestDynamic(): bool
+    {
+        return $this->status === self::STATUS_TEST_DYNAMIC;
+    }
+
+    /**
+     * Check if account is active_standard (live standard)
+     */
+    public function isActiveStandard(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE_STANDARD;
+    }
+
+    /**
+     * Check if account is active_dynamic (live dynamic)
+     */
+    public function isActiveDynamic(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE_DYNAMIC;
+    }
+
+    /**
+     * Check if account uses standard sender ID rules (registered only)
+     */
+    public function isStandard(): bool
+    {
+        return in_array($this->status, self::STANDARD_STATUSES);
+    }
+
+    /**
+     * Check if account uses dynamic sender ID rules (any passing validation)
+     */
+    public function isDynamic(): bool
+    {
+        return in_array($this->status, self::DYNAMIC_STATUSES);
     }
 
     /**
@@ -347,7 +484,7 @@ class Account extends Model
      */
     public function isSuspended(): bool
     {
-        return $this->status === 'suspended';
+        return $this->status === self::STATUS_SUSPENDED;
     }
 
     /**
@@ -355,15 +492,83 @@ class Account extends Model
      */
     public function isClosed(): bool
     {
-        return $this->status === 'closed';
+        return $this->status === self::STATUS_CLOSED;
     }
 
     /**
-     * Check if account is in trial
+     * Check if account is pending verification
+     */
+    public function isPendingVerification(): bool
+    {
+        return $this->status === self::STATUS_PENDING_VERIFICATION;
+    }
+
+    /**
+     * Check if account is in trial (legacy alias for isTestMode)
      */
     public function isTrial(): bool
     {
-        return $this->account_type === 'trial';
+        return $this->isTestMode();
+    }
+
+    /**
+     * Check if account requires test disclaimer on messages
+     * Only Test Standard accounts get the disclaimer prepended
+     */
+    public function requiresTestDisclaimer(): bool
+    {
+        return $this->status === self::STATUS_TEST_STANDARD;
+    }
+
+    /**
+     * Check if account is restricted to approved test numbers only
+     * Only Test Standard accounts have this restriction
+     */
+    public function requiresApprovedTestNumbers(): bool
+    {
+        return $this->status === self::STATUS_TEST_STANDARD;
+    }
+
+    /**
+     * Check if account uses test credits (fragments) instead of balance
+     */
+    public function usesTestCredits(): bool
+    {
+        return $this->isTestMode();
+    }
+
+    /**
+     * Check if a status transition is valid
+     */
+    public function canTransitionTo(string $newStatus): bool
+    {
+        $allowed = self::STATUS_TRANSITIONS[$this->status] ?? [];
+        return in_array($newStatus, $allowed);
+    }
+
+    /**
+     * Transition account to a new status with validation
+     *
+     * @throws \InvalidArgumentException if transition is not allowed
+     */
+    public function transitionTo(string $newStatus): self
+    {
+        if (!$this->canTransitionTo($newStatus)) {
+            throw new \InvalidArgumentException(
+                "Cannot transition from '{$this->status}' to '{$newStatus}'"
+            );
+        }
+
+        $oldStatus = $this->status;
+        $this->update(['status' => $newStatus]);
+
+        Log::info('Account status transitioned', [
+            'account_id' => $this->id,
+            'from' => $oldStatus,
+            'to' => $newStatus,
+        ]);
+
+        return $this;
     }
 
     /**
