@@ -271,14 +271,11 @@
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
-                                                <label class="form-label">Subaccount <span class="text-danger">*</span></label>
+                                                <label class="form-label">Account <span class="text-danger">*</span></label>
                                                 <select class="form-select" id="stdFormSubaccount">
-                                                    <option value="">Select subaccount...</option>
-                                                    <option value="main">Main Account</option>
-                                                    <option value="marketing">Marketing Team</option>
-                                                    <option value="support">Support Team</option>
+                                                    <option value="">Loading accounts...</option>
                                                 </select>
-                                                <div class="invalid-feedback">Please select a subaccount.</div>
+                                                <div class="invalid-feedback">Please select an account.</div>
                                             </div>
                                         </div>
                                     </div>
@@ -461,6 +458,27 @@ $(document).ready(function() {
     var editingId = $('#stdFormEditingId').val() || null;
     var setupCreated = false;
     var stepValidated = [false, false, false];
+    
+    function loadFormAccounts() {
+        return EmailToSmsService.getSubaccounts().then(function(response) {
+            var $select = $('#stdFormSubaccount');
+            var currentVal = $select.val();
+            $select.empty().append('<option value="">Select account...</option>');
+            if (response.success && response.data) {
+                response.data.forEach(function(account) {
+                    $select.append('<option value="' + account.id + '">' + account.name + '</option>');
+                });
+            }
+            if (currentVal) {
+                $select.val(currentVal);
+            } else if (response.data && response.data.length === 1) {
+                $select.val(response.data[0].id);
+            }
+        }).catch(function() {
+            $('#stdFormSubaccount').empty().append('<option value="">No accounts available</option>');
+        });
+    }
+    var formAccountsLoaded = loadFormAccounts();
     
     function escapeHtml(text) {
         var div = document.createElement('div');
@@ -841,7 +859,9 @@ $(document).ready(function() {
     });
     
     if (editingId) {
-        EmailToSmsService.getEmailToSmsSetup(editingId).then(function(response) {
+        formAccountsLoaded.then(function() {
+        return EmailToSmsService.getEmailToSmsSetup(editingId);
+        }).then(function(response) {
             if (response.success && response.data) {
                 var item = response.data;
                 $('#stdFormName').val(item.name);

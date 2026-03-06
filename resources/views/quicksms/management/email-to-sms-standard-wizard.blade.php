@@ -287,40 +287,11 @@ button.btn-save-draft:hover {
                                             </div>
                                             
                                             <div class="col-lg-6 mb-3">
-                                                <label class="form-label">Sub-Account <span class="text-danger">*</span></label>
-                                                <div class="dropdown" id="stdSubaccountDropdown">
-                                                    <button class="form-select text-start d-flex justify-content-between align-items-center" type="button" id="stdSubaccountBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                                                        <span id="stdSubaccountLabel">Select sub-accounts...</span>
-                                                    </button>
-                                                    <ul class="dropdown-menu w-100 p-2" id="stdSubaccountMenu" style="max-height: 250px; overflow-y: auto;">
-                                                        <li>
-                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
-                                                                <input type="checkbox" id="stdSubaccountSelectAll" class="form-check-input m-0">
-                                                                <strong>Select All</strong>
-                                                            </label>
-                                                        </li>
-                                                        <li><hr class="dropdown-divider my-1"></li>
-                                                        <li>
-                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
-                                                                <input type="checkbox" class="form-check-input m-0 std-subaccount-check" value="main" data-label="Main Account">
-                                                                Main Account
-                                                            </label>
-                                                        </li>
-                                                        <li>
-                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
-                                                                <input type="checkbox" class="form-check-input m-0 std-subaccount-check" value="marketing" data-label="Marketing Team">
-                                                                Marketing Team
-                                                            </label>
-                                                        </li>
-                                                        <li>
-                                                            <label class="dropdown-item d-flex align-items-center gap-2 rounded" style="cursor: pointer;">
-                                                                <input type="checkbox" class="form-check-input m-0 std-subaccount-check" value="support" data-label="Support Team">
-                                                                Support Team
-                                                            </label>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                                <div class="invalid-feedback" id="stdSubaccountError" style="display: none;">Please select at least one sub-account.</div>
+                                                <label class="form-label">Account <span class="text-danger">*</span></label>
+                                                <select class="form-select" id="stdAccount">
+                                                    <option value="">Loading accounts...</option>
+                                                </select>
+                                                <div class="invalid-feedback">Please select an account.</div>
                                             </div>
                                         </div>
                                     </div>
@@ -443,7 +414,7 @@ button.btn-save-draft:hover {
                                                         <td id="summaryDescription">-</td>
                                                     </tr>
                                                     <tr>
-                                                        <td class="text-muted">Sub-Account</td>
+                                                        <td class="text-muted">Account</td>
                                                         <td id="summarySubaccount">-</td>
                                                     </tr>
                                                     <tr>
@@ -539,36 +510,24 @@ $(document).ready(function() {
     var totalSteps = 4;
     var allowedEmails = [];
     
-    function getSelectedSubaccounts() {
-        var selected = [];
-        $('.std-subaccount-check:checked').each(function() {
-            selected.push({ value: $(this).val(), label: $(this).attr('data-label') });
+    function loadAccounts() {
+        EmailToSmsService.getSubaccounts().then(function(response) {
+            var $select = $('#stdAccount');
+            $select.empty().append('<option value="">Select account...</option>');
+            if (response.success && response.data) {
+                response.data.forEach(function(account) {
+                    $select.append('<option value="' + account.id + '">' + account.name + '</option>');
+                });
+            }
+            if (response.data && response.data.length === 1) {
+                $select.val(response.data[0].id);
+            }
+        }).catch(function() {
+            $('#stdAccount').empty().append('<option value="">No accounts available</option>');
         });
-        return selected;
     }
-
-    function updateSubaccountLabel() {
-        var selected = getSelectedSubaccounts();
-        if (selected.length === 0) {
-            $('#stdSubaccountLabel').text('Select sub-accounts...');
-        } else if (selected.length === $('.std-subaccount-check').length) {
-            $('#stdSubaccountLabel').text('All sub-accounts');
-        } else {
-            $('#stdSubaccountLabel').text(selected.map(function(s) { return s.label; }).join(', '));
-        }
-        var allChecked = $('.std-subaccount-check').length === $('.std-subaccount-check:checked').length;
-        $('#stdSubaccountSelectAll').prop('checked', allChecked);
-    }
-
-    $('#stdSubaccountSelectAll').on('change', function() {
-        var isChecked = $(this).is(':checked');
-        $('.std-subaccount-check').prop('checked', isChecked);
-        updateSubaccountLabel();
-    });
-
-    $(document).on('change', '.std-subaccount-check', function() {
-        updateSubaccountLabel();
-    });
+    
+    loadAccounts();
 
     function goToStep(stepIndex) {
         if (stepIndex < 0 || stepIndex >= totalSteps) return;
@@ -616,7 +575,6 @@ $(document).ready(function() {
         
         if (step === 0) {
             var name = $('#stdName').val().trim();
-            var selectedSubaccounts = getSelectedSubaccounts();
             
             if (!name) {
                 $('#stdName').addClass('is-invalid');
@@ -625,13 +583,11 @@ $(document).ready(function() {
                 $('#stdName').removeClass('is-invalid');
             }
             
-            if (selectedSubaccounts.length === 0) {
-                $('#stdSubaccountError').show();
-                $('#stdSubaccountBtn').addClass('is-invalid');
+            if (!$('#stdAccount').val()) {
+                $('#stdAccount').addClass('is-invalid');
                 isValid = false;
             } else {
-                $('#stdSubaccountError').hide();
-                $('#stdSubaccountBtn').removeClass('is-invalid');
+                $('#stdAccount').removeClass('is-invalid');
             }
         } else if (step === 2) {
             var senderId = $('#stdSenderId').val();
@@ -659,8 +615,8 @@ $(document).ready(function() {
     function updateReviewSummary() {
         $('#summaryName').text($('#stdName').val() || '-');
         $('#summaryDescription').text($('#stdDescription').val() || 'None');
-        var selectedSubs = getSelectedSubaccounts();
-        $('#summarySubaccount').text(selectedSubs.length > 0 ? selectedSubs.map(function(s) { return s.label; }).join(', ') : '-');
+        var accountText = $('#stdAccount option:selected').text();
+        $('#summarySubaccount').text($('#stdAccount').val() ? accountText : '-');
         
         if (allowedEmails.length > 0) {
             var emailBadges = allowedEmails.map(function(email) {
@@ -800,12 +756,11 @@ $(document).ready(function() {
         var btn = $(this);
         btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Creating...');
         
-        var selectedSubs = getSelectedSubaccounts();
         var payload = {
             type: 'standard',
             name: $('#stdName').val().trim(),
             description: $('#stdDescription').val().trim(),
-            subaccountId: selectedSubs.length > 0 ? selectedSubs[0].value : null,
+            subaccountId: $('#stdAccount').val() || null,
             allowedEmails: allowedEmails,
             senderIdTemplateId: $('#stdSenderId').val() || null,
             senderId: $('#stdSenderId option:selected').text() || null,

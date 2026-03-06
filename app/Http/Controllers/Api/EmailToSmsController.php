@@ -587,6 +587,11 @@ class EmailToSmsController extends Controller
     {
         $tenantId = $this->tenantId();
 
+        $mainAccount = DB::table('accounts')
+            ->where('id', $tenantId)
+            ->select('id', 'company_name as name')
+            ->first();
+
         $subaccounts = DB::table('sub_accounts')
             ->where('account_id', $tenantId)
             ->whereNull('deleted_at')
@@ -595,9 +600,17 @@ class EmailToSmsController extends Controller
             ->orderBy('name')
             ->get();
 
+        $accounts = collect();
+        if ($mainAccount) {
+            $accounts->push((object) ['id' => $mainAccount->id, 'name' => $mainAccount->name ?: 'Main Account', 'is_main' => true]);
+        }
+        foreach ($subaccounts as $sub) {
+            $accounts->push((object) ['id' => $sub->id, 'name' => $sub->name, 'is_main' => false]);
+        }
+
         return response()->json([
             'success' => true,
-            'data' => $subaccounts,
+            'data' => $accounts,
         ]);
     }
 
