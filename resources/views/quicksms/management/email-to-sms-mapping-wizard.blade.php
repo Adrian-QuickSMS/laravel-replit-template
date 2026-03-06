@@ -710,7 +710,7 @@ button.btn-save-draft:hover {
 </div>
 
 {{-- Contact Book Selection Modal --}}
-<div class="modal fade" id="contactBookModal" tabindex="-1" aria-labelledby="contactBookModalLabel" aria-hidden="true">
+<div class="modal fade" id="contactBookModal" tabindex="-1" aria-labelledby="contactBookModalLabel" aria-hidden="true" style="z-index: 1060;">
     <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
         <div class="modal-content" style="border-radius: 0.75rem; border: none; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
             <div class="modal-header py-3 px-4" style="border-bottom: 1px solid #f0ebf8;">
@@ -766,14 +766,6 @@ button.btn-save-draft:hover {
                                     </tr>
                                 </thead>
                                 <tbody id="modalContactsTable">
-                                    <tr style="border-bottom: 1px solid #f5f3fa;"><td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="1" data-name="John Smith"></td><td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: #6f42c120; color: #6f42c1; flex-shrink: 0;">JS</div><span style="font-weight: 500; color: #2c2c2c;">John Smith</span></div></td><td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">+44 7700***123</td><td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-info">VIP</span></td></tr>
-                                    <tr style="background-color: #faf9fd; border-bottom: 1px solid #f5f3fa;"><td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="2" data-name="Jane Doe"></td><td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: #e83e8c20; color: #e83e8c; flex-shrink: 0;">JD</div><span style="font-weight: 500; color: #2c2c2c;">Jane Doe</span></div></td><td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">+44 7700***456</td><td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-success">Asthma</span></td></tr>
-                                    <tr style="border-bottom: 1px solid #f5f3fa;"><td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="3" data-name="Robert Brown"></td><td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: #20c99720; color: #20c997; flex-shrink: 0;">RB</div><span style="font-weight: 500; color: #2c2c2c;">Robert Brown</span></div></td><td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">+44 7700***789</td><td style="padding: 10px 8px; vertical-align: middle;"></td></tr>
-                                    <tr style="background-color: #faf9fd; border-bottom: 1px solid #f5f3fa;"><td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="4" data-name="Sarah Wilson"></td><td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: #fd7e1420; color: #fd7e14; flex-shrink: 0;">SW</div><span style="font-weight: 500; color: #2c2c2c;">Sarah Wilson</span></div></td><td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">+44 7700***012</td><td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-warning">Diabetes</span></td></tr>
-                                    <tr style="border-bottom: 1px solid #f5f3fa;"><td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="5" data-name="Michael Johnson"></td><td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: #0d6efd20; color: #0d6efd; flex-shrink: 0;">MJ</div><span style="font-weight: 500; color: #2c2c2c;">Michael Johnson</span></div></td><td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">+44 7700***345</td><td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-info">VIP</span></td></tr>
-                                    <tr style="background-color: #faf9fd; border-bottom: 1px solid #f5f3fa;"><td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="6" data-name="Emily Davis"></td><td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: #6610f220; color: #6610f2; flex-shrink: 0;">ED</div><span style="font-weight: 500; color: #2c2c2c;">Emily Davis</span></div></td><td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">+44 7700***678</td><td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-success">Asthma</span></td></tr>
-                                    <tr style="border-bottom: 1px solid #f5f3fa;"><td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="7" data-name="David Miller"></td><td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: #d6338420; color: #d63384; flex-shrink: 0;">DM</div><span style="font-weight: 500; color: #2c2c2c;">David Miller</span></div></td><td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">+44 7700***901</td><td style="padding: 10px 8px; vertical-align: middle;"></td></tr>
-                                    <tr style="background-color: #faf9fd; border-bottom: 1px solid #f5f3fa;"><td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="8" data-name="Lisa Anderson"></td><td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: #19875420; color: #198754; flex-shrink: 0;">LA</div><span style="font-weight: 500; color: #2c2c2c;">Lisa Anderson</span></div></td><td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">+44 7700***234</td><td style="padding: 10px 8px; vertical-align: middle;"><span class="badge badge-pastel-warning">Diabetes</span> <span class="badge badge-pastel-danger">Hypertension</span></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -809,11 +801,6 @@ button.btn-save-draft:hover {
                                     </tr>
                                 </thead>
                                 <tbody id="modalListsTable">
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="1" data-name="VIP Patients" data-count="1234"></td><td>VIP Patients</td><td>1,234</td><td>22-Dec-2025</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="2" data-name="Newsletter Subscribers" data-count="5678"></td><td>Newsletter Subscribers</td><td>5,678</td><td>21-Dec-2025</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="3" data-name="Flu Campaign 2025" data-count="3456"></td><td>Flu Campaign 2025</td><td>3,456</td><td>20-Dec-2025</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="4" data-name="Repeat Prescriptions" data-count="2100"></td><td>Repeat Prescriptions</td><td>2,100</td><td>19-Dec-2025</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="5" data-name="NHS Reminders" data-count="8900"></td><td>NHS Reminders</td><td>8,900</td><td>18-Dec-2025</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -849,9 +836,6 @@ button.btn-save-draft:hover {
                                     </tr>
                                 </thead>
                                 <tbody id="modalDynamicListsTable">
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-dynamic" value="1" data-name="Over 65s" data-count="2345"></td><td>Over 65s</td><td>Age > 65</td><td>2,345</td><td>22-Dec-2025</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-dynamic" value="2" data-name="Local Postcodes" data-count="1890"></td><td>Local Postcodes</td><td>Postcode starts with SW</td><td>1,890</td><td>22-Dec-2025</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-dynamic" value="3" data-name="Active Last 30 Days" data-count="4500"></td><td>Active Last 30 Days</td><td>Last contact < 30 days</td><td>4,500</td><td>22-Dec-2025</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -885,11 +869,6 @@ button.btn-save-draft:hover {
                                     </tr>
                                 </thead>
                                 <tbody id="modalTagsTable">
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="1" data-name="VIP" data-count="456"></td><td><span class="badge badge-pastel-info">VIP</span></td><td>456</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="2" data-name="Asthma" data-count="1234"></td><td><span class="badge badge-pastel-success">Asthma</span></td><td>1,234</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="3" data-name="Diabetes" data-count="890"></td><td><span class="badge badge-pastel-warning">Diabetes</span></td><td>890</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="4" data-name="Hypertension" data-count="567"></td><td><span class="badge badge-pastel-danger">Hypertension</span></td><td>567</td></tr>
-                                    <tr><td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="5" data-name="Chronic Care" data-count="1023"></td><td><span class="badge badge-pastel-primary">Chronic Care</span></td><td>1,023</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1979,6 +1958,105 @@ $(document).ready(function() {
         });
     });
     
+    var avatarColors = ['#6f42c1', '#e83e8c', '#20c997', '#fd7e14', '#0d6efd', '#6610f2', '#d63384', '#198754', '#dc3545', '#0dcaf0'];
+
+    function populateModalContacts() {
+        var html = '';
+        if (!contactBookData || !contactBookData.contacts || contactBookData.contacts.length === 0) {
+            html = '<tr><td colspan="4" class="text-center text-muted py-4">No contacts found</td></tr>';
+        } else {
+            contactBookData.contacts.forEach(function(contact, idx) {
+                var isChecked = wizardData.selectedContacts.some(function(c) { return c.id == contact.id; });
+                var name = contact.name || ((contact.first_name || '') + ' ' + (contact.last_name || '')).trim() || 'Unknown';
+                var initials = name.split(' ').map(function(w) { return w.charAt(0).toUpperCase(); }).join('').substring(0, 2);
+                var color = avatarColors[idx % avatarColors.length];
+                var mobile = contact.mobile || '';
+                var bgStyle = idx % 2 === 1 ? 'background-color: #faf9fd;' : '';
+                html += '<tr style="' + bgStyle + ' border-bottom: 1px solid #f5f3fa;">' +
+                    '<td style="padding: 10px 8px; vertical-align: middle;"><input type="checkbox" class="form-check-input cb-contact" value="' + contact.id + '" data-name="' + name.replace(/"/g, '&quot;') + '"' + (isChecked ? ' checked' : '') + '></td>' +
+                    '<td style="padding: 10px 8px; vertical-align: middle;"><div class="d-flex align-items-center"><div class="contact-avatar me-2" style="background-color: ' + color + '20; color: ' + color + '; flex-shrink: 0;">' + initials + '</div><span style="font-weight: 500; color: #2c2c2c;">' + name + '</span></div></td>' +
+                    '<td style="padding: 10px 8px; vertical-align: middle; color: #6c757d;">' + mobile + '</td>' +
+                    '<td style="padding: 10px 8px; vertical-align: middle;"></td>' +
+                    '</tr>';
+            });
+        }
+        $('#modalContactsTable').html(html);
+    }
+
+    function populateModalLists() {
+        var html = '';
+        if (!contactBookData || !contactBookData.lists || contactBookData.lists.length === 0) {
+            html = '<tr><td colspan="4" class="text-center text-muted py-4">No contact lists found</td></tr>';
+        } else {
+            contactBookData.lists.forEach(function(list) {
+                var isChecked = wizardData.selectedLists.some(function(l) { return l.id == list.id; });
+                var count = (list.recipientCount || 0).toLocaleString();
+                html += '<tr>' +
+                    '<td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-list" value="' + list.id + '" data-name="' + (list.name || '').replace(/"/g, '&quot;') + '" data-count="' + (list.recipientCount || 0) + '"' + (isChecked ? ' checked' : '') + '></td>' +
+                    '<td>' + (list.name || '') + '</td>' +
+                    '<td>' + count + '</td>' +
+                    '<td>' + (list.updated_at || '') + '</td>' +
+                    '</tr>';
+            });
+        }
+        $('#modalListsTable').html(html);
+    }
+
+    function populateModalDynamicLists() {
+        var html = '';
+        if (!contactBookData || !contactBookData.dynamicLists || contactBookData.dynamicLists.length === 0) {
+            html = '<tr><td colspan="5" class="text-center text-muted py-4">No dynamic lists found</td></tr>';
+        } else {
+            contactBookData.dynamicLists.forEach(function(list) {
+                var isChecked = wizardData.selectedDynamicLists.some(function(l) { return l.id == list.id; });
+                var count = (list.recipientCount || 0).toLocaleString();
+                html += '<tr>' +
+                    '<td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-dynamic" value="' + list.id + '" data-name="' + (list.name || '').replace(/"/g, '&quot;') + '" data-count="' + (list.recipientCount || 0) + '"' + (isChecked ? ' checked' : '') + '></td>' +
+                    '<td>' + (list.name || '') + '</td>' +
+                    '<td>' + (list.rules || '') + '</td>' +
+                    '<td>' + count + '</td>' +
+                    '<td>' + (list.updated_at || '') + '</td>' +
+                    '</tr>';
+            });
+        }
+        $('#modalDynamicListsTable').html(html);
+    }
+
+    function populateModalTags() {
+        var html = '';
+        if (!contactBookData || !contactBookData.tags || contactBookData.tags.length === 0) {
+            html = '<tr><td colspan="3" class="text-center text-muted py-4">No tags found</td></tr>';
+        } else {
+            var tagColors = ['badge-pastel-info', 'badge-pastel-success', 'badge-pastel-warning', 'badge-pastel-danger', 'badge-pastel-primary'];
+            contactBookData.tags.forEach(function(tag, idx) {
+                var isChecked = wizardData.selectedTags.some(function(t) { return t.id == tag.id; });
+                var count = (tag.recipientCount || 0).toLocaleString();
+                var badgeClass = tagColors[idx % tagColors.length];
+                html += '<tr>' +
+                    '<td style="padding: 10px 8px;"><input type="checkbox" class="form-check-input cb-tag" value="' + tag.id + '" data-name="' + (tag.name || '').replace(/"/g, '&quot;') + '" data-count="' + (tag.recipientCount || 0) + '"' + (isChecked ? ' checked' : '') + '></td>' +
+                    '<td><span class="badge ' + badgeClass + '">' + (tag.name || '') + '</span></td>' +
+                    '<td>' + count + '</td>' +
+                    '</tr>';
+            });
+        }
+        $('#modalTagsTable').html(html);
+    }
+
+    function populateContactBookModal() {
+        populateModalContacts();
+        populateModalLists();
+        populateModalDynamicLists();
+        populateModalTags();
+    }
+
+    $('#contactBookModal').on('show.bs.modal', function() {
+        populateContactBookModal();
+    });
+
+    $('#contactBookModal').on('shown.bs.modal', function() {
+        $('.modal-backdrop').last().css('z-index', 1055);
+    });
+
     // Contact Book Modal handlers
     $('#btnOpenContactBookModal').on('click', function() {
         updateModalSelectionBadges();
