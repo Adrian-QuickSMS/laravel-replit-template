@@ -741,8 +741,8 @@
                                 <div class="form-text">Defaults to Main Account. Optionally assign to a sub-account.</div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Role <span class="text-danger">*</span></label>
-                                <select class="form-select" id="invite-role" required>
+                                <label class="form-label text-muted">Role <span class="badge bg-secondary ms-1" style="font-size:0.65rem;vertical-align:middle;">Coming Soon</span></label>
+                                <select class="form-select" id="invite-role" disabled style="opacity:0.5;cursor:not-allowed;">
                                     <option value="">Select Role...</option>
                                     <option value="admin">Admin</option>
                                     <option value="messaging_manager">Messaging Manager</option>
@@ -754,8 +754,8 @@
                                 <div class="form-text">Determines navigation and feature access</div>
                             </div>
                             <div class="mb-3" id="sender-capability-group">
-                                <label class="form-label">Sender Capability Level <span class="text-danger">*</span></label>
-                                <select class="form-select" id="invite-sender-capability" required>
+                                <label class="form-label text-muted">Sender Capability Level <span class="badge bg-secondary ms-1" style="font-size:0.65rem;vertical-align:middle;">Coming Soon</span></label>
+                                <select class="form-select" id="invite-sender-capability" disabled style="opacity:0.5;cursor:not-allowed;">
                                     <option value="">Select Capability...</option>
                                     <option value="advanced">Advanced Sender - Full content creation, Contact Book, CSV uploads</option>
                                     <option value="restricted">Restricted Sender - Templates only, predefined lists only</option>
@@ -816,8 +816,8 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Role <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="direct-role" required>
+                                    <label class="form-label text-muted">Role <span class="badge bg-secondary ms-1" style="font-size:0.65rem;vertical-align:middle;">Coming Soon</span></label>
+                                    <select class="form-select" id="direct-role" disabled style="opacity:0.5;cursor:not-allowed;">
                                         <option value="">Select Role...</option>
                                         <option value="admin">Admin</option>
                                         <option value="messaging_manager">Messaging Manager</option>
@@ -828,8 +828,8 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3" id="direct-sender-capability-group">
-                                    <label class="form-label">Sender Capability Level <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="direct-sender-capability" required>
+                                    <label class="form-label text-muted">Sender Capability Level <span class="badge bg-secondary ms-1" style="font-size:0.65rem;vertical-align:middle;">Coming Soon</span></label>
+                                    <select class="form-select" id="direct-sender-capability" disabled style="opacity:0.5;cursor:not-allowed;">
                                         <option value="">Select Capability...</option>
                                         <option value="advanced">Advanced Sender</option>
                                         <option value="restricted">Restricted Sender</option>
@@ -1021,18 +1021,9 @@ document.addEventListener('DOMContentLoaded', function() {
     btnSendInvite.addEventListener('click', function() {
         var email = document.getElementById('invite-email').value.trim();
         var subAccountId = document.getElementById('invite-sub-account').value;
-        var role = document.getElementById('invite-role').value;
-        var senderCapability = document.getElementById('invite-sender-capability').value;
         
-        var nonMessagingRoles = ['finance', 'readonly'];
-        var requiresCapability = !nonMessagingRoles.includes(role);
-        
-        if (!email || !role) {
-            showToast('warning', 'Missing Fields', 'Please fill in all required fields');
-            return;
-        }
-        if (requiresCapability && !senderCapability) {
-            showToast('warning', 'Missing Fields', 'Please select a Sender Capability Level');
+        if (!email) {
+            showToast('warning', 'Missing Fields', 'Please enter an email address');
             return;
         }
         var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1041,9 +1032,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        var payload = { email: email, role: role };
+        var payload = { email: email };
         if (subAccountId) payload.sub_account_id = subAccountId;
-        if (requiresCapability && senderCapability) payload.sender_capability = senderCapability;
         
         btnSendInvite.disabled = true;
         btnSendInvite.textContent = 'Sending...';
@@ -1067,20 +1057,11 @@ document.addEventListener('DOMContentLoaded', function() {
         var email = document.getElementById('direct-email').value.trim();
         var tempPassword = document.getElementById('direct-temp-password').value;
         var subAccountId = document.getElementById('direct-sub-account').value;
-        var role = document.getElementById('direct-role').value;
-        var senderCapability = document.getElementById('direct-sender-capability').value;
         var reason = document.getElementById('direct-reason').value.trim();
         var confirmRisk = document.getElementById('direct-confirm-risk').checked;
         
-        var nonMessagingRoles = ['finance', 'readonly'];
-        var requiresCapability = !nonMessagingRoles.includes(role);
-        
-        if (!firstName || !lastName || !email || !tempPassword || !role || !reason) {
+        if (!firstName || !lastName || !email || !tempPassword || !reason) {
             showToast('warning', 'Missing Fields', 'Please fill in all required fields');
-            return;
-        }
-        if (requiresCapability && !senderCapability) {
-            showToast('warning', 'Missing Fields', 'Please select a Sender Capability Level');
             return;
         }
         if (tempPassword.length < 12) {
@@ -1097,9 +1078,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        var payload = { email: email, role: role, first_name: firstName, last_name: lastName };
+        var payload = { email: email, first_name: firstName, last_name: lastName };
         if (subAccountId) payload.sub_account_id = subAccountId;
-        if (requiresCapability && senderCapability) payload.sender_capability = senderCapability;
         
         btnDirectCreate.disabled = true;
         btnDirectCreate.textContent = 'Creating...';

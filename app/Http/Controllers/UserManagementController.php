@@ -366,7 +366,7 @@ class UserManagementController extends Controller
                 'email' => 'required|email|max:255',
                 'first_name' => 'nullable|string|max:255',
                 'last_name' => 'nullable|string|max:255',
-                'role' => 'required|in:' . implode(',', array_diff(User::ROLES, [User::ROLE_OWNER])),
+                'role' => 'nullable|in:' . implode(',', array_diff(User::ROLES, [User::ROLE_OWNER])),
                 'sub_account_id' => ['nullable', 'string', Rule::exists('sub_accounts', 'id')->where('account_id', $currentUser->tenant_id)],
                 'sender_capability' => 'nullable|in:advanced,restricted,none',
                 'permission_toggles' => 'nullable|array',
