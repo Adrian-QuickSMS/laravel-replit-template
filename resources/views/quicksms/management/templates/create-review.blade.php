@@ -264,6 +264,10 @@
                                         <a href="@if($isEditMode){{ isset($isAdminMode) && $isAdminMode ? route('admin.management.templates.edit.step3', ['accountId' => $accountId, 'templateId' => $templateId]) : route('management.templates.edit.step3', ['templateId' => $templateId]) }}@else{{ route('management.templates.create.step3') }}@endif"><i class="fas fa-edit me-1"></i>Edit</a>
                                     </h6>
                                     <div class="review-row">
+                                        <span class="review-label">Sub-Account:</span>
+                                        <span class="review-value" id="reviewSubAccount">All sub-accounts (main account level)</span>
+                                    </div>
+                                    <div class="review-row">
                                         <span class="review-label">Visibility:</span>
                                         <span class="review-value" id="reviewVisibility">-</span>
                                     </div>
@@ -443,6 +447,14 @@ document.addEventListener('DOMContentLoaded', function() {
         var visibilityMap = { 'all_users': 'All users on this account', 'owner_only': 'Only me (template owner)' };
         document.getElementById('reviewVisibility').textContent = visibilityMap[data3.visibility] || data3.visibility || 'All users on this account';
         document.getElementById('reviewAllowEditing').textContent = data3.allowEditing ? 'Yes' : 'No';
+
+        var subAccountMap = {!! json_encode(collect($sub_accounts ?? [])->pluck('name', 'id')->toArray()) !!};
+        var saEl = document.getElementById('reviewSubAccount');
+        if (data3.sub_account_id && subAccountMap[data3.sub_account_id]) {
+            saEl.textContent = subAccountMap[data3.sub_account_id];
+        } else {
+            saEl.textContent = 'All sub-accounts (main account level)';
+        }
     }
     
     // Generate unique template ID
@@ -472,6 +484,8 @@ document.addEventListener('DOMContentLoaded', function() {
             category: data1.category || null,
             status: status || 'active'
         };
+
+        payload.sub_account_id = data3.sub_account_id || null;
 
         var uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (data2.senderId && uuidPattern.test(data2.senderId)) payload.sender_id_id = data2.senderId;

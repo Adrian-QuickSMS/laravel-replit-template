@@ -168,6 +168,22 @@
                                 </div>
                                 
                                 <div class="settings-section">
+                                    <h6><i class="fas fa-sitemap me-2"></i>Sub-Account Assignment</h6>
+                                    <p class="small text-muted mb-3">Assign this template to a specific sub-account, or keep it available at the main account level.</p>
+
+                                    <div class="mb-3">
+                                        <label class="form-label">Assign to Sub-Account</label>
+                                        <select class="form-select" id="templateSubAccount">
+                                            <option value="">All sub-accounts (main account level)</option>
+                                            @foreach($sub_accounts ?? [] as $sa)
+                                                <option value="{{ $sa['id'] }}">{{ $sa['name'] }}</option>
+                                            @endforeach
+                                        </select>
+                                        <small class="text-muted mt-1 d-block">Templates assigned to a sub-account will only be visible to users within that sub-account. Leave unassigned for account-wide availability.</small>
+                                    </div>
+                                </div>
+
+                                <div class="settings-section">
                                     <h6><i class="fas fa-user-shield me-2"></i>Access Control</h6>
                                     <p class="small text-muted mb-3">Control who can use this template within your account.</p>
 
@@ -218,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function() {
         @if($isEditMode && $template)
         document.getElementById('templateVisibility').value = '{{ $template['visibility'] ?? 'all_users' }}';
         document.getElementById('allowEditing').checked = {{ ($template['allowEditing'] ?? false) ? 'true' : 'false' }};
+        document.getElementById('templateSubAccount').value = '{{ $template['sub_account_id'] ?? '' }}';
         @endif
     } else {
         var savedData = sessionStorage.getItem('templateWizardStep3');
@@ -227,6 +244,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (data.visibility) {
                     document.getElementById('templateVisibility').value = data.visibility;
                 }
+                if (data.sub_account_id) {
+                    document.getElementById('templateSubAccount').value = data.sub_account_id;
+                }
                 document.getElementById('allowEditing').checked = data.allowEditing || false;
             } catch(e) {}
         }
@@ -235,7 +255,8 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('nextBtn').addEventListener('click', function() {
         sessionStorage.setItem('templateWizardStep3', JSON.stringify({
             visibility: document.getElementById('templateVisibility').value,
-            allowEditing: document.getElementById('allowEditing').checked
+            allowEditing: document.getElementById('allowEditing').checked,
+            sub_account_id: document.getElementById('templateSubAccount').value || null
         }));
     });
 });

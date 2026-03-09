@@ -2454,21 +2454,49 @@ class QuickSMSController extends Controller
 
     public function templateCreateStep3()
     {
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)
+                    ->select('id', 'name')
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray();
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.management.templates.create-step3', [
             'page_title' => 'Create Template - Settings',
             'isEditMode' => false,
             'isAdminMode' => false,
-            'template' => null
+            'template' => null,
+            'sub_accounts' => $subAccounts,
         ]);
     }
 
     public function templateCreateReview()
     {
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)
+                    ->select('id', 'name')
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray();
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.management.templates.create-review', [
             'page_title' => 'Create Template - Review',
             'isEditMode' => false,
             'isAdminMode' => false,
-            'template' => null
+            'template' => null,
+            'sub_accounts' => $subAccounts,
         ]);
     }
 
@@ -2522,12 +2550,26 @@ class QuickSMSController extends Controller
             return redirect()->route('management.templates')->with('error', 'Template not found.');
         }
 
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)
+                    ->select('id', 'name')
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray();
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.management.templates.create-step3', [
             'page_title' => 'Edit Template - Settings',
             'isEditMode' => true,
             'isAdminMode' => false,
             'templateId' => $templateId,
-            'template' => $template
+            'template' => $template,
+            'sub_accounts' => $subAccounts,
         ]);
     }
 
@@ -2538,12 +2580,26 @@ class QuickSMSController extends Controller
             return redirect()->route('management.templates')->with('error', 'Template not found.');
         }
 
+        $tenantId = session('customer_tenant_id');
+        $subAccounts = [];
+        if ($tenantId) {
+            try {
+                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
+                $subAccounts = \App\Models\SubAccount::where('account_id', $tenantId)
+                    ->select('id', 'name')
+                    ->orderBy('name')
+                    ->get()
+                    ->toArray();
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.management.templates.create-review', [
             'page_title' => 'Edit Template - Review',
             'isEditMode' => true,
             'isAdminMode' => false,
             'templateId' => $templateId,
-            'template' => $template
+            'template' => $template,
+            'sub_accounts' => $subAccounts,
         ]);
     }
 
@@ -2703,6 +2759,7 @@ class QuickSMSController extends Controller
             'socialHoursTo' => $t->social_hours_to ?? '',
             'rcs_content' => $t->rcs_content,
             'status' => $t->status,
+            'sub_account_id' => $t->sub_account_id,
         ];
     }
 
