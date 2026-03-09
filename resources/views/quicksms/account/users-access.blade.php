@@ -1548,7 +1548,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     var hierarchyData = {
         mainAccount: { name: accountName },
-        subAccounts: []
+        subAccounts: [],
+        mainAccountUsers: []
     };
     
     function showRoleInfo(selectId, infoId) {
@@ -1665,32 +1666,47 @@ document.addEventListener('DOMContentLoaded', function() {
             
             subAccountsData.forEach(function(sa) { sa.users = []; });
             
+            var unassignedUsers = [];
             usersData.forEach(function(u) {
-                var targetSa = subAccountsData.find(function(s) { return s.id === u.sub_account_id; });
-                if (targetSa) {
-                    targetSa.users.push(u);
+                if (u.sub_account_id) {
+                    var targetSa = subAccountsData.find(function(s) { return s.id === u.sub_account_id; });
+                    if (targetSa) {
+                        targetSa.users.push(u);
+                    } else {
+                        unassignedUsers.push(u);
+                    }
+                } else {
+                    unassignedUsers.push(u);
                 }
             });
             
             invitations.forEach(function(inv) {
-                var targetSa = subAccountsData.find(function(s) { return s.id === inv.sub_account_id; });
-                if (targetSa) {
-                    targetSa.users.push({
-                        id: inv.id,
-                        sub_account_id: inv.sub_account_id,
-                        name: ((inv.first_name || '') + ' ' + (inv.last_name || '')).trim() || inv.email.split('@')[0],
-                        email: inv.email,
-                        role: inv.role,
-                        status: 'invited',
-                        senderCapability: inv.sender_capability || null,
-                        isInvitation: true,
-                        userLimits: null,
-                        usage: { spend: 0, messages: 0 }
-                    });
+                var invUser = {
+                    id: inv.id,
+                    sub_account_id: inv.sub_account_id,
+                    name: ((inv.first_name || '') + ' ' + (inv.last_name || '')).trim() || inv.email.split('@')[0],
+                    email: inv.email,
+                    role: inv.role,
+                    status: 'invited',
+                    senderCapability: inv.sender_capability || null,
+                    isInvitation: true,
+                    userLimits: null,
+                    usage: { spend: 0, messages: 0 }
+                };
+                if (inv.sub_account_id) {
+                    var targetSa = subAccountsData.find(function(s) { return s.id === inv.sub_account_id; });
+                    if (targetSa) {
+                        targetSa.users.push(invUser);
+                    } else {
+                        unassignedUsers.push(invUser);
+                    }
+                } else {
+                    unassignedUsers.push(invUser);
                 }
             });
             
             hierarchyData.subAccounts = subAccountsData;
+            hierarchyData.mainAccountUsers = unassignedUsers;
             renderHierarchy();
         }).catch(function(err) {
             console.error('Failed to load hierarchy:', err);
@@ -1709,6 +1725,32 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '</div>';
         html += '<button class="contextual-btn btn-add-sub-account" type="button">+ Add Sub-Account</button>';
         html += '</div>';
+        
+        var mainUsers = hierarchyData.mainAccountUsers || [];
+        if (mainUsers.length > 0) {
+            html += '<div class="main-account-users" style="margin: 0 0 8px 0; padding: 8px 12px; background: rgba(136, 108, 192, 0.06); border-radius: 8px; border: 1px solid rgba(136, 108, 192, 0.15);">';
+            mainUsers.forEach(function(user) {
+                var hasMessagingRole = ['owner', 'admin', 'messaging_manager', 'user'].includes(user.role);
+                html += '<div class="user-row" data-user-id="' + user.id + '" data-sub-account-id="">';
+                html += '<div class="user-info">';
+                html += '<span class="user-name">' + escapeHtml(user.name) + '</span>';
+                html += '<span class="user-email">' + escapeHtml(user.email) + '</span>';
+                html += '</div>';
+                html += '<div class="user-pills">';
+                html += '<span class="role-pill ' + user.role + '">' + formatRole(user.role) + '</span>';
+                if (hasMessagingRole && user.senderCapability) {
+                    var capLabel = user.senderCapability === 'advanced' ? 'Advanced' : 'Restricted';
+                    html += '<span class="capability-pill ' + user.senderCapability + '">' + capLabel + '</span>';
+                }
+                html += '<span class="status-pill ' + user.status + '">' + capitalise(user.status) + '</span>';
+                if (user.isAccountOwner) {
+                    html += '<span class="badge" style="background: #f3e8ff; color: #7c3aed; font-size: 0.7rem; padding: 3px 8px;">Account Owner</span>';
+                }
+                html += '</div>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
         
         html += '<div class="tree-connector"></div>';
         
@@ -1796,8 +1838,12 @@ document.addEventListener('DOMContentLoaded', function() {
         var activeUsers = 0;
         var pendingInvites = 0;
         
-        totalUsers = 1;
-        activeUsers = 1;
+        var mainUsers = hierarchyData.mainAccountUsers || [];
+        totalUsers += mainUsers.length;
+        mainUsers.forEach(function(user) {
+            if (user.status === 'active') activeUsers++;
+            if (user.status === 'invited') pendingInvites++;
+        });
         
         subAccounts.forEach(function(sub) {
             totalUsers += sub.users.length;
