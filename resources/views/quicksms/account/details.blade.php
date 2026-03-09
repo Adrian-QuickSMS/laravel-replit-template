@@ -1030,7 +1030,7 @@
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#testNumbersSection" aria-expanded="false">
                         <i class="fas fa-flask me-2 text-warning"></i>Test Mode — Approved Test Numbers
-                        <span class="badge ms-2" style="background-color: #f0ebf8; color: #886CC0;">{{ count($approved_test_numbers ?? []) }}/10</span>
+                        <span class="badge ms-2" style="background-color: #fff8e1; color: #b8860b;">{{ count($approved_test_numbers ?? []) }}/10</span>
                     </button>
                 </h2>
                 <div id="testNumbersSection" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
