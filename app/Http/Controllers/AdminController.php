@@ -222,6 +222,13 @@ class AdminController extends Controller
             ->orderBy('accounts.created_at', 'desc')
             ->get();
 
+        $accountIds = $accounts->pluck('id')->toArray();
+        $subAccountsByAccount = \App\Models\SubAccount::whereIn('account_id', $accountIds)
+            ->select('id', 'account_id', 'name', 'sub_account_status')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('account_id');
+
         $counts = [
             'active' => Account::where('id', '!=', $systemId)->whereIn('status', Account::LIVE_STATUSES)->count(),
             'trial' => Account::where('id', '!=', $systemId)->whereIn('status', Account::TEST_STATUSES)->count(),
@@ -238,6 +245,7 @@ class AdminController extends Controller
             'page_title' => 'Account Overview',
             'accounts' => $accounts,
             'counts' => $counts,
+            'subAccountsByAccount' => $subAccountsByAccount,
         ]);
     }
 
