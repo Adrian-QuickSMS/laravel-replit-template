@@ -403,6 +403,7 @@ class QuickSMSController extends Controller
         $accountStatus = $account->status ?? null;
         $isTestMode = $account && $account->isTestMode();
         $isTestStandard = $account && $account->isTestStandard();
+        $isTestDynamic = $account && $account->isTestDynamic();
 
         $testCreditsRemaining = null;
         $approvedTestNumbers = [];
@@ -433,6 +434,7 @@ class QuickSMSController extends Controller
             'account_status' => $accountStatus,
             'is_test_mode' => $isTestMode,
             'is_test_standard' => $isTestStandard,
+            'is_test_dynamic' => $isTestDynamic,
             'test_credits_remaining' => $testCreditsRemaining,
             'approved_test_numbers' => $approvedTestNumbers,
         ]);

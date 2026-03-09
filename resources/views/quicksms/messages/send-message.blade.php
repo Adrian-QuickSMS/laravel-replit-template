@@ -126,6 +126,32 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6" id="senderIdSection">
+                            @if(!empty($is_test_dynamic))
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="flex-grow-1">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="senderId" 
+                                               placeholder="Enter Sender ID *" maxlength="11" autocomplete="off"
+                                               oninput="validateDynamicSenderId(); updatePreview();">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" 
+                                                id="senderTypeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Alpha
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end" id="senderTypeMenu">
+                                            <li><a class="dropdown-item active" href="#" data-type="alphanumeric">Alphanumeric (max 11 chars)</a></li>
+                                            <li><a class="dropdown-item" href="#" data-type="numeric">Numeric (UK mobile 447...)</a></li>
+                                            <li><a class="dropdown-item" href="#" data-type="shortcode">Shortcode (5 digits)</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="d-flex justify-content-between mt-1">
+                                        <small class="text-muted" id="dynamicSenderHint">Max 11 characters: A-Z a-z 0-9 - _ & space</small>
+                                        <small class="text-muted"><span id="dynamicSenderCharCount">0</span>/<span id="dynamicSenderMaxCount">11</span></small>
+                                    </div>
+                                    <div class="invalid-feedback" id="dynamicSenderError" style="display:none;"></div>
+                                </div>
+                                <i class="fas fa-info-circle" style="color: #886CC0; cursor: pointer; font-size: 1rem;" data-bs-toggle="modal" data-bs-target="#testDynamicSenderInfoModal" title="Dynamic sender ID - type any value"></i>
+                            </div>
+                            @else
                             <div class="d-flex align-items-center gap-2">
                                 <select class="form-select" id="senderId" onchange="updatePreview()">
                                     <option value="">SMS Sender ID *</option>
@@ -137,6 +163,7 @@
                                 <i class="fas fa-info-circle" style="color: #886CC0; cursor: pointer; font-size: 1rem;" data-bs-toggle="modal" data-bs-target="#testSenderInfoModal" title="Test mode sender restrictions"></i>
                                 @endif
                             </div>
+                            @endif
                         </div>
                         <div class="col-md-6 d-none" id="rcsAgentSection">
                             <select class="form-select" id="rcsAgent" onchange="updatePreview()">
@@ -1455,9 +1482,12 @@ function restoreCampaignFromConfirm() {
         }
     }
 
-    if (config.sender_id_id) {
+    if (config.sender_id_id || config.sender_id || config.sender_id_value) {
         var senderSelect = document.getElementById('senderId');
-        if (senderSelect) {
+        if (senderSelect && senderSelect.tagName === 'INPUT') {
+            senderSelect.value = config.sender_id_value || config.sender_id || '';
+            if (typeof validateDynamicSenderId === 'function') validateDynamicSenderId();
+        } else if (senderSelect && config.sender_id_id) {
             for (var i = 0; i < senderSelect.options.length; i++) {
                 if (senderSelect.options[i].value == config.sender_id_id) {
                     senderSelect.selectedIndex = i;
@@ -1472,10 +1502,7 @@ function restoreCampaignFromConfirm() {
                     }
                 }
             }
-        }
-    } else if (config.sender_id) {
-        var senderSelect = document.getElementById('senderId');
-        if (senderSelect) {
+        } else if (senderSelect && config.sender_id) {
             for (var i = 0; i < senderSelect.options.length; i++) {
                 if (senderSelect.options[i].text.indexOf(config.sender_id) !== -1 || senderSelect.options[i].value == config.sender_id) {
                     senderSelect.selectedIndex = i;
@@ -1779,10 +1806,12 @@ function loadDraftForEditing(draftId) {
         }
     }
     
-    // Set sender ID
     if (draft.config && draft.config.sender_id) {
         var senderSelect = document.getElementById('senderId');
-        if (senderSelect) {
+        if (senderSelect && senderSelect.tagName === 'INPUT') {
+            senderSelect.value = draft.config.sender_id_value || draft.config.sender_id || '';
+            if (typeof validateDynamicSenderId === 'function') validateDynamicSenderId();
+        } else if (senderSelect) {
             for (var i = 0; i < senderSelect.options.length; i++) {
                 if (senderSelect.options[i].value === draft.config.sender_id || 
                     senderSelect.options[i].text === draft.config.sender_id) {
@@ -1942,9 +1971,12 @@ function loadDbCampaignForEditing(campaignId) {
             selectChannel(channelValue);
         }
 
-        if (c.sender_id_id) {
+        if (c.sender_id_id || c.sender_id_value) {
             var senderSelect = document.getElementById('senderId');
-            if (senderSelect) {
+            if (senderSelect && senderSelect.tagName === 'INPUT') {
+                senderSelect.value = c.sender_id_value || c.sender_id || '';
+                if (typeof validateDynamicSenderId === 'function') validateDynamicSenderId();
+            } else if (senderSelect && c.sender_id_id) {
                 for (var i = 0; i < senderSelect.options.length; i++) {
                     if (senderSelect.options[i].value == c.sender_id_id) {
                         senderSelect.selectedIndex = i;
@@ -2331,7 +2363,7 @@ function updatePreview() {
     var smsContent = document.getElementById('smsContent');
     var rcsAgentSelect = document.getElementById('rcsAgent');
     
-    var senderIdText = (senderId?.selectedOptions[0]?.text || 'Sender').replace(/\s*\(.*?\)\s*$/, '');
+    var senderIdText = (senderId && senderId.tagName === 'INPUT') ? (senderId.value || 'Sender') : ((senderId?.selectedOptions[0]?.text || 'Sender').replace(/\s*\(.*?\)\s*$/, ''));
     var messageText = smsContent?.value || '';
     
     var previewConfig = {
@@ -2770,9 +2802,13 @@ function resetTemplateDrivenState() {
 }
 
 function setTemplateSenderAndAgent(tpl, channel) {
-    if (tpl.sender_id_id) {
+    if (tpl.sender_id_id || tpl.sender_id_value) {
         var senderSelect = document.getElementById('senderId');
-        if (senderSelect) {
+        if (senderSelect && senderSelect.tagName === 'INPUT') {
+            senderSelect.value = tpl.sender_id_value || tpl.sender_id || '';
+            if (typeof validateDynamicSenderId === 'function') validateDynamicSenderId();
+            updatePreview();
+        } else if (senderSelect && tpl.sender_id_id) {
             for (var i = 0; i < senderSelect.options.length; i++) {
                 if (senderSelect.options[i].value == tpl.sender_id_id) {
                     senderSelect.selectedIndex = i;
@@ -3387,7 +3423,7 @@ function showRichRcsSmsPreview() {
     var senderId = document.getElementById('senderId');
     var smsContent = document.getElementById('smsContent');
     
-    var senderIdText = (senderId?.selectedOptions[0]?.text || 'Sender').replace(/\s*\(.*?\)\s*$/, '');
+    var senderIdText = (senderId && senderId.tagName === 'INPUT') ? (senderId.value || 'Sender') : ((senderId?.selectedOptions[0]?.text || 'Sender').replace(/\s*\(.*?\)\s*$/, ''));
     var messageText = smsContent?.value || '';
     
     var previewConfig = {
@@ -3902,7 +3938,7 @@ function collectCampaignConfig() {
     
     var senderSelect = document.getElementById('senderId');
     var senderId = senderSelect ? senderSelect.value : '';
-    var senderOptionText = (senderSelect && senderSelect.selectedIndex > 0) ? senderSelect.options[senderSelect.selectedIndex].text : senderId;
+    var senderOptionText = (senderSelect && senderSelect.tagName === 'INPUT') ? senderId : ((senderSelect && senderSelect.selectedIndex > 0) ? senderSelect.options[senderSelect.selectedIndex].text : senderId);
     var senderDisplayName = senderOptionText.replace(/\s*\((?:alphanumeric|numeric|shortcode)\)\s*$/i, '');
     
     var rcsAgentSelect = document.getElementById('rcsAgent');
@@ -4138,9 +4174,12 @@ function continueToConfirmation() {
         document.getElementById('campaignName').value = campaignName;
     }
     
-    var senderId = document.getElementById('senderId').value;
+    var senderIdEl = document.getElementById('senderId');
+    var senderId = senderIdEl.value;
     if (!senderId) {
         errors.push({ fieldId: 'senderId', message: 'Sender ID is required' });
+    } else if (senderIdEl.tagName === 'INPUT' && typeof validateDynamicSenderId === 'function' && !validateDynamicSenderId(true)) {
+        errors.push({ fieldId: 'senderId', message: 'Sender ID value is invalid' });
     }
     
     var smsContent = document.getElementById('smsContent').value;
@@ -4196,7 +4235,7 @@ function continueToConfirmation() {
     var sessionChannelValue = sessionChannelMap[channelValue] || 'sms_only';
     
     var senderIdSelect = document.getElementById('senderId');
-    var senderIdText = senderIdSelect && senderIdSelect.selectedIndex > 0 ? senderIdSelect.options[senderIdSelect.selectedIndex].text : senderId;
+    var senderIdText = (senderIdSelect && senderIdSelect.tagName === 'INPUT') ? (senderIdSelect.value || senderId) : (senderIdSelect && senderIdSelect.selectedIndex > 0 ? senderIdSelect.options[senderIdSelect.selectedIndex].text : senderId);
     
     var rcsAgentSelect = document.getElementById('rcsAgent');
     var rcsAgentName = rcsAgentSelect && rcsAgentSelect.selectedIndex > 0 ? rcsAgentSelect.options[rcsAgentSelect.selectedIndex].text : null;
@@ -4290,13 +4329,15 @@ function continueToConfirmation() {
         rcsPayloadForApi = rcsPersistentPayload;
     }
 
+    var isDynamicSender = document.getElementById('senderId') && document.getElementById('senderId').tagName === 'INPUT';
+
     function buildCampaignData(resolvedListId) {
-        return {
+        var data = {
             name: campaignName,
             type: apiChannelValue,
             message_content: smsContent,
             rcs_content: rcsPayloadForApi,
-            sender_id_id: senderId || null,
+            sender_id_id: isDynamicSender ? null : (senderId || null),
             rcs_agent_id: rcsAgentId || null,
             recipient_sources: recipientSources,
             scheduled_at: scheduledAt,
@@ -4312,6 +4353,11 @@ function continueToConfirmation() {
             opt_out_screening_list_ids: optoutCfg ? optoutCfg.opt_out_screening_list_ids : [],
             opt_out_url_enabled: optoutCfg ? optoutCfg.opt_out_url_enabled : false,
         };
+        if (isDynamicSender && senderId) {
+            data.sender_id_value = senderId;
+            data.sender_id_type = (typeof getDynamicSenderType === 'function') ? getDynamicSenderType() : 'alphanumeric';
+        }
+        return data;
     }
 
     var existingCampaignId = window._restoredCampaignId || null;
@@ -4366,7 +4412,9 @@ function continueToConfirmation() {
             campaign_name: campaignName,
             channel: sessionChannelValue,
             sender_id: senderIdText,
-            sender_id_id: senderId || null,
+            sender_id_id: isDynamicSender ? null : (senderId || null),
+            sender_id_value: isDynamicSender ? senderId : null,
+            sender_id_type: isDynamicSender ? ((typeof getDynamicSenderType === 'function') ? getDynamicSenderType() : 'alphanumeric') : null,
             rcs_agent: rcsAgentName,
             rcs_agent_id: rcsAgentId || null,
             message_content: smsContent,
@@ -5923,6 +5971,154 @@ function showTestSentConfirmation(phoneNumber) {
     });
 }
 </script>
+
+@if(!empty($is_test_dynamic))
+<div class="modal fade" id="testDynamicSenderInfoModal" tabindex="-1" aria-labelledby="testDynamicSenderInfoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #eee;">
+                <h6 class="modal-title" id="testDynamicSenderInfoModalLabel"><i class="fas fa-id-card me-2" style="color: #886CC0;"></i>Sender ID — Test Dynamic Mode</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Your account is in <strong>Test Dynamic</strong> mode. You can type any Sender ID value directly, subject to these rules:</p>
+                <ul class="mb-3">
+                    <li><strong>Alphanumeric</strong> — Max 11 characters: A-Z, a-z, 0-9, hyphen, underscore, ampersand, and space</li>
+                    <li><strong>Numeric</strong> — UK mobile number format: 447 followed by 9 digits (12 digits total)</li>
+                    <li><strong>Shortcode</strong> — Exactly 5 digits, starting with 6, 7, or 8</li>
+                </ul>
+                <p class="mb-0 text-muted">Dynamic Sender IDs are available during test mode. Once activated, you will need to register and get approval for each Sender ID.</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-sm" style="background-color: #886CC0; color: #fff;" data-bs-dismiss="modal">Got it</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+(function() {
+    var dynamicSenderType = 'alphanumeric';
+    var typeLabels = { alphanumeric: 'Alpha', numeric: 'Numeric', shortcode: 'Short' };
+
+    var senderTypeMenu = document.getElementById('senderTypeMenu');
+    if (senderTypeMenu) {
+        senderTypeMenu.querySelectorAll('.dropdown-item').forEach(function(item) {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                senderTypeMenu.querySelectorAll('.dropdown-item').forEach(function(i) { i.classList.remove('active'); });
+                this.classList.add('active');
+                dynamicSenderType = this.getAttribute('data-type');
+                document.getElementById('senderTypeDropdown').textContent = typeLabels[dynamicSenderType];
+
+                var input = document.getElementById('senderId');
+                var hint = document.getElementById('dynamicSenderHint');
+                var maxCount = document.getElementById('dynamicSenderMaxCount');
+
+                if (dynamicSenderType === 'alphanumeric') {
+                    input.setAttribute('maxlength', '11');
+                    input.setAttribute('placeholder', 'e.g. MyBrand');
+                    hint.textContent = 'Max 11 characters: A-Z a-z 0-9 - _ & space';
+                    maxCount.textContent = '11';
+                } else if (dynamicSenderType === 'numeric') {
+                    input.setAttribute('maxlength', '12');
+                    input.setAttribute('placeholder', 'e.g. 447700900123');
+                    hint.textContent = 'UK mobile format: 447xxxxxxxxx (12 digits)';
+                    maxCount.textContent = '12';
+                } else if (dynamicSenderType === 'shortcode') {
+                    input.setAttribute('maxlength', '5');
+                    input.setAttribute('placeholder', 'e.g. 60123');
+                    hint.textContent = 'Exactly 5 digits, starting with 6, 7 or 8';
+                    maxCount.textContent = '5';
+                }
+                input.value = '';
+                document.getElementById('dynamicSenderCharCount').textContent = '0';
+                input.classList.remove('is-invalid');
+                document.getElementById('dynamicSenderError').style.display = 'none';
+                updatePreview();
+            });
+        });
+    }
+
+    window.validateDynamicSenderId = function(strict) {
+        var input = document.getElementById('senderId');
+        var errorEl = document.getElementById('dynamicSenderError');
+        var val = input.value;
+
+        document.getElementById('dynamicSenderCharCount').textContent = val.length;
+
+        input.classList.remove('is-invalid');
+        errorEl.style.display = 'none';
+
+        if (!val) return !strict;
+
+        var hasError = false;
+        var errorMsg = '';
+
+        if (dynamicSenderType === 'alphanumeric') {
+            var alphaPattern = /^[A-Za-z0-9\-_& ]+$/;
+            if (!alphaPattern.test(val)) {
+                hasError = true;
+                errorMsg = 'Only A-Z, a-z, 0-9, -, _, &, and space are allowed';
+            } else if (val.length > 11) {
+                hasError = true;
+                errorMsg = 'Maximum 11 characters allowed';
+            } else if (strict && val.length < 1) {
+                hasError = true;
+                errorMsg = 'Sender ID is required';
+            }
+        } else if (dynamicSenderType === 'numeric') {
+            if (!/^\d*$/.test(val)) {
+                hasError = true;
+                errorMsg = 'Only numbers are allowed';
+            } else if (strict && !/^447\d{9}$/.test(val)) {
+                hasError = true;
+                errorMsg = 'UK mobile number must be exactly 12 digits starting with 447';
+            } else if (!strict) {
+                if (val.length >= 3 && !val.startsWith('447')) {
+                    hasError = true;
+                    errorMsg = 'UK mobile number must start with 447';
+                } else if (val.length > 12) {
+                    hasError = true;
+                    errorMsg = 'UK mobile number must be exactly 12 digits';
+                }
+            }
+        } else if (dynamicSenderType === 'shortcode') {
+            if (!/^\d*$/.test(val)) {
+                hasError = true;
+                errorMsg = 'Only numbers are allowed';
+            } else if (strict && !/^[678]\d{4}$/.test(val)) {
+                hasError = true;
+                errorMsg = 'Shortcode must be exactly 5 digits starting with 6, 7, or 8';
+            } else if (!strict) {
+                if (val.length >= 1) {
+                    var firstDigit = val.charAt(0);
+                    if (firstDigit !== '6' && firstDigit !== '7' && firstDigit !== '8') {
+                        hasError = true;
+                        errorMsg = 'Shortcode must start with 6, 7, or 8';
+                    }
+                }
+                if (!hasError && val.length > 5) {
+                    hasError = true;
+                    errorMsg = 'Shortcode must be exactly 5 digits';
+                }
+            }
+        }
+
+        if (hasError) {
+            input.classList.add('is-invalid');
+            errorEl.textContent = errorMsg;
+            errorEl.style.display = 'block';
+        }
+
+        return !hasError;
+    };
+
+    window.getDynamicSenderType = function() {
+        return dynamicSenderType;
+    };
+})();
+</script>
+@endif
 
 @if(!empty($is_test_standard))
 <div class="modal fade" id="testSenderInfoModal" tabindex="-1" aria-labelledby="testSenderInfoModalLabel" aria-hidden="true">
