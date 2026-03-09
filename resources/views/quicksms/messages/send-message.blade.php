@@ -110,7 +110,7 @@
                         @if(!empty($is_test_standard))
                         <div class="mb-1"><i class="fas fa-stamp me-1"></i> A disclaimer will be prepended to every message: <em>"QuickSMS TEST message. If unexpected, do not trust links or numbers."</em> (+68 chars inc. space)</div>
                         <div class="mb-1"><i class="fas fa-phone-alt me-1"></i> Recipients are restricted to your <a href="{{ route('account.details') }}" class="fw-bold">approved test numbers</a> ({{ count($approved_test_numbers ?? []) }} configured)</div>
-                        <div class="mb-1"><i class="fas fa-id-card me-1"></i> Sender ID is restricted to "QuickSMS Test Sender" or your approved Sender IDs</div>
+                        <div class="mb-1"><i class="fas fa-id-card me-1"></i> Sender ID is restricted to "QuickSMS" or your approved Sender IDs</div>
                         @endif
                         <div><i class="fas fa-coins me-1"></i> Using test credits: <strong>{{ $test_credits_remaining ?? 0 }}</strong> remaining</div>
                     </div>

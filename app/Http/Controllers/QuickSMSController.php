@@ -32,7 +32,7 @@ class QuickSMSController extends Controller
         $result = [];
 
         if ($account && $account->isTestStandard()) {
-            $result[] = ['id' => 0, 'name' => 'QuickSMS Test Sender', 'type' => 'alphanumeric'];
+            $result[] = ['id' => 0, 'name' => 'QuickSMS', 'type' => 'alphanumeric'];
         }
 
         if ($senderIds->isEmpty() && empty($result)) {
