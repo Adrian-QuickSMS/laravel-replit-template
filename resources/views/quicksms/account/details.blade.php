@@ -386,6 +386,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 0.5rem;
+    overflow: hidden;
 }
 .pricing-badge {
     background: #f8f9fa;
@@ -397,6 +398,8 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+    min-width: 0;
+    overflow: hidden;
 }
 .pricing-badge .badge-price {
     font-size: 0.875rem;
@@ -406,10 +409,13 @@
     margin-bottom: 0.125rem;
 }
 .pricing-badge .badge-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     color: #6c757d;
     font-weight: 400;
-    white-space: nowrap;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
 }
 .pricing-error-state,
 .pricing-access-denied {
