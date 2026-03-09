@@ -584,6 +584,61 @@
                             </div>
                         </div>
                     </div>
+
+                    @if(in_array($account->status, ['test_standard', 'test_dynamic']))
+                    @php
+                        $approvedTestNumbers = [];
+                        if ($settings && !empty($settings->approved_test_numbers)) {
+                            $approvedTestNumbers = is_string($settings->approved_test_numbers) ? json_decode($settings->approved_test_numbers, true) : (array) $settings->approved_test_numbers;
+                        }
+                    @endphp
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#testNumbersSection" aria-expanded="false">
+                                <i class="fas fa-flask me-2" style="color: #b8860b;"></i>Test Mode — Approved Test Numbers
+                                <span class="badge ms-2" style="background-color: #fff8e1; color: #b8860b;">{{ count($approvedTestNumbers) }}/10</span>
+                            </button>
+                        </h2>
+                        <div id="testNumbersSection" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
+                            <div class="accordion-body">
+                                <div class="alert border-0 mb-3" style="background-color: #f0ebf8; color: #6b5b95;">
+                                    <i class="fas fa-info-circle me-2" style="color: #886CC0;"></i>
+                                    This account is in <strong>{{ ucfirst(str_replace('_', ' ', $account->status)) }}</strong> mode. Only numbers listed here can receive test messages. You can enter numbers as <strong>07XXX</strong>, <strong>447XXX</strong>, or <strong>+447XXX</strong>.
+                                </div>
+
+                                <div id="adminTestNumbersList">
+                                    @forelse($approvedTestNumbers as $idx => $number)
+                                    <div class="input-group mb-2 admin-test-number-row">
+                                        <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                                        <input type="tel" class="form-control admin-test-number-input" value="{{ $number }}" placeholder="07700 900001" maxlength="16">
+                                        <button type="button" class="btn btn-outline-danger btn-remove-admin-test-number" title="Remove"><i class="fas fa-times"></i></button>
+                                    </div>
+                                    @empty
+                                    <div class="input-group mb-2 admin-test-number-row">
+                                        <span class="input-group-text"><i class="fas fa-phone-alt"></i></span>
+                                        <input type="tel" class="form-control admin-test-number-input" value="" placeholder="07700 900001" maxlength="16">
+                                        <button type="button" class="btn btn-outline-danger btn-remove-admin-test-number" title="Remove"><i class="fas fa-times"></i></button>
+                                    </div>
+                                    @endforelse
+                                </div>
+
+                                <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="addAdminTestNumberBtn">
+                                    <i class="fas fa-plus me-1"></i>Add Number
+                                </button>
+
+                                <div class="text-danger small d-none mb-2" id="adminTestNumbersError"></div>
+
+                                <div class="section-actions">
+                                    <span class="auto-save-indicator" id="adminTestNumbersAutoSave"></span>
+                                    <button type="button" class="btn btn-admin-primary btn-sm" id="saveAdminTestNumbers">
+                                        <i class="fas fa-save me-1"></i>Save Approved Numbers
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
                 </div>
             </div>
         </div>
@@ -1431,5 +1486,112 @@ function confirmSaveChanges() {
         });
     }
 }
+
+// Test Numbers Management
+$('#addAdminTestNumberBtn').on('click', function() {
+    var count = $('#adminTestNumbersList .admin-test-number-row').length;
+    if (count >= 10) {
+        $('#adminTestNumbersError').text('Maximum 10 test numbers allowed').removeClass('d-none');
+        return;
+    }
+    $('#adminTestNumbersError').addClass('d-none');
+    var row = '<div class="input-group mb-2 admin-test-number-row">' +
+        '<span class="input-group-text"><i class="fas fa-phone-alt"></i></span>' +
+        '<input type="tel" class="form-control admin-test-number-input" value="" placeholder="07700 900001" maxlength="16">' +
+        '<button type="button" class="btn btn-outline-danger btn-remove-admin-test-number" title="Remove"><i class="fas fa-times"></i></button>' +
+        '</div>';
+    $('#adminTestNumbersList').append(row);
+});
+
+$(document).on('click', '.btn-remove-admin-test-number', function() {
+    var count = $('#adminTestNumbersList .admin-test-number-row').length;
+    if (count <= 1) {
+        $(this).closest('.admin-test-number-row').find('.admin-test-number-input').val('');
+        return;
+    }
+    $(this).closest('.admin-test-number-row').remove();
+});
+
+$('#saveAdminTestNumbers').on('click', function() {
+    var $saveBtn = $(this);
+    var $autoSave = $('#adminTestNumbersAutoSave');
+    var $error = $('#adminTestNumbersError');
+    $error.addClass('d-none');
+
+    var numbers = [];
+    var valid = true;
+
+    function normalizeUkNumber(num) {
+        num = num.replace(/[\s\-\(\)]/g, '');
+        if (num.startsWith('07') && num.length === 11) {
+            return '+44' + num.substring(1);
+        }
+        if (num.startsWith('447') && !num.startsWith('+')) {
+            return '+' + num;
+        }
+        if (num.startsWith('+447')) {
+            return num;
+        }
+        return num.startsWith('+') ? num : '+' + num;
+    }
+
+    var e164Regex = /^\+[1-9]\d{6,14}$/;
+
+    $('#adminTestNumbersList .admin-test-number-input').each(function() {
+        var val = $.trim($(this).val());
+        if (val === '') return;
+        var normalized = normalizeUkNumber(val);
+        if (!e164Regex.test(normalized)) {
+            $(this).addClass('is-invalid');
+            valid = false;
+        } else {
+            $(this).removeClass('is-invalid');
+            $(this).val(normalized);
+            numbers.push(normalized);
+        }
+    });
+
+    if (!valid) {
+        $error.text('One or more numbers are invalid. Enter a valid UK mobile number (e.g. 07700 900001, 447700900001, or +447700900001)').removeClass('d-none');
+        return;
+    }
+
+    if (numbers.length === 0) {
+        $error.text('Please add at least one test number').removeClass('d-none');
+        return;
+    }
+
+    $saveBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Saving...');
+
+    $.ajax({
+        url: '/admin/api/accounts/' + accountId + '/test-numbers',
+        method: 'PUT',
+        contentType: 'application/json',
+        headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
+        data: JSON.stringify({ numbers: numbers }),
+        success: function(resp) {
+            $autoSave.html('<span class="text-success"><i class="fas fa-check me-1"></i>Saved</span>').show();
+            setTimeout(function() { $autoSave.fadeOut(); }, 3000);
+            if (typeof AdminControlPlane !== 'undefined') {
+                AdminControlPlane.logAction({
+                    eventType: 'TEST_NUMBERS_UPDATED',
+                    accountId: accountId,
+                    count: numbers.length
+                });
+            }
+        },
+        error: function(xhr) {
+            var msg = 'Failed to save';
+            if (xhr.responseJSON) {
+                if (xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                if (xhr.responseJSON.error) msg = xhr.responseJSON.error;
+            }
+            $error.text(msg).removeClass('d-none');
+        },
+        complete: function() {
+            $saveBtn.prop('disabled', false).html('<i class="fas fa-save me-1"></i>Save Approved Numbers');
+        }
+    });
+});
 </script>
 @endpush

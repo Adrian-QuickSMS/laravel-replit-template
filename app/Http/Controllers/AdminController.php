@@ -292,6 +292,55 @@ class AdminController extends Controller
         ]);
     }
 
+    public function saveAccountTestNumbers(Request $request, $accountId)
+    {
+        $account = Account::findOrFail($accountId);
+        if (!in_array($account->status, ['test_standard', 'test_dynamic'])) {
+            return response()->json(['message' => 'This feature is only available for test mode accounts'], 403);
+        }
+
+        $rawNumbers = $request->input('numbers', []);
+        if (!is_array($rawNumbers) || count($rawNumbers) > 10 || count($rawNumbers) === 0) {
+            return response()->json(['message' => 'Please provide between 1 and 10 numbers'], 422);
+        }
+
+        $normalized = [];
+        foreach ($rawNumbers as $n) {
+            if (!is_string($n)) {
+                return response()->json(['message' => 'Invalid input'], 422);
+            }
+            $n = preg_replace('/[\s\-\(\)]/', '', trim($n));
+            if (preg_match('/^0[7]\d{9}$/', $n)) {
+                $n = '+44' . substr($n, 1);
+            } elseif (preg_match('/^44[7]\d{9}$/', $n)) {
+                $n = '+' . $n;
+            } elseif (preg_match('/^\+44[7]\d{9}$/', $n)) {
+                // already E.164 UK
+            } else {
+                return response()->json(['message' => 'Invalid number format. Use 07XXX, 447XXX, or +447XXX for UK mobile numbers'], 422);
+            }
+            if (!preg_match('/^\+447\d{9}$/', $n)) {
+                return response()->json(['message' => 'Only UK mobile numbers (+447...) are accepted'], 422);
+            }
+            $normalized[] = $n;
+        }
+        $numbers = array_values(array_unique($normalized));
+
+        $settings = \App\Models\AccountSettings::firstOrCreate(
+            ['account_id' => $accountId],
+            []
+        );
+
+        $settings->approved_test_numbers = $numbers;
+        $settings->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Approved test numbers saved successfully',
+            'numbers' => $numbers,
+        ]);
+    }
+
     public function accountsBilling($accountId)
     {
         return view('admin.accounts.billing', [
