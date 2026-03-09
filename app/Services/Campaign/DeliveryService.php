@@ -81,26 +81,28 @@ class DeliveryService
             $account = Account::find($campaign->account_id);
             $cost = $this->calculateRecipientCost($account, $campaign, $recipient);
 
-            // Step 2.5: Test mode enforcement — per-message checks (credits, recipient, disclaimer)
+            // Step 2.5: Test mode enforcement — per-message checks (recipient, sender, disclaimer)
+            // Uses validateForDelivery() which does NOT deduct test credits — the billing
+            // pipeline (BillingPreflightService reservation + billMessage) handles charging.
             if ($account && $account->isTestMode()) {
-                $messageBody = $recipient->resolved_content ?? $campaign->message_content ?? '';
+                $originalBody = $recipient->resolved_content ?? $campaign->message_content ?? '';
                 $senderValue = $campaign->getSenderDisplayName() ?? '';
-                $testResult = $this->testModeEnforcement->enforce(
-                    $account, $recipient->mobile_number, $senderValue, $messageBody
+                $testResult = $this->testModeEnforcement->validateForDelivery(
+                    $account, $recipient->mobile_number, $senderValue, $originalBody
                 );
                 if (!$testResult->allowed) {
                     $recipient->markFailed('Test mode: ' . $testResult->reason, 'TEST_MODE_BLOCKED');
                     $this->incrementCampaignCounter($campaign, 'failed_count');
-                    Log::info('[DeliveryService] Test mode blocked message', [
+                    Log::warning('[DeliveryService] Test mode blocked message', [
                         'campaign_id' => $campaign->id,
                         'recipient_id' => $recipient->id,
                         'reason' => $testResult->reason,
                     ]);
                     return false;
                 }
-                // Apply test disclaimer if applicable (Test Standard accounts)
-                if ($testResult->finalContent !== $messageBody) {
-                    $recipient->update(['resolved_content' => $testResult->finalContent]);
+                // Apply test disclaimer in-memory (persisted after successful gateway send)
+                if ($testResult->finalContent !== $originalBody) {
+                    $recipient->resolved_content = $testResult->finalContent;
                 }
             }
 

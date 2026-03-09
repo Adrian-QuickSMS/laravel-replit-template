@@ -236,6 +236,51 @@ class TestModeEnforcementService
     }
 
     /**
+     * Validate test mode constraints for delivery WITHOUT deducting credits.
+     *
+     * Used by DeliveryService for campaign batch sends where credits are
+     * managed by the billing pipeline (BillingPreflightService reservations).
+     * Performs all checks except credit deduction: recipient, sender, disclaimer.
+     *
+     * @return TestModeResult
+     */
+    public function validateForDelivery(Account $account, string $recipient, string $senderId, string $content): TestModeResult
+    {
+        // Live accounts skip all test enforcement
+        if ($account->isLiveMode()) {
+            return TestModeResult::pass($content);
+        }
+
+        // Non-test, non-live accounts cannot send
+        if (!$account->isTestMode()) {
+            return TestModeResult::fail(
+                'Account is not in a sendable state. Current status: ' . $account->status
+            );
+        }
+
+        // Check 1: Recipient validation
+        $recipientCheck = $this->checkRecipient($account, $recipient);
+        if (!$recipientCheck['allowed']) {
+            return TestModeResult::fail($recipientCheck['reason']);
+        }
+
+        // Check 2: SenderID validation
+        $senderIdCheck = $this->checkSenderId($account, $senderId);
+        if (!$senderIdCheck['allowed']) {
+            return TestModeResult::fail($senderIdCheck['reason']);
+        }
+
+        // Check 3: Apply content rules (disclaimer for Test Standard)
+        $finalContent = $this->applyContentRules($account, $content);
+
+        return TestModeResult::pass(
+            $finalContent,
+            0, // no credit deduction in delivery path
+            $account->isTestStandard()
+        );
+    }
+
+    /**
      * Get the effective message content with any modifications applied.
      * Used by UI to show accurate fragment count.
      */
