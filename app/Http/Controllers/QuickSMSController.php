@@ -3628,8 +3628,20 @@ class QuickSMSController extends Controller
 
     public function usersAndAccess()
     {
+        $tenantId = session('customer_tenant_id');
+        $accountName = 'My Account';
+        if ($tenantId) {
+            try {
+                $account = \App\Models\Account::find($tenantId);
+                if ($account) {
+                    $accountName = $account->company_name ?? $account->trading_name ?? 'My Account';
+                }
+            } catch (\Exception $e) {}
+        }
+
         return view('quicksms.account.users-access', [
-            'page_title' => 'Users and Access'
+            'page_title' => 'Users and Access',
+            'account_name' => $accountName,
         ]);
     }
 
