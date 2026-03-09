@@ -5928,9 +5928,9 @@ function showTestSentConfirmation(phoneNumber) {
 <div class="modal fade" id="testSenderInfoModal" tabindex="-1" aria-labelledby="testSenderInfoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header" style="background-color: #886CC0; color: #fff; border: none;">
-                <h6 class="modal-title" id="testSenderInfoModalLabel"><i class="fas fa-id-card me-2"></i>Sender ID — Test Mode</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #eee;">
+                <h6 class="modal-title" id="testSenderInfoModalLabel"><i class="fas fa-id-card me-2" style="color: #886CC0;"></i>Sender ID — Test Mode</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>While your account is in <strong>Test Standard</strong> mode, your Sender ID options are limited to:</p>
@@ -5950,9 +5950,9 @@ function showTestSentConfirmation(phoneNumber) {
 <div class="modal fade" id="testRecipientsInfoModal" tabindex="-1" aria-labelledby="testRecipientsInfoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header" style="background-color: #886CC0; color: #fff; border: none;">
-                <h6 class="modal-title" id="testRecipientsInfoModalLabel"><i class="fas fa-phone-alt me-2"></i>Recipients — Test Mode</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #eee;">
+                <h6 class="modal-title" id="testRecipientsInfoModalLabel"><i class="fas fa-phone-alt me-2" style="color: #886CC0;"></i>Recipients — Test Mode</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>While your account is in <strong>Test Standard</strong> mode, you can only send messages to your <strong>approved test numbers</strong>.</p>
@@ -5969,9 +5969,9 @@ function showTestSentConfirmation(phoneNumber) {
 <div class="modal fade" id="testDisclaimerInfoModal" tabindex="-1" aria-labelledby="testDisclaimerInfoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header" style="background-color: #886CC0; color: #fff; border: none;">
-                <h6 class="modal-title" id="testDisclaimerInfoModalLabel"><i class="fas fa-stamp me-2"></i>Character Count — Test Disclaimer</h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #eee;">
+                <h6 class="modal-title" id="testDisclaimerInfoModalLabel"><i class="fas fa-stamp me-2" style="color: #886CC0;"></i>Character Count — Test Disclaimer</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <p>The character count includes <strong>68 characters</strong> for the test disclaimer that will be prepended to every message:</p>
