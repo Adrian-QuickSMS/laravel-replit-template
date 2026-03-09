@@ -27,7 +27,7 @@ Preferred communication style: Simple, everyday language.
 - **Sub-Accounts & User Management:** `sub_accounts` (with limits/enforcement: spending caps, message caps, daily limits, enforcement types), `users` (7 roles: owner, admin, messaging_manager, finance, developer, user, readonly; 28 permission toggles; sender capability levels: advanced/restricted/none), `user_invitations` (SHA-256 hashed tokens, 72h expiry, RLS-protected). Managed by `SubAccountController`, `UserManagementController`, and `CheckPermission` middleware. `CustomerAuthenticate` middleware binds the user to Laravel's auth guard via `Auth::setUser()`.
 - **Main Account Overview:** `/account/overview` route displays account status, aggregated limits (summed across all sub-accounts), live usage telemetry, and assigned assets. View: `account-overview.blade.php`. Clickable from the hierarchy tree main account node.
 - **Contact Book:** `contacts`, `tags`, `contact_lists`, `opt_out_lists`, `opt_out_records`, `contact_timeline_events`.
-- **Messaging:** Campaigns, inbox, and a shared send message builder.
+- **Messaging:** Campaigns, inbox (v1 at `/messages/inbox` + v2 POC at `/messages/inbox-v2`), and a shared send message builder. Inbox v2 uses `InboxController` + `InboxDataService` with modular JS (`public/js/inbox/`). V1 remains untouched in `QuickSMSController::inbox()`.
 - **API Connections:** `api_connections`, `api_connection_audit_events`.
 - **Numbers:** `vmn_pool`, `purchased_numbers`, `shortcode_keywords`, `number_assignments`, `number_auto_reply_rules`.
 - **Routing Rules:** `routing_rules`, `routing_gateway_weights`, `routing_customer_overrides`, `routing_audit_log`.

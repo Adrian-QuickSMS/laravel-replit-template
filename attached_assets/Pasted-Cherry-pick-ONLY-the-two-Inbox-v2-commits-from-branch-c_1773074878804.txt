@@ -1,0 +1,60 @@
+Cherry-pick ONLY the two Inbox v2 commits from branch `claude/quicksms-security-performance-dr8sw`.
+Do NOT merge the whole branch — it contains older commits that are unrelated.
+
+Run these two commands:
+
+  git cherry-pick b065961
+  git cherry-pick 30f3c13
+
+If either cherry-pick has a conflict on `routes/web.php` or `quicksms-sidebar.blade.php`, resolve by KEEPING both the existing lines AND the new additions — they are additive, not replacements.
+
+────────────────────────────────────────────
+## What these 2 commits add
+
+A Proof-of-Concept rebuild of the Inbox, accessible at **Messages > Inbox v2** in the sidebar. This is for evaluation only — to compare the new architecture against the existing inbox.
+
+## CRITICAL — What must NOT change
+
+- **Inbox v1 is UNTOUCHED.** The existing `/messages/inbox` route, `QuickSMSController::inbox()` method, and `resources/views/quicksms/messages/inbox.blade.php` must remain exactly as they are.
+- The original "Inbox" sidebar link still points to v1.
+- Do NOT rename, move, modify, or delete any v1 inbox files.
+- Do NOT change the `messages.inbox` route name or URL.
+- All other functionality (campaigns, contacts, reporting, etc.) is unaffected.
+
+────────────────────────────────────────────
+## Exact files added/changed
+
+### 12 NEW files (zero conflict risk — these don't exist yet):
+- `app/Http/Controllers/InboxController.php` — Thin controller with JSON API endpoints
+- `app/Services/InboxDataService.php` — Mock data service (swappable for real DB later)
+- `resources/views/quicksms/inbox/index.blade.php` — Layout shell
+- `resources/views/quicksms/inbox/partials/conversation-list.blade.php` — Left sidebar
+- `resources/views/quicksms/inbox/partials/chat-pane.blade.php` — Chat thread
+- `resources/views/quicksms/inbox/partials/composer.blade.php` — Reply composer
+- `resources/views/quicksms/inbox/partials/contact-sidebar.blade.php` — Contact details panel
+- `public/js/inbox/conversation-list.js` — Filtering, sorting, search
+- `public/js/inbox/chat-thread.js` — Message bubbles, RCS rich cards
+- `public/js/inbox/composer.js` — Channel toggle, char counting
+- `public/js/inbox/inbox-app.js` — Main orchestrator
+- `public/css/inbox-v2.css` — Single clean stylesheet
+
+### 2 MODIFIED files (additive changes only):
+- `routes/web.php` — Adds `/messages/inbox-v2` route + 5 API routes under `/api/inbox/*`. The existing `/messages/inbox` route is NOT changed.
+- `resources/views/elements/quicksms-sidebar.blade.php` — Adds ONE `<li>` line for "Inbox v2" with a blue "POC" badge, directly below the existing "Inbox" link.
+
+────────────────────────────────────────────
+## How to verify after merge
+
+1. **Messages > Inbox** — loads v1 exactly as before (no changes)
+2. **Messages > Inbox v2** — loads the new clean inbox with conversation list, chat bubbles, composer, contact sidebar
+3. Both are independently accessible, neither breaks the other
+
+## Anti-regression checklist
+
+- [ ] `/messages/inbox` still loads v1 (QuickSMSController::inbox)
+- [ ] `/messages/inbox-v2` loads v2 (InboxController::index)
+- [ ] Sidebar shows both "Inbox" and "Inbox v2 (POC)" under Messages
+- [ ] `QuickSMSController.php` is completely unchanged
+- [ ] `resources/views/quicksms/messages/inbox.blade.php` is completely unchanged
+- [ ] `public/css/quicksms-inbox.css` is completely unchanged
+- [ ] All other pages (dashboard, campaigns, contacts, reporting) work normally

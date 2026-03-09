@@ -38,6 +38,16 @@ Route::middleware('customer.auth')->controller(QuickSMSController::class)->group
     Route::get('/messages/confirm', 'confirmCampaign')->name('messages.confirm');
     Route::post('/messages/confirm-send', 'confirmAndSend')->name('messages.confirm-send');
     Route::get('/messages/inbox', 'inbox')->name('messages.inbox');
+    Route::get('/messages/inbox-v2', [\App\Http\Controllers\InboxController::class, 'index'])->name('messages.inbox-v2');
+
+    Route::prefix('api/inbox')->controller(\App\Http\Controllers\InboxController::class)->group(function () {
+        Route::get('/conversations', 'conversations')->name('inbox.api.conversations');
+        Route::get('/conversations/{id}/messages', 'messages')->name('inbox.api.messages');
+        Route::post('/conversations/{id}/reply', 'reply')->name('inbox.api.reply');
+        Route::post('/conversations/{id}/read', 'markRead')->name('inbox.api.read');
+        Route::post('/conversations/{id}/unread', 'markUnread')->name('inbox.api.unread');
+    });
+
     Route::get('/messages/campaign-history', 'campaignHistory')->name('messages.campaign-history');
     Route::get('/messages/campaign-approvals', 'campaignApprovals')->name('messages.campaign-approvals');
     
