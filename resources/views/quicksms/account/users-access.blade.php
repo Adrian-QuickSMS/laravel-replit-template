@@ -1723,7 +1723,10 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '<div class="account-name">' + escapeHtml(hierarchyData.mainAccount.name) + '</div>';
         html += '<div class="account-info">Main Account</div>';
         html += '</div>';
+        html += '<div style="display:flex;gap:6px;align-items:center;">';
+        html += '<button class="contextual-btn btn-add-user" data-sub-id="" type="button">+ Add User</button>';
         html += '<button class="contextual-btn btn-add-sub-account" type="button">+ Add Sub-Account</button>';
+        html += '</div>';
         html += '</div>';
         
         var mainUsers = hierarchyData.mainAccountUsers || [];
