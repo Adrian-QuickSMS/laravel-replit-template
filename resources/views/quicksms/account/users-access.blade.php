@@ -712,8 +712,8 @@ input:focus + .perm-slider {
                                 <div class="form-text">Maximum spend per month (leave empty for unlimited)</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Campaign Approval Required</label>
-                                <select class="form-select" id="sub-approval-required">
+                                <label class="form-label text-muted">Campaign Approval Required <span class="badge bg-secondary ms-1" style="font-size:0.65rem;vertical-align:middle;">Coming Soon</span></label>
+                                <select class="form-select" id="sub-approval-required" disabled style="opacity:0.5;cursor:not-allowed;">
                                     <option value="no" selected>No - Send immediately</option>
                                     <option value="yes">Yes - Require approval before sending</option>
                                 </select>
