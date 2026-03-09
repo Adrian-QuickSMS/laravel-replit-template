@@ -3612,7 +3612,7 @@ class QuickSMSController extends Controller
         ]);
     }
 
-    public function accountOverview()
+    public function accountOverview(\Illuminate\Http\Request $request)
     {
         $tenantId = session('customer_tenant_id');
 
@@ -3631,6 +3631,28 @@ class QuickSMSController extends Controller
                     $totalSpendCap = $subAccounts->sum('monthly_spending_cap');
                     $totalMessageCap = $subAccounts->sum('monthly_message_cap');
 
+                    $mainAccountUsers = \App\Models\User::where('tenant_id', $tenantId)
+                        ->whereNull('sub_account_id')
+                        ->get()
+                        ->map(function ($u) {
+                            return [
+                                'id' => $u->id,
+                                'name' => trim($u->first_name . ' ' . $u->last_name),
+                                'email' => $u->email,
+                                'role' => $u->role,
+                                'role_label' => $u->getRoleLabel(),
+                                'status' => $u->status,
+                                'sender_capability' => $u->sender_capability ?? 'none',
+                                'is_account_owner' => $u->is_account_owner ?? false,
+                                'last_login' => $u->last_login_at?->format('d M Y H:i'),
+                            ];
+                        })
+                        ->toArray();
+
+                    $subAccountsList = $subAccounts->map(function ($s) {
+                        return ['id' => $s->id, 'name' => $s->name];
+                    })->toArray();
+
                     $accountData = [
                         'id' => $account->id,
                         'name' => $account->company_name ?? $account->trading_name ?? 'Main Account',
@@ -3648,9 +3670,15 @@ class QuickSMSController extends Controller
                         ],
                     ];
 
+                    $currentUser = $request->user();
+                    $canManageUsers = $currentUser && in_array($currentUser->role, ['owner', 'admin']);
+
                     return view('quicksms.account.account-overview', [
                         'page_title' => $accountData['name'],
                         'account' => $accountData,
+                        'main_account_users' => $mainAccountUsers,
+                        'sub_accounts_list' => $subAccountsList,
+                        'can_manage_users' => $canManageUsers,
                     ]);
                 }
             } catch (\Exception $e) {

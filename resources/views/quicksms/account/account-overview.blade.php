@@ -527,6 +527,73 @@
         </div>
     </div>
     
+    <div class="section-card" id="users-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-users"></i>
+                Main Account Users
+            </h2>
+            @if($can_manage_users)
+            <button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#addUserModal" style="background: #886cc0; color: white; font-size: 0.8rem; padding: 0.4rem 0.875rem; border-radius: 0.375rem;">
+                <i class="fas fa-plus me-1"></i>Add User
+            </button>
+            @endif
+        </div>
+        <div class="section-body p-0">
+            @if(count($main_account_users) > 0)
+                <table class="table mb-0" style="font-size: 0.85rem;">
+                    <thead>
+                        <tr style="background: #f9fafb;">
+                            <th style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #6b7280; padding: 0.625rem 1rem; border-bottom: 1px solid #e5e7eb;">Name</th>
+                            <th style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #6b7280; padding: 0.625rem 1rem; border-bottom: 1px solid #e5e7eb;">Email</th>
+                            <th style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #6b7280; padding: 0.625rem 1rem; border-bottom: 1px solid #e5e7eb;">Role</th>
+                            <th style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #6b7280; padding: 0.625rem 1rem; border-bottom: 1px solid #e5e7eb;">Status</th>
+                            <th style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: #6b7280; padding: 0.625rem 1rem; border-bottom: 1px solid #e5e7eb;">Sender Capability</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($main_account_users as $user)
+                            <tr style="border-bottom: 1px solid #f3f4f6;">
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle;">
+                                    <div style="font-weight: 500; color: #374151;">{{ $user['name'] }}</div>
+                                    @if($user['is_account_owner'])
+                                        <span style="font-size: 0.65rem; background: #f3e8ff; color: #7c3aed; padding: 2px 6px; border-radius: 4px;">Account Owner</span>
+                                    @endif
+                                </td>
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle; color: #6b7280;">{{ $user['email'] }}</td>
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle;">
+                                    <span style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: #f3e8ff; color: #886cc0;">{{ $user['role_label'] }}</span>
+                                </td>
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle;">
+                                    @php
+                                        $userStatusBg = $user['status'] === 'active' ? '#dcfce7' : ($user['status'] === 'suspended' ? '#fef3c7' : '#f3f4f6');
+                                        $userStatusColor = $user['status'] === 'active' ? '#166534' : ($user['status'] === 'suspended' ? '#92400e' : '#6b7280');
+                                    @endphp
+                                    <span style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: {{ $userStatusBg }}; color: {{ $userStatusColor }};">{{ ucfirst($user['status']) }}</span>
+                                </td>
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle;">
+                                    @if($user['sender_capability'] !== 'none')
+                                        <span style="font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: #e0e7ff; color: #3730a3;">{{ ucfirst($user['sender_capability']) }}</span>
+                                    @else
+                                        <span style="font-size: 0.75rem; color: #9ca3af;">None</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @else
+                <div class="text-center py-4 text-muted" style="font-size: 0.9rem;">
+                    <i class="fas fa-user-plus mb-2" style="font-size: 1.5rem; color: #886cc0;"></i>
+                    <p class="mb-2">No users assigned directly to the main account yet.</p>
+                    @if($can_manage_users)
+                    <button type="button" class="btn btn-manage" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
+                    @endif
+                </div>
+            @endif
+        </div>
+    </div>
+    
     <div class="section-card">
         <div class="section-header">
             <h2 class="section-title">
@@ -622,6 +689,178 @@
         </div>
     </div>
 </div>
+
+@if($can_manage_users)
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add User to Main Account</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs mb-3" id="addUserTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="invite-tab" data-bs-toggle="tab" data-bs-target="#invite-pane" type="button" role="tab">
+                            Send Invitation
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="direct-tab" data-bs-toggle="tab" data-bs-target="#direct-pane" type="button" role="tab">
+                            Direct Creation
+                            <span class="badge ms-1" style="font-size: 0.65rem; background: #f3e8ff; color: #6b21a8;">Admin Only</span>
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="addUserTabContent">
+                    <div class="tab-pane fade show active" id="invite-pane" role="tabpanel">
+                        <div class="alert mb-4" style="background: #f3e8ff; border: none; color: #6b21a8; font-size: 0.85rem;">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-info-circle me-3 mt-1"></i>
+                                <div>
+                                    <strong>Invitation Flow:</strong> The user will receive an email to set their password and enrol MFA. Once completed, they become Active.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form id="invite-user-form">
+                            <div class="mb-3">
+                                <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="invite-email" placeholder="user@company.com" required>
+                                <div class="form-text">Invitation will be sent to this email address</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Assign to</label>
+                                <select class="form-select" id="invite-sub-account">
+                                    <option value="" selected>Main Account (no sub-account)</option>
+                                    @foreach($sub_accounts_list as $sa)
+                                        <option value="{{ $sa['id'] }}">{{ $sa['name'] }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="form-text">Defaults to Main Account. Optionally assign to a sub-account.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Role <span class="text-danger">*</span></label>
+                                <select class="form-select" id="invite-role" required>
+                                    <option value="">Select Role...</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="messaging_manager">Messaging Manager</option>
+                                    <option value="finance">Finance / Billing</option>
+                                    <option value="developer">Developer / API User</option>
+                                    <option value="user">User</option>
+                                    <option value="readonly">Read-Only / Auditor</option>
+                                </select>
+                                <div class="form-text">Determines navigation and feature access</div>
+                            </div>
+                            <div class="mb-3" id="sender-capability-group">
+                                <label class="form-label">Sender Capability Level <span class="text-danger">*</span></label>
+                                <select class="form-select" id="invite-sender-capability" required>
+                                    <option value="">Select Capability...</option>
+                                    <option value="advanced">Advanced Sender - Full content creation, Contact Book, CSV uploads</option>
+                                    <option value="restricted">Restricted Sender - Templates only, predefined lists only</option>
+                                    <option value="none">None - No sending capability</option>
+                                </select>
+                                <div class="form-text">Controls how messages can be composed and sent</div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="direct-pane" role="tabpanel">
+                        <div class="alert mb-4" style="background: #f3e8ff; border: none; color: #6b21a8; font-size: 0.85rem;">
+                            <div class="d-flex align-items-start">
+                                <i class="fas fa-info-circle me-3 mt-1"></i>
+                                <div>
+                                    <strong>Elevated Risk Action</strong><br>
+                                    Direct user creation bypasses the standard invitation flow. The user will be required to:
+                                    <ul class="mb-0 mt-2">
+                                        <li>Reset their password on first login</li>
+                                        <li>Enrol MFA immediately before accessing the platform</li>
+                                    </ul>
+                                    This action is logged as a high-risk audit event.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form id="direct-create-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="direct-first-name" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="direct-last-name" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="direct-email" placeholder="user@company.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Temporary Password <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="direct-temp-password" required minlength="12">
+                                    <button class="btn btn-outline-secondary" type="button" id="btn-generate-password">Generate</button>
+                                </div>
+                                <div class="form-text">Minimum 12 characters. User must change this on first login.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Assign to</label>
+                                <select class="form-select" id="direct-sub-account">
+                                    <option value="" selected>Main Account (no sub-account)</option>
+                                    @foreach($sub_accounts_list as $sa)
+                                        <option value="{{ $sa['id'] }}">{{ $sa['name'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Role <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="direct-role" required>
+                                        <option value="">Select Role...</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="messaging_manager">Messaging Manager</option>
+                                        <option value="finance">Finance / Billing</option>
+                                        <option value="developer">Developer / API User</option>
+                                        <option value="user">User</option>
+                                        <option value="readonly">Read-Only / Auditor</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3" id="direct-sender-capability-group">
+                                    <label class="form-label">Sender Capability Level <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="direct-sender-capability" required>
+                                        <option value="">Select Capability...</option>
+                                        <option value="advanced">Advanced Sender</option>
+                                        <option value="restricted">Restricted Sender</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Reason for Direct Creation <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="direct-reason" rows="2" placeholder="e.g., Urgent onboarding required, user has no email access" required></textarea>
+                                <div class="form-text">This will be recorded in the audit log</div>
+                            </div>
+                        </form>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="direct-confirm-risk">
+                            <label class="form-check-label" for="direct-confirm-risk">
+                                I understand this is a high-risk action and accept responsibility for this user account
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn" id="btn-send-invite" style="background: #886cc0; color: white;">Send Invitation</button>
+                <button type="button" class="btn" id="btn-direct-create" style="display: none; background: #886cc0; color: white;">Create User Directly</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 @endsection
 
 @push('scripts')
@@ -678,6 +917,207 @@ document.addEventListener('DOMContentLoaded', function() {
         stateDesc.textContent = states[state].desc;
         stateIcon.className = 'fas ' + states[state].icon;
     }
+    
+    function apiRequest(url, method, data) {
+        return new Promise(function(resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open(method, url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.setRequestHeader('Accept', 'application/json');
+            var csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (csrfToken) {
+                xhr.setRequestHeader('X-CSRF-TOKEN', csrfToken.getAttribute('content'));
+            }
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try { resolve(JSON.parse(xhr.responseText)); } catch(e) { resolve({}); }
+                } else {
+                    var errMsg = 'Request failed';
+                    try {
+                        var errBody = JSON.parse(xhr.responseText);
+                        if (errBody.errors) {
+                            var msgs = [];
+                            Object.keys(errBody.errors).forEach(function(k) {
+                                msgs = msgs.concat(errBody.errors[k]);
+                            });
+                            errMsg = msgs.join(', ');
+                        } else if (errBody.message) {
+                            errMsg = errBody.message;
+                        }
+                    } catch(e) {}
+                    reject(new Error(errMsg));
+                }
+            };
+            xhr.onerror = function() { reject(new Error('Network error')); };
+            xhr.send(data ? JSON.stringify(data) : null);
+        });
+    }
+    
+    function showToast(type, title, message) {
+        var bgColors = { success: '#dcfce7', error: '#fee2e2', warning: '#fef3c7', info: '#f3e8ff' };
+        var textColors = { success: '#166534', error: '#991b1b', warning: '#92400e', info: '#6b21a8' };
+        var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+        var toast = document.createElement('div');
+        toast.className = 'alert position-fixed';
+        toast.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px; background: ' + (bgColors[type] || bgColors.info) + '; border: none; color: ' + (textColors[type] || textColors.info) + ';';
+        toast.innerHTML = '<i class="fas ' + (icons[type] || icons.info) + ' me-2"></i><strong>' + title + '</strong> ' + message;
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 4000);
+    }
+    
+    var roleSelect = document.getElementById('invite-role');
+    if (roleSelect) {
+    var senderCapabilityGroup = document.getElementById('sender-capability-group');
+    var btnSendInvite = document.getElementById('btn-send-invite');
+    var btnDirectCreate = document.getElementById('btn-direct-create');
+    var directSenderCapabilityGroup = document.getElementById('direct-sender-capability-group');
+    
+    roleSelect.addEventListener('change', function() {
+        var nonMessagingRoles = ['finance', 'readonly'];
+        if (nonMessagingRoles.includes(this.value)) {
+            senderCapabilityGroup.style.display = 'none';
+            document.getElementById('invite-sender-capability').removeAttribute('required');
+        } else {
+            senderCapabilityGroup.style.display = 'block';
+            document.getElementById('invite-sender-capability').setAttribute('required', 'required');
+        }
+    });
+    
+    document.getElementById('direct-role').addEventListener('change', function() {
+        var nonMessagingRoles = ['finance', 'readonly'];
+        if (nonMessagingRoles.includes(this.value)) {
+            directSenderCapabilityGroup.style.display = 'none';
+            document.getElementById('direct-sender-capability').removeAttribute('required');
+        } else {
+            directSenderCapabilityGroup.style.display = 'block';
+            document.getElementById('direct-sender-capability').setAttribute('required', 'required');
+        }
+    });
+    
+    document.querySelectorAll('#addUserTabs button').forEach(function(tab) {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            if (e.target.id === 'direct-tab') {
+                btnSendInvite.style.display = 'none';
+                btnDirectCreate.style.display = 'inline-block';
+            } else {
+                btnSendInvite.style.display = 'inline-block';
+                btnDirectCreate.style.display = 'none';
+            }
+        });
+    });
+    
+    document.getElementById('btn-generate-password').addEventListener('click', function() {
+        var chars = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%&*';
+        var password = '';
+        for (var i = 0; i < 16; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        var input = document.getElementById('direct-temp-password');
+        input.value = password;
+        input.type = 'text';
+        setTimeout(function() { input.type = 'password'; }, 3000);
+    });
+    
+    btnSendInvite.addEventListener('click', function() {
+        var email = document.getElementById('invite-email').value.trim();
+        var subAccountId = document.getElementById('invite-sub-account').value;
+        var role = document.getElementById('invite-role').value;
+        var senderCapability = document.getElementById('invite-sender-capability').value;
+        
+        var nonMessagingRoles = ['finance', 'readonly'];
+        var requiresCapability = !nonMessagingRoles.includes(role);
+        
+        if (!email || !role) {
+            showToast('warning', 'Missing Fields', 'Please fill in all required fields');
+            return;
+        }
+        if (requiresCapability && !senderCapability) {
+            showToast('warning', 'Missing Fields', 'Please select a Sender Capability Level');
+            return;
+        }
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showToast('warning', 'Invalid Email', 'Please enter a valid email address');
+            return;
+        }
+        
+        var payload = { email: email, role: role };
+        if (subAccountId) payload.sub_account_id = subAccountId;
+        if (requiresCapability && senderCapability) payload.sender_capability = senderCapability;
+        
+        btnSendInvite.disabled = true;
+        btnSendInvite.textContent = 'Sending...';
+        
+        apiRequest('/api/invitations', 'POST', payload).then(function() {
+            bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+            document.getElementById('invite-user-form').reset();
+            showToast('success', 'Invitation Sent', 'The user will receive an email invitation shortly.');
+            setTimeout(function() { window.location.reload(); }, 1500);
+        }).catch(function(err) {
+            showToast('error', 'Error', err.message);
+        }).finally(function() {
+            btnSendInvite.disabled = false;
+            btnSendInvite.textContent = 'Send Invitation';
+        });
+    });
+    
+    btnDirectCreate.addEventListener('click', function() {
+        var firstName = document.getElementById('direct-first-name').value.trim();
+        var lastName = document.getElementById('direct-last-name').value.trim();
+        var email = document.getElementById('direct-email').value.trim();
+        var tempPassword = document.getElementById('direct-temp-password').value;
+        var subAccountId = document.getElementById('direct-sub-account').value;
+        var role = document.getElementById('direct-role').value;
+        var senderCapability = document.getElementById('direct-sender-capability').value;
+        var reason = document.getElementById('direct-reason').value.trim();
+        var confirmRisk = document.getElementById('direct-confirm-risk').checked;
+        
+        var nonMessagingRoles = ['finance', 'readonly'];
+        var requiresCapability = !nonMessagingRoles.includes(role);
+        
+        if (!firstName || !lastName || !email || !tempPassword || !role || !reason) {
+            showToast('warning', 'Missing Fields', 'Please fill in all required fields');
+            return;
+        }
+        if (requiresCapability && !senderCapability) {
+            showToast('warning', 'Missing Fields', 'Please select a Sender Capability Level');
+            return;
+        }
+        if (tempPassword.length < 12) {
+            showToast('warning', 'Invalid Password', 'Password must be at least 12 characters');
+            return;
+        }
+        if (!confirmRisk) {
+            showToast('warning', 'Confirmation Required', 'You must acknowledge the risk before creating a user directly');
+            return;
+        }
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showToast('warning', 'Invalid Email', 'Please enter a valid email address');
+            return;
+        }
+        
+        var payload = { email: email, role: role, first_name: firstName, last_name: lastName };
+        if (subAccountId) payload.sub_account_id = subAccountId;
+        if (requiresCapability && senderCapability) payload.sender_capability = senderCapability;
+        
+        btnDirectCreate.disabled = true;
+        btnDirectCreate.textContent = 'Creating...';
+        
+        apiRequest('/api/invitations', 'POST', payload).then(function() {
+            bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+            document.getElementById('direct-create-form').reset();
+            document.getElementById('direct-confirm-risk').checked = false;
+            showToast('success', 'Invitation Created', 'The user account has been created. They will need to reset their password on first login.');
+            setTimeout(function() { window.location.reload(); }, 1500);
+        }).catch(function(err) {
+            showToast('error', 'Error', err.message);
+        }).finally(function() {
+            btnDirectCreate.disabled = false;
+            btnDirectCreate.textContent = 'Create User Directly';
+        });
+    });
+    } // end if (roleSelect)
     
     setInterval(function() {
         var xhr = new XMLHttpRequest();
