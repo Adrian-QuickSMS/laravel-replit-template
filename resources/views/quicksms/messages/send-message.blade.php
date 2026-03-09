@@ -129,15 +129,11 @@
                             @if(!empty($is_test_dynamic))
                             <div class="d-flex align-items-center gap-2">
                                 <div class="flex-grow-1 position-relative" id="dynamicSenderWrapper">
-                                    <div class="position-relative">
-                                        <input type="text" class="form-select" id="senderId" 
-                                               placeholder="SMS Sender ID *" maxlength="15" autocomplete="off"
-                                               oninput="onDynamicSenderInput();" onfocus="showSenderDropdown();"
-                                               style="padding-right: 2rem; cursor: text;">
-                                        <i class="fas fa-chevron-down" id="senderDropdownArrow"
-                                           style="position:absolute; right:12px; top:50%; transform:translateY(-50%); pointer-events:cursor; color:#6c757d; font-size:0.7rem; cursor:pointer;"
-                                           onclick="toggleSenderDropdown();"></i>
-                                    </div>
+                                    <input type="text" class="form-select" id="senderId" 
+                                           placeholder="SMS Sender ID *" maxlength="15" autocomplete="off"
+                                           oninput="onDynamicSenderInput();" onfocus="showSenderDropdown();"
+                                           onclick="toggleSenderDropdown();"
+                                           style="cursor: text;">
                                     <div class="dropdown-menu w-100 shadow-sm" id="senderSuggestions" style="display:none; max-height:220px; overflow-y:auto;">
                                         @foreach($sender_ids as $sender)
                                         <a class="dropdown-item sender-option" href="#" 
