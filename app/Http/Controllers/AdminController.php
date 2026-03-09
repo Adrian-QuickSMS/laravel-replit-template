@@ -279,6 +279,16 @@ class AdminController extends Controller
             ->orderBy('country_iso')
             ->get();
 
+        $subAccounts = \App\Models\SubAccount::where('account_id', $accountId)
+            ->select('id', 'name', 'sub_account_status')
+            ->orderBy('name')
+            ->get();
+
+        $allUsers = User::where('tenant_id', $accountId)
+            ->select('id', 'first_name', 'last_name', 'email', 'role', 'status', 'sub_account_id', 'is_account_owner')
+            ->orderBy('first_name')
+            ->get();
+
         return view('admin.accounts.details', [
             'page_title' => 'Account Details',
             'account_id' => $accountId,
@@ -289,6 +299,8 @@ class AdminController extends Controller
             'customerPrices' => $customerPrices,
             'tierPrices' => $tierPrices,
             'productTier' => $productTier,
+            'subAccounts' => $subAccounts,
+            'allUsers' => $allUsers,
         ]);
     }
 

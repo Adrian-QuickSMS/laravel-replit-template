@@ -983,12 +983,29 @@ function openAccountStructureModal() {
     
     currentHierarchyData = {
         main: { name: @json($account->company_name ?? 'Unknown'), id: @json($account->account_number ?? $account_id), status: @json(ucfirst($account->status ?? 'active')), type: @json(ucfirst($account->account_type ?? 'standard')) },
-        subAccounts: [],
-        mainUsers: [
-            @if($owner)
-            { name: @json(($owner->first_name ?? '') . ' ' . ($owner->last_name ?? '')), email: @json($owner->email ?? ''), role: @json(ucfirst($owner->role ?? 'owner')), status: @json(ucfirst($owner->status ?? 'active')) }
-            @endif
-        ]
+        subAccounts: {!! json_encode(($subAccounts ?? collect())->map(function($sa) use ($allUsers) {
+            return [
+                'id' => $sa->id,
+                'name' => $sa->name,
+                'status' => ucfirst($sa->sub_account_status ?? 'live'),
+                'users' => ($allUsers ?? collect())->where('sub_account_id', $sa->id)->map(function($u) {
+                    return [
+                        'name' => trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
+                        'email' => $u->email ?? '',
+                        'role' => ucfirst($u->role ?? 'user'),
+                        'status' => ucfirst($u->status ?? 'active'),
+                    ];
+                })->values()->toArray(),
+            ];
+        })->values()->toArray()) !!},
+        mainUsers: {!! json_encode(($allUsers ?? collect())->filter(function($u) { return empty($u->sub_account_id); })->map(function($u) {
+            return [
+                'name' => trim(($u->first_name ?? '') . ' ' . ($u->last_name ?? '')),
+                'email' => $u->email ?? '',
+                'role' => ucfirst($u->role ?? 'user'),
+                'status' => ucfirst($u->status ?? 'active'),
+            ];
+        })->values()->toArray()) !!}
     };
     
     renderHierarchyTree();
@@ -1011,24 +1028,36 @@ function renderHierarchyTree() {
     
     if (data.subAccounts) {
         data.subAccounts.forEach(function(s, i) {
-            html += '<div class="tree-node"><div class="tree-item" onclick="selectNode(\'sub\', ' + i + ')"><span class="tree-node-name">' + s.name + '</span><span class="badge light badge-success ms-2">' + s.status + '</span></div></div>';
+            html += '<div class="tree-node"><div class="tree-item" onclick="selectNode(\'sub\', ' + i + ')"><span class="tree-node-name">' + s.name + '</span><span class="badge light badge-success ms-2">' + s.status + '</span></div>';
+            if (s.users && s.users.length > 0) {
+                html += '<div class="tree-children">';
+                s.users.forEach(function(u, j) {
+                    html += '<div class="tree-node"><div class="tree-item" onclick="selectNode(\'sub-user\', ' + i + ', ' + j + ')"><span class="tree-node-name">' + u.name + '</span><span class="badge light badge-primary ms-2">' + u.role + '</span></div></div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
         });
     }
     
     document.getElementById('hierarchyTree').innerHTML = html;
 }
 
-function selectNode(type, index) {
+function selectNode(type, index, subIndex) {
     var data = currentHierarchyData;
     var html = '';
     if (type === 'main') {
         html = '<h6>Main Account</h6><table class="table table-sm"><tr><th>Status</th><td><span class="badge light badge-success">' + data.main.status + '</span></td></tr><tr><th>Type</th><td>' + data.main.type + '</td></tr></table>';
     } else if (type === 'main-user') {
         var u = data.mainUsers[index];
-        html = '<h6>User</h6><table class="table table-sm"><tr><th>Name</th><td>' + u.name + '</td></tr><tr><th>Email</th><td>' + u.email + '</td></tr><tr><th>Role</th><td><span class="badge light badge-primary">' + u.role + '</span></td></tr></table>';
+        html = '<h6>User</h6><table class="table table-sm"><tr><th>Name</th><td>' + u.name + '</td></tr><tr><th>Email</th><td>' + u.email + '</td></tr><tr><th>Role</th><td><span class="badge light badge-primary">' + u.role + '</span></td></tr><tr><th>Status</th><td><span class="badge light badge-success">' + u.status + '</span></td></tr></table>';
     } else if (type === 'sub') {
         var s = data.subAccounts[index];
-        html = '<h6>Sub-Account</h6><table class="table table-sm"><tr><th>Name</th><td>' + s.name + '</td></tr><tr><th>Status</th><td><span class="badge light badge-success">' + s.status + '</span></td></tr></table>';
+        var userCount = s.users ? s.users.length : 0;
+        html = '<h6>Sub-Account</h6><table class="table table-sm"><tr><th>Name</th><td>' + s.name + '</td></tr><tr><th>Status</th><td><span class="badge light badge-success">' + s.status + '</span></td></tr><tr><th>Users</th><td>' + userCount + '</td></tr></table>';
+    } else if (type === 'sub-user') {
+        var su = data.subAccounts[index].users[subIndex];
+        html = '<h6>User</h6><table class="table table-sm"><tr><th>Name</th><td>' + su.name + '</td></tr><tr><th>Email</th><td>' + su.email + '</td></tr><tr><th>Role</th><td><span class="badge light badge-primary">' + su.role + '</span></td></tr><tr><th>Status</th><td><span class="badge light badge-success">' + su.status + '</span></td></tr></table>';
     }
     document.getElementById('nodeDetailsPanel').innerHTML = html;
 }
