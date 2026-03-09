@@ -456,6 +456,8 @@ body.qsms-fullbleed .qsms-main {
     height: calc(100vh - 5.3rem);
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .qsms-fullbleed .qsms-main {

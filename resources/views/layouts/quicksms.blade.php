@@ -118,7 +118,6 @@
         var isTestMode = lifecycleFromStatus === 'TEST';
         var isCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
         
-        // Respect user's collapse preference when showing banner
         if (isTestMode) {
             if (isCollapsed) {
                 testModeBanner.style.display = 'none';
@@ -132,7 +131,6 @@
             if (collapsedTab) collapsedTab.style.display = 'none';
         }
         
-        // Listen for state changes to update banner visibility
         if (typeof AccountLifecycle !== 'undefined') {
             AccountLifecycle.onStateChange(function(newState, oldState) {
                 var stillCollapsed = localStorage.getItem(BANNER_STORAGE_KEY) === 'true';
