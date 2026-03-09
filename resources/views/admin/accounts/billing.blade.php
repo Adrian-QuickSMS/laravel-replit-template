@@ -2079,8 +2079,8 @@ var STATUS_TRANSITIONS = {
     pending_verification: ['test_standard', 'test_dynamic', 'closed'],
     test_standard: ['test_dynamic', 'active_standard', 'active_dynamic', 'suspended', 'closed'],
     test_dynamic: ['test_standard', 'active_standard', 'active_dynamic', 'suspended', 'closed'],
-    active_standard: ['active_dynamic', 'suspended', 'closed'],
-    active_dynamic: ['active_standard', 'suspended', 'closed'],
+    active_standard: ['active_dynamic', 'test_standard', 'test_dynamic', 'suspended', 'closed'],
+    active_dynamic: ['active_standard', 'test_standard', 'test_dynamic', 'suspended', 'closed'],
     suspended: ['test_standard', 'test_dynamic', 'active_standard', 'active_dynamic', 'closed'],
     closed: []
 };
