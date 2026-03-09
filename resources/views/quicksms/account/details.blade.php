@@ -1030,13 +1030,13 @@
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#testNumbersSection" aria-expanded="false">
                         <i class="fas fa-flask me-2 text-warning"></i>Test Mode — Approved Test Numbers
-                        <span class="badge bg-warning text-dark ms-2">{{ count($approved_test_numbers ?? []) }}/10</span>
+                        <span class="badge ms-2" style="background-color: #f0ebf8; color: #886CC0;">{{ count($approved_test_numbers ?? []) }}/10</span>
                     </button>
                 </h2>
                 <div id="testNumbersSection" class="accordion-collapse collapse" data-bs-parent="#accountDetailsAccordion">
                     <div class="accordion-body">
-                        <div class="alert border-0 mb-3" style="background-color: #fff3cd; color: #856404;">
-                            <i class="fas fa-info-circle me-2"></i>
+                        <div class="alert border-0 mb-3" style="background-color: #f0ebf8; color: #6b5b95;">
+                            <i class="fas fa-info-circle me-2" style="color: #886CC0;"></i>
                             While your account is in <strong>Test Standard</strong> mode, you can only send messages to numbers listed here. Add up to 10 approved test numbers. You can enter numbers as <strong>07XXX</strong>, <strong>447XXX</strong>, or <strong>+447XXX</strong> — they will be automatically converted to international format.
                         </div>
 
