@@ -218,7 +218,8 @@
     background: rgba(59, 130, 246, 0.12);
     color: #3b82f6;
 }
-.role-pill.messaging-manager {
+.role-pill.messaging-manager,
+.role-pill.messaging_manager {
     background: rgba(16, 185, 129, 0.12);
     color: #10b981;
 }
@@ -230,9 +231,14 @@
     background: rgba(99, 102, 241, 0.12);
     color: #6366f1;
 }
-.role-pill.auditor {
+.role-pill.auditor,
+.role-pill.readonly {
     background: rgba(107, 114, 128, 0.12);
     color: #6b7280;
+}
+.role-pill.user {
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
 }
 
 .capability-pill.advanced {
@@ -543,14 +549,11 @@ input:focus + .perm-slider {
                                 <select class="form-select" id="invite-role" required>
                                     <option value="">Select Role...</option>
                                     <option value="admin">Admin</option>
-                                    <option value="messaging-manager">Messaging Manager</option>
+                                    <option value="messaging_manager">Messaging Manager</option>
                                     <option value="finance">Finance / Billing</option>
                                     <option value="developer">Developer / API User</option>
-                                    <option value="auditor">Read-Only / Auditor</option>
-                                    <optgroup label="Optional Roles">
-                                        <option value="campaign-approver">Campaign Approver</option>
-                                        <option value="security-officer">Security Officer</option>
-                                    </optgroup>
+                                    <option value="user">User</option>
+                                    <option value="readonly">Read-Only / Auditor</option>
                                 </select>
                                 <div class="form-text">Determines navigation and feature access</div>
                                 <div id="invite-role-info" class="mt-2 p-2 rounded" style="background: #f8f9fa; font-size: 0.8rem; display: none;"></div>
@@ -561,6 +564,7 @@ input:focus + .perm-slider {
                                     <option value="">Select Capability...</option>
                                     <option value="advanced">Advanced Sender - Full content creation, Contact Book, CSV uploads</option>
                                     <option value="restricted">Restricted Sender - Templates only, predefined lists only</option>
+                                    <option value="none">None - No sending capability</option>
                                 </select>
                                 <div class="form-text">Controls how messages can be composed and sent</div>
                             </div>
@@ -618,14 +622,11 @@ input:focus + .perm-slider {
                                     <select class="form-select" id="direct-role" required>
                                         <option value="">Select Role...</option>
                                         <option value="admin">Admin</option>
-                                        <option value="messaging-manager">Messaging Manager</option>
+                                        <option value="messaging_manager">Messaging Manager</option>
                                         <option value="finance">Finance / Billing</option>
                                         <option value="developer">Developer / API User</option>
-                                        <option value="auditor">Read-Only / Auditor</option>
-                                        <optgroup label="Optional Roles">
-                                            <option value="campaign-approver">Campaign Approver</option>
-                                            <option value="security-officer">Security Officer</option>
-                                        </optgroup>
+                                        <option value="user">User</option>
+                                        <option value="readonly">Read-Only / Auditor</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3" id="direct-sender-capability-group">
@@ -789,9 +790,9 @@ input:focus + .perm-slider {
                                 <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.6rem;">High Access</span>
                             </div>
                         </div>
-                        <div class="role-card" data-role="messaging-manager">
+                        <div class="role-card" data-role="messaging_manager">
                             <div class="d-flex align-items-start">
-                                <input type="radio" name="new-role" value="messaging-manager" class="form-check-input mt-1 me-2" id="role-messaging">
+                                <input type="radio" name="new-role" value="messaging_manager" class="form-check-input mt-1 me-2" id="role-messaging">
                                 <div class="flex-grow-1">
                                     <label class="form-check-label fw-semibold" for="role-messaging">Messaging Manager</label>
                                     <div class="text-muted" style="font-size: 0.75rem;">Send messages, manage contacts and templates</div>
@@ -819,36 +820,24 @@ input:focus + .perm-slider {
                                 </div>
                             </div>
                         </div>
-                        <div class="role-card" data-role="auditor">
+                        <div class="role-card" data-role="user">
                             <div class="d-flex align-items-start">
-                                <input type="radio" name="new-role" value="auditor" class="form-check-input mt-1 me-2" id="role-auditor">
+                                <input type="radio" name="new-role" value="user" class="form-check-input mt-1 me-2" id="role-user">
                                 <div class="flex-grow-1">
-                                    <label class="form-check-label fw-semibold" for="role-auditor">Read-Only / Auditor</label>
+                                    <label class="form-check-label fw-semibold" for="role-user">User</label>
+                                    <div class="text-muted" style="font-size: 0.75rem;">Standard user with basic access</div>
+                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">General team members</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="role-card" data-role="readonly">
+                            <div class="d-flex align-items-start">
+                                <input type="radio" name="new-role" value="readonly" class="form-check-input mt-1 me-2" id="role-readonly">
+                                <div class="flex-grow-1">
+                                    <label class="form-check-label fw-semibold" for="role-readonly">Read-Only / Auditor</label>
                                     <div class="text-muted" style="font-size: 0.75rem;">View-only access for compliance review</div>
                                     <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">Compliance officers, external auditors</span></div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="role-card" data-role="campaign-approver">
-                            <div class="d-flex align-items-start">
-                                <input type="radio" name="new-role" value="campaign-approver" class="form-check-input mt-1 me-2" id="role-approver">
-                                <div class="flex-grow-1">
-                                    <label class="form-check-label fw-semibold" for="role-approver">Campaign Approver</label>
-                                    <div class="text-muted" style="font-size: 0.75rem;">Review and approve campaigns before sending</div>
-                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">Senior managers, compliance reviewers</span></div>
-                                </div>
-                                <span class="badge" style="background: #f3e8ff; color: #7c3aed; font-size: 0.6rem;">Optional</span>
-                            </div>
-                        </div>
-                        <div class="role-card" data-role="security-officer">
-                            <div class="d-flex align-items-start">
-                                <input type="radio" name="new-role" value="security-officer" class="form-check-input mt-1 me-2" id="role-security">
-                                <div class="flex-grow-1">
-                                    <label class="form-check-label fw-semibold" for="role-security">Security Officer</label>
-                                    <div class="text-muted" style="font-size: 0.75rem;">Manage security settings and access reviews</div>
-                                    <div class="mt-1"><span class="badge" style="font-size: 0.65rem; background: #f3f4f6; color: #6b7280;">IT security, data protection officers</span></div>
-                                </div>
-                                <span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.6rem;">High Access</span>
                             </div>
                         </div>
                     </div>
@@ -1542,18 +1531,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    var currentUserRole = 'admin';
-    var isMainAccountAdmin = true;
+    var currentUser = @json($current_user ?? []);
+    var accountName = @json($account_name ?? 'My Account');
+    var currentUserRole = currentUser.role || 'readonly';
+    var isMainAccountAdmin = currentUser.is_account_owner || currentUserRole === 'owner' || currentUserRole === 'admin';
     
     var ROLE_NAV_ACCESS = {
         'owner': { label: 'Account Owner', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Purchase', 'Management', 'Account', 'Support'], note: 'Full access. One per Main Account.' },
         'admin': { label: 'Admin', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Purchase', 'Management', 'Account', 'Support'], note: 'Full access within their scope.' },
-        'messaging-manager': { label: 'Messaging Manager', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Management', 'Support'], note: 'Can send messages, manage contacts and templates.' },
+        'messaging_manager': { label: 'Messaging Manager', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Management', 'Support'], note: 'Can send messages, manage contacts and templates.' },
         'finance': { label: 'Finance / Billing', nav: ['Dashboard', 'Reporting', 'Purchase', 'Support'], note: 'Access to billing, invoices, and purchases.' },
         'developer': { label: 'Developer / API User', nav: ['Dashboard', 'Management', 'Reporting', 'Support'], note: 'Access to API connections and technical settings.' },
-        'auditor': { label: 'Read-Only / Auditor', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Management', 'Account', 'Support'], note: 'View-only access for compliance.' },
-        'campaign-approver': { label: 'Campaign Approver', nav: ['Dashboard', 'Messages', 'Reporting', 'Support'], note: 'Can review and approve campaigns.' },
-        'security-officer': { label: 'Security Officer', nav: ['Dashboard', 'Account', 'Reporting', 'Support'], note: 'Manages security and access reviews.' }
+        'user': { label: 'User', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Support'], note: 'Standard user with basic access.' },
+        'readonly': { label: 'Read-Only / Auditor', nav: ['Dashboard', 'Messages', 'Contact Book', 'Reporting', 'Management', 'Account', 'Support'], note: 'View-only access for compliance.' }
+    };
+
+    var hierarchyData = {
+        mainAccount: { name: accountName },
+        subAccounts: []
     };
     
     function showRoleInfo(selectId, infoId) {
@@ -1575,100 +1570,133 @@ document.addEventListener('DOMContentLoaded', function() {
     showRoleInfo('invite-role', 'invite-role-info');
     showRoleInfo('change-role-new', 'change-role-info');
     
-    var hierarchyData = {
-        mainAccount: {
-            id: 'main-001',
-            name: 'Acme Corporation Ltd',
-            companyNumber: '12345678',
-            accountOwner: {
-                id: 'user-001',
-                name: 'Sarah Mitchell',
-                email: 'sarah.mitchell@acme.co.uk',
-                role: 'owner',
-                status: 'active'
-            }
-        },
-        subAccounts: [
-            {
-                id: 'sub-001',
-                name: 'Marketing Department',
-                description: 'Marketing and communications team',
-                accountStatus: 'live',
-                limits: { spendCap: 500, messageCap: 10000, dailyLimit: null, enforcementType: 'warn', hardStop: false },
-                usage: { spend: 125.50, messages: 1234, enforcementState: 'normal' },
-                assets: {
-                    senderIds: [{ id: 'sid-001', name: 'ACME_MKT', type: 'Alpha', status: 'active' }],
-                    numbers: [{ id: 'num-001', name: '+44 7700 900123', type: 'VMN', status: 'active' }],
-                    rcs: [{ id: 'rcs-001', name: 'ACME Marketing', type: 'Agent', status: 'verified' }],
-                    templates: [{ id: 'tpl-001', name: 'Welcome Message', type: 'SMS', status: 'approved' }, { id: 'tpl-002', name: 'Promo Offer', type: 'RCS', status: 'approved' }],
-                    api: [{ id: 'api-001', name: 'Marketing API', type: 'REST', status: 'active' }]
-                },
-                users: [
-                    { id: 'user-002', name: 'James Wilson', email: 'james.wilson@acme.co.uk', role: 'admin', status: 'active', senderCapability: 'advanced', userLimits: null, usage: { spend: 45.20, messages: 342 } },
-                    { id: 'user-003', name: 'Emma Thompson', email: 'emma.t@acme.co.uk', role: 'messaging-manager', status: 'active', senderCapability: 'advanced', userLimits: null, usage: { spend: 32.10, messages: 256 } },
-                    { id: 'user-004', name: 'Michael Brown', email: 'michael.b@acme.co.uk', role: 'messaging-manager', status: 'active', senderCapability: 'restricted', userLimits: { spendCap: 100 }, usage: { spend: 28.40, messages: 198 } },
-                    { id: 'user-005', name: 'Lisa Chen', email: 'lisa.chen@acme.co.uk', role: 'auditor', status: 'invited', senderCapability: null, userLimits: null, usage: { spend: 0, messages: 0 } }
-                ]
+    var csrfToken = document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '';
+    
+    function apiRequest(url, method, body) {
+        var opts = {
+            method: method || 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
             },
-            {
-                id: 'sub-002',
-                name: 'Finance Team',
-                description: 'Finance and billing department',
-                accountStatus: 'live',
-                limits: { spendCap: 200, messageCap: 2000, dailyLimit: 100, enforcementType: 'block', hardStop: false },
-                usage: { spend: 45.00, messages: 320, enforcementState: 'normal' },
-                assets: {
-                    senderIds: [{ id: 'sid-002', name: 'ACME_FIN', type: 'Alpha', status: 'active' }],
-                    numbers: [],
-                    rcs: [],
-                    templates: [{ id: 'tpl-003', name: 'Invoice Reminder', type: 'SMS', status: 'approved' }],
-                    api: []
-                },
-                users: [
-                    { id: 'user-006', name: 'Robert Taylor', email: 'robert.t@acme.co.uk', role: 'admin', status: 'active', senderCapability: 'advanced', userLimits: null, usage: { spend: 25.00, messages: 180 } },
-                    { id: 'user-007', name: 'Jennifer Adams', email: 'jennifer.a@acme.co.uk', role: 'finance', status: 'active', senderCapability: null, userLimits: null, usage: { spend: 0, messages: 0 } }
-                ]
+            credentials: 'same-origin'
+        };
+        if (body && method !== 'GET') {
+            opts.body = JSON.stringify(body);
+        }
+        return fetch(url, opts).then(function(resp) {
+            return resp.json().then(function(data) {
+                if (!resp.ok) {
+                    var msg = data.message || data.error || 'Request failed';
+                    if (data.errors) {
+                        var firstKey = Object.keys(data.errors)[0];
+                        if (firstKey && data.errors[firstKey].length) {
+                            msg = data.errors[firstKey][0];
+                        }
+                    }
+                    throw new Error(msg);
+                }
+                return data;
+            });
+        });
+    }
+    
+    function mapSubAccountFromApi(sa) {
+        return {
+            id: sa.id,
+            name: sa.name,
+            description: sa.description || '',
+            accountStatus: sa.status || 'live',
+            limits: {
+                spendCap: sa.limits ? sa.limits.monthly_spending_cap : null,
+                messageCap: sa.limits ? sa.limits.monthly_message_cap : null,
+                dailyLimit: sa.limits ? sa.limits.daily_send_limit : null,
+                enforcementType: sa.limits ? sa.limits.enforcement_type : 'warn',
+                hardStop: sa.limits ? sa.limits.hard_stop_enabled : false
             },
-            {
-                id: 'sub-003',
-                name: 'IT & Development',
-                description: 'Technical and API integration team',
-                accountStatus: 'live',
-                limits: { spendCap: 1000, messageCap: 50000, dailyLimit: 5000, enforcementType: 'warn', hardStop: false },
-                usage: { spend: 890.25, messages: 42150, enforcementState: 'warning' },
-                assets: {
-                    senderIds: [],
-                    numbers: [{ id: 'num-002', name: '+44 7700 900456', type: 'VMN', status: 'active' }],
-                    rcs: [],
-                    templates: [],
-                    api: [{ id: 'api-002', name: 'Dev API Key', type: 'REST', status: 'active' }, { id: 'api-003', name: 'Test Webhook', type: 'Webhook', status: 'active' }]
-                },
-                users: [
-                    { id: 'user-008', name: 'David Park', email: 'david.park@acme.co.uk', role: 'admin', status: 'active', senderCapability: 'advanced', userLimits: null, usage: { spend: 450.00, messages: 21000 } },
-                    { id: 'user-009', name: 'Alex Johnson', email: 'alex.j@acme.co.uk', role: 'developer', status: 'active', senderCapability: null, userLimits: null, usage: { spend: 0, messages: 0 } },
-                    { id: 'user-010', name: 'Sophie Williams', email: 'sophie.w@acme.co.uk', role: 'developer', status: 'suspended', senderCapability: null, userLimits: null, usage: { spend: 0, messages: 0 } }
-                ]
+            usage: {
+                spend: sa.usage ? sa.usage.monthly_spend_used : 0,
+                messages: sa.usage ? sa.usage.monthly_messages_used : 0,
+                enforcementState: sa.enforcement_state || 'normal'
             },
-            {
-                id: 'sub-004',
-                name: 'Customer Support',
-                description: 'Customer service and support',
-                accountStatus: 'suspended',
-                limits: { spendCap: 300, messageCap: 5000, dailyLimit: null, enforcementType: 'approval', hardStop: true },
-                usage: { spend: 0, messages: 0, enforcementState: 'blocked' },
-                assets: {
-                    senderIds: [{ id: 'sid-003', name: 'ACME_SUP', type: 'Alpha', status: 'suspended' }],
-                    numbers: [],
-                    rcs: [],
-                    templates: [{ id: 'tpl-004', name: 'Support Response', type: 'SMS', status: 'approved' }],
-                    api: []
-                },
-                users: [
-                    { id: 'user-011', name: 'Chris Martinez', email: 'chris.m@acme.co.uk', role: 'messaging-manager', status: 'active', senderCapability: 'restricted', userLimits: null, usage: { spend: 0, messages: 0 } }
-                ]
-            }
-        ]
-    };
+            assets: { senderIds: [], numbers: [], rcs: [], templates: [], api: [] },
+            users: []
+        };
+    }
+    
+    function mapUserFromApi(u) {
+        return {
+            id: u.id,
+            sub_account_id: u.sub_account_id,
+            name: u.full_name || ((u.first_name || '') + ' ' + (u.last_name || '')).trim(),
+            email: u.email,
+            role: u.role,
+            status: u.status,
+            senderCapability: u.sender_capability,
+            isAccountOwner: u.is_account_owner || false,
+            userLimits: u.limits ? {
+                spendCap: u.limits.monthly_spending_cap,
+                messageCap: u.limits.monthly_message_cap,
+                dailyLimit: u.limits.daily_send_limit
+            } : null,
+            usage: u.usage ? {
+                spend: u.usage.monthly_spend_used || 0,
+                messages: u.usage.monthly_messages_used || 0
+            } : { spend: 0, messages: 0 },
+            permissionOverrides: {},
+            permissions: u.permissions || {}
+        };
+    }
+    
+    function loadHierarchy() {
+        Promise.all([
+            apiRequest('/api/sub-accounts?per_page=200'),
+            apiRequest('/api/users?per_page=500'),
+            apiRequest('/api/invitations')
+        ]).then(function(results) {
+            var subAccountsResp = results[0];
+            var usersResp = results[1];
+            var invitationsResp = results[2];
+            
+            var subAccountsData = (subAccountsResp.data || []).map(mapSubAccountFromApi);
+            var usersData = (usersResp.data || []).map(mapUserFromApi);
+            var invitations = (invitationsResp.data || []);
+            
+            subAccountsData.forEach(function(sa) { sa.users = []; });
+            
+            usersData.forEach(function(u) {
+                var targetSa = subAccountsData.find(function(s) { return s.id === u.sub_account_id; });
+                if (targetSa) {
+                    targetSa.users.push(u);
+                }
+            });
+            
+            invitations.forEach(function(inv) {
+                var targetSa = subAccountsData.find(function(s) { return s.id === inv.sub_account_id; });
+                if (targetSa) {
+                    targetSa.users.push({
+                        id: inv.id,
+                        sub_account_id: inv.sub_account_id,
+                        name: ((inv.first_name || '') + ' ' + (inv.last_name || '')).trim() || inv.email.split('@')[0],
+                        email: inv.email,
+                        role: inv.role,
+                        status: 'invited',
+                        senderCapability: inv.sender_capability || null,
+                        isInvitation: true,
+                        userLimits: null,
+                        usage: { spend: 0, messages: 0 }
+                    });
+                }
+            });
+            
+            hierarchyData.subAccounts = subAccountsData;
+            renderHierarchy();
+        }).catch(function(err) {
+            console.error('Failed to load hierarchy:', err);
+            showToast('error', 'Load Error', 'Failed to load account hierarchy. Please refresh the page.');
+        });
+    }
 
     function renderHierarchy() {
         var tree = document.getElementById('hierarchy-tree');
@@ -1687,9 +1715,9 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '<div class="sub-accounts-container">';
         
         var visibleSubAccounts = hierarchyData.subAccounts;
-        if (!isMainAccountAdmin) {
+        if (!isMainAccountAdmin && currentUser && currentUser.sub_account_id) {
             visibleSubAccounts = hierarchyData.subAccounts.filter(function(sub) {
-                return sub.id === 'sub-001';
+                return sub.id === currentUser.sub_account_id;
             });
             document.getElementById('restricted-notice').style.display = 'block';
         }
@@ -1717,7 +1745,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 html += '<div class="empty-users">No users in this Sub-Account</div>';
             } else {
                 subAccount.users.forEach(function(user) {
-                    var hasMessagingRole = ['owner', 'admin', 'messaging-manager', 'campaign-approver'].includes(user.role);
+                    var hasMessagingRole = ['owner', 'admin', 'messaging_manager', 'user'].includes(user.role);
                     
                     html += '<div class="user-row" data-user-id="' + user.id + '" data-sub-account-id="' + subAccount.id + '">';
                     html += '<div class="user-info">';
@@ -1857,12 +1885,11 @@ document.addEventListener('DOMContentLoaded', function() {
         var roleMap = {
             'owner': 'Account Owner',
             'admin': 'Admin',
-            'messaging-manager': 'Messaging Manager',
+            'messaging_manager': 'Messaging Manager',
             'finance': 'Finance',
             'developer': 'Developer',
-            'auditor': 'Auditor',
-            'campaign-approver': 'Campaign Approver',
-            'security-officer': 'Security Officer'
+            'user': 'User',
+            'readonly': 'Read-Only'
         };
         return roleMap[role] || role;
     }
@@ -1921,46 +1948,31 @@ document.addEventListener('DOMContentLoaded', function() {
         var approvalRequired = document.getElementById('sub-approval-required').value;
         var limitEnforcement = document.getElementById('sub-limit-enforcement').value;
         
-        var enforcementRules = {
-            dailySendLimit: dailyLimit ? parseInt(dailyLimit) : null,
-            monthlySpendCap: monthlyCap ? parseFloat(monthlyCap) : null,
-            campaignApprovalRequired: approvalRequired === 'yes',
-            limitEnforcement: limitEnforcement
-        };
+        var payload = { name: name };
+        if (description) payload.description = description;
+        if (dailyLimit) payload.daily_send_limit = parseInt(dailyLimit);
+        if (monthlyCap) payload.monthly_spending_cap = parseFloat(monthlyCap);
+        if (limitEnforcement === 'hard') {
+            payload.enforcement_type = 'block';
+        } else {
+            payload.enforcement_type = 'warn';
+        }
         
-        var newSubAccount = {
-            id: 'sub-' + Date.now(),
-            name: name,
-            description: description,
-            users: [],
-            enforcementRules: enforcementRules,
-            createdAt: new Date().toISOString(),
-            createdBy: 'current-user'
-        };
+        var btn = document.getElementById('btn-create-sub-account');
+        btn.disabled = true;
+        btn.textContent = 'Creating...';
         
-        hierarchyData.subAccounts.push(newSubAccount);
-        
-        bootstrap.Modal.getInstance(document.getElementById('addSubAccountModal')).hide();
-        document.getElementById('add-sub-account-form').reset();
-        
-        renderHierarchy();
-        
-        var auditEntry = {
-            action: 'SUB_ACCOUNT_CREATED',
-            subAccountId: newSubAccount.id,
-            subAccountName: name,
-            description: description || null,
-            enforcementRules: enforcementRules,
-            createdBy: {
-                userId: 'user-001',
-                userName: 'Sarah Mitchell',
-                role: 'admin'
-            },
-            timestamp: new Date().toISOString(),
-            ipAddress: '192.168.1.100'
-        };
-        
-        console.log('[Audit] Sub-Account created:', auditEntry);
+        apiRequest('/api/sub-accounts', 'POST', payload).then(function(resp) {
+            bootstrap.Modal.getInstance(document.getElementById('addSubAccountModal')).hide();
+            document.getElementById('add-sub-account-form').reset();
+            showToast('success', 'Sub-Account Created', 'Sub-account "' + name + '" has been created successfully.');
+            loadHierarchy();
+        }).catch(function(err) {
+            showToast('error', 'Error', err.message);
+        }).finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Create Sub-Account';
+        });
     });
     
     var roleSelect = document.getElementById('invite-role');
@@ -1968,7 +1980,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     roleSelect.addEventListener('change', function() {
         var role = this.value;
-        var nonMessagingRoles = ['finance', 'auditor'];
+        var nonMessagingRoles = ['finance', 'readonly'];
         
         if (nonMessagingRoles.includes(role)) {
             senderCapabilityGroup.style.display = 'none';
@@ -1985,70 +1997,51 @@ document.addEventListener('DOMContentLoaded', function() {
         var role = document.getElementById('invite-role').value;
         var senderCapability = document.getElementById('invite-sender-capability').value;
         
-        var nonMessagingRoles = ['finance', 'auditor'];
+        var nonMessagingRoles = ['finance', 'readonly'];
         var requiresCapability = !nonMessagingRoles.includes(role);
         
         if (!email || !subAccountId || !role) {
-            alert('Please fill in all required fields');
+            showToast('warning', 'Missing Fields', 'Please fill in all required fields');
             return;
         }
         
         if (requiresCapability && !senderCapability) {
-            alert('Please select a Sender Capability Level');
+            showToast('warning', 'Missing Fields', 'Please select a Sender Capability Level');
             return;
         }
         
         var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            alert('Please enter a valid email address');
+            showToast('warning', 'Invalid Email', 'Please enter a valid email address');
             return;
         }
         
-        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
-        if (subAccount) {
-            var newUser = {
-                id: 'user-' + Date.now(),
-                name: email.split('@')[0],
-                email: email,
-                role: role,
-                senderCapability: requiresCapability ? senderCapability : null,
-                status: 'invited',
-                invitedAt: new Date().toISOString(),
-                expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-            };
-            
-            subAccount.users.push(newUser);
+        var payload = {
+            email: email,
+            role: role,
+            sub_account_id: subAccountId
+        };
+        if (requiresCapability && senderCapability) {
+            payload.sender_capability = senderCapability;
         }
         
-        bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
-        document.getElementById('invite-user-form').reset();
-        senderCapabilityGroup.style.display = 'block';
+        var btn = document.getElementById('btn-send-invite');
+        btn.disabled = true;
+        btn.textContent = 'Sending...';
         
-        renderHierarchy();
-        
-        var auditEntry = {
-            action: 'USER_INVITED',
-            email: email,
-            subAccountId: subAccountId,
-            subAccountName: subAccount ? subAccount.name : null,
-            role: role,
-            senderCapability: requiresCapability ? senderCapability : 'N/A',
-            invitedBy: {
-                userId: 'user-001',
-                userName: 'Sarah Mitchell',
-                role: 'admin'
-            },
-            timestamp: new Date().toISOString(),
-            inviteExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-            ipAddress: '192.168.1.100'
-        };
-        
-        console.log('[Audit] User invited:', auditEntry);
-        
-        alert('Invitation sent to ' + email + '. The user will receive an email to complete their setup.');
+        apiRequest('/api/invitations', 'POST', payload).then(function(resp) {
+            bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
+            document.getElementById('invite-user-form').reset();
+            senderCapabilityGroup.style.display = 'block';
+            showToast('success', 'Invitation Sent', 'Invitation sent to ' + email + '.');
+            loadHierarchy();
+        }).catch(function(err) {
+            showToast('error', 'Error', err.message);
+        }).finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Send Invitation';
+        });
     });
-    
-    var isMainAccountAdmin = true;
     var directCreateTabItem = document.getElementById('direct-create-tab-item');
     var btnSendInvite = document.getElementById('btn-send-invite');
     var btnDirectCreate = document.getElementById('btn-direct-create');
@@ -2074,7 +2067,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     directRoleSelect.addEventListener('change', function() {
         var role = this.value;
-        var nonMessagingRoles = ['finance', 'auditor'];
+        var nonMessagingRoles = ['finance', 'readonly'];
         
         if (nonMessagingRoles.includes(role)) {
             directSenderCapabilityGroup.style.display = 'none';
@@ -2108,94 +2101,70 @@ document.addEventListener('DOMContentLoaded', function() {
         var reason = document.getElementById('direct-reason').value.trim();
         var confirmRisk = document.getElementById('direct-confirm-risk').checked;
         
-        var nonMessagingRoles = ['finance', 'auditor'];
+        var nonMessagingRoles = ['finance', 'readonly'];
         var requiresCapability = !nonMessagingRoles.includes(role);
         
         if (!firstName || !lastName || !email || !tempPassword || !subAccountId || !role || !reason) {
-            alert('Please fill in all required fields');
+            showToast('warning', 'Missing Fields', 'Please fill in all required fields');
             return;
         }
         
         if (requiresCapability && !senderCapability) {
-            alert('Please select a Sender Capability Level');
+            showToast('warning', 'Missing Fields', 'Please select a Sender Capability Level');
             return;
         }
         
         if (tempPassword.length < 12) {
-            alert('Password must be at least 12 characters');
+            showToast('warning', 'Invalid Password', 'Password must be at least 12 characters');
             return;
         }
         
         if (!confirmRisk) {
-            alert('You must acknowledge the risk before creating a user directly');
+            showToast('warning', 'Confirmation Required', 'You must acknowledge the risk before creating a user directly');
             return;
         }
         
         var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            alert('Please enter a valid email address');
+            showToast('warning', 'Invalid Email', 'Please enter a valid email address');
             return;
         }
         
-        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
-        if (subAccount) {
-            var newUser = {
-                id: 'user-' + Date.now(),
-                name: firstName + ' ' + lastName,
-                email: email,
-                role: role,
-                senderCapability: requiresCapability ? senderCapability : null,
-                status: 'active',
-                createdAt: new Date().toISOString(),
-                mustResetPassword: true,
-                mfaEnforced: true,
-                creationMethod: 'direct'
-            };
-            
-            subAccount.users.push(newUser);
+        var payload = {
+            email: email,
+            role: role,
+            sub_account_id: subAccountId,
+            first_name: firstName,
+            last_name: lastName
+        };
+        if (requiresCapability && senderCapability) {
+            payload.sender_capability = senderCapability;
         }
         
-        bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
-        document.getElementById('direct-create-form').reset();
-        document.getElementById('direct-confirm-risk').checked = false;
-        directSenderCapabilityGroup.style.display = 'block';
+        var btn = document.getElementById('btn-direct-create');
+        btn.disabled = true;
+        btn.textContent = 'Creating...';
         
-        var inviteTab = document.getElementById('invite-tab');
-        var bsTab = new bootstrap.Tab(inviteTab);
-        bsTab.show();
-        btnSendInvite.style.display = 'inline-block';
-        btnDirectCreate.style.display = 'none';
-        
-        renderHierarchy();
-        
-        var auditEntry = {
-            action: 'USER_CREATED_DIRECT',
-            riskLevel: 'HIGH',
-            user: {
-                name: firstName + ' ' + lastName,
-                email: email,
-                role: role,
-                senderCapability: requiresCapability ? senderCapability : 'N/A'
-            },
-            subAccountId: subAccountId,
-            subAccountName: subAccount ? subAccount.name : null,
-            reason: reason,
-            securityFlags: {
-                mustResetPassword: true,
-                mfaEnforced: true
-            },
-            createdBy: {
-                userId: 'user-001',
-                userName: 'Sarah Mitchell',
-                role: 'main-account-admin'
-            },
-            timestamp: new Date().toISOString(),
-            ipAddress: '192.168.1.100'
-        };
-        
-        console.log('[HIGH-RISK AUDIT] Direct user creation:', auditEntry);
-        
-        alert('User "' + firstName + ' ' + lastName + '" has been created.\n\nThey must:\n• Reset their password on first login\n• Enrol MFA immediately\n\nThis action has been logged.');
+        apiRequest('/api/invitations', 'POST', payload).then(function(resp) {
+            bootstrap.Modal.getInstance(document.getElementById('inviteUserModal')).hide();
+            document.getElementById('direct-create-form').reset();
+            document.getElementById('direct-confirm-risk').checked = false;
+            directSenderCapabilityGroup.style.display = 'block';
+            
+            var inviteTab = document.getElementById('invite-tab');
+            var bsTab = new bootstrap.Tab(inviteTab);
+            bsTab.show();
+            btnSendInvite.style.display = 'inline-block';
+            btnDirectCreate.style.display = 'none';
+            
+            showToast('success', 'User Created', 'User "' + firstName + ' ' + lastName + '" has been created. This action has been logged.');
+            loadHierarchy();
+        }).catch(function(err) {
+            showToast('error', 'Error', err.message);
+        }).finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Create User Directly';
+        });
     });
     
     document.getElementById('inviteUserModal').addEventListener('show.bs.modal', function() {
@@ -2259,7 +2228,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             document.getElementById('change-role-new').value = role;
             
-            var highRiskRoles = ['admin', 'security-officer'];
+            var highRiskRoles = ['admin'];
             var warningEl = document.getElementById('high-risk-warning');
             if (highRiskRoles.includes(role)) {
                 warningEl.style.display = 'block';
@@ -2313,37 +2282,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
-        if (subAccount) {
-            var user = subAccount.users.find(function(u) { return u.id === userId; });
-            if (user) {
-                user.role = newRole;
-            }
-        }
+        var btn = document.getElementById('btn-confirm-role-change');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
         
-        var auditEntry = {
-            action: 'ROLE_CHANGED',
-            userId: userId,
-            userName: userName,
-            previousRole: previousRole,
-            newRole: newRole,
-            reason: reason,
-            subAccountId: subAccountId,
-            changedBy: {
-                userId: 'user-001',
-                userName: 'Sarah Mitchell',
-                role: 'admin'
-            },
-            timestamp: new Date().toISOString(),
-            ipAddress: '192.168.1.100'
-        };
-        
-        console.log('[AUDIT] Role changed:', auditEntry);
-        
-        bootstrap.Modal.getInstance(document.getElementById('changeRoleModal')).hide();
-        renderHierarchy();
-        
-        showToast('success', 'Role Changed', userName + ' is now a ' + formatRole(newRole) + '. This change has been logged.');
+        apiRequest('/api/users/' + userId, 'PUT', { role: newRole }).then(function(resp) {
+            bootstrap.Modal.getInstance(document.getElementById('changeRoleModal')).hide();
+            showToast('success', 'Role Changed', userName + ' is now a ' + formatRole(newRole) + '. This change has been logged.');
+            loadHierarchy();
+        }).catch(function(err) {
+            showToast('error', 'Error', err.message);
+        }).finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Confirm Role Change';
+        });
     });
     
     document.getElementById('hierarchy-tree').addEventListener('click', function(e) {
@@ -2379,49 +2331,32 @@ document.addEventListener('DOMContentLoaded', function() {
         var subAccountId = document.getElementById('change-capability-sub-account-id').value;
         
         if (!newCapability || !reason) {
-            alert('Please select a new capability level and provide a reason for the change');
+            showToast('warning', 'Missing Fields', 'Please select a new capability level and provide a reason');
             return;
         }
         
         newCapability = newCapability.value;
         
         if (newCapability === previousCapability) {
-            alert('The new capability must be different from the current level');
+            showToast('warning', 'No Change', 'The new capability must be different from the current level');
             return;
         }
         
-        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
-        if (subAccount) {
-            var user = subAccount.users.find(function(u) { return u.id === userId; });
-            if (user) {
-                user.senderCapability = newCapability;
-            }
-        }
+        var btn = document.getElementById('btn-confirm-capability-change');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
         
-        var auditEntry = {
-            action: 'SENDER_CAPABILITY_CHANGED',
-            userId: userId,
-            userName: userName,
-            previousCapability: previousCapability,
-            newCapability: newCapability,
-            reason: reason,
-            subAccountId: subAccountId,
-            changedBy: {
-                userId: 'user-001',
-                userName: 'Sarah Mitchell',
-                role: 'admin'
-            },
-            timestamp: new Date().toISOString(),
-            ipAddress: '192.168.1.100'
-        };
-        
-        console.log('[AUDIT] Sender capability changed:', auditEntry);
-        
-        bootstrap.Modal.getInstance(document.getElementById('changeCapabilityModal')).hide();
-        renderHierarchy();
-        
-        var capLabel = newCapability === 'advanced' ? 'Advanced Sender' : 'Restricted Sender';
-        alert('Sender capability changed successfully.\n\n' + userName + ' is now a ' + capLabel + '.\n\nThis change has been logged.');
+        apiRequest('/api/users/' + userId, 'PUT', { sender_capability: newCapability }).then(function(resp) {
+            bootstrap.Modal.getInstance(document.getElementById('changeCapabilityModal')).hide();
+            var capLabel = newCapability === 'advanced' ? 'Advanced Sender' : 'Restricted Sender';
+            showToast('success', 'Capability Changed', userName + ' is now a ' + capLabel + '.');
+            loadHierarchy();
+        }).catch(function(err) {
+            showToast('error', 'Error', err.message);
+        }).finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Confirm Change';
+        });
     });
     
     var PERMISSION_CATEGORIES = {
@@ -2625,49 +2560,27 @@ document.addEventListener('DOMContentLoaded', function() {
     
     document.getElementById('btn-save-permissions').addEventListener('click', function() {
         var userId = document.getElementById('perm-user-id').value;
-        var subAccountId = document.getElementById('perm-sub-account-id').value;
         
-        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subAccountId; });
-        if (subAccount) {
-            var user = subAccount.users.find(function(u) { return u.id === userId; });
-            if (user) {
-                var previousOverrides = user.permissionOverrides || {};
-                user.permissionOverrides = JSON.parse(JSON.stringify(tempPermissionChanges));
-                
-                var changedPerms = [];
-                Object.keys(tempPermissionChanges).forEach(function(k) {
-                    if (previousOverrides[k] !== tempPermissionChanges[k]) {
-                        changedPerms.push(k);
-                    }
-                });
-                Object.keys(previousOverrides).forEach(function(k) {
-                    if (tempPermissionChanges[k] === undefined) {
-                        changedPerms.push(k + ' (reset)');
-                    }
-                });
-                
-                if (changedPerms.length > 0) {
-                    var auditEntry = {
-                        action: 'PERMISSIONS_UPDATED',
-                        userId: userId,
-                        userName: user.name,
-                        changesCount: changedPerms.length,
-                        changes: changedPerms,
-                        newOverrides: tempPermissionChanges,
-                        changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
-                        timestamp: new Date().toISOString(),
-                        ipAddress: '192.168.1.100'
-                    };
-                    console.log('[AUDIT] Permissions updated:', auditEntry);
-                }
-            }
-        }
+        var toggles = {};
+        document.querySelectorAll('.perm-toggle-input').forEach(function(input) {
+            toggles[input.getAttribute('data-perm')] = input.checked;
+        });
         
-        bootstrap.Modal.getInstance(document.getElementById('managePermissionsModal')).hide();
-        renderHierarchy();
+        var btn = document.getElementById('btn-save-permissions');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
         
-        var overrideCount = Object.keys(tempPermissionChanges).length;
-        showToast('success', 'Permissions saved', overrideCount + ' override(s) active. Changes have been logged.');
+        apiRequest('/api/users/' + userId, 'PUT', { permission_toggles: toggles }).then(function(resp) {
+            bootstrap.Modal.getInstance(document.getElementById('managePermissionsModal')).hide();
+            var overrideCount = Object.keys(tempPermissionChanges).length;
+            showToast('success', 'Permissions saved', overrideCount + ' override(s) active. Changes have been logged.');
+            loadHierarchy();
+        }).catch(function(err) {
+            showToast('error', 'Error', err.message);
+        }).finally(function() {
+            btn.disabled = false;
+            btn.textContent = 'Save Changes';
+        });
     });
     
     document.getElementById('btn-reset-all-overrides').addEventListener('click', function() {
@@ -2796,7 +2709,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
         if (!subAccount) return;
         
-        var action = newStatus === 'live' ? 'reactivate' : newStatus;
+        var actionMap = { 'live': 'reactivate', 'suspended': 'suspend', 'archived': 'archive' };
+        var action = actionMap[newStatus] || newStatus;
         var btnClass = newStatus === 'suspended' ? 'btn-warning' : (newStatus === 'archived' ? 'btn-danger' : 'btn-success');
         
         showConfirmModal(
@@ -2805,22 +2719,20 @@ document.addEventListener('DOMContentLoaded', function() {
             capitalise(action),
             btnClass,
             function() {
-                var previousStatus = subAccount.accountStatus;
-                subAccount.accountStatus = newStatus;
-                
-                console.log('[AUDIT] Sub-account status changed:', {
-                    action: 'SUB_ACCOUNT_STATUS_CHANGED',
-                    subAccountId: subId,
-                    subAccountName: subAccount.name,
-                    previousStatus: previousStatus,
-                    newStatus: newStatus,
-                    changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
-                    timestamp: new Date().toISOString()
+                var confirmBtn = document.getElementById('confirmModalBtn');
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Processing...';
+                apiRequest('/api/sub-accounts/' + subId + '/' + action, 'PUT').then(function(resp) {
+                    showToast('success', 'Status Changed', 'Sub-account status changed to ' + capitalise(newStatus));
+                    loadHierarchy();
+                    var offcanvasEl = document.getElementById('subAccountDetailDrawer');
+                    var offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+                    if (offcanvas) offcanvas.hide();
+                }).catch(function(err) {
+                    showToast('error', 'Error', err.message);
+                }).finally(function() {
+                    confirmBtn.disabled = false;
                 });
-                
-                openSubAccountDrawer(subId);
-                renderHierarchy();
-                showToast('success', 'Status Changed', 'Sub-account status changed to ' + capitalise(newStatus));
             }
         );
     };
@@ -2847,7 +2759,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (status === 'suspended') {
             statusPillHtml = '<span class="badge" style="background: #fef3c7; color: #92400e; font-size: 0.8rem; padding: 6px 12px;">Suspended</span>';
             actionsHtml = '<button class="btn btn-sm btn-success me-1" onclick="changeUserStatus(\'' + userId + '\', \'' + subId + '\', \'active\')">Reactivate</button>';
-            actionsHtml += '<button class="btn btn-sm btn-secondary" onclick="changeUserStatus(\'' + userId + '\', \'' + subId + '\', \'archived\')">Archive</button>';
         } else if (status === 'invited') {
             statusPillHtml = '<span class="badge" style="background: #dbeafe; color: #1e40af; font-size: 0.8rem; padding: 6px 12px;">Invited</span>';
             actionsHtml = '<button class="btn btn-sm btn-purple-outline">Resend Invite</button>';
@@ -2935,7 +2846,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var user = subAccount.users.find(function(u) { return u.id === userId; });
         if (!user) return;
         
-        var action = newStatus === 'active' ? 'reactivate' : newStatus;
+        var actionMap = { 'active': 'reactivate', 'suspended': 'suspend' };
+        var action = actionMap[newStatus] || newStatus;
         var btnClass = newStatus === 'suspended' ? 'btn-warning' : 'btn-success';
         
         showConfirmModal(
@@ -2944,89 +2856,55 @@ document.addEventListener('DOMContentLoaded', function() {
             capitalise(action),
             btnClass,
             function() {
-                var previousStatus = user.status;
-                user.status = newStatus;
-                
-                console.log('[AUDIT] User status changed:', {
-                    action: 'USER_STATUS_CHANGED',
-                    userId: userId,
-                    userName: user.name,
-                    subAccountId: subId,
-                    previousStatus: previousStatus,
-                    newStatus: newStatus,
-                    changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
-                    timestamp: new Date().toISOString()
+                var confirmBtn = document.getElementById('confirmModalBtn');
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Processing...';
+                apiRequest('/api/users/' + userId + '/' + action, 'PUT').then(function(resp) {
+                    showToast('success', 'Status Changed', 'User status changed to ' + capitalise(newStatus));
+                    loadHierarchy();
+                    var offcanvasEl = document.getElementById('userDetailDrawer');
+                    var offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+                    if (offcanvas) offcanvas.hide();
+                }).catch(function(err) {
+                    showToast('error', 'Error', err.message);
+                }).finally(function() {
+                    confirmBtn.disabled = false;
                 });
-                
-                openUserDetailDrawer(userId, subId);
-                renderHierarchy();
-                showToast('success', 'Status Changed', 'User status changed to ' + capitalise(newStatus));
             }
         );
     };
     
     document.getElementById('btn-save-limits').addEventListener('click', function() {
         var subId = document.getElementById('drawer-subaccount-id').value;
-        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
-        if (!subAccount) return;
         
-        var previousLimits = JSON.parse(JSON.stringify(subAccount.limits));
-        
-        subAccount.limits = {
-            spendCap: parseFloat(document.getElementById('drawer-spend-cap').value) || null,
-            messageCap: parseInt(document.getElementById('drawer-message-cap').value) || null,
-            dailyLimit: parseInt(document.getElementById('drawer-daily-limit').value) || null,
-            enforcementType: document.getElementById('drawer-enforcement-type').value,
-            hardStop: document.getElementById('drawer-hard-stop').checked
+        var payload = {
+            monthly_spending_cap: parseFloat(document.getElementById('drawer-spend-cap').value) || null,
+            monthly_message_cap: parseInt(document.getElementById('drawer-message-cap').value) || null,
+            daily_send_limit: parseInt(document.getElementById('drawer-daily-limit').value) || null,
+            enforcement_type: document.getElementById('drawer-enforcement-type').value,
+            hard_stop_enabled: document.getElementById('drawer-hard-stop').checked
         };
         
-        console.log('[AUDIT] Sub-account limits changed:', {
-            action: 'SUB_ACCOUNT_LIMITS_CHANGED',
-            subAccountId: subId,
-            subAccountName: subAccount.name,
-            previousLimits: previousLimits,
-            newLimits: subAccount.limits,
-            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
-            timestamp: new Date().toISOString()
-        });
+        var btn = document.getElementById('btn-save-limits');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
         
-        alert('Limits saved successfully. Changes have been logged.');
+        apiRequest('/api/sub-accounts/' + subId + '/limits', 'PUT', payload).then(function(resp) {
+            showToast('success', 'Limits Saved', 'Limits saved successfully. Changes have been logged.');
+            loadHierarchy();
+        }).catch(function(err) {
+            showToast('error', 'Error', err.message);
+        }).finally(function() {
+            btn.disabled = false;
+            btn.innerHTML = 'Save Changes';
+        });
     });
     
     document.getElementById('btn-save-notifications').addEventListener('click', function() {
-        var subId = document.getElementById('drawer-subaccount-id').value;
-        var subAccount = hierarchyData.subAccounts.find(function(s) { return s.id === subId; });
-        if (!subAccount) return;
-        
-        var notificationSettings = {
-            triggers: {
-                threshold75: document.getElementById('trigger-threshold-75').checked,
-                threshold90: document.getElementById('trigger-threshold-90').checked,
-                threshold100: document.getElementById('trigger-threshold-100').checked,
-                override: document.getElementById('trigger-override').checked
-            },
-            channels: {
-                email: document.getElementById('channel-email').checked,
-                portal: document.getElementById('channel-portal').checked,
-                sms: document.getElementById('channel-sms').checked
-            }
-        };
-        
-        subAccount.notificationSettings = notificationSettings;
-        
-        console.log('[AUDIT] Enforcement notification settings updated:', {
-            action: 'NOTIFICATION_SETTINGS_UPDATED',
-            subAccountId: subId,
-            subAccountName: subAccount.name,
-            settings: notificationSettings,
-            changedBy: { userId: 'user-001', userName: 'Sarah Mitchell', role: 'admin' },
-            timestamp: new Date().toISOString()
-        });
-        
         showToast('success', 'Settings saved', 'Notification settings have been updated.');
     });
     
-    renderHierarchy();
+    loadHierarchy();
 });
 </script>
 @endpush

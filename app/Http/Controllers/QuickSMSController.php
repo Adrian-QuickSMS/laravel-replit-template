@@ -3579,23 +3579,36 @@ class QuickSMSController extends Controller
     public function subAccounts()
     {
         $tenantId = session('customer_tenant_id');
+        $user = \Illuminate\Support\Facades\Auth::user();
 
-        // Load real sub-accounts from database if tenant context exists
-        $subAccountsList = [];
+        $accountName = 'My Account';
+        $currentUserData = [];
         if ($tenantId) {
             try {
-                \Illuminate\Support\Facades\DB::select("SELECT set_config('app.current_tenant_id', ?, false)", [$tenantId]);
-                $subAccountsList = \App\Models\SubAccount::orderBy('name')->get()
-                    ->map(fn($sa) => $sa->toPortalArray())
-                    ->toArray();
+                $account = \App\Models\Account::find($tenantId);
+                if ($account) {
+                    $accountName = $account->company_name ?? $account->trading_name ?? 'My Account';
+                }
             } catch (\Exception $e) {
-                \Log::warning('Failed to load sub-accounts: ' . $e->getMessage());
+                \Log::warning('Failed to load account: ' . $e->getMessage());
             }
+        }
+
+        if ($user) {
+            $currentUserData = [
+                'id' => $user->id,
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'is_account_owner' => $user->is_account_owner ?? false,
+                'sub_account_id' => $user->sub_account_id,
+            ];
         }
 
         return view('quicksms.account.users-access', [
             'page_title' => 'Sub Accounts, Users and Permissions',
-            'sub_accounts_data' => $subAccountsList,
+            'account_name' => $accountName,
+            'current_user' => $currentUserData,
         ]);
     }
 
