@@ -1,6 +1,6 @@
 /**
  * Inbox v2 — Composer module
- * Handles reply text area, channel toggle, char counting, template insertion,
+ * Handles reply text area, 3-channel toggle, char counting, template insertion,
  * emoji picker, personalisation fields, AI assistant, and RCS wizard integration.
  */
 var Composer = (function () {
@@ -10,7 +10,6 @@ var Composer = (function () {
     var onSendCallback = null;
     var pendingRcsPayload = null;
 
-    /* ── GSM-7 character set for accurate SMS counting ─── */
     var GSM7_BASIC = '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ ÆæßÉ' +
         ' !"#¤%&\'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
         'ÄÖÑÜabcdefghijklmnopqrstuvwxyz§äöñüà';
@@ -30,17 +29,18 @@ var Composer = (function () {
 
         var gsm = isGSM7(text);
         var len = 0;
+        var singleLimit, multiLimit;
 
         if (gsm) {
             for (var i = 0; i < text.length; i++) {
                 len += GSM7_EXT.indexOf(text[i]) !== -1 ? 2 : 1;
             }
-            var singleLimit = 160;
-            var multiLimit = 153;
+            singleLimit = 160;
+            multiLimit = 153;
         } else {
             len = text.length;
-            var singleLimit = 70;
-            var multiLimit = 67;
+            singleLimit = 70;
+            multiLimit = 67;
         }
 
         var parts = len <= singleLimit ? 1 : Math.ceil(len / multiLimit);
@@ -52,38 +52,42 @@ var Composer = (function () {
         };
     }
 
-    /* ── Initialise ────────────────────────────────────── */
     function init(onSend) {
         onSendCallback = onSend;
-        bindEvents();
+        bindChannelToggle();
+        bindTextarea();
+        bindSendButton();
+        bindTemplatePicker();
         bindEmojiPicker();
         bindPersonalisationPicker();
         bindAiAssistant();
         bindRcsWizard();
+        bindRcsClear();
+        populateSenderDropdowns();
     }
 
-    function bindEvents() {
-        // Channel toggle
+    function bindChannelToggle() {
         var radios = document.querySelectorAll('input[name="replyChannel"]');
         radios.forEach(function (r) {
             r.addEventListener('change', function () {
                 setChannel(this.value);
             });
         });
+    }
 
-        // Text input
+    function bindTextarea() {
         var textarea = document.getElementById('replyMessage');
-        if (textarea) {
-            textarea.addEventListener('input', updateCharCount);
-            textarea.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    send();
-                }
-            });
-        }
+        if (!textarea) return;
+        textarea.addEventListener('input', updateCharCount);
+        textarea.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send();
+            }
+        });
+    }
 
-        // Send button
+    function bindSendButton() {
         var sendBtn = document.getElementById('btnSendReply');
         if (sendBtn) {
             sendBtn.addEventListener('click', function (e) {
@@ -91,18 +95,15 @@ var Composer = (function () {
                 send();
             });
         }
+    }
 
-        // Template button
-        bindTool('btnTemplate', showTemplateSelector);
-
-        // RCS clear
+    function bindRcsClear() {
         var clearBtn = document.getElementById('rcsClearBtn');
         if (clearBtn) {
             clearBtn.addEventListener('click', clearRcsPayload);
         }
     }
 
-    /* ── Emoji Picker ──────────────────────────────────── */
     function bindEmojiPicker() {
         var btn = document.getElementById('btnEmoji');
         if (!btn) return;
@@ -110,18 +111,16 @@ var Composer = (function () {
         btn.addEventListener('click', function () {
             var modal = document.getElementById('inboxEmojiPickerModal');
             if (modal && typeof bootstrap !== 'undefined') {
-                var bsModal = bootstrap.Modal.getOrCreateInstance(modal);
-                bsModal.show();
+                bootstrap.Modal.getOrCreateInstance(modal).show();
             }
         });
 
-        // Delegate emoji button clicks
         var modalEl = document.getElementById('inboxEmojiPickerModal');
         if (modalEl) {
             modalEl.addEventListener('click', function (e) {
-                var btn = e.target.closest('.emoji-btn');
-                if (!btn) return;
-                var emoji = btn.getAttribute('data-emoji');
+                var emojiBtn = e.target.closest('.emoji-btn');
+                if (!emojiBtn) return;
+                var emoji = emojiBtn.getAttribute('data-emoji');
                 if (emoji) {
                     insertText(emoji);
                     updateCharCount();
@@ -130,7 +129,6 @@ var Composer = (function () {
         }
     }
 
-    /* ── Personalisation Fields ─────────────────────────── */
     function bindPersonalisationPicker() {
         var btn = document.getElementById('btnPersonalisation');
         if (!btn) return;
@@ -138,18 +136,16 @@ var Composer = (function () {
         btn.addEventListener('click', function () {
             var modal = document.getElementById('inboxPersonalisationModal');
             if (modal && typeof bootstrap !== 'undefined') {
-                var bsModal = bootstrap.Modal.getOrCreateInstance(modal);
-                bsModal.show();
+                bootstrap.Modal.getOrCreateInstance(modal).show();
             }
         });
 
-        // Delegate placeholder button clicks
         var modalEl = document.getElementById('inboxPersonalisationModal');
         if (modalEl) {
             modalEl.addEventListener('click', function (e) {
-                var btn = e.target.closest('.inbox-placeholder-btn');
-                if (!btn) return;
-                var field = btn.getAttribute('data-placeholder');
+                var placeholderBtn = e.target.closest('.inbox-placeholder-btn');
+                if (!placeholderBtn) return;
+                var field = placeholderBtn.getAttribute('data-placeholder');
                 if (field) {
                     insertText('{{' + field + '}}');
                     updateCharCount();
@@ -158,7 +154,6 @@ var Composer = (function () {
         }
     }
 
-    /* ── AI Content Assistant ──────────────────────────── */
     function bindAiAssistant() {
         var btn = document.getElementById('btnAiAssist');
         if (!btn) return;
@@ -167,7 +162,6 @@ var Composer = (function () {
             var textarea = document.getElementById('replyMessage');
             var currentText = textarea ? textarea.value.trim() : '';
 
-            // Populate current content display
             var contentEl = document.getElementById('inboxAiCurrentContent');
             if (contentEl) {
                 contentEl.innerHTML = currentText
@@ -175,7 +169,6 @@ var Composer = (function () {
                     : '<em class="text-muted">No content to improve — type a message first</em>';
             }
 
-            // Reset state
             var resultSection = document.getElementById('inboxAiResultSection');
             var loadingSection = document.getElementById('inboxAiLoadingSection');
             if (resultSection) resultSection.classList.add('d-none');
@@ -183,31 +176,20 @@ var Composer = (function () {
 
             var modal = document.getElementById('inboxAiAssistantModal');
             if (modal && typeof bootstrap !== 'undefined') {
-                var bsModal = bootstrap.Modal.getOrCreateInstance(modal);
-                bsModal.show();
+                bootstrap.Modal.getOrCreateInstance(modal).show();
             }
         });
 
-        // AI action buttons
         var modalEl = document.getElementById('inboxAiAssistantModal');
         if (modalEl) {
             modalEl.addEventListener('click', function (e) {
                 var actionBtn = e.target.closest('.inbox-ai-action-btn');
                 if (actionBtn) {
-                    var action = actionBtn.getAttribute('data-action');
-                    runAiImprove(action);
+                    runAiImprove(actionBtn.getAttribute('data-action'));
                     return;
                 }
-
-                if (e.target.closest('#inboxAiUseBtn')) {
-                    useAiSuggestion();
-                    return;
-                }
-
-                if (e.target.closest('#inboxAiDiscardBtn')) {
-                    discardAiSuggestion();
-                    return;
-                }
+                if (e.target.closest('#inboxAiUseBtn')) { useAiSuggestion(); return; }
+                if (e.target.closest('#inboxAiDiscardBtn')) { discardAiSuggestion(); return; }
             });
         }
     }
@@ -225,7 +207,6 @@ var Composer = (function () {
         if (loadingSection) loadingSection.classList.remove('d-none');
         if (resultSection) resultSection.classList.add('d-none');
 
-        // Simulate AI processing (replace with real API call when backend is ready)
         setTimeout(function () {
             var improved = simulateAiImprove(currentText, action);
             var suggestedEl = document.getElementById('inboxAiSuggestedContent');
@@ -257,13 +238,11 @@ var Composer = (function () {
     function useAiSuggestion() {
         var suggestedEl = document.getElementById('inboxAiSuggestedContent');
         if (!suggestedEl) return;
-
         var textarea = document.getElementById('replyMessage');
         if (textarea) {
             textarea.value = suggestedEl.textContent;
             updateCharCount();
         }
-
         var modal = document.getElementById('inboxAiAssistantModal');
         if (modal && typeof bootstrap !== 'undefined') {
             bootstrap.Modal.getInstance(modal).hide();
@@ -275,48 +254,34 @@ var Composer = (function () {
         if (resultSection) resultSection.classList.add('d-none');
     }
 
-    /* ── RCS Content Wizard ────────────────────────────── */
     function bindRcsWizard() {
         var btn = document.getElementById('btnRcsWizard');
         if (!btn) return;
 
         btn.addEventListener('click', function () {
-            // Use the v1 RCS wizard if available
             if (typeof openRcsWizard === 'function') {
                 openRcsWizard();
             } else {
-                // Fall back to opening the modal directly
                 var modal = document.getElementById('rcsWizardModal');
                 if (modal && typeof bootstrap !== 'undefined') {
-                    var bsModal = bootstrap.Modal.getOrCreateInstance(modal);
-                    bsModal.show();
+                    bootstrap.Modal.getOrCreateInstance(modal).show();
                 }
             }
         });
 
-        // Listen for RCS wizard "Apply" to capture the payload
         var applyBtn = document.getElementById('rcsApplyContentBtn');
         if (applyBtn) {
-            // Wrap the existing handler to also set payload in inbox composer
-            var origClick = applyBtn.onclick;
-            applyBtn.onclick = null;
             applyBtn.addEventListener('click', function () {
-                // Call original handler if it exists
                 if (typeof handleRcsApplyContent === 'function') {
                     handleRcsApplyContent();
                 }
-
-                // Capture payload from the wizard
                 if (typeof getRcsPayloadForSubmission === 'function') {
                     var payload = getRcsPayloadForSubmission();
                     if (payload) {
                         setRcsPayload(payload);
-                        // Auto-switch to RCS channel
-                        setChannel('rcs');
+                        setChannel('rcs_rich');
                     }
                 }
-
-                // Close the wizard modal
                 var modal = document.getElementById('rcsWizardModal');
                 if (modal && typeof bootstrap !== 'undefined') {
                     var instance = bootstrap.Modal.getInstance(modal);
@@ -326,12 +291,99 @@ var Composer = (function () {
         }
     }
 
-    function bindTool(id, handler) {
-        var el = document.getElementById(id);
-        if (el) el.addEventListener('click', handler);
+    function bindTemplatePicker() {
+        var selector = document.getElementById('inboxTemplateSelector');
+        if (selector) {
+            selector.addEventListener('change', function () {
+                applyTemplate(this.value);
+            });
+        }
+
+        var refreshBtn = document.getElementById('btnRefreshTemplates');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function () {
+                loadTemplates();
+            });
+        }
+
+        loadTemplates();
     }
 
-    /* ── Show / hide composer ──────────────────────────── */
+    function loadTemplates() {
+        var selector = document.getElementById('inboxTemplateSelector');
+        if (!selector) return;
+
+        var templates = (window.__inbox || {}).templates || [];
+
+        while (selector.options.length > 1) {
+            selector.remove(1);
+        }
+
+        templates.forEach(function (t) {
+            var opt = document.createElement('option');
+            opt.value = t.id || t.name;
+            opt.textContent = t.name;
+            opt.setAttribute('data-content', t.content || '');
+            opt.setAttribute('data-channel', t.channel || 'SMS');
+            selector.appendChild(opt);
+        });
+    }
+
+    function applyTemplate(val) {
+        if (!val) return;
+        var selector = document.getElementById('inboxTemplateSelector');
+        if (!selector) return;
+
+        var selected = selector.options[selector.selectedIndex];
+        if (!selected) return;
+
+        var content = selected.getAttribute('data-content') || '';
+        if (content) {
+            var textarea = document.getElementById('replyMessage');
+            if (textarea) {
+                textarea.value = content;
+                updateCharCount();
+                textarea.focus();
+            }
+        }
+    }
+
+    function populateSenderDropdowns() {
+        var data = window.__inbox || {};
+
+        var senderSelect = document.getElementById('inboxSenderSelect');
+        var senderList = data.sender_ids || data.senderIds || [];
+        if (senderSelect && senderList.length) {
+            senderList.forEach(function (s) {
+                var opt = document.createElement('option');
+                opt.value = typeof s === 'string' ? s : (s.value || s.id || s);
+                opt.textContent = typeof s === 'string' ? s : (s.label || s.name || s.value || s);
+                senderSelect.appendChild(opt);
+            });
+        }
+
+        var rcsSelect = document.getElementById('inboxRcsAgentSelect');
+        var rcsList = data.rcs_agents || data.rcsAgents || [];
+        if (rcsSelect && rcsList.length) {
+            rcsList.forEach(function (a) {
+                var opt = document.createElement('option');
+                opt.value = typeof a === 'string' ? a : (a.value || a.id || a);
+                opt.textContent = typeof a === 'string' ? a : (a.label || a.name || a.value || a);
+                rcsSelect.appendChild(opt);
+            });
+        }
+
+        var fallbackSelect = document.getElementById('inboxSmsFallbackSelect');
+        if (fallbackSelect && senderList.length) {
+            senderList.forEach(function (s) {
+                var opt = document.createElement('option');
+                opt.value = typeof s === 'string' ? s : (s.value || s.id || s);
+                opt.textContent = typeof s === 'string' ? s : (s.label || s.name || s.value || s);
+                fallbackSelect.appendChild(opt);
+            });
+        }
+    }
+
     function show() {
         var el = document.getElementById('replyComposer');
         if (el) el.classList.remove('d-none');
@@ -342,70 +394,128 @@ var Composer = (function () {
         if (el) el.classList.add('d-none');
     }
 
-    /* ── Channel switching ─────────────────────────────── */
     function setChannel(channel) {
         currentChannel = channel;
 
-        // Update radio state
-        var radio = document.getElementById(channel === 'rcs' ? 'channelRcs' : 'channelSms');
+        var radioMap = {
+            'sms': 'channelSms',
+            'rcs_basic': 'channelRcsBasic',
+            'rcs_rich': 'channelRcsRich',
+            'rcs': 'channelRcsBasic'
+        };
+        var radioId = radioMap[channel] || 'channelSms';
+        var radio = document.getElementById(radioId);
         if (radio) radio.checked = true;
 
-        // Toggle RCS-specific UI
-        var rcsWizardBtn = document.getElementById('btnRcsWizard');
-        if (rcsWizardBtn) rcsWizardBtn.style.display = channel === 'rcs' ? '' : 'none';
+        var isRcs = channel === 'rcs_basic' || channel === 'rcs_rich' || channel === 'rcs';
+        var isRichRcs = channel === 'rcs_rich';
+
+        var senderSection = document.getElementById('inboxSenderIdSection');
+        var rcsAgentSection = document.getElementById('inboxRcsAgentSection');
+        var smsFallbackSection = document.getElementById('inboxSmsFallbackSection');
+        var rcsRichSection = document.getElementById('rcsRichContentSection');
+        var contentLabel = document.getElementById('replyContentLabel');
+        var segmentDisplay = document.getElementById('segmentDisplay');
+
+        if (senderSection) senderSection.classList.toggle('d-none', isRcs);
+        if (rcsAgentSection) rcsAgentSection.classList.toggle('d-none', !isRcs);
+        if (smsFallbackSection) smsFallbackSection.classList.toggle('d-none', !isRcs);
+        if (rcsRichSection) rcsRichSection.classList.toggle('d-none', !isRichRcs);
+
+        if (contentLabel) {
+            contentLabel.textContent = isRcs ? 'Message Content' : 'SMS Content';
+        }
+
+        if (segmentDisplay) {
+            segmentDisplay.style.display = isRcs ? 'none' : '';
+        }
 
         updateCharCount();
     }
 
     function setChannelFromConversation(conv) {
-        setChannel(conv.channel || 'sms');
-        updateSenderInfo(conv);
+        var ch = conv.channel || 'sms';
+        if (ch === 'rcs') ch = 'rcs_basic';
+        setChannel(ch);
+        updateSenderFromConversation(conv);
     }
 
-    function updateSenderInfo(conv) {
-        var el = document.getElementById('composerSenderInfo');
-        if (!el) return;
+    function updateSenderFromConversation(conv) {
+        if (!conv) return;
 
-        var label = '';
-        if (conv.source_type === 'shortcode') label = 'via ' + conv.source;
-        else if (conv.source_type === 'vmn') label = 'via ' + conv.source;
-        else if (conv.source_type === 'rcs_agent') label = 'via ' + conv.source;
-        el.textContent = label;
+        if (conv.source_type === 'rcs_agent') {
+            var rcsSelect = document.getElementById('inboxRcsAgentSelect');
+            if (rcsSelect && conv.source) {
+                for (var i = 0; i < rcsSelect.options.length; i++) {
+                    if (rcsSelect.options[i].value === conv.source || rcsSelect.options[i].textContent === conv.source) {
+                        rcsSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        } else {
+            var senderSelect = document.getElementById('inboxSenderSelect');
+            if (senderSelect && conv.source) {
+                for (var i = 0; i < senderSelect.options.length; i++) {
+                    if (senderSelect.options[i].value === conv.source || senderSelect.options[i].textContent === conv.source) {
+                        senderSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
-    /* ── Character counting ────────────────────────────── */
     function updateCharCount() {
         var textarea = document.getElementById('replyMessage');
-        var countEl = document.getElementById('charCount');
-        if (!textarea || !countEl) return;
+        var charCountEl = document.getElementById('charCount');
+        var encodingEl = document.getElementById('encodingType');
+        var segmentEl = document.getElementById('smsPartCount');
+        var unicodeWarning = document.getElementById('unicodeWarning');
+
+        if (!textarea) return;
 
         var text = textarea.value;
 
-        if (currentChannel === 'rcs') {
-            countEl.textContent = text.length + ' / 1600 characters';
+        if (currentChannel === 'rcs_basic' || currentChannel === 'rcs_rich' || currentChannel === 'rcs') {
+            if (charCountEl) charCountEl.textContent = text.length;
+            if (encodingEl) encodingEl.textContent = 'UTF-8';
+            if (segmentEl) segmentEl.textContent = '1';
+            if (unicodeWarning) unicodeWarning.classList.add('d-none');
             return;
         }
 
         var info = countSmsSegments(text);
-        countEl.textContent = info.chars + ' / ' + info.limit + ' · ' +
-            info.parts + ' SMS' + (info.parts !== 1 ? 'es' : '') +
-            (info.encoding === 'UCS-2' ? ' (Unicode)' : '');
+        if (charCountEl) charCountEl.textContent = info.chars;
+        if (encodingEl) encodingEl.textContent = info.encoding;
+        if (segmentEl) segmentEl.textContent = info.parts;
+        if (unicodeWarning) {
+            unicodeWarning.classList.toggle('d-none', info.encoding !== 'UCS-2');
+        }
     }
 
-    /* ── Send message ──────────────────────────────────── */
+    function apiChannel() {
+        if (currentChannel === 'rcs_basic' || currentChannel === 'rcs_rich' || currentChannel === 'rcs') return 'rcs';
+        return 'sms';
+    }
+
     function send() {
         var textarea = document.getElementById('replyMessage');
         if (!textarea) return;
 
         var text = textarea.value.trim();
+        var isRcs = apiChannel() === 'rcs';
 
-        // Check for RCS rich card payload
-        if (pendingRcsPayload && currentChannel === 'rcs') {
+        if (pendingRcsPayload && isRcs) {
             if (onSendCallback) {
                 onSendCallback({
-                    channel: 'rcs',
+                    channel: apiChannel(),
+                    channel_detail: currentChannel,
                     message: text,
-                    rcs_payload: pendingRcsPayload
+                    rcs_payload: pendingRcsPayload,
+                    sender_id: getSenderId(),
+                    rcs_agent: getRcsAgent(),
+                    sms_fallback: getSmsFallback()
                 });
             }
             clearRcsPayload();
@@ -418,61 +528,59 @@ var Composer = (function () {
 
         if (onSendCallback) {
             onSendCallback({
-                channel: currentChannel,
+                channel: apiChannel(),
+                channel_detail: currentChannel,
                 message: text,
-                rcs_payload: null
+                rcs_payload: null,
+                sender_id: getSenderId(),
+                rcs_agent: isRcs ? getRcsAgent() : null,
+                sms_fallback: isRcs ? getSmsFallback() : null
             });
         }
 
         textarea.value = '';
         updateCharCount();
         textarea.focus();
+
+        var selector = document.getElementById('inboxTemplateSelector');
+        if (selector) selector.selectedIndex = 0;
     }
 
-    /* ── RCS payload management ────────────────────────── */
+    function getSenderId() {
+        var el = document.getElementById('inboxSenderSelect');
+        return el ? el.value : '';
+    }
+
+    function getRcsAgent() {
+        var el = document.getElementById('inboxRcsAgentSelect');
+        return el ? el.value : '';
+    }
+
+    function getSmsFallback() {
+        var el = document.getElementById('inboxSmsFallbackSelect');
+        return el ? el.value : '';
+    }
+
     function setRcsPayload(payload) {
         pendingRcsPayload = payload;
         var summary = document.getElementById('rcsConfiguredSummary');
+        var clearBtn = document.getElementById('rcsClearBtn');
+        var wizardText = document.getElementById('rcsWizardBtnText');
         if (summary) summary.classList.remove('d-none');
+        if (clearBtn) clearBtn.classList.remove('d-none');
+        if (wizardText) wizardText.textContent = 'Edit RCS Message';
     }
 
     function clearRcsPayload() {
         pendingRcsPayload = null;
         var summary = document.getElementById('rcsConfiguredSummary');
+        var clearBtn = document.getElementById('rcsClearBtn');
+        var wizardText = document.getElementById('rcsWizardBtnText');
         if (summary) summary.classList.add('d-none');
+        if (clearBtn) clearBtn.classList.add('d-none');
+        if (wizardText) wizardText.textContent = 'Create RCS Message';
     }
 
-    /* ── Template selector ─────────────────────────────── */
-    function showTemplateSelector() {
-        var templates = (window.__inbox || {}).templates || [];
-        if (templates.length === 0) {
-            InboxApp.comingSoon('No templates available');
-            return;
-        }
-
-        // Filter templates compatible with current channel
-        var compatible = templates.filter(function (t) {
-            if (currentChannel === 'sms') return t.channel === 'SMS';
-            return true; // RCS can use any template
-        });
-
-        if (compatible.length === 0) {
-            InboxApp.comingSoon('No templates for ' + currentChannel.toUpperCase());
-            return;
-        }
-
-        // Simple dropdown — in production, replace with a proper modal
-        var names = compatible.map(function (t, i) { return (i + 1) + '. ' + t.name; });
-        var choice = prompt('Select template:\n' + names.join('\n') + '\n\nEnter number:');
-        if (!choice) return;
-
-        var idx = parseInt(choice, 10) - 1;
-        if (idx >= 0 && idx < compatible.length) {
-            insertText(compatible[idx].content || '');
-        }
-    }
-
-    /* ── Insert text at cursor ─────────────────────────── */
     function insertText(text) {
         var textarea = document.getElementById('replyMessage');
         if (!textarea) return;
@@ -489,6 +597,10 @@ var Composer = (function () {
     }
 
     function getChannel() {
+        return apiChannel();
+    }
+
+    function getChannelDetail() {
         return currentChannel;
     }
 
@@ -497,14 +609,12 @@ var Composer = (function () {
         return textarea ? textarea.value : '';
     }
 
-    /* ── Helpers ────────────────────────────────────────── */
     function escapeHtml(str) {
         var div = document.createElement('div');
         div.appendChild(document.createTextNode(str));
         return div.innerHTML;
     }
 
-    /* ── Public API ────────────────────────────────────── */
     return {
         init: init,
         show: show,
@@ -512,6 +622,7 @@ var Composer = (function () {
         setChannel: setChannel,
         setChannelFromConversation: setChannelFromConversation,
         getChannel: getChannel,
+        getChannelDetail: getChannelDetail,
         getText: getText,
         insertText: insertText,
         setRcsPayload: setRcsPayload,

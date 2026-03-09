@@ -517,100 +517,60 @@
     background: var(--inbox-primary-light);
 }
 
-/* ─── Reply composer ───────────────────────────────────── */
-.inbox-composer {
+/* ─── Chat pane + composer wrapper ─────────────────────── */
+.chat-pane-with-composer {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ─── Reply composer (v1-matching card layout) ─────────── */
+#replyComposer {
     flex-shrink: 0;
     border-top: 1px solid var(--inbox-border);
     background: var(--inbox-bg);
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+#replyComposer .card-body {
     padding: 0.5rem 0.75rem;
 }
 
-.inbox-composer__channel-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.375rem;
-}
-
-.inbox-composer__channel-bar .btn-outline-primary {
-    font-size: 0.75rem;
+#replyComposer .btn-group .btn-outline-primary {
+    font-size: 0.8125rem;
     border-color: var(--inbox-primary);
     color: var(--inbox-primary);
 }
 
-.inbox-composer__channel-bar .btn-check:checked + .btn-outline-primary {
+#replyComposer .btn-group .btn-check:checked + .btn-outline-primary {
     background: var(--inbox-primary);
+    border-color: var(--inbox-primary);
     color: #fff;
 }
 
-.inbox-composer__sender {
-    font-size: 0.75rem;
-    color: var(--inbox-text-muted);
-}
-
-.inbox-composer__rcs-summary {
-    padding: 0.375rem 0.5rem;
-    background: var(--inbox-rcs-bg);
-    border-radius: 0.375rem;
-    margin-bottom: 0.375rem;
-}
-
-.inbox-composer__input-row {
-    display: flex;
-    align-items: flex-end;
-    gap: 0.375rem;
-}
-
-.inbox-composer__tools {
-    display: flex;
-    gap: 0.125rem;
-    flex-shrink: 0;
-}
-
-.inbox-composer__tools .btn {
-    color: var(--inbox-text-muted);
-    border: none;
-    background: none;
-    padding: 0.25rem 0.375rem;
-    font-size: 0.875rem;
-}
-
-.inbox-composer__tools .btn:hover {
-    color: var(--inbox-primary);
-}
-
-.inbox-composer__textarea {
-    flex: 1;
-    resize: none;
+#replyComposer .form-select-sm {
     font-size: 0.8125rem;
-    min-height: 2.25rem;
-    max-height: 8rem;
-    border-color: var(--inbox-border);
-    background: var(--inbox-bg-alt);
-    color: var(--inbox-text);
 }
 
-.inbox-composer__send {
-    flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
+#replyComposer .form-label {
+    font-size: 0.8125rem;
+}
+
+#replyComposer textarea.form-control {
+    font-size: 0.8125rem;
+    min-height: 60px;
+}
+
+#replyComposer .btn-primary {
     background: var(--inbox-primary);
     border-color: var(--inbox-primary);
 }
 
-.inbox-composer__send:hover {
+#replyComposer .btn-primary:hover {
     opacity: 0.9;
-}
-
-.inbox-composer__meta {
-    text-align: right;
-    font-size: 0.6875rem;
-    margin-top: 0.25rem;
 }
 
 /* ─── Contact panel — right sidebar ────────────────────── */
@@ -718,22 +678,37 @@
     color: var(--inbox-text);
 }
 
-[data-theme-version="dark"] .inbox-composer__textarea {
+[data-theme-version="dark"] #replyComposer {
+    background: var(--inbox-bg);
+    border-color: var(--inbox-border);
+}
+
+[data-theme-version="dark"] #replyComposer .card-body {
+    background: var(--inbox-bg);
+}
+
+[data-theme-version="dark"] #replyComposer textarea.form-control {
     background: var(--inbox-bg-alt);
     border-color: var(--inbox-border);
     color: var(--inbox-text);
 }
 
-[data-theme-version="dark"] .inbox-composer__textarea::placeholder {
+[data-theme-version="dark"] #replyComposer textarea.form-control::placeholder {
     color: var(--inbox-text-muted);
 }
 
-[data-theme-version="dark"] .inbox-composer__tools .btn {
-    color: var(--inbox-text-muted);
+[data-theme-version="dark"] #replyComposer .form-select {
+    background: var(--inbox-bg-alt);
+    border-color: var(--inbox-border);
+    color: var(--inbox-text);
 }
 
-[data-theme-version="dark"] .inbox-composer__tools .btn:hover {
-    color: var(--inbox-primary);
+[data-theme-version="dark"] #replyComposer .form-label {
+    color: var(--inbox-text);
+}
+
+[data-theme-version="dark"] #replyComposer .border {
+    border-color: var(--inbox-border) !important;
 }
 
 [data-theme-version="dark"] .chat-pane__header-actions .btn {
@@ -811,13 +786,9 @@
     background: var(--inbox-bg-alt) !important;
 }
 
-[data-theme-version="dark"] .inbox-composer__channel-bar .btn-outline-primary {
+[data-theme-version="dark"] #replyComposer .btn-group .btn-outline-primary {
     border-color: var(--inbox-primary);
     color: #b49ee0;
-}
-
-[data-theme-version="dark"] .inbox-composer__rcs-summary {
-    background: var(--inbox-rcs-bg);
 }
 
 /* Dark mode for modals used in inbox */

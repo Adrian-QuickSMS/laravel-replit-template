@@ -62,12 +62,16 @@ var InboxApp = (function () {
             ConversationList.updateSnippet(conv.id, payload.message, timeStr);
         }
 
-        // API call
-        apiPost(config.routes.sendReply + '/' + conv.id + '/reply', {
+        var postData = {
             message: payload.message,
             channel: payload.channel,
             rcs_payload: payload.rcs_payload
-        });
+        };
+        if (payload.sender_id) postData.sender_id = payload.sender_id;
+        if (payload.rcs_agent) postData.rcs_agent = payload.rcs_agent;
+        if (payload.sms_fallback) postData.sms_fallback = payload.sms_fallback;
+
+        apiPost(config.routes.sendReply + '/' + conv.id + '/reply', postData);
     }
 
     /* ── Global event bindings ─────────────────────────── */

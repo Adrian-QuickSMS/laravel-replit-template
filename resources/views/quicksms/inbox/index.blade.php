@@ -16,11 +16,11 @@
         {{-- Left: Conversation list --}}
         @include('quicksms.inbox.partials.conversation-list')
 
-        {{-- Centre: Chat thread --}}
-        @include('quicksms.inbox.partials.chat-pane')
-
-        {{-- Centre bottom: Reply composer --}}
-        @include('quicksms.inbox.partials.composer')
+        {{-- Centre: Chat thread + composer --}}
+        <div class="chat-pane-with-composer">
+            @include('quicksms.inbox.partials.chat-pane')
+            @include('quicksms.inbox.partials.composer')
+        </div>
 
         {{-- Right: Contact details sidebar --}}
         @include('quicksms.inbox.partials.contact-sidebar')

@@ -1,53 +1,112 @@
-{{-- Inbox: Reply composer --}}
-<div class="inbox-composer d-none" id="replyComposer">
-
-    {{-- Channel toggle --}}
-    <div class="inbox-composer__channel-bar">
-        <div class="btn-group btn-group-sm" role="group">
-            <input type="radio" class="btn-check" name="replyChannel" id="channelSms" value="sms" checked>
-            <label class="btn btn-outline-primary" for="channelSms"><i class="fas fa-sms me-1"></i>SMS</label>
-            <input type="radio" class="btn-check" name="replyChannel" id="channelRcs" value="rcs">
-            <label class="btn btn-outline-primary" for="channelRcs"><i class="fas fa-comment-dots me-1"></i>RCS</label>
+{{-- Inbox v2: Reply composer — matches v1 card-based layout --}}
+<div class="card border-top mb-0 d-none" id="replyComposer" style="border-radius: 0; flex-shrink: 0;">
+    <div class="card-body p-2">
+        <div class="row mb-2">
+            <div class="col-12 mb-1">
+                <label class="form-label small fw-bold mb-1">Channel & Sender</label>
+                <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" name="replyChannel" id="channelSms" value="sms" checked>
+                    <label class="btn btn-outline-primary" for="channelSms"><i class="fas fa-sms me-1"></i>SMS only</label>
+                    <input type="radio" class="btn-check" name="replyChannel" id="channelRcsBasic" value="rcs_basic">
+                    <label class="btn btn-outline-primary" for="channelRcsBasic" data-bs-toggle="tooltip" title="Text-only RCS with SMS fallback"><i class="fas fa-comment-dots me-1"></i>Basic RCS</label>
+                    <input type="radio" class="btn-check" name="replyChannel" id="channelRcsRich" value="rcs_rich">
+                    <label class="btn btn-outline-primary" for="channelRcsRich" data-bs-toggle="tooltip" title="Rich cards, images & buttons with SMS fallback"><i class="fas fa-image me-1"></i>Rich RCS</label>
+                </div>
+            </div>
+            <div class="col-md-6" id="inboxSenderIdSection">
+                <label class="form-label small mb-1">SMS Sender ID <span class="text-danger">*</span></label>
+                <select class="form-select form-select-sm" id="inboxSenderSelect">
+                    <option value="">Select sender...</option>
+                </select>
+            </div>
+            <div class="col-md-6 d-none" id="inboxRcsAgentSection">
+                <label class="form-label small mb-1">RCS Agent <span class="text-danger">*</span></label>
+                <select class="form-select form-select-sm" id="inboxRcsAgentSelect">
+                    <option value="">Select agent...</option>
+                </select>
+            </div>
+            <div class="col-md-6 d-none" id="inboxSmsFallbackSection">
+                <label class="form-label small mb-1">SMS Fallback Sender <span class="text-danger">*</span></label>
+                <select class="form-select form-select-sm" id="inboxSmsFallbackSelect">
+                    <option value="">Select fallback...</option>
+                </select>
+            </div>
         </div>
-        <div class="inbox-composer__sender" id="composerSenderInfo"></div>
-    </div>
 
-    {{-- RCS rich card summary (hidden until configured) --}}
-    <div class="inbox-composer__rcs-summary d-none" id="rcsConfiguredSummary">
-        <div class="d-flex align-items-center justify-content-between">
-            <span class="text-muted"><i class="fas fa-image me-1"></i> Rich card configured</span>
-            <button class="btn btn-sm btn-outline-danger" id="rcsClearBtn" title="Remove rich card">
-                <i class="fas fa-times"></i>
+        <div class="row align-items-center mb-2">
+            <div class="col-md-6 col-lg-5 mb-2 mb-md-0">
+                <div class="d-flex align-items-center gap-2">
+                    <label class="form-label mb-0 text-nowrap small">Template</label>
+                    <select class="form-select form-select-sm" id="inboxTemplateSelector">
+                        <option value="">-- None --</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btnRefreshTemplates" title="Refresh templates">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-7 text-md-end">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="btnAiAssist">
+                    <i class="fas fa-magic me-1"></i>Improve with AI
+                </button>
+            </div>
+        </div>
+
+        <label class="form-label small mb-1" id="replyContentLabel">SMS Content</label>
+        <div class="position-relative border rounded mb-2">
+            <textarea class="form-control border-0" id="replyMessage" rows="3" placeholder="Type your message here..." style="padding-bottom: 40px; resize: none;"></textarea>
+            <div class="position-absolute d-flex gap-2" style="bottom: 8px; right: 12px; z-index: 10;">
+                <button type="button" class="btn btn-sm btn-light border" id="btnPersonalisation" title="Insert personalisation">
+                    <i class="fas fa-user-tag"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-light border" id="btnEmoji" title="Insert emoji">
+                    <i class="fas fa-smile"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+                <span class="text-muted small me-3">Characters: <strong id="charCount">0</strong></span>
+                <span class="text-muted small me-3">Encoding: <strong id="encodingType">GSM-7</strong></span>
+                <span class="text-muted small" id="segmentDisplay">Segments: <strong id="smsPartCount">1</strong></span>
+            </div>
+            <span class="badge bg-warning text-dark d-none" id="unicodeWarning" data-bs-toggle="tooltip" title="This character causes the message to be sent using Unicode encoding.">
+                <i class="fas fa-exclamation-triangle me-1"></i>Unicode
+            </span>
+        </div>
+
+        <div class="d-none" id="rcsRichContentSection">
+            <div class="border rounded p-3 text-center mb-2" style="background: rgba(136, 108, 192, 0.1);">
+                <i class="fas fa-image fa-2x mb-2" style="color: #886CC0;"></i>
+                <h6 class="mb-2">Rich RCS Card</h6>
+                <p class="text-muted small mb-2">Create rich media cards with images, descriptions, and interactive buttons.</p>
+                <div id="rcsConfiguredSummary" class="d-none mb-2">
+                    <div class="alert alert-success py-2 px-3 small mb-2">
+                        <i class="fas fa-check-circle me-1"></i>
+                        <span id="rcsConfiguredText">RCS content configured</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 justify-content-center">
+                    <button type="button" class="btn btn-sm" style="background: #886CC0; color: white;" id="btnRcsWizard">
+                        <i class="fas fa-magic me-1"></i><span id="rcsWizardBtnText">Create RCS Message</span>
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm d-none" id="rcsClearBtn">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn btn-primary" id="btnSendReply">
+                <i class="far fa-paper-plane me-1"></i>Send Message
             </button>
         </div>
     </div>
-
-    {{-- Text area --}}
-    <div class="inbox-composer__input-row">
-        <div class="inbox-composer__tools">
-            <button class="btn btn-sm" id="btnEmoji" title="Emoji"><i class="far fa-smile"></i></button>
-            <button class="btn btn-sm" id="btnPersonalisation" title="Personalisation"><i class="fas fa-user-tag"></i></button>
-            <button class="btn btn-sm" id="btnTemplate" title="Templates"><i class="far fa-file-alt"></i></button>
-            <button class="btn btn-sm" id="btnRcsWizard" title="RCS Rich Card"><i class="fas fa-palette"></i></button>
-            <button class="btn btn-sm" id="btnAiAssist" title="AI Assistant"><i class="fas fa-magic"></i></button>
-        </div>
-        <textarea id="replyMessage"
-                  class="form-control inbox-composer__textarea"
-                  rows="2"
-                  placeholder="Type a message..."
-                  maxlength="1600"></textarea>
-        <button class="btn btn-primary inbox-composer__send" id="btnSendReply" title="Send">
-            <i class="fas fa-paper-plane"></i>
-        </button>
-    </div>
-
-    {{-- Character count --}}
-    <div class="inbox-composer__meta">
-        <span id="charCount" class="text-muted">0 / 160 &middot; 1 SMS</span>
-    </div>
 </div>
 
-{{-- ═══ Emoji Picker Modal (from v1 Send Message) ═══ --}}
+{{-- ═══ Emoji Picker Modal ═══ --}}
 <div class="modal fade" id="inboxEmojiPickerModal" tabindex="-1" style="z-index: 1060;">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -111,7 +170,7 @@
     </div>
 </div>
 
-{{-- ═══ Personalisation Fields Modal (from v1 Send Message) ═══ --}}
+{{-- ═══ Personalisation Fields Modal ═══ --}}
 <div class="modal fade" id="inboxPersonalisationModal" tabindex="-1" style="z-index: 1060;">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -143,7 +202,7 @@
     </div>
 </div>
 
-{{-- ═══ AI Content Assistant Modal (from v1 Send Message) ═══ --}}
+{{-- ═══ AI Content Assistant Modal ═══ --}}
 <div class="modal fade" id="inboxAiAssistantModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -189,5 +248,5 @@
     </div>
 </div>
 
-{{-- ═══ RCS Content Wizard (from v1) ═══ --}}
+{{-- ═══ RCS Content Wizard ═══ --}}
 @include('quicksms.partials.rcs-wizard-modal')
