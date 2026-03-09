@@ -2161,7 +2161,24 @@ function executeStatusChange() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Updating...';
 
-    AdminAccountBillingService.updateAccountStatus(accountId, newStatus, reason).then(function(result) {
+    fetch('/admin/api/accounts/' + accountId + '/status', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus, reason: reason })
+    })
+    .then(function(response) {
+        return response.json().then(function(data) {
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || data.message || 'Failed to change status');
+            }
+            return data;
+        });
+    })
+    .then(function(result) {
         statusChangeModal.hide();
         showToast('Account status changed to ' + (STATUS_META[newStatus]?.label || newStatus), 'success');
 
