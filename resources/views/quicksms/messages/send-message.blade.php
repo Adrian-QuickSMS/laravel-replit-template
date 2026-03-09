@@ -126,7 +126,7 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6" id="senderIdSection">
-                            @if(!empty($is_test_dynamic))
+                            @if(!empty($is_dynamic_sender))
                             <div class="d-flex align-items-center gap-2">
                                 <div class="flex-grow-1 position-relative" id="dynamicSenderWrapper">
                                     <input type="text" class="form-select" id="senderId" 
@@ -5972,23 +5972,23 @@ function showTestSentConfirmation(phoneNumber) {
 }
 </script>
 
-@if(!empty($is_test_dynamic))
+@if(!empty($is_dynamic_sender))
 <div class="modal fade" id="testDynamicSenderInfoModal" tabindex="-1" aria-labelledby="testDynamicSenderInfoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #fff; border-bottom: 1px solid #eee;">
-                <h6 class="modal-title" id="testDynamicSenderInfoModalLabel"><i class="fas fa-id-card me-2" style="color: #886CC0;"></i>Sender ID — Test Dynamic Mode</h6>
+                <h6 class="modal-title" id="testDynamicSenderInfoModalLabel"><i class="fas fa-id-card me-2" style="color: #886CC0;"></i>Sender ID — Dynamic Mode</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Your account is in <strong>Test Dynamic</strong> mode. You can select a registered Sender ID from the dropdown, or type any custom value directly.</p>
+                <p>Your account has <strong>Dynamic Sender ID</strong> enabled. You can select a registered Sender ID from the dropdown, or type any custom value directly.</p>
                 <p class="mb-2">Custom values are validated automatically based on what you type:</p>
                 <ul class="mb-3">
                     <li><strong>Alphanumeric</strong> — Up to 11 characters: letters, numbers, hyphens, underscores, ampersands, spaces</li>
                     <li><strong>Numeric</strong> — UK mobile number: 447 followed by 9 digits (12 digits total)</li>
                     <li><strong>Shortcode</strong> — Exactly 5 digits, starting with 6, 7, or 8</li>
                 </ul>
-                <p class="mb-0 text-muted">Once your account is activated, you will need to register and get approval for each Sender ID.</p>
+                <p class="mb-0 text-muted">Registered Sender IDs require approval before they can be used.</p>
             </div>
             <div class="modal-footer border-0">
                 <button type="button" class="btn btn-sm" style="background-color: #886CC0; color: #fff;" data-bs-dismiss="modal">Got it</button>
