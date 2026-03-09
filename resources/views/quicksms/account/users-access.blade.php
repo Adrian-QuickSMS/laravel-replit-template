@@ -35,8 +35,12 @@
     margin-bottom: 0;
     position: relative;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+}
+.main-account-node .main-account-users {
+    flex-basis: 100%;
 }
 .main-account-node .account-name {
     font-weight: 600;
@@ -1727,17 +1731,16 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '<button class="contextual-btn btn-add-user" data-sub-id="" type="button">+ Add User</button>';
         html += '<button class="contextual-btn btn-add-sub-account" type="button">+ Add Sub-Account</button>';
         html += '</div>';
-        html += '</div>';
         
         var mainUsers = hierarchyData.mainAccountUsers || [];
         if (mainUsers.length > 0) {
-            html += '<div class="main-account-users" style="margin: 0 0 8px 0; padding: 8px 12px; background: rgba(136, 108, 192, 0.06); border-radius: 8px; border: 1px solid rgba(136, 108, 192, 0.15);">';
+            html += '<div class="main-account-users" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.25);">';
             mainUsers.forEach(function(user) {
                 var hasMessagingRole = ['owner', 'admin', 'messaging_manager', 'user'].includes(user.role);
-                html += '<div class="user-row" data-user-id="' + user.id + '" data-sub-account-id="">';
+                html += '<div class="user-row" data-user-id="' + user.id + '" data-sub-account-id="" style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 8px 12px; margin-bottom: 6px;">';
                 html += '<div class="user-info">';
-                html += '<span class="user-name">' + escapeHtml(user.name) + '</span>';
-                html += '<span class="user-email">' + escapeHtml(user.email) + '</span>';
+                html += '<span class="user-name" style="color: #fff;">' + escapeHtml(user.name) + '</span>';
+                html += '<span class="user-email" style="color: rgba(255,255,255,0.8);">' + escapeHtml(user.email) + '</span>';
                 html += '</div>';
                 html += '<div class="user-pills">';
                 html += '<span class="role-pill ' + user.role + '">' + formatRole(user.role) + '</span>';
@@ -1747,13 +1750,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 html += '<span class="status-pill ' + user.status + '">' + capitalise(user.status) + '</span>';
                 if (user.isAccountOwner) {
-                    html += '<span class="badge" style="background: #f3e8ff; color: #7c3aed; font-size: 0.7rem; padding: 3px 8px;">Account Owner</span>';
+                    html += '<span class="badge" style="background: rgba(255,255,255,0.9); color: #7c3aed; font-size: 0.7rem; padding: 3px 8px;">Account Owner</span>';
                 }
                 html += '</div>';
                 html += '</div>';
             });
             html += '</div>';
         }
+        html += '</div>';
         
         html += '<div class="tree-connector"></div>';
         
